@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Configuracion;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Configuracion\ConfigSedeRequest;
-use App\Models\Configuracion\ConfigSede;
+use App\Http\Requests\Configuracion\ConfigSucursalRequest;
+use App\Models\Configuracion\ConfigSucursal;
 
 class ConfigSedeController extends Controller
 {

@@ -21,26 +21,9 @@ Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-Route::get('config-admin-salud', function () {
-    return view('configuracion.config-admin-salud');
-})->name('config.admin.salud');
-
-Route::get('config-diagnosticos', function () {
-    return view('configuracion.config-diagnosticos');
-})->name('config.diagnosticos');
-
-Route::get('config-prioridades', function () {
-    return view('configuracion.config-prioridades');
-})->name('config.prioridades');
-
-Route::get('config-productos', function () {
-    return view('configuracion.config-productos');
-})->name('config.productos');
-
-Route::get('config-sedes', function () {
-    return view('configuracion.config-sedes');
-})->name('config.sedes');
-
-Route::get('agenda', function () {
-    return view('agenda');
-})->name('agenda');
+Route::view('config-admin-salud', 'configuracion.config-admin-salud')->name('config.admin.salud');
+Route::view('config-diagnosticos', 'configuracion.config-diagnosticos')->name('config.diagnosticos');
+Route::view('config-prioridades', 'configuracion.config-prioridades')->name('config.prioridades');
+Route::view('config-productos', 'configuracion.config-productos')->name('config.productos');
+Route::view('config-sedes', 'configuracion.config-sedes')->name('config.sedes');
+Route::view('agenda', 'agenda')->name('agenda');

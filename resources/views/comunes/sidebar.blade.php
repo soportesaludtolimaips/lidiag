@@ -27,7 +27,7 @@
                         <span class="hide-menu">Configuración</span>
                     </a>
                     <ul aria-expanded="false" class="collapse">
-                        <li><a href="{{ route('config.diagnosticos') }}">Admin. De Salud</a></li>
+                        <li><a href="{{ route('config.admin.salud') }}">Admin. De Salud</a></li>
                         <li><a href="{{ route('config.diagnosticos') }}">Díagnosticos</a></li>
                         <li><a href="{{ route('config.productos') }}">Productos</a></li>
                         <li><a href="{{ route('config.sedes') }}">Sedes</a></li>

@@ -42,9 +42,13 @@
                                 cellspacing="0" width="100%">
                                 <thead>
                                     <tr>
-                                        <th>Raón Social</th>
-                                        <th>Dirección</th>
-                                        <th>Télefono</th>
+                                        <th>Sucursal</th>
+                                        <th>Ip Pacs</th>
+                                        <th>BD Pacs</th>
+                                        <th>Usuario Pacs</th>
+                                        <th>Pasword Pacs</th>
+                                        <th>Usuario Oviyam</th>
+                                        <th>Password Oviyam</th>
                                         <th>Url Oviyam</th>
                                         <th>Estado</th>
                                         <th></th>
@@ -52,13 +56,17 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="item in registros" :key="item.id">
-                                        <td>{{ item.razo_soci }}</td>
-                                        <td>{{ item.dir }}</td>
-                                        <td>{{ item.tel }}</td>
+                                        <td>{{ item.sucursal }}</td>
+                                        <td>{{ item.ip_dcm }}</td>
+                                        <td>{{ item.bd_dcm }}</td>
+                                        <td>{{ item.usuario_dcm }}</td>
+                                        <td>{{ item.password_dcm }}</td>
+                                        <td>{{ item.usuario_oviyam }}</td>
+                                        <td>{{ item.passwor_oviyam }}</td>
                                         <td>{{ item.url_oviyam }}</td>
                                         <td>
                                             <span class="label label-success" v-if="item.estado">Activo</span>
-                                            <span class="label label-danger" v-if="!item.estado">Inactivo</span>
+                                            <span class="label label-info" v-if="!item.estado">Inactivo</span>
                                         </td>
                                         <td class="text-nowrap">
                                             <button type="button"
@@ -105,40 +113,82 @@
                             <div class="row p-t-20">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Razónm Social</label>
-                                        <input type="text" id="razo_soci" name="razo_soci" v-model="registro.razo_soci"
+                                        <label class="control-label">Sucursal</label>
+                                        <input type="text" id="sucursal" name="sucursal" v-model="registro.sucursal"
                                             class="form-control" placeholder="Ingrese aqui la razón social de la sede">
                                         <span class="text-danger"
-                                            v-if="errores.razo_soci">{{errores.razo_soci[0]}}</span>
+                                            v-if="errores.sucursal">{{errores.sucursal[0]}}</span>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="row">
-                                <div class="col-md-10">
+                                <div class="col-md-3">
                                     <div class="form-group">
-                                        <label class="control-label">Dirección</label>
-                                        <input type="text" id="dir" name="dir" v-model="registro.dir"
-                                            class="form-control" placeholder="Ingrese aquí la dirección de la sede">
-                                        <span class="text-danger" v-if="errores.dir">{{errores.dir[0]}}</span>
+                                        <label class="control-label">Ip BD Dcm4chee</label>
+                                        <input type="text" id="ip_dcm" name="ip_dcm" v-model="registro.ip_dcm"
+                                            class="form-control" placeholder="Ip del Dcm4chee de la sucursal">
+                                        <span class="text-danger" v-if="errores.ip_dcm">{{errores.ip_dcm[0]}}</span>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-2">
+                            
+                                <div class="col-md-3">
                                     <div class="form-group">
-                                        <label class="control-label">Télefono</label>
-                                        <input type="text" id="tel" name="tel" v-model="registro.tel"
-                                            class="form-control"
-                                            placeholder="Ingrese aquí el número telefonico de la sede">
-                                        <span class="text-danger" v-if="errores.tel">{{errores.dir[0]}}</span>
+                                        <label class="control-label">BD</label>
+                                        <input type="text" id="bd_dcm" name="bd_dcm"
+                                            v-model="registro.bd_dcm" class="form-control"
+                                            placeholder="Ingrese aquí el nombre de la BD">
+                                        <span class="text-danger" v-if="errores.bd_dcm">{{errores.ip_dcm[0]}}</span>
+                                    </div>
+                                </div>
+                            
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="control-label">Usuario Bd</label>
+                                        <input type="text" id="usuario_dcm" name="usuario_dcm"
+                                            v-model="registro.usuario_dcm" class="form-control"
+                                            placeholder="Ingrese aquí la URL del Ovyam de la sede">
+                                        <span class="text-danger"
+                                            v-if="errores.usuario_dcm">{{errores.usuario_dcm[0]}}</span>
+                                    </div>
+                                </div>
+                            
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="control-label">Password Bd</label>
+                                        <input type="text" id="password" name="password"
+                                            v-model="registro.password" class="form-control"
+                                            placeholder="Ingrese aquí la URL del Ovyam de la sede">
+                                        <span class="text-danger"
+                                            v-if="errores.password">{{errores.password[0]}}</span>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="row">
-                                <div class="col-md-12">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="control-label">Usuario Oviyam</label>
+                                        <input type="text" id="usuario_oviyam" name="usuario_oviyam"
+                                            v-model="registro.usuario_oviyam" class="form-control"
+                                            placeholder="Ingrese aquí la URL del Ovyam de la sede">
+                                        <span class="text-danger"
+                                            v-if="errores.usuario_oviyam">{{errores.usuario_oviyam[0]}}</span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="control-label">Password Oviyam</label>
+                                        <input type="text" id="passwor_oviyam" name="passwor_oviyam"
+                                            v-model="registro.passwor_oviyam" class="form-control"
+                                            placeholder="Ingrese aquí la URL del Ovyam de la sede">
+                                        <span class="text-danger"
+                                            v-if="errores.passwor_oviyam">{{errores.passwor_oviyam[0]}}</span>
+                                    </div>
+                                </div>
+                            
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="control-label">Url Oviyam</label>
                                         <input type="text" id="url_oviyam" name="url_oviyam"
@@ -186,8 +236,6 @@
         <!-- ============================================================== -->
     </div>
 </template>
-
-
 <script>
 export default {
     mounted() {
@@ -197,7 +245,9 @@ export default {
         return {
             id: 0,
             registros: [],
-            registro: { razo_soci: '', dir: '', tel: '', url_oviyam: '', estado: 0 },
+            registro: { sucursal: '', ip_dcm: '', bd_dcm: '', usuario_dcm: '', password_dcm: '', usuario_oviyam: '', passwor_oviyam: '', url_oviyam: '', estado: 0 },
+            tituloModal: 'Nuevo registro',
+            actualizar: false,
             errores: {},
         };
     },
@@ -283,23 +333,31 @@ export default {
         },
         mostrarRegistro(data = {}) {
             if (this.actualizar == true) {
-                this.tituloModal = "Actualizar el registro: " + data.razo_soci;
+                this.tituloModal = "Actualizar el registro: " + data.sucursal;
                 this.id = data.id;
-                this.registro.razo_soci = data.razo_soci;
-                this.registro.dir = data.dir;
-                this.registro.tel = data.tel;
-                this.registro.url_oviyam = data.url_oviyam;
-                this.registro.estado = data.estado;
+                this.registros.sucursal = data.sucursal;
+                this.registros.ip_dcm = data.ip_dcm;
+                this.registros.bd_dcm = data.bd_dcm;
+                this.registros.usuario_dcm = data.usuario_dcm;
+                this.registros.password_dcm = data.password_dcm;
+                this.registros.usuario_oviyam = data.usuario_oviyam;
+                this.registros.passwor_oviyam = data.passwor_oviyam;
+                this.registros.url_oviyam = data.url_oviyam;
+                this.registros.estado  ;
                 $('#btnCerralModalForm').click();
             } else {
                 this.actualizar = false;
                 this.tituloModal = "Nuevo registro";
                 this.id = 0;
-                this.registro.razo_soci = "";
-                this.registro.dir = "";
-                this.registro.tel = "";
-                this.registro.url_oviyam = "";
-                this.registro.estado = 1;
+                this.registros.sucursal = "";
+                this.registros.ip_dcm = "";
+                this.registros.bd_dcm = "";
+                this.registros.usuario_dcm = "";
+                this.registros.password_dcm = "";
+                this.registros.usuario_oviyam = "";
+                this.registros.passwor_oviyam = "";
+                this.registros.url_oviyam = "";
+                this.registros.estado = 1;
                 $('#btnCerralModalForm').click();
             }
         },

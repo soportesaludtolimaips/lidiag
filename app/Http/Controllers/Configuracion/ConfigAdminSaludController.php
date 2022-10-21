@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Configuracion;
 
+use App\Http\Controllers\Controller;
 use App\Models\Configuracion\ConfigAdminSalud;
 use Illuminate\Http\Request;
 
