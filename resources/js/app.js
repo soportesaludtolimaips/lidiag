@@ -27,8 +27,8 @@ app.component('config-prioridad-component', configPrioridad);
 import configProducto from './components/configuracion/configProducto.vue';
 app.component('config-producto-component', configProducto);
 
-import configSede from './components/configuracion/configSede.vue';
-app.component('config-sede-component', configSede);
+import configSucursal from './components/configuracion/configSucursal.vue';
+app.component('config-sucursal-component', configSucursal);
 /**
  * The following block of code may be used to automatically register your
  * Vue components. It will recursively scan this directory for the Vue

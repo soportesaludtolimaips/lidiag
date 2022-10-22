@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Agenda;
 
 use App\Models\Agenda\AgendaProducto;
 use Illuminate\Http\Request;

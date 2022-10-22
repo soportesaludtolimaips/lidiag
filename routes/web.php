@@ -25,5 +25,5 @@ Route::view('config-admin-salud', 'configuracion.config-admin-salud')->name('con
 Route::view('config-diagnosticos', 'configuracion.config-diagnosticos')->name('config.diagnosticos');
 Route::view('config-prioridades', 'configuracion.config-prioridades')->name('config.prioridades');
 Route::view('config-productos', 'configuracion.config-productos')->name('config.productos');
-Route::view('config-sedes', 'configuracion.config-sedes')->name('config.sedes');
+Route::view('config-sucursales', 'configuracion.config-sucursales')->name('config.sucursales');
 Route::view('agenda', 'agenda')->name('agenda');

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Configuracion;
 
 use App\Models\Configuracion\ConfigPrioridade;
 use Illuminate\Http\Request;

@@ -11,8 +11,6 @@
     <meta name="author" content="">
     <!-- Favicon icon -->
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('admin-wrap/assets/images/favicon.png') }}">
-    <title>{{ config('app.name', 'Laravel') }}</title>
-
     <!-- Fonts -->
     <link rel="stylesheet" href="https://fonts.bunny.net/css2?family=Nunito:wght@400;600;700&display=swap">
 
@@ -52,8 +50,6 @@
 <![endif]-->
 
     @vite(['resources/js/app.js'])
-
-    <!-- Styles -->
 
 </head>
 
@@ -352,8 +348,6 @@
     <!-- Style switcher -->
     <!-- ============================================================== -->
     <script src="{{ asset('admin-wrap/assets/node_modules/styleswitcher/jQuery.style.switcher.js') }}"></script>
-
-    @vite('resources/js/app.js')
 </body>
 
 </html>

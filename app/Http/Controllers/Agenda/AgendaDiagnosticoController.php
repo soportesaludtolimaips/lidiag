@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Agenda;
 
+use App\Http\Controllers\Controller;
 use App\Models\Agenda\AgendaDiagnostico;
 use Illuminate\Http\Request;
 

@@ -30,7 +30,7 @@
                         <li><a href="{{ route('config.admin.salud') }}">Admin. De Salud</a></li>
                         <li><a href="{{ route('config.diagnosticos') }}">Díagnosticos</a></li>
                         <li><a href="{{ route('config.productos') }}">Productos</a></li>
-                        <li><a href="{{ route('config.sedes') }}">Sedes</a></li>
+                        <li><a href="{{ route('config.sucursales') }}">Sedes</a></li>
 
                     </ul>
                 </li>

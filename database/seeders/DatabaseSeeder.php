@@ -5,7 +5,7 @@ namespace Database\Seeders;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Database\Seeders\Configuracion\ConfigDiagnosticoSeeder;
 use Database\Seeders\Configuracion\ConfigProductoSeeder;
-use Database\Seeders\Configuracion\ConfigSedeSeeder;
+use Database\Seeders\Configuracion\ConfigSucursalSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -26,6 +26,6 @@ class DatabaseSeeder extends Seeder
 
         $this->call(ConfigProductoSeeder::class);
         $this->call(ConfigDiagnosticoSeeder::class);
-        $this->call(ConfigSedeSeeder::class);
+        $this->call(ConfigSucursalSeeder::class);
     }
 }
