@@ -15,20 +15,27 @@ import { createApp } from 'vue';
 
 const app = createApp({});
 
-import configAdminSalud from './components/configuracion/configAdminSalud.vue';
-app.component('config-admin-salud', configAdminSalud);
+import configAdminSaludComponent from './components/configuracion/configAdminSaludComponent.vue';
+app.component('config-admin-salud-component', configAdminSaludComponent);
 
-import configDiagnostico from './components/configuracion/configDiagnostico.vue';
-app.component('config-diagnostico-component', configDiagnostico);
+import configDiagnosticoComponent from './components/configuracion/configDiagnosticoComponent.vue';
+app.component('config-diagnostico-component', configDiagnosticoComponent);
 
-import configPrioridad from './components/configuracion/configPrioridad.vue';
-app.component('config-prioridad-component', configPrioridad);
+import configPrioridadComponent from './components/configuracion/configPrioridadComponent.vue';
+app.component('config-prioridad-component', configPrioridadComponent);
 
-import configProducto from './components/configuracion/configProducto.vue';
-app.component('config-producto-component', configProducto);
+import configProductoComponent from './components/configuracion/configProductoComponent.vue';
+app.component('config-producto-component', configProductoComponent);
 
-import configSucursal from './components/configuracion/configSucursal.vue';
-app.component('config-sucursal-component', configSucursal);
+import configSucursalComponent from './components/configuracion/configSucursalComponent.vue';
+app.component('config-sucursal-component', configSucursalComponent);
+
+
+
+import AgendaComponent from './components/agenda/AgendaComponent.vue';
+app.component('agenda-component', AgendaComponent);
+
+
 /**
  * The following block of code may be used to automatically register your
  * Vue components. It will recursively scan this directory for the Vue

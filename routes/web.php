@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Dcm4chee\StudyController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,3 +28,6 @@ Route::view('config-prioridades', 'configuracion.config-prioridades')->name('con
 Route::view('config-productos', 'configuracion.config-productos')->name('config.productos');
 Route::view('config-sucursales', 'configuracion.config-sucursales')->name('config.sucursales');
 Route::view('agenda', 'agenda')->name('agenda');
+
+
+Route::view('agenda', 'agenda.agenda')->name('agenda.agenda');

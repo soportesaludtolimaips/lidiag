@@ -9,5 +9,9 @@ class ConfigAdminSalud extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['cod_admin_salud', 'nom_admin_salud', 'estado'];
+    protected $connection = 'mysql';
+
+    protected $table = 'config_admin_salud';
+
+    protected $fillable = ['cod_admin_salud', 'nit_admin_salud', 'nom_admin_salud', 'estado'];
 }

@@ -12,4 +12,6 @@ class Study extends Model
     protected $connection = 'mysql_sucursal';
 
     protected $table = 'study';
+
+    //protected $fillable = ['pk', 'patient_fk', 'accno_issuer_fk', 'study_iuid'];
 }

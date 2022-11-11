@@ -30,4 +30,4 @@ Route::resource('config-diagnosticos', ConfigDiagnosticoController::class)->name
 Route::resource('config-productos', ConfigProductoController::class)->names('config.productos')->except(['create', 'show']);
 Route::resource('config-sucursales', ConfigSucursalController::class)->names('config.sucursales')->except(['create', 'show']);
 
-Route::get('study', [StudyController::class, 'index'])->name('study.index');
+Route::get('study.listarEstudios', [StudyController::class, 'listarEstudios'])->name('study.listarEstudios');
