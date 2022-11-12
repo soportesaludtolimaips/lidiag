@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Configuracion\ConfigAdminSaludController;
 use App\Http\Controllers\Configuracion\ConfigProductoController;
 use App\Http\Controllers\Configuracion\ConfigDiagnosticoController;
+use App\Http\Controllers\Configuracion\ConfigPrioridadController;
 use App\Http\Controllers\Configuracion\ConfigSucursalController;
 
 use App\Http\Controllers\Dcm4chee\StudyController;
@@ -27,7 +28,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::resource('config-admin-salud', ConfigAdminSaludController::class)->names('config.admin.salud')->except(['create', 'show']);
 Route::resource('config-diagnosticos', ConfigDiagnosticoController::class)->names('config.diagnosticos')->except(['create', 'show']);
+Route::resource('config-prioridades', ConfigPrioridadController::class)->names('config.prioridades')->except(['create', 'show']);
 Route::resource('config-productos', ConfigProductoController::class)->names('config.productos')->except(['create', 'show']);
 Route::resource('config-sucursales', ConfigSucursalController::class)->names('config.sucursales')->except(['create', 'show']);
 
-Route::get('study.listarEstudios', [StudyController::class, 'listarEstudios'])->name('study.listarEstudios');
+Route::post('study.listarEstudios', [StudyController::class, 'listarEstudios'])->name('study.listarEstudios');

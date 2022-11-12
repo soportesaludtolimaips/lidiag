@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Configuracion;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Configuracion\ConfigPrioridadRequest;
 use App\Models\Configuracion\ConfigPrioridad;
 use Illuminate\Http\Request;
 
@@ -15,17 +16,8 @@ class ConfigPrioridadController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        $prioridades = ConfigPrioridad::all();
+        return response()->json($prioridades);
     }
 
     /**
@@ -34,31 +26,10 @@ class ConfigPrioridadController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ConfigPrioridadRequest $request, ConfigPrioridad $configPrioridad)
     {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Configuracion\ConfigPrioridad  $configPrioridad
-     * @return \Illuminate\Http\Response
-     */
-    public function show(ConfigPrioridad $configPrioridad)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Configuracion\ConfigPrioridad  $configPrioridad
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(ConfigPrioridad $configPrioridad)
-    {
-        //
+        $configPrioridad->create($request->all());
+        return response()->json(['message' => 'Registro creado satisfactoriamente.']);
     }
 
     /**
@@ -70,7 +41,8 @@ class ConfigPrioridadController extends Controller
      */
     public function update(Request $request, ConfigPrioridad $configPrioridad)
     {
-        //
+        $configPrioridad->update($request->all());
+        return response()->json(['message' => 'Registro actualizado correctamente.']);
     }
 
     /**
@@ -81,6 +53,7 @@ class ConfigPrioridadController extends Controller
      */
     public function destroy(ConfigPrioridad $configPrioridad)
     {
-        //
+        $configPrioridad->delete();
+        return response()->json(['message' => 'Registro eliminado crrectamente.']);
     }
 }

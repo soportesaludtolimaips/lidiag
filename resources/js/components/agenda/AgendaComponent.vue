@@ -23,10 +23,10 @@
                 </button>
             </div>
             <!-- <div class="">
-                    <button class="right-side-toggle btn-info btn btn-circle btn-sm">
-                        <i class="fa fa-plus-circle m-r-5"></i>
-                    </button>
-                </div> -->
+                            <button class="right-side-toggle btn-info btn btn-circle btn-sm">
+                                <i class="fa fa-plus-circle m-r-5"></i>
+                            </button>
+                        </div> -->
         </div>
         <!-- ============================================================== -->
         <!-- End Bread crumb and right sidebar toggle -->
@@ -35,7 +35,6 @@
         <!-- ============================================================== -->
         <!-- Start Page Content -->
         <!-- ============================================================== -->
-
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -90,19 +89,16 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title text-themecolor">Listado de estudios</h4>
-                        <h6 class="card-subtitle">Estudios disponibles para agendamiento.</h6>
+                        <h4 class="card-title">Listado de administradoras de salud</h4>
+                        <h6 class="card-subtitle">Administración de las administradoras de salud "EPS".</h6>
                         <div class="table-responsive m-t-40">
                             <table id="example23" class="display nowrap table table-hover table-striped table-bordered"
                                 cellspacing="0" width="100%">
                                 <thead>
                                     <tr>
-                                        <th>Id</th>
-                                        <th>Fecha</th>
-                                        <th># Documento</th>
-                                        <th>Paciente</th>
-                                        <th>Acceso</th>
-                                        <th>Estudio</th>
+                                        <th>Código</th>
+                                        <th width="150px">Razón Social</th>
+                                        <th>Estado</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -142,7 +138,7 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div class="right-sidebar">
+        <div class="right-sidebar" style="width: 80%;">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -154,7 +150,159 @@
                     <!-- ============================================================== -->
                     <!-- Aqui va el contenido de los formularios -->
                     <!-- ============================================================== -->
+                    <form action="#">
+                        <div class="form-body">
 
+                            <div class="row">
+                                <div class="col-md-7">
+                                    <p class="text-info">
+                                        <i class="fa fa-user"></i> DATOS DEL PACIENTE
+                                    </p>
+                                    <div class="row">
+                                        <div class=" col-md-3">
+                                            <div class="form-group">
+                                                <label class="control-label"># de Documento</label>
+                                                <input type="text" id="pat_id" name="pat_id" v-model="registro.pat_id"
+                                                    class="form-control" placeholder="# de Documento">
+                                                <span class="text-danger" v-if="errores.pat_id">{{
+                                                        errores.pat_id[0]
+                                                }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-5">
+                                            <div class="form-group">
+                                                <label class="control-label">Nombres</label>
+                                                <input type="text" id="pat_name" name="pat_name"
+                                                    v-model="registro.pat_name" class="form-control"
+                                                    placeholder="Nombres">
+                                                <span class="text-danger" v-if="errores.pat_name">{{
+                                                        errores.pat_name[0]
+                                                }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label class="control-label">Sexo</label>
+                                                <input type="text" id="pat_sex" name="pat_sex"
+                                                    v-model="registro.pat_sex" class="form-control">
+                                                <span class="text-danger" v-if="errores.pat_sex">{{
+                                                        errores.pat_sex[0]
+                                                }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label class="control-label">Fac. Nacimiento</label>
+                                                <input type="date" id="fec_naci" name="fec_naci"
+                                                    v-model="registro.fec_naci" class="form-control">
+                                                <span class="text-danger" v-if="errores.fec_naci">{{
+                                                        errores.fec_naci[0]
+                                                }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <p class="text-info">
+                                        <i class="fa fa-user"></i> DATOS DEL ESTUDIO
+                                    </p>
+                                    <div class="row">
+                                        <div class="col-md-5">
+                                            <div class="form-group">
+                                                <label class="control-label">Descripción</label>
+                                                <input type="text" id="study_desc" name="study_desc"
+                                                    v-model="registro.study_desc" class="form-control"
+                                                    placeholder="# de Documento">
+                                                <span class="text-danger" v-if="errores.study_desc">{{
+                                                        errores.study_desc[0]
+                                                }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label class="control-label">Detalle</label>
+                                                <input type="text" id="accession_no" name="accession_no"
+                                                    v-model="registro.accession_no" class="form-control">
+                                                <span class="text-danger" v-if="errores.accession_no">{{
+                                                        errores.accession_no[0]
+                                                }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label class="control-label">Fecha</label>
+                                                <input type="text" id="study_datetime" name="study_datetime"
+                                                    v-model="registro.study_datetime" class="form-control">
+                                                <span class="text-danger" v-if="errores.study_datetime">{{
+                                                        errores.study_datetime[0]
+                                                }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="control-label">Observaciones</label>
+                                                <input type="text" id="observaciones" name="observaciones"
+                                                    v-model="registro.observaciones" class="form-control"
+                                                    placeholder="Ingrese aqi las observaciones del estudio">
+                                                <span class="text-danger" v-if="errores.observaciones">{{
+                                                        errores.observaciones[0]
+                                                }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-5">
+                                    <p class="text-info">
+                                        <i class="fa fa-user"></i> DATOS DEL AGENDAMIENTO
+                                    </p>
+                                    <div class="row">
+                                        <div class=" col-md-3">
+                                            <div class="form-group">
+                                                <label class="control-label">Medico</label>
+                                                <input type="text" id="pat_id" name="pat_id" v-model="registro.pat_id"
+                                                    class="form-control" placeholder="# de Documento">
+                                                <span class="text-danger" v-if="errores.pat_id">{{
+                                                        errores.pat_id[0]
+                                                }}</span>
+                                            </div>
+                                        </div>
+                                        <div class=" col-md-3">
+                                            <div class="form-group">
+                                                <label class="control-label">Prioridad</label>
+                                                <input type="text" id="pat_id" name="pat_id" v-model="registro.pat_id"
+                                                    class="form-control" placeholder="# de Documento">
+                                                <span class="text-danger" v-if="errores.pat_id">{{
+                                                        errores.pat_id[0]
+                                                }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="form-actions mt-3">
+                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
+                                    v-if="!actualizar">
+                                    <i class="fa fa-check"></i> Guardar
+                                </button>
+
+                                <button type="button" class="btn btn-warning m-r-5" v-if="actualizar"
+                                    @click="guardarRegistro()">
+                                    <i class="fa fa-pencil"></i> Actualizar
+                                </button>
+
+                                <button type="button" class="btn btn-inverse"
+                                    @click="btnCerralModalForm()">Cancel</button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -163,25 +311,44 @@
         <!-- ============================================================== -->
     </div>
 </template>
+
+
 <script>
 export default {
     mounted() {
-
     },
     data() {
         return {
+            id: 0,
             registros: [],
             tituloModal: 'Nuevo registro',
-            registro: {},
-            busqueda: { bus_nom_num_docu: '', fehc_ini: '', fecha_fin: '' }
-        }
+            registro: { pk_estudy: '', study_datetime: '', accession_no: '', study_desc: '', pk_patient: '', pat_id: '', pat_name: '', pat_sex: '', fec_naci: '', observaciones: '' },
+            busqueda: { bus_nom_num_docu: '', fehc_ini: '', fecha_fin: '' },
+            errores: {},
+        };
     },
     methods: {
         async buscarStudy() {
             const res = await axios.post('api/study.listarEstudios', this.busqueda);
             console.log("Registros " + res.data)
             this.registros = res.data;
+        },
+        mostrarRegistro(data = {}) {
+            this.tituloModal = "Agendar al paciente: " + data.pat_name;
+            this.id = data.id;
+            this.registro.pk_estudy = data.pk_estudy;
+            this.registro.study_datetime = data.study_datetime;
+            this.registro.accession_no = data.accession_no;
+            this.registro.study_desc = data.study_desc;
+            this.registro.pk_patient = data.pk_patient;
+            this.registro.pat_id = data.pat_id;
+            this.registro.pat_name = data.pat_name;
+            $('#btnCerralModalForm').click();
+
+        },
+        btnCerralModalForm() {
+            $('#btnCerralModalForm').click();
         }
-    }
-}
+    },
+};
 </script>

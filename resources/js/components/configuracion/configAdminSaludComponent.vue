@@ -109,8 +109,20 @@
                                         <input type="text" id="cod_admin_salud" name="cod_admin_salud"
                                             v-model="registro.cod_admin_salud" class="form-control"
                                             placeholder="Código">
-                                        <span class="text-danger"
-                                            v-if="errores.cod_admin_salud">{{ errores.cod_admin_salud[0] }}</span>
+                                        <span class="text-danger" v-if="errores.cod_admin_salud">{{
+                                        errores.cod_admin_salud[0]
+                                        }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="control-label">Nit</label>
+                                        <input type="text" id="nit_admin_salud" name="nit_admin_salud"
+                                            v-model="registro.nit_admin_salud" class="form-control" placeholder="Nit">
+                                        <span class="text-danger" v-if="errores.nit_admin_salud">{{
+                                        errores.nit_admin_salud[0]
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -122,8 +134,9 @@
                                         <input type="text" id="nom_admin_salud" name="nom_admin_salud"
                                             v-model="registro.nom_admin_salud" class="form-control"
                                             placeholder="Ingrese aquí el la razón sicual de la administradora de salud">
-                                        <span class="text-danger"
-                                            v-if="errores.nom_admin_salud">{{ errores.nom_admin_salud[0] }}</span>
+                                        <span class="text-danger" v-if="errores.nom_admin_salud">{{
+                                        errores.nom_admin_salud[0]
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -175,7 +188,7 @@ export default {
         return {
             id: 0,
             registros: [],
-            registro: { cod_admin_salud: '', nom_admin_salud: '', estado: 0 },
+            registro: { cod_admin_salud: '', nit_admin_salud: '', nom_admin_salud: '', estado: 0 },
             tituloModal: 'Nuevo registro',
             actualizar: false,
             errores: {},
@@ -188,7 +201,6 @@ export default {
             $('#example23').DataTable().destroy();
 
             this.registros = res.data;
-            console.log(res.data)
             this.$nextTick(() => {
                 $('#example23').DataTable({
                     dom: 'Bfrtip',
@@ -234,6 +246,8 @@ export default {
                         });
                     }
                 }
+
+
             } catch (error) {
                 console.log(error);
                 this.errores = error.response.data.errors;
@@ -265,6 +279,7 @@ export default {
                 this.tituloModal = "Actualizar el registro: " + data.nom_admin_salud;
                 this.id = data.id;
                 this.registro.cod_admin_salud = data.cod_admin_salud;
+                this.registro.nit_admin_salud = data.nit_admin_salud;
                 this.registro.nom_admin_salud = data.nom_admin_salud;
                 this.registro.estado = data.estado;
                 $('#btnCerralModalForm').click();
@@ -273,6 +288,7 @@ export default {
                 this.tituloModal = "Nuevo registro";
                 this.id = 0;
                 this.registro.cod_admin_salud = "";
+                this.registro.nit_admin_salud = "";
                 this.registro.nom_admin_salud = "";
                 this.registro.estado = 1;
                 $('#btnCerralModalForm').click();

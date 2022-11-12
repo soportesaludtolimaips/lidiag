@@ -9,5 +9,7 @@ class ConfigPrioridad extends Model
 {
     use HasFactory;
 
+    protected $table = 'config_prioridades';
+
     protected $fillable = ['nom_priori', 'nivel', 'tiempo', 'stado'];
 }

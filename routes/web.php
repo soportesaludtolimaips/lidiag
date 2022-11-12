@@ -27,7 +27,6 @@ Route::view('config-diagnosticos', 'configuracion.config-diagnosticos')->name('c
 Route::view('config-prioridades', 'configuracion.config-prioridades')->name('config.prioridades');
 Route::view('config-productos', 'configuracion.config-productos')->name('config.productos');
 Route::view('config-sucursales', 'configuracion.config-sucursales')->name('config.sucursales');
-Route::view('agenda', 'agenda')->name('agenda');
 
 
 Route::view('agenda', 'agenda.agenda')->name('agenda.agenda');

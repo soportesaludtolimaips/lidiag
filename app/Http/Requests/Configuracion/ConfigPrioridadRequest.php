@@ -13,7 +13,7 @@ class ConfigPrioridadRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,7 +24,16 @@ class ConfigPrioridadRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'nom_priori' => 'required|min:2|max:50',
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'nom_priori.required' => 'Te hizo falta la prioridad',
+            'nom_priori.min' => 'La prioridad debe tener mínimo 2 caracteres',
+            'nom_priori.max' => 'La prioridad debe tener máximo 50 caracteres',
         ];
     }
 }

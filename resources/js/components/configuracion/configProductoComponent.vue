@@ -18,7 +18,7 @@
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button type="button" class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="actualizar=false;mostrarRegistro()">
+                    @click="actualizar = false; mostrarRegistro()">
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
@@ -48,7 +48,7 @@
                                 <thead>
                                     <tr>
                                         <th>Cups</th>
-                                        <th width="150px">Producto</th>
+                                        <th>Producto</th>
                                         <th>%</th>
                                         <th>Val. Produc</th>
                                         <th>Lectura</th>
@@ -74,7 +74,7 @@
                                         <td class="text-nowrap">
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="actualizar=true; mostrarRegistro(item)">
+                                                @click="actualizar = true; mostrarRegistro(item)">
                                                 <i class="fa fa-pencil"></i>
                                             </button>
                                             <button type="button"
@@ -102,7 +102,7 @@
         <div class="right-sidebar">
             <div class="slimscrollright">
                 <div class="rpanel-title">
-                    {{tituloModal}}
+                    {{ tituloModal }}
                     <span>
                         <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
                     </span>
@@ -119,7 +119,8 @@
                                         <label class="control-label">Cups</label>
                                         <input type="text" id="cod_cups" name="cod_cups" v-model="registro.cod_cups"
                                             class="form-control" placeholder="Código cups">
-                                        <span class="text-danger" v-if="errores.cod_cups">{{errores.cod_cups[0]}}</span>
+                                        <span class="text-danger" v-if="errores.cod_cups">{{ errores.cod_cups[0]
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -131,8 +132,8 @@
                                         <input type="text" id="nom_produc" name="nom_produc"
                                             v-model="registro.nom_produc" class="form-control"
                                             placeholder="Ingrese aquí el nombre del producto">
-                                        <span class="text-danger"
-                                            v-if="errores.nom_produc">{{errores.nom_produc[0]}}</span>
+                                        <span class="text-danger" v-if="errores.nom_produc">{{ errores.nom_produc[0]
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>

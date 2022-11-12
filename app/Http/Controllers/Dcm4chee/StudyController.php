@@ -6,12 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Dcm4chee\Study;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Http\Request;
+use DB;
 
 class StudyController extends Controller
 {
     public function listarEstudios(Request $request, Study $study)
     {
-        /*  //Configuramos la segunda base de datos
+
+        //Configuramos la segunda base de datos
         config(['database.connections.mysql_sucursal' => [
             'driver' => 'mysql',
             'host' => env('DB_SUCURSAL_HOST', '127.0.0.1'),
@@ -22,20 +24,11 @@ class StudyController extends Controller
 
         //Aplicamos la nueva configuracion de bade datos
         Config::set('database.default', 'mysql_sucursal');
-*/
-        //$studyes = Study::where('pk', 1)->get();
-
-        //nueva conexion
-
-        Config::set('database.connections.mysql', 'lidiag');
 
 
-        /* Config::set('database.connections.mysql_sucursal.database', 'pacsdb');
-        $query = (new Query)->select(['study.pk as id_estudy', 'study.study_datetime', 'study.accession_no', 'study.study_desc', 'patient.pk', 'patient.pat_id', 'patient.pat_name'])
+        $query = DB::table('study')->select(['study.pk as pk_estudy', 'study.study_datetime', 'study.accession_no', 'study.study_desc', 'patient.pk as pk_patient', 'patient.pat_id', 'patient.pat_name', 'patient.pat_sex'])
             ->join('patient', 'study.patient_fk', 'patient.pk')
             ->where('patient.pk', 2)->get();
-
-        return $query;
-        return response()->json($query); */
+        return response()->json($query);
     }
 }

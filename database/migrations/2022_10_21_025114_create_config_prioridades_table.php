@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('config_prioridades', function (Blueprint $table) {
             $table->id();
-            $table->string('nom_priori');
+            $table->string('nom_priori', 50);
             $table->integer('nivel')->default(0);
             $table->integer('tiempo')->default(0);
             $table->boolean('estado')->default(1);

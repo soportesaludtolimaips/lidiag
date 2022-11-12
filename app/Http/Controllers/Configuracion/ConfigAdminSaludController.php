@@ -25,9 +25,10 @@ class ConfigAdminSaludController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ConfigAdminSaludRequest $request, ConfigAdminSalud $configAdminSalud)
     {
-        //
+        $configAdminSalud->create($request->all());
+        return response()->json(['message' => 'Registro creado satisfactoriamente.']);
     }
 
     /**
@@ -39,7 +40,8 @@ class ConfigAdminSaludController extends Controller
      */
     public function update(Request $request, ConfigAdminSalud $configAdminSalud)
     {
-        //
+        $configAdminSalud->update($request->all());
+        return response()->json(['message' => 'Registro actualizado correctamente.']);
     }
 
     /**
@@ -50,6 +52,7 @@ class ConfigAdminSaludController extends Controller
      */
     public function destroy(ConfigAdminSalud $configAdminSalud)
     {
-        //
+        $configAdminSalud->delete();
+        return response()->json(['message' => 'Registro eliminado crrectamente.']);
     }
 }

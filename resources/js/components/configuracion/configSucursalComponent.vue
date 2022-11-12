@@ -18,7 +18,7 @@
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button type="button" class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="actualizar=false;mostrarRegistro()">
+                    @click="actualizar = false; mostrarRegistro()">
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
@@ -72,7 +72,7 @@
                                         <td class="text-nowrap">
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="actualizar=true; mostrarRegistro(item)">
+                                                @click="actualizar = true; mostrarRegistro(item)">
                                                 <i class="fa fa-pencil"></i>
                                             </button>
                                             <button type="button"
@@ -100,7 +100,7 @@
         <div class="right-sidebar">
             <div class="slimscrollright">
                 <div class="rpanel-title">
-                    {{tituloModal}}
+                    {{ tituloModal }}
                     <span>
                         <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
                     </span>
@@ -117,7 +117,8 @@
                                         <label class="control-label">Sucursal</label>
                                         <input type="text" id="sucursal" name="sucursal" v-model="registro.sucursal"
                                             class="form-control" placeholder="Ingrese aqui la razón social de la sede">
-                                        <span class="text-danger" v-if="errores.sucursal">{{errores.sucursal[0]}}</span>
+                                        <span class="text-danger" v-if="errores.sucursal">{{ errores.sucursal[0]
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -128,36 +129,39 @@
                                         <label class="control-label">Ip BD Dcm4chee</label>
                                         <input type="text" id="ip_dcm" name="ip_dcm" v-model="registro.ip_dcm"
                                             class="form-control" placeholder="Ip del Dcm4chee de la sucursal">
-                                        <span class="text-danger" v-if="errores.ip_dcm">{{errores.ip_dcm[0]}}</span>
+                                        <span class="text-danger" v-if="errores.ip_dcm">{{ errores.ip_dcm[0] }}</span>
                                     </div>
                                 </div>
 
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <label class="control-label">BD</label>
+                                        <label class="control-label">BD DCM4CHEE</label>
                                         <input type="text" id="bd_dcm" name="bd_dcm" v-model="registro.bd_dcm"
                                             class="form-control" placeholder="Ingrese aquí el nombre de la BD">
-                                        <span class="text-danger" v-if="errores.bd_dcm">{{errores.ip_dcm[0]}}</span>
+                                        <span class="text-danger" v-if="errores.bd_dcm">{{ errores.ip_dcm[0] }}</span>
                                     </div>
                                 </div>
 
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <label class="control-label">Usuario Bd</label>
+                                        <label class="control-label">Usuario Bd DCM4CHEE</label>
                                         <input type="text" id="usuario_dcm" name="usuario_dcm"
                                             v-model="registro.usuario_dcm" class="form-control"
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
-                                        <span class="text-danger"
-                                            v-if="errores.usuario_dcm">{{errores.usuario_dcm[0]}}</span>
+                                        <span class="text-danger" v-if="errores.usuario_dcm">{{ errores.usuario_dcm[0]
+                                        }}</span>
                                     </div>
                                 </div>
 
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <label class="control-label">Password Bd</label>
-                                        <input type="text" id="password" name="password" v-model="registro.password"
-                                            class="form-control" placeholder="Ingrese aquí la URL del Ovyam de la sede">
-                                        <span class="text-danger" v-if="errores.password">{{errores.password[0]}}</span>
+                                        <label class="control-label">Password DCM4CHEE</label>
+                                        <input type="text" id="password_dcm" name="password_dcm"
+                                            v-model="registro.password_dcm" class="form-control"
+                                            placeholder="Ingrese aquí la URL del Ovyam de la sede">
+                                        <span class="text-danger" v-if="errores.password_dcm">{{
+                                        errores.password_dcm[0]
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -169,19 +173,21 @@
                                         <input type="text" id="usuario_oviyam" name="usuario_oviyam"
                                             v-model="registro.usuario_oviyam" class="form-control"
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
-                                        <span class="text-danger"
-                                            v-if="errores.usuario_oviyam">{{errores.usuario_oviyam[0]}}</span>
+                                        <span class="text-danger" v-if="errores.usuario_oviyam">{{
+                                        errores.usuario_oviyam[0]
+                                        }}</span>
                                     </div>
                                 </div>
 
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label class="control-label">Password Oviyam</label>
-                                        <input type="text" id="passwor_oviyam" name="passwor_oviyam"
-                                            v-model="registro.passwor_oviyam" class="form-control"
+                                        <input type="text" id="password_oviyam" name="password_oviyam"
+                                            v-model="registro.password_oviyam" class="form-control"
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
-                                        <span class="text-danger"
-                                            v-if="errores.passwor_oviyam">{{errores.passwor_oviyam[0]}}</span>
+                                        <span class="text-danger" v-if="errores.password_oviyam">{{
+                                        errores.password_oviyam[0]
+                                        }}</span>
                                     </div>
                                 </div>
 
@@ -191,8 +197,8 @@
                                         <input type="text" id="url_oviyam" name="url_oviyam"
                                             v-model="registro.url_oviyam" class="form-control"
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
-                                        <span class="text-danger"
-                                            v-if="errores.url_oviyam">{{errores.url_oviyam[0]}}</span>
+                                        <span class="text-danger" v-if="errores.url_oviyam">{{ errores.url_oviyam[0]
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -242,7 +248,7 @@ export default {
         return {
             id: 0,
             registros: [],
-            registro: { sucursal: '', ip_dcm: '', bd_dcm: '', usuario_dcm: '', password_dcm: '', usuario_oviyam: '', passwor_oviyam: '', url_oviyam: '', estado: 0 },
+            registro: { sucursal: '', ip_dcm: '', bd_dcm: '', usuario_dcm: '', password_dcm: '', usuario_oviyam: '', password_oviyam: '', url_oviyam: '', estado: 0 },
             tituloModal: 'Nuevo registro',
             actualizar: false,
             errores: {},
@@ -338,7 +344,7 @@ export default {
                 this.registro.usuario_dcm = data.usuario_dcm;
                 this.registro.password_dcm = data.password_dcm;
                 this.registro.usuario_oviyam = data.usuario_oviyam;
-                this.registro.passwor_oviyam = data.passwor_oviyam;
+                this.registro.password_oviyam = data.password_oviyam;
                 this.registro.url_oviyam = data.url_oviyam;
                 this.registro.estado;
                 $('#btnCerralModalForm').click();
@@ -352,7 +358,7 @@ export default {
                 this.registro.usuario_dcm = "";
                 this.registro.password_dcm = "";
                 this.registro.usuario_oviyam = "";
-                this.registro.passwor_oviyam = "";
+                this.registro.password_oviyam = "";
                 this.registro.url_oviyam = "";
                 this.registro.estado = 1;
                 $('#btnCerralModalForm').click();

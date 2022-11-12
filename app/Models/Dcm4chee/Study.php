@@ -4,6 +4,7 @@ namespace App\Models\Dcm4chee;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Dcm4chee\Patient;
 
 class Study extends Model
 {
@@ -14,4 +15,9 @@ class Study extends Model
     protected $table = 'study';
 
     //protected $fillable = ['pk', 'patient_fk', 'accno_issuer_fk', 'study_iuid'];
+
+    public function patient()
+    {
+        return $this->belongsTo(Patient::class);
+    }
 }
