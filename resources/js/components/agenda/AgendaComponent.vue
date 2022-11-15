@@ -17,7 +17,7 @@
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
-                <button type="button" class="btn btn-info btnDesplegarRigthSidebar"
+                <button type="button" class="btn btn-info right-side-toggle80"
                     @click="actualizar = false; mostrarRegistro()">
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
@@ -133,17 +133,21 @@
         <!-- ============================================================== -->
         <!-- End PAge Content -->
         <!-- ============================================================== -->
-
+        <div class="">
+            <button
+                class="right-side-toggle waves-effect waves-light btn-inverse btn btn-circle btn-sm pull-right m-l-10"><i
+                    class="ti-settings text-white"></i></button>
+        </div>
         <!-- ============================================================== -->
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div class="right-sidebar" style="width: 80%;">
+        <div class="right-sidebar">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <span>
-                        <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
+                        <i class="ti-close right-side-toggle"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
@@ -264,38 +268,45 @@
                                     <div class="row">
                                         <div class=" col-md-3">
                                             <div class="form-group">
-                                                <label class="control-label">Medico</label>
-                                                <input type="text" id="pat_id" name="pat_id" v-model="registro.pat_id"
-                                                    class="form-control" placeholder="# de Documento">
-                                                <span class="text-danger" v-if="errores.pat_id">{{
-                                                        errores.pat_id[0]
-                                                }}</span>
+                                                <label>Médico</label>
+                                                <select v:model="registro.user_id" name="user_id" id="user_id"
+                                                    class="form-control custom-select">
+                                                    <option>--Elige el medico--</option>
+                                                    <option v-for="(ItemMedico, index) in medicos" :key="index"
+                                                        value="{{ ItemMedico.id }}">{{ ItemMedico.name }}</option>
+                                                </select>
                                             </div>
                                         </div>
                                         <div class=" col-md-3">
                                             <div class="form-group">
                                                 <label class="control-label">Prioridad</label>
-                                                <input type="text" id="pat_id" name="pat_id" v-model="registro.pat_id"
-                                                    class="form-control" placeholder="# de Documento">
-                                                <span class="text-danger" v-if="errores.pat_id">{{
-                                                        errores.pat_id[0]
-                                                }}</span>
+                                                <select v:model="registro.prioridad_id" name="prioridad_id"
+                                                    id="prioridad_id" class="form-control custom-select">
+                                                    <option>--Elige la prioridad--</option>
+                                                    <option v-for="(ItemPrioridad, index) in prioridades" :key="index"
+                                                        value="{{ ItemPrioridad.id }}">{{ ItemPrioridad.nom_priori }}
+                                                    </option>
+                                                </select>
                                             </div>
                                         </div>
+                                    </div>
+                                    <p class="text-info">
+                                        <i class="fa fa-user"></i> PRODUCTOS
+                                    </p>
+                                    <div class="row">
+                                    </div>
+                                    <p class="text-info">
+                                        <i class="fa fa-user"></i> DIAGNOSTICOS
+                                    </p>
+                                    <div class="row">
                                     </div>
                                 </div>
                             </div>
 
 
                             <div class="form-actions mt-3">
-                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
-                                    v-if="!actualizar">
+                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()">
                                     <i class="fa fa-check"></i> Guardar
-                                </button>
-
-                                <button type="button" class="btn btn-warning m-r-5" v-if="actualizar"
-                                    @click="guardarRegistro()">
-                                    <i class="fa fa-pencil"></i> Actualizar
                                 </button>
 
                                 <button type="button" class="btn btn-inverse"
@@ -316,15 +327,19 @@
 <script>
 export default {
     mounted() {
+        this.listarMedicos();
+        this.listarPrioridades();
     },
     data() {
         return {
             id: 0,
             registros: [],
             tituloModal: 'Nuevo registro',
-            registro: { pk_estudy: '', study_datetime: '', accession_no: '', study_desc: '', pk_patient: '', pat_id: '', pat_name: '', pat_sex: '', fec_naci: '', observaciones: '' },
+            registro: { pk_estudy: '', study_datetime: '', accession_no: '', study_desc: '', pk_patient: '', pat_id: '', pat_name: '', pat_sex: '', fec_naci: '', observaciones: '', user_id: 0 },
             busqueda: { bus_nom_num_docu: '', fehc_ini: '', fecha_fin: '' },
             errores: {},
+            medicos: [],
+            prioridades: [],
         };
     },
     methods: {
@@ -344,11 +359,22 @@ export default {
             this.registro.pat_id = data.pat_id;
             this.registro.pat_name = data.pat_name;
             $('#btnCerralModalForm').click();
-
         },
         btnCerralModalForm() {
             $('#btnCerralModalForm').click();
+        },
+        async listarMedicos() {
+            const res = await axios.get('api/user.listarUsuarios/Medico');
+            this.medicos = res.data;
+        },
+        async listarPrioridades() {
+            const res = await axios.get('api/config-prioridades');
+            this.prioridades = res.data;
         }
     },
+    updated() {
+        /* $('#user_id').formSelect()
+        $('#tipo_docu_id').formSelect() */
+    }
 };
 </script>

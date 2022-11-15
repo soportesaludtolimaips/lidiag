@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Configuracion;
 
+use App\Models\Configuracion\ConfigPrioridad;
 use App\Models\Configuracion\ConfigPrioridade;
 use Illuminate\Http\Request;
 
@@ -14,7 +15,8 @@ class ConfigPrioridadeController extends Controller
      */
     public function index()
     {
-        //
+        $prioridades = ConfigPrioridad::all();
+        return response()->json($prioridades);
     }
 
     /**

@@ -10,6 +10,8 @@ use App\Http\Controllers\Configuracion\ConfigPrioridadController;
 use App\Http\Controllers\Configuracion\ConfigSucursalController;
 
 use App\Http\Controllers\Dcm4chee\StudyController;
+use App\Http\Controllers\Seguridad\UserController;
+
 /*
 /*
 |--------------------------------------------------------------------------
@@ -33,3 +35,5 @@ Route::resource('config-productos', ConfigProductoController::class)->names('con
 Route::resource('config-sucursales', ConfigSucursalController::class)->names('config.sucursales')->except(['create', 'show']);
 
 Route::post('study.listarEstudios', [StudyController::class, 'listarEstudios'])->name('study.listarEstudios');
+
+Route::get('user.listarUsuarios/{tipo_user}', [UserController::class, 'listarUsuarios'])->name('user.listarUsuarios');

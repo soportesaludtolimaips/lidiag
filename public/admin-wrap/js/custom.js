@@ -69,9 +69,12 @@ $(function() {
     // Right sidebar options
     // ============================================================== 
     $(".right-side-toggle").on('click', function() {
+		alert("Ok")
         $(".right-sidebar").slideDown(50);
         $(".right-sidebar").toggleClass("shw-rside");
     });
+	
+	
     // ============================================================== 
     // This is for the floating labels
     // ============================================================== 
