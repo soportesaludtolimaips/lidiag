@@ -16,6 +16,14 @@ return new class extends Migration
         Schema::create('lecturas', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('study_pk');
+            $table->string('study_iuid', 100);
+            $table->string('study_id', 50);
+            $table->dateTime('fec_estudio');
+            $table->string('accession_no', 20);
+            $table->string('study_desc', 250);
+
+            $table->unsignedBigInteger('paciente_id');
+            $table->foreign('paciente_id')->references('id')->on('pacientes');
 
             $table->unsignedBigInteger('medico_id');
             $table->foreign('medico_id')->references('id')->on('users');
@@ -31,6 +39,7 @@ return new class extends Migration
 
             $table->text('observaciones');
             $table->string('atencion');
+            $table->boolean('estado');
 
             $table->timestamps();
         });

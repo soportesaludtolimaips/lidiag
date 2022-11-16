@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Lectura;
 
+use App\Http\Controllers\Controller;
 use App\Models\Lecturas\Lectura;
 use Illuminate\Http\Request;
 
@@ -18,16 +19,6 @@ class LecturaController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -35,29 +26,7 @@ class LecturaController extends Controller
      */
     public function store(Request $request)
     {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Lecturas\Lectura  $lectura
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Lectura $lectura)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Lecturas\Lectura  $lectura
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Lectura $lectura)
-    {
-        //
+        return $request;
     }
 
     /**

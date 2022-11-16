@@ -32,7 +32,7 @@ app.component('config-sucursal-component', configSucursalComponent);
 
 
 
-import AsignarLecturaComponent from './components/agenda/AsignarLecturaComponent.vue';
+import AsignarLecturaComponent from './components/lecturas/AsignarLecturaComponent.vue';
 app.component('asignar-lectura-component', AsignarLecturaComponent);
 
 

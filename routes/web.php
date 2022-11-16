@@ -29,4 +29,4 @@ Route::view('config-productos', 'configuracion.config-productos')->name('config.
 Route::view('config-sucursales', 'configuracion.config-sucursales')->name('config.sucursales');
 
 
-Route::view('agenda', 'agenda.agenda')->name('agenda.agenda');
+Route::view('asignar-lectura', 'lecturas.asignar-lectura')->name('asignar-lectura');

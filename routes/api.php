@@ -11,6 +11,7 @@ use App\Http\Controllers\Configuracion\ConfigPrioridadController;
 use App\Http\Controllers\Configuracion\ConfigSucursalController;
 
 use App\Http\Controllers\Dcm4chee\StudyController;
+use App\Http\Controllers\Lectura\LecturaController;
 use App\Http\Controllers\Seguridad\UserController;
 
 /*
@@ -39,4 +40,4 @@ Route::post('study.listarEstudios', [StudyController::class, 'listarEstudios'])-
 
 Route::get('user.listarUsuarios/{tipo_user}', [UserController::class, 'listarUsuarios'])->name('user.listarUsuarios');
 
-Route::resource('agenda', AgendaController::class)->names('agenda');
+Route::resource('lecturas', LecturaController::class)->names('lecturas')->except(['create', 'show']);

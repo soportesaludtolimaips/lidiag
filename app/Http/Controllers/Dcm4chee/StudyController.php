@@ -26,7 +26,10 @@ class StudyController extends Controller
         Config::set('database.default', 'mysql_sucursal');
 
 
-        $query = DB::table('study')->select(['study.pk as pk_estudy', 'study.study_datetime', 'study.accession_no', 'study.study_desc', 'patient.pk as pk_patient', 'patient.pat_id', 'patient.pat_name', 'patient.pat_sex'])
+        $query = DB::table('study')->select([
+            'study.pk as study_pk', 'study.study_iuid', 'study.study_id', 'study.study_datetime', 'study.accession_no', 'study.study_desc',
+            'patient.pat_id', 'patient.pat_name', 'patient.pat_sex', 'patient.pat_birthdate'
+        ])
             ->join('patient', 'study.patient_fk', 'patient.pk')
             ->where('patient.pk', 2)->get();
         return response()->json($query);
