@@ -21,13 +21,13 @@ File: scss
 
 @import url('https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600,700');
 
+
 /******************* 
 Global Styles 
 *******************/
 
 * {
     outline: none;
-    
 }
 
 body {
@@ -45,15 +45,17 @@ html {
     min-height: 100%;
     background: $white;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale; 
+    -moz-osx-font-smoothing: grayscale;
 }
-a{
-    color:$themecolor;
+
+a {
+    color: $themecolor;
 }
+
 a:hover,
 a:focus {
     text-decoration: none;
-} 
+}
 
 a.link {
     color: $headingtext;
@@ -77,6 +79,7 @@ html body .mdi:before,
 html body .mdi-set {
     line-height: initial;
 }
+
 
 
 /*******************
@@ -156,6 +159,7 @@ html body {
 }
 
 
+
 /*******************
 Blockquote
 *******************/
@@ -173,6 +177,7 @@ html body blockquote {
 ol li {
     margin: 5px 0;
 }
+
 
 
 /*******************
@@ -247,6 +252,7 @@ html body {
         padding-bottom: 40px;
     }
 }
+
 
 
 /*******************
@@ -338,6 +344,7 @@ html body {
 }
 
 
+
 /*******************
 vertical alignment
 *******************/
@@ -355,6 +362,7 @@ html body {
 }
 
 
+
 /*******************
 Opacity
 *******************/
@@ -362,9 +370,11 @@ Opacity
 .op-5 {
     opacity: 0.5;
 }
+
 .op-3 {
     opacity: 0.3;
 }
+
 
 /*******************
 font weight
@@ -404,6 +414,7 @@ html body {
 }
 
 
+
 /*******************
 Border
 *******************/
@@ -428,6 +439,7 @@ html body {
         border: 1px solid $border!important;
     }
 }
+
 
 
 /*******************
@@ -460,6 +472,7 @@ Thumb size
 .radius {
     border-radius: $radius;
 }
+
 
 
 /*******************
@@ -514,6 +527,7 @@ html body {
         color: $themecolor;
     }
 }
+
 
 
 /*******************
@@ -586,6 +600,7 @@ html body {
 }
 
 
+
 /*******************
 Rounds
 *******************/
@@ -631,6 +646,7 @@ Rounds
 .round.round-primary {
     background: $primary;
 }
+
 
 
 /*******************
@@ -734,6 +750,7 @@ Labels
 }
 
 
+
 /*******************
  Badge
 ******************/
@@ -768,7 +785,7 @@ Labels
 
 .badge-warning {
     background-color: $warning;
-    color:$white;
+    color: $white;
 }
 
 .badge-danger {
@@ -786,6 +803,7 @@ Labels
 .badge-inverse {
     background-color: $inverse;
 }
+
 
 
 /*******************
@@ -810,6 +828,7 @@ ul.list-style-none {
 }
 
 
+
 /*******************
 dropdown-item
 ******************/
@@ -818,6 +837,7 @@ dropdown-item
     padding: 8px 1rem;
     color: $bodytext;
 }
+
 
 
 /*******************
@@ -855,8 +875,13 @@ Layouts
 }
 
 
+
 /*******************/
+
+
 /*single column*/
+
+
 /*******************/
 
 .single-column {
@@ -874,6 +899,7 @@ Layouts
     margin: 0 auto;
 }
 
+
 .progress {
-  height: 4px;
+    height: 4px;
 }

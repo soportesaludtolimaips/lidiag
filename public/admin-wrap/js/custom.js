@@ -18,7 +18,7 @@ $(function() {
     var set = function() {
         var width = (window.innerWidth > 0) ? window.innerWidth : this.screen.width;
         var topOffset = 0;
-        if (width < 4170) {
+        if (width < 1170) {
             $("body").addClass("mini-sidebar");
             $('.navbar-brand span').hide();
             $(".sidebartoggler i").addClass("ti-menu");
@@ -69,12 +69,9 @@ $(function() {
     // Right sidebar options
     // ============================================================== 
     $(".right-side-toggle").on('click', function() {
-		alert("Ok")
         $(".right-sidebar").slideDown(50);
         $(".right-sidebar").toggleClass("shw-rside");
     });
-	
-	
     // ============================================================== 
     // This is for the floating labels
     // ============================================================== 

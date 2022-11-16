@@ -134,9 +134,9 @@
         <!-- End PAge Content -->
         <!-- ============================================================== -->
         <div class="">
-            <button
-                class="right-side-toggle waves-effect waves-light btn-inverse btn btn-circle btn-sm pull-right m-l-10"><i
-                    class="ti-settings text-white"></i></button>
+            <button class="right-side-toggle waves-effect waves-light btn-inverse btn btn-circle btn-sm pull-right m-l-10">
+                <i class="ti-settings text-white"></i>
+                </button>
         </div>
         <!-- ============================================================== -->
         <!-- Right sidebar -->
