@@ -1,12 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Agenda;
+namespace App\Http\Controllers\Lectura;
 
-use App\Http\Controllers\Controller;
-use App\Models\Agenda\AgendaDiagnostico;
+use App\Models\Lecturas\Lectura;
 use Illuminate\Http\Request;
 
-class AgendaDiagnosticoController extends Controller
+class LecturaController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -42,10 +41,10 @@ class AgendaDiagnosticoController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Agenda\AgendaDiagnostico  $agendaDiagnostico
+     * @param  \App\Models\Lecturas\Lectura  $lectura
      * @return \Illuminate\Http\Response
      */
-    public function show(AgendaDiagnostico $agendaDiagnostico)
+    public function show(Lectura $lectura)
     {
         //
     }
@@ -53,10 +52,10 @@ class AgendaDiagnosticoController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Agenda\AgendaDiagnostico  $agendaDiagnostico
+     * @param  \App\Models\Lecturas\Lectura  $lectura
      * @return \Illuminate\Http\Response
      */
-    public function edit(AgendaDiagnostico $agendaDiagnostico)
+    public function edit(Lectura $lectura)
     {
         //
     }
@@ -65,10 +64,10 @@ class AgendaDiagnosticoController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Agenda\AgendaDiagnostico  $agendaDiagnostico
+     * @param  \App\Models\Lecturas\Lectura  $lectura
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, AgendaDiagnostico $agendaDiagnostico)
+    public function update(Request $request, Lectura $lectura)
     {
         //
     }
@@ -76,10 +75,10 @@ class AgendaDiagnosticoController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Agenda\AgendaDiagnostico  $agendaDiagnostico
+     * @param  \App\Models\Lecturas\Lectura  $lectura
      * @return \Illuminate\Http\Response
      */
-    public function destroy(AgendaDiagnostico $agendaDiagnostico)
+    public function destroy(Lectura $lectura)
     {
         //
     }

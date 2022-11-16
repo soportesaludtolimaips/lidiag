@@ -1,5 +1,5 @@
 @extends('layouts.app')
 
 @section('content')
-    <agenda-component />
+    <asignar-lectura-component />
 @endsection

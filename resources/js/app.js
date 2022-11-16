@@ -32,8 +32,8 @@ app.component('config-sucursal-component', configSucursalComponent);
 
 
 
-import AgendaComponent from './components/agenda/AgendaComponent.vue';
-app.component('agenda-component', AgendaComponent);
+import AsignarLecturaComponent from './components/agenda/AsignarLecturaComponent.vue';
+app.component('asignar-lectura-component', AsignarLecturaComponent);
 
 
 /**
