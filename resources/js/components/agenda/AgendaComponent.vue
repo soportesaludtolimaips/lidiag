@@ -134,9 +134,10 @@
         <!-- End PAge Content -->
         <!-- ============================================================== -->
         <div class="">
-            <button class="right-side-toggle waves-effect waves-light btn-inverse btn btn-circle btn-sm pull-right m-l-10">
+            <button
+                class="right-side-toggle waves-effect waves-light btn-inverse btn btn-circle btn-sm pull-right m-l-10">
                 <i class="ti-settings text-white"></i>
-                </button>
+            </button>
         </div>
         <!-- ============================================================== -->
         <!-- Right sidebar -->
@@ -156,9 +157,8 @@
                     <!-- ============================================================== -->
                     <form action="#">
                         <div class="form-body">
-
                             <div class="row">
-                                <div class="col-md-7">
+                                <div class="col-md-6">
                                     <p class="text-info">
                                         <i class="fa fa-user"></i> DATOS DEL PACIENTE
                                     </p>
@@ -169,7 +169,7 @@
                                                 <input type="text" id="pat_id" name="pat_id" v-model="registro.pat_id"
                                                     class="form-control" placeholder="# de Documento">
                                                 <span class="text-danger" v-if="errores.pat_id">{{
-                                                        errores.pat_id[0]
+                                                errores.pat_id[0]
                                                 }}</span>
                                             </div>
                                         </div>
@@ -181,7 +181,7 @@
                                                     v-model="registro.pat_name" class="form-control"
                                                     placeholder="Nombres">
                                                 <span class="text-danger" v-if="errores.pat_name">{{
-                                                        errores.pat_name[0]
+                                                errores.pat_name[0]
                                                 }}</span>
                                             </div>
                                         </div>
@@ -192,18 +192,50 @@
                                                 <input type="text" id="pat_sex" name="pat_sex"
                                                     v-model="registro.pat_sex" class="form-control">
                                                 <span class="text-danger" v-if="errores.pat_sex">{{
-                                                        errores.pat_sex[0]
+                                                errores.pat_sex[0]
                                                 }}</span>
                                             </div>
                                         </div>
 
                                         <div class="col-md-2">
                                             <div class="form-group">
-                                                <label class="control-label">Fac. Nacimiento</label>
+                                                <label class="control-label">Fec. Nacimi</label>
                                                 <input type="date" id="fec_naci" name="fec_naci"
                                                     v-model="registro.fec_naci" class="form-control">
                                                 <span class="text-danger" v-if="errores.fec_naci">{{
-                                                        errores.fec_naci[0]
+                                                errores.fec_naci[0]
+                                                }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class=" col-md-5">
+                                            <div class="form-group">
+                                                <label class="control-label">Dirección</label>
+                                                <input type="text" id="pat_id" name="pat_id" v-model="registro.pat_id"
+                                                    class="form-control">
+                                                <span class="text-danger" v-if="errores.pat_id">{{
+                                                errores.pat_id[0]
+                                                }}</span>
+                                            </div>
+                                        </div>
+                                        <div class=" col-md-2">
+                                            <div class="form-group">
+                                                <label class="control-label">Télefono</label>
+                                                <input type="text" id="pat_id" name="pat_id" v-model="registro.pat_id"
+                                                    class="form-control">
+                                                <span class="text-danger" v-if="errores.pat_id">{{
+                                                errores.pat_id[0]
+                                                }}</span>
+                                            </div>
+                                        </div>
+                                        <div class=" col-md-5">
+                                            <div class="form-group">
+                                                <label class="control-label">E - Mail</label>
+                                                <input type="email" id="email" name="email" v-model="registro.email"
+                                                    class="form-control">
+                                                <span class="text-danger" v-if="errores.email">{{
+                                                errores.email[0]
                                                 }}</span>
                                             </div>
                                         </div>
@@ -217,10 +249,9 @@
                                             <div class="form-group">
                                                 <label class="control-label">Descripción</label>
                                                 <input type="text" id="study_desc" name="study_desc"
-                                                    v-model="registro.study_desc" class="form-control"
-                                                    placeholder="# de Documento">
+                                                    v-model="registro.study_desc" class="form-control">
                                                 <span class="text-danger" v-if="errores.study_desc">{{
-                                                        errores.study_desc[0]
+                                                errores.study_desc[0]
                                                 }}</span>
                                             </div>
                                         </div>
@@ -231,7 +262,7 @@
                                                 <input type="text" id="accession_no" name="accession_no"
                                                     v-model="registro.accession_no" class="form-control">
                                                 <span class="text-danger" v-if="errores.accession_no">{{
-                                                        errores.accession_no[0]
+                                                errores.accession_no[0]
                                                 }}</span>
                                             </div>
                                         </div>
@@ -242,7 +273,7 @@
                                                 <input type="text" id="study_datetime" name="study_datetime"
                                                     v-model="registro.study_datetime" class="form-control">
                                                 <span class="text-danger" v-if="errores.study_datetime">{{
-                                                        errores.study_datetime[0]
+                                                errores.study_datetime[0]
                                                 }}</span>
                                             </div>
                                         </div>
@@ -255,18 +286,18 @@
                                                     v-model="registro.observaciones" class="form-control"
                                                     placeholder="Ingrese aqi las observaciones del estudio">
                                                 <span class="text-danger" v-if="errores.observaciones">{{
-                                                        errores.observaciones[0]
+                                                errores.observaciones[0]
                                                 }}</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-5">
+                                <div class="col-md-6">
                                     <p class="text-info">
                                         <i class="fa fa-user"></i> DATOS DEL AGENDAMIENTO
                                     </p>
                                     <div class="row">
-                                        <div class=" col-md-3">
+                                        <div class=" col-md-6">
                                             <div class="form-group">
                                                 <label>Médico</label>
                                                 <select v:model="registro.user_id" name="user_id" id="user_id"
@@ -277,7 +308,7 @@
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class=" col-md-3">
+                                        <div class=" col-md-6">
                                             <div class="form-group">
                                                 <label class="control-label">Prioridad</label>
                                                 <select v:model="registro.prioridad_id" name="prioridad_id"
@@ -292,17 +323,96 @@
                                     </div>
                                     <p class="text-info">
                                         <i class="fa fa-user"></i> PRODUCTOS
+                                        <button type="button"
+                                            class="btn waves-effect waves-light btn-xs btn-info float-right"
+                                            data-toggle="modal" data-target="#exampleModal">
+                                            <i class="fa fa-search"></i>
+                                        </button>
                                     </p>
                                     <div class="row">
+                                        <div class="col-md-12">
+                                            <select class="select2 form-control custom-select"
+                                                style="width: 100%; height:36px;">
+                                                <option v-for="(ItemProducto, index ) in productos"
+                                                    :value="ItemProducto.id" :key="index">
+                                                    {{ productos.nom_produc }}
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div class=" col-md-12">
+                                            <table id="example23"
+                                                class="display nowrap table table-hover table-striped table-bordered"
+                                                cellspacing="0" width="100%">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Código</th>
+                                                        <th width="150px">Producto</th>
+                                                        <th></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="item in registros" :key="item.id">
+                                                        <td>{{ item.pk }}</td>
+                                                        <td>{{ item.pk }}</td>
+                                                        <td class="text-nowrap">
+                                                            <button type="button"
+                                                                class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
+                                                                @click="actualizar = true; mostrarRegistro(item)">
+                                                                <i class="fa fa-pencil"></i>
+                                                            </button>
+                                                            <button type="button"
+                                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
+                                                                @click="elimnarRegistro(item.id)">
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                     <p class="text-info">
                                         <i class="fa fa-user"></i> DIAGNOSTICOS
+                                        <button type="button"
+                                            class="btn waves-effect waves-light btn-xs btn-info float-right">
+                                            <i class="fa fa-search"></i>
+                                        </button>
                                     </p>
                                     <div class="row">
+                                        <div class=" col-md-12">
+                                            <table id="example23"
+                                                class="display nowrap table table-hover table-striped table-bordered"
+                                                cellspacing="0" width="100%">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Código</th>
+                                                        <th width="150px">Diagnostico</th>
+                                                        <th></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="item in registros" :key="item.id">
+                                                        <td>{{ item.pk }}</td>
+                                                        <td>{{ item.pk }}</td>
+                                                        <td class="text-nowrap">
+                                                            <button type="button"
+                                                                class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
+                                                                @click="actualizar = true; mostrarRegistro(item)">
+                                                                <i class="fa fa-pencil"></i>
+                                                            </button>
+                                                            <button type="button"
+                                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
+                                                                @click="elimnarRegistro(item.id)">
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-
 
                             <div class="form-actions mt-3">
                                 <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()">
@@ -329,17 +439,19 @@ export default {
     mounted() {
         this.listarMedicos();
         this.listarPrioridades();
+        this.listarProductos();
     },
     data() {
         return {
             id: 0,
             registros: [],
             tituloModal: 'Nuevo registro',
-            registro: { pk_estudy: '', study_datetime: '', accession_no: '', study_desc: '', pk_patient: '', pat_id: '', pat_name: '', pat_sex: '', fec_naci: '', observaciones: '', user_id: 0 },
+            registro: { pk_estudy: '', study_datetime: '', accession_no: '', study_desc: '', pk_patient: '', pat_id: '', pat_name: '', pat_sex: '', fec_naci: '', observaciones: '', user_id: 0, email: '', direccion: '', telefono: '', prioridad_id: 0 },
             busqueda: { bus_nom_num_docu: '', fehc_ini: '', fecha_fin: '' },
             errores: {},
             medicos: [],
             prioridades: [],
+            productos: []
         };
     },
     methods: {
@@ -347,6 +459,31 @@ export default {
             const res = await axios.post('api/study.listarEstudios', this.busqueda);
             console.log("Registros " + res.data)
             this.registros = res.data;
+        },
+        async guardarRegistro() {
+            try {
+
+                const res = await axios.post('api/agenda', this.registro, this.busqueda);
+
+                if (res.status == 200) {
+
+                    //this.ListarDatos()
+
+                    /* $.toast({
+                        heading: 'Ok!!!',
+                        text: res.data.message,
+                        position: 'top-right',
+                        loaderBg: '#ff6849',
+                        icon: 'success',
+                        hideAfter: 3500,
+                        stack: 6
+                    }); */
+                }
+
+            } catch (error) {
+                console.log(error);
+                this.errores = error.response.data.errors;
+            }
         },
         mostrarRegistro(data = {}) {
             this.tituloModal = "Agendar al paciente: " + data.pat_name;
@@ -370,11 +507,39 @@ export default {
         async listarPrioridades() {
             const res = await axios.get('api/config-prioridades');
             this.prioridades = res.data;
+        },
+        async listarProductos() {
+            const res = await axios.get('api/config-productos');
+            this.productos = res.data;
         }
     },
-    updated() {
-        /* $('#user_id').formSelect()
-        $('#tipo_docu_id').formSelect() */
-    }
 };
+
+
+
+
 </script>
+<style scoped>
+.right-sidebar {
+    position: fixed;
+    right: -80%;
+    width: 80%;
+    display: none;
+    z-index: 1100;
+    background: #ffffff;
+    top: 0px;
+    padding-bottom: 20px;
+    height: 100%;
+    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
+    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
+    -webkit-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+}
+
+.shw-rside {
+    right: 0px;
+    width: 80%;
+    display: block;
+}
+</style>

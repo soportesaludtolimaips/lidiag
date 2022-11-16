@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Agenda\AgendaController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -37,3 +38,5 @@ Route::resource('config-sucursales', ConfigSucursalController::class)->names('co
 Route::post('study.listarEstudios', [StudyController::class, 'listarEstudios'])->name('study.listarEstudios');
 
 Route::get('user.listarUsuarios/{tipo_user}', [UserController::class, 'listarUsuarios'])->name('user.listarUsuarios');
+
+Route::resource('agenda', AgendaController::class)->names('agenda');
