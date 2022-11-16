@@ -26,7 +26,8 @@ class LecturaController extends Controller
      */
     public function store(Request $request)
     {
-        return $request;
+        $study = $request->registro_study;
+        $paciente = $request->registro_paciente;
     }
 
     /**

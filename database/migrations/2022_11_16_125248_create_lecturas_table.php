@@ -28,8 +28,8 @@ return new class extends Migration
             $table->unsignedBigInteger('medico_id');
             $table->foreign('medico_id')->references('id')->on('users');
 
-            $table->unsignedBigInteger('quien_agendo_id');
-            $table->foreign('quien_agendo_id')->references('id')->on('users');
+            $table->unsignedBigInteger('quien_registro_id');
+            $table->foreign('quien_registro_id')->references('id')->on('users');
 
             $table->unsignedBigInteger('sucursal_id');
             $table->foreign('sucursal_id')->references('id')->on('config_sucursales');
