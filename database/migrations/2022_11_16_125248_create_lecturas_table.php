@@ -37,9 +37,9 @@ return new class extends Migration
             $table->unsignedBigInteger('prioridad_id');
             $table->foreign('prioridad_id')->references('id')->on('config_prioridades');
 
-            $table->text('observaciones');
-            $table->string('atencion');
-            $table->boolean('estado');
+            $table->text('observaciones')->nullable();
+            $table->string('atencion')->nullable();
+            $table->boolean('estado')->default(1);
 
             $table->timestamps();
         });

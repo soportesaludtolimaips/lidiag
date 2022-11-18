@@ -17,10 +17,10 @@ return new class extends Migration
             $table->id();
             $table->string('num_docu', 15);
             $table->string('nombres', 50);
-            $table->string('direccion', 70);
-            $table->string('sexo', 1);
+            $table->string('direccion', 70)->nullable();
+            $table->string('sexo', 1)->nullable();
             $table->date('fec_naci')->nullable();
-            $table->string('tel', 15);
+            $table->string('tel', 15)->nullable();
             $table->timestamps();
         });
     }

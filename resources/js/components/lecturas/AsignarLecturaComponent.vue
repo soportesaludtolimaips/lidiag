@@ -167,7 +167,7 @@
                                             <div class="form-group">
                                                 <label class="control-label"># de Documento</label>
                                                 <input type="text" id="num_docu" name="num_docu"
-                                                    v-model="registro_paciente.num_docu" class="form-control"
+                                                    v-model="registro.num_docu" class="form-control"
                                                     placeholder="# de Documento">
                                                 <span class="text-danger" v-if="errores.num_docu">{{
                                                         errores.num_docu[0]
@@ -179,7 +179,7 @@
                                             <div class="form-group">
                                                 <label class="control-label">Nombres</label>
                                                 <input type="text" id="nombres" name="nombres"
-                                                    v-model="registro_paciente.nombres" class="form-control"
+                                                    v-model="registro.nombres" class="form-control"
                                                     placeholder="Nombres">
                                                 <span class="text-danger" v-if="errores.nombres">{{
                                                         errores.nombres[0]
@@ -190,8 +190,8 @@
                                         <div class="col-md-2">
                                             <div class="form-group">
                                                 <label class="control-label">Sexo</label>
-                                                <input type="text" id="sexo" name="sexo"
-                                                    v-model="registro_paciente.sexo" class="form-control">
+                                                <input type="text" id="sexo" name="sexo" v-model="registro.sexo"
+                                                    class="form-control">
                                                 <span class="text-danger" v-if="errores.sexo">{{
                                                         errores.sexo[0]
                                                 }}</span>
@@ -202,7 +202,7 @@
                                             <div class="form-group">
                                                 <label class="control-label">Fec. Nacimi</label>
                                                 <input type="date" id="fec_naci" name="fec_naci"
-                                                    v-model="registro_paciente.fec_naci" class="form-control">
+                                                    v-model="registro.fec_naci" class="form-control">
                                                 <span class="text-danger" v-if="errores.fec_naci">{{
                                                         errores.fec_naci[0]
                                                 }}</span>
@@ -214,7 +214,7 @@
                                             <div class="form-group">
                                                 <label class="control-label">Dirección</label>
                                                 <input type="text" id="direccion" name="direccion"
-                                                    v-model="registro_paciente.direccion" class="form-control">
+                                                    v-model="registro.direccion" class="form-control">
                                                 <span class="text-danger" v-if="errores.direccion">{{
                                                         errores.direccion[0]
                                                 }}</span>
@@ -224,7 +224,7 @@
                                             <div class="form-group">
                                                 <label class="control-label">Télefono</label>
                                                 <input type="text" id="telefono" name="telefono"
-                                                    v-model="registro_paciente.telefono" class="form-control">
+                                                    v-model="registro.telefono" class="form-control">
                                                 <span class="text-danger" v-if="errores.telefono">{{
                                                         errores.telefono[0]
                                                 }}</span>
@@ -233,8 +233,8 @@
                                         <div class=" col-md-5">
                                             <div class="form-group">
                                                 <label class="control-label">E - Mail</label>
-                                                <input type="email" id="email" name="email"
-                                                    v-model="registro_paciente.email" class="form-control">
+                                                <input type="email" id="email" name="email" v-model="registro.email"
+                                                    class="form-control">
                                                 <span class="text-danger" v-if="errores.email">{{
                                                         errores.email[0]
                                                 }}</span>
@@ -246,17 +246,16 @@
                                         <i class="fa fa-user"></i> DATOS DEL ESTUDIO
                                     </p>
 
-                                    <input type="text" id="study_pk" name="study_pk" v-model="registro_study.study_pk">
-                                    <input type="text" id="study_iuid" name="study_iuid"
-                                        v-model="registro_study.study_iuid">
-                                    <input type="text" id="study_id" name="study_id" v-model="registro_study.study_id">
+                                    <input type="text" id="study_pk" name="study_pk" v-model="registro.study_pk">
+                                    <input type="text" id="study_iuid" name="study_iuid" v-model="registro.study_iuid">
+                                    <input type="text" id="study_id" name="study_id" v-model="registro.study_id">
 
                                     <div class="row">
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <label class="control-label">Descripción</label>
                                                 <input type="text" id="study_desc" name="study_desc"
-                                                    v-model="registro_study.study_desc" class="form-control">
+                                                    v-model="registro.study_desc" class="form-control">
                                                 <span class="text-danger" v-if="errores.study_desc">{{
                                                         errores.study_desc[0]
                                                 }}</span>
@@ -267,7 +266,7 @@
                                             <div class="form-group">
                                                 <label class="control-label">Detalle</label>
                                                 <input type="text" id="accession_no" name="accession_no"
-                                                    v-model="registro_study.accession_no" class="form-control">
+                                                    v-model="registro.accession_no" class="form-control">
                                                 <span class="text-danger" v-if="errores.accession_no">{{
                                                         errores.accession_no[0]
                                                 }}</span>
@@ -278,7 +277,7 @@
                                             <div class="form-group">
                                                 <label class="control-label">Fecha</label>
                                                 <input type="text" id="study_datetime" name="study_datetime"
-                                                    v-model="registro_study.study_datetime" class="form-control">
+                                                    v-model="registro.study_datetime" class="form-control">
                                                 <span class="text-danger" v-if="errores.study_datetime">{{
                                                         errores.study_datetime[0]
                                                 }}</span>
@@ -290,7 +289,7 @@
                                             <div class="form-group">
                                                 <label class="control-label">Observaciones</label>
                                                 <input type="text" id="observaciones" name="observaciones"
-                                                    v-model="registro_study.observaciones" class="form-control"
+                                                    v-model="registro.observaciones" class="form-control"
                                                     placeholder="Ingrese aqi las observaciones del estudio">
                                                 <span class="text-danger" v-if="errores.observaciones">{{
                                                         errores.observaciones[0]
@@ -307,22 +306,23 @@
                                         <div class=" col-md-6">
                                             <div class="form-group">
                                                 <label>Médico</label>
-                                                <select v:model="registro_study.medico_id" name="user_id" id="medico_id"
+                                                <select v-model="registro.medico_id" name="medico_id" id="medico_id"
                                                     class="form-control custom-select">
-                                                    <option>--Elige el medico--</option>
                                                     <option v-for="(ItemMedico, index) in medicos" :key="index"
-                                                        value="{{ ItemMedico.id }}">{{ ItemMedico.name }}</option>
+                                                        :value="ItemMedico.id">{{ ItemMedico.name }}
+                                                    </option>
+
                                                 </select>
                                             </div>
                                         </div>
                                         <div class=" col-md-6">
                                             <div class="form-group">
                                                 <label class="control-label">Prioridad</label>
-                                                <select v:model="registro_study.prioridad_id" name="prioridad_id"
+                                                <select v-model="registro.prioridad_id" name="prioridad_id"
                                                     id="prioridad_id" class="form-control custom-select">
-                                                    <option>--Elige la prioridad--</option>
+                                                    <option>--Seleccione la prioridad--</option>
                                                     <option v-for="(ItemPrioridad, index) in prioridades" :key="index"
-                                                        value="{{ ItemPrioridad.id }}">{{ ItemPrioridad.nom_priori }}
+                                                        :value="ItemPrioridad.id">{{ ItemPrioridad.nom_priori }}
                                                     </option>
                                                 </select>
                                             </div>
@@ -454,26 +454,24 @@ export default {
             id: 0,
             registros: [],
             tituloModal: 'Nuevo registro',
-            registro_study: { study_pk: '', study_iuid: '', study_datetime: '', study_id: '', study_datetime: '', accession_no: '', study_desc: '', observaciones: '', prioridad_id: 0, medico_id: 0, prioridad_id: 0 },
-            registro_paciente: { num_docu: '', nombres: '', sexo: '', fec_naci: '', email: '', direccion: '', telefono: '' },
+            registro: { study_pk: '', study_iuid: '', study_datetime: '', study_id: '', accession_no: '', study_desc: '', observaciones: '', medico_id: '', prioridad_id: 0, num_docu: '', nombres: '', sexo: '', fec_naci: '', email: '', direccion: '', telefono: '' },
             busqueda: { bus_nom_num_docu: '', fehc_ini: '', fecha_fin: '' },
             errores: {},
             medicos: [],
             prioridades: [],
-            productos: []
+            productos: [],
+
         };
     },
     methods: {
         async buscarStudy() {
             const res = await axios.post('api/study.listarEstudios', this.busqueda);
-            console.log("Registros " + res.data)
             this.registros = res.data;
         },
         async guardarRegistro() {
             try {
 
-                const res = await axios.post('api/lecturas', { registro_study: this.registro_study, registro_paciente: this.registro_paciente })
-                    ;
+                const res = await axios.post('api/lecturas', this.registro);
 
                 if (res.status == 200) {
 
@@ -498,17 +496,17 @@ export default {
         mostrarRegistro(data = {}) {
             this.tituloModal = "Agendar al paciente: " + data.nombres;
             this.id = data.id;
-            this.registro_study.study_pk = data.study_pk;
-            this.registro_study.study_iuid = data.study_iuid;
-            this.registro_study.study_id = data.study_id;
-            this.registro_study.study_datetime = data.study_datetime;
-            this.registro_study.accession_no = data.accession_no;
-            this.registro_study.study_desc = data.study_desc;
+            this.registro.study_pk = data.study_pk;
+            this.registro.study_iuid = data.study_iuid;
+            this.registro.study_id = data.study_id;
+            this.registro.study_datetime = data.study_datetime;
+            this.registro.accession_no = data.accession_no;
+            this.registro.study_desc = data.study_desc;
 
-            this.registro_paciente.num_docu = data.pat_id;
-            this.registro_paciente.nombres = data.pat_name;
-            this.registro_paciente.sexo = data.pat_sex;
-            this.registro_paciente.fec_naci = data.pat_birthdate;
+            this.registro.num_docu = data.pat_id;
+            this.registro.nombres = data.pat_name;
+            this.registro.sexo = data.pat_sex;
+            this.registro.fec_naci = data.pat_birthdate;
             $('#btnCerralModalForm').click();
 
         },

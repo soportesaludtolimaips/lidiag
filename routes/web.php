@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Dcm4chee\StudyController;
+use App\Http\Controllers\EmailController;
 
 /*
 |--------------------------------------------------------------------------

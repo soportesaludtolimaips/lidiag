@@ -2,6 +2,8 @@
 
 namespace App\Models\Lecturas;
 
+use App\Models\Configuracion\ConfigPrioridad;
+use App\Models\Configuracion\ConfigSucursale;
 use App\Models\General\Paciente;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -23,8 +25,18 @@ class Lectura extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function quien_registro()
+    public function quienRegistro()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function sucursal()
+    {
+        return $this->belongsTo(ConfigSucursale::class);
+    }
+
+    public function prioridad()
+    {
+        return $this->belongsTo(ConfigPrioridad::class);
     }
 }
