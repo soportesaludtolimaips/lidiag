@@ -475,9 +475,7 @@ export default {
 
                 if (res.status == 200) {
 
-                    //this.ListarDatos()
-
-                    /* $.toast({
+                    $.toast({
                         heading: 'Ok!!!',
                         text: res.data.message,
                         position: 'top-right',
@@ -485,7 +483,9 @@ export default {
                         icon: 'success',
                         hideAfter: 3500,
                         stack: 6
-                    }); */
+                    });
+
+                    $('#btnCerralModalForm').click();
                 }
 
             } catch (error) {

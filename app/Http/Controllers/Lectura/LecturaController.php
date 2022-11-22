@@ -18,7 +18,8 @@ class LecturaController extends Controller
      */
     public function index()
     {
-        //
+        $lecturas = Lectura::all();
+        return response()->json($lecturas);
     }
 
     /**
@@ -32,7 +33,15 @@ class LecturaController extends Controller
 
         $paciente = Paciente::firstOrCreate(
             ['num_docu' => $request->num_docu],
-            ['num_docu' => $request->num_docu, 'nombres' => $request->nombres, 'direccion' => $request->direccion, 'sexo' => $request->sexo, 'fec_naci' => $request->fec_naci, 'tel' => $request->tel]
+            [
+                'num_docu' => $request->num_docu,
+                'nombres' => $request->nombres,
+                'direccion' => $request->direccion,
+                'sexo' => $request->sexo,
+                'fec_naci' => $request->fec_naci,
+                'tel' => $request->tel,
+                'email' => $request->email
+            ]
         );
 
         $lectura = Lectura::firstOrCreate(
@@ -54,8 +63,12 @@ class LecturaController extends Controller
             ]
         );
 
-        $mailable = new NotificacionAsignacionDeLectura($paciente, $lectura);
-        Mail::to('jhonlozano2000@gmail.com')->send($mailable);
+        if ($request->email != "") {
+            $mailable = new NotificacionAsignacionDeLectura($paciente, $lectura);
+            Mail::to($request->email)->send($mailable);
+        }
+
+        return response()->json(['message' => 'La asignación de la lectura se realizó correctamente.']);
     }
 
     /**

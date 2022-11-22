@@ -12,7 +12,6 @@ class StudyController extends Controller
 {
     public function listarEstudios(Request $request, Study $study)
     {
-
         //Configuramos la segunda base de datos
         config(['database.connections.mysql_sucursal' => [
             'driver' => 'mysql',
@@ -25,13 +24,32 @@ class StudyController extends Controller
         //Aplicamos la nueva configuracion de bade datos
         Config::set('database.default', 'mysql_sucursal');
 
+        $estudios = new Study();
+        $query = $estudios->query();
 
-        $query = DB::table('study')->select([
-            'study.pk as study_pk', 'study.study_iuid', 'study.study_id', 'study.study_datetime', 'study.accession_no', 'study.study_desc',
-            'patient.pat_id', 'patient.pat_name', 'patient.pat_sex', 'patient.pat_birthdate'
-        ])
-            ->join('patient', 'study.patient_fk', 'patient.pk')
-            ->where('patient.pk', 2)->get();
+        $query->select(
+            'study.pk as study_pk',
+            'study.study_iuid',
+            'study.study_id',
+            'study.study_datetime',
+            'study.accession_no',
+            'study.study_desc',
+            'patient.pat_id',
+            'patient.pat_name',
+            'patient.pat_sex',
+            'patient.pat_birthdate'
+        )->join('patient', 'study.patient_fk', 'patient.pk');
+
+        if ($request->bus_nom_num_docu) {
+            $query->where('patient.pat_name', 'like', "%$request->bus_nom_num_docu%");
+        }
+
+        if ($request->fehc_ini and $request->fecha_fin) {
+            $query->whereBetween('study.study_datetime', [$request->fehc_ini, $request->fecha_fin]);
+        }
+
+        $result = $query->get();
+        return $result;
         return response()->json($query);
     }
 }

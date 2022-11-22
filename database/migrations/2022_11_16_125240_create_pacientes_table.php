@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('num_docu', 15);
             $table->string('nombres', 50);
             $table->string('direccion', 70)->nullable();
+            $table->string('email', 100)->nullable();
             $table->string('sexo', 1)->nullable();
             $table->date('fec_naci')->nullable();
             $table->string('tel', 15)->nullable();
