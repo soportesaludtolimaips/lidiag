@@ -12,6 +12,8 @@ class StudyController extends Controller
 {
     public function listarEstudios(Request $request, Study $study)
     {
+
+        //return $request;
         //Configuramos la segunda base de datos
         config(['database.connections.mysql_sucursal' => [
             'driver' => 'mysql',
@@ -41,7 +43,8 @@ class StudyController extends Controller
         )->join('patient', 'study.patient_fk', 'patient.pk');
 
         if ($request->bus_nom_num_docu) {
-            $query->where('patient.pat_name', 'like', "%$request->bus_nom_num_docu%");
+            $query->where('patient.pat_id', 'like', "%$request->bus_nom_num_docu%")
+                ->orWhere('patient.pat_name', 'like', "%$request->bus_nom_num_docu%");
         }
 
         if ($request->fehc_ini and $request->fecha_fin) {
@@ -49,7 +52,7 @@ class StudyController extends Controller
         }
 
         $result = $query->get();
-        return $result;
-        return response()->json($query);
+        //return $result;
+        return response()->json($result);
     }
 }

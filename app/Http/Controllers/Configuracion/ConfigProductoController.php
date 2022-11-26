@@ -21,6 +21,10 @@ class ConfigProductoController extends Controller
         return response()->json($producto);
     }
 
+    public function show(ConfigProducto $configProducto)
+    {
+        return response()->json($configProducto);
+    }
     /**
      * Store a newly created resource in storage.
      *
