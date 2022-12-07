@@ -63,6 +63,7 @@ class LecturaController extends Controller
             ]
         );
 
+
         if ($request->email != "") {
             $mailable = new NotificacionAsignacionDeLectura($paciente, $lectura);
             Mail::to($request->email)->send($mailable);
