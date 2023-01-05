@@ -16,18 +16,18 @@ use App\Http\Controllers\EmailController;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('auth.login');
 });
 
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-Route::view('config-admin-salud', 'configuracion.config-admin-salud')->name('config.admin.salud');
-Route::view('config-diagnosticos', 'configuracion.config-diagnosticos')->name('config.diagnosticos');
-Route::view('config-prioridades', 'configuracion.config-prioridades')->name('config.prioridades');
-Route::view('config-productos', 'configuracion.config-productos')->name('config.productos');
-Route::view('config-sucursales', 'configuracion.config-sucursales')->name('config.sucursales');
+Route::view('config-admin-salud', 'configuracion.config-admin-salud')->name('config.admin.salud')->middleware('auth');
+Route::view('config-diagnosticos', 'configuracion.config-diagnosticos')->name('config.diagnosticos')->middleware('auth');
+Route::view('config-prioridades', 'configuracion.config-prioridades')->name('config.prioridades')->middleware('auth');
+Route::view('config-productos', 'configuracion.config-productos')->name('config.productos')->middleware('auth');
+Route::view('config-sucursales', 'configuracion.config-sucursales')->name('config.sucursales')->middleware('auth');
 
 
-Route::view('asignar-lectura', 'lecturas.asignar-lectura')->name('asignar-lectura');
+Route::view('asignar-lectura', 'lecturas.asignar-lectura')->name('asignar-lectura')->middleware('auth');
