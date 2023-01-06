@@ -30,4 +30,4 @@ Route::view('config-productos', 'configuracion.config-productos')->name('config.
 Route::view('config-sucursales', 'configuracion.config-sucursales')->name('config.sucursales')->middleware('auth');
 
 
-Route::view('asignar-lectura', 'lecturas.asignar-lectura')->name('asignar-lectura')->middleware('auth');
+Route::view('asignar-lectura', 'lecturas.asignar-lectura')->name('lecturas.asginar')->middleware('auth');

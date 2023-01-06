@@ -20,6 +20,20 @@
                         <li><a href="index4.html">Modern</a></li>
                     </ul>
                 </li>
+
+                <li class="nav-small-cap">--- LECTURAS</li>
+                <li>
+                    <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
+                        <i class="fa fa-edit"></i>
+                        <span class="hide-menu">Lecturas</span>
+                    </a>
+                    <ul aria-expanded="false" class="collapse">
+                        <li><a href="{{ route('lecturas.asginar') }}">Asignar de lecturas</a></li>
+
+
+                    </ul>
+                </li>
+
                 <li class="nav-small-cap">--- CONFIGURACIÓN</li>
                 <li>
                     <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">

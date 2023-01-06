@@ -5,15 +5,15 @@
         <!-- ============================================================== -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">Configuración</h3>
+                <h3 class="text-themecolor">Lecturas</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Agendamiento</a>
+                        <a href="javascript:void(0)">Lecturas</a>
                     </li>
-                    <li class="breadcrumb-item active">Agendar</li>
+                    <li class="breadcrumb-item active">Asignar Lecturas</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
@@ -22,11 +22,11 @@
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
-            <!-- <div class="">
-                            <button class="right-side-toggle btn-info btn btn-circle btn-sm">
-                                <i class="fa fa-plus-circle m-r-5"></i>
-                            </button>
-                        </div> -->
+            <div class="">
+                <button class="right-side-toggle btn-info btn btn-circle btn-sm">
+                    <i class="fa fa-plus-circle m-r-5"></i>
+                </button>
+            </div>
         </div>
         <!-- ============================================================== -->
         <!-- End Bread crumb and right sidebar toggle -->
@@ -175,7 +175,7 @@
                                                     v-model="registro.num_docu" class="form-control"
                                                     placeholder="# de Documento">
                                                 <span class="text-danger" v-if="errores.num_docu">{{
-                                                errores.num_docu[0]
+                                                    errores.num_docu[0]
                                                 }}</span>
                                             </div>
                                         </div>
@@ -187,7 +187,7 @@
                                                     v-model="registro.nombres" class="form-control"
                                                     placeholder="Nombres">
                                                 <span class="text-danger" v-if="errores.nombres">{{
-                                                errores.nombres[0]
+                                                    errores.nombres[0]
                                                 }}</span>
                                             </div>
                                         </div>
@@ -198,7 +198,7 @@
                                                 <input type="text" id="sexo" name="sexo" v-model="registro.sexo"
                                                     class="form-control">
                                                 <span class="text-danger" v-if="errores.sexo">{{
-                                                errores.sexo[0]
+                                                    errores.sexo[0]
                                                 }}</span>
                                             </div>
                                         </div>
@@ -209,7 +209,7 @@
                                                 <input type="date" id="fec_naci" name="fec_naci"
                                                     v-model="registro.fec_naci" class="form-control">
                                                 <span class="text-danger" v-if="errores.fec_naci">{{
-                                                errores.fec_naci[0]
+                                                    errores.fec_naci[0]
                                                 }}</span>
                                             </div>
                                         </div>
@@ -221,7 +221,7 @@
                                                 <input type="text" id="direccion" name="direccion"
                                                     v-model="registro.direccion" class="form-control">
                                                 <span class="text-danger" v-if="errores.direccion">{{
-                                                errores.direccion[0]
+                                                    errores.direccion[0]
                                                 }}</span>
                                             </div>
                                         </div>
@@ -231,7 +231,7 @@
                                                 <input type="number" id="telefono" name="telefono"
                                                     v-model="registro.telefono" class="form-control">
                                                 <span class="text-danger" v-if="errores.telefono">{{
-                                                errores.telefono[0]
+                                                    errores.telefono[0]
                                                 }}</span>
                                             </div>
                                         </div>
@@ -241,7 +241,7 @@
                                                 <input type="email" id="email" name="email" v-model="registro.email"
                                                     class="form-control">
                                                 <span class="text-danger" v-if="errores.email">{{
-                                                errores.email[0]
+                                                    errores.email[0]
                                                 }}</span>
                                             </div>
                                         </div>
@@ -263,7 +263,7 @@
                                                 <input type="text" id="study_desc" name="study_desc"
                                                     v-model="registro.study_desc" class="form-control">
                                                 <span class="text-danger" v-if="errores.study_desc">{{
-                                                errores.study_desc[0]
+                                                    errores.study_desc[0]
                                                 }}</span>
                                             </div>
                                         </div>
@@ -274,7 +274,7 @@
                                                 <input type="text" id="accession_no" name="accession_no"
                                                     v-model="registro.accession_no" class="form-control">
                                                 <span class="text-danger" v-if="errores.accession_no">{{
-                                                errores.accession_no[0]
+                                                    errores.accession_no[0]
                                                 }}</span>
                                             </div>
                                         </div>
@@ -285,7 +285,7 @@
                                                 <input type="text" id="study_datetime" name="study_datetime"
                                                     v-model="registro.study_datetime" class="form-control">
                                                 <span class="text-danger" v-if="errores.study_datetime">{{
-                                                errores.study_datetime[0]
+                                                    errores.study_datetime[0]
                                                 }}</span>
                                             </div>
                                         </div>
@@ -298,7 +298,7 @@
                                                     v-model="registro.observaciones" class="form-control"
                                                     placeholder="Ingrese aqi las observaciones del estudio">
                                                 <span class="text-danger" v-if="errores.observaciones">{{
-                                                errores.observaciones[0]
+                                                    errores.observaciones[0]
                                                 }}</span>
                                             </div>
                                         </div>
@@ -317,7 +317,6 @@
                                                     <option v-for="(ItemMedico, index) in medicos" :key="index"
                                                         :value="ItemMedico.id">{{ ItemMedico.name }}
                                                     </option>
-
                                                 </select>
                                             </div>
                                         </div>
