@@ -2549,7 +2549,7 @@ File: scss
 Custom-select
 ******************/
 .custom-select {
-  background: url(../../assets/images/custom-select.png) right 0.75rem center no-repeat; }
+  background: url(../../admin-wrap/assets/images/custom-select.png) right 0.75rem center no-repeat; }
 
 /*******************
 textarea
@@ -4453,7 +4453,7 @@ File: scss
   color: #24d2b5; }
 
 .has-success .form-control-success {
-  background-image: url(../../assets/images/icon/success.svg); }
+  background-image: url(../../admin-wrap/assets/images/icon/success.svg); }
 
 .has-success .form-control {
   border-color: #24d2b5; }
@@ -4462,7 +4462,7 @@ File: scss
   color: #ff9041; }
 
 .has-warning .form-control-warning {
-  background-image: url(../../assets/images/icon/warning.svg); }
+  background-image: url(../../admin-wrap/assets/images/icon/warning.svg); }
 
 .has-warning .form-control {
   border-color: #ff9041; }
@@ -4471,7 +4471,7 @@ File: scss
   color: #ff5c6c; }
 
 .has-danger .form-control-danger {
-  background-image: url(../../assets/images/icon/danger.svg); }
+  background-image: url(../../admin-wrap/assets/images/icon/danger.svg); }
 
 .has-danger .form-control {
   border-color: #ff5c6c; }

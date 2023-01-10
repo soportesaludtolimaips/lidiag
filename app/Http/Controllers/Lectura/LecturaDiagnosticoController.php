@@ -1,12 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Configuracion;
+namespace App\Http\Controllers;
 
-use App\Models\Configuracion\ConfigPrioridad;
-use App\Models\Configuracion\ConfigPrioridade;
+use App\Models\Lecturas\LecturaDiagnostico;
 use Illuminate\Http\Request;
 
-class ConfigPrioridadeController extends Controller
+class LecturaDiagnosticoController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -15,8 +14,7 @@ class ConfigPrioridadeController extends Controller
      */
     public function index()
     {
-        $prioridades = ConfigPrioridad::all();
-        return response()->json($prioridades);
+        //
     }
 
     /**
@@ -43,10 +41,10 @@ class ConfigPrioridadeController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Configuracion\ConfigPrioridade  $configPrioridade
+     * @param  \App\Models\Lecturas\LecturaDiagnostico  $lecturaDiagnostico
      * @return \Illuminate\Http\Response
      */
-    public function show(ConfigPrioridad $configPrioridade)
+    public function show(LecturaDiagnostico $lecturaDiagnostico)
     {
         //
     }
@@ -54,10 +52,10 @@ class ConfigPrioridadeController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Configuracion\ConfigPrioridade  $configPrioridade
+     * @param  \App\Models\Lecturas\LecturaDiagnostico  $lecturaDiagnostico
      * @return \Illuminate\Http\Response
      */
-    public function edit(ConfigPrioridad $configPrioridade)
+    public function edit(LecturaDiagnostico $lecturaDiagnostico)
     {
         //
     }
@@ -66,10 +64,10 @@ class ConfigPrioridadeController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Configuracion\ConfigPrioridade  $configPrioridade
+     * @param  \App\Models\Lecturas\LecturaDiagnostico  $lecturaDiagnostico
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, ConfigPrioridad $configPrioridade)
+    public function update(Request $request, LecturaDiagnostico $lecturaDiagnostico)
     {
         //
     }
@@ -77,10 +75,10 @@ class ConfigPrioridadeController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Configuracion\ConfigPrioridade  $configPrioridade
+     * @param  \App\Models\Lecturas\LecturaDiagnostico  $lecturaDiagnostico
      * @return \Illuminate\Http\Response
      */
-    public function destroy(ConfigPrioridad $configPrioridade)
+    public function destroy(LecturaDiagnostico $lecturaDiagnostico)
     {
         //
     }

@@ -13,19 +13,11 @@ class LecturaProductoController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        $idLectura = $request->id;
+        $productos = LecturaProducto::where('lectua_id', $idLectura);
+        return response()->json(array('productos' => $productos));
     }
 
     /**
@@ -34,9 +26,10 @@ class LecturaProductoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request, LecturaProducto $lecturaProducto)
     {
-        //
+        $lecturaProducto->create($request->all());
+        return response()->json(['message' => 'Registro creado satisfactoriamente.']);
     }
 
     /**

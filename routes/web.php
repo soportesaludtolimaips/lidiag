@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Dcm4chee\StudyController;
 use App\Http\Controllers\EmailController;
+use App\Http\Controllers\Lectura\LecturaProductoController;
+use App\Http\Controllers\LecturaDiagnosticoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,5 +31,4 @@ Route::view('config-prioridades', 'configuracion.config-prioridades')->name('con
 Route::view('config-productos', 'configuracion.config-productos')->name('config.productos')->middleware('auth');
 Route::view('config-sucursales', 'configuracion.config-sucursales')->name('config.sucursales')->middleware('auth');
 
-
-Route::view('asignar-lectura', 'lecturas.asignar-lectura')->name('lecturas.asginar')->middleware('auth');
+Route::view('lecturas-asingnar', 'lecturas.asignar-lectura')->name('lecturas.asignar')->middleware('auth');

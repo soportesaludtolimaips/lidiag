@@ -306,7 +306,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <p class="text-info">
-                                        <i class="fa fa-user"></i> DATOS DEL AGENDAMIENTO
+                                        <i class="fa fa-user"></i> DATOS DE LA ASIGNACIÓN
                                     </p>
                                     <div class="row">
                                         <div class=" col-md-6">
@@ -345,7 +345,7 @@
                                         <div class="col-md-12">
                                             <!-- select2 -->
                                             <select class=" form-control custom-select"
-                                                @change="llevarProductoSelecciondo()" style="width: 100%; height:36px;"
+                                                @change="guardarProductoLectura()" style="width: 100%; height:36px;"
                                                 v-model="productoSelecciondo">
                                                 <option v-for="(ItemProducto, index ) in productos" :key="index"
                                                     :value="ItemProducto.id">
@@ -455,7 +455,7 @@ export default {
         return {
             id: 0,
             registros: [],
-            productosEstudio: [],
+            productosEstudio: { 'cod_cups': '', nom_produc: '' },
             diagnosticosEstudio: [],
             tituloModal: 'Nuevo registro',
             registro: { study_pk: '', study_iuid: '', study_datetime: '', study_id: '', accession_no: '', study_desc: '', observaciones: '', medico_id: '', prioridad_id: 0, num_docu: '', nombres: '', sexo: '', fec_naci: '', email: '', direccion: '', telefono: '' },
@@ -463,10 +463,8 @@ export default {
             errores: {},
             medicos: [],
             prioridades: [],
-            productos: [],
-
+            productos: {},
             productoSelecciondo: ''
-
         };
     },
     methods: {
@@ -543,25 +541,27 @@ export default {
             const res = await axios.get('api/config-productos');
             this.productos = res.data;
         },
-        async llevarProductoSelecciondo() {
-            const res = await axios.get('api/config-productos/' + this.productoSelecciondo);
-
-            let itemProducto = {}
-            itemProducto.id = res.data.id;
-            itemProducto.cod_cups = res.data.cod_cups;
-            itemProducto.nom_produc = res.data.nom_produc;
-            this.productosEstudio.push(itemProducto)
-
-            console.log(this.productosEstudio);
+        async guardarProductoLectura() {
+            try {
+                const res = await axios.get('api/config-productos/' + this.productoSelecciondo);
+                let prodoctoTemp = res.data;
+                console.log(prodoctoTemp);
+                if (res.status == 200) {
+                    const res = await axios.post('api/lecturas.productos', prodoctoTemp);
+                }
+            } catch (error) {
+                console.log(error);
+                //this.errores = error.response.data.errors;
+            }
         },
         quitarProductoEstudio(idEliminar) {
             console.log(idEliminar)
-            let nuevosProductos = this.productosEstudio.filter(id => id != idEliminar);
-            console.log('Productos del arreglo');
-            console.log(this.productosEstudio);
-            console.log('Nuevos productos');
-            console.log(nuevosProductos);
+            console.log(this.productosEstudio)
+            this.productosEstudio = this.productosEstudio.filter(function (idEliminar) {
+                return this.productosEstudio.id !== idEliminar;
+            })
 
+            console.log(this.productosEstudio)
         }
     },
 };
