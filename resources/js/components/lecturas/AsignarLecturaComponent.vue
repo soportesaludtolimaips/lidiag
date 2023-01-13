@@ -542,7 +542,7 @@ export default {
             this.productos = res.data;
         },
         async guardarProductoLectura() {
-            try {
+            /* try {
                 const res = await axios.get('api/config-productos/' + this.productoSelecciondo);
                 let prodoctoTemp = res.data;
                 console.log(prodoctoTemp);
@@ -552,7 +552,7 @@ export default {
             } catch (error) {
                 console.log(error);
                 //this.errores = error.response.data.errors;
-            }
+            } */
         },
         quitarProductoEstudio(idEliminar) {
             console.log(idEliminar)

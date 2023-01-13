@@ -36,7 +36,9 @@ Route::resource('config-prioridades', ConfigPrioridadController::class)->names('
 Route::resource('config-productos', ConfigProductoController::class)->names('config.productos')->except(['create']);
 Route::resource('config-sucursales', ConfigSucursalController::class)->names('config.sucursales')->except(['create', 'show'])->middleware('auth');
 
-Route::post('study.listarEstudios', [StudyController::class, 'listarEstudios'])->name('study.listarEstudios')->middleware('auth');
+//Route::post('study.listarEstudios', [StudyController::class, 'listarEstudios'])->name('study.listarEstudios')->middleware('auth');
+Route::middleware('auth:api')->post('study.listarEstudios', [StudyController::class, 'listarEstudios'])->name('study.listarEstudios');
+
 
 Route::get('user.listarUsuarios/{tipo_user}', [UserController::class, 'listarUsuarios'])->name('user.listarUsuarios')->middleware('auth');
 

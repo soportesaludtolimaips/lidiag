@@ -52,7 +52,6 @@ class StudyController extends Controller
         }
 
         $result = $query->get();
-        //return $result;
         return response()->json($result);
     }
 }

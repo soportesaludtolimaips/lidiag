@@ -63,7 +63,8 @@
                         <div class="col-xs-12">
                             <input id="email" type="text"
                                 class="form-control @error('email') is-invalid @enderror" name="email"
-                                value="{{ old('email') }}" required autocomplete="email" autofocus placeholder="Email">
+                                value="{{ old('email', 'administrador@administrador.com') }}" required
+                                autocomplete="email" autofocus placeholder="Email">
                             @error('email')
                                 <span class="invalid-feedback" role="alert">
                                     <strong>{{ $message }}</strong>
@@ -75,7 +76,7 @@
                         <div class="col-xs-12">
                             <input id="password" type="password"
                                 class="form-control @error('password') is-invalid @enderror" name="password" required
-                                autocomplete="current-password" placeholder="Contraseña">
+                                autocomplete="current-password" placeholder="Contraseña" value="123456">
                             @error('password')
                                 <span class="invalid-feedback" role="alert">
                                     <strong>{{ $message }}</strong>
