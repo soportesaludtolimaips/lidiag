@@ -10,6 +10,12 @@ use DB;
 
 class StudyController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
     public function listarEstudios(Request $request, Study $study)
     {
 

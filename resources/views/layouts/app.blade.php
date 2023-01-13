@@ -14,7 +14,7 @@
     <!-- Fonts -->
     <link rel="stylesheet" href="https://fonts.bunny.net/css2?family=Nunito:wght@400;600;700&display=swap">
 
-    <title>{{ config('app.name', 'LIDiag') }}</title>
+    <title>{{ config('app.name') }}</title>
 
     <!-- Bootstrap Core CSS -->
     <link href="{{ asset('admin-wrap/assets/node_modules/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">

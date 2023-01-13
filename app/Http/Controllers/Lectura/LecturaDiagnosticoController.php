@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Lectura;
 
 use App\Models\Lecturas\LecturaDiagnostico;
 use Illuminate\Http\Request;
