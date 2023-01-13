@@ -462,27 +462,32 @@ export default {
             busqueda: { bus_nom_num_docu: '5860691', fehc_ini: '', fecha_fin: '' },
             errores: {},
             medicos: [],
-            prioridades: [],
-            productos: {},
+            prioridades: [], //Listo las prioridades
+            productos: {}, //Listo todos los productos
             productoSelecciondo: ''
         };
     },
     methods: {
         async buscarStudy() {
-            const res = await axios.post('api/study.listarEstudios', this.busqueda);
+            try {
+                const res = await axios.post('api/study.listarEstudios', this.busqueda);
 
-            $('#example23').DataTable().destroy();
+                $('#example23').DataTable().destroy();
 
-            this.registros = res.data;
+                this.registros = res.data;
 
-            this.$nextTick(() => {
-                $('#example23').DataTable({
-                    dom: 'Bfrtip',
-                    buttons: [
-                        'copy', 'csv', 'excel', 'pdf', 'print'
-                    ]
+                this.$nextTick(() => {
+                    $('#example23').DataTable({
+                        dom: 'Bfrtip',
+                        buttons: [
+                            'copy', 'csv', 'excel', 'pdf', 'print'
+                        ]
+                    });
                 });
-            });
+            } catch (error) {
+                console.log(error);
+                this.errores = error.response.data.errors;
+            }
         },
         async guardarRegistro() {
             try {
@@ -503,7 +508,6 @@ export default {
 
                     $('#btnCerralModalForm').click();
                 }
-
             } catch (error) {
                 console.log(error);
                 this.errores = error.response.data.errors;

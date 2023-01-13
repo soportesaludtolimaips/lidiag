@@ -26,22 +26,20 @@ use App\Http\Controllers\Seguridad\UserController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+Route::middleware('auth:api:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::resource('config-admin-salud', ConfigAdminSaludController::class)->names('config.admin.salud')->except(['create', 'show'])->middleware('auth');
-Route::resource('config-diagnosticos', ConfigDiagnosticoController::class)->names('config.diagnosticos')->except(['create', 'show'])->middleware('auth');
-Route::resource('config-prioridades', ConfigPrioridadController::class)->names('config.prioridades')->except(['create', 'show'])->middleware('auth');
+Route::resource('config-admin-salud', ConfigAdminSaludController::class)->names('config.admin.salud')->except(['create', 'show']);
+Route::resource('config-diagnosticos', ConfigDiagnosticoController::class)->names('config.diagnosticos')->except(['create', 'show']);
+Route::resource('config-prioridades', ConfigPrioridadController::class)->names('config.prioridades')->except(['create', 'show']);
 Route::resource('config-productos', ConfigProductoController::class)->names('config.productos')->except(['create']);
-Route::resource('config-sucursales', ConfigSucursalController::class)->names('config.sucursales')->except(['create', 'show'])->middleware('auth');
+Route::resource('config-sucursales', ConfigSucursalController::class)->names('config.sucursales')->except(['create', 'show']);
 
-//Route::post('study.listarEstudios', [StudyController::class, 'listarEstudios'])->name('study.listarEstudios')->middleware('auth');
-Route::middleware('auth:api')->post('study.listarEstudios', [StudyController::class, 'listarEstudios'])->name('study.listarEstudios');
+Route::post('study.listarEstudios', [StudyController::class, 'listarEstudios'])->name('study.listarEstudios');
 
+Route::get('user.listarUsuarios/{tipo_user}', [UserController::class, 'listarUsuarios'])->name('user.listarUsuarios');
 
-Route::get('user.listarUsuarios/{tipo_user}', [UserController::class, 'listarUsuarios'])->name('user.listarUsuarios')->middleware('auth');
-
-Route::resource('lecturas', LecturaController::class)->names('lecturas')->except(['create', 'show'])->middleware('auth');
-Route::resource('lecturas-productos', LecturaProductoController::class)->names('lecturas.productos')->middleware('auth');
-Route::resource('lecturas-diagnosticos', LecturaDiagnosticoController::class)->names('lecturas.diagnosticos')->middleware('auth');
+Route::resource('lecturas', LecturaController::class)->names('lecturas')->except(['create', 'show']);
+Route::resource('lecturas-productos', LecturaProductoController::class)->names('lecturas.productos');
+Route::resource('lecturas-diagnosticos', LecturaDiagnosticoController::class)->names('lecturas.diagnosticos');
