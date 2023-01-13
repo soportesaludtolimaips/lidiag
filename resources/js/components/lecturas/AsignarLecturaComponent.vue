@@ -530,16 +530,28 @@ export default {
             $('#btnCerralModalForm').click();
         },
         async listarMedicos() {
-            const res = await axios.get('api/user.listarUsuarios/Medico');
-            this.medicos = res.data;
+            try {
+                const res = await axios.get('api/user.listarUsuarios/Medico');
+                this.medicos = res.data;
+            } catch (error) {
+                console.log(error);
+            }
         },
         async listarPrioridades() {
-            const res = await axios.get('api/config-prioridades');
-            this.prioridades = res.data;
+            try {
+                const res = await axios.get('api/config-prioridades');
+                this.prioridades = res.data;
+            } catch (error) {
+                console.log(error);
+            }
         },
         async listarProductos() {
-            const res = await axios.get('api/config-productos');
-            this.productos = res.data;
+            try {
+                const res = await axios.get('api/config-productos');
+                this.productos = res.data;
+            } catch (error) {
+                console.log(error);
+            }
         },
         async guardarProductoLectura() {
             /* try {
