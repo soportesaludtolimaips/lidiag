@@ -455,7 +455,7 @@ export default {
         return {
             id: 0,
             registros: [],
-            productosEstudio: { 'cod_cups': '', nom_produc: '' },
+            productosEstudio: [{ cod_cups: '', nom_produc: '' }],
             diagnosticosEstudio: [],
             tituloModal: 'Nuevo registro',
             registro: { study_pk: '', study_iuid: '', study_datetime: '', study_id: '', accession_no: '', study_desc: '', observaciones: '', medico_id: '', prioridad_id: 0, num_docu: '', nombres: '', sexo: '', fec_naci: '', email: '', direccion: '', telefono: '' },
@@ -558,6 +558,7 @@ export default {
             }
         },
         async guardarProductoLectura() {
+            this.productosEstudio.push({ cod_cups: 4, nom_produc: 'Prueba' });
             /* try {
                 const res = await axios.get('api/config-productos/' + this.productoSelecciondo);
                 let prodoctoTemp = res.data;
@@ -571,13 +572,7 @@ export default {
             } */
         },
         quitarProductoEstudio(idEliminar) {
-            console.log(idEliminar)
-            console.log(this.productosEstudio)
-            this.productosEstudio = this.productosEstudio.filter(function (idEliminar) {
-                return this.productosEstudio.id !== idEliminar;
-            })
-
-            console.log(this.productosEstudio)
+            this.productosEstudio.splice(0, 1)
         }
     },
 };
