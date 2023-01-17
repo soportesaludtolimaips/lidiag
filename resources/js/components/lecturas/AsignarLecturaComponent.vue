@@ -345,10 +345,10 @@
                                         <div class="col-md-12">
                                             <!-- select2 -->
                                             <select class=" form-control custom-select"
-                                                @change="guardarProductoLectura()" style="width: 100%; height:36px;"
+                                                @change="guardarProductosEstudio(10)" style="width: 100%; height:36px;"
                                                 v-model="productoSelecciondo">
-                                                <option v-for="(ItemProducto, index ) in productos" :key="index"
-                                                    :value="ItemProducto.id">
+                                                <option v-for="ItemProducto  in productos" v-bind:key="ItemProducto"
+                                                    v-bind:value="ItemProducto.id">
                                                     {{ ItemProducto.nom_produc }}
                                                 </option>
                                             </select>
@@ -365,13 +365,13 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <tr v-for="item in productosEstudio" :key="item.id">
+                                                    <tr v-for="(item, index) in productosEstudio" :key="item.id">
                                                         <td>{{ item.cod_cups }}</td>
                                                         <td>{{ item.nom_produc }}</td>
                                                         <td class="text-nowrap">
                                                             <button type="button"
                                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                                @click="quitarProductoEstudio(item.id)">
+                                                                @click="quitarProductoEstudio(index)">
                                                                 <i class="fa fa-trash"></i>
                                                             </button>
                                                         </td>
@@ -388,6 +388,17 @@
                                         </button>
                                     </p>
                                     <div class="row">
+                                        <div class="col-md-12">
+                                            <!-- select2 -->
+                                            <select class=" form-control custom-select"
+                                                @change="guardarDiagnosticosEstudio(10)"
+                                                style="width: 100%; height:36px;" v-model="diagnosticoSelecciondo">
+                                                <option v-for="ItemDiagnostico  in diagnosticos"
+                                                    v-bind:key="ItemProducto" v-bind:value="ItemProducto.id">
+                                                    {{ ItemProducto.nom_produc }}
+                                                </option>
+                                            </select>
+                                        </div>
                                         <div class=" col-md-12">
                                             <table id="example23"
                                                 class="display nowrap table table-hover table-striped table-bordered"
@@ -401,17 +412,12 @@
                                                 </thead>
                                                 <tbody>
                                                     <tr v-for="item in diagnosticosEstudio" :key="item.id">
-                                                        <td>{{ item.pk }}</td>
-                                                        <td>{{ item.pk }}</td>
+                                                        <td>{{ item.cod_diagnos }}</td>
+                                                        <td>{{ item.nom_diagnos }}</td>
                                                         <td class="text-nowrap">
                                                             <button type="button"
-                                                                class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                                @click="actualizar = true; mostrarRegistro(item)">
-                                                                <i class="fa fa-pencil"></i>
-                                                            </button>
-                                                            <button type="button"
                                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                                @click="elimnarRegistro(item.id)">
+                                                                @click="quitarDiagnosticoEstudio(index)">
                                                                 <i class="fa fa-trash"></i>
                                                             </button>
                                                         </td>
@@ -450,12 +456,14 @@ export default {
         this.listarMedicos();
         this.listarPrioridades();
         this.listarProductos();
+        this.listarDiagnosticos();
     },
     data() {
         return {
+            dataIndex: 0,
             id: 0,
             registros: [],
-            productosEstudio: [{ cod_cups: '', nom_produc: '' }],
+            productosEstudio: [],
             diagnosticosEstudio: [],
             tituloModal: 'Nuevo registro',
             registro: { study_pk: '', study_iuid: '', study_datetime: '', study_id: '', accession_no: '', study_desc: '', observaciones: '', medico_id: '', prioridad_id: 0, num_docu: '', nombres: '', sexo: '', fec_naci: '', email: '', direccion: '', telefono: '' },
@@ -463,8 +471,10 @@ export default {
             errores: {},
             medicos: [],
             prioridades: [], //Listo las prioridades
-            productos: {}, //Listo todos los productos
-            productoSelecciondo: ''
+            productos: [], //Listo todos los productos
+            diagnosticos: [], //Listo todos los diagnosticos
+            productoSelecciondo: '',
+            diagnosticoSelecciondo: '',
         };
     },
     methods: {
@@ -557,22 +567,39 @@ export default {
                 console.log(error);
             }
         },
-        async guardarProductoLectura() {
-            this.productosEstudio.push({ cod_cups: 4, nom_produc: 'Prueba' });
-            /* try {
-                const res = await axios.get('api/config-productos/' + this.productoSelecciondo);
-                let prodoctoTemp = res.data;
-                console.log(prodoctoTemp);
-                if (res.status == 200) {
-                    const res = await axios.post('api/lecturas.productos', prodoctoTemp);
-                }
+        async listarDiagnosticos() {
+            try {
+                const res = await axios.get('api/config.diagnosticos');
+                this.diagnosticos = res.data;
             } catch (error) {
                 console.log(error);
-                //this.errores = error.response.data.errors;
-            } */
+            }
         },
-        quitarProductoEstudio(idEliminar) {
-            this.productosEstudio.splice(0, 1)
+        guardarProductosEstudio() {
+            var indexProductoEstudio = this.productos.findIndex(x => x.id == this.productoSelecciondo)
+            if (indexProductoEstudio > 0) {
+                var productoEstudioId = this.productos[indexProductoEstudio].nom_produc
+                var productoEstudioCod_Cubs = this.productos[indexProductoEstudio].cod_cups
+                var productoEstudioNomProduc = this.productos[indexProductoEstudio].nom_produc
+
+                this.productosEstudio.push({ id: productoEstudioId, cod_cups: productoEstudioCod_Cubs, nom_produc: productoEstudioNomProduc });
+            }
+        },
+        quitarProductoEstudio(indexliminar) {
+            this.productosEstudio.splice(indexliminar, 1)
+        },
+        guardarDiagnosticosEstudio() {
+            var indexDiagnosticoSeleccionado = this.diagnosticos.findIndex(x => x.id == this.diagnosticoSelecciondo);
+            if (indexDiagnosticoSeleccionado > 0) {
+                var diagnosticoEstudioId = this.diagnosticos[indexDiagnosticoSeleccionado].id
+                var diagnosticoEstudioCod = this.diagnosticos[indexDiagnosticoSeleccionado].cod_diagnos
+                var diagnosticoEstudioDiagnos = this.diagnosticos[indexDiagnosticoSeleccionado].nom_diagnos
+
+                this.diagnosticosEstudio.push({ id: diagnosticoEstudioId, cod_diagnos: diagnosticoEstudioCod, nom_diagnos: diagnosticoEstudioDiagnos })
+            }
+        },
+        quitarDiagnosticoEstudio(indexEliminar) {
+            this.diagnosticosEstudio.splice(indexEliminar, 1);
         }
     },
 };
