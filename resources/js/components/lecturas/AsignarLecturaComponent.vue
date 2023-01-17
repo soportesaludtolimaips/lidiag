@@ -394,8 +394,8 @@
                                                 @change="guardarDiagnosticosEstudio(10)"
                                                 style="width: 100%; height:36px;" v-model="diagnosticoSelecciondo">
                                                 <option v-for="ItemDiagnostico  in diagnosticos"
-                                                    v-bind:key="ItemProducto" v-bind:value="ItemProducto.id">
-                                                    {{ ItemProducto.nom_produc }}
+                                                    v-bind:key="ItemDiagnostico" v-bind:value="ItemDiagnostico.id">
+                                                    {{ ItemDiagnostico.nom_diagnos }}
                                                 </option>
                                             </select>
                                         </div>
@@ -405,8 +405,8 @@
                                                 cellspacing="0" width="100%">
                                                 <thead>
                                                     <tr>
-                                                        <th>Código</th>
-                                                        <th width="150px">Diagnostico</th>
+                                                        <th width="10%">Código</th>
+                                                        <th width="80%">Diagnostico</th>
                                                         <th></th>
                                                     </tr>
                                                 </thead>
@@ -569,7 +569,7 @@ export default {
         },
         async listarDiagnosticos() {
             try {
-                const res = await axios.get('api/config.diagnosticos');
+                const res = await axios.get('api/config-diagnosticos');
                 this.diagnosticos = res.data;
             } catch (error) {
                 console.log(error);
