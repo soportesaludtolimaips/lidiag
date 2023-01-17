@@ -30,7 +30,7 @@ class LecturaController extends Controller
      */
     public function store(Request $request)
     {
-
+        return "Medico " . $request->medico_id;
         $paciente = Paciente::firstOrCreate(
             ['num_docu' => $request->num_docu],
             [

@@ -318,6 +318,9 @@
                                                         :value="ItemMedico.id">{{ ItemMedico.name }}
                                                     </option>
                                                 </select>
+                                                <span class="text-danger" v-if="errores.medico_id">{{
+                                                    errores.medico_id[0]
+                                                }}</span>
                                             </div>
                                         </div>
                                         <div class=" col-md-6">
