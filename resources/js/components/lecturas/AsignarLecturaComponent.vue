@@ -197,9 +197,6 @@
                                                 <label class="control-label">Sexo</label>
                                                 <input type="text" id="sexo" name="sexo" v-model="registro.sexo"
                                                     class="form-control">
-                                                <span class="text-danger" v-if="errores.sexo">{{
-                                                    errores.sexo[0]
-                                                }}</span>
                                             </div>
                                         </div>
 
@@ -208,9 +205,6 @@
                                                 <label class="control-label">Fec. Nacimi</label>
                                                 <input type="date" id="fec_naci" name="fec_naci"
                                                     v-model="registro.fec_naci" class="form-control">
-                                                <span class="text-danger" v-if="errores.fec_naci">{{
-                                                    errores.fec_naci[0]
-                                                }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -297,9 +291,6 @@
                                                 <input type="text" id="observaciones" name="observaciones"
                                                     v-model="registro.observaciones" class="form-control"
                                                     placeholder="Ingrese aqi las observaciones del estudio">
-                                                <span class="text-danger" v-if="errores.observaciones">{{
-                                                    errores.observaciones[0]
-                                                }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -333,11 +324,17 @@
                                                         :value="ItemPrioridad.id">{{ ItemPrioridad.nom_priori }}
                                                     </option>
                                                 </select>
+                                                <span class="text-danger" v-if="errores.prioridad_id">{{
+                                                    errores.prioridad_id[0]
+                                                }}</span>
                                             </div>
                                         </div>
                                     </div>
                                     <p class="text-info">
                                         <i class="fa fa-user"></i> PRODUCTOS
+                                        <span class="text-danger" v-if="errores.prioridad_id">{{
+                                            errores.prioridad_id[0]
+                                        }}</span>
                                         <button type="button"
                                             class="btn waves-effect waves-light btn-xs btn-info float-right"
                                             data-toggle="modal" data-target="#exampleModal">
@@ -466,10 +463,10 @@ export default {
             dataIndex: 0,
             id: 0,
             registros: [],
-            productosEstudio: [],
-            diagnosticosEstudio: [],
             tituloModal: 'Nuevo registro',
-            registro: { study_pk: '', study_iuid: '', study_datetime: '', study_id: '', accession_no: '', study_desc: '', observaciones: '', medico_id: '', prioridad_id: 0, num_docu: '', nombres: '', sexo: '', fec_naci: '', email: '', direccion: '', telefono: '' },
+            registro: {
+                study_pk: '', study_iuid: '', study_datetime: '', study_id: '', accession_no: '', study_desc: '', observaciones: '', medico_id: '', prioridad_id: 0, num_docu: '', nombres: '', sexo: '', fec_naci: '', email: '', direccion: '', telefono: '', productosEstudio: [], diagnosticosEstudio: [],
+            },
             busqueda: { bus_nom_num_docu: '5860691', fehc_ini: '', fecha_fin: '' },
             errores: {},
             medicos: [],
@@ -581,15 +578,15 @@ export default {
         guardarProductosEstudio() {
             var indexProductoEstudio = this.productos.findIndex(x => x.id == this.productoSelecciondo)
             if (indexProductoEstudio > 0) {
-                var productoEstudioId = this.productos[indexProductoEstudio].nom_produc
+                var productoEstudioId = this.productos[indexProductoEstudio].id
                 var productoEstudioCod_Cubs = this.productos[indexProductoEstudio].cod_cups
                 var productoEstudioNomProduc = this.productos[indexProductoEstudio].nom_produc
 
                 this.productosEstudio.push({ id: productoEstudioId, cod_cups: productoEstudioCod_Cubs, nom_produc: productoEstudioNomProduc });
             }
         },
-        quitarProductoEstudio(indexliminar) {
-            this.productosEstudio.splice(indexliminar, 1)
+        quitarProductoEstudio(indexEliminar) {
+            this.productosEstudio.splice(indexEliminar, 1)
         },
         guardarDiagnosticosEstudio() {
             var indexDiagnosticoSeleccionado = this.diagnosticos.findIndex(x => x.id == this.diagnosticoSelecciondo);

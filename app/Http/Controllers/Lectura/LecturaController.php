@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Lectura;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Lectura\LecturaAsignarRequest;
 use App\Mail\NotificacionAsignacionDeLectura;
 use App\Models\General\Paciente;
 use App\Models\Lecturas\Lectura;
@@ -28,9 +29,9 @@ class LecturaController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(LecturaAsignarRequest $request)
     {
-        return "Medico " . $request->medico_id;
+
         $paciente = Paciente::firstOrCreate(
             ['num_docu' => $request->num_docu],
             [
