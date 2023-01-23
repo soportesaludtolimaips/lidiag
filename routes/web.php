@@ -3,8 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Dcm4chee\StudyController;
 use App\Http\Controllers\EmailController;
-use App\Http\Controllers\Lectura\LecturaProductoController;
-use App\Http\Controllers\LecturaDiagnosticoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,7 +25,7 @@ Auth::routes();
 
 Route::get('home', function () {
     return view('home');
-});
+})->middleware('auth');
 
 Route::view('config-admin-salud', 'configuracion.config-admin-salud')->name('config.admin.salud')->middleware('auth');
 Route::view('config-diagnosticos', 'configuracion.config-diagnosticos')->name('config.diagnosticos')->middleware('auth');
@@ -35,4 +33,5 @@ Route::view('config-prioridades', 'configuracion.config-prioridades')->name('con
 Route::view('config-productos', 'configuracion.config-productos')->name('config.productos')->middleware('auth');
 Route::view('config-sucursales', 'configuracion.config-sucursales')->name('config.sucursales')->middleware('auth');
 
-Route::view('lecturas-asingnar', 'lecturas.asignar-lectura')->name('lecturas.asignar')->middleware('auth');
+Route::view('estudios-asingnar', 'estudios.asignar-estudio')->name('estudios.asignar')->middleware('auth');
+Route::view('estudios-leer', 'estudios.leer-estudio')->name('estudios.leer')->middleware('auth');

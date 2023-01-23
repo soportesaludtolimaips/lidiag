@@ -21,14 +21,15 @@
                     </ul>
                 </li>
 
-                <li class="nav-small-cap">--- LECTURAS</li>
+                <li class="nav-small-cap">--- ESTUDIOS & LECTURAS</li>
                 <li>
                     <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
                         <i class="fa fa-edit"></i>
-                        <span class="hide-menu">Lecturas</span>
+                        <span class="hide-menu">Estudios</span>
                     </a>
                     <ul aria-expanded="false" class="collapse">
-                        <li><a href="{{ route('lecturas.asignar') }}">Asignar de lecturas</a></li>
+                        <li><a href="{{ route('estudios.asignar') }}">Asignar estudio</a></li>
+                        <li><a href="{{ route('estudios.leer') }}">Mis estudios pendientes</a></li>
                     </ul>
                 </li>
 

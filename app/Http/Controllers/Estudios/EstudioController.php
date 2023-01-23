@@ -1,16 +1,17 @@
 <?php
 
-namespace App\Http\Controllers\Lectura;
+namespace App\Http\Controllers\Estudios;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Lectura\LecturaAsignarRequest;
+use App\Http\Requests\Estudio\EstudioAsignarRequest;
 use App\Mail\NotificacionAsignacionDeLectura;
 use App\Models\General\Paciente;
-use App\Models\Lecturas\Lectura;
+use App\Models\Estudio\Estudio;
+use App\Models\Estudio\EstudioProducto;
 use Illuminate\Http\Request;
 use Mail;
 
-class LecturaController extends Controller
+class EstudioController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -19,8 +20,8 @@ class LecturaController extends Controller
      */
     public function index()
     {
-        $lecturas = Lectura::all();
-        return response()->json($lecturas);
+        $estudios = Estudio::all();
+        return response()->json($estudios);
     }
 
     /**
@@ -29,8 +30,10 @@ class LecturaController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(LecturaAsignarRequest $request)
+    public function store(Request $request)
     {
+        /* $producto = $request;
+        return $producto['productosEstudio'][0]['cod_cups']; */
 
         $paciente = Paciente::firstOrCreate(
             ['num_docu' => $request->num_docu],
@@ -45,7 +48,7 @@ class LecturaController extends Controller
             ]
         );
 
-        $lectura = Lectura::firstOrCreate(
+        $estudio = Estudio::firstOrCreate(
             ['study_id' => $request->study_id],
             [
                 'study_pk' => $request->study_pk,
@@ -64,9 +67,17 @@ class LecturaController extends Controller
             ]
         );
 
+        foreach($request->productosEstudio as $Producto){
+            EstudioProducto::create([
+                'estudio_id' => $estudio->id,
+                'cod_cups' => $Producto['cod_cups'],
+                'nom_produc' => $Producto['nom_produc'],            
+            ]);
+        }
+
 
         if ($request->email != "") {
-            $mailable = new NotificacionAsignacionDeLectura($paciente, $lectura);
+            $mailable = new NotificacionAsignacionDeLectura($paciente, $estudio);
             Mail::to($request->email)->send($mailable);
         }
 
@@ -77,10 +88,10 @@ class LecturaController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Lecturas\Lectura  $lectura
+     * @param  \App\Models\Estudios\Estudio  $estudio
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Lectura $lectura)
+    public function update(Request $request, Estudio $estudio)
     {
         //
     }
@@ -88,11 +99,23 @@ class LecturaController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Lecturas\Lectura  $lectura
+     * @param  \App\Models\Estudios\Estudio  $estudio
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Lectura $lectura)
+    public function destroy(Estudio $estudio)
     {
         //
+    }
+
+    public function listarPendientes(Request $request, Estudio $estudio){
+
+        $misPendiente = Estudio::with(['paciente', 'quienRegistro', 'productos'])
+            ->where('medico_id', $request->id)
+            ->first();
+        return $misPendiente;
+    }
+
+    public function leer(){
+
     }
 }

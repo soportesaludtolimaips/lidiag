@@ -13,16 +13,16 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('lecturas_productos', function (Blueprint $table) {
+        Schema::create('estudios_productos', function (Blueprint $table) {
             $table->id();
 
-            $table->unsignedBigInteger('lectua_id');
-            $table->foreign('lectua_id')->references('id')->on('lecturas');
+            $table->unsignedBigInteger('estudio_id');
+            $table->foreign('estudio_id')->references('id')->on('estudios');
 
-            $table->unsignedBigInteger('producto_id');
-            $table->foreign('producto_id')->references('id')->on('config_productos');
+            //$table->unsignedBigInteger('producto_id');
+            //$table->foreign('producto_id')->references('id')->on('config_productos');
 
-            $table->unsignedBigInteger('transcriptor_id');
+            $table->unsignedBigInteger('transcriptor_id')->nullable();
             $table->foreign('transcriptor_id')->references('id')->on('users');
 
             $table->string('cod_cups', 20);
@@ -42,6 +42,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('lecturas_productos');
+        Schema::dropIfExists('estudios_productos');
     }
 };

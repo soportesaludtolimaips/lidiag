@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Models\Lecturas;
+namespace App\Models\Estudio;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class LecturaDiagnostico extends Model
+class EstudioDiagnostico extends Model
 {
     use HasFactory;
 }

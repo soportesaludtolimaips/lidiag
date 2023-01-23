@@ -5,7 +5,7 @@
  */
 
 import './bootstrap';
-import { createApp } from 'vue';
+import { createApp, VueElement } from 'vue';
 
 /**
  * Next, we will create a fresh Vue application instance. You may then begin
@@ -32,8 +32,12 @@ app.component('config-sucursal-component', configSucursalComponent);
 
 
 
-import AsignarLecturaComponent from './components/lecturas/AsignarLecturaComponent.vue';
-app.component('asignar-lectura-component', AsignarLecturaComponent);
+import AsignarEstudioComponent from './components/estudios/AsignarEstudioComponent.vue';
+app.component('asignar-estudio-component', AsignarEstudioComponent);
+
+import leerEstudioComponent from './components/estudios/leerEstudioComponent.vue';
+app.component('leer-estudio-component', leerEstudioComponent);
+
 
 
 /**
@@ -53,5 +57,8 @@ app.component('asignar-lectura-component', AsignarLecturaComponent);
  * an "id" attribute of "app". This element is included with the "auth"
  * scaffolding. Otherwise, you will need to add an element yourself.
  */
+
+import auth from './mixins/auth';
+app.mixin(auth);
 
 app.mount('#app');

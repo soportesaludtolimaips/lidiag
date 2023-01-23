@@ -338,7 +338,7 @@
         <a class="nav-link dropdown-toggle waves-effect waves-dark profile-pic" href="" data-toggle="dropdown"
             aria-haspopup="true" aria-expanded="false">
             <img src="{{ asset('admin-wrap/assets/images/users/1.jpg') }}" alt="user" class="" />
-            <span class="hidden-md-down">Mark Sanders &nbsp;
+            <span class="hidden-md-down">{{ Auth()->user()->name }} &nbsp;
                 <i class="fa fa-angle-down"></i>
             </span>
         </a>
@@ -350,20 +350,27 @@
                             <img src="{{ asset('admin-wrap/assets/images/users/1.jpg') }}" alt="user">
                         </div>
                         <div class="u-text">
-                            <h4>Steave Jobs</h4>
-                            <p class="text-muted">varun@gmail.com</p>
-                            <a href="pages-profile.html" class="btn btn-rounded btn-danger btn-sm">View Profile</a>
+                            <h4>{{ Auth()->user()->name }}</h4>
+                            <p class="text-muted">{{ Auth()->user()->email }}</p>
+                            <a href="pages-profile.html" class="btn btn-rounded btn-danger btn-sm">Ver Perfil</a>
                         </div>
                     </div>
                 </li>
                 <li role="separator" class="divider"></li>
-                <li><a href="#"><i class="ti-user"></i> My Profile</a></li>
-                <li><a href="#"><i class="ti-wallet"></i> My Balance</a></li>
-                <li><a href="#"><i class="ti-email"></i> Inbox</a></li>
+                <li><a href="#"><i class="ti-user"></i> Mi Perfil</a></li>
                 <li role="separator" class="divider"></li>
-                <li><a href="#"><i class="ti-settings"></i> Account Setting</a></li>
+                <li><a href="#"><i class="ti-settings"></i> Configuración de cuenta</a></li>
                 <li role="separator" class="divider"></li>
-                <li><a href="#"><i class="fa fa-power-off"></i> Logout</a></li>
+                <li>
+                    <a href="{{ route('logout') }}"
+                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                        <i class="fa fa-power-off"></i>{{ __('Logout') }}
+                    </a>
+                </li>
+
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                    @csrf
+                </form>
             </ul>
         </div>
     </li>

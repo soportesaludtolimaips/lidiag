@@ -11,7 +11,9 @@ use App\Http\Controllers\Configuracion\ConfigPrioridadController;
 use App\Http\Controllers\Configuracion\ConfigSucursalController;
 
 use App\Http\Controllers\Dcm4chee\StudyController;
-use App\Http\Controllers\Lectura\LecturaController;
+use App\Http\Controllers\Estudios\EstudioController;
+use App\Http\Controllers\Estudios\EstudioProductoController;
+use App\Http\Controllers\Estudios\EstudioDiagnosticoController;
 use App\Http\Controllers\Seguridad\UserController;
 
 /*
@@ -26,8 +28,15 @@ use App\Http\Controllers\Seguridad\UserController;
 |
 */
 
-Route::middleware('auth:api:sanctum')->get('/user', function (Request $request) {
+/* Route::middleware('auth:api:sanctum')->get('/user', function (Request $request) {
     return $request->user();
+}); */
+
+Route::middleware(['auth:sanctum'])->group(function () {
+
+    Route::get('/user', function(Request $request){
+        return $request->user();
+    });
 });
 
 Route::resource('config-admin-salud', ConfigAdminSaludController::class)->names('config.admin.salud')->except(['create', 'show']);
@@ -40,6 +49,10 @@ Route::post('study.listarEstudios', [StudyController::class, 'listarEstudios'])-
 
 Route::get('user.listarUsuarios/{tipo_user}', [UserController::class, 'listarUsuarios'])->name('user.listarUsuarios');
 
-Route::resource('lecturas', LecturaController::class)->names('lecturas')->except(['create', 'show']);
-Route::resource('lecturas-productos', LecturaProductoController::class)->names('lecturas.productos');
-Route::resource('lecturas-diagnosticos', LecturaDiagnosticoController::class)->names('lecturas.diagnosticos');
+Route::resource('estudios', EstudioController::class)->names('estudios')->except(['create', 'show']);
+Route::resource('estudios-productos', EstudioProductoController::class)->names('estudios.productos');
+Route::resource('estudios-diagnosticos', EstudioDiagnosticoController::class)->names('estudios.diagnosticos');
+
+Route::post('estudio-leer', [EstudioController::class, 'leerEstudio'])->name('estudio.leer');
+Route::get('estudio-listarPendientes', [EstudioController::class, 'listarPendientes'])->name('estudio.listarPendientes');
+

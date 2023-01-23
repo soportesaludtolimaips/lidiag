@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Lectura;
+namespace App\Http\Controllers\Estudios;
 
-use App\Models\Lecturas\LecturaDiagnostico;
+use App\Http\Controllers\Controller;
+use App\Models\Estudios\EstudioDiagnostico;
 use Illuminate\Http\Request;
 
-class LecturaDiagnosticoController extends Controller
+class EstudioDiagnosticoController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -41,10 +42,10 @@ class LecturaDiagnosticoController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Lecturas\LecturaDiagnostico  $lecturaDiagnostico
+     * @param  \App\Models\Estudios\EstudioDiagnostico  $estudioDiagnostico
      * @return \Illuminate\Http\Response
      */
-    public function show(LecturaDiagnostico $lecturaDiagnostico)
+    public function show(EstudioDiagnostico $estudioDiagnostico)
     {
         //
     }
@@ -52,10 +53,10 @@ class LecturaDiagnosticoController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Lecturas\LecturaDiagnostico  $lecturaDiagnostico
+     * @param  \App\Models\Estudios\EstudioDiagnostico  $estudioDiagnostico
      * @return \Illuminate\Http\Response
      */
-    public function edit(LecturaDiagnostico $lecturaDiagnostico)
+    public function edit(EstudioDiagnostico $estudioDiagnostico)
     {
         //
     }
@@ -64,10 +65,10 @@ class LecturaDiagnosticoController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Lecturas\LecturaDiagnostico  $lecturaDiagnostico
+     * @param  \App\Models\Estudios\EstudioDiagnostico  $estudioDiagnostico
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, LecturaDiagnostico $lecturaDiagnostico)
+    public function update(Request $request, EstudioDiagnostico $lecturaDiagnostico)
     {
         //
     }
@@ -75,7 +76,7 @@ class LecturaDiagnosticoController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Lecturas\LecturaDiagnostico  $lecturaDiagnostico
+     * @param  \App\Models\Estudios\EstudioDiagnostico  $lecturaDiagnostico
      * @return \Illuminate\Http\Response
      */
     public function destroy(LecturaDiagnostico $lecturaDiagnostico)

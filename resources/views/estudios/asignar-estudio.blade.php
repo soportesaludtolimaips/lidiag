@@ -1,5 +1,5 @@
 @extends('layouts.app')
 
 @section('content')
-    <asignar-lectura-component />
+    <asignar-estudio-component />
 @endsection

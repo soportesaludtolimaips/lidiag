@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Lectura;
+namespace App\Http\Controllers\Estudios;
 
 use App\Http\Controllers\Controller;
-use App\Models\Lecturas\LecturaProducto;
+use App\Models\Estudios\EstudioProducto;
 use Illuminate\Http\Request;
 
-class LecturaProductoController extends Controller
+class EstudioProductoController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -15,8 +15,8 @@ class LecturaProductoController extends Controller
      */
     public function index(Request $request)
     {
-        $idLectura = $request->id;
-        $productos = LecturaProducto::where('lectua_id', $idLectura);
+        $idEstudio = $request->id;
+        $productos = EstudioProducto::where('lectua_id', $idEstudio);
         return response()->json(array('productos' => $productos));
     }
 
@@ -26,19 +26,19 @@ class LecturaProductoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request, LecturaProducto $lecturaProducto)
+    public function store(Request $request, EstudioProducto $estudioProducto)
     {
-        $lecturaProducto->create($request->all());
+        $estudioProducto->create($request->all());
         return response()->json(['message' => 'Registro creado satisfactoriamente.']);
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Lecturas\LecturaProducto  $LecturaProducto
+     * @param  \App\Models\Estudio\EstudioProducto  $estudioProducto
      * @return \Illuminate\Http\Response
      */
-    public function show(LecturaProducto $LecturaProducto)
+    public function show(EstudioProducto $estudioProducto)
     {
         //
     }
@@ -46,10 +46,10 @@ class LecturaProductoController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Lecturas\LecturaProducto  $LecturaProducto
+     * @param  \App\Models\Estudios\EstudioProducto  $estudioProducto
      * @return \Illuminate\Http\Response
      */
-    public function edit(LecturaProducto $LecturaProducto)
+    public function edit(EstudioProducto $estudioProducto)
     {
         //
     }
@@ -58,10 +58,10 @@ class LecturaProductoController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Lecturas\LecturaProducto  $LecturaProducto
+     * @param  \App\Models\Estudios\EstudioProducto  $estudioProducto
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, LecturaProducto $LecturaProducto)
+    public function update(Request $request, EstudioProducto $estudioProducto)
     {
         //
     }
@@ -69,10 +69,10 @@ class LecturaProductoController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Lecturas\LecturaProducto  $LecturaProducto
+     * @param  \App\Models\Estudios\EstudioProducto  $estudioProducto
      * @return \Illuminate\Http\Response
      */
-    public function destroy(LecturaProducto $LecturaProducto)
+    public function destroy(EstudioProducto $estudioProducto)
     {
         //
     }

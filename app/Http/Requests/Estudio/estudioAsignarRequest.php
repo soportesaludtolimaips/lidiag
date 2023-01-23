@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Lectura;
+namespace App\Http\Requests\Estudio;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class LecturaAsignarRequest extends FormRequest
+class EstudioAsignarRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

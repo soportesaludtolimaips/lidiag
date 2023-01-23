@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\Lecturas;
+namespace App\Models\Estudio;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 use App\Models\Configuracion\ConfigPrioridad;
 use App\Models\Configuracion\ConfigSucursale;
 use App\Models\General\Paciente;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 
-class Lectura extends Model
+class Estudio extends Model
 {
     use HasFactory;
 
@@ -38,5 +39,15 @@ class Lectura extends Model
     public function prioridad()
     {
         return $this->belongsTo(ConfigPrioridad::class);
+    }
+
+    public function productos()
+    {
+        return $this->hasMany(EstudioProducto::class);
+    }
+
+    public function diagnosticos()
+    {
+        return $this->hasMany(EstudioDiagnostico::class);
     }
 }
