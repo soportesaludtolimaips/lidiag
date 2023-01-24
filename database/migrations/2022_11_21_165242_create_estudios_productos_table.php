@@ -25,10 +25,10 @@ return new class extends Migration
             $table->unsignedBigInteger('transcriptor_id')->nullable();
             $table->foreign('transcriptor_id')->references('id')->on('users');
 
-            $table->string('cod_cups', 20);
+            $table->string('cod_cups', 20)->nullable();
             $table->string('nom_produc', 200);
             $table->datetime('fechor_lectura')->nullable();
-            $table->text('lectura');
+            $table->text('lectura')->nullable();
             $table->datetime('fechor_trascrito')->nullable();
             $table->boolean('visible')->default(1);
             $table->timestamps();

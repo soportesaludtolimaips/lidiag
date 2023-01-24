@@ -16,7 +16,7 @@
                     <li class="breadcrumb-item active">Leer Estudios</li>
                 </ol>
             </div>
-            
+
             <div class="">
                 <button class="right-side-toggle btn-info btn btn-circle btn-sm">
                     <i class="fa fa-plus-circle m-r-5"></i>
@@ -44,19 +44,23 @@
                                         <div class="form-group">
                                             <label class="control-label">Nombres de paciente o # de documento
                                             </label>
-                                            <input type="text" id="bus_nom_num_docu" name="bus_nom_num_docu" v-model="busqueda.bus_nom_num_docu" class="form-control" placeholder="Nombres de paciente o # de documento">
+                                            <input type="text" id="bus_nom_num_docu" name="bus_nom_num_docu"
+                                                v-model="busqueda.bus_nom_num_docu" class="form-control"
+                                                placeholder="Nombres de paciente o # de documento">
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Inicio</label>
-                                            <input type="date" id="nom_diagnos" name="nom_diagnos" v-model="busqueda.fehc_ini" class="form-control">
+                                            <input type="date" id="nom_diagnos" name="nom_diagnos"
+                                                v-model="busqueda.fehc_ini" class="form-control">
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Fin</label>
-                                            <input type="date" id="fecha_fin" name="fecha_fin" v-model="busqueda.fecha_fin" class="form-control">
+                                            <input type="date" id="fecha_fin" name="fecha_fin"
+                                                v-model="busqueda.fecha_fin" class="form-control">
                                         </div>
                                     </div>
                                 </div>
@@ -81,36 +85,36 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Listado de mis pendientes</h4>
+                        <h4 class="card-title">Listado de mis pendientes por leer</h4>
                         <div class="table-responsive m-t-40">
                             <table id="example23" class="display nowrap table table-hover table-striped table-bordered"
                                 cellspacing="0" width="100%">
                                 <thead>
                                     <tr>
-                                        <th>Fecha del Estudio</th>
-                                        <th>Accession</th>
-                                        <th>Descripción</th>
-                                        <th># Documento</th>
+                                        <th>Fecha del Toma</th>
+                                        <th>Quien Asigno</th>
                                         <th>Paciente</th>
-                                        <th>Sexo</th>
-                                        <th>Fec. Nacimiento</th>
+                                        <th>Detalle</th>
+                                        <th>Producto</th>
                                         <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="item in registros" :key="item.id">
-                                        <td>{{ item.study_datetime }}</td>
-                                        <td>{{ item.accession_no }}</td>
-                                        <td>{{ item.study_desc }}</td>
-                                        <td>{{ item.pat_id }}</td>
-                                        <td>{{ item.pat_name }}</td>
-                                        <td>{{ item.pat_sex }}</td>
-                                        <td>{{ item.pat_birthdate }}</td>
+                                    <tr v-for="(item, index) in registros" :key="index">
+                                        <td>{{ item.fec_estudio }}</td>
+                                        <td>{{ item.quien_registro.name }}</td>
+                                        <td>{{ item.paciente.num_docu }} <br /> {{ item.paciente.nombres }}</td>
+                                        <td>{{ item.study_desc }} <br /> {{ item.accession_no }}</td>
+                                        <td>{{ item.productos.nom_produc }}</td>
                                         <td class="text-nowrap">
-                                            <button type="button" class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5" @click="actualizar = true; mostrarRegistro(item)">
+                                            <button type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
+                                                @click="actualizar = true; mostrarRegistro(item)">
                                                 <i class="fa fa-pencil"></i>
                                             </button>
-                                            <button type="button" class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm" @click="elimnarRegistro(item.id)">
+                                            <button type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
+                                                @click="elimnarRegistro(item.id)">
                                                 <i class="fa fa-trash"></i>
                                             </button>
                                         </td>
@@ -135,7 +139,7 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        
+
         <!-- ============================================================== -->
         <!-- End Right sidebar -->
         <!-- ============================================================== -->
@@ -145,7 +149,7 @@
 <script>
 export default {
     mounted() {
-        this.listarMisPendientes();        
+        this.listarMisPendientes();
     },
     data() {
         return {
@@ -157,7 +161,7 @@ export default {
             },
             busqueda: { bus_nom_num_docu: '5860691', fehc_ini: '', fecha_fin: '' },
             errores: {},
-            
+
         };
     },
     methods: {
@@ -184,8 +188,19 @@ export default {
         }, */
         async listarMisPendientes() {
             try {
-                const res = await axios.get('api/estudio-listarPendientes?id='+this.usuarioActua.id);
-                console.log(res)
+                const res = await axios.get('api/estudio-listarPendientesMedico?id=' + this.usuarioActua.id);
+                $('#example23').DataTable().destroy();
+
+                this.registros = res.data;
+                console.log(this.registros.fec_estudio);
+                this.$nextTick(() => {
+                    $('#example23').DataTable({
+                        dom: 'Bfrtip',
+                        buttons: [
+                            'copy', 'csv', 'excel', 'pdf', 'print'
+                        ]
+                    });
+                });
             } catch (error) {
                 console.log(error);
             }

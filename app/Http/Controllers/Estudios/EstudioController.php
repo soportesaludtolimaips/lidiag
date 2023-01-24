@@ -32,9 +32,6 @@ class EstudioController extends Controller
      */
     public function store(Request $request)
     {
-        /* $producto = $request;
-        return $producto['productosEstudio'][0]['cod_cups']; */
-
         $paciente = Paciente::firstOrCreate(
             ['num_docu' => $request->num_docu],
             [
@@ -67,11 +64,11 @@ class EstudioController extends Controller
             ]
         );
 
-        foreach($request->productosEstudio as $Producto){
+        foreach ($request->productosEstudio as $Producto) {
             EstudioProducto::create([
                 'estudio_id' => $estudio->id,
                 'cod_cups' => $Producto['cod_cups'],
-                'nom_produc' => $Producto['nom_produc'],            
+                'nom_produc' => $Producto['nom_produc'],
             ]);
         }
 
@@ -107,15 +104,18 @@ class EstudioController extends Controller
         //
     }
 
-    public function listarPendientes(Request $request, Estudio $estudio){
+    public function listarPendientesMedico(Request $request, Estudio $estudio)
+    {
 
-        $misPendiente = Estudio::with(['paciente', 'quienRegistro', 'productos'])
+        $misPendiente = Estudio::with(['paciente', 'quienRegistro', 'prioridad', 'sucursal', 'productos'])
             ->where('medico_id', $request->id)
-            ->first();
-        return $misPendiente;
+            ->get();
+
+
+        return response()->json($misPendiente);
     }
 
-    public function leer(){
-
+    public function leer()
+    {
     }
 }

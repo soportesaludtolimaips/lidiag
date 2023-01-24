@@ -34,7 +34,7 @@ use App\Http\Controllers\Seguridad\UserController;
 
 Route::middleware(['auth:sanctum'])->group(function () {
 
-    Route::get('/user', function(Request $request){
+    Route::get('/user', function (Request $request) {
         return $request->user();
     });
 });
@@ -54,5 +54,4 @@ Route::resource('estudios-productos', EstudioProductoController::class)->names('
 Route::resource('estudios-diagnosticos', EstudioDiagnosticoController::class)->names('estudios.diagnosticos');
 
 Route::post('estudio-leer', [EstudioController::class, 'leerEstudio'])->name('estudio.leer');
-Route::get('estudio-listarPendientes', [EstudioController::class, 'listarPendientes'])->name('estudio.listarPendientes');
-
+Route::get('estudio-listarPendientesMedico', [EstudioController::class, 'listarPendientesMedico'])->name('estudio.listarPendientesMedico');
