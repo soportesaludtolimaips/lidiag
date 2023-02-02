@@ -11,7 +11,7 @@
     <!-- Favicon icon -->
     <link rel="icon" type="image/png" sizes="16x16"
         href="{{ asset('admin-wrap-login/assets/images/favicon.png') }}">
-    <title>{{ config('app.name', 'LIDiag - Reportes') }}</title>
+    <title>{{ config('app.name', 'LIDiag') }}</title>
     <!-- Bootstrap Core CSS -->
     <link href="{{ asset('admin-wrap-login/assets/node_modules/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
     <!-- page css -->
@@ -36,7 +36,7 @@
     <div class="preloader">
         <div class="loader">
             <div class="loader__figure"></div>
-            <p class="loader__label">Lidiag - Reportes</p>
+            <p class="loader__label">Lidiag</p>
         </div>
     </div>
     <!-- ============================================================== -->

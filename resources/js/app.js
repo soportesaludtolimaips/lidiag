@@ -15,6 +15,10 @@ import { createApp, VueElement } from 'vue';
 
 const app = createApp({});
 
+/**
+ * Configuracion
+ */
+
 import configAdminSaludComponent from './components/configuracion/configAdminSaludComponent.vue';
 app.component('config-admin-salud-component', configAdminSaludComponent);
 
@@ -31,13 +35,14 @@ import configSucursalComponent from './components/configuracion/configSucursalCo
 app.component('config-sucursal-component', configSucursalComponent);
 
 
-
+/**
+ * Estudios
+ */
 import AsignarEstudioComponent from './components/estudios/AsignarEstudioComponent.vue';
 app.component('asignar-estudio-component', AsignarEstudioComponent);
 
 import leerEstudioComponent from './components/estudios/leerEstudioComponent.vue';
 app.component('leer-estudio-component', leerEstudioComponent);
-
 
 
 /**
@@ -60,5 +65,9 @@ app.component('leer-estudio-component', leerEstudioComponent);
 
 import auth from './mixins/auth';
 app.mixin(auth);
+
+import sucursalActual from './mixins/sucursal';
+app.mixin(sucursalActual);
+
 
 app.mount('#app');

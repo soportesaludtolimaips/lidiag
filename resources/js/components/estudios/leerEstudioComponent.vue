@@ -16,12 +16,6 @@
                     <li class="breadcrumb-item active">Leer Estudios</li>
                 </ol>
             </div>
-
-            <div class="">
-                <button class="right-side-toggle btn-info btn btn-circle btn-sm">
-                    <i class="fa fa-plus-circle m-r-5"></i>
-                </button>
-            </div>
         </div>
         <!-- ============================================================== -->
         <!-- End Bread crumb and right sidebar toggle -->
@@ -34,45 +28,33 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros para busqueda de mis pendientes
-                        </h4>
+                        <h4 class="card-title text-themecolor"><i class="fa fa-filter"></i> Filtros para busqueda de mis pendientes</h4>
                         <form action="#">
                             <div class="form-body">
                                 <div class="row p-t-2">
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label class="control-label">Nombres de paciente o # de documento
-                                            </label>
-                                            <input type="text" id="bus_nom_num_docu" name="bus_nom_num_docu"
-                                                v-model="busqueda.bus_nom_num_docu" class="form-control"
-                                                placeholder="Nombres de paciente o # de documento">
+                                            <label class="control-label">Nombres de paciente o # de documento</label>
+                                            <input type="text" id="bus_nom_num_docu" name="bus_nom_num_docu" v-model="busqueda.bus_nom_num_docu" class="form-control" placeholder="Nombres de paciente o # de documento" />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Inicio</label>
-                                            <input type="date" id="nom_diagnos" name="nom_diagnos"
-                                                v-model="busqueda.fehc_ini" class="form-control">
+                                            <input type="date" id="nom_diagnos" name="nom_diagnos" v-model="busqueda.fehc_ini" class="form-control" />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Fin</label>
-                                            <input type="date" id="fecha_fin" name="fecha_fin"
-                                                v-model="busqueda.fecha_fin" class="form-control">
+                                            <input type="date" id="fecha_fin" name="fecha_fin" v-model="busqueda.fecha_fin" class="form-control" />
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="form-actions mt-3">
-                                    <button type="button" class="btn btn-success m-r-5" @click="buscarStudy()">
-                                        <i class="fa fa-search"></i> Buscar
-                                    </button>
-
-                                    <button type="button" class="btn btn-inverse" @click="btnLimpiar()">
-                                        <i class="fa fa-refresh"></i> Limpiar
-                                    </button>
+                                    <button type="button" class="btn btn-success m-r-5" @click="buscarStudy()"><i class="fa fa-search"></i> Buscar</button>
+                                    <button type="button" class="btn btn-inverse" @click="btnLimpiar()"><i class="fa fa-refresh"></i> Limpiar</button>
                                 </div>
                             </div>
                         </form>
@@ -87,10 +69,10 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de mis pendientes por leer</h4>
                         <div class="table-responsive m-t-40">
-                            <table id="example23" class="display nowrap table table-hover table-striped table-bordered"
-                                cellspacing="0" width="100%">
+                            <table id="example23" class="display nowrap table table-hover table-striped table-bordered" cellspacing="0" width="100%">
                                 <thead>
                                     <tr>
+                                        <th></th>
                                         <th>Fecha del Toma</th>
                                         <th>Quien Asigno</th>
                                         <th>Paciente</th>
@@ -101,21 +83,21 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="(item, index) in registros" :key="index">
+                                        <td width="2%" class="badge-danger"></td>
                                         <td>{{ item.fec_estudio }}</td>
-                                        <td>{{ item.quien_registro.name }}</td>
-                                        <td>{{ item.paciente.num_docu }} <br /> {{ item.paciente.nombres }}</td>
-                                        <td>{{ item.study_desc }} <br /> {{ item.accession_no }}</td>
-                                        <td>{{ item.productos.nom_produc }}</td>
+                                        <td>{{ item.quien_registro }}</td>
+                                        <td>
+                                            {{ item.num_docu }} <br />
+                                            {{ item.nombres }}
+                                        </td>
+                                        <td>
+                                            {{ item.study_desc }} <br />
+                                            {{ item.accession_no }}
+                                        </td>
+                                        <td>{{ item.nom_produc }}</td>
                                         <td class="text-nowrap">
-                                            <button type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="actualizar = true; mostrarRegistro(item)">
+                                            <button type="button" class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5" @click="actualizar = true; mostrarRegistro(item);">
                                                 <i class="fa fa-pencil"></i>
-                                            </button>
-                                            <button type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="elimnarRegistro(item.id)">
-                                                <i class="fa fa-trash"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -129,17 +111,158 @@
         <!-- ============================================================== -->
         <!-- End PAge Content -->
         <!-- ============================================================== -->
-        <div class="">
-            <button
-                class="right-side-toggle waves-effect waves-light btn-inverse btn btn-circle btn-sm pull-right m-l-10">
-                <i class="ti-settings text-white"></i>
-            </button>
-        </div>
+
         <!-- ============================================================== -->
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
+        <div class="right-sidebar">
+            <div class="slimscrollright">
+                <div class="rpanel-title">
+                    {{ tituloModal }}
+                    <span>
+                        <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
+                    </span>
+                </div>
+                <div class="r-panel-body">
+                    <!-- ============================================================== -->
+                    <!-- Aqui va el contenido de los formularios -->
+                    <!-- ============================================================== -->
+                    <form action="#">
+                        <div class="form-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="text-info">
+                                        <i class="fa fa-user"></i> DATOS DEL PACIENTE
+                                    </p>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label class="control-label"># Documento</label>
+                                                <input type="text" id="num_docu" name="num_docu" v-model="registro.num_docu" class="form-control" placeholder="# de Documento" />
+                                                <span class="text-danger" v-if="errores.num_docu">{{
+                                                    errores.num_docu[0]
+                                                }}</span>
+                                            </div>
+                                        </div>
 
+                                        <div class="col-md-5">
+                                            <div class="form-group">
+                                                <label class="control-label">Nombres</label>
+                                                <input type="text" id="nom_pacien" name="nom_pacien" v-model="registro.nom_pacien" class="form-control" placeholder="Nombres" />
+                                                <span class="text-danger" v-if="errores.nom_pacien">{{
+                                                    errores.nom_pacien[0]
+                                                }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label class="control-label">Sexo</label>
+                                                <input type="text" id="sexo" name="sexo" v-model="registro.sexo" class="form-control" />
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label class="control-label">Fec. Nacimi</label>
+                                                <input type="date" id="fec_naci" name="fec_naci" v-model="registro.fec_naci" class="form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <p class="text-info">
+                                        <i class="fa fa-user"></i> DATOS DEL ESTUDIO
+                                    </p>
+
+                                    <input type="hidden" id="study_pk" name="study_pk" v-model="registro.study_pk" />
+                                    <input type="hidden" id="study_iuid" name="study_iuid" v-model="registro.study_iuid" />
+                                    <input type="hidden" id="study_id" name="study_id" v-model="registro.study_id" />
+
+                                    <div class="row">
+                                        <div class="col-md-5">
+                                            <div class="form-group">
+                                                <label class="control-label">Descripción</label>
+                                                <input type="text" id="study_desc" name="study_desc" v-model="registro.study_desc" class="form-control" />
+                                                <span class="text-danger" v-if="errores.study_desc">{{
+                                                    errores.study_desc[0]
+                                                }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label class="control-label">Detalle</label>
+                                                <input type="text" id="accession_no" name="accession_no" v-model="registro.accession_no" class="form-control" />
+                                                <span class="text-danger" v-if="errores.accession_no">{{
+                                                    errores.accession_no[0]
+                                                }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label class="control-label">Fecha</label>
+                                                <input type="text" id="study_datetime" name="study_datetime" v-model="registro.study_datetime" class="form-control" />
+                                                <span class="text-danger" v-if="errores.study_datetime">{{
+                                                    errores.study_datetime[0]
+                                                }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="control-label">Observaciones</label>
+                                                <input type="text" id="observaciones" name="observaciones" v-model="registro.observaciones" class="form-control" placeholder="Ingrese aqi las observaciones del estudio" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="text-info">
+                                        <i class="fa fa-user"></i> DATOS DE LA ASIGNACIÓN
+                                    </p>
+                                    <div class="row">
+
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+
+                                        </div>
+                                        <div class="col-md-12">
+
+                                        </div>
+                                    </div>
+                                    <p class="text-info">
+                                        <i class="fa fa-user"></i> DIAGNOSTICOS
+                                        <button type="button"
+                                            class="btn waves-effect waves-light btn-xs btn-info float-right">
+                                            <i class="fa fa-search"></i>
+                                        </button>
+                                    </p>
+                                    <div class="row">
+                                        <div class="col-md-12">
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-actions mt-3">
+                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()">
+                                    <i class="fa fa-check"></i> Guardar
+                                </button>
+
+                                <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
         <!-- ============================================================== -->
         <!-- End Right sidebar -->
         <!-- ============================================================== -->
@@ -155,13 +278,11 @@ export default {
         return {
             id: 0,
             registros: [],
-            tituloModal: 'Nuevo registro',
-            registro: {
-                study_pk: '', study_iuid: '', study_datetime: '', study_id: '', accession_no: '', study_desc: '', observaciones: '', medico_id: '', prioridad_id: '', num_docu: '', nombres: '', sexo: '', fec_naci: '', email: '', direccion: '', telefono: '', productosEstudio: [], diagnosticosEstudio: [],
-            },
-            busqueda: { bus_nom_num_docu: '5860691', fehc_ini: '', fecha_fin: '' },
+            tituloModal: "Nuevo registro",
+            registro: { study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", observaciones: "", medico_id: "", prioridad_id: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "", direccion: "", telefono: "", productosEstudio: [], diagnosticosEstudio: [] },
+            busqueda: { bus_nom_num_docu: "5860691", fehc_ini: "", fecha_fin: "" },
             errores: {},
-
+            tipoPrioridad: 0
         };
     },
     methods: {
@@ -188,25 +309,23 @@ export default {
         }, */
         async listarMisPendientes() {
             try {
-                const res = await axios.get('api/estudio-listarPendientesMedico?id=' + this.usuarioActua.id);
-                $('#example23').DataTable().destroy();
+                const res = await axios.get("api/estudio-listarPendientesMedico?id=" + this.usuarioActua.id);
+                $("#example23").DataTable().destroy();
 
                 this.registros = res.data;
                 console.log(this.registros.fec_estudio);
                 this.$nextTick(() => {
-                    $('#example23').DataTable({
-                        dom: 'Bfrtip',
-                        buttons: [
-                            'copy', 'csv', 'excel', 'pdf', 'print'
-                        ]
+                    $("#example23").DataTable({
+                        dom: "Bfrtip",
+                        buttons: ["copy", "csv", "excel", "pdf", "print"],
                     });
                 });
             } catch (error) {
                 console.log(error);
             }
         },
-        /* mostrarRegistro(data = {}) {
-            this.tituloModal = "Agendar al paciente: " + data.pat_name;
+        mostrarRegistro(data = {}) {
+            this.tituloModal = "Lectura de paciente: " + data.nom_pacien +"Producto: \n"+ data.nom_produc;
             this.id = data.id;
             this.registro.study_pk = data.study_pk;
             this.registro.study_iuid = data.study_iuid;
@@ -216,17 +335,23 @@ export default {
             this.registro.study_desc = data.study_desc;
 
             this.registro.num_docu = data.pat_id;
-            this.registro.nombres = data.pat_name;
+            this.registro.nom_pacien = data.nom_pacien;
             this.registro.sexo = data.pat_sex;
             this.registro.fec_naci = data.pat_birthdate;
             $('#btnCerralModalForm').click();
             this.errores = [];
 
-        }, */
+        },
         btnCerralModalForm() {
-            $('#btnCerralModalForm').click();
+            $("#btnCerralModalForm").click();
         },
     },
+    computed: {
+        estiloPrioridad: function () {
+            this.tipoPrioridad;
+            console.log("Estilo "+this.registro)
+        }
+    }
 };
 </script>
 

@@ -30,7 +30,7 @@ class EstudioController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(EstudioAsignarRequest $request)
     {
         $paciente = Paciente::firstOrCreate(
             ['num_docu' => $request->num_docu],
@@ -107,11 +107,28 @@ class EstudioController extends Controller
     public function listarPendientesMedico(Request $request, Estudio $estudio)
     {
 
-        $misPendiente = Estudio::with(['paciente', 'quienRegistro', 'prioridad', 'sucursal', 'productos'])
-            ->where('medico_id', $request->id)
+        $misPendiente = Estudio::select(
+            'estudios.*',
+            'pacien.num_docu',
+            'pacien.nombres as nom_pacien',
+            'pacien.fec_naci',
+            'pacien.sexo',
+            'produc.cod_cups',
+            'produc.nom_produc',
+            'produc.fechor_lectura',
+            'users.name AS quien_registro',
+            'priori.nom_priori',
+            'priori.nivel AS priori_nivel',
+            'priori.tiempo AS priori_tiempo'
+        )
+            ->join('pacientes AS pacien', 'estudios.paciente_id',  '=', 'pacien.id')
+            ->join('config_sucursales AS sucur', 'estudios.sucursal_id', '=', 'sucur.id')
+            ->join('estudios_productos AS produc', 'produc.estudio_id', '=', 'estudios.id')
+            ->join('users', 'estudios.quien_registro_id', '=', 'users.id')
+            ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
+            ->where('estudios.medico_id', $request->id)
+            ->whereNull('produc.fechor_lectura')
             ->get();
-
-
         return response()->json($misPendiente);
     }
 
