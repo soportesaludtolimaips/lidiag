@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Estudios;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Estudio\EstudioAsignarRequest;
+use App\Http\Requests\Estudio\estudioLeerRequest;
 use App\Mail\NotificacionAsignacionDeLectura;
 use App\Models\General\Paciente;
 use App\Models\Estudio\Estudio;
 use App\Models\Estudio\EstudioProducto;
 use Illuminate\Http\Request;
 use Mail;
+use Illuminate\Support\Carbon;
 
 class EstudioController extends Controller
 {
@@ -113,6 +115,7 @@ class EstudioController extends Controller
             'pacien.nombres as nom_pacien',
             'pacien.fec_naci',
             'pacien.sexo',
+            'produc.id as id_producto_lectura',
             'produc.cod_cups',
             'produc.nom_produc',
             'produc.fechor_lectura',
@@ -132,7 +135,13 @@ class EstudioController extends Controller
         return response()->json($misPendiente);
     }
 
-    public function leer()
+    public function leerEstudio(estudioLeerRequest $request, EstudioProducto $estudioProducto)
     {
+        $productoLectura = EstudioProducto::findOrFail($request->id_producto_lectura);
+        $productoLectura->lectura = $request->lectura;
+        $productoLectura->fechor_lectura = Carbon::now();
+        $productoLectura->save();
+
+        return response()->json(['message' => 'La lectura se realizó correctamente.']);
     }
 }

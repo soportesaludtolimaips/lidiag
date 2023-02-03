@@ -20,6 +20,7 @@
 
     <!-- Bootstrap Core CSS -->
     <link href="{{ asset('admin-wrap/assets/node_modules/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+
     <!-- Typehead CSS -->
     <link href="{{ asset('admin-wrap/assets/node_modules/typeahead.js-master/dist/typehead-min.css') }}"
         rel="stylesheet">

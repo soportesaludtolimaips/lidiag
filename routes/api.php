@@ -53,5 +53,5 @@ Route::resource('estudios', EstudioController::class)->names('estudios')->except
 Route::resource('estudios-productos', EstudioProductoController::class)->names('estudios.productos');
 Route::resource('estudios-diagnosticos', EstudioDiagnosticoController::class)->names('estudios.diagnosticos');
 
-Route::post('estudio-leer', [EstudioController::class, 'leerEstudio'])->name('estudio.leer');
+Route::post('estudio-leerEstudio', [EstudioController::class, 'leerEstudio'])->name('estudio.leerEstudio');
 Route::get('estudio-listarPendientesMedico', [EstudioController::class, 'listarPendientesMedico'])->name('estudio.listarPendientesMedico');
