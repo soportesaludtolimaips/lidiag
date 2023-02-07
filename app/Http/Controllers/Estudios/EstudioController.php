@@ -122,7 +122,8 @@ class EstudioController extends Controller
             'users.name AS quien_registro',
             'priori.nom_priori',
             'priori.nivel AS priori_nivel',
-            'priori.tiempo AS priori_tiempo'
+            'priori.tiempo AS priori_tiempo',
+            'sucur.sucursal as nom_sucur'
         )
             ->join('pacientes AS pacien', 'estudios.paciente_id',  '=', 'pacien.id')
             ->join('config_sucursales AS sucur', 'estudios.sucursal_id', '=', 'sucur.id')
@@ -143,5 +144,51 @@ class EstudioController extends Controller
         $productoLectura->save();
 
         return response()->json(['message' => 'La lectura se realizó correctamente.']);
+    }
+
+    public function listarPendientesTrascribir(Request $request)
+    {
+        $misPendiente = Estudio::select(
+            'estudios.*',
+            'pacien.num_docu as num_docu_pacien',
+            'pacien.nombres as nom_pacien',
+            'pacien.fec_naci',
+            'pacien.sexo',
+            'produc.id as id_producto_lectura',
+            'produc.cod_cups',
+            'produc.nom_produc',
+            'produc.fechor_lectura',
+            'produc.lectura',
+            'users.name AS quien_registro',
+            'priori.nom_priori',
+            'priori.nivel AS priori_nivel',
+            'priori.tiempo AS priori_tiempo',
+            'medi.name as medico',
+            'sucur.sucursal as nom_sucur'
+        )
+            ->join('pacientes AS pacien', 'estudios.paciente_id',  '=', 'pacien.id')
+            ->join('config_sucursales AS sucur', 'estudios.sucursal_id', '=', 'sucur.id')
+            ->join('estudios_productos AS produc', 'produc.estudio_id', '=', 'estudios.id')
+            ->join('users', 'estudios.quien_registro_id', '=', 'users.id')
+            ->join('users as medi', 'estudios.medico_id', '=', 'medi.id')
+            ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
+            ->whereNull('produc.fechor_trascrito')
+            ->whereNotNull('produc.fechor_lectura')
+            ->get();
+
+        return response()->json($misPendiente);
+    }
+
+    public function guardarTranscripcion(Request $request)
+    {
+        $usuarioActual = $request->usua_actual;
+
+        $transcribir = EstudioProducto::findOrFail($request->registro['id_producto_lectura']);
+        $transcribir->lectura = $request->registro['lectura'];
+        $transcribir->transcriptor_id = $usuarioActual;
+        $transcribir->fechor_trascrito = Carbon::now();
+        $transcribir->save();
+
+        return response()->json(['message' => 'La transcripción de guardo correctamente.']);
     }
 }

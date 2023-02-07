@@ -44,6 +44,9 @@ app.component('asignar-estudio-component', AsignarEstudioComponent);
 import leerEstudioComponent from './components/estudios/leerEstudioComponent.vue';
 app.component('leer-estudio-component', leerEstudioComponent);
 
+import transcribirEstudioComponent from './components/estudios/transcribirEstudioComponent.vue';
+app.component('transcribir-estudio-component', transcribirEstudioComponent);
+
 
 /**
  * The following block of code may be used to automatically register your

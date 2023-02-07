@@ -29,6 +29,7 @@
                     </a>
                     <ul aria-expanded="false" class="collapse">
                         <li><a href="{{ route('estudios.asignar') }}">Asignar estudio</a></li>
+                        <li><a href="{{ route('estudios.transcribir') }}">Transcribir</a></li>
                         <li><a href="{{ route('estudios.leer') }}">Mis estudios pendientes</a></li>
                     </ul>
                 </li>
