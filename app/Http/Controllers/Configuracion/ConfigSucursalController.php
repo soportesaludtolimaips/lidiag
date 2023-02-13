@@ -16,7 +16,6 @@ class ConfigSucursalController extends Controller
     public function index()
     {
         $sedes = ConfigSucursale::all();
-        return $sedes;
         return response()->json($sedes);
     }
 

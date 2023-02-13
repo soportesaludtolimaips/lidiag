@@ -1,11 +1,11 @@
 let user = document.head.querySelector('meta[name="user"]');
 
-export default{
-    computed:{
-        usuarioActua(){
+export default {
+    computed: {
+        usuarioActua() {
             return JSON.parse(user.content)
         },
-        isAutenticado(){
+        isAutenticado() {
             return !!user.content
         }
     },

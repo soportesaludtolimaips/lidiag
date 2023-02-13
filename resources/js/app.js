@@ -16,6 +16,11 @@ import { createApp, VueElement } from 'vue';
 const app = createApp({});
 
 /**
+ * Variables
+ */
+createApp.prototype.$sucursalActual = 'La primera sucursal';
+
+/**
  * Configuracion
  */
 
@@ -47,6 +52,12 @@ app.component('leer-estudio-component', leerEstudioComponent);
 import transcribirEstudioComponent from './components/estudios/transcribirEstudioComponent.vue';
 app.component('transcribir-estudio-component', transcribirEstudioComponent);
 
+
+/**
+ * Varios
+ */
+import seleccionarSucursal from './components/varios/seleccionarSucursal.vue';
+app.component('varios-sucursales-component', seleccionarSucursal);
 
 /**
  * The following block of code may be used to automatically register your

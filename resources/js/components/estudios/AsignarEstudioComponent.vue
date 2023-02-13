@@ -95,7 +95,8 @@
                             Asigne los estudios a los médicos para su respectiva lectura.
                         </h6>
                         <div class="table-responsive m-t-40">
-                            <table id="example23" class="display nowrap table table-hover table-striped table-bordered" cellspacing="0" width="100%">
+                            <table id="example23" class="display nowrap table table-hover table-striped table-bordered"
+                                cellspacing="0" width="100%">
                                 <thead>
                                     <tr>
                                         <th>Fecha del Estudio</th>
@@ -118,10 +119,14 @@
                                         <!-- <td>{{ item.pat_sex }}</td>
                                         <td>{{ item.pat_birthdate }}</td> -->
                                         <td class="text-nowrap">
-                                            <button type="button" class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5" @click="actualizar = true;mostrarRegistro(item);">
+                                            <button type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
+                                                @click="actualizar = true; mostrarRegistro(item);">
                                                 <i class="fa fa-pencil"></i>
                                             </button>
-                                            <button type="button" class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm" @click="elimnarRegistro(item.id)">
+                                            <button type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
+                                                @click="elimnarRegistro(item.id)">
                                                 <i class="fa fa-trash"></i>
                                             </button>
                                         </td>
@@ -137,7 +142,8 @@
         <!-- End PAge Content -->
         <!-- ============================================================== -->
         <div class="">
-            <button class="right-side-toggle waves-effect waves-light btn-inverse btn btn-circle btn-sm pull-right m-l-10">
+            <button
+                class="right-side-toggle waves-effect waves-light btn-inverse btn btn-circle btn-sm pull-right m-l-10">
                 <i class="ti-settings text-white"></i>
             </button>
         </div>
@@ -455,6 +461,9 @@ export default {
         this.listarPrioridades();
         this.listarProductos();
         this.listarDiagnosticos();
+    },
+    beforeCreate: function () {
+        console.log(this.$sucursalActual)
     },
     data() {
         return {

@@ -22,28 +22,19 @@
     <link href="{{ asset('admin-wrap/assets/node_modules/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
 
     <!-- Typehead CSS -->
-    <link href="{{ asset('admin-wrap/assets/node_modules/typeahead.js-master/dist/typehead-min.css') }}"
-        rel="stylesheet">
+    <link href="{{ asset('admin-wrap/assets/node_modules/typeahead.js-master/dist/typehead-min.css') }}" rel="stylesheet">
     <!-- page CSS -->
-    <link href="{{ asset('admin-wrap/assets/node_modules/bootstrap-datepicker/bootstrap-datepicker.min.css') }}"
-        rel="stylesheet" type="text/css" />
-    <link href="{{ asset('admin-wrap/assets/node_modules/select2/dist/css/select2.min.css') }}" rel="stylesheet"
-        type="text/css" />
+    <link href="{{ asset('admin-wrap/assets/node_modules/bootstrap-datepicker/bootstrap-datepicker.min.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('admin-wrap/assets/node_modules/select2/dist/css/select2.min.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('admin-wrap/assets/node_modules/switchery/dist/switchery.min.css') }}" rel="stylesheet" />
-    <link href="{{ asset('admin-wrap/assets/node_modules/bootstrap-select/bootstrap-select.min.css') }}"
-        rel="stylesheet" />
-    <link href="{{ asset('admin-wrap/assets/node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.css') }}"
-        rel="stylesheet" />
-    <link
-        href="{{ asset('admin-wrap/assets/node_modules/bootstrap-touchspin/dist/jquery.bootstrap-touchspin.min.css') }}"
-        rel="stylesheet" />
-    <link href="{{ asset('admin-wrap/assets/node_modules/multiselect/css/multi-select.css') }}" rel="stylesheet"
-        type="text/css" />
+    <link href="{{ asset('admin-wrap/assets/node_modules/bootstrap-select/bootstrap-select.min.css') }}" rel="stylesheet" />
+    <link href="{{ asset('admin-wrap/assets/node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.css') }}" rel="stylesheet" />
+    <link href="{{ asset('admin-wrap/assets/node_modules/bootstrap-touchspin/dist/jquery.bootstrap-touchspin.min.css') }}" rel="stylesheet" />
+    <link href="{{ asset('admin-wrap/assets/node_modules/multiselect/css/multi-select.css') }}" rel="stylesheet" type="text/css" />
     <!-- toast CSS -->
     <link href="{{ asset('admin-wrap/assets/node_modules/toast-master/css/jquery.toast.css') }}" rel="stylesheet">
     <!--alerts CSS -->
-    <link href="{{ asset('admin-wrap/assets/node_modules/sweetalert/sweetalert.css') }}" rel="stylesheet"
-        type="text/css">
+    <link href="{{ asset('admin-wrap/assets/node_modules/sweetalert/sweetalert.css') }}" rel="stylesheet" type="text/css">
     <!-- Custom CSS -->
     <link href="{{ asset('admin-wrap/css/style.css') }}" rel="stylesheet">
     <!-- You can change the theme colors from here -->
@@ -74,70 +65,72 @@
     <!-- Main wrapper - style you can find in pages.scss -->
     <!-- ============================================================== -->
     <div id="main-wrapper">
-        <!-- ============================================================== -->
-        <!-- Topbar header - style you can find in pages.scss -->
-        <!-- ============================================================== -->
-        <header class="topbar">
-            <nav class="navbar top-navbar navbar-expand-md navbar-light">
-                <!-- ============================================================== -->
-                <!-- Logo -->
-                <!-- ============================================================== -->
-                @include('comunes.logo')
-                <!-- ============================================================== -->
-                <!-- End Logo -->
-                <!-- ============================================================== -->
-                <div class="navbar-collapse">
-                    <!-- ============================================================== -->
-                    <!-- toggle and nav items -->
-                    <!-- ============================================================== -->
-                    @include('comunes.toggle-and-nav-items')
-                    <!-- ============================================================== -->
-                    <!-- User profile and search -->
-                    <!-- ============================================================== -->
-                    @include('comunes.user-profile-and-search')
-                </div>
-            </nav>
-        </header>
-        <!-- ============================================================== -->
-        <!-- End Topbar header -->
-        <!-- ============================================================== -->
-        <!-- ============================================================== -->
-        <!-- Left Sidebar - style you can find in sidebar.scss  -->
-        <!-- ============================================================== -->
-        @include('comunes.sidebar')
-        <!-- ============================================================== -->
-        <!-- End Left Sidebar - style you can find in sidebar.scss  -->
-        <!-- ============================================================== -->
-        <!-- ============================================================== -->
-        <!-- Page wrapper  -->
-        <!-- ============================================================== -->
-        <div class="page-wrapper">
-
+        <div id="app">
             <!-- ============================================================== -->
-            <!-- Container fluid  -->
+            <!-- Topbar header - style you can find in pages.scss -->
             <!-- ============================================================== -->
-            <div class="container-fluid">
+            <header class="topbar">
+                <nav class="navbar top-navbar navbar-expand-md navbar-light">
+                    <!-- ============================================================== -->
+                    <!-- Logo -->
+                    <!-- ============================================================== -->
+                    @include('comunes.logo')
+                    <!-- ============================================================== -->
+                    <!-- End Logo -->
+                    <!-- ============================================================== -->
+                    <div class="navbar-collapse">
+                        <!-- ============================================================== -->
+                        <!-- toggle and nav items -->
+                        <!-- ============================================================== -->
+                        @include('comunes.toggle-and-nav-items')
+                        <!-- ============================================================== -->
+                        <!-- User profile and search -->
+                        <!-- ============================================================== -->
+                        @include('comunes.user-profile-and-search')
+                    </div>
+                </nav>
+            </header>
+            <!-- ============================================================== -->
+            <!-- End Topbar header -->
+            <!-- ============================================================== -->
+            <!-- ============================================================== -->
+            <!-- Left Sidebar - style you can find in sidebar.scss  -->
+            <!-- ============================================================== -->
+            @include('comunes.sidebar')
+            <!-- ============================================================== -->
+            <!-- End Left Sidebar - style you can find in sidebar.scss  -->
+            <!-- ============================================================== -->
+            <!-- ============================================================== -->
+            <!-- Page wrapper  -->
+            <!-- ============================================================== -->
+            <div class="page-wrapper">
 
-                <div id="app">
+                <!-- ============================================================== -->
+                <!-- Container fluid  -->
+                <!-- ============================================================== -->
+                <div class="container-fluid">
+
+
                     @yield('content')
-                </div>
 
+
+                </div>
+                <!-- ============================================================== -->
+                <!-- End Container fluid  -->
+                <!-- ============================================================== -->
+
+                <!-- ============================================================== -->
+                <!-- footer -->
+                <!-- ============================================================== -->
+                @include('comunes.footer')
+                <!-- ============================================================== -->
+                <!-- End footer -->
+                <!-- ============================================================== -->
             </div>
             <!-- ============================================================== -->
-            <!-- End Container fluid  -->
-            <!-- ============================================================== -->
-
-            <!-- ============================================================== -->
-            <!-- footer -->
-            <!-- ============================================================== -->
-            @include('comunes.footer')
-            <!-- ============================================================== -->
-            <!-- End footer -->
+            <!-- End Page wrapper  -->
             <!-- ============================================================== -->
         </div>
-        <!-- ============================================================== -->
-        <!-- End Page wrapper  -->
-        <!-- ============================================================== -->
     </div>
     <!-- ============================================================== -->
     <!-- End Wrapper -->
@@ -335,16 +328,11 @@
     <!-- This page plugins -->
     <!-- ============================================================== -->
     <script src="{{ asset('admin-wrap/assets/node_modules/switchery/dist/switchery.min.js') }}"></script>
-    <script src="{{ asset('admin-wrap/assets/node_modules/select2/dist/js/select2.full.min.js') }}" type="text/javascript">
-    </script>
-    <script src="{{ asset('admin-wrap/assets/node_modules/bootstrap-select/bootstrap-select.min.js') }}"
-        type="text/javascript"></script>
-    <script src="{{ asset('admin-wrap/assets/node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}">
-    </script>
-    <script src="{{ asset('admin-wrap/assets/node_modules/bootstrap-touchspin/dist/jquery.bootstrap-touchspin.js') }}"
-        type="text/javascript"></script>
-    <script type="text/javascript"
-        src="{{ asset('admin-wrap/assets/node_modules/multiselect/js/jquery.multi-select.js') }}"></script>
+    <script src="{{ asset('admin-wrap/assets/node_modules/select2/dist/js/select2.full.min.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('admin-wrap/assets/node_modules/bootstrap-select/bootstrap-select.min.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('admin-wrap/assets/node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+    <script src="{{ asset('admin-wrap/assets/node_modules/bootstrap-touchspin/dist/jquery.bootstrap-touchspin.js') }}" type="text/javascript"></script>
+    <script type="text/javascript" src="{{ asset('admin-wrap/assets/node_modules/multiselect/js/jquery.multi-select.js') }}"></script>
 
 
 

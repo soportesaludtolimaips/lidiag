@@ -117,7 +117,8 @@
                                         <label class="control-label">Sucursal</label>
                                         <input type="text" id="sucursal" name="sucursal" v-model="registro.sucursal"
                                             class="form-control" placeholder="Ingrese aqui la razón social de la sede">
-                                        <span class="text-danger" v-if="errores.sucursal">{{ errores.sucursal[0]
+                                        <span class="text-danger" v-if="errores.sucursal">{{
+                                            errores.sucursal[0]
                                         }}</span>
                                     </div>
                                 </div>
@@ -148,7 +149,8 @@
                                         <input type="text" id="usuario_dcm" name="usuario_dcm"
                                             v-model="registro.usuario_dcm" class="form-control"
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
-                                        <span class="text-danger" v-if="errores.usuario_dcm">{{ errores.usuario_dcm[0]
+                                        <span class="text-danger" v-if="errores.usuario_dcm">{{
+                                            errores.usuario_dcm[0]
                                         }}</span>
                                     </div>
                                 </div>
@@ -160,7 +162,7 @@
                                             v-model="registro.password_dcm" class="form-control"
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.password_dcm">{{
-                                        errores.password_dcm[0]
+                                            errores.password_dcm[0]
                                         }}</span>
                                     </div>
                                 </div>
@@ -174,7 +176,7 @@
                                             v-model="registro.usuario_oviyam" class="form-control"
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.usuario_oviyam">{{
-                                        errores.usuario_oviyam[0]
+                                            errores.usuario_oviyam[0]
                                         }}</span>
                                     </div>
                                 </div>
@@ -186,7 +188,7 @@
                                             v-model="registro.password_oviyam" class="form-control"
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.password_oviyam">{{
-                                        errores.password_oviyam[0]
+                                            errores.password_oviyam[0]
                                         }}</span>
                                     </div>
                                 </div>
@@ -197,7 +199,8 @@
                                         <input type="text" id="url_oviyam" name="url_oviyam"
                                             v-model="registro.url_oviyam" class="form-control"
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
-                                        <span class="text-danger" v-if="errores.url_oviyam">{{ errores.url_oviyam[0]
+                                        <span class="text-danger" v-if="errores.url_oviyam">{{
+                                            errores.url_oviyam[0]
                                         }}</span>
                                     </div>
                                 </div>
@@ -370,3 +373,27 @@ export default {
     },
 };
 </script>
+<style scoped>
+.right-sidebar {
+    position: fixed;
+    right: -50%;
+    width: 50%;
+    display: none;
+    z-index: 1100;
+    background: #ffffff;
+    top: 0px;
+    padding-bottom: 20px;
+    height: 100%;
+    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
+    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
+    -webkit-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+}
+
+.shw-rside {
+    right: 0px;
+    width: 50%;
+    display: block;
+}
+</style>
