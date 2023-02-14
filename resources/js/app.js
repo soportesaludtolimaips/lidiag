@@ -18,7 +18,7 @@ const app = createApp({});
 /**
  * Variables
  */
-createApp.prototype.$sucursalActual = 'La primera sucursal';
+//createApp.prototype.$sucursalActual = 'La primera sucursal';
 
 /**
  * Principales
@@ -85,11 +85,6 @@ app.component('varios-sucursales-component', seleccionarSucursal);
  * scaffolding. Otherwise, you will need to add an element yourself.
  */
 
-import auth from './mixins/auth';
-app.mixin(auth);
-
-import sucursalActual from './mixins/sucursal';
-app.mixin(sucursalActual);
 
 
 app.mount('#app');

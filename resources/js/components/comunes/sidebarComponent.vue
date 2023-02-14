@@ -6,7 +6,6 @@
         <!-- Sidebar navigation-->
         <nav class="sidebar-nav">
             <ul id="sidebarnav">
-
                 <li class="nav-small-cap">--- PERSONAL</li>
                 <li>
                     <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
@@ -59,10 +58,7 @@
     </div>
 </template>
 <script>
-export default {
-
-}
+export default {};
 </script>
 <style lang="">
-    
 </style>

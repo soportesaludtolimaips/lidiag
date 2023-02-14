@@ -1,0 +1,6 @@
+{
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "volar.format.initialIndent": {
+        "html": true
+    }
+}
