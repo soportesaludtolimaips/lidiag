@@ -15,8 +15,12 @@ use App\Http\Controllers\EmailController;
 |
 */
 
-Route::get('/', function () {
+/* Route::get('/', function () {
     return view('auth.login');
+}); */
+
+Route::get('/', function () {
+    return view('layouts.app');
 });
 
 Auth::routes();

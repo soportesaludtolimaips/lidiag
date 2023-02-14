@@ -21,6 +21,14 @@ const app = createApp({});
 createApp.prototype.$sucursalActual = 'La primera sucursal';
 
 /**
+ * Principales
+ */
+
+import App from './components/App.vue';
+app.component('app-component', App);
+
+
+/**
  * Configuracion
  */
 
