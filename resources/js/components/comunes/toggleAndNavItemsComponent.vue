@@ -1,5 +1,5 @@
 <template lang="">
-    <div>
+
         <ul class="navbar-nav mr-auto">
     <!-- This is  -->
     <li class="nav-item">
@@ -27,7 +27,7 @@
     </li>
 </ul>
 
-    </div>
+
 </template>
 <script>
 export default {

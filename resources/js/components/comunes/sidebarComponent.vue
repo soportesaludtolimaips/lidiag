@@ -1,5 +1,5 @@
 <template lang="">
-    <div>
+    
         <aside class="left-sidebar">
     <!-- Sidebar scroll-->
     <div class="scroll-sidebar">
@@ -29,9 +29,9 @@
                         <span class="hide-menu">Estudios</span>
                     </a>
                     <ul aria-expanded="false" class="collapse">
-                        <li><a href="{{ route('estudios.asignar') }}">Asignar estudio</a></li>
-                        <li><a href="{{ route('estudios.transcribir') }}">Transcribir</a></li>
-                        <li><a href="{{ route('estudios.leer') }}">Mis estudios pendientes</a></li>
+                        <li><router-link to="/AsignarEstudios">Asignar estudio</router-link></li>
+                        <li><router-link to="/transcribirEstudios">Transcribir</router-link></li>
+                        <li><router-link to="/leerEstudios">Mis estudios pendientes</router-link></li>
                     </ul>
                 </li>
 
@@ -42,10 +42,11 @@
                         <span class="hide-menu">Configuración</span>
                     </a>
                     <ul aria-expanded="false" class="collapse">
-                        <li><a href="{{ route('config.admin.salud') }}">Admin. De Salud</a></li>
-                        <li><a href="{{ route('config.diagnosticos') }}">Díagnosticos</a></li>
-                        <li><a href="{{ route('config.productos') }}">Productos</a></li>
-                        <li><a href="{{ route('config.sucursales') }}">Sedes</a></li>
+                        <li><roter-link to="/configAdminSalud">Admin. De Salud</roter-link></li>
+                        <li><roter-link to="/configDiagnosticos">Díagnosticos</roter-link></li>
+                        <li><roter-link to="/configPrioridades">Prioridades</roter-link></li>
+                        <li><roter-link to="/configProductos">Productos</roter-link></li>
+                        <li><roter-link to="/configSucursales">Sucursales</roter-link></li>
                     </ul>
                 </li>
             </ul>
@@ -54,8 +55,6 @@
     </div>
     <!-- End Sidebar scroll-->
 </aside>
-
-    </div>
 </template>
 <script>
 export default {};

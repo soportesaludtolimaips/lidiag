@@ -29,45 +29,6 @@ app.component('app-component', App);
 
 
 /**
- * Configuracion
- */
-
-import configAdminSaludComponent from './components/configuracion/configAdminSaludComponent.vue';
-app.component('config-admin-salud-component', configAdminSaludComponent);
-
-import configDiagnosticoComponent from './components/configuracion/configDiagnosticoComponent.vue';
-app.component('config-diagnostico-component', configDiagnosticoComponent);
-
-import configPrioridadComponent from './components/configuracion/configPrioridadComponent.vue';
-app.component('config-prioridad-component', configPrioridadComponent);
-
-import configProductoComponent from './components/configuracion/configProductoComponent.vue';
-app.component('config-producto-component', configProductoComponent);
-
-import configSucursalComponent from './components/configuracion/configSucursalComponent.vue';
-app.component('config-sucursal-component', configSucursalComponent);
-
-
-/**
- * Estudios
- */
-import AsignarEstudioComponent from './components/estudios/AsignarEstudioComponent.vue';
-app.component('asignar-estudio-component', AsignarEstudioComponent);
-
-import leerEstudioComponent from './components/estudios/leerEstudioComponent.vue';
-app.component('leer-estudio-component', leerEstudioComponent);
-
-import transcribirEstudioComponent from './components/estudios/transcribirEstudioComponent.vue';
-app.component('transcribir-estudio-component', transcribirEstudioComponent);
-
-
-/**
- * Varios
- */
-import seleccionarSucursal from './components/varios/seleccionarSucursal.vue';
-app.component('varios-sucursales-component', seleccionarSucursal);
-
-/**
  * The following block of code may be used to automatically register your
  * Vue components. It will recursively scan this directory for the Vue
  * components and automatically register them with their "basename".
@@ -86,5 +47,7 @@ app.component('varios-sucursales-component', seleccionarSucursal);
  */
 
 
+import route from './routes'
 
+app.use(route);
 app.mount('#app');

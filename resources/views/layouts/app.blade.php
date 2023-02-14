@@ -67,6 +67,7 @@
     <div id="main-wrapper">
         <div id="app">
             <app-component ruta="{{ route('basepath') }}" />
+
         </div>
     </div>
     <!-- ============================================================== -->

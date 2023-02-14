@@ -19,14 +19,14 @@ use App\Http\Controllers\EmailController;
     return view('auth.login');
 }); */
 
-Route::get('/', function () {
+Route::get('/{optional?}', function () {
     return view('layouts.app');
 })->name('basepath');
 
 Auth::routes();
 
 //Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-
+/* 
 Route::get('home', function () {
     return view('home');
 })->middleware('auth');
@@ -39,4 +39,4 @@ Route::view('config-sucursales', 'configuracion.config-sucursales')->name('confi
 
 Route::view('estudios-asingnar', 'estudios.asignar-estudio')->name('estudios.asignar')->middleware('auth');
 Route::view('estudios-leer', 'estudios.leer-estudio')->name('estudios.leer')->middleware('auth');
-Route::view('estudios-transcribir', 'estudios.transcribir-estudio')->name('estudios.transcribir')->middleware('auth');
+Route::view('estudios-transcribir', 'estudios.transcribir-estudio')->name('estudios.transcribir')->middleware('auth'); */
