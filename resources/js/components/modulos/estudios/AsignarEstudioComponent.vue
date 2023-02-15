@@ -17,14 +17,13 @@
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
-                <button type="button" class="btn btn-info right-side-toggle80"
-                    @click="actualizar = false; mostrarRegistro();">
-                    <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
+                <button type="button" class="btn btn-info right-side-toggle80" @click="actualizar = false;">
+                    <i class=" fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
             <div class="">
                 <button class="right-side-toggle btn-info btn btn-circle btn-sm">
-                    <i class="fa fa-plus-circle m-r-5"></i>
+                    <i class="fa fa-plus-circle m-r-5"></i>bbb
                 </button>
             </div>
         </div>
@@ -461,9 +460,6 @@ export default {
         this.listarPrioridades();
         this.listarProductos();
         this.listarDiagnosticos();
-    },
-    beforeCreate: function () {
-        console.log(this.$sucursalActual)
     },
     data() {
         return {

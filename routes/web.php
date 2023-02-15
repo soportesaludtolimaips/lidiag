@@ -21,7 +21,8 @@ use App\Http\Controllers\EmailController;
 
 Route::get('/{optional?}', function () {
     return view('layouts.app');
-})->name('basepath');
+})->name('basepath')
+    ->where('optional', '.*');
 
 Auth::routes();
 
