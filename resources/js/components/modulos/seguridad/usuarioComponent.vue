@@ -208,8 +208,7 @@
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="control-label">Imagen de perfil</label>
-                                    <input type="file" class="form-control" id="imagen_perfil" name="imagen_perfil"
-                                        aria-describedby="Imagen de perfil" @change="obtenerArchivo($event)">
+                                    <input type="file" class="form-control" @change="obtenerArchivo($event)">
                                 </div>
                             </div>
                         </div>
@@ -282,9 +281,23 @@ export default {
             });
         },
         async guardarRegistro() {
+            var formData = new FormData();
+
             try {
                 if (this.actualizar === false) {
-                    const res = await axios.post('api/config-admin-salud', this.registro);
+                    formData.append('tipo_user', this.registro.tipo_user);
+                    formData.append('num_docu', this.registro.num_docu);
+                    formData.append('reg_med', this.registro.reg_med);
+                    formData.append('name', this.registro.name);
+                    formData.append('email', this.registro.email);
+                    formData.append('estado', this.registro.estado);
+                    formData.append('password', this.registro.password);
+                    formData.append("file", this.registro.imagen_perfil);
+
+                    const config = { headers: { 'Content-Type': 'multipart/form-data' } }
+
+                    const res = await axios.post('api/seguridad-usuarios', formData);
+
 
                     if (res.status == 200) {
 
@@ -322,10 +335,9 @@ export default {
                 this.errores = error.response.data.errors;
             }
         },
-        obtenerArchivo(e) {
-            /* this.form.append('file', this.registro.imagen_perfil)
-            console.log(this.registro.imagen_perfil) */
-            console.log(e)
+        obtenerArchivo(event) {
+            this.registro.imagen_perfil = event.target.files[0];
+            console.log(this.registro.imagen_perfil);
         },
         mostrarRegistro(data = {}) {
             if (this.actualizar == true) {
