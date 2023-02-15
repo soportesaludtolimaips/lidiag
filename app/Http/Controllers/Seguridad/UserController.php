@@ -16,7 +16,7 @@ class UserController extends Controller
      */
     public function index($tipo_user = '')
     {
-        $users = User::where('Medico', $tipo_user)->all();
+        $users = User::all();
         return response()->json($users);
     }
 
