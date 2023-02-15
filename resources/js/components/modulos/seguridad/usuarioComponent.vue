@@ -23,9 +23,8 @@
                 </button>
             </div>
             <div class="">
-                <button class="right-side-toggle btn-info btn btn-circle btn-sm">
-                    <i class="fa fa-plus-circle m-r-5"></i>
-                </button>
+                <button class="right-side-toggle waves-effect waves-light btn-inverse btn btn-circle btn-sm pull-right m-l-10"><i
+                        class="ti-settings text-white"></i> </button>
             </div>
         </div>
         <!-- ============================================================== -->
@@ -165,9 +164,7 @@ export default {
             try {
                 if (this.actualizar === false) {
                     const res = await axios.post('api/config-admin-salud', this.registro);
-
                     if (res.status == 200) {
-
                         this.ListarDatos()
 
                         $.toast({

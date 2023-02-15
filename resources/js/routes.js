@@ -1,13 +1,11 @@
 
 import { createRouter, createWebHistory } from 'vue-router'
 
-/* 
-export default new Route({
-    routes: [
-        { path: '/', component: require('./components/plantilla/Content') },
-    ]
-})
- */
+/**
+ *
+  * Inicio de la importacion de los complementos para agregarlos a las rutas
+  *
+*/
 
 const ContentComponent = () => import('./components/plantilla/ContentComponent.vue');
 
