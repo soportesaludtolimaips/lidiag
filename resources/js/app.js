@@ -15,10 +15,6 @@ import { createApp, VueElement } from 'vue';
 
 const app = createApp({});
 
-/**
- * Variables
- */
-//createApp.prototype.$sucursalActual = 'La primera sucursal';
 
 /**
  * Principales

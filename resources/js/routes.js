@@ -18,7 +18,7 @@ const configAdminSaludComponent = () => import('./components/modulos/configuraci
 const configDiagnosticoComponent = () => import('./components/modulos/configuracion/configDiagnosticoComponent.vue');
 const configPrioridadComponent = () => import('./components/modulos/configuracion/configPrioridadComponent.vue');
 const configProductoComponent = () => import('./components/modulos/configuracion/configProductoComponent.vue');
-const configSucursalComponent = () => import('./components/modulos/configuracion/configSucursalComponent.vue');
+const configSedeComponent = () => import('./components/modulos/configuracion/configSedeComponent.vue');
 
 /**
  * Estudios
@@ -27,6 +27,12 @@ const configSucursalComponent = () => import('./components/modulos/configuracion
 const AsignarEstudioComponent = () => import('./components/modulos/estudios/AsignarEstudioComponent.vue');
 const leerEstudioComponent = () => import('./components/modulos/estudios/leerEstudioComponent.vue');
 const transcribirEstudioComponent = () => import('./components/modulos/estudios/transcribirEstudioComponent.vue');
+
+/**
+ * Seguridad
+ */
+
+const usuarioComponent = () => import('./components/modulos/seguridad/usuarioComponent.vue');
 
 const routes = [
     { path: '/', name: 'plantilla', component: ContentComponent },
@@ -39,7 +45,7 @@ const routes = [
     { path: '/configDiagnosticos', name: 'configDiagnosticos', component: configDiagnosticoComponent },
     { path: '/configPrioridades', name: 'configPrioridades', component: configPrioridadComponent },
     { path: '/configProductos', name: 'configProductos', component: configProductoComponent },
-    { path: '/configSucursales', name: 'configSucursales', component: configSucursalComponent },
+    { path: '/configSedes', name: 'configSedes', component: configSedeComponent },
 
     /**
      * Estudios
@@ -47,6 +53,12 @@ const routes = [
     { path: '/AsignarEstudios', name: 'AsignarEstudios', component: AsignarEstudioComponent },
     { path: '/leerEstudios', name: 'leerEstudios', component: leerEstudioComponent },
     { path: '/transcribirEstudios', name: 'transcribirEstudios', component: transcribirEstudioComponent },
+
+    /**
+     * Seguridad
+     */
+
+    { path: '/seguridadUsaurios', name: 'seguridadUsaurios', component: usuarioComponent },
 
 ]
 

@@ -57,4 +57,4 @@ Route::get('estudio-listarPendientesTrascribir', [EstudioController::class, 'lis
 Route::post('estudio-guardarTranscripcion', [EstudioController::class, 'guardarTranscripcion'])->name('estudio.guardarTranscripcion');
 Route::get('estudio-listarPendientesMedico', [EstudioController::class, 'listarPendientesMedico'])->name('estudio.listarPendientesMedico');
 
-Route::resource('usuarios', UserController::class)->names('usuarios');
+Route::resource('seguridad-usuarios', UserController::class)->names('seguridad.usuarios');

@@ -51,17 +51,22 @@
                                         <th># Documento</th>
                                         <th>Reg. Médico</th>
                                         <th>Nombres</th>
-                                        <th>Email</th>
+                                        <th>E-Mail</th>
+                                        <th>Estado</th>
                                         <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr v-for="item in registros" :key="item.id">
-                                        <td>{{ item.cod_admin_salud }}</td>
-                                        <td>{{ item.nom_admin_salud }}</td>
+                                        <td>Imagen</td>
+                                        <td>{{ item.tipo_user }}</td>
+                                        <td>{{ item.num_docu }}</td>
+                                        <td>{{ item.reg_med }}</td>
+                                        <td>{{ item.name }}</td>
+                                        <td>{{ item.email }}</td>
                                         <td>
-                                            <span class="label label-success" v-if="item.estado">Activo</span>
-                                            <span class="label label-danger" v-if="!item.estado">Inactivo</span>
+                                            <span class="label label-success" v-if="item.estado == 1">Activo</span>
+                                            <span class="label label-danger" v-if="item.estado == 0">Inactivo</span>
                                         </td>
                                         <td class="text-nowrap">
                                             <button type="button"
@@ -130,11 +135,12 @@ export default {
     },
     methods: {
         async ListarDatos() {
-            const res = await axios.get("api/config-admin-salud");
+            const res = await axios.get("api/seguridad-usuarios");
 
             $('#example23').DataTable().destroy();
 
             this.registros = res.data;
+            console.log(this.registros)
             this.$nextTick(() => {
                 $('#example23').DataTable({
                     dom: 'Bfrtip',
