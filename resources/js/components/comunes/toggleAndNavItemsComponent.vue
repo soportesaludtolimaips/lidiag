@@ -1,6 +1,5 @@
 <template lang="">
-
-        <ul class="navbar-nav mr-auto">
+<ul class="navbar-nav mr-auto">
     <!-- This is  -->
     <li class="nav-item">
         <a class="nav-link nav-toggler hidden-md-up waves-effect waves-dark" href="javascript:void(0)">
@@ -26,8 +25,6 @@
         </form>
     </li>
 </ul>
-
-
 </template>
 <script>
 export default {

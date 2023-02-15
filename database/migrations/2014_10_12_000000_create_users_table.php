@@ -25,6 +25,7 @@ return new class extends Migration
             $table->rememberToken();
             $table->timestamps();
             $table->boolean('estado')->default(1);
+            $table->char('imagen_perfil', 200)->nullable();
         });
     }
 

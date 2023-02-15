@@ -1,131 +1,252 @@
 <template>
-    <div>
-        <!-- ============================================================== -->
-        <!-- Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
-        <div class="row page-titles">
-            <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">Seguridad</h3>
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
-                    </li>
-                    <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Seguridad</a>
-                    </li>
-                    <li class="breadcrumb-item active">Gestión de Usuarios</li>
-                </ol>
-            </div>
-            <div class="col-md-7 align-self-center text-right d-none d-md-block">
-                <button type="button" class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="actualizar = false; mostrarRegistro()">
-                    <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
-                </button>
-            </div>
-            <div class="">
-                <button class="right-side-toggle waves-effect waves-light btn-inverse btn btn-circle btn-sm pull-right m-l-10"><i
-                        class="ti-settings text-white"></i> </button>
-            </div>
-        </div>
-        <!-- ============================================================== -->
-        <!-- End Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Start Page Content -->
-        <!-- ============================================================== -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title">Listado de usuarios</h4>
-                        <div class="table-responsive m-t-40">
-                            <table id="example23" class="display nowrap table table-hover table-striped table-bordered"
-                                cellspacing="0" width="100%">
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th>Tipo Usuario</th>
-                                        <th># Documento</th>
-                                        <th>Reg. Médico</th>
-                                        <th>Nombres</th>
-                                        <th>E-Mail</th>
-                                        <th>Estado</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="item in registros" :key="item.id">
-                                        <td>Imagen</td>
-                                        <td>{{ item.tipo_user }}</td>
-                                        <td>{{ item.num_docu }}</td>
-                                        <td>{{ item.reg_med }}</td>
-                                        <td>{{ item.name }}</td>
-                                        <td>{{ item.email }}</td>
-                                        <td>
-                                            <span class="label label-success" v-if="item.estado == 1">Activo</span>
-                                            <span class="label label-danger" v-if="item.estado == 0">Inactivo</span>
-                                        </td>
-                                        <td class="text-nowrap">
-                                            <button type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="actualizar = true; mostrarRegistro(item)">
-                                                <i class="fa fa-pencil"></i>
-                                            </button>
-                                            <button type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="elimnarRegistro(item.id)">
-                                                <i class="fa fa-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+    <!-- ============================================================== -->
+    <!-- Bread crumb and right sidebar toggle -->
+    <!-- ============================================================== -->
+    <div class="row page-titles">
+        <div class="col-md-5 align-self-center">
+            <h3 class="text-themecolor">Seguridad</h3>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="javascript:void(0)">Inicio</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="javascript:void(0)">Seguridad</a>
+                </li>
+                <li class="breadcrumb-item active">Gestión de Usuarios</li>
+            </ol>
+        </div>
+        <div class="col-md-7 align-self-center text-right d-none d-md-block">
+            <button type="button" class="btn btn-info btnDesplegarRigthSidebar"
+                @click="actualizar = false; mostrarRegistro()">
+                <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
+            </button>
+        </div>
+    </div>
+    <!-- ============================================================== -->
+    <!-- End Bread crumb and right sidebar toggle -->
+    <!-- ============================================================== -->
+
+    <!-- ============================================================== -->
+    <!-- Start Page Content -->
+    <!-- ============================================================== -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Listado de usuarios</h4>
+                    <div class="table-responsive m-t-40">
+                        <table id="example23" class="display nowrap table table-hover table-striped table-bordered"
+                            cellspacing="0" width="100%">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Tipo Usuario</th>
+                                    <th># Documento</th>
+                                    <th>Reg. Médico</th>
+                                    <th>Nombres</th>
+                                    <th>E-Mail</th>
+                                    <th>Estado</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in registros" :key="item.id">
+                                    <td>Imagen</td>
+                                    <td>{{ item.tipo_user }}</td>
+                                    <td>{{ item.num_docu }}</td>
+                                    <td>{{ item.reg_med }}</td>
+                                    <td>{{ item.name }}</td>
+                                    <td>{{ item.email }}</td>
+                                    <td>
+                                        <span class="label label-success" v-if="item.estado == 1">Activo</span>
+                                        <span class="label label-danger" v-if="item.estado == 0">Inactivo</span>
+                                    </td>
+                                    <td class="text-nowrap">
+                                        <button type="button"
+                                            class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
+                                            @click="actualizar = true; mostrarRegistro(item)">
+                                            <i class="fa fa-pencil"></i>
+                                        </button>
+                                        <button type="button"
+                                            class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
+                                            @click="elimnarRegistro(item.id)">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End PAge Content -->
-        <!-- ============================================================== -->
+    </div>
+    <!-- ============================================================== -->
+    <!-- End PAge Content -->
+    <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Right sidebar -->
-        <!-- ============================================================== -->
-        <!-- .right-sidebar -->
-        <div class="right-sidebar">
-            <div class="slimscrollright">
-                <div class="rpanel-title"> Service Panel <span><i class="ti-close right-side-toggle"></i></span> </div>
-                <div class="r-panel-body">
-                    <ul id="themecolors" class="m-t-20">
-                        <li><b>With Light sidebar</b></li>
-                        <li><a href="javascript:void(0)" data-theme="default" class="default-theme">1</a></li>
-                        <li><a href="javascript:void(0)" data-theme="green" class="green-theme">2</a></li>
-                        <li><a href="javascript:void(0)" data-theme="red" class="red-theme">3</a></li>
-                        <li><a href="javascript:void(0)" data-theme="blue" class="blue-theme">4</a></li>
-                        <li><a href="javascript:void(0)" data-theme="purple" class="purple-theme">5</a></li>
-                        <li><a href="javascript:void(0)" data-theme="megna" class="megna-theme">6</a></li>
-                        <li class="d-block m-t-30"><b>With Dark sidebar</b></li>
-                        <li><a href="javascript:void(0)" data-theme="default-dark"
-                                class="default-dark-theme working">7</a></li>
-                        <li><a href="javascript:void(0)" data-theme="green-dark" class="green-dark-theme">8</a></li>
-                        <li><a href="javascript:void(0)" data-theme="red-dark" class="red-dark-theme">9</a></li>
-                        <li><a href="javascript:void(0)" data-theme="blue-dark" class="blue-dark-theme">10</a></li>
-                        <li><a href="javascript:void(0)" data-theme="purple-dark" class="purple-dark-theme">11</a></li>
-                        <li><a href="javascript:void(0)" data-theme="megna-dark" class="megna-dark-theme ">12</a></li>
-                    </ul>
-                    <ul class="m-t-20 chatonline">
-                        <li><b>Chat option</b></li>
+    <!-- ============================================================== -->
+    <!-- Right sidebar -->
+    <!-- ============================================================== -->
+    <!-- .right-sidebar -->
+    <div class="right-sidebar">
+        <div class="slimscrollright">
+            <div class="rpanel-title">
+                {{ tituloModal }}
+                <span @click="btnCerralModalForm()">
+                    <i class="ti-close right-side-toggle"></i>
+                </span>
+            </div>
+            <div class="r-panel-body">
+                <!-- ============================================================== -->
+                <!-- Aqui va el contenido de los formularios -->
+                <!-- ============================================================== -->
+                <form action="#">
+                    <div class="form-body">
+                        <div class="row p-t-20">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label"># Documento</label>
+                                    <input type="text" id="num_docu" name="num_docu" v-model="registro.num_docu"
+                                        class="form-control" placeholder="Número de documeto del usuario">
+                                    <span class="text-danger" v-if="errores.num_docu">{{
+                                        errores.num_docu[0]
+                                    }}</span>
+                                </div>
+                            </div>
 
-                    </ul>
-                </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label">Reg. Médico</label>
+                                    <input type="text" id="reg_med" name="reg_med" v-model="registro.reg_med"
+                                        class="form-control" placeholder="Registro médico en caso de ser médico">
+                                    <span class="text-danger" v-if="errores.reg_med">{{
+                                        errores.reg_med[0]
+                                    }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label">Nombres</label>
+                                    <input type="text" id="name" name="name" v-model="registro.name"
+                                        class="form-control" placeholder="Ingrese aquí el los nombres del usaurio">
+                                    <span class="text-danger" v-if="errores.name">{{
+                                        errores.name[0]
+                                    }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label">E - Mail</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="ti-email"></i>
+                                            </span>
+                                        </div>
+                                        <input type="email" id="email" name="email" v-model="registro.email"
+                                            class="form-control" placeholder="Ingrese aquí E - Mail del usuario">
+                                    </div>
+
+                                    <span class="text-danger" v-if="errores.email">{{
+                                        errores.email[0]
+                                    }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label">Contraseña</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="ti-lock"></i></span>
+                                        </div>
+                                        <input type="password" id="password" name="password" v-model="registro.password"
+                                            class="form-control" placeholder="Contraseña">
+                                    </div>
+
+                                    <span class="text-danger" v-if="errores.password">{{
+                                        errores.password[0]
+                                    }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label">configrmar contraseña</label>
+
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="ti-lock"></i></span>
+                                        </div>
+                                        <input type="password" id="confirmarPassword" name="confirmarPassword"
+                                            v-model="registro.confirmarPassword" class="form-control"
+                                            placeholder="Confirmar contraseña">
+                                    </div>
+
+                                    <span class="text-danger" v-if="errores.confirmarPassword">{{
+                                        errores.confirmarPassword[0]
+                                    }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label">Imagen de perfil</label>
+                                    <input type="file" class="form-control" id="imagen_perfil" name="imagen_perfil"
+                                        aria-describedby="Imagen de perfil" @change="obtenerArchivo($event)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="checkbox checkbox-success">
+                                        <input type="checkbox" id="estado" name="estado" v-model="registro.estado"
+                                            :checked="registro.estado" value="1">
+                                        <label for="estado"> Activo </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions mt-3">
+                            <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
+                                v-if="!actualizar">
+                                <i class="fa fa-check"></i> Guardar
+                            </button>
+
+                            <button type="button" class="btn btn-warning m-r-5" v-if="actualizar"
+                                @click="guardarRegistro()">
+                                <i class="fa fa-pencil"></i> Actualizar
+                            </button>
+
+                            <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">Cancel</button>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Right sidebar -->
-        <!-- ============================================================== -->
     </div>
+    <!-- ============================================================== -->
+    <!-- End Right sidebar -->
+    <!-- ============================================================== -->
 </template>
 
 <script>
@@ -137,7 +258,7 @@ export default {
         return {
             id: 0,
             registros: [],
-            registro: { num_docu: '', reg_med: '', name: '', email: '', tipo_user: '', estado: 0 },
+            registro: { num_docu: '', reg_med: '', name: '', email: '', tipo_user: '', password: '', estado: 0, imagen_perfil: '' },
             tituloModal: 'Nuevo registro',
             actualizar: false,
             errores: {},
@@ -164,7 +285,9 @@ export default {
             try {
                 if (this.actualizar === false) {
                     const res = await axios.post('api/config-admin-salud', this.registro);
+
                     if (res.status == 200) {
+
                         this.ListarDatos()
 
                         $.toast({
@@ -199,33 +322,64 @@ export default {
                 this.errores = error.response.data.errors;
             }
         },
+        obtenerArchivo(e) {
+            /* this.form.append('file', this.registro.imagen_perfil)
+            console.log(this.registro.imagen_perfil) */
+            console.log(e)
+        },
         mostrarRegistro(data = {}) {
             if (this.actualizar == true) {
-                this.tituloModal = "Actualizar el registro: " + data.nom_admin_salud;
+                this.tituloModal = "Actualizar el registro: " + data.name;
                 this.id = data.id;
-                this.registro.cod_admin_salud = data.cod_admin_salud;
-                this.registro.nit_admin_salud = data.nit_admin_salud;
-                this.registro.nom_admin_salud = data.nom_admin_salud;
+                this.registro.tipo_user = data.tipo_user;
+                this.registro.num_docu = data.num_docu;
+                this.registro.reg_med = data.reg_med;
+                this.registro.name = data.name;
+                this.registro.email = data.email;
                 this.registro.estado = data.estado;
-                $('#btnCerralModalForm').click();
             } else {
                 this.actualizar = false;
                 this.tituloModal = "Nuevo registro";
                 this.id = 0;
-                this.registro.cod_admin_salud = "";
-                this.registro.nit_admin_salud = "";
-                this.registro.nom_admin_salud = "";
+                this.registro.tipo_user = '';
+                this.registro.num_docu = "";
+                this.registro.reg_med = "";
+                this.registro.name = "";
+                this.registro.email = "";
                 this.registro.estado = 1;
-                $('#btnCerralModalForm').click();
             }
+
+            this.btnCerralModalForm();
         },
         btnCerralModalForm() {
-            $('#btnCerralModalForm').click();
+            $(".right-sidebar").slideDown(50);
+            $(".right-sidebar").toggleClass("shw-rside");
         }
     }
 }
 </script>
 
-<style>
+<style scoped>
+.right-sidebar {
+    position: fixed;
+    right: -25%;
+    width: 25%;
+    display: none;
+    z-index: 1100;
+    background: #ffffff;
+    top: 0px;
+    padding-bottom: 20px;
+    height: 100%;
+    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
+    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
+    -webkit-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+}
 
+.shw-rside {
+    right: 0px;
+    width: 25%;
+    display: block;
+}
 </style>
