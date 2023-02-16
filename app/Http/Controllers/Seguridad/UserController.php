@@ -70,9 +70,10 @@ class UserController extends Controller
      */
     public function update(Request $request, User $seguridad_usuario)
     {
-        return $request->file;
+        return $request->formData;
 
         if ($request->file) {
+            return "ok";
             $avatar = $request->file;
             $bandera = Str::random(30);
             $nombreAvatar = $avatar->getClientOriginalName();
@@ -96,6 +97,7 @@ class UserController extends Controller
         }
 
         $seguridad_usuario->save();
+
         return response()->json(['message' => 'Registro actualizado correctamente.']);
     }
 
