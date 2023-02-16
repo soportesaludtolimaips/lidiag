@@ -23,10 +23,10 @@
                 </button>
             </div>
             <!-- <div class="">
-                    <button class="right-side-toggle btn-info btn btn-circle btn-sm">
-                        <i class="fa fa-plus-circle m-r-5"></i>
-                    </button>
-                </div> -->
+                                            <button class="right-side-toggle btn-info btn btn-circle btn-sm">
+                                                <i class="fa fa-plus-circle m-r-5"></i>
+                                            </button>
+                                        </div> -->
         </div>
         <!-- ============================================================== -->
         <!-- End Bread crumb and right sidebar toggle -->
@@ -68,7 +68,7 @@
                                             </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="elimnarRegistro(item.id)">
+                                                @click="elimnarRegistro(item.id, item.nom_admin_salud)">
                                                 <i class="fa fa-trash"></i>
                                             </button>
                                         </td>
@@ -107,10 +107,9 @@
                                     <div class="form-group">
                                         <label class="control-label">Código</label>
                                         <input type="text" id="cod_admin_salud" name="cod_admin_salud"
-                                            v-model="registro.cod_admin_salud" class="form-control"
-                                            placeholder="Código">
+                                            v-model="registro.cod_admin_salud" class="form-control" placeholder="Código">
                                         <span class="text-danger" v-if="errores.cod_admin_salud">{{
-                                        errores.cod_admin_salud[0]
+                                            errores.cod_admin_salud[0]
                                         }}</span>
                                     </div>
                                 </div>
@@ -121,7 +120,7 @@
                                         <input type="text" id="nit_admin_salud" name="nit_admin_salud"
                                             v-model="registro.nit_admin_salud" class="form-control" placeholder="Nit">
                                         <span class="text-danger" v-if="errores.nit_admin_salud">{{
-                                        errores.nit_admin_salud[0]
+                                            errores.nit_admin_salud[0]
                                         }}</span>
                                     </div>
                                 </div>
@@ -135,7 +134,7 @@
                                             v-model="registro.nom_admin_salud" class="form-control"
                                             placeholder="Ingrese aquí el la razón sicual de la administradora de salud">
                                         <span class="text-danger" v-if="errores.nom_admin_salud">{{
-                                        errores.nom_admin_salud[0]
+                                            errores.nom_admin_salud[0]
                                         }}</span>
                                     </div>
                                 </div>
@@ -164,8 +163,7 @@
                                     <i class="fa fa-pencil"></i> Actualizar
                                 </button>
 
-                                <button type="button" class="btn btn-inverse"
-                                    @click="btnCerralModalForm()">Cancel</button>
+                                <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">Cancel</button>
                             </div>
                         </div>
                     </form>
@@ -175,11 +173,11 @@
         <!-- ============================================================== -->
         <!-- End Right sidebar -->
         <!-- ============================================================== -->
-    </div>
+</div>
 </template>
 
-
 <script>
+
 export default {
     mounted() {
         this.ListarDatos();
@@ -253,10 +251,10 @@ export default {
                 this.errores = error.response.data.errors;
             }
         },
-        elimnarRegistro(id) {
+        elimnarRegistro(id, nom) {
             var $this = this;
             swal({
-                title: "Estas seguro?",
+                title: "Estas seguro de eliminar la admninistradora de salud " + nom + "?",
                 text: "No podrás recuperar este registro!",
                 type: "warning",
                 showCancelButton: true,
@@ -282,7 +280,6 @@ export default {
                 this.registro.nit_admin_salud = data.nit_admin_salud;
                 this.registro.nom_admin_salud = data.nom_admin_salud;
                 this.registro.estado = data.estado;
-                $('#btnCerralModalForm').click();
             } else {
                 this.actualizar = false;
                 this.tituloModal = "Nuevo registro";
@@ -291,12 +288,39 @@ export default {
                 this.registro.nit_admin_salud = "";
                 this.registro.nom_admin_salud = "";
                 this.registro.estado = 1;
-                $('#btnCerralModalForm').click();
             }
+
+            this.btnCerralModalForm();
         },
         btnCerralModalForm() {
-            $('#btnCerralModalForm').click();
+            $(".right-sidebar").slideDown(50);
+            $(".right-sidebar").toggleClass("shw-rside");
         }
     },
 };
 </script>
+
+<style scoped>
+.right-sidebar {
+    position: fixed;
+    right: -25%;
+    width: 25%;
+    display: none;
+    z-index: 1100;
+    background: #ffffff;
+    top: 0px;
+    padding-bottom: 20px;
+    height: 100%;
+    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
+    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
+    -webkit-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+}
+
+.shw-rside {
+    right: 0px;
+    width: 25%;
+    display: block;
+}
+</style>

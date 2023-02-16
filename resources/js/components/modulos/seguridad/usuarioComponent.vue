@@ -1,7 +1,5 @@
 
-<template>
-    
-    <!-- ============================================================== -->
+<template><!-- ============================================================== -->
     <!-- Bread crumb and right sidebar toggle -->
     <!-- ============================================================== -->
     <div class="row page-titles">
@@ -252,12 +250,16 @@
             </div>
         </div>
     </div>
-<!-- ============================================================== -->
-<!-- End Right sidebar -->
-<!-- ============================================================== -->
-</template>
+    <!-- ============================================================== -->
+    <!-- End Right sidebar -->
+<!-- ============================================================== --></template>
 
 <script>
+
+
+
+
+
 export default {
     mounted() {
         this.ListarDatos();
@@ -322,13 +324,20 @@ export default {
                     }
                 } else {
 
+                    formData.append('tipo_user', this.registro.tipo_user);
+                    formData.append('num_docu', this.registro.num_docu);
+                    formData.append('reg_med', this.registro.reg_med);
+                    formData.append('name', this.registro.name);
+                    formData.append('email', this.registro.email);
+                    formData.append('estado', this.registro.estado);
+                    formData.append('password', this.registro.password);
                     formData.append("file", this.registro.imagen_perfil);
 
                     // const config = { headers: { 'Content-Type': 'multipart/form-data' } }
-                    const res = await axios.put('api/seguridad-usuarios/' + this.id, {registro: this.registro, fie: formData});
+                    const res = await axios.put('api/seguridad-usuarios/' + this.id, formData);
                     if (res.status == 200) {
 
-                        //this.ListarDatos()
+                        this.ListarDatos()
 
                         $.toast({
                             heading: 'Ok!!!',

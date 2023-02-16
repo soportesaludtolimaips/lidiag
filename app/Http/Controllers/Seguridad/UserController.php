@@ -70,14 +70,7 @@ class UserController extends Controller
      */
     public function update(Request $request, User $seguridad_usuario)
     {
-        return $request;
-        $Usuario = (new User)->fill([
-            'num_docu' => $request->num_docu,
-            'reg_med' => $request->reg_med,
-            'name' => $request->name,
-            'email' => $request->email,
-            'tipo_user' => $request->tipo_user,
-        ]);
+        return $request->file;
 
         if ($request->file) {
             $avatar = $request->file;
@@ -85,31 +78,25 @@ class UserController extends Controller
             $nombreAvatar = $avatar->getClientOriginalName();
             $nuevoNombreAvatar = $bandera . '_' . $nombreAvatar;
 
+            return $nuevoNombreAvatar;
+
             Storage::putFileAs('public/img_users', $avatar, $nuevoNombreAvatar);
 
-            $Usuario->avatar = asset('storage/img_users/' . $nuevoNombreAvatar);
+            $seguridad_usuario->avatar = asset('storage/img_users/' . $nuevoNombreAvatar);
         }
+
+        $seguridad_usuario->num_docu = $request->num_docu;
+        $seguridad_usuario->reg_med = $request->reg_med;
+        $seguridad_usuario->name = $request->name;
+        $seguridad_usuario->email = $request->email;
+        $seguridad_usuario->tipo_user = $request->tipo_user;
 
         if ($request->password) {
-            $Usuario->password = bcrypt($request->password);
+            $seguridad_usuario->password = bcrypt($request->password);
         }
 
-        $Usuario->save();
-
-        /* User::updateOrCreate(
-            [
-                'email' => $request->email
-            ],
-            [
-                'num_docu' => $request->num_docu,
-                'reg_med' => $request->reg_med,
-                'name' => $request->name,
-                'email' => $request->email,
-                'tipo_user' => $request->tipo_user,
-                'password' => bcrypt($request->password),
-                'imagen_perfil' => asset('storage/img_users/' . $nuevoNombreAvatar),
-            ]
-        ); */
+        $seguridad_usuario->save();
+        return response()->json(['message' => 'Registro actualizado correctamente.']);
     }
 
     /**
