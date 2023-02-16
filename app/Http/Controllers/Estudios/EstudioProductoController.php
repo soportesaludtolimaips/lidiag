@@ -33,28 +33,6 @@ class EstudioProductoController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Estudio\EstudioProducto  $estudioProducto
-     * @return \Illuminate\Http\Response
-     */
-    public function show(EstudioProducto $estudioProducto)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Estudios\EstudioProducto  $estudioProducto
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(EstudioProducto $estudioProducto)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request

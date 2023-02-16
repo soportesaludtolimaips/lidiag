@@ -1,5 +1,6 @@
-<template>
 
+<template>
+    
     <!-- ============================================================== -->
     <!-- Bread crumb and right sidebar toggle -->
     <!-- ============================================================== -->
@@ -52,7 +53,15 @@
                             </thead>
                             <tbody>
                                 <tr v-for="item in registros" :key="item.id">
-                                    <td>Imagen</td>
+                                    <td>
+                                        <div class="user-img">
+                                            <img v-if="!item.imagen_perfil"
+                                                src="/admin-wrap/assets/images/users/avatar_default.png" :alt="item.name"
+                                                class="img-circle" height="40" width="40">
+                                            <img v-else :src="item.imagen_perfil" :alt="item.name" class="img-circle"
+                                                height="40" width="40">
+                                        </div>
+                                    </td>
                                     <td>{{ item.tipo_user }}</td>
                                     <td>{{ item.num_docu }}</td>
                                     <td>{{ item.reg_med }}</td>
@@ -132,8 +141,8 @@
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="control-label">Nombres</label>
-                                    <input type="text" id="name" name="name" v-model="registro.name"
-                                        class="form-control" placeholder="Ingrese aquí el los nombres del usaurio">
+                                    <input type="text" id="name" name="name" v-model="registro.name" class="form-control"
+                                        placeholder="Ingrese aquí el los nombres del usaurio">
                                     <span class="text-danger" v-if="errores.name">{{
                                         errores.name[0]
                                     }}</span>
@@ -243,9 +252,9 @@
             </div>
         </div>
     </div>
-    <!-- ============================================================== -->
-    <!-- End Right sidebar -->
-    <!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- End Right sidebar -->
+<!-- ============================================================== -->
 </template>
 
 <script>
@@ -294,10 +303,8 @@ export default {
                     formData.append('password', this.registro.password);
                     formData.append("file", this.registro.imagen_perfil);
 
-                    const config = { headers: { 'Content-Type': 'multipart/form-data' } }
-
+                    //const config = { headers: { 'Content-Type': 'multipart/form-data' } }
                     const res = await axios.post('api/seguridad-usuarios', formData);
-
 
                     if (res.status == 200) {
 
@@ -314,10 +321,14 @@ export default {
                         });
                     }
                 } else {
-                    const res = await axios.put('api/config-admin-salud/' + this.id, this.registro);
+
+                    formData.append("file", this.registro.imagen_perfil);
+
+                    // const config = { headers: { 'Content-Type': 'multipart/form-data' } }
+                    const res = await axios.put('api/seguridad-usuarios/' + this.id, {registro: this.registro, fie: formData});
                     if (res.status == 200) {
 
-                        this.ListarDatos()
+                        //this.ListarDatos()
 
                         $.toast({
                             heading: 'Ok!!!',
@@ -337,7 +348,6 @@ export default {
         },
         obtenerArchivo(event) {
             this.registro.imagen_perfil = event.target.files[0];
-            console.log(this.registro.imagen_perfil);
         },
         mostrarRegistro(data = {}) {
             if (this.actualizar == true) {
@@ -358,6 +368,7 @@ export default {
                 this.registro.reg_med = "";
                 this.registro.name = "";
                 this.registro.email = "";
+                this.registro.password = "";
                 this.registro.estado = 1;
             }
 
