@@ -29,6 +29,15 @@ class UserController extends Controller
         return $medicos;
     }
 
+    public function estadoUsuario(Request $request, User $seguridad_usuario)
+    {
+
+        $seguridad_usuario->estado = $request->estado;
+        $seguridad_usuario->save();
+
+        return response()->json(['message' => 'Registro actualizado correctamente.']);
+    }
+
     /**
      * Store a newly created resource in storage.
      *

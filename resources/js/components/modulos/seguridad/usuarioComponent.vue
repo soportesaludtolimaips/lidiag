@@ -83,7 +83,12 @@
                                             </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
-                                                @click="cambiarEstado(1, item.id)" v-if="item.estado == 1">
+                                                @click="cambiarEstado(1, item)" v-if="item.estado == 1">
+                                                <i class="fa fa-unlock"></i>
+                                            </button>
+                                            <button type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
+                                                @click="cambiarEstado(0, item)" v-if="item.estado == 0">
                                                 <i class="fa fa-lock"></i>
                                             </button>
                                         </td>
@@ -327,17 +332,10 @@ export default {
                     }
                 } else {
 
-                    /* formData.append('tipo_user', this.registro.tipo_user);
-                    formData.append('num_docu', this.registro.num_docu);
-                    formData.append('reg_med', this.registro.reg_med);
-                    formData.append('name', this.registro.name);
-                    formData.append('email', this.registro.email);
-                    formData.append('estado', this.registro.estado);
-                    formData.append('password', this.registro.password); */
                     formData.append("file", this.registro.imagen_perfil);
 
                     const config = { headers: { 'Content-Type': 'multipart/form-data' } }
-                    const res = await axios.put('api/seguridad-usuarios/12', { registro: this.registro, form_data: formData });
+                    const res = await axios.put('api/seguridad-usuarios/' + this.id, { registro: this.registro, form_data: formData });
                     if (res.status == 200) {
 
                         this.ListarDatos()
@@ -358,8 +356,29 @@ export default {
                 this.errores = error.response.data.errors;
             }
         },
-        async cambiarEstado(estado, data) {
+        async cambiarEstado(estado, data = {}) {
+            var $this = this;
 
+            swal({
+                title: "Estas seguro de que desea " + ((estado == 0) ? ' activar' : 'desactivar') + ' el usaurio ' + data.name + '?',
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: ((estado == 0) ? ' Si, activar' : 'Si, desactivar'),
+                closeOnConfirm: false
+            }, function (isConfirm) {
+                if (isConfirm) {
+                    axios.put('api/seguridad-usuarios/estado/' + data.id, { estado: ((estado == 0) ? 1 : 0) }).then(response => {
+
+                        swal("Ok!!!!", 'el usaurio ' + data.name + ' se ' + ((estado == 0) ? ' activo' : 'desactivo') + ' correctamente',
+                            "success");
+
+                        $this.ListarDatos()
+                    }).catch(error => {
+                        console.log(error)
+                    })
+                }
+            });
         },
         obtenerArchivo(event) {
             this.registro.imagen_perfil = event.target.files[0];

@@ -58,3 +58,4 @@ Route::post('estudio-guardarTranscripcion', [EstudioController::class, 'guardarT
 Route::get('estudio-listarPendientesMedico', [EstudioController::class, 'listarPendientesMedico'])->name('estudio.listarPendientesMedico');
 
 Route::resource('seguridad-usuarios', UserController::class)->names('seguridad.usuarios');
+Route::put('seguridad-usuarios/estado/{seguridad_usuario}', [UserController::class, 'estadoUsuario'])->name('seguridad.usuarios.estadoUsuario');
