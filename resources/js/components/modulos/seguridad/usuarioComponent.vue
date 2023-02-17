@@ -71,6 +71,17 @@
                                             <span class="label label-danger" v-if="item.estado == 0">Inactivo</span>
                                         </td>
                                         <td class="text-nowrap">
+                                            <router-link
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                                :to="{ name: 'usuario.perfil', params: { id: item.id } }">
+                                                <i class="fa fa-eye"></i>
+                                            </router-link>
+
+                                            <button type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                                @click="actualizar = true; mostrarRegistro(item)">
+                                                <i class="fa fa-eye"></i>
+                                            </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
                                                 @click="actualizar = true; mostrarRegistro(item)">
@@ -231,6 +242,13 @@
                                 </div>
                             </div>
 
+                            <div class="col-md-12 m-b-20">
+                                <div class="fileupload btn btn-danger btn-rounded waves-effect waves-light"><span><i
+                                            class="ion-upload m-r-5"></i>Upload Contact Image</span>
+                                    <input type="file" class="upload">
+                                </div>
+                            </div>
+
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
@@ -264,7 +282,7 @@
         <!-- ============================================================== -->
         <!-- End Right sidebar -->
         <!-- ============================================================== -->
-</div>
+    </div>
 </template>
 
 <script>
@@ -355,6 +373,8 @@ export default {
                 console.log(error);
                 this.errores = error.response.data.errors;
             }
+
+            this.limpiarFormulario();
         },
         async cambiarEstado(estado, data = {}) {
             var $this = this;
@@ -413,7 +433,16 @@ export default {
             $(".right-sidebar").toggleClass("shw-rside");
         },
         limpiarFormulario() {
-
+            this.actualizar = false;
+            this.tituloModal = "Nuevo registro";
+            this.id = 0;
+            this.registro.tipo_user = '';
+            this.registro.num_docu = "";
+            this.registro.reg_med = "";
+            this.registro.name = "";
+            this.registro.email = "";
+            this.registro.password = "";
+            this.registro.estado = 1;
         }
     }
 }

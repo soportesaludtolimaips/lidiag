@@ -31,6 +31,7 @@ const transcribirEstudioComponent = () => import('./components/modulos/estudios/
  */
 
 const usuarioComponent = () => import('./components/modulos/seguridad/usuarioComponent.vue');
+const usuarioPerfil = () => import('./components/modulos/seguridad/usuarioPerfil.vue');
 
 const routes = [
     { path: '/', name: 'plantilla', component: ContentComponent },
@@ -57,6 +58,7 @@ const routes = [
      */
 
     { path: '/seguridadUsaurios', name: 'seguridadUsaurios', component: usuarioComponent },
+    { path: '/seguridad/usaurio/perfil/:id', name: 'seguridad.usaurio.perfil', component: usuarioPerfil, props: true },
 
 ]
 
