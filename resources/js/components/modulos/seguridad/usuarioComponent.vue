@@ -73,15 +73,10 @@
                                         <td class="text-nowrap">
                                             <router-link
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
-                                                :to="{ name: 'usuario.perfil', params: { id: item.id } }">
+                                                :to="{ name: 'seguridad.usaurio.verperfil', params: { id: item.id } }">
                                                 <i class="fa fa-eye"></i>
                                             </router-link>
 
-                                            <button type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
-                                                @click="actualizar = true; mostrarRegistro(item)">
-                                                <i class="fa fa-eye"></i>
-                                            </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
                                                 @click="actualizar = true; mostrarRegistro(item)">
@@ -282,7 +277,7 @@
         <!-- ============================================================== -->
         <!-- End Right sidebar -->
         <!-- ============================================================== -->
-    </div>
+</div>
 </template>
 
 <script>

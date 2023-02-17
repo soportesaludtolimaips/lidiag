@@ -58,7 +58,12 @@ const routes = [
      */
 
     { path: '/seguridadUsaurios', name: 'seguridadUsaurios', component: usuarioComponent },
-    { path: '/seguridad/usaurio/perfil/:id', name: 'seguridad.usaurio.perfil', component: usuarioPerfil, props: true },
+    {
+        path: '/seguridad/usaurio/perfil/:id',
+        name: 'seguridad.usaurio.verperfil',
+        component: usuarioPerfil,
+        props: true
+    },
 
 ]
 

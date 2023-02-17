@@ -9,6 +9,7 @@ use Database\Seeders\Configuracion\ConfigDiagnosticoSeeder;
 use Database\Seeders\configuracion\ConfigPrioridadeSeeder;
 use Database\Seeders\Configuracion\ConfigProductoSeeder;
 use Database\Seeders\Configuracion\ConfigSucursalSeeder;
+use Database\Seeders\Seguridad\RoleSeeder;
 use Database\Seeders\Seguridad\UserSeeder;
 use Illuminate\Database\Seeder;
 
@@ -34,6 +35,7 @@ class DatabaseSeeder extends Seeder
         $this->call(ConfigProductoSeeder::class);
         $this->call(ConfigSucursalSeeder::class);
 
+        $this->call(RoleSeeder::class);
         $this->call(UserSeeder::class);
     }
 }

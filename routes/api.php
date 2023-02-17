@@ -57,5 +57,6 @@ Route::get('estudio-listarPendientesTrascribir', [EstudioController::class, 'lis
 Route::post('estudio-guardarTranscripcion', [EstudioController::class, 'guardarTranscripcion'])->name('estudio.guardarTranscripcion');
 Route::get('estudio-listarPendientesMedico', [EstudioController::class, 'listarPendientesMedico'])->name('estudio.listarPendientesMedico');
 
-Route::resource('seguridad-usuarios', UserController::class)->names('seguridad.usuarios');
+Route::get('seguridad-usuario/obtener', [UserController::class, 'obtenarUsuarios'])->name('seguridad.usuarios.obtenerUsuario');
 Route::put('seguridad-usuarios/estado/{seguridad_usuario}', [UserController::class, 'estadoUsuario'])->name('seguridad.usuarios.estadoUsuario');
+Route::resource('seguridad-usuarios', UserController::class)->names('seguridad.usuarios');

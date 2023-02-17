@@ -29,6 +29,11 @@ class UserController extends Controller
         return $medicos;
     }
 
+    public function obtenarUsuariosaaaa(Request $request, User $user)
+    {
+        return "ok";
+    }
+
     public function estadoUsuario(Request $request, User $seguridad_usuario)
     {
 
@@ -46,6 +51,7 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+
         $nuevoNombreAvatar = "";
 
         if ($request->file) {
@@ -82,7 +88,7 @@ class UserController extends Controller
         return $request->formData;
 
         if ($request->file) {
-            return "ok";
+
             $avatar = $request->file;
             $bandera = Str::random(30);
             $nombreAvatar = $avatar->getClientOriginalName();

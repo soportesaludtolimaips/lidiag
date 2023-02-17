@@ -21,7 +21,7 @@ class UserSeeder extends Seeder
             'tipo_user' => 'Administrador',
             'email' => 'administrador@administrador.com',
             'password' => bcrypt('123456')
-        ]);
+        ])->assignRole('Admintrador', 'Medico', 'Administrativo', 'Transcriptor', 'Estaditico');
 
         User::create([
             'num_docu' => 'Medico 1',
@@ -29,7 +29,7 @@ class UserSeeder extends Seeder
             'tipo_user' => 'Medico',
             'email' => 'medico1@medico1.com',
             'password' => bcrypt('123456')
-        ]);
+        ])->assignRole('Medico');
 
         User::create([
             'num_docu' => 'Medico 2',
@@ -37,7 +37,7 @@ class UserSeeder extends Seeder
             'tipo_user' => 'Medico',
             'email' => 'medico2@medico2.com',
             'password' => bcrypt('123456')
-        ]);
+        ])->assignRole('Medico');
 
         User::create([
             'num_docu' => 'Medico 3',
@@ -45,6 +45,6 @@ class UserSeeder extends Seeder
             'tipo_user' => 'Medico',
             'email' => 'medico3@medico3.com',
             'password' => bcrypt('123456')
-        ]);
+        ])->assignRole('Medico');
     }
 }
