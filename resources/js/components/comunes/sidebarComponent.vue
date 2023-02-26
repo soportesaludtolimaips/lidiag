@@ -1,5 +1,4 @@
 <template>
-
     <aside class="left-sidebar">
         <!-- Sidebar scroll-->
         <div class="scroll-sidebar">
@@ -55,8 +54,8 @@
                             <span class="hide-menu">Seguridad</span>
                         </a>
                         <ul aria-expanded="false" class="collapse">
-                            <li><router-link to="/seguridadUsaurios">Usaurios</router-link></li>
-                            <li><router-link to="/">Permisos</router-link></li>
+                            <li><router-link to="/seguridad-usuarios">Usaurios</router-link></li>
+                            <li><router-link to="/seguridad-roles">Roles</router-link></li>
                         </ul>
                     </li>
                 </ul>

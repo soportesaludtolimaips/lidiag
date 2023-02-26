@@ -19,6 +19,10 @@ return new class extends Migration
             $table->string('reg_med', 20)->nullable();
             $table->string('name', 50);
             $table->string('email')->unique();
+            $table->string('tel', 50)->nullable();
+            $table->string('facebook', 100)->nullable();
+            $table->string('twitter', 100)->nullable();
+            $table->string('youtube', 100)->nullable();
             $table->string('tipo_user', 15)->default('Medico');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

@@ -46,4 +46,5 @@ app.component('app-component', App);
 import route from './routes'
 
 app.use(route);
+
 app.mount('#app');

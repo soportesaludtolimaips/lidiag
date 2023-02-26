@@ -30,8 +30,10 @@ const transcribirEstudioComponent = () => import('./components/modulos/estudios/
  * Seguridad
  */
 
-const usuarioComponent = () => import('./components/modulos/seguridad/usuarioComponent.vue');
+
+/* const usuarioComponent = () => import('./components/modulos/seguridad/usuarioComponent.vue');
 const usuarioPerfil = () => import('./components/modulos/seguridad/usuarioPerfil.vue');
+const usuarioEditarComponent = () => import('./components/modulos/seguridad/usuarioEditarComponent.vue'); */
 
 const routes = [
     { path: '/', name: 'plantilla', component: ContentComponent },
@@ -57,12 +59,21 @@ const routes = [
      * Seguridad
      */
 
-    { path: '/seguridadUsaurios', name: 'seguridadUsaurios', component: usuarioComponent },
     {
-        path: '/seguridad/usaurio/perfil/:id',
-        name: 'seguridad.usaurio.verperfil',
-        component: usuarioPerfil,
+        path: '/seguridad-usuarios',
+        name: 'seguridadUsuarios',
+        component: () => import('./components/modulos/seguridad/usuarioComponent.vue')
+    },
+    {
+        path: '/seguridad/usuario/perfil/:id',
+        name: 'seguridad.usuario.perfil',
+        component: () => import('./components/modulos/seguridad/usuarioPerfil.vue'),
         props: true
+    },
+    {
+        path: '/seguridad-roles',
+        name: 'seguridad.roles',
+        component: () => import('./components/modulos/seguridad/roleComponente.vue')
     },
 
 ]

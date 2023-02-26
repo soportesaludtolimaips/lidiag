@@ -16,8 +16,9 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
+
         $users = User::all();
         return response()->json($users);
     }
@@ -29,10 +30,17 @@ class UserController extends Controller
         return $medicos;
     }
 
-    public function obtenarUsuariosaaaa(Request $request, User $user)
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show(Request $request, User $seguridad_usuario)
     {
-        return "ok";
+        return response()->json($seguridad_usuario);
     }
+
 
     public function estadoUsuario(Request $request, User $seguridad_usuario)
     {

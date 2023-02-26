@@ -73,7 +73,7 @@
                                         <td class="text-nowrap">
                                             <router-link
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
-                                                :to="{ name: 'seguridad.usaurio.verperfil', params: { id: item.id } }">
+                                                :to="{ name: 'seguridad.usuario.perfil', params: { id: item.id } }">
                                                 <i class="fa fa-eye"></i>
                                             </router-link>
 
@@ -88,7 +88,7 @@
                                                 <i class="fa fa-trash"></i>
                                             </button>
                                             <button type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-success btn-sm"
                                                 @click="cambiarEstado(1, item)" v-if="item.estado == 1">
                                                 <i class="fa fa-unlock"></i>
                                             </button>
@@ -277,7 +277,7 @@
         <!-- ============================================================== -->
         <!-- End Right sidebar -->
         <!-- ============================================================== -->
-</div>
+    </div>
 </template>
 
 <script>

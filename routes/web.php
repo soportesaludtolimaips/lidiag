@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Dcm4chee\StudyController;
 use App\Http\Controllers\EmailController;
 
+use App\Http\Controllers\Seguridad\UserController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -18,6 +19,8 @@ use App\Http\Controllers\EmailController;
 /* Route::get('/', function () {
     return view('auth.login');
 }); */
+
+
 
 Route::get('/{optional?}', function () {
     return view('layouts.app');
