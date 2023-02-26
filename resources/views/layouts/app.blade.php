@@ -89,6 +89,13 @@
     <script src="{{ asset('admin-wrap/assets/node_modules/sparkline/jquery.sparkline.min.js') }}"></script>
     <!--Custom JavaScript -->
     <script src="{{ asset('admin-wrap/js/custom.min.js') }}"></script>
+    <script src="{{ asset('admin-wrap/js/validation.js') }}"></script>
+    <script>
+        ! function(window, document, $) {
+            "use strict";
+            $("input,select,textarea").not("[type=submit]").jqBootstrapValidation();
+        }(window, document, jQuery);
+    </script>
     <script src="{{ asset('admin-wrap/assets/node_modules/toast-master/js/jquery.toast.js') }}"></script>
     <script src="{{ asset('admin-wrap/js/toastr.js') }}"></script>
     <!-- Sweet-Alert  -->
@@ -269,9 +276,6 @@
     <script src="{{ asset('admin-wrap/assets/node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
     <script src="{{ asset('admin-wrap/assets/node_modules/bootstrap-touchspin/dist/jquery.bootstrap-touchspin.js') }}" type="text/javascript"></script>
     <script type="text/javascript" src="{{ asset('admin-wrap/assets/node_modules/multiselect/js/jquery.multi-select.js') }}"></script>
-
-
-
 
     <!-- ============================================================== -->
     <!-- Style switcher -->
