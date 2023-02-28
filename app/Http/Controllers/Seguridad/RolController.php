@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Seguridad;
 use App\Http\Controllers\Controller;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use App\Http\Requests\Segudiada\RolAgregarRequest;
 use Illuminate\Http\Request;
 
 class RolController extends Controller
@@ -28,9 +29,12 @@ class RolController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(RolAgregarRequest $request)
     {
-        //
+        $role = Role::create(['name' => $request->input('name')]);
+        $role->syncPermissions($request->input('permisos'));
+
+        return response()->json(['message' => 'Registro creado satisfactoriamente.']);
     }
 
     /**

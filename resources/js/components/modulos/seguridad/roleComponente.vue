@@ -115,7 +115,7 @@
                                     <div class="form-group">
                                         <label class="control-label">Nombre del Rol</label>
                                         <input type="text" id="name" name="name" v-model="registro.name" class="form-control" placeholder="Ingrese aqui el nombre del rol" />
-                                        <span class="text-danger" v-if="errores.name">{{ errores.name[0] }}</span>
+                                        <span class="text-danger" v-if="errores">{{ errores }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -126,9 +126,9 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <div class="controls">
-                                            <div v-for="itemPermiso in permisos" :key="itemPermiso.id">
+                                            <div v-for="(itemPermiso, index) in permisosRol" :key="itemPermiso.id">
                                                 <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" :id="itemPermiso.name" />
+                                                    <input type="checkbox" class="custom-control-input" :id="itemPermiso.name" @click="agregarPermisoRol(index, itemPermiso.id)" />
                                                     <label class="custom-control-label" :for="itemPermiso.name">
                                                         {{ itemPermiso.name }}
                                                     </label>
@@ -164,12 +164,11 @@ export default {
         return {
             id: 0,
             registros: [],
-            permisos: [],
+            permisosRol: [],
             registro: { name: "", permisos: [] },
             tituloModal: "Nuevo registro",
             actualizar: false,
-            errores: {},
-            contador: 0,
+            errores: "",
         };
     },
     methods: {
@@ -179,7 +178,9 @@ export default {
             $("#example23").DataTable().destroy();
 
             this.registros = res.data[0];
-            this.permisos = res.data[1];
+            this.permisosRol = res.data[1];
+            console.log(this.permisosRol);
+
             this.$nextTick(() => {
                 $("#example23").DataTable({
                     dom: "Bfrtip",
@@ -188,24 +189,13 @@ export default {
             });
         },
         async guardarRegistro() {
-            var formData = new FormData();
-
             try {
                 if (this.actualizar === false) {
-                    formData.append("tipo_user", this.registro.tipo_user);
-                    formData.append("num_docu", this.registro.num_docu);
-                    formData.append("reg_med", this.registro.reg_med);
-                    formData.append("name", this.registro.name);
-                    formData.append("email", this.registro.email);
-                    formData.append("estado", this.registro.estado);
-                    formData.append("password", this.registro.password);
-                    formData.append("file", this.registro.imagen_perfil);
-
-                    //const config = { headers: { 'Content-Type': 'multipart/form-data' } }
-                    const res = await axios.post("api/seguridad-usuarios", formData);
+                    const res = await axios.post("api/seguridad-roles", this.registro);
 
                     if (res.status == 200) {
                         this.ListarDatos();
+                        this.limpiarFormulario();
 
                         $.toast({
                             heading: "Ok!!!",
@@ -218,12 +208,10 @@ export default {
                         });
                     }
                 } else {
-                    formData.append("file", this.registro.imagen_perfil);
-
-                    const config = { headers: { "Content-Type": "multipart/form-data" } };
-                    const res = await axios.put("api/seguridad-usuarios/" + this.id, { registro: this.registro, form_data: formData });
+                    const res = await axios.put("api/seguridad-roles/" + this.id, { registro: this.registro });
                     if (res.status == 200) {
                         this.ListarDatos();
+                        this.limpiarFormulario();
 
                         $.toast({
                             heading: "Ok!!!",
@@ -237,64 +225,31 @@ export default {
                     }
                 }
             } catch (error) {
-                console.log(error);
-                this.errores = error.response.data.errors;
+                this.errores = error.response.data.message;
             }
-
-            this.limpiarFormulario();
         },
-        async cambiarEstado(estado, data = {}) {
-            var $this = this;
+        agregarPermisoRol(index, id) {
+            let permisoSeleccionado = this.permisosRol.findIndex((x) => x.id == id);
 
-            swal(
-                {
-                    title: "Estas seguro de que desea " + (estado == 0 ? " activar" : "desactivar") + " el usaurio " + data.name + "?",
-                    type: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#DD6B55",
-                    confirmButtonText: estado == 0 ? " Si, activar" : "Si, desactivar",
-                    closeOnConfirm: false,
-                },
-                function (isConfirm) {
-                    if (isConfirm) {
-                        axios
-                            .put("api/seguridad-usuarios/estado/" + data.id, { estado: estado == 0 ? 1 : 0 })
-                            .then((response) => {
-                                swal("Ok!!!!", "el usaurio " + data.name + " se " + (estado == 0 ? " activo" : "desactivo") + " correctamente", "success");
+            console.log(this.permisosRol[permisoSeleccionado].id);
+            console.log(this.permisosRol[permisoSeleccionado].name);
 
-                                $this.ListarDatos();
-                            })
-                            .catch((error) => {
-                                console.log(error);
-                            });
-                    }
-                }
-            );
-        },
-        obtenerArchivo(event) {
-            this.registro.imagen_perfil = event.target.files[0];
+            this.registro.permisos.push({
+                "id": this.permisosRol[permisoSeleccionado].id,
+                "name": this.permisosRol[permisoSeleccionado].name,
+            });
         },
         mostrarRegistro(data = {}) {
             if (this.actualizar == true) {
                 this.tituloModal = "Actualizar el registro: " + data.name;
                 this.id = data.id;
-                this.registro.tipo_user = data.tipo_user;
-                this.registro.num_docu = data.num_docu;
-                this.registro.reg_med = data.reg_med;
                 this.registro.name = data.name;
-                this.registro.email = data.email;
-                this.registro.estado = data.estado;
             } else {
                 this.actualizar = false;
                 this.tituloModal = "Nuevo registro";
                 this.id = 0;
-                this.registro.tipo_user = "";
-                this.registro.num_docu = "";
-                this.registro.reg_med = "";
                 this.registro.name = "";
-                this.registro.email = "";
-                this.registro.password = "";
-                this.registro.estado = 1;
+                this.registro.permisos = [];
             }
 
             this.btnCerralModalForm();
@@ -307,13 +262,9 @@ export default {
             this.actualizar = false;
             this.tituloModal = "Nuevo registro";
             this.id = 0;
-            this.registro.tipo_user = "";
-            this.registro.num_docu = "";
-            this.registro.reg_med = "";
             this.registro.name = "";
-            this.registro.email = "";
-            this.registro.password = "";
-            this.registro.estado = 1;
+            this.registro.permisos = [];
+            this.errores = "";
         },
     },
 };

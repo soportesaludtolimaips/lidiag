@@ -28,7 +28,6 @@ export default defineConfig({
                         return tag.startsWith('ion-') // (return true)
                     }
                 }
-
             },
         }),
     ],

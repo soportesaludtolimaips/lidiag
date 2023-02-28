@@ -17,14 +17,10 @@
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
-                <button type="button" class="btn btn-info right-side-toggle80" @click="actualizar = false;">
-                    <i class=" fa fa-plus-circle m-r-5"></i> Nuevo registro
-                </button>
+                <button type="button" class="btn btn-info right-side-toggle80" @click="actualizar = false"><i class="fa fa-plus-circle m-r-5"></i> Nuevo registro</button>
             </div>
             <div class="">
-                <button class="right-side-toggle btn-info btn btn-circle btn-sm">
-                    <i class="fa fa-plus-circle m-r-5"></i>bbb
-                </button>
+                <button class="right-side-toggle btn-info btn btn-circle btn-sm"><i class="fa fa-plus-circle m-r-5"></i>bbb</button>
             </div>
         </div>
         <!-- ============================================================== -->
@@ -38,45 +34,34 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros para busqueda de estudios
-                        </h4>
+                        <h4 class="card-title text-themecolor"><i class="fa fa-filter"></i> Filtros para busqueda de estudios</h4>
                         <form action="#">
                             <div class="form-body">
                                 <div class="row p-t-2">
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label class="control-label">Nombres de paciente o # de documento
-                                            </label>
-                                            <input type="text" id="bus_nom_num_docu" name="bus_nom_num_docu"
-                                                v-model="busqueda.bus_nom_num_docu" class="form-control"
-                                                placeholder="Nombres de paciente o # de documento" />
+                                            <label class="control-label">Nombres de paciente o # de documento </label>
+                                            <input type="text" id="bus_nom_num_docu" name="bus_nom_num_docu" v-model="busqueda.bus_nom_num_docu" class="form-control" placeholder="Nombres de paciente o # de documento" />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Inicio</label>
-                                            <input type="date" id="nom_diagnos" name="nom_diagnos"
-                                                v-model="busqueda.fehc_ini" class="form-control" />
+                                            <input type="date" id="nom_diagnos" name="nom_diagnos" v-model="busqueda.fehc_ini" class="form-control" />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Fin</label>
-                                            <input type="date" id="fecha_fin" name="fecha_fin"
-                                                v-model="busqueda.fecha_fin" class="form-control" />
+                                            <input type="date" id="fecha_fin" name="fecha_fin" v-model="busqueda.fecha_fin" class="form-control" />
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="form-actions mt-3">
-                                    <button type="button" class="btn btn-success m-r-5" @click="buscarStudy()">
-                                        <i class="fa fa-search"></i> Buscar
-                                    </button>
+                                    <button type="button" class="btn btn-success m-r-5" @click="buscarStudy()"><i class="fa fa-search"></i> Buscar</button>
 
-                                    <button type="button" class="btn btn-inverse" @click="btnLimpiar()">
-                                        <i class="fa fa-refresh"></i> Limpiar
-                                    </button>
+                                    <button type="button" class="btn btn-inverse" @click="btnLimpiar()"><i class="fa fa-refresh"></i> Limpiar</button>
                                 </div>
                             </div>
                         </form>
@@ -90,12 +75,9 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de estudios disponibles</h4>
-                        <h6 class="card-subtitle">
-                            Asigne los estudios a los médicos para su respectiva lectura.
-                        </h6>
+                        <h6 class="card-subtitle">Asigne los estudios a los médicos para su respectiva lectura.</h6>
                         <div class="table-responsive m-t-40">
-                            <table id="example23" class="display nowrap table table-hover table-striped table-bordered"
-                                cellspacing="0" width="100%">
+                            <table id="example23" class="display nowrap table table-hover table-striped table-bordered" cellspacing="0" width="100%">
                                 <thead>
                                     <tr>
                                         <th>Fecha del Estudio</th>
@@ -118,14 +100,17 @@
                                         <!-- <td>{{ item.pat_sex }}</td>
                                         <td>{{ item.pat_birthdate }}</td> -->
                                         <td class="text-nowrap">
-                                            <button type="button"
+                                            <button
+                                                type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="actualizar = true; mostrarRegistro(item);">
+                                                @click="
+                                                    actualizar = true;
+                                                    mostrarRegistro(item);
+                                                "
+                                            >
                                                 <i class="fa fa-pencil"></i>
                                             </button>
-                                            <button type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="elimnarRegistro(item.id)">
+                                            <button type="button" class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm" @click="elimnarRegistro(item.id)">
                                                 <i class="fa fa-trash"></i>
                                             </button>
                                         </td>
@@ -141,8 +126,7 @@
         <!-- End PAge Content -->
         <!-- ============================================================== -->
         <div class="">
-            <button
-                class="right-side-toggle waves-effect waves-light btn-inverse btn btn-circle btn-sm pull-right m-l-10">
+            <button class="right-side-toggle waves-effect waves-light btn-inverse btn btn-circle btn-sm pull-right m-l-10">
                 <i class="ti-settings text-white"></i>
             </button>
         </div>
@@ -166,47 +150,35 @@
                         <div class="form-body">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <p class="text-info">
-                                        <i class="fa fa-user"></i> DATOS DEL PACIENTE
-                                    </p>
+                                    <p class="text-info"><i class="fa fa-user"></i> DATOS DEL PACIENTE</p>
                                     <div class="row">
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label class="control-label"># Documento</label>
-                                                <input type="text" id="num_docu" name="num_docu"
-                                                    v-model="registro.num_docu" class="form-control"
-                                                    placeholder="# de Documento" />
-                                                <span class="text-danger" v-if="errores.num_docu">{{
-                                                    errores.num_docu[0]
-                                                }}</span>
+                                                <input type="text" id="num_docu" name="num_docu" v-model="registro.num_docu" class="form-control" placeholder="# de Documento" />
+                                                <span class="text-danger" v-if="errores.num_docu">{{ errores.num_docu[0] }}</span>
                                             </div>
                                         </div>
 
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <label class="control-label">Nombres</label>
-                                                <input type="text" id="nombres" name="nombres"
-                                                    v-model="registro.nombres" class="form-control"
-                                                    placeholder="Nombres" />
-                                                <span class="text-danger" v-if="errores.nombres">{{
-                                                    errores.nombres[0]
-                                                }}</span>
+                                                <input type="text" id="nombres" name="nombres" v-model="registro.nombres" class="form-control" placeholder="Nombres" />
+                                                <span class="text-danger" v-if="errores.nombres">{{ errores.nombres[0] }}</span>
                                             </div>
                                         </div>
 
                                         <div class="col-md-2">
                                             <div class="form-group">
                                                 <label class="control-label">Sexo</label>
-                                                <input type="text" id="sexo" name="sexo" v-model="registro.sexo"
-                                                    class="form-control" />
+                                                <input type="text" id="sexo" name="sexo" v-model="registro.sexo" class="form-control" />
                                             </div>
                                         </div>
 
                                         <div class="col-md-2">
                                             <div class="form-group">
                                                 <label class="control-label">Fec. Nacimi</label>
-                                                <input type="date" id="fec_naci" name="fec_naci"
-                                                    v-model="registro.fec_naci" class="form-control" />
+                                                <input type="date" id="fec_naci" name="fec_naci" v-model="registro.fec_naci" class="form-control" />
                                             </div>
                                         </div>
                                     </div>
@@ -214,75 +186,54 @@
                                         <div class="col-md-4">
                                             <div class="form-group">
                                                 <label class="control-label">Dirección</label>
-                                                <input type="text" id="direccion" name="direccion"
-                                                    v-model="registro.direccion" class="form-control" />
-                                                <span class="text-danger" v-if="errores.direccion">{{
-                                                    errores.direccion[0]
-                                                }}</span>
+                                                <input type="text" id="direccion" name="direccion" v-model="registro.direccion" class="form-control" />
+                                                <span class="text-danger" v-if="errores.direccion">{{ errores.direccion[0] }}</span>
                                             </div>
                                         </div>
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label class="control-label">Télefono</label>
-                                                <input type="number" id="telefono" name="telefono"
-                                                    v-model="registro.telefono" class="form-control" />
-                                                <span class="text-danger" v-if="errores.telefono">{{
-                                                    errores.telefono[0]
-                                                }}</span>
+                                                <input type="number" id="telefono" name="telefono" v-model="registro.telefono" class="form-control" />
+                                                <span class="text-danger" v-if="errores.telefono">{{ errores.telefono[0] }}</span>
                                             </div>
                                         </div>
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <label class="control-label">E - Mail</label>
-                                                <input type="email" id="email" name="email" v-model="registro.email"
-                                                    class="form-control" />
-                                                <span class="text-danger" v-if="errores.email">{{
-                                                    errores.email[0]
-                                                }}</span>
+                                                <input type="email" id="email" name="email" v-model="registro.email" class="form-control" />
+                                                <span class="text-danger" v-if="errores.email">{{ errores.email[0] }}</span>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <p class="text-info">
-                                        <i class="fa fa-user"></i> DATOS DEL ESTUDIO
-                                    </p>
+                                    <p class="text-info"><i class="fa fa-user"></i> DATOS DEL ESTUDIO</p>
 
                                     <input type="hidden" id="study_pk" name="study_pk" v-model="registro.study_pk" />
-                                    <input type="hidden" id="study_iuid" name="study_iuid"
-                                        v-model="registro.study_iuid" />
+                                    <input type="hidden" id="study_iuid" name="study_iuid" v-model="registro.study_iuid" />
                                     <input type="hidden" id="study_id" name="study_id" v-model="registro.study_id" />
 
                                     <div class="row">
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <label class="control-label">Descripción</label>
-                                                <input type="text" id="study_desc" name="study_desc"
-                                                    v-model="registro.study_desc" class="form-control" />
-                                                <span class="text-danger" v-if="errores.study_desc">{{
-                                                    errores.study_desc[0]
-                                                }}</span>
+                                                <input type="text" id="study_desc" name="study_desc" v-model="registro.study_desc" class="form-control" />
+                                                <span class="text-danger" v-if="errores.study_desc">{{ errores.study_desc[0] }}</span>
                                             </div>
                                         </div>
 
                                         <div class="col-md-4">
                                             <div class="form-group">
                                                 <label class="control-label">Detalle</label>
-                                                <input type="text" id="accession_no" name="accession_no"
-                                                    v-model="registro.accession_no" class="form-control" />
-                                                <span class="text-danger" v-if="errores.accession_no">{{
-                                                    errores.accession_no[0]
-                                                }}</span>
+                                                <input type="text" id="accession_no" name="accession_no" v-model="registro.accession_no" class="form-control" />
+                                                <span class="text-danger" v-if="errores.accession_no">{{ errores.accession_no[0] }}</span>
                                             </div>
                                         </div>
 
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label class="control-label">Fecha</label>
-                                                <input type="text" id="study_datetime" name="study_datetime"
-                                                    v-model="registro.study_datetime" class="form-control" />
-                                                <span class="text-danger" v-if="errores.study_datetime">{{
-                                                    errores.study_datetime[0]
-                                                }}</span>
+                                                <input type="text" id="study_datetime" name="study_datetime" v-model="registro.study_datetime" class="form-control" />
+                                                <span class="text-danger" v-if="errores.study_datetime">{{ errores.study_datetime[0] }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -290,46 +241,34 @@
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <label class="control-label">Observaciones</label>
-                                                <input type="text" id="observaciones" name="observaciones"
-                                                    v-model="registro.observaciones" class="form-control"
-                                                    placeholder="Ingrese aqi las observaciones del estudio" />
+                                                <input type="text" id="observaciones" name="observaciones" v-model="registro.observaciones" class="form-control" placeholder="Ingrese aqi las observaciones del estudio" />
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <p class="text-info">
-                                        <i class="fa fa-user"></i> DATOS DE LA ASIGNACIÓN
-                                    </p>
+                                    <p class="text-info"><i class="fa fa-user"></i> DATOS DE LA ASIGNACIÓN</p>
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Médico</label>
-                                                <select v-model="registro.medico_id" name="medico_id" id="medico_id"
-                                                    class="form-control custom-select">
-                                                    <option v-for="(ItemMedico, index) in medicos" :key="index"
-                                                        :value="ItemMedico.id">
+                                                <select v-model="registro.medico_id" name="medico_id" id="medico_id" class="form-control custom-select">
+                                                    <option v-for="(ItemMedico, index) in medicos" :key="index" :value="ItemMedico.id">
                                                         {{ ItemMedico.name }}
                                                     </option>
                                                 </select>
-                                                <span class="text-danger" v-if="errores.medico_id">{{
-                                                    errores.medico_id[0]
-                                                }}</span>
+                                                <span class="text-danger" v-if="errores.medico_id">{{ errores.medico_id[0] }}</span>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label class="control-label">Prioridad</label>
-                                                <select v-model="registro.prioridad_id" name="prioridad_id"
-                                                    id="prioridad_id" class="form-control custom-select">
-                                                    <option v-for="(ItemPrioridad, index) in prioridades" :key="index"
-                                                        :value="ItemPrioridad.id">
+                                                <select v-model="registro.prioridad_id" name="prioridad_id" id="prioridad_id" class="form-control custom-select">
+                                                    <option v-for="(ItemPrioridad, index) in prioridades" :key="index" :value="ItemPrioridad.id">
                                                         {{ ItemPrioridad.nom_priori }}
                                                     </option>
                                                 </select>
-                                                <span class="text-danger" v-if="errores.prioridad_id">{{
-                                                    errores.prioridad_id[0]
-                                                }}</span>
+                                                <span class="text-danger" v-if="errores.prioridad_id">{{ errores.prioridad_id[0] }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -338,28 +277,21 @@
                                         <span class="text-danger" v-if="errores.prioridad_id">
                                             {{ errores.prioridad_id[0] }}
                                         </span>
-                                        <button type="button"
-                                            class="btn waves-effect waves-light btn-xs btn-info float-right"
-                                            data-toggle="modal" data-target="#exampleModal">
+                                        <button type="button" class="btn waves-effect waves-light btn-xs btn-info float-right" data-toggle="modal" data-target="#exampleModal">
                                             <i class="fa fa-search"></i>
                                         </button>
                                     </p>
                                     <div class="row">
                                         <div class="col-md-12">
                                             <!-- select2 -->
-                                            <select class="form-control custom-select"
-                                                @change="guardarProductosEstudio(10)" style="width: 100%; height: 36px"
-                                                v-model="productoSelecciondo">
-                                                <option v-for="ItemProducto in productos" v-bind:key="ItemProducto"
-                                                    v-bind:value="ItemProducto.id">
+                                            <select class="form-control custom-select" @change="guardarProductosEstudio(10)" style="width: 100%; height: 36px" v-model="productoSelecciondo">
+                                                <option v-for="ItemProducto in productos" v-bind:key="ItemProducto" v-bind:value="ItemProducto.id">
                                                     {{ ItemProducto.nom_produc }}
                                                 </option>
                                             </select>
                                         </div>
                                         <div class="col-md-12">
-                                            <table id="example23"
-                                                class="display nowrap table table-hover table-striped table-bordered "
-                                                cellspacing="0" width="100%">
+                                            <table id="example23" class="display nowrap table table-hover table-striped table-bordered" cellspacing="0" width="100%">
                                                 <thead>
                                                     <tr>
                                                         <th>Código</th>
@@ -368,14 +300,11 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <tr v-for="(item, index) in registro.productosEstudio"
-                                                        :key="item.id">
+                                                    <tr v-for="(item, index) in registro.productosEstudio" :key="item.id">
                                                         <td>{{ item.cod_cups }}</td>
                                                         <td>{{ item.nom_produc }}</td>
                                                         <td class="text-nowrap">
-                                                            <button type="button"
-                                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                                @click="quitarProductoEstudio(index)">
+                                                            <button type="button" class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm" @click="quitarProductoEstudio(index)">
                                                                 <i class="fa fa-trash"></i>
                                                             </button>
                                                         </td>
@@ -386,27 +315,21 @@
                                     </div>
                                     <p class="text-info">
                                         <i class="fa fa-user"></i> DIAGNOSTICOS
-                                        <button type="button"
-                                            class="btn waves-effect waves-light btn-xs btn-info float-right">
+                                        <button type="button" class="btn waves-effect waves-light btn-xs btn-info float-right">
                                             <i class="fa fa-search"></i>
                                         </button>
                                     </p>
                                     <div class="row">
                                         <div class="col-md-12">
                                             <!-- select2 -->
-                                            <select class="form-control custom-select"
-                                                @change="guardarDiagnosticosEstudio(10)"
-                                                style="width: 100%; height: 36px" v-model="diagnosticoSelecciondo">
-                                                <option v-for="ItemDiagnostico in diagnosticos"
-                                                    v-bind:key="ItemDiagnostico" v-bind:value="ItemDiagnostico.id">
+                                            <select class="form-control custom-select" @change="guardarDiagnosticosEstudio(10)" style="width: 100%; height: 36px" v-model="diagnosticoSelecciondo">
+                                                <option v-for="ItemDiagnostico in diagnosticos" v-bind:key="ItemDiagnostico" v-bind:value="ItemDiagnostico.id">
                                                     {{ ItemDiagnostico.nom_diagnos }}
                                                 </option>
                                             </select>
                                         </div>
                                         <div class="col-md-12">
-                                            <table id="example23"
-                                                class="display nowrap table table-hover table-striped table-bordered"
-                                                cellspacing="0" width="100%">
+                                            <table id="example23" class="display nowrap table table-hover table-striped table-bordered" cellspacing="0" width="100%">
                                                 <thead>
                                                     <tr>
                                                         <th width="10%">Código</th>
@@ -419,9 +342,7 @@
                                                         <td>{{ item.cod_diagnos }}</td>
                                                         <td>{{ item.nom_diagnos }}</td>
                                                         <td class="text-nowrap">
-                                                            <button type="button"
-                                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                                @click="quitarDiagnosticoEstudio(index)">
+                                                            <button type="button" class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm" @click="quitarDiagnosticoEstudio(index)">
                                                                 <i class="fa fa-trash"></i>
                                                             </button>
                                                         </td>
@@ -434,13 +355,9 @@
                             </div>
 
                             <div class="form-actions mt-3">
-                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()">
-                                    <i class="fa fa-check"></i> Guardar
-                                </button>
+                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"><i class="fa fa-check"></i> Guardar</button>
 
-                                <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">
-                                    Cancel
-                                </button>
+                                <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">Cancel</button>
                             </div>
                         </div>
                     </form>
@@ -593,15 +510,11 @@ export default {
             }
         },
         guardarProductosEstudio() {
-            var indexProductoEstudio = this.productos.findIndex(
-                (x) => x.id == this.productoSelecciondo
-            );
+            var indexProductoEstudio = this.productos.findIndex((x) => x.id == this.productoSelecciondo);
             if (indexProductoEstudio > 0) {
                 var productoEstudioId = this.productos[indexProductoEstudio].id;
-                var productoEstudioCod_Cubs =
-                    this.productos[indexProductoEstudio].cod_cups;
-                var productoEstudioNomProduc =
-                    this.productos[indexProductoEstudio].nom_produc;
+                var productoEstudioCod_Cubs = this.productos[indexProductoEstudio].cod_cups;
+                var productoEstudioNomProduc = this.productos[indexProductoEstudio].nom_produc;
 
                 this.registro.productosEstudio.push({
                     id: productoEstudioId,
@@ -614,16 +527,11 @@ export default {
             this.registro.productosEstudio.splice(indexEliminar, 1);
         },
         guardarDiagnosticosEstudio() {
-            var indexDiagnosticoSeleccionado = this.diagnosticos.findIndex(
-                (x) => x.id == this.diagnosticoSelecciondo
-            );
+            var indexDiagnosticoSeleccionado = this.diagnosticos.findIndex((x) => x.id == this.diagnosticoSelecciondo);
             if (indexDiagnosticoSeleccionado > 0) {
-                var diagnosticoEstudioId =
-                    this.diagnosticos[indexDiagnosticoSeleccionado].id;
-                var diagnosticoEstudioCod =
-                    this.diagnosticos[indexDiagnosticoSeleccionado].cod_diagnos;
-                var diagnosticoEstudioDiagnos =
-                    this.diagnosticos[indexDiagnosticoSeleccionado].nom_diagnos;
+                var diagnosticoEstudioId = this.diagnosticos[indexDiagnosticoSeleccionado].id;
+                var diagnosticoEstudioCod = this.diagnosticos[indexDiagnosticoSeleccionado].cod_diagnos;
+                var diagnosticoEstudioDiagnos = this.diagnosticos[indexDiagnosticoSeleccionado].nom_diagnos;
 
                 this.registro.diagnosticosEstudio.push({
                     id: diagnosticoEstudioId,
