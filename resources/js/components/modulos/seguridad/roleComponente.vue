@@ -262,11 +262,20 @@ export default {
                 this.id = data.id;
                 this.registro.name = data.name;
 
+                let me = this;
+
                 axios.get("/api/seguridad-roles/" + this.id).then((res) => {
                     console.log("Permisos del rol **************");
-                    console.log(res.data);
-                    this.registro.permisosRol = res.data[1];
-                    //this.listarPermisosRol() 
+                    console.log(res.data.rolePermissions);
+                    this.registro.permisosRol = res.data.rolePermissions;
+
+                    me.permisos.map(function (x, y) {
+                        me.registro.permisosRol.push({
+                            "id": x.id,
+                            "name": x.name,
+                            "checked": true,
+                        });
+                    });
                 });
             } else {
                 this.actualizar = false;
