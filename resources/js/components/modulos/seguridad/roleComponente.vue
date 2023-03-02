@@ -50,7 +50,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="item in registros" :key="item.id">
+                                    <tr v-for="item in listarRoles" :key="item.id">
                                         <td>{{ item.name }}</td>
                                         <td class="text-nowrap">
                                             <button class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5">
@@ -121,14 +121,14 @@
                             </div>
 
                             <p class="text-info"><i class="fa fa-unlock"></i> Permisos</p>
-
+                            <span class="text-danger" v-if="erroresRpermisosElegidos">{{ erroresRpermisosElegidos }}</span>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <div class="controls">
-                                            <div v-for="(itemPermiso, index) in permisosRol" :key="itemPermiso.id">
+                                            <div v-for="itemPermiso in registro.permisosRol" :key="itemPermiso.id">
                                                 <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" :id="itemPermiso.name" @click="agregarPermisoRol(index, itemPermiso.id)" />
+                                                    <input type="checkbox" class="custom-control-input" :id="itemPermiso.name" v-model="itemPermiso.checked" />
                                                     <label class="custom-control-label" :for="itemPermiso.name">
                                                         {{ itemPermiso.name }}
                                                     </label>
@@ -163,12 +163,13 @@ export default {
     data() {
         return {
             id: 0,
-            registros: [],
-            permisosRol: [],
-            registro: { name: "", permisos: [] },
+            listarRoles: [],
+            permisos: [],
+            registro: { name: "", permisosRol: [] },
             tituloModal: "Nuevo registro",
             actualizar: false,
             errores: "",
+            erroresRpermisosElegidos: "",
         };
     },
     methods: {
@@ -177,9 +178,12 @@ export default {
 
             $("#example23").DataTable().destroy();
 
-            this.registros = res.data[0];
-            this.permisosRol = res.data[1];
-            console.log(this.permisosRol);
+            this.listarRoles = [];
+            this.permisos = [];
+
+            this.listarRoles = res.data[0];
+            this.permisos = res.data[1];
+            this.listarPermisosRol();
 
             this.$nextTick(() => {
                 $("#example23").DataTable({
@@ -189,13 +193,26 @@ export default {
             });
         },
         async guardarRegistro() {
+
+            let totalPermisosElegido = 0;
+            this.registro.permisosRol.map(function(x, y){
+                if(x.checked == true){
+                    totalPermisosElegido ++;
+                }
+            });
+
+            if(totalPermisosElegido == 0){
+                this.erroresRpermisosElegidos = 'Debes elegir al menos un permiso para el rol';
+                return false;
+            }
+
             try {
                 if (this.actualizar === false) {
                     const res = await axios.post("api/seguridad-roles", this.registro);
 
                     if (res.status == 200) {
-                        this.ListarDatos();
-                        this.limpiarFormulario();
+                        /* this.ListarDatos();
+                        this.limpiarFormulario(); */
 
                         $.toast({
                             heading: "Ok!!!",
@@ -228,15 +245,15 @@ export default {
                 this.errores = error.response.data.message;
             }
         },
-        agregarPermisoRol(index, id) {
-            let permisoSeleccionado = this.permisosRol.findIndex((x) => x.id == id);
+        listarPermisosRol() {
+            let me = this;
 
-            console.log(this.permisosRol[permisoSeleccionado].id);
-            console.log(this.permisosRol[permisoSeleccionado].name);
-
-            this.registro.permisos.push({
-                "id": this.permisosRol[permisoSeleccionado].id,
-                "name": this.permisosRol[permisoSeleccionado].name,
+            me.permisos.map(function (x, y) {
+                me.registro.permisosRol.push({
+                    "id": x.id,
+                    "name": x.name,
+                    "checked": false,
+                });
             });
         },
         mostrarRegistro(data = {}) {
@@ -244,6 +261,13 @@ export default {
                 this.tituloModal = "Actualizar el registro: " + data.name;
                 this.id = data.id;
                 this.registro.name = data.name;
+
+                axios.get("/api/seguridad-roles/" + this.id).then((res) => {
+                    console.log("Permisos del rol **************");
+                    console.log(res.data);
+                    this.registro.permisosRol = res.data[1];
+                    //this.listarPermisosRol() 
+                });
             } else {
                 this.actualizar = false;
                 this.tituloModal = "Nuevo registro";
