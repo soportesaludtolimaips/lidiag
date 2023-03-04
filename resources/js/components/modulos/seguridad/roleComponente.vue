@@ -53,9 +53,9 @@
                                     <tr v-for="item in listarRoles" :key="item.id">
                                         <td>{{ item.name }}</td>
                                         <td class="text-nowrap">
-                                            <button class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5">
+                                            <!-- <button class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5">
                                                 <i class="fa fa-eye"></i>
-                                            </button>
+                                            </button> -->
 
                                             <button
                                                 type="button"
@@ -128,9 +128,9 @@
                                         <div class="controls">
                                             <div v-for="itemPermiso in registro.permisosRol" :key="itemPermiso.id">
                                                 <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" :id="itemPermiso.name" v-model="itemPermiso.checked" />
+                                                    <input type="checkbox" class="custom-control-input" name="permisosDelRal" :id="itemPermiso.name" v-model="itemPermiso.checked">
                                                     <label class="custom-control-label" :for="itemPermiso.name">
-                                                        {{ itemPermiso.name }}
+                                                        {{itemPermiso.name}}
                                                     </label>
                                                 </div>
                                             </div>
@@ -163,6 +163,7 @@ export default {
     data() {
         return {
             id: 0,
+            ojo: [],
             listarRoles: [],
             permisos: [],
             registro: { name: "", permisosRol: [] },
@@ -180,9 +181,11 @@ export default {
 
             this.listarRoles = [];
             this.permisos = [];
+            this.registro.permisosRol = [];
 
             this.listarRoles = res.data[0];
             this.permisos = res.data[1];
+
             this.listarPermisosRol();
 
             this.$nextTick(() => {
@@ -208,12 +211,9 @@ export default {
 
             try {
                 if (this.actualizar === false) {
-                    const res = await axios.post("api/seguridad-roles", this.registro);
+                    const res = await axios.post("/api/seguridad-roles/", this.registro);
 
                     if (res.status == 200) {
-                        /* this.ListarDatos();
-                        this.limpiarFormulario(); */
-
                         $.toast({
                             heading: "Ok!!!",
                             text: res.data.message,
@@ -225,10 +225,8 @@ export default {
                         });
                     }
                 } else {
-                    const res = await axios.put("api/seguridad-roles/" + this.id, { registro: this.registro });
+                    const res = await axios.put("/api/seguridad-roles/"+ this.id, {registro: this.registro} );
                     if (res.status == 200) {
-                        this.ListarDatos();
-                        this.limpiarFormulario();
 
                         $.toast({
                             heading: "Ok!!!",
@@ -241,6 +239,10 @@ export default {
                         });
                     }
                 }
+
+                this.ListarDatos();
+                this.limpiarFormulario();
+                this.btnCerralModalForm();
             } catch (error) {
                 this.errores = error.response.data.message;
             }
@@ -257,24 +259,26 @@ export default {
             });
         },
         mostrarRegistro(data = {}) {
+
             if (this.actualizar == true) {
+
                 this.tituloModal = "Actualizar el registro: " + data.name;
                 this.id = data.id;
                 this.registro.name = data.name;
 
-                let me = this;
-
                 axios.get("/api/seguridad-roles/" + this.id).then((res) => {
-                    console.log("Permisos del rol **************");
-                    console.log(res.data.rolePermissions);
-                    this.registro.permisosRol = res.data.rolePermissions;
 
-                    me.permisos.map(function (x, y) {
-                        me.registro.permisosRol.push({
-                            "id": x.id,
-                            "name": x.name,
-                            "checked": true,
-                        });
+                    this.registro.permisos = [];
+                    const permisosDelRol = Object.keys(res.data.permisosRol);
+                    let me = this;
+
+                    me.permisos.forEach(function(permisos, index) {
+                        me.registro.permisosRol[index].checked = false;
+                    });
+
+                    permisosDelRol.forEach(function(permisosDelRol) {
+                        let permisosActivos = me.permisos.findIndex((x) => x.id == permisosDelRol);
+                        me.registro.permisosRol[permisosActivos].checked = true;
                     });
                 });
             } else {
@@ -296,8 +300,12 @@ export default {
             this.tituloModal = "Nuevo registro";
             this.id = 0;
             this.registro.name = "";
-            this.registro.permisos = [];
             this.errores = "";
+
+            let me = this;
+            me.permisos.forEach(function(permisos, index) {
+                me.registro.permisosRol[index].checked = false;
+            });
         },
     },
 };

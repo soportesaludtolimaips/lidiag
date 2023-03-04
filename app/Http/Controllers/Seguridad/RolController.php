@@ -33,28 +33,17 @@ class RolController extends Controller
     public function store(RolAgregarRequest $request)
     {
         $role = Role::create(['name' => $request->input('name')]);
-        //$role->syncPermissions($request->input('permisosRol'));
 
         $permisos = $request->permisosRol;
-
         $permisosInsertar = array();
 
         foreach ($permisos as $permiso) {
-
             if ($permiso['checked'] == true) {
-                /* $role->syncPermissions([
-                    'permission_id' => $permiso['id'],
-                ]); */
-                /* DB::table('role_has_permissions')->insert([
-                    'permission_id' => $permiso['id'],
-                    'role_id' => $role->id,
-                ]); */
-
                 $permisosInsertar[] = $permiso['id'];
             }
         }
 
-        $role->syncPermissions(['permission_id' => $permisosInsertar, 'checked' => 1]);
+        $role->syncPermissions(['permission_id' => $permisosInsertar]);
 
         return response()->json(['message' => 'Registro creado satisfactoriamente.']);
     }
@@ -68,12 +57,12 @@ class RolController extends Controller
     public function show($id)
     {
         $seguridad_role = Role::find($id);
-        $permission = Permission::orderby('name')->get();
-        $rolePermissions = DB::table("role_has_permissions")->where("role_has_permissions.role_id", $id)
+        $permisos = Permission::orderby('name')->get();
+        $permisosRol = DB::table("role_has_permissions")->where("role_has_permissions.role_id", $id)
             ->pluck('role_has_permissions.permission_id', 'role_has_permissions.permission_id')
             ->all();
 
-        return response()->json(['seguridad_role' => $seguridad_role, 'permission' => $permission, 'rolePermissions' => $rolePermissions]);
+        return response()->json(['seguridad_role' => $seguridad_role, 'permisos' => $permisos, 'permisosRol' => $permisosRol]);
     }
 
     /**
@@ -83,15 +72,25 @@ class RolController extends Controller
      * @param  \App\Models\Seguridad\Rol  $rol
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Rol $id)
+    public function update(Request $request, $id)
     {
-        return $id;
-        /*  $role = Role::find($id);
-        $role->name = $request->input('name');
-        $role->save();
-        $role->syncPermissions($request->input('permission'));
 
-        return response()->json(['message' => 'Registro actualizado satisfactoriamente.']); */
+        $role = Role::find($id);
+        $role->name = $request->registro['name'];
+        $role->save();
+
+        $permisos = $request->registro['permisosRol'];
+        $permisosInsertar = array();
+
+        foreach ($permisos as $permiso) {
+            if ($permiso['checked'] == true) {
+                $permisosInsertar[] = $permiso['id'];
+            }
+        }
+
+        $role->syncPermissions(['permission_id' => $permisosInsertar]);
+
+        return response()->json(['message' => 'Registro actualizado satisfactoriamente.']);
     }
 
     /**
