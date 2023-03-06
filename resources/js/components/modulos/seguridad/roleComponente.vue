@@ -277,8 +277,8 @@ export default {
                     });
 
                     permisosDelRol.forEach(function(permisosDelRol) {
-                        let permisosActivos = me.permisos.findIndex((x) => x.id == permisosDelRol);
-                        me.registro.permisosRol[permisosActivos].checked = true;
+                        let permisoActivo = me.permisos.findIndex((x) => x.id == permisosDelRol);
+                        me.registro.permisosRol[permisoActivo].checked = true;
                     });
                 });
             } else {

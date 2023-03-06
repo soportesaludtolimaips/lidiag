@@ -209,7 +209,7 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">configrmar contraseña</label>
+                                        <label class="control-label">confirmar contraseña</label>
 
                                         <div class="input-group">
                                             <div class="input-group-prepend">
@@ -228,24 +228,35 @@
                                 </div>
                             </div>
 
+                            <p class="text-info"><i class="fa fa-unlock"></i> Roles</p>
                             <div class="row">
-                                <div class="col-md-12">
+                                <div class="col-md-3">
                                     <div class="form-group">
-                                        <label class="control-label">Imagen de perfil</label>
-                                        <input type="file" class="form-control" @change="obtenerArchivo($event)">
+                                        <div class="controls">
+                                            <div v-for="itemRol in registro.rolesUsuario" :key="itemRol.id">
+                                                <div class="custom-control custom-checkbox">
+                                                    <input type="checkbox" class="custom-control-input" :id="itemRol.name" v-model="itemRol.checked">
+                                                    <label class="custom-control-label" :for="itemRol.name">
+                                                        {{itemRol.name}}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="col-md-12 m-b-20">
-                                <div class="fileupload btn btn-danger btn-rounded waves-effect waves-light"><span><i
-                                            class="ion-upload m-r-5"></i>Upload Contact Image</span>
-                                    <input type="file" class="upload">
+                                <div class="fileupload btn btn-danger btn-rounded waves-effect waves-light">
+                                    <span>
+                                        <i class="ion-upload m-r-5"></i>Subir Avatar
+                                    </span>
+                                    <input type="file" class="upload" @change="obtenerArchivo($event)">
                                 </div>
                             </div>
 
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-12">
                                     <div class="form-group">
                                         <div class="checkbox checkbox-success">
                                             <input type="checkbox" id="estado" name="estado" v-model="registro.estado"
@@ -289,7 +300,8 @@ export default {
         return {
             id: 0,
             registros: [],
-            registro: { num_docu: '', reg_med: '', name: '', email: '', tipo_user: '', password: '', estado: 0, imagen_perfil: '' },
+            roles: [],
+            registro: { num_docu: '', reg_med: '', name: '', email: '', tipo_user: '', password: '', estado: 0, imagen_perfil: '', rolesUsuario: [] },
             tituloModal: 'Nuevo registro',
             actualizar: false,
             errores: {},
@@ -298,16 +310,35 @@ export default {
     methods: {
         async ListarDatos() {
             const res = await axios.get("api/seguridad-usuarios");
+            const resRoles = await axios.get("api/seguridad-roles")
 
             $('#example23').DataTable().destroy();
 
+            this.registros = [];
+            this.roles = [];
+            this.registro.rolesUsuario = [];
+
             this.registros = res.data;
+            this.roles = resRoles.data[0];
+            this.listarRoles();
+
             this.$nextTick(() => {
                 $('#example23').DataTable({
                     dom: 'Bfrtip',
                     buttons: [
                         'copy', 'csv', 'excel', 'pdf', 'print'
                     ]
+                });
+            });
+        },
+        listarRoles() {
+            let me = this;
+
+            me.roles.map(function (x, y) {
+                me.registro.rolesUsuario.push({
+                    "id": x.id,
+                    "name": x.name,
+                    "checked": false,
                 });
             });
         },
@@ -369,7 +400,9 @@ export default {
                 this.errores = error.response.data.errors;
             }
 
+            /* this.ListarDatos();
             this.limpiarFormulario();
+            this.btnCerralModalForm(); */
         },
         async cambiarEstado(estado, data = {}) {
             var $this = this;
@@ -408,6 +441,26 @@ export default {
                 this.registro.name = data.name;
                 this.registro.email = data.email;
                 this.registro.estado = data.estado;
+
+                /**
+                 * Listo los los datos del usuario con sus respectivos roles
+                 * Recorro los roles que estan en en Frond y los desactivo para
+                 * marcar los roles del usuario a editar
+                 */
+                axios.get('/api/seguridad-usuarios/'+this.id).then(res =>{
+
+                    const RolesDelUsuario = res.data.RolesDeUsuario;
+                    let me = this;
+
+                    me.roles.forEach(function(roles, index) {
+                        me.registro.rolesUsuario[index].checked = false;
+                    });
+
+                    RolesDelUsuario.forEach(function(RolesDelUsuario) {
+                        let rolActivo = me.roles.findIndex((x) => x.id == RolesDelUsuario);
+                        me.registro.rolesUsuario[rolActivo].checked = true;
+                    });
+                });
             } else {
                 this.actualizar = false;
                 this.tituloModal = "Nuevo registro";

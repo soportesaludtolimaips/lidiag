@@ -39,5 +39,14 @@ class RoleSeeder extends Seeder
         Permission::create(['name' => 'config.servicios.create'])->syncRoles([$Rol1]);
         Permission::create(['name' => 'config.servicios.edit'])->syncRoles([$Rol1]);
         Permission::create(['name' => 'config.servicios.destroy'])->syncRoles([$Rol1]);
+
+        Permission::create(['name' => 'estudio.listarPendientesTrascribir'])->syncRoles([$Rol1, $Rol3, $Rol4]);
+        Permission::create(['name' => 'estudio.guardarTranscripcion'])->syncRoles([$Rol1, $Rol3, $Rol4]);
+
+        Permission::create(['name' => 'estudio.listarPendientesMedico'])->syncRoles([$Rol1, $Rol2, $Rol4]);
+        Permission::create(['name' => 'estudio.leerEstudio'])->syncRoles([$Rol1, $Rol2]);
+
+        Permission::create(['name' => 'reportes.indicadores'])->syncRoles([$Rol1, $Rol5]);
+        Permission::create(['name' => 'reportes.detallados'])->syncRoles([$Rol1, $Rol5]);
     }
 }

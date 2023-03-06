@@ -4,7 +4,7 @@ namespace App\Http\Requests\Estudio;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class EstudioAsignarRequest extends FormRequest
+class estudioAsignarRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
