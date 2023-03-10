@@ -54,7 +54,7 @@
                             <span class="hide-menu">Seguridad</span>
                         </a>
                         <ul aria-expanded="false" class="collapse">
-                            <li><router-link to="/seguridad-usuarios">Usaurios</router-link></li>
+                            <li><router-link to="/seguridad-usuarios">Usuarios</router-link></li>
                             <li><router-link to="/seguridad-roles">Roles</router-link></li>
                         </ul>
                     </li>

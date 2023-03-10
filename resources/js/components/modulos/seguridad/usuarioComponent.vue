@@ -348,7 +348,7 @@ export default {
 
             try {
                 if (this.actualizar === false) {
-                    formData.append('tipo_user', this.registro.tipo_user);
+                    /* formData.append('tipo_user', this.registro.tipo_user);
                     formData.append('num_docu', this.registro.num_docu);
                     formData.append('reg_med', this.registro.reg_med);
                     formData.append('name', this.registro.name);
@@ -356,9 +356,10 @@ export default {
                     formData.append('estado', this.registro.estado);
                     formData.append('password', this.registro.password);
                     formData.append("file", this.registro.imagen_perfil);
+                    formData.append("rolesUsuario", this.registro.rolesUsuario); */
 
                     //const config = { headers: { 'Content-Type': 'multipart/form-data' } }
-                    const res = await axios.post('api/seguridad-usuarios', formData);
+                    const res = await axios.post('api/seguridad-usuarios', this.registro);
 
                     if (res.status == 200) {
 
@@ -400,9 +401,9 @@ export default {
                 this.errores = error.response.data.errors;
             }
 
-            /* this.ListarDatos();
+            this.ListarDatos();
             this.limpiarFormulario();
-            this.btnCerralModalForm(); */
+            this.btnCerralModalForm();
         },
         async cambiarEstado(estado, data = {}) {
             var $this = this;

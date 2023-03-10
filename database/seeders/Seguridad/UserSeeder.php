@@ -21,7 +21,7 @@ class UserSeeder extends Seeder
             'tipo_user' => 'Administrador',
             'email' => 'administrador@administrador.com',
             'password' => bcrypt('123456')
-        ])->assignRole('Admintrador', 'Medico', 'Administrativo', 'Transcriptor', 'Estaditico');
+        ])->assignRole('Admintrador', 'Medico', 'Administrativo', 'Transcriptor', 'Estadistico');
 
         User::create([
             'num_docu' => 'Medico 1',
