@@ -15,7 +15,6 @@ import { createApp, VueElement } from 'vue';
 
 const app = createApp({});
 
-
 /**
  * Principales
  */
@@ -23,6 +22,8 @@ const app = createApp({});
 import App from './components/App.vue';
 app.component('app-component', App);
 
+import Auth from './components/Auth.vue';
+app.component('auth-component', Auth);
 
 /**
  * The following block of code may be used to automatically register your

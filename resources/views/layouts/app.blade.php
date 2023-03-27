@@ -64,7 +64,11 @@
     <!-- ============================================================== -->
     <div id="main-wrapper">
         <div id="app">
-            <app-component ruta="{{ route('basepath') }}" />
+            @if (Auth::check())
+                <app-component ruta="{{ route('basepath') }}" />
+            @else
+                <auth-component ruta="{{ route('basepath') }}" />
+            @endif
 
         </div>
     </div>
