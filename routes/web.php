@@ -23,15 +23,16 @@ use App\Http\Controllers\Seguridad\UserController;
 
 
 Route::get('/{optional?}', function () {
-    //if (Auth::check()) {
-    return view('layouts.app');
-    /*  } else {
-        return view('layouts.login');
-    } */
+    /*  if (Auth::check()) {
+        return view('layouts.app');
+    } else { */
+    return view('layouts.login');
+    //}
 })->name('basepath')
     ->where('optional', '.*');
 
 Auth::routes();
+
 
 //Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 /* 

@@ -37,8 +37,8 @@ const usuarioPerfil = () => import('./components/modulos/seguridad/usuarioPerfil
 const usuarioEditarComponent = () => import('./components/modulos/seguridad/usuarioEditarComponent.vue'); */
 
 const routes = [
+    { path: '/login', name: 'login', component: () => import('./components/autenticacion/login.vue') },
     { path: '/', name: 'plantilla', component: () => import('./components/plantilla/ContentComponent.vue') },
-    { path: '/login', name: 'login', component: () => import('./components/Auth.vue') },
 
     /**
      * Configuración
