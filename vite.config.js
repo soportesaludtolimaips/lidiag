@@ -11,25 +11,10 @@ export default defineConfig({
             input: [
                 'resources/sass/app.scss',
                 'resources/js/app.js',
-                'resources/js/appConfiguracion.js',
-                'resources/js/appEstudios.js',
             ],
             refresh: true,
         }),
-        vue({
-            template: {
-                transformAssetUrls: {
-                    base: null,
-                    includeAbsolute: false,
-                },
-
-                compilerOptions: {
-                    isCustomElement: (tag) => {
-                        return tag.startsWith('ion-') // (return true)
-                    }
-                }
-            },
-        }),
+        vue(),
     ],
     resolve: {
         alias: {

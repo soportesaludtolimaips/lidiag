@@ -62,14 +62,14 @@
     <!-- ============================================================== -->
     <!-- Main wrapper - style you can find in pages.scss -->
     <!-- ============================================================== -->
-    <div id="main-wrapper">
-        <div id="app">
-            @if (Auth::check())
-                <app-component ruta="{{ route('basepath') }}" />
-            @else
-                <auth-component ruta="{{ route('basepath') }}" />
-            @endif
-        </div>
+
+    <div id="app">
+        {{ Auth::check() }}
+        @if (Auth::check())
+            <app-component ruta="{{ route('basepath') }}" />
+        @else
+            <auth-component ruta="{{ route('basepath') }}" />
+        @endif
     </div>
     <!-- ============================================================== -->
     <!-- End Wrapper -->

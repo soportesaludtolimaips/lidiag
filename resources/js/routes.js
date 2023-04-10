@@ -1,44 +1,8 @@
-
-import { createRouter, createWebHistory } from 'vue-router'
-
-/**
- *
-  * Inicio la importación de los componentes para agregarlos a las rutas
-  *
-*/
-
-//const LoginComponent = () => import('./components/Auth.vue');
-//const ContentComponent = () => import('./components/plantilla/ContentComponent.vue');
-
-/**
- * Configuracion
- */
-/* const configAdminSaludComponent = () => import('./components/modulos/configuracion/configAdminSaludComponent.vue');
-const configDiagnosticoComponent = () => import('./components/modulos/configuracion/configDiagnosticoComponent.vue');
-const configPrioridadComponent = () => import('./components/modulos/configuracion/configPrioridadComponent.vue');
-const configProductoComponent = () => import('./components/modulos/configuracion/configProductoComponent.vue');
-const configSedeComponent = () => import('./components/modulos/configuracion/configSedeComponent.vue');
- */
-
-/**
- * Estudios
- */
-/* const AsignarEstudioComponent = () => import('./components/modulos/estudios/AsignarEstudioComponent.vue');
-const leerEstudioComponent = () => import('./components/modulos/estudios/leerEstudioComponent.vue');
-const transcribirEstudioComponent = () => import('./components/modulos/estudios/transcribirEstudioComponent.vue'); */
-
-/**
- * Seguridad
- */
-
-
-/* const usuarioComponent = () => import('./components/modulos/seguridad/usuarioComponent.vue');
-const usuarioPerfil = () => import('./components/modulos/seguridad/usuarioPerfil.vue');
-const usuarioEditarComponent = () => import('./components/modulos/seguridad/usuarioEditarComponent.vue'); */
+import { createWebHistory, createRouter } from 'vue-router'
 
 const routes = [
     { path: '/login', name: 'login', component: () => import('./components/autenticacion/login.vue') },
-    { path: '/', name: 'plantilla', component: () => import('./components/plantilla/ContentComponent.vue') },
+    { path: '/', name: 'dashboard', component: () => import('./components/dashboard/index.vue') },
 
     /**
      * Configuración
@@ -59,19 +23,17 @@ const routes = [
     /**
      * Seguridad
      */
-
     { path: '/seguridad-usuarios', name: 'seguridadUsuarios', component: () => import('./components/modulos/seguridad/usuarioComponent.vue') },
     {
         path: '/seguridad/usuario/perfil/:id', name: 'seguridad.usuario.perfil', component: () => import('./components/modulos/seguridad/usuarioPerfil.vue'),
         props: true
     },
     { path: '/seguridad-roles', name: 'seguridad.roles', component: () => import('./components/modulos/seguridad/roleComponente.vue') },
-
 ]
 
 const router = createRouter({
     history: createWebHistory(),
-    routes
-});
+    routes, // short for `routes: routes`
+})
 
-export default router;
+export default router

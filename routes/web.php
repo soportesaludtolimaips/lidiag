@@ -23,11 +23,7 @@ use App\Http\Controllers\Seguridad\UserController;
 
 
 Route::get('/{optional?}', function () {
-    /*  if (Auth::check()) {
-        return view('layouts.app');
-    } else { */
-    return view('layouts.login');
-    //}
+    return view('layouts.app');
 })->name('basepath')
     ->where('optional', '.*');
 
