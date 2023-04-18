@@ -1,13 +1,12 @@
 <template>
-
     <ul class="navbar-nav my-lg-0">
 
         <!-- ============================================================== -->
         <!-- Comment -->
         <!-- ============================================================== -->
         <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle waves-effect waves-dark" href="" data-toggle="dropdown"
-                aria-haspopup="true" aria-expanded="false">
+            <a class="nav-link dropdown-toggle waves-effect waves-dark" href="" data-toggle="dropdown" aria-haspopup="true"
+                aria-expanded="false">
                 <i class="icon-Bell"></i>
                 <div class="notify">
                     <span class="heartbit"></span>
@@ -167,8 +166,8 @@
         <!-- mega menu -->
         <!-- ============================================================== -->
         <li class="nav-item dropdown mega-dropdown">
-            <a class="nav-link dropdown-toggle waves-effect waves-dark" href="" data-toggle="dropdown"
-                aria-haspopup="true" aria-expanded="false">
+            <a class="nav-link dropdown-toggle waves-effect waves-dark" href="" data-toggle="dropdown" aria-haspopup="true"
+                aria-expanded="false">
                 <i class="icon-Box-Close"></i></a>
             <div class="dropdown-menu animated bounceInDown">
                 <ul class="mega-dropdown-menu row">
@@ -222,8 +221,7 @@
                                         </a>
                                     </h5>
                                 </div>
-                                <div id="collapseOne" class="collapse show" role="tabpanel"
-                                    aria-labelledby="headingOne">
+                                <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
                                     <div class="card-body"> Anim pariatur cliche reprehenderit, enim
                                         eiusmod high. </div>
                                 </div>
@@ -366,15 +364,10 @@
                     <li><a href="#"><i class="ti-settings"></i> Configuración de cuenta</a></li>
                     <li role="separator" class="divider"></li>
                     <li>
-                        <a :href="ruta + '/logout'"
-                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                            <i class="fa fa-power-off"></i><!-- {{ __('Logout') }} -->
+                        <a href="#" @click.prevent="Logout">
+                            <i class="fa fa-power-off"></i> Salir
                         </a>
                     </li>
-
-                    <form id="logout-form" :action="ruta + '/logout'" method="POST" class="d-none">
-                        @csrf
-                    </form>
                 </ul>
             </div>
         </li>
@@ -382,6 +375,20 @@
 </template >
 <script>
 export default {
-    props: ['ruta']
+    props: ['ruta'],
+
+    data() {
+
+    },
+    methods: {
+        Logout() {
+            axios.post('/autenticacion/logout').then(res => {
+                if (res.data.code == 204) {
+                    this.$router.push({ name: 'login' })
+                    location.reload();
+                }
+            });
+        }
+    }
 }
 </script>

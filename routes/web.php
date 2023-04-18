@@ -33,6 +33,7 @@ Route::get('/{optional?}', function () {
 Auth::routes();
 
 Route::post('/autenticacion/login', [LoginController::class, 'login']);
+Route::post('/autenticacion/logout', [LoginController::class, 'logout']);
 
 Route::resource('config-admin-salud', ConfigAdminSaludController::class)->names('config.admin.salud')->except(['create', 'show']);
 Route::resource('config-diagnosticos', ConfigDiagnosticoController::class)->names('config.diagnosticos')->except(['create', 'show']);

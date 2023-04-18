@@ -78,7 +78,7 @@ export default {
                 if (res.data.code == 401) {
                     this.erroreLogin = "Estas credenciales no coinciden con nuestros registro";
                 } else if (res.data.code == 200) {
-                    this.$router.push('dashboard');
+                    this.$router.push({ name: 'dashboard' });
                     //location.reload();
                 }
             } catch (error) {
