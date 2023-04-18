@@ -20,7 +20,7 @@
                     <!-- ============================================================== -->
                     <!-- User profile and search -->
                     <!-- ============================================================== -->
-                    <userProfileAndSearchComponent :ruta="ruta" />
+                    <userProfileAndSearchComponent :ruta="ruta" :usuario="usuario" />
                 </div>
             </nav>
         </header>
@@ -71,7 +71,7 @@ import sidebarComponent from './comunes/sidebarComponent.vue'
 import footerComponent from './comunes/footerComponent.vue'
 
 export default {
-    props: ['ruta'],
+    props: ['ruta', 'usuario'],
     components: { logoComponent, toggleAndNavItemsComponent, userProfileAndSearchComponent, sidebarComponent, footerComponent }
 }
 </script>

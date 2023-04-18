@@ -18,7 +18,7 @@
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button type="button" class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="actualizar=false;mostrarRegistro()">
+                    @click="actualizar = false; mostrarRegistro()">
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
@@ -64,7 +64,7 @@
                                         <td class="text-nowrap">
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="actualizar=true; mostrarRegistro(item)">
+                                                @click="actualizar = true; mostrarRegistro(item)">
                                                 <i class="fa fa-pencil"></i>
                                             </button>
                                             <button type="button"
@@ -92,7 +92,7 @@
         <div class="right-sidebar">
             <div class="slimscrollright">
                 <div class="rpanel-title">
-                    {{tituloModal}}
+                    {{ tituloModal }}
                     <span>
                         <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
                     </span>
@@ -108,10 +108,9 @@
                                     <div class="form-group">
                                         <label class="control-label">Código CEE10</label>
                                         <input type="text" id="cod_diagnos" name="cod_diagnos"
-                                            v-model="registro.cod_diagnos" class="form-control"
-                                            placeholder="Código CIE10">
-                                        <span class="text-danger"
-                                            v-if="errores.cod_diagnos">{{errores.cod_diagnos[0]}}</span>
+                                            v-model="registro.cod_diagnos" class="form-control" placeholder="Código CIE10">
+                                        <span class="text-danger" v-if="errores.cod_diagnos">{{ errores.cod_diagnos[0]
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -123,8 +122,8 @@
                                         <input type="text" id="nom_diagnos" name="nom_diagnos"
                                             v-model="registro.nom_diagnos" class="form-control"
                                             placeholder="Ingrese aquí el nombre del díagnostico">
-                                        <span class="text-danger"
-                                            v-if="errores.nom_diagnos">{{errores.nom_diagnos[0]}}</span>
+                                        <span class="text-danger" v-if="errores.nom_diagnos">{{ errores.nom_diagnos[0]
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -152,8 +151,7 @@
                                     <i class="fa fa-pencil"></i> Actualizar
                                 </button>
 
-                                <button type="button" class="btn btn-inverse"
-                                    @click="btnCerralModalForm()">Cancel</button>
+                                <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">Cancel</button>
                             </div>
                         </div>
                     </form>
@@ -184,12 +182,12 @@ export default {
     },
     methods: {
         async ListarDatos() {
-            const res = await axios.get("api/config-diagnosticos");
+            const res = await axios.get("/api/config-diagnosticos");
 
             $('#example23').DataTable().destroy();
 
             this.registros = res.data;
-            console.log(res.data)
+
             this.$nextTick(() => {
                 $('#example23').DataTable({
                     dom: 'Bfrtip',
@@ -202,7 +200,7 @@ export default {
         async guardarRegistro() {
             try {
                 if (this.actualizar === false) {
-                    const res = await axios.post('api/config-diagnosticos', this.registro);
+                    const res = await axios.post('/api/config-diagnosticos', this.registro);
 
                     if (res.status == 200) {
 
@@ -219,7 +217,7 @@ export default {
                         });
                     }
                 } else {
-                    const res = await axios.put('api/config-diagnosticos/' + this.id, this.registro);
+                    const res = await axios.put('/api/config-diagnosticos/' + this.id, this.registro);
                     if (res.status == 200) {
 
                         this.ListarDatos()
@@ -252,7 +250,7 @@ export default {
                 closeOnConfirm: false
             }, function (isConfirm) {
                 if (isConfirm) {
-                    axios.delete('api/config-diagnosticos/' + id).then(response => {
+                    axios.delete('/api/config-diagnosticos/' + id).then(response => {
                         swal("Ok!!!!", response.data.message, "success");
                         $this.ListarDatos()
                     }).catch(error => {

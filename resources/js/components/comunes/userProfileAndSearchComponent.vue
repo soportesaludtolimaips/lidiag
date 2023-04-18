@@ -339,7 +339,7 @@
             <a class="nav-link dropdown-toggle waves-effect waves-dark profile-pic" href="" data-toggle="dropdown"
                 aria-haspopup="true" aria-expanded="false">
                 <img :src="ruta + '/admin-wrap/assets/images/users/1.jpg'" alt="user" class="" />
-                <span class="hidden-md-down"><!-- {{ Auth()-> user() -> name}} --> &nbsp;
+                <span class="hidden-md-down"> &nbsp; {{ usuario.name }}
                     <i class="fa fa-angle-down"></i>
                 </span>
             </a>
@@ -359,9 +359,17 @@
                         </div>
                     </li>
                     <li role="separator" class="divider"></li>
-                    <li><a href="#"><i class="ti-user"></i> Mi Perfil</a></li>
+                    <li>
+                        <a href="#">
+                            <i class="ti-user"></i> Mi Perfil
+                        </a>
+                    </li>
                     <li role="separator" class="divider"></li>
-                    <li><a href="#"><i class="ti-settings"></i> Configuración de cuenta</a></li>
+                    <li>
+                        <a href="#">
+                            <i class="ti-settings"></i> Configuración de cuenta
+                        </a>
+                    </li>
                     <li role="separator" class="divider"></li>
                     <li>
                         <a href="#" @click.prevent="Logout">
@@ -375,7 +383,7 @@
 </template >
 <script>
 export default {
-    props: ['ruta'],
+    props: ['ruta', 'usuario'],
 
     data() {
 
