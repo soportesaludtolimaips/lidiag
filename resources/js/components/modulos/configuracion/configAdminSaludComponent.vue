@@ -23,10 +23,10 @@
                 </button>
             </div>
             <!-- <div class="">
-                                            <button class="right-side-toggle btn-info btn btn-circle btn-sm">
-                                                <i class="fa fa-plus-circle m-r-5"></i>
-                                            </button>
-                                        </div> -->
+                    <button class="right-side-toggle btn-info btn btn-circle btn-sm">
+                        <i class="fa fa-plus-circle m-r-5"></i>
+                    </button>
+                </div> -->
         </div>
         <!-- ============================================================== -->
         <!-- End Bread crumb and right sidebar toggle -->
@@ -173,7 +173,7 @@
         <!-- ============================================================== -->
         <!-- End Right sidebar -->
         <!-- ============================================================== -->
-</div>
+    </div>
 </template>
 
 <script>
@@ -193,25 +193,25 @@ export default {
         };
     },
     methods: {
-        async ListarDatos() {
-            const res = await axios.get("api/config-admin-salud");
-
-            $('#example23').DataTable().destroy();
-
-            this.registros = res.data;
-            this.$nextTick(() => {
-                $('#example23').DataTable({
-                    dom: 'Bfrtip',
-                    buttons: [
-                        'copy', 'csv', 'excel', 'pdf', 'print'
-                    ]
+        ListarDatos() {
+            axios.get("/configuracion/adminsalud/index").then(res => {
+                $('#example23').DataTable().destroy();
+                console.log(res.data);
+                this.registros = res.data;
+                this.$nextTick(() => {
+                    $('#example23').DataTable({
+                        dom: 'Bfrtip',
+                        buttons: [
+                            'copy', 'csv', 'excel', 'pdf', 'print'
+                        ]
+                    });
                 });
             });
         },
         async guardarRegistro() {
             try {
                 if (this.actualizar === false) {
-                    const res = await axios.post('api/config-admin-salud', this.registro);
+                    const res = await axios.post('/config-admin-salud', this.registro);
 
                     if (res.status == 200) {
 
@@ -228,7 +228,7 @@ export default {
                         });
                     }
                 } else {
-                    const res = await axios.put('api/config-admin-salud/' + this.id, this.registro);
+                    const res = await axios.put('/config-admin-salud/' + this.id, this.registro);
                     if (res.status == 200) {
 
                         this.ListarDatos()
@@ -263,7 +263,7 @@ export default {
                 closeOnConfirm: false
             }, function (isConfirm) {
                 if (isConfirm) {
-                    axios.delete('api/config-admin-salud/' + id).then(response => {
+                    axios.delete('/config-admin-salud/' + id).then(response => {
                         swal("Ok!!!!", response.data.message, "success");
                         $this.ListarDatos()
                     }).catch(error => {

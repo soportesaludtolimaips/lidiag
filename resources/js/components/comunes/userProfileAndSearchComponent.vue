@@ -339,9 +339,9 @@
             <a class="nav-link dropdown-toggle waves-effect waves-dark profile-pic" href="" data-toggle="dropdown"
                 aria-haspopup="true" aria-expanded="false">
                 <img :src="ruta + '/admin-wrap/assets/images/users/1.jpg'" alt="user" class="" />
-                <span class="hidden-md-down"> &nbsp; {{ usuario.name }}
+                <!-- <span class="hidden-md-down"> &nbsp; {{ usuario.name }}
                     <i class="fa fa-angle-down"></i>
-                </span>
+                </span> -->
             </a>
             <div class="dropdown-menu dropdown-menu-right animated flipInY">
                 <ul class="dropdown-user">
@@ -351,10 +351,13 @@
                                 <img :src="ruta + '/admin-wrap/assets/images/users/1.jpg'" alt="user">
                             </div>
                             <div class="u-text">
-                                <h4><!-- {{ Auth()-> user() -> name}} --></h4>
-                                <p class="text-muted"><!-- {{ Auth()-> user() -> email}} --></p>
-                                <a href="pages-profile.html" class="btn btn-rounded btn-danger btn-sm">Ver
-                                    Perfil</a>
+                                <!-- <h4>{{ usuario.name }}</h4>
+                                <p class="text-muted">{{ usuario.email }}</p>
+                                <router-link class="btn btn-rounded btn-danger btn-sm" :to="{
+                                    name: 'seguridad.usuario.perfil', params: { id: usuario.id }
+                                }">
+                                    Ver Perfil
+                                </router-link> -->
                             </div>
                         </div>
                     </li>
@@ -384,10 +387,6 @@
 <script>
 export default {
     props: ['ruta', 'usuario'],
-
-    data() {
-
-    },
     methods: {
         Logout() {
             axios.post('/autenticacion/logout').then(res => {

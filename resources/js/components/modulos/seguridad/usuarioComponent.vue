@@ -235,9 +235,10 @@
                                         <div class="controls">
                                             <div v-for="itemRol in registro.rolesUsuario" :key="itemRol.id">
                                                 <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" :id="itemRol.name" v-model="itemRol.checked">
+                                                    <input type="checkbox" class="custom-control-input" :id="itemRol.name"
+                                                        v-model="itemRol.checked">
                                                     <label class="custom-control-label" :for="itemRol.name">
-                                                        {{itemRol.name}}
+                                                        {{ itemRol.name }}
                                                     </label>
                                                 </div>
                                             </div>
@@ -309,8 +310,8 @@ export default {
     },
     methods: {
         async ListarDatos() {
-            const res = await axios.get("api/seguridad-usuarios");
-            const resRoles = await axios.get("api/seguridad-roles")
+            const res = await axios.get("/seguridad-usuarios");
+            const resRoles = await axios.get("/seguridad-roles")
 
             $('#example23').DataTable().destroy();
 
@@ -359,7 +360,7 @@ export default {
                     formData.append("rolesUsuario", this.registro.rolesUsuario); */
 
                     //const config = { headers: { 'Content-Type': 'multipart/form-data' } }
-                    const res = await axios.post('api/seguridad-usuarios', this.registro);
+                    const res = await axios.post('/seguridad-usuarios', this.registro);
 
                     if (res.status == 200) {
 
@@ -380,7 +381,7 @@ export default {
                     formData.append("file", this.registro.imagen_perfil);
 
                     const config = { headers: { 'Content-Type': 'multipart/form-data' } }
-                    const res = await axios.put('api/seguridad-usuarios/' + this.id, { registro: this.registro, form_data: formData });
+                    const res = await axios.put('/seguridad-usuarios/' + this.id, { registro: this.registro, form_data: formData });
                     if (res.status == 200) {
 
                         this.ListarDatos()
@@ -417,7 +418,7 @@ export default {
                 closeOnConfirm: false
             }, function (isConfirm) {
                 if (isConfirm) {
-                    axios.put('api/seguridad-usuarios/estado/' + data.id, { estado: ((estado == 0) ? 1 : 0) }).then(response => {
+                    axios.put('/seguridad-usuarios/estado/' + data.id, { estado: ((estado == 0) ? 1 : 0) }).then(response => {
 
                         swal("Ok!!!!", 'el usaurio ' + data.name + ' se ' + ((estado == 0) ? ' activo' : 'desactivo') + ' correctamente',
                             "success");
@@ -448,16 +449,16 @@ export default {
                  * Recorro los roles que estan en en Frond y los desactivo para
                  * marcar los roles del usuario a editar
                  */
-                axios.get('/api/seguridad-usuarios/'+this.id).then(res =>{
+                axios.get('/seguridad-usuarios/' + this.id).then(res => {
 
                     const RolesDelUsuario = res.data.RolesDeUsuario;
                     let me = this;
 
-                    me.roles.forEach(function(roles, index) {
+                    me.roles.forEach(function (roles, index) {
                         me.registro.rolesUsuario[index].checked = false;
                     });
 
-                    RolesDelUsuario.forEach(function(RolesDelUsuario) {
+                    RolesDelUsuario.forEach(function (RolesDelUsuario) {
                         let rolActivo = me.roles.findIndex((x) => x.id == RolesDelUsuario);
                         me.registro.rolesUsuario[rolActivo].checked = true;
                     });

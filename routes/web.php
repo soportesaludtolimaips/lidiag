@@ -1,12 +1,24 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Dcm4chee\StudyController;
 use App\Http\Controllers\EmailController;
 
 use App\Http\Controllers\Auth\LoginController;
-
 use App\Http\Controllers\Seguridad\UserController;
+use App\Http\Controllers\Seguridad\RolController;
+
+use App\Http\Controllers\Configuracion\ConfigAdminSaludController;
+use App\Http\Controllers\Configuracion\ConfigProductoController;
+use App\Http\Controllers\Configuracion\ConfigDiagnosticoController;
+use App\Http\Controllers\Configuracion\ConfigPrioridadController;
+use App\Http\Controllers\Configuracion\ConfigSucursalController;
+
+use App\Http\Controllers\Dcm4chee\StudyController;
+use App\Http\Controllers\Estudios\EstudioController;
+use App\Http\Controllers\Estudios\EstudioProductoController;
+use App\Http\Controllers\Estudios\EstudioDiagnosticoController;
+
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -27,7 +39,6 @@ use App\Http\Controllers\Seguridad\UserController;
 Route::get('/{optional?}', function () {
     return view('layouts.app');
 })->name('basepath')
-    ->middleware(['auth'])
     ->where('optional', '.*');
 
 Auth::routes();
@@ -35,8 +46,9 @@ Auth::routes();
 Route::post('/autenticacion/login', [LoginController::class, 'login']);
 Route::post('/autenticacion/logout', [LoginController::class, 'logout']);
 
-Route::resource('config-admin-salud', ConfigAdminSaludController::class)->names('config.admin.salud')->except(['create', 'show']);
-Route::resource('config-diagnosticos', ConfigDiagnosticoController::class)->names('config.diagnosticos')->except(['create', 'show']);
+//Route::resource('/configuracion/adminsalud/index', ConfigAdminSaludController::class)->names('config.admin.salud')->except(['create', 'show']);
+Route::get('/configuracion/adminsalud/index', [ConfigAdminSaludController::class, 'index']);
+Route::resource('/config-diagnosticos', ConfigDiagnosticoController::class)->names('config.diagnosticos')->except(['create', 'show']);
 Route::resource('config-prioridades', ConfigPrioridadController::class)->names('config.prioridades')->except(['create', 'show']);
 Route::resource('config-productos', ConfigProductoController::class)->names('config.productos')->except(['create']);
 Route::resource('config-sucursales', ConfigSucursalController::class)->names('config.sucursales')->except(['create', 'show']);
@@ -54,8 +66,8 @@ Route::get('estudio-listarPendientesTrascribir', [EstudioController::class, 'lis
 Route::post('estudio-guardarTranscripcion', [EstudioController::class, 'guardarTranscripcion'])->name('estudio.guardarTranscripcion');
 Route::get('estudio-listarPendientesMedico', [EstudioController::class, 'listarPendientesMedico'])->name('estudio.listarPendientesMedico');
 
-Route::resource('seguridad-usuarios', UserController::class)->names('seguridad.usuarios');
-Route::resource('seguridad-roles', RolController::class)->names('seguridad.roles');
+Route::resource('/seguridad-usuarios', UserController::class)->names('seguridad.usuarios');
+Route::resource('/seguridad-roles', RolController::class)->names('seguridad.roles');
 
 
 //Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

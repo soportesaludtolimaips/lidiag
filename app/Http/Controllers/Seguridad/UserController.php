@@ -38,6 +38,7 @@ class UserController extends Controller
      */
     public function show($id)
     {
+        return "Ok";
         $usuario = User::find($id);
         $roles = Role::all();
         $userRole = $usuario->roles;

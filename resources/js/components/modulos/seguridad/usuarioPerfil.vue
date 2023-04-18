@@ -36,14 +36,13 @@
                             <img v-else :src="registro.imagen_perfil" :alt="registro.name" class="img-circle" width="150">
                             <h4 class="card-title m-t-10">{{ registro.name }}</h4>
                             <h6 class="card-subtitle">{{ registro.tipo_user }}</h6>
-
                         </center>
                     </div>
                     <div>
                         <hr>
                     </div>
                     <div class="card-body">
-                        <small class="text-muted">Email address </small>
+                        <small class="text-muted">Email address</small>
                         <h6>{{ registro.email }}</h6>
                         <small class="text-muted p-t-30 db">Teléfono</small>
                         <h6>{{ registro.tel }}</h6>
@@ -80,29 +79,40 @@
                                         <div class="sl-right">
                                             <div>
                                                 <a href="#" class="link">John Doe</a>
-                                                <span class="sl-date">5 minutes
-                                                    ago</span>
+                                                <span class="sl-date">
+                                                    5 minutes ago
+                                                </span>
                                                 <p>assign a new task <a href="#"> Design weblayout</a></p>
                                                 <div class="row">
-                                                    <div class="col-lg-3 col-md-6 m-b-20"><img
-                                                            src="/admin-wrap/assets/images/big/img1.jpg"
-                                                            class="img-responsive radius" /></div>
-                                                    <div class="col-lg-3 col-md-6 m-b-20"><img
-                                                            src="/admin-wrap/assets/images/big/img2.jpg"
-                                                            class="img-responsive radius" /></div>
-                                                    <div class="col-lg-3 col-md-6 m-b-20"><img
-                                                            src="/admin-wrap/assets/images/big/img3.jpg"
-                                                            class="img-responsive radius" /></div>
-                                                    <div class="col-lg-3 col-md-6 m-b-20"><img
-                                                            src="/admin-wrap/assets/images/big/img4.jpg"
-                                                            class="img-responsive radius" /></div>
+                                                    <div class="col-lg-3 col-md-6 m-b-20">
+                                                        <img src="/admin-wrap/assets/images/big/img1.jpg"
+                                                            class="img-responsive radius" />
+                                                    </div>
+                                                    <div class="col-lg-3 col-md-6 m-b-20">
+                                                        <img src="/admin-wrap/assets/images/big/img2.jpg"
+                                                            class="img-responsive radius" />
+                                                    </div>
+                                                    <div class="col-lg-3 col-md-6 m-b-20">
+                                                        <img src="/admin-wrap/assets/images/big/img3.jpg"
+                                                            class="img-responsive radius" />
+                                                    </div>
+                                                    <div class="col-lg-3 col-md-6 m-b-20">
+                                                        <img src="/admin-wrap/assets/images/big/img4.jpg"
+                                                            class="img-responsive radius" />
+                                                    </div>
                                                 </div>
-                                                <div class="like-comm"> <a href="javascript:void(0)" class="link m-r-10">2
-                                                        comment</a> <a href="javascript:void(0)" class="link m-r-10"><i
-                                                            class="fa fa-heart text-danger"></i> 5 Love</a> </div>
+                                                <div class="like-comm">
+                                                    <a href="javascript:void(0)" class="link m-r-10">2
+                                                        comment
+                                                    </a>
+                                                    <a href="javascript:void(0)" class="link m-r-10">
+                                                        <i class="fa fa-heart text-danger"></i> 5 Love
+                                                    </a>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+
                                     <hr>
 
                                 </div>
@@ -198,8 +208,12 @@ export default {
     methods: {
         async obtenerRegistro() {
             try {
-                const res = await axios.get("/api/seguridad-usuarios/" + this.id);
-
+                const res = await axios.get("/seguridad-usuarios/", { 'id': this.id });
+                console.log("*****************************************************");
+                console.log(this.id)
+                console.log("*****************************************************");
+                console.log(res.data)
+                console.log("*****************************************************");
                 if (res.status == 200) {
                     this.registro.tipo_user = res.data.tipo_user;
                     this.registro.num_docu = res.data.num_docu;
