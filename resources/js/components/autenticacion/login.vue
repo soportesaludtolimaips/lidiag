@@ -69,7 +69,7 @@ export default {
         async iniciarSesion() {
 
             try {
-                const res = await axios.post('/api/autenticacion/login', {
+                const res = await axios.post('/autenticacion/login', {
                     email: this.datosLogin.email,
                     password: this.datosLogin.password
                 })
@@ -78,7 +78,7 @@ export default {
                 if (res.data.code == 401) {
                     this.erroreLogin = "Estas credenciales no coinciden con nuestros registro";
                 } else if (res.data.code == 200) {
-                    this.$router.push({ name: 'configDiagnosticos' });
+                    this.$router.push('dashboard');
                     //location.reload();
                 }
             } catch (error) {

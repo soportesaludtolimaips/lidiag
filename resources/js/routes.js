@@ -1,8 +1,8 @@
 import { createWebHistory, createRouter } from 'vue-router'
 
 const routes = [
-    { path: '/login', name: 'login', component: () => import('./components/autenticacion/login.vue') },
-    { path: '/', name: 'dashboard', component: () => import('./components/dashboard/index.vue') },
+    { path: '/', name: 'login', component: () => import('./components/autenticacion/login.vue') },
+    { path: '/dashboard', name: 'dashboard.index', component: () => import('./components/dashboard/index.vue') },
 
     /**
      * Configuración
@@ -32,7 +32,7 @@ const routes = [
 ]
 
 const router = createRouter({
-    history: createWebHistory(),
+    history: createWebHistory(import.meta.env.BASE_URL),
     routes, // short for `routes: routes`
 })
 
