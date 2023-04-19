@@ -189,7 +189,6 @@
         <!-- ============================================================== -->
         <!-- End PAge Content -->
         <!-- ============================================================== -->
-
     </div>
 </template>
 
@@ -208,32 +207,25 @@ export default {
     methods: {
         async obtenerRegistro() {
             try {
-                const res = await axios.get("/seguridad-usuarios/", { 'id': this.id });
-                console.log("*****************************************************");
-                console.log(this.id)
-                console.log("*****************************************************");
-                console.log(res.data)
-                console.log("*****************************************************");
-                if (res.status == 200) {
-                    this.registro.tipo_user = res.data.tipo_user;
-                    this.registro.num_docu = res.data.num_docu;
-                    this.registro.reg_med = res.data.reg_med;
-                    this.registro.name = res.data.name;
-                    this.registro.email = res.data.email;
-                    this.registro.tel = res.data.tel;
-                    this.registro.facebook = res.data.facebook;
-                    this.registro.twitter = res.data.twitter;
-                    this.registro.youtube = res.data.youtube;
-                    this.registro.estado = res.data.estado;
-                }
+                const res = await axios.get("/seguridad-usuarios/" + this.id);
 
+                if (res.status == 200) {
+                    this.registro.tipo_user = res.data.usuario.tipo_user;
+                    this.registro.num_docu = res.data.usuario.num_docu;
+                    this.registro.reg_med = res.data.usuario.reg_med;
+                    this.registro.name = res.data.usuario.name;
+                    this.registro.email = res.data.usuario.email;
+                    this.registro.tel = res.data.usuario.tel;
+                    this.registro.facebook = res.data.usuario.facebook;
+                    this.registro.twitter = res.data.usuario.twitter;
+                    this.registro.youtube = res.data.usuario.youtube;
+                    this.registro.estado = res.data.usuario.estado;
+                }
             } catch (error) {
                 console.log(error);
                 this.errores = error.response.data.errors;
             }
-
         }
-
     }
 }
 </script>
