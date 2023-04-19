@@ -115,7 +115,7 @@
                                                 @click="
                                                     actualizar = true;
                                                 mostrarRegistro(item);
-                                                                                                                                                                                                                                                                ">
+                                                                                                                                                                                                                                                                                                                    ">
                                                 <i class="fa fa-pencil"></i>
                                             </button>
                                             <button type="button"
@@ -470,7 +470,7 @@ export default {
         async buscarStudy() {
             try {
                 console.log(this.busqueda);
-                const res = await axios.post("/api/study.listarEstudios", this.busqueda);
+                const res = await axios.post("/study.listarEstudios", this.busqueda);
 
                 $("#example23").DataTable().destroy();
 
@@ -489,7 +489,7 @@ export default {
         },
         async guardarRegistro() {
             try {
-                const res = await axios.post("/api/estudios", this.registro);
+                const res = await axios.post("/estudios", this.registro);
 
                 if (res.status == 200) {
                     $.toast({
@@ -532,7 +532,7 @@ export default {
         },
         async listarMedicos() {
             try {
-                const res = await axios.get("/api/user.listarUsuarios/Medico");
+                const res = await axios.get("/user.listarUsuarios/Medico");
                 this.medicos = res.data;
             } catch (error) {
                 console.log(error);
@@ -540,7 +540,7 @@ export default {
         },
         async listarPrioridades() {
             try {
-                const res = await axios.get("/api/config-prioridades");
+                const res = await axios.get("/config-prioridades");
                 this.prioridades = res.data;
             } catch (error) {
                 console.log(error);
@@ -548,7 +548,7 @@ export default {
         },
         async listarProductos() {
             try {
-                const res = await axios.get("/api/config-productos");
+                const res = await axios.get("/config-productos");
                 this.productos = res.data;
             } catch (error) {
                 console.log(error);
@@ -556,7 +556,7 @@ export default {
         },
         async listarDiagnosticos() {
             try {
-                const res = await axios.get("/api/config-diagnosticos");
+                const res = await axios.get("/config-diagnosticos");
                 this.diagnosticos = res.data;
             } catch (error) {
                 console.log(error);
