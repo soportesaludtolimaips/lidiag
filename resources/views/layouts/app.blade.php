@@ -65,7 +65,7 @@
 
     <div id="app">
         @if (Auth::check())
-            <app-component ruta="{{ route('basepath') }}"{{--  :usuario="{{ Auth::user() }}" --}} />
+            <app-component ruta="{{ route('basepath') }}" :usuario="{{ Auth::user() }}" />
         @else
             <auth-component ruta="{{ route('basepath') }}" />
         @endif

@@ -50,6 +50,7 @@
                                         <th width="150px">Prioridas</th>
                                         <th>Nivel</th>
                                         <th>Tiempo en segundos</th>
+                                        <th>Estado</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -108,8 +109,8 @@
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label class="control-label">Prioridad</label>
-                                        <input type="text" id="nom_priori" name="nom_priori"
-                                            v-model="registro.nom_priori" class="form-control" placeholder="Prioridad">
+                                        <input type="text" id="nom_priori" name="nom_priori" v-model="registro.nom_priori"
+                                            class="form-control" placeholder="Prioridad">
                                         <span class="text-danger" v-if="errores.nom_priori">{{ errores.nom_priori[0]
                                         }}</span>
                                     </div>
@@ -160,8 +161,7 @@
                                     <i class="fa fa-pencil"></i> Actualizar
                                 </button>
 
-                                <button type="button" class="btn btn-inverse"
-                                    @click="btnCerralModalForm()">Cancel</button>
+                                <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">Cancel</button>
                             </div>
                         </div>
                     </form>
@@ -192,11 +192,12 @@ export default {
     },
     methods: {
         async ListarDatos() {
-            const res = await axios.get("api/config-prioridades");
+            const res = await axios.get("/config-prioridades");
 
             $('#example23').DataTable().destroy();
 
             this.registros = res.data;
+
             this.$nextTick(() => {
                 $('#example23').DataTable({
                     dom: 'Bfrtip',
@@ -209,7 +210,7 @@ export default {
         async guardarRegistro() {
             try {
                 if (this.actualizar === false) {
-                    const res = await axios.post('api/config-prioridades', this.registro);
+                    const res = await axios.post('/config-prioridades', this.registro);
 
                     if (res.status == 200) {
 
@@ -226,7 +227,7 @@ export default {
                         });
                     }
                 } else {
-                    const res = await axios.put('api/config-prioridades/' + this.id, this.registro);
+                    const res = await axios.put('/config-prioridades/' + this.id, this.registro);
                     if (res.status == 200) {
 
                         this.ListarDatos()
@@ -259,7 +260,7 @@ export default {
                 closeOnConfirm: false
             }, function (isConfirm) {
                 if (isConfirm) {
-                    axios.delete('api/config-prioridades/' + id).then(response => {
+                    axios.delete('/config-prioridades/' + id).then(response => {
                         swal("Ok!!!!", response.data.message, "success");
                         $this.ListarDatos()
                     }).catch(error => {

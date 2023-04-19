@@ -259,7 +259,7 @@ export default {
     },
     methods: {
         async ListarDatos() {
-            const res = await axios.get("api/config-sucursales");
+            const res = await axios.get("/config-sucursales");
 
             $('#example23').DataTable().destroy();
 
@@ -277,7 +277,7 @@ export default {
         async guardarRegistro() {
             try {
                 if (this.actualizar === false) {
-                    const res = await axios.post('api/config-sucursales', this.registro);
+                    const res = await axios.post('/config-sucursales', this.registro);
 
                     if (res.status == 200) {
 
@@ -294,7 +294,7 @@ export default {
                         });
                     }
                 } else {
-                    const res = await axios.put('api/config-sucursales/' + this.id, this.registro);
+                    const res = await axios.put('/config-sucursales/' + this.id, this.registro);
                     if (res.status == 200) {
 
                         this.ListarDatos()
@@ -328,7 +328,7 @@ export default {
                 closeOnConfirm: false
             }, function (isConfirm) {
                 if (isConfirm) {
-                    axios.delete('api/config-sucursales/' + id).then(response => {
+                    axios.delete('/config-sucursales/' + id).then(response => {
                         swal("Ok!!!!", response.data.message, "success");
                         $this.ListarDatos()
                     }).catch(error => {

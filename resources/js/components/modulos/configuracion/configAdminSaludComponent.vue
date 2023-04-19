@@ -177,7 +177,6 @@
 </template>
 
 <script>
-
 export default {
     mounted() {
         this.ListarDatos();
@@ -193,20 +192,20 @@ export default {
         };
     },
     methods: {
-        ListarDatos() {
-            axios.get("/configuracion/adminsalud/index").then(res => {
-                $('#example23').DataTable().destroy();
-                console.log(res.data);
-                this.registros = res.data;
-                this.$nextTick(() => {
-                    $('#example23').DataTable({
-                        dom: 'Bfrtip',
-                        buttons: [
-                            'copy', 'csv', 'excel', 'pdf', 'print'
-                        ]
-                    });
+        async ListarDatos() {
+            const res = await axios.get("/config-admin-salud")
+
+            $('#example23').DataTable().destroy();
+            this.registros = res.data;
+            this.$nextTick(() => {
+                $('#example23').DataTable({
+                    dom: 'Bfrtip',
+                    buttons: [
+                        'copy', 'csv', 'excel', 'pdf', 'print'
+                    ]
                 });
             });
+
         },
         async guardarRegistro() {
             try {
@@ -244,8 +243,6 @@ export default {
                         });
                     }
                 }
-
-
             } catch (error) {
                 console.log(error);
                 this.errores = error.response.data.errors;

@@ -182,7 +182,7 @@ export default {
     },
     methods: {
         async ListarDatos() {
-            const res = await axios.get("/api/config-diagnosticos");
+            const res = await axios.get("/config-diagnosticos");
 
             $('#example23').DataTable().destroy();
 
@@ -200,7 +200,7 @@ export default {
         async guardarRegistro() {
             try {
                 if (this.actualizar === false) {
-                    const res = await axios.post('/api/config-diagnosticos', this.registro);
+                    const res = await axios.post('/config-diagnosticos', this.registro);
 
                     if (res.status == 200) {
 
@@ -217,7 +217,7 @@ export default {
                         });
                     }
                 } else {
-                    const res = await axios.put('/api/config-diagnosticos/' + this.id, this.registro);
+                    const res = await axios.put('/config-diagnosticos/' + this.id, this.registro);
                     if (res.status == 200) {
 
                         this.ListarDatos()
@@ -250,7 +250,7 @@ export default {
                 closeOnConfirm: false
             }, function (isConfirm) {
                 if (isConfirm) {
-                    axios.delete('/api/config-diagnosticos/' + id).then(response => {
+                    axios.delete('/config-diagnosticos/' + id).then(response => {
                         swal("Ok!!!!", response.data.message, "success");
                         $this.ListarDatos()
                     }).catch(error => {

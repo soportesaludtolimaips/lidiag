@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Configuracion;
 
 use App\Http\Controllers\Controller;
 use App\Models\Configuracion\ConfigAdminSalud;
-use Illuminate\Http\Request;
+use App\Http\Requests\Configuracion\ConfigAdminSaludRequest;
 
 class ConfigAdminSaludController extends Controller
 {
@@ -38,7 +38,7 @@ class ConfigAdminSaludController extends Controller
      * @param  \App\Models\Configuracion\ConfigAdminSalud  $configAdminSalud
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, ConfigAdminSalud $configAdminSalud)
+    public function update(ConfigAdminSaludRequest $request, ConfigAdminSalud $configAdminSalud)
     {
         $configAdminSalud->update($request->all());
         return response()->json(['message' => 'Registro actualizado correctamente.']);

@@ -129,9 +129,8 @@
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label class="control-label">Producto</label>
-                                        <input type="text" id="nom_produc" name="nom_produc"
-                                            v-model="registro.nom_produc" class="form-control"
-                                            placeholder="Ingrese aquí el nombre del producto">
+                                        <input type="text" id="nom_produc" name="nom_produc" v-model="registro.nom_produc"
+                                            class="form-control" placeholder="Ingrese aquí el nombre del producto">
                                         <span class="text-danger" v-if="errores.nom_produc">{{ errores.nom_produc[0]
                                         }}</span>
                                     </div>
@@ -150,9 +149,8 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="control-label">Precio</label>
-                                        <input type="text" id="val_produc" name="val_produc"
-                                            v-model="registro.val_produc" class="form-control"
-                                            placeholder="Ingrese aquí el precio del producto">
+                                        <input type="text" id="val_produc" name="val_produc" v-model="registro.val_produc"
+                                            class="form-control" placeholder="Ingrese aquí el precio del producto">
                                     </div>
                                 </div>
                             </div>
@@ -173,13 +171,12 @@
                                         </div>
                                         <div class="checkbox checkbox-success">
                                             <input type="checkbox" id="tipo_venoso" name="tipo_venoso"
-                                                v-model="registro.tipo_venoso" :checked="registro.tipo_venoso"
-                                                value="1">
+                                                v-model="registro.tipo_venoso" :checked="registro.tipo_venoso" value="1">
                                             <label for="tipo_venoso"> Tipo Venoso </label>
                                         </div>
                                         <div class="checkbox checkbox-success">
-                                            <input type="checkbox" id="factura" name="factura"
-                                                v-model="registro.factura" :checked="registro.factura" value="1">
+                                            <input type="checkbox" id="factura" name="factura" v-model="registro.factura"
+                                                :checked="registro.factura" value="1">
                                             <label for="factura"> Genera
                                                 factura </label>
                                         </div>
@@ -198,8 +195,7 @@
                                     <i class="fa fa-pencil"></i> Actualizar
                                 </button>
 
-                                <button type="button" class="btn btn-inverse"
-                                    @click="btnCerralModalForm()">Cancel</button>
+                                <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">Cancel</button>
                             </div>
                         </div>
                     </form>
@@ -230,12 +226,12 @@ export default {
     },
     methods: {
         async ListarDatos() {
-            const res = await axios.get("api/config-productos");
+            const res = await axios.get("/config-productos");
 
             $('#example23').DataTable().destroy();
 
             this.registros = res.data;
-
+            console.log(res.data);
             this.$nextTick(() => {
                 $('#example23').DataTable({
                     dom: 'Bfrtip',
@@ -248,7 +244,7 @@ export default {
         async guardarRegistro() {
             try {
                 if (this.actualizar === false) {
-                    const res = await axios.post('api/config-productos', this.registro);
+                    const res = await axios.post('/config-productos', this.registro);
 
                     if (res.status == 200) {
 
@@ -265,7 +261,7 @@ export default {
                         });
                     }
                 } else {
-                    const res = await axios.put('api/config-productos/' + this.id, this.registro);
+                    const res = await axios.put('/config-productos/' + this.id, this.registro);
                     if (res.status == 200) {
 
                         this.ListarDatos()
@@ -299,7 +295,7 @@ export default {
                 closeOnConfirm: false
             }, function (isConfirm) {
                 if (isConfirm) {
-                    axios.delete('api/config-productos/' + id).then(response => {
+                    axios.delete('/config-productos/' + id).then(response => {
                         swal("Ok!!!!", response.data.message, "success");
                         $this.ListarDatos()
                     }).catch(error => {
