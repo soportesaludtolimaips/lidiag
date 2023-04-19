@@ -112,11 +112,9 @@
                                         <td class="text-nowrap">
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="
-                                                    actualizar = true;
-                                                mostrarRegistro(item);
-                                                                                                                                                                                                                                                                                                                    ">
-                                                <i class="fa fa-pencil"></i>
+                                                @click="actualizar = true;
+                                                mostrarRegistro(item);">
+                                                <i class=" fa fa-pencil"></i>
                                             </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
