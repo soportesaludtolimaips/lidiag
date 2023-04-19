@@ -11,8 +11,9 @@
                     <div class="alert alert-warning" v-if="erroreLogin">
                         <i class="fa fa-ban"></i>
                         {{ erroreLogin }}
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"> <span
-                                aria-hidden="true">&times;</span> </button>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
 
                     <div class="form-group m-t-40">
@@ -72,9 +73,8 @@ export default {
                 const res = await axios.post('/autenticacion/login', {
                     email: this.datosLogin.email,
                     password: this.datosLogin.password
-                })
+                });
 
-                console.log(res)
                 if (res.data.code == 401) {
                     this.erroreLogin = "Estas credenciales no coinciden con nuestros registro";
                 } else if (res.data.code == 200) {
