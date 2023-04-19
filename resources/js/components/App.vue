@@ -43,7 +43,7 @@
             <!-- Container fluid  -->
             <!-- ============================================================== -->
             <div class="container-fluid">
-                <router-view></router-view>
+                <router-view :usuario="usuario"></router-view>
             </div>
             <!-- ============================================================== -->
             <!-- End Container fluid  -->

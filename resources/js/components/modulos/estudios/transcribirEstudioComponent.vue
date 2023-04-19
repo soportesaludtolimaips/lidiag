@@ -185,8 +185,8 @@
                                         <div class="col-md-2">
                                             <div class="form-group">
                                                 <label class="control-label">Fec. Nacimi</label>
-                                                <input type="date" id="fec_naci" name="fec_naci"
-                                                    v-model="registro.fec_naci" class="form-control" />
+                                                <input type="date" id="fec_naci" name="fec_naci" v-model="registro.fec_naci"
+                                                    class="form-control" />
                                             </div>
                                         </div>
                                     </div>
@@ -305,7 +305,7 @@ export default {
     methods: {
         /* async buscarStudy() {
             try {
-                const res = await axios.post('api/study.listarEstudios', this.busqueda);
+                const res = await axios.post('/study.listarEstudios', this.busqueda);
 
                 $('#example23').DataTable().destroy();
 
@@ -326,7 +326,7 @@ export default {
         }, */
         async listarPendientesTrascribir() {
             try {
-                const res = await axios.get("api/estudio-listarPendientesTrascribir");
+                const res = await axios.get("/estudio-listarPendientesTrascribir");
                 $("#example23").DataTable().destroy();
 
                 this.registros = res.data;
@@ -343,7 +343,7 @@ export default {
         },
         async guardarRegistro() {
             try {
-                const res = await axios.post('api/estudio-guardarTranscripcion', { 'registro': this.registro, 'usua_actual': this.usuarioActua.id });
+                const res = await axios.post('/estudio-guardarTranscripcion', { 'registro': this.registro, 'usua_actual': this.usuarioActua.id });
 
                 if (res.status == 200) {
                     $.toast({

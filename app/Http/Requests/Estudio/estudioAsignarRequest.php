@@ -30,7 +30,9 @@ class estudioAsignarRequest extends FormRequest
             'num_docu' => 'required|min:3|max:20',
             'nombres' => 'required|min:3|max:50',
             'medico_id' => 'required',
-            'prioridad_id' => 'required'
+            'prioridad_id' => 'required',
+            'productosEstudio' => 'required',
+            'diagnosticosEstudio' => 'required',
         ];
     }
 
@@ -47,7 +49,9 @@ class estudioAsignarRequest extends FormRequest
             'nombres.min' => 'El nombre del paciente debe tener mínimo 3 caracteres.',
             'nombres.max' => 'El nombre del paciente debe tener máximo 50 caracteres.',
             'medico_id.required' => 'Te hizo falta el médico.',
-            'prioridad_id.required' => 'Te hizo falta la prioridad.'
+            'prioridad_id.required' => 'Te hizo falta la prioridad.',
+            'productosEstudio.required' => 'Te hizo falta almenos un producto.',
+            'diagnosticosEstudio.required' => 'Te hizo falta almenos un diagnostico.'
         ];
     }
 }

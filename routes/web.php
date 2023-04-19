@@ -34,9 +34,6 @@ use App\Http\Controllers\Prueba;
     return view('auth.login');
 }); */
 
-
-
-
 Auth::routes();
 
 Route::post('/autenticacion/login', [LoginController::class, 'login']);

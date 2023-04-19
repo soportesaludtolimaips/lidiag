@@ -15,6 +15,12 @@ return new class extends Migration
     {
         Schema::create('estudios_diagnosticos', function (Blueprint $table) {
             $table->id();
+
+            $table->unsignedBigInteger('estudio_id')->nullable();
+            $table->foreign('estudio_id')->references('id')->on('estudios');
+
+            $table->string('cod_diagnos')->nullable();
+            $table->string('nom_diagnos', 200);
             $table->timestamps();
         });
     }

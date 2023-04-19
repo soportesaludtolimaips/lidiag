@@ -147,7 +147,7 @@
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <span>
-                        <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
+                        <i class="ti-close right-side-toggle" id="btnCerralModalForm" @click="btnCerralModalForm()"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
@@ -165,8 +165,9 @@
                                                 <label class="control-label"># Documento</label>
                                                 <input type="text" id="num_docu" name="num_docu" v-model="registro.num_docu"
                                                     class="form-control" placeholder="# de Documento" />
-                                                <span class="text-danger" v-if="errores.num_docu">{{ errores.num_docu[0]
-                                                }}</span>
+                                                <span class="text-danger" v-if="errores.num_docu">
+                                                    {{ errores.num_docu[0] }}
+                                                </span>
                                             </div>
                                         </div>
 
@@ -175,8 +176,9 @@
                                                 <label class="control-label">Nombres</label>
                                                 <input type="text" id="nombres" name="nombres" v-model="registro.nombres"
                                                     class="form-control" placeholder="Nombres" />
-                                                <span class="text-danger" v-if="errores.nombres">{{ errores.nombres[0]
-                                                }}</span>
+                                                <span class="text-danger" v-if="errores.nombres">
+                                                    {{ errores.nombres[0] }}
+                                                </span>
                                             </div>
                                         </div>
 
@@ -202,8 +204,9 @@
                                                 <label class="control-label">Dirección</label>
                                                 <input type="text" id="direccion" name="direccion"
                                                     v-model="registro.direccion" class="form-control" />
-                                                <span class="text-danger" v-if="errores.direccion">{{ errores.direccion[0]
-                                                }}</span>
+                                                <span class="text-danger" v-if="errores.direccion">
+                                                    {{ errores.direccion[0] }}
+                                                </span>
                                             </div>
                                         </div>
                                         <div class="col-md-3">
@@ -211,8 +214,9 @@
                                                 <label class="control-label">Télefono</label>
                                                 <input type="number" id="telefono" name="telefono"
                                                     v-model="registro.telefono" class="form-control" />
-                                                <span class="text-danger" v-if="errores.telefono">{{ errores.telefono[0]
-                                                }}</span>
+                                                <span class="text-danger" v-if="errores.telefono">
+                                                    {{ errores.telefono[0] }}
+                                                </span>
                                             </div>
                                         </div>
                                         <div class="col-md-5">
@@ -220,7 +224,8 @@
                                                 <label class="control-label">E - Mail</label>
                                                 <input type="email" id="email" name="email" v-model="registro.email"
                                                     class="form-control" />
-                                                <span class="text-danger" v-if="errores.email">{{ errores.email[0] }}</span>
+                                                <span class="text-danger" v-if="errores.email">
+                                                    {{ errores.email[0] }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -237,8 +242,9 @@
                                                 <label class="control-label">Descripción</label>
                                                 <input type="text" id="study_desc" name="study_desc"
                                                     v-model="registro.study_desc" class="form-control" />
-                                                <span class="text-danger" v-if="errores.study_desc">{{ errores.study_desc[0]
-                                                }}</span>
+                                                <span class="text-danger" v-if="errores.study_desc">
+                                                    {{ errores.study_desc[0] }}
+                                                </span>
                                             </div>
                                         </div>
 
@@ -247,8 +253,9 @@
                                                 <label class="control-label">Detalle</label>
                                                 <input type="text" id="accession_no" name="accession_no"
                                                     v-model="registro.accession_no" class="form-control" />
-                                                <span class="text-danger" v-if="errores.accession_no">{{
-                                                    errores.accession_no[0] }}</span>
+                                                <span class="text-danger" v-if="errores.accession_no">
+                                                    {{ errores.accession_no[0] }}
+                                                </span>
                                             </div>
                                         </div>
 
@@ -257,8 +264,9 @@
                                                 <label class="control-label">Fecha</label>
                                                 <input type="text" id="study_datetime" name="study_datetime"
                                                     v-model="registro.study_datetime" class="form-control" />
-                                                <span class="text-danger" v-if="errores.study_datetime">{{
-                                                    errores.study_datetime[0] }}</span>
+                                                <span class="text-danger" v-if="errores.study_datetime">
+                                                    {{ errores.study_datetime[0] }}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -286,8 +294,9 @@
                                                         {{ ItemMedico.name }}
                                                     </option>
                                                 </select>
-                                                <span class="text-danger" v-if="errores.medico_id">{{ errores.medico_id[0]
-                                                }}</span>
+                                                <span class="text-danger" v-if="errores.medico_id">
+                                                    {{ errores.medico_id[0] }}
+                                                </span>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
@@ -300,15 +309,16 @@
                                                         {{ ItemPrioridad.nom_priori }}
                                                     </option>
                                                 </select>
-                                                <span class="text-danger" v-if="errores.prioridad_id">{{
-                                                    errores.prioridad_id[0] }}</span>
+                                                <span class="text-danger" v-if="errores.prioridad_id">
+                                                    {{ errores.prioridad_id[0] }}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
                                     <p class="text-info">
                                         <i class="fa fa-user"></i> PRODUCTOS
                                         <span class="text-danger" v-if="errores.prioridad_id">
-                                            {{ errores.prioridad_id[0] }}
+                                            {{ errores.productosEstudio[0] }}
                                         </span>
                                         <button type="button"
                                             class="btn waves-effect waves-light btn-xs btn-info float-right"
@@ -356,6 +366,9 @@
                                     </div>
                                     <p class="text-info">
                                         <i class="fa fa-user"></i> DIAGNOSTICOS
+                                        <span class="text-danger" v-if="errores.prioridad_id">
+                                            {{ errores.diagnosticosEstudio[0] }}
+                                        </span>
                                         <button type="button"
                                             class="btn waves-effect waves-light btn-xs btn-info float-right">
                                             <i class="fa fa-search"></i>
@@ -385,7 +398,7 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <tr v-for="item in registro.iagnosticosEstudio" :key="item.id">
+                                                    <tr v-for="item in registro.diagnosticosEstudio" :key="item.id">
                                                         <td>{{ item.cod_diagnos }}</td>
                                                         <td>{{ item.nom_diagnos }}</td>
                                                         <td class="text-nowrap">
@@ -404,8 +417,9 @@
                             </div>
 
                             <div class="form-actions mt-3">
-                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"><i
-                                        class="fa fa-check"></i> Guardar</button>
+                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()">
+                                    <i class="fa fa-check"></i> Guardar
+                                </button>
 
                                 <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">Cancel</button>
                             </div>
@@ -467,21 +481,24 @@ export default {
     methods: {
         async buscarStudy() {
             try {
-                console.log(this.busqueda);
-                const res = await axios.post("/study.listarEstudios", this.busqueda);
 
-                $("#example23").DataTable().destroy();
+                if (this.busqueda.fehc_ini == "") {
+                    alert("Debe establece la fecha de inicio")
+                } else {
+                    const res = await axios.post("/study.listarEstudios", this.busqueda);
 
-                this.registros = res.data;
+                    $("#example23").DataTable().destroy();
 
-                this.$nextTick(() => {
-                    $("#example23").DataTable({
-                        dom: "Bfrtip",
-                        buttons: ["copy", "csv", "excel", "pdf", "print"],
+                    this.registros = res.data;
+
+                    this.$nextTick(() => {
+                        $("#example23").DataTable({
+                            dom: "Bfrtip",
+                            buttons: ["copy", "csv", "excel", "pdf", "print"],
+                        });
                     });
-                });
+                }
             } catch (error) {
-                console.log(error);
                 this.errores = error.response.data.errors;
             }
         },
@@ -522,11 +539,12 @@ export default {
             this.registro.nombres = data.pat_name;
             this.registro.sexo = data.pat_sex;
             this.registro.fec_naci = data.pat_birthdate;
-            //$("#btnCerralModalForm").click();
-            this.errores = [];
+
+            this.btnCerralModalForm();
         },
         btnCerralModalForm() {
-            $("#btnCerralModalForm").click();
+            $(".right-sidebar").slideDown(50);
+            $(".right-sidebar").toggleClass("shw-rside");
         },
         async listarMedicos() {
             try {

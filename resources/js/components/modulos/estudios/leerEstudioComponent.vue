@@ -131,7 +131,7 @@
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <span>
-                        <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
+                        <i class="ti-close right-side-toggle" id="btnCerralModalForm" @click="btnCerralModalForm()"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
@@ -149,9 +149,8 @@
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label class="control-label"># Documento</label>
-                                                <input type="text" id="num_docu" name="num_docu"
-                                                    v-model="registro.num_docu" class="form-control"
-                                                    placeholder="# de Documento" />
+                                                <input type="text" id="num_docu" name="num_docu" v-model="registro.num_docu"
+                                                    class="form-control" placeholder="# de Documento" />
                                                 <span class="text-danger" v-if="errores.num_docu">{{
                                                     errores.num_docu[0]
                                                 }}</span>
@@ -181,8 +180,8 @@
                                         <div class="col-md-2">
                                             <div class="form-group">
                                                 <label class="control-label">Fec. Nacimi</label>
-                                                <input type="date" id="fec_naci" name="fec_naci"
-                                                    v-model="registro.fec_naci" class="form-control" />
+                                                <input type="date" id="fec_naci" name="fec_naci" v-model="registro.fec_naci"
+                                                    class="form-control" />
                                             </div>
                                         </div>
                                     </div>
@@ -284,6 +283,7 @@
 
 <script>
 export default {
+    props: ['usuario'],
     mounted() {
         this.listarMisPendientes();
     },
@@ -292,7 +292,7 @@ export default {
             id: 0,
             registros: [],
             tituloModal: "Nuevo registro",
-            registro: { id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "", diagnosticosEstudio: [] },
+            registro: { id_producto_lectura: 0, lectura: "Hola esta es una prueba de la lectura", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "", diagnosticosEstudio: [] },
             busqueda: { bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "" },
             errores: {},
             tipoPrioridad: 0
@@ -322,7 +322,7 @@ export default {
         }, */
         async listarMisPendientes() {
             try {
-                const res = await axios.get("api/estudio-listarPendientesMedico?id=" + this.usuarioActua.id);
+                const res = await axios.get("/estudio-listarPendientesMedico?id=" + this.usuario.id);
                 $("#example23").DataTable().destroy();
 
                 this.registros = res.data;
@@ -339,7 +339,7 @@ export default {
         },
         async guardarRegistro() {
             try {
-                const res = await axios.post('api/estudio-leerEstudio', this.registro);
+                const res = await axios.post('/estudio-leerEstudio', this.registro);
 
                 if (res.status == 200) {
                     $.toast({
@@ -353,7 +353,7 @@ export default {
                     });
 
                     this.listarMisPendientes()
-                    $("#btnCerralModalForm").click();
+                    this.btnCerralModalForm();
                 }
             } catch (error) {
                 console.log(error);
@@ -372,11 +372,13 @@ export default {
             this.registro.nom_pacien = data.nom_pacien;
             this.registro.sexo = data.pat_sex;
             this.registro.fec_naci = data.pat_birthdate;
-            $('#btnCerralModalForm').click();
+
+            this.btnCerralModalForm();
             this.errores = [];
         },
         btnCerralModalForm() {
-            $("#btnCerralModalForm").click();
+            $(".right-sidebar").slideDown(50);
+            $(".right-sidebar").toggleClass("shw-rside");
         },
     },
     computed: {

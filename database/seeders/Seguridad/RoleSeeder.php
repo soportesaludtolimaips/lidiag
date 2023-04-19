@@ -23,6 +23,9 @@ class RoleSeeder extends Seeder
         $Rol4 = Role::create(['name' => 'Transcriptor']);
         $Rol5 = Role::create(['name' => 'Estadistico']);
 
+        /**
+         * Seguridad
+         */
         Permission::create(['name' => 'seguridad.usuarios.index'])->syncRoles([$Rol1]);
         Permission::create(['name' => 'seguridad.usuarios.create'])->syncRoles([$Rol1]);
         Permission::create(['name' => 'seguridad.usuarios.edit'])->syncRoles([$Rol1]);
@@ -35,17 +38,46 @@ class RoleSeeder extends Seeder
         Permission::create(['name' => 'seguridad.roles.show'])->syncRoles([$Rol1]);
         Permission::create(['name' => 'seguridad.roles.destroy'])->syncRoles([$Rol1]);
 
-        Permission::create(['name' => 'config.servicios.index'])->syncRoles([$Rol1]);
-        Permission::create(['name' => 'config.servicios.create'])->syncRoles([$Rol1]);
-        Permission::create(['name' => 'config.servicios.edit'])->syncRoles([$Rol1]);
-        Permission::create(['name' => 'config.servicios.destroy'])->syncRoles([$Rol1]);
+        /**
+         * Configuración
+         */
+        Permission::create(['name' => 'config.admin.salud.index'])->syncRoles([$Rol1]);
+        Permission::create(['name' => 'config.admin.salud.create'])->syncRoles([$Rol1]);
+        Permission::create(['name' => 'config.admin.salud.edit'])->syncRoles([$Rol1]);
+        Permission::create(['name' => 'config.admin.salud.destroy'])->syncRoles([$Rol1]);
 
+        Permission::create(['name' => 'config.diagnosticos.index'])->syncRoles([$Rol1]);
+        Permission::create(['name' => 'config.diagnosticos.create'])->syncRoles([$Rol1]);
+        Permission::create(['name' => 'config.diagnosticos.edit'])->syncRoles([$Rol1]);
+        Permission::create(['name' => 'config.diagnosticos.destroy'])->syncRoles([$Rol1]);
+
+        Permission::create(['name' => 'config.prioridades.index'])->syncRoles([$Rol1]);
+        Permission::create(['name' => 'config.prioridades.create'])->syncRoles([$Rol1]);
+        Permission::create(['name' => 'config.prioridades.edit'])->syncRoles([$Rol1]);
+        Permission::create(['name' => 'config.prioridades.destroy'])->syncRoles([$Rol1]);
+
+        Permission::create(['name' => 'config.productos.index'])->syncRoles([$Rol1]);
+        Permission::create(['name' => 'config.productos.create'])->syncRoles([$Rol1]);
+        Permission::create(['name' => 'config.productos.edit'])->syncRoles([$Rol1]);
+        Permission::create(['name' => 'config.productos.destroy'])->syncRoles([$Rol1]);
+
+        Permission::create(['name' => 'config.sucursales.index'])->syncRoles([$Rol1]);
+        Permission::create(['name' => 'config.sucursales.create'])->syncRoles([$Rol1]);
+        Permission::create(['name' => 'config.sucursales.edit'])->syncRoles([$Rol1]);
+        Permission::create(['name' => 'config.sucursales.destroy'])->syncRoles([$Rol1]);
+
+        /**
+         * Estudios
+         */
         Permission::create(['name' => 'estudio.listarPendientesTrascribir'])->syncRoles([$Rol1, $Rol3, $Rol4]);
         Permission::create(['name' => 'estudio.guardarTranscripcion'])->syncRoles([$Rol1, $Rol3, $Rol4]);
 
         Permission::create(['name' => 'estudio.listarPendientesMedico'])->syncRoles([$Rol1, $Rol2, $Rol4]);
         Permission::create(['name' => 'estudio.leerEstudio'])->syncRoles([$Rol1, $Rol2]);
 
+        /**
+         * Reportes
+         */
         Permission::create(['name' => 'reportes.indicadores'])->syncRoles([$Rol1, $Rol5]);
         Permission::create(['name' => 'reportes.detallados'])->syncRoles([$Rol1, $Rol5]);
     }

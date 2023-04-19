@@ -205,7 +205,6 @@ export default {
                     ]
                 });
             });
-
         },
         async guardarRegistro() {
             try {

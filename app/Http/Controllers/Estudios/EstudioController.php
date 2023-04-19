@@ -8,6 +8,7 @@ use App\Http\Requests\Estudio\estudioLeerRequest;
 use App\Mail\NotificacionAsignacionDeLectura;
 use App\Models\General\Paciente;
 use App\Models\Estudio\Estudio;
+use App\Models\Estudio\EstudioDiagnostico;
 use App\Models\Estudio\EstudioProducto;
 use Illuminate\Http\Request;
 use Mail;
@@ -74,6 +75,13 @@ class EstudioController extends Controller
             ]);
         }
 
+        foreach ($request->diagnosticosEstudio as $Diagnostico) {
+            EstudioDiagnostico::create([
+                'estudio_id' => $estudio->id,
+                'cod_diagnos' => $Diagnostico['cod_diagnos'],
+                'nom_diagnos' => $Diagnostico['nom_diagnos'],
+            ]);
+        }
 
         if ($request->email != "") {
             $mailable = new NotificacionAsignacionDeLectura($paciente, $estudio);
