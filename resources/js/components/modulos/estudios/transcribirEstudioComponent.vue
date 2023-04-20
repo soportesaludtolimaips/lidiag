@@ -36,8 +36,8 @@
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             <label class="control-label">Nombres de paciente o # de documento</label>
-                                            <input type="text" id="bus_nom_num_docu_pacien" name="bus_nom_num_docu_pacien"
-                                                v-model="busqueda.bus_nom_num_docu_pacien" class="form-control"
+                                            <input type="text" id="bus_nom_num_docu" name="bus_nom_num_docu"
+                                                v-model="busqueda.bus_nom_num_docu" class="form-control"
                                                 placeholder="Nombres de paciente o # de documento" />
                                         </div>
                                     </div>
@@ -99,7 +99,7 @@
                                         <td>{{ item.quien_registro }}</td>
                                         <td>{{ item.medico }}</td>
                                         <td>
-                                            {{ item.num_docu_pacien }} <br />
+                                            {{ item.num_docu }} <br />
                                             {{ item.nom_pacien }}
                                         </td>
                                         <td>
@@ -135,7 +135,7 @@
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <span>
-                        <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
+                        <i class="ti-close right-side-toggle" id="btnCerralModalForm" @click="btnCerralModalForm()"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
@@ -153,11 +153,10 @@
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label class="control-label"># Documento</label>
-                                                <input type="text" id="num_docu_pacien" name="num_docu_pacien"
-                                                    v-model="registro.num_docu_pacien" class="form-control"
-                                                    placeholder="# de Documento" />
-                                                <span class="text-danger" v-if="errores.num_docu_pacien">{{
-                                                    errores.num_docu_pacien[0]
+                                                <input type="text" id="num_docu" name="num_docu" v-model="registro.num_docu"
+                                                    class="form-control" placeholder="# de Documento" />
+                                                <span class="text-danger" v-if="errores.num_docu">{{
+                                                    errores.num_docu[0]
                                                 }}</span>
                                             </div>
                                         </div>
@@ -187,6 +186,38 @@
                                                 <label class="control-label">Fec. Nacimi</label>
                                                 <input type="date" id="fec_naci" name="fec_naci" v-model="registro.fec_naci"
                                                     class="form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label class="control-label">Dirección</label>
+                                                <input type="text" id="direccion" name="direccion"
+                                                    v-model="registro.direccion" class="form-control" />
+                                                <span class="text-danger" v-if="errores.direccion">
+                                                    {{ errores.direccion[0] }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label class="control-label">Télefono</label>
+                                                <input type="number" id="telefono" name="telefono"
+                                                    v-model="registro.telefono" class="form-control" />
+                                                <span class="text-danger" v-if="errores.telefono">
+                                                    {{ errores.telefono[0] }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="form-group">
+                                                <label class="control-label">E - Mail</label>
+                                                <input type="email" id="email" name="email" v-model="registro.email"
+                                                    class="form-control" />
+                                                <span class="text-danger" v-if="errores.email">
+                                                    {{ errores.email[0] }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -288,18 +319,17 @@
 
 <script>
 export default {
+    props: ['usuario'],
     mounted() {
         this.listarPendientesTrascribir();
     },
     data() {
         return {
-            id_estudio: 0,
             registros: [],
             tituloModal: "Transcirbir estudio",
-            registro: { id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu_pacien: "", nom_pacien: "", sexo: "", fec_naci: "", email: "", diagnosticosEstudio: [] },
-            busqueda: { bus_nom_num_docu_pacien: "", fehc_ini: "", fecha_fin: "" },
-            errores: {},
-            tipoPrioridad: 0
+            registro: { id_estudio: 0, id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "", diagnosticosEstudio: [] },
+            busqueda: { bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "" },
+            errores: {}
         };
     },
     methods: {
@@ -343,7 +373,7 @@ export default {
         },
         async guardarRegistro() {
             try {
-                const res = await axios.post('/estudio-guardarTranscripcion', { 'registro': this.registro, 'usua_actual': this.usuarioActua.id });
+                const res = await axios.post('/estudio-guardarTranscripcion', { 'registro': this.registro, 'usua_actual': this.usuario.id });
 
                 if (res.status == 200) {
                     $.toast({
@@ -366,21 +396,27 @@ export default {
         },
         mostrarRegistro(data = {}) {
             this.tituloModal = "Transcribir la lectura del paciente: " + data.nom_pacien;
+            this.registro.id_estudio = data.id;
             this.registro.id_producto_lectura = data.id_producto_lectura;
             this.registro.fec_estudio = data.fec_estudio;
             this.registro.accession_no = data.accession_no;
             this.registro.study_desc = data.study_desc;
             this.registro.lectura = data.lectura;
 
-            this.registro.num_docu_pacien = data.num_docu_pacien;
+            this.registro.num_docu = data.num_docu;
             this.registro.nom_pacien = data.nom_pacien;
             this.registro.sexo = data.pat_sex;
             this.registro.fec_naci = data.pat_birthdate;
+            this.registro.direccion = data.direccion;
+            this.registro.tel = data.tel;
+            this.registro.email = data.email;
+
             $('#btnCerralModalForm').click();
             this.errores = [];
         },
         btnCerralModalForm() {
-            $("#btnCerralModalForm").click();
+            $(".right-sidebar").slideDown(50);
+            $(".right-sidebar").toggleClass("shw-rside");
         },
     },
     computed: {

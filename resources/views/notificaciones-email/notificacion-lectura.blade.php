@@ -91,7 +91,7 @@
 </head>
 
 <body style="margin: 0; padding: 0; width: 100%; word-break: break-word; -webkit-font-smoothing: antialiased; --bg-opacity: 1; background-color: #eceff1; background-color: rgba(236, 239, 241, var(--bg-opacity));">
-    <div style="display: none;">Correo notificacion de asignación de lectura</div>
+    <div style="display: none;">Correo notificación de lectura</div>
     <div role="article" aria-roledescription="email" aria-label="Promotional Mail" lang="en">
         <table style="font-family: Montserrat, -apple-system, 'Segoe UI', sans-serif; width: 100%;" width="100%" cellpadding="0" cellspacing="0" role="presentation">
             <tr>
@@ -112,15 +112,12 @@
                                             <p style="font-weight: 600; font-size: 18px; margin-bottom: 0;">Hola</p>
                                             <p style="font-weight: 700; font-size: 20px; margin-top: 0; --text-opacity: 1; color: #ff5850; color: rgba(255, 88, 80, var(--text-opacity));">{{ $paciente->nombres }}!</p>
                                             <p class="sm-leading-32" style="font-weight: 600; font-size: 20px; margin: 0 0 24px; --text-opacity: 1; color: #263238; color: rgba(38, 50, 56, var(--text-opacity));">
-                                                Asignación de lectura!
+                                                Reporte de lectura!
                                             </p>
                                             <p style="margin: 0 0 24px;">
-                                                Es un gusto para nosotros informarte que hemos asignado la lectura del estudio
+                                                Es un gusto para nosotros informarte que ya esta listo el reporte de la lectura del estudio
                                                 <span style="font-weight: 600;">{{ $estudio->study_desc }}</span> realizado en la fecha
                                                 <span style="font-weight: 600;">{{ $estudio->fec_estudio }}</span> en nuestra sucursal de {{ $sucursalEstudio->sucursal }}
-                                            </p>
-                                            <p style="margin: 0 0 24px;">
-                                                En un tiempo aproximado de <span style="font-weight: 600;">{{ $prioridadEstudio->tiempo }} {{ $prioridadEstudio->tipo_tiempo }}</span> té notificaremos por este medio del resultado de la lectura
                                             </p>
                                             <p class="sm-leading-32" style="font-weight: 600; font-size: 20px; margin: 0 0 24px; --text-opacity: 1; color: #263238; color: rgba(38, 50, 56, var(--text-opacity));">
                                                 Gracias por confiar en nosotros.

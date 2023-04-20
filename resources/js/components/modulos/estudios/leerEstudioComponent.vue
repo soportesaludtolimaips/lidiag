@@ -352,8 +352,9 @@ export default {
                         stack: 6,
                     });
 
-                    this.listarMisPendientes()
+                    this.listarMisPendientes();
                     this.btnCerralModalForm();
+                    this.limpiar();
                 }
             } catch (error) {
                 console.log(error);
@@ -375,6 +376,20 @@ export default {
 
             this.btnCerralModalForm();
             this.errores = [];
+        },
+        limpiar() {
+            this.tituloModal = "";
+            this.id = 0;
+            this.registro.id_producto_lectura = "";
+            this.registro.fec_estudio = "";
+            this.registro.accession_no = "";
+            this.registro.study_desc = "";
+
+            this.registro.num_docu = "";
+            this.registro.nom_pacien = "";
+            this.registro.sexo = "";
+            this.registro.fec_naci = "";
+            this.registro.lectura = "";
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);

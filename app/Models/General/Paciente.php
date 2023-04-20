@@ -10,7 +10,7 @@ class Paciente extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['num_docu', 'nombres', 'direccion', 'sexo', 'fec_naci', 'tel'];
+    protected $fillable = ['num_docu', 'nombres', 'direccion', 'sexo', 'fec_naci', 'tel', 'email'];
 
     public function lecturas()
     {

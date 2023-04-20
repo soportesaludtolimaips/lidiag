@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Estudio\EstudioAsignarRequest;
 use App\Http\Requests\Estudio\estudioLeerRequest;
 use App\Mail\NotificacionAsignacionDeLectura;
+use App\Mail\NotificacionDeLectura;
 use App\Models\General\Paciente;
 use App\Models\Estudio\Estudio;
 use App\Models\Estudio\EstudioDiagnostico;
@@ -35,11 +36,17 @@ class EstudioController extends Controller
      */
     public function store(EstudioAsignarRequest $request)
     {
-        $paciente = Paciente::firstOrCreate(
+
+
+        $nombrePaciente = str_replace('^^^', '', $request->nombres);
+        $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
+        $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
+
+        $paciente = Paciente::updateOrCreate(
             ['num_docu' => $request->num_docu],
             [
                 'num_docu' => $request->num_docu,
-                'nombres' => $request->nombres,
+                'nombres' => $nombrePaciente,
                 'direccion' => $request->direccion,
                 'sexo' => $request->sexo,
                 'fec_naci' => $request->fec_naci,
@@ -67,6 +74,7 @@ class EstudioController extends Controller
             ]
         );
 
+
         foreach ($request->productosEstudio as $Producto) {
             EstudioProducto::create([
                 'estudio_id' => $estudio->id,
@@ -83,8 +91,11 @@ class EstudioController extends Controller
             ]);
         }
 
+        $sucursalEstudio = $estudio->sucursal;
+        $prioridadEstudio = $estudio->prioridad;
+
         if ($request->email != "") {
-            $mailable = new NotificacionAsignacionDeLectura($paciente, $estudio);
+            $mailable = new NotificacionAsignacionDeLectura($paciente, $estudio, $prioridadEstudio, $sucursalEstudio);
             Mail::to($request->email)->send($mailable);
         }
 
@@ -161,7 +172,9 @@ class EstudioController extends Controller
             'pacien.num_docu as num_docu_pacien',
             'pacien.nombres as nom_pacien',
             'pacien.fec_naci',
-            'pacien.sexo',
+            'pacien.direccion',
+            'pacien.email',
+            'pacien.tel',
             'produc.id as id_producto_lectura',
             'produc.cod_cups',
             'produc.nom_produc',
@@ -191,12 +204,35 @@ class EstudioController extends Controller
     {
         $usuarioActual = $request->usua_actual;
 
+        $paciente = Paciente::updateOrCreate(
+            ['num_docu' => $request->num_docu],
+            [
+                'num_docu' => $request->num_docu,
+                'nombres' => $request->nom_pacien,
+                'direccion' => $request->direccion,
+                'sexo' => $request->sexo,
+                'fec_naci' => $request->fec_naci,
+                'tel' => $request->tel,
+                'email' => $request->email
+            ]
+        );
+
         $transcribir = EstudioProducto::findOrFail($request->registro['id_producto_lectura']);
         $transcribir->lectura = $request->registro['lectura'];
         $transcribir->transcriptor_id = $usuarioActual;
         $transcribir->fechor_trascrito = Carbon::now();
         $transcribir->save();
 
-        return response()->json(['message' => 'La transcripción de guardo correctamente.']);
+        $estudio = Estudio::findOrFail($request->id_estudio);
+
+        $sucursalEstudio = $estudio->sucursal;
+        $prioridadEstudio = $estudio->prioridad;
+
+        if ($request->email != "") {
+            $mailable = new NotificacionDeLectura($paciente, $estudio, $prioridadEstudio, $sucursalEstudio);
+            Mail::to($request->email)->send($mailable);
+        }
+
+        return response()->json(['message' => 'La transcripción se guardo correctamente.']);
     }
 }

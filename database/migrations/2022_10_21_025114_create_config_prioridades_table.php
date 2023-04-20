@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('nom_priori', 50);
             $table->integer('nivel')->default(0);
             $table->integer('tiempo')->default(0);
+            $table->enum('tipo_tiempo', ['Dias', 'Horas', 'Minutos', 'No Aplica']);
+            $table->string('observacion', 200)->nullable();
             $table->boolean('estado')->default(1);
             $table->timestamps();
         });

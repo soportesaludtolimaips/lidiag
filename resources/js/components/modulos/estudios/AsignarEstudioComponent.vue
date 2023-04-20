@@ -16,14 +16,6 @@
                     <li class="breadcrumb-item active">Asignar Estudios</li>
                 </ol>
             </div>
-            <div class="col-md-7 align-self-center text-right d-none d-md-block">
-                <button type="button" class="btn btn-info right-side-toggle80" @click="actualizar = false"><i
-                        class="fa fa-plus-circle m-r-5"></i> Nuevo registro</button>
-            </div>
-            <div class="">
-                <button class="right-side-toggle btn-info btn btn-circle btn-sm"><i
-                        class="fa fa-plus-circle m-r-5"></i>bbb</button>
-            </div>
         </div>
         <!-- ============================================================== -->
         <!-- End Bread crumb and right sidebar toggle -->
@@ -111,15 +103,15 @@
                                         <td>{{ item.pat_birthdate }}</td> -->
                                         <td class="text-nowrap">
                                             <button type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
                                                 @click="actualizar = true;
-                                                mostrarRegistro(item);">
-                                                <i class=" fa fa-pencil"></i>
+                                                mostrarRegistro(item);" title="Asignar estudio">
+                                                <i class=" fa fa-child"></i>
                                             </button>
                                             <button type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="elimnarRegistro(item.id)">
-                                                <i class="fa fa-trash"></i>
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
+                                                @click="elimnarRegistro(item.id)" title="Ver imagenes">
+                                                <i class="fa fa-file-photo-o"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -133,11 +125,7 @@
         <!-- ============================================================== -->
         <!-- End PAge Content -->
         <!-- ============================================================== -->
-        <div class="">
-            <button class="right-side-toggle waves-effect waves-light btn-inverse btn btn-circle btn-sm pull-right m-l-10">
-                <i class="ti-settings text-white"></i>
-            </button>
-        </div>
+
         <!-- ============================================================== -->
         <!-- Right sidebar -->
         <!-- ============================================================== -->
@@ -306,7 +294,8 @@
                                                     id="prioridad_id" class="form-control custom-select">
                                                     <option v-for="(ItemPrioridad, index) in prioridades" :key="index"
                                                         :value="ItemPrioridad.id">
-                                                        {{ ItemPrioridad.nom_priori }}
+                                                        {{ ItemPrioridad.nom_priori }} - {{ ItemPrioridad.tiempo }} {{
+                                                            ItemPrioridad.tipo_tiempo }} {{ ItemPrioridad.observacion }}
                                                     </option>
                                                 </select>
                                                 <span class="text-danger" v-if="errores.prioridad_id">
@@ -558,6 +547,7 @@ export default {
             try {
                 const res = await axios.get("/config-prioridades");
                 this.prioridades = res.data;
+                console.log(this.prioridades)
             } catch (error) {
                 console.log(error);
             }
