@@ -14,6 +14,6 @@ class ConfigSedeSeeder extends Seeder
      */
     public function run()
     {
-        ConfigSede::create(['nom_sedes' => 'Espinal', 'ip_dcm' => '127.0.0.1', 'bd_dcm' => 'pacsdb', 'usuario_dcm' => 'root', 'password_dcm' => '', 'usuario_oviyam' => 'admin', 'password_oviyam' => 'admin']);
+        ConfigSede::create(['nom_sede' => 'Espinal', 'ip_dcm' => '127.0.0.1', 'bd_dcm' => 'pacsdb', 'usuario_dcm' => 'root', 'password_dcm' => '', 'usuario_oviyam' => 'admin', 'password_oviyam' => 'admin']);
     }
 }

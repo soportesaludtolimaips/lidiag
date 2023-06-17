@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Configuracion;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Configuracion\ConfigSucursalRequest;
-use App\Models\Configuracion\ConfigSucursale;
+use App\Http\Requests\Configuracion\ConfigSedeRequest;
+use App\Models\Configuracion\ConfigSede;
 
-class ConfigSucursalController extends Controller
+class ConfigSedeController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -15,7 +15,7 @@ class ConfigSucursalController extends Controller
      */
     public function index()
     {
-        $sedes = ConfigSucursale::all();
+        $sedes = ConfigSede::all();
         return response()->json($sedes);
     }
 
@@ -25,9 +25,9 @@ class ConfigSucursalController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(ConfigSucursalRequest $request, ConfigSucursale  $configsucursal)
+    public function store(ConfigSedeRequest $request, ConfigSede $configsede)
     {
-        $configsucursal->create($request->all());
+        $configsede->create($request->all());
         return response()->json(['message' => 'El registro se creo correctamente']);
     }
 
@@ -38,19 +38,19 @@ class ConfigSucursalController extends Controller
      * @param  \App\Models\Configuracion\ConfigSede  $configSede
      * @return \Illuminate\Http\Response
      */
-    public function update(ConfigSucursalRequest $request, ConfigSucursale $configsucursal)
+    public function update(ConfigSedeRequest $request, ConfigSede $configsede)
     {
-        $configsucursal->update($request->all());
+        $configsede->update($request->all());
         return response()->json(['message' => 'El registro se actializo correctamente.']);
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Configuracion\ConfigSucursal  $configsucursal
+     * @param  \App\Models\Configuracion\ConfigSede  $configsede
      * @return \Illuminate\Http\Response
      */
-    public function destroy(ConfigSucursale $configsucursal)
+    public function destroy(ConfigSede $configsucursal)
     {
         $configsucursal->delete();
         return response()->json(['message' => 'El registro se elimino correctamente.']);

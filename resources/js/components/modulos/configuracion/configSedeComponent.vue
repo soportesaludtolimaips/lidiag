@@ -13,7 +13,7 @@
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Configuración</a>
                     </li>
-                    <li class="breadcrumb-item active">sucursales</li>
+                    <li class="breadcrumb-item active">sedes</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
@@ -34,8 +34,8 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Listado de sucursales</h4>
-                        <h6 class="card-subtitle">Administración de sucursales para la distribucion y asignacion de
+                        <h4 class="card-title">Listado de sedes</h4>
+                        <h6 class="card-subtitle">Administración de sedes para la distribucion y asignacion de
                             estudios
                             y agenda de lecturas de imagenes díagnosticas.</h6>
                         <div class="table-responsive m-t-40">
@@ -43,7 +43,7 @@
                                 cellspacing="0" width="100%">
                                 <thead>
                                     <tr>
-                                        <th>Sucursal</th>
+                                        <th>Sede</th>
                                         <th>Ip Pacs</th>
                                         <th>BD Pacs</th>
                                         <th>Usuario Pacs</th>
@@ -57,7 +57,7 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="item in registros" :key="item.id">
-                                        <td>{{ item.sucursal }}</td>
+                                        <td>{{ item.nom_sede }}</td>
                                         <td>{{ item.ip_dcm }}</td>
                                         <td>{{ item.bd_dcm }}</td>
                                         <td>{{ item.usuario_dcm }}</td>
@@ -114,11 +114,11 @@
                             <div class="row p-t-20">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Sucursal</label>
-                                        <input type="text" id="sucursal" name="sucursal" v-model="registro.sucursal"
+                                        <label class="control-label">Sede</label>
+                                        <input type="text" id="nom_sede" name="nom_sede" v-model="registro.nom_sede"
                                             class="form-control" placeholder="Ingrese aqui la razón social de la sede">
-                                        <span class="text-danger" v-if="errores.sucursal">{{
-                                            errores.sucursal[0]
+                                        <span class="text-danger" v-if="errores.nom_sede">{{
+                                            errores.nom_sede[0]
                                         }}</span>
                                     </div>
                                 </div>

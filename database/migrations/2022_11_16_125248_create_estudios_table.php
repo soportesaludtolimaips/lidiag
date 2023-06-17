@@ -31,8 +31,8 @@ return new class extends Migration
             $table->unsignedBigInteger('quien_registro_id');
             $table->foreign('quien_registro_id')->references('id')->on('users');
 
-            $table->unsignedBigInteger('sucursal_id');
-            $table->foreign('sucursal_id')->references('id')->on('config_sucursales');
+            $table->unsignedBigInteger('sede_id');
+            $table->foreign('sede_id')->references('id')->on('config_sedes');
 
             $table->unsignedBigInteger('prioridad_id');
             $table->foreign('prioridad_id')->references('id')->on('config_prioridades');

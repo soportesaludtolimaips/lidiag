@@ -11,13 +11,12 @@ use App\Http\Controllers\Configuracion\ConfigAdminSaludController;
 use App\Http\Controllers\Configuracion\ConfigProductoController;
 use App\Http\Controllers\Configuracion\ConfigDiagnosticoController;
 use App\Http\Controllers\Configuracion\ConfigPrioridadController;
-use App\Http\Controllers\Configuracion\ConfigSucursalController;
+use App\Http\Controllers\Configuracion\ConfigSedeController;
 
 use App\Http\Controllers\Dcm4chee\StudyController;
 use App\Http\Controllers\Estudios\EstudioController;
 use App\Http\Controllers\Estudios\EstudioProductoController;
 use App\Http\Controllers\Estudios\EstudioDiagnosticoController;
-use App\Http\Controllers\Prueba;
 
 /*
 |--------------------------------------------------------------------------
@@ -56,7 +55,7 @@ Route::view('/config.productos.listar', 'modulos.configuracion.config-productos'
 Route::resource('/config-productos', ConfigProductoController::class)->names('config.productos')->except(['create']);
 
 Route::view('/config.sedes.listar', 'modulos.configuracion.config-sedes')->name('config.sedes.listar');
-Route::resource('/config-sedes', ConfigSucursalController::class)->names('config.sedes')->except(['create', 'show']);
+Route::resource('/config-sedes', ConfigSedeController::class)->names('config.sedes')->except(['create', 'show']);
 
 /**
  * Estudios
