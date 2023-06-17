@@ -13,18 +13,12 @@
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Seguridad</a>
                     </li>
-                    <li class="breadcrumb-item active">Gestión de Usuarios</li>
+                    <li class="breadcrumb-item active">Gestión de Roles</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
-                <button
-                    type="button"
-                    class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="
-                        actualizar = false;
-                        mostrarRegistro();
-                    "
-                >
+                <button type="button" class="btn btn-info btnDesplegarRigthSidebar"
+                    @click="actualizar = false; mostrarRegistro();">
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
@@ -40,9 +34,10 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Listado de usuarios</h4>
+                        <h4 class="card-title">Listado de roles</h4>
                         <div class="table-responsive m-t-40">
-                            <table id="example23" class="display nowrap table table-hover table-striped table-bordered" cellspacing="0" width="100%">
+                            <table id="example23" class="display nowrap table table-hover table-striped table-bordered"
+                                cellspacing="0" width="100%">
                                 <thead>
                                     <tr>
                                         <th>Rol</th>
@@ -57,26 +52,27 @@
                                                 <i class="fa fa-eye"></i>
                                             </button> -->
 
-                                            <button
-                                                type="button"
+                                            <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="
-                                                    actualizar = true;
-                                                    mostrarRegistro(item);
-                                                "
-                                            >
+                                                @click="actualizar = true; mostrarRegistro(item);">
                                                 <i class="fa fa-pencil"></i>
                                             </button>
 
-                                            <button type="button" class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5" @click="elimnarRegistro(item.id)">
+                                            <!-- <button type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
+                                                @click="elimnarRegistro(item.id)">
                                                 <i class="fa fa-trash"></i>
-                                            </button>
+                                            </button> -->
 
-                                            <button type="button" class="btn waves-effect waves-light btn-rounded btn-outline-success btn-sm" @click="cambiarEstado(1, item)" v-if="item.estado == 1">
+                                            <button type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-success btn-sm"
+                                                @click="cambiarEstado(1, item)" v-if="item.estado == 1">
                                                 <i class="fa fa-unlock"></i>
                                             </button>
 
-                                            <button type="button" class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm" @click="cambiarEstado(0, item)" v-if="item.estado == 0">
+                                            <button type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
+                                                @click="cambiarEstado(0, item)" v-if="item.estado == 0">
                                                 <i class="fa fa-lock"></i>
                                             </button>
                                         </td>
@@ -96,7 +92,7 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div class="right-sidebar">
+        <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%;">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -114,7 +110,8 @@
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label class="control-label">Nombre del Rol</label>
-                                        <input type="text" id="name" name="name" v-model="registro.name" class="form-control" placeholder="Ingrese aqui el nombre del rol" />
+                                        <input type="text" id="name" name="name" v-model="registro.name"
+                                            class="form-control" placeholder="Ingrese aqui el nombre del rol" />
                                         <span class="text-danger" v-if="errores">{{ errores }}</span>
                                     </div>
                                 </div>
@@ -123,14 +120,15 @@
                             <p class="text-info"><i class="fa fa-unlock"></i> Permisos</p>
                             <span class="text-danger" v-if="erroresRpermisosElegidos">{{ erroresRpermisosElegidos }}</span>
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-12">
                                     <div class="form-group">
                                         <div class="controls">
                                             <div v-for="itemPermiso in registro.permisosRol" :key="itemPermiso.id">
                                                 <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" name="permisosDelRal" :id="itemPermiso.name" v-model="itemPermiso.checked">
+                                                    <input type="checkbox" class="custom-control-input"
+                                                        :id="itemPermiso.name" v-model="itemPermiso.checked">
                                                     <label class="custom-control-label" :for="itemPermiso.name">
-                                                        {{itemPermiso.name}}
+                                                        {{ itemPermiso.name }}
                                                     </label>
                                                 </div>
                                             </div>
@@ -140,9 +138,17 @@
                             </div>
 
                             <div class="form-actions mt-3">
-                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()" v-if="!actualizar"><i class="fa fa-check"></i> Guardar</button>
-                                <button type="button" class="btn btn-warning m-r-5" v-if="actualizar" @click="guardarRegistro()"><i class="fa fa-pencil"></i> Actualizar</button>
-                                <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">Cancel</button>
+                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
+                                    v-if="!actualizar">
+                                    <i class="fa fa-check"></i> Guardar
+                                </button>
+                                <button type="button" class="btn btn-warning m-r-5" v-if="actualizar"
+                                    @click="guardarRegistro()">
+                                    <i class="fa fa-pencil"></i> Actualizar
+                                </button>
+                                <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">
+                                    Cancel
+                                </button>
                             </div>
                         </div>
                     </form>
@@ -163,7 +169,6 @@ export default {
     data() {
         return {
             id: 0,
-            ojo: [],
             listarRoles: [],
             permisos: [],
             registro: { name: "", permisosRol: [] },
@@ -175,7 +180,7 @@ export default {
     },
     methods: {
         async ListarDatos() {
-            const res = await axios.get("api/seguridad-roles");
+            const res = await axios.get("/seguridad-roles");
 
             $("#example23").DataTable().destroy();
 
@@ -198,20 +203,20 @@ export default {
         async guardarRegistro() {
 
             let totalPermisosElegido = 0;
-            this.registro.permisosRol.map(function(x, y){
-                if(x.checked == true){
-                    totalPermisosElegido ++;
+            this.registro.permisosRol.map(function (x, y) {
+                if (x.checked == true) {
+                    totalPermisosElegido++;
                 }
             });
 
-            if(totalPermisosElegido == 0){
+            if (totalPermisosElegido == 0) {
                 this.erroresRpermisosElegidos = 'Debes elegir al menos un permiso para el rol';
                 return false;
             }
 
             try {
                 if (this.actualizar === false) {
-                    const res = await axios.post("/api/seguridad-roles/", this.registro);
+                    const res = await axios.post("/seguridad-roles", this.registro);
 
                     if (res.status == 200) {
                         $.toast({
@@ -223,9 +228,13 @@ export default {
                             hideAfter: 3500,
                             stack: 6,
                         });
+
+                        this.ListarDatos();
+                        this.limpiarFormulario();
+                        this.btnCerralModalForm();
                     }
                 } else {
-                    const res = await axios.put("/api/seguridad-roles/"+ this.id, {registro: this.registro} );
+                    const res = await axios.put("/seguridad-roles/" + this.id, { registro: this.registro });
                     if (res.status == 200) {
 
                         $.toast({
@@ -237,12 +246,13 @@ export default {
                             hideAfter: 3500,
                             stack: 6,
                         });
+
+                        this.ListarDatos();
+                        this.limpiarFormulario();
+                        this.btnCerralModalForm();
                     }
                 }
 
-                this.ListarDatos();
-                this.limpiarFormulario();
-                this.btnCerralModalForm();
             } catch (error) {
                 this.errores = error.response.data.message;
             }
@@ -266,17 +276,17 @@ export default {
                 this.id = data.id;
                 this.registro.name = data.name;
 
-                axios.get("/api/seguridad-roles/" + this.id).then((res) => {
+                axios.get("/seguridad-roles/" + this.id).then((res) => {
 
                     this.registro.permisos = [];
                     const permisosDelRol = Object.keys(res.data.permisosRol);
                     let me = this;
 
-                    me.permisos.forEach(function(permisos, index) {
+                    me.permisos.forEach(function (permisos, index) {
                         me.registro.permisosRol[index].checked = false;
                     });
 
-                    permisosDelRol.forEach(function(permisosDelRol) {
+                    permisosDelRol.forEach(function (permisosDelRol) {
                         let permisoActivo = me.permisos.findIndex((x) => x.id == permisosDelRol);
                         me.registro.permisosRol[permisoActivo].checked = true;
                     });
@@ -303,7 +313,7 @@ export default {
             this.errores = "";
 
             let me = this;
-            me.permisos.forEach(function(permisos, index) {
+            me.permisos.forEach(function (permisos, index) {
                 me.registro.permisosRol[index].checked = false;
             });
         },
@@ -314,8 +324,8 @@ export default {
 <style scoped>
 .right-sidebar {
     position: fixed;
-    right: -25%;
-    width: 25%;
+    right: -35%;
+    width: 35%;
     display: none;
     z-index: 1100;
     background: #ffffff;
@@ -331,7 +341,7 @@ export default {
 
 .shw-rside {
     right: 0px;
-    width: 25%;
+    width: 35%;
     display: block;
 }
 </style>

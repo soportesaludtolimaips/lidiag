@@ -61,10 +61,10 @@ class RoleSeeder extends Seeder
         Permission::create(['name' => 'config.productos.edit'])->syncRoles([$Rol1]);
         Permission::create(['name' => 'config.productos.destroy'])->syncRoles([$Rol1]);
 
-        Permission::create(['name' => 'config.sucursales.index'])->syncRoles([$Rol1]);
-        Permission::create(['name' => 'config.sucursales.create'])->syncRoles([$Rol1]);
-        Permission::create(['name' => 'config.sucursales.edit'])->syncRoles([$Rol1]);
-        Permission::create(['name' => 'config.sucursales.destroy'])->syncRoles([$Rol1]);
+        Permission::create(['name' => 'config.sedes.index'])->syncRoles([$Rol1]);
+        Permission::create(['name' => 'config.sedes.create'])->syncRoles([$Rol1]);
+        Permission::create(['name' => 'config.sedes.edit'])->syncRoles([$Rol1]);
+        Permission::create(['name' => 'config.sedes.destroy'])->syncRoles([$Rol1]);
 
         /**
          * Estudios

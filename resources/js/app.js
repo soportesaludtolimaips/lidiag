@@ -19,11 +19,44 @@ const app = createApp({});
  * Principales
  */
 
-import App from './components/App.vue';
-app.component('app-component', App);
+import dashboardComponent from './components/dashboard/dashboardComponent.vue';
+app.component('dashboard-component', dashboardComponent);
 
-import Auth from './components/Auth.vue';
-app.component('auth-component', Auth);
+
+/**
+ * Cofiguración
+ */
+import configAdminSaludComponent from './components/modulos/configuracion/configAdminSaludComponent.vue';
+app.component('config-admin-salud-component', configAdminSaludComponent);
+import configDiagnosticoComponent from './components/modulos/configuracion/configDiagnosticoComponent.vue';
+app.component('config-diagnostico-component', configDiagnosticoComponent);
+import configPrioridadComponent from './components/modulos/configuracion/configPrioridadComponent.vue';
+app.component('config-prioridad-component', configPrioridadComponent);
+import configProductoComponent from './components/modulos/configuracion/configProductoComponent.vue';
+app.component('config-producto-component', configProductoComponent);
+import configSedeComponent from './components/modulos/configuracion/configSedeComponent.vue';
+app.component('config-sede-component', configSedeComponent);
+
+
+/**
+ * Estudios
+ */
+import AsignarEstudioComponent from './components/modulos/estudios/AsignarEstudioComponent.vue';
+app.component('Asignar-studio-component', AsignarEstudioComponent);
+import leerEstudioComponent from './components/modulos/estudios/leerEstudioComponent.vue';
+app.component('leer-estudio-component', leerEstudioComponent);
+import transcribirEstudioComponent from './components/modulos/estudios/transcribirEstudioComponent.vue';
+app.component('transcribir-estudio-component', transcribirEstudioComponent);
+import usuarioComponent from './components/modulos/seguridad/usuarioComponent.vue';
+
+/**
+ * Seguridad
+ */
+app.component('usuario-component', usuarioComponent);
+import usuarioPerfil from './components/modulos/seguridad/usuarioPerfil.vue';
+app.component('usuario-perfil-component', usuarioPerfil);
+import roleComponente from './components/modulos/seguridad/roleComponente.vue';
+app.component('role-componente', roleComponente);
 
 /**
  * The following block of code may be used to automatically register your
@@ -44,8 +77,8 @@ app.component('auth-component', Auth);
  */
 
 
-import route from './routes'
+/* import route from './routes'
 
-app.use(route);
+app.use(route); */
 
 app.mount('#app');

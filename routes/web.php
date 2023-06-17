@@ -30,20 +30,37 @@ use App\Http\Controllers\Prueba;
 |
 */
 
-/* Route::get('/', function () {
-    return view('auth.login');
-}); */
+Route::get('/', function () {
+    return view('auth/login');
+});
 
 Auth::routes();
 
 Route::post('/autenticacion/login', [LoginController::class, 'login']);
 Route::post('/autenticacion/logout', [LoginController::class, 'logout']);
+Route::view('dashboard', 'modulos.dashboard.dashboard')->name('dashboard')->middleware('auth');
 
+/**
+ * Configuración
+ */
+Route::view('/config.adminsalud.listar', 'modulos.configuracion.config-admin-salud')->name('config.adminsalud.listar');
 Route::resource('/config-admin-salud', ConfigAdminSaludController::class)->names('config.admin.salud')->except(['create', 'show']);
+
+Route::view('/config.diagnosticos.listar', 'modulos.configuracion.config-diagnosticos')->name('config.diagnosticos.listar');
 Route::resource('/config-diagnosticos', ConfigDiagnosticoController::class)->names('config.diagnosticos')->except(['create', 'show']);
+
+Route::view('/config.prioridades.listar', 'modulos.configuracion.config-prioridades')->name('config.prioridades.listar');
 Route::resource('/config-prioridades', ConfigPrioridadController::class)->names('config.prioridades')->except(['create', 'show']);
+
+Route::view('/config.productos.listar', 'modulos.configuracion.config-productos')->name('config.productos.listar');
 Route::resource('/config-productos', ConfigProductoController::class)->names('config.productos')->except(['create']);
-Route::resource('/config-sucursales', ConfigSucursalController::class)->names('config.sucursales')->except(['create', 'show']);
+
+Route::view('/config.sedes.listar', 'modulos.configuracion.config-sedes')->name('config.sedes.listar');
+Route::resource('/config-sedes', ConfigSucursalController::class)->names('config.sedes')->except(['create', 'show']);
+
+/**
+ * Estudios
+ */
 
 Route::post('/study.listarEstudios', [StudyController::class, 'listarEstudios'])->name('study.listarEstudios');
 
@@ -58,9 +75,20 @@ Route::get('/estudio-listarPendientesTrascribir', [EstudioController::class, 'li
 Route::post('/estudio-guardarTranscripcion', [EstudioController::class, 'guardarTranscripcion'])->name('estudio.guardarTranscripcion');
 Route::get('/estudio-listarPendientesMedico', [EstudioController::class, 'listarPendientesMedico'])->name('estudio.listarPendientesMedico');
 
+/**
+ * Seguridad
+ */
+Route::view('/seguridad.usuarios.listar', 'modulos.seguridad.usuarios')->name('seguridad.usuarios.listar');
 Route::resource('/seguridad-usuarios', UserController::class)->names('seguridad.usuarios');
+Route::put('/seguridad-actualizar-perfil/{idUsua}', [UserController::class, 'actualizarPerfil'])->name('seguridad.actualizar.perfil');
+
+Route::view('/seguridad.roles.listar', 'modulos.seguridad.roles')->name('seguridad.roles.listar');
 Route::resource('/seguridad-roles', RolController::class)->names('seguridad.roles');
 
-Route::get('/{optional?}', function () {
+Route::view('/seguridad.perfil', 'modulos.seguridad.perfil')->name('seguridad.perfil');
+Route::get('/seguridad-listarPermisosUsuario/{id}', [UserController::class, 'listarPermisosUsuario'])->name('seguridad.listarPermisosUsuario');
+
+/* Route::get('/{optional?}', function () {
     return view('layouts.app');
 })->name('basepath')->where('optional', '.*');
+ */

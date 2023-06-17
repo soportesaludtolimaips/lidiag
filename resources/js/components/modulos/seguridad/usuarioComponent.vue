@@ -41,11 +41,10 @@
                                 <thead>
                                     <tr>
                                         <th></th>
-                                        <th>Tipo Usuario</th>
                                         <th># Documento</th>
-                                        <th>Reg. Médico</th>
                                         <th>Nombres</th>
                                         <th>E-Mail</th>
+                                        <th>Dependencia</th>
                                         <th>Estado</th>
                                         <th></th>
                                     </tr>
@@ -61,11 +60,10 @@
                                                     height="40" width="40">
                                             </div>
                                         </td>
-                                        <td>{{ item.tipo_user }}</td>
                                         <td>{{ item.num_docu }}</td>
-                                        <td>{{ item.reg_med }}</td>
                                         <td>{{ item.name }}</td>
                                         <td>{{ item.email }}</td>
+                                        <td>{{ item.dependencia['nom_dependencia'] }}</td>
                                         <td>
                                             <span class="label label-success" v-if="item.estado == 1">Activo</span>
                                             <span class="label label-danger" v-if="item.estado == 0">Inactivo</span>
@@ -114,7 +112,7 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div class="right-sidebar">
+        <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%;">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -129,24 +127,30 @@
                     <form action="#">
                         <div class="form-body">
                             <div class="row p-t-20">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Dependencia</label>
+                                        <select v-model="registro.dependencia_id" name="dependencia_id" id="dependencia_id"
+                                            class="form-control custom-select" @change="listarProcesos">
+                                            <option v-for="( ItemDependencias, index ) in  dependencias " :key="index"
+                                                :value="ItemDependencias.id">
+                                                {{ ItemDependencias.nom_dependencia }}
+                                            </option>
+                                        </select>
+                                        <span class="text-danger" v-if="errores.dependencia_id">
+                                            {{ errores.dependencia_id[0] }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row p-t-5">
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="control-label"># Documento</label>
-                                        <input type="text" id="num_docu" name="num_docu" v-model="registro.num_docu"
-                                            class="form-control" placeholder="Número de documeto del usuario">
+                                        <input type="text" id="num_docu" v-model="registro.num_docu" class="form-control"
+                                            placeholder="Número de documeto del usuario">
                                         <span class="text-danger" v-if="errores.num_docu">{{
                                             errores.num_docu[0]
-                                        }}</span>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="control-label">Reg. Médico</label>
-                                        <input type="text" id="reg_med" name="reg_med" v-model="registro.reg_med"
-                                            class="form-control" placeholder="Registro médico en caso de ser médico">
-                                        <span class="text-danger" v-if="errores.reg_med">{{
-                                            errores.reg_med[0]
                                         }}</span>
                                     </div>
                                 </div>
@@ -156,8 +160,8 @@
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label class="control-label">Nombres</label>
-                                        <input type="text" id="name" name="name" v-model="registro.name"
-                                            class="form-control" placeholder="Ingrese aquí el los nombres del usaurio">
+                                        <input type="text" id="name" v-model="registro.name" class="form-control"
+                                            placeholder="Ingrese aquí el los nombres del usaurio">
                                         <span class="text-danger" v-if="errores.name">{{
                                             errores.name[0]
                                         }}</span>
@@ -193,7 +197,8 @@
                                         <div class="input-group">
                                             <div class="input-group-prepend">
                                                 <span class="input-group-text">
-                                                    <i class="ti-lock"></i></span>
+                                                    <i class="ti-lock"></i>
+                                                </span>
                                             </div>
                                             <input type="password" id="password" name="password" v-model="registro.password"
                                                 class="form-control" placeholder="Contraseña">
@@ -209,7 +214,7 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">confirmar contraseña</label>
+                                        <label class="control-label">Confirmar contraseña</label>
 
                                         <div class="input-group">
                                             <div class="input-group-prepend">
@@ -228,18 +233,41 @@
                                 </div>
                             </div>
 
-                            <p class="text-info"><i class="fa fa-unlock"></i> Roles</p>
                             <div class="row">
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <div class="controls">
-                                            <div v-for="itemRol in registro.rolesUsuario" :key="itemRol.id">
-                                                <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" :id="itemRol.name"
-                                                        v-model="itemRol.checked">
-                                                    <label class="custom-control-label" :for="itemRol.name">
-                                                        {{ itemRol.name }}
-                                                    </label>
+                                <div class="col-md-6">
+                                    <p class="text-info"><i class="fa fa-unlock"></i> Roles</p>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <div class="controls">
+                                                    <div v-for="itemRol in registro.rolesUsuario" :key="itemRol.id">
+                                                        <div class="custom-control custom-checkbox">
+                                                            <input type="checkbox" class="custom-control-input"
+                                                                :id="itemRol.name" v-model="itemRol.checked">
+                                                            <label class="custom-control-label" :for="itemRol.name">
+                                                                {{ itemRol.name }}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="text-info"><i class="fa fa-unlock"></i> Permisos para documentos</p>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <div class="controls">
+                                                    <div class="custom-control custom-checkbox">
+                                                        <input type="checkbox" class="custom-control-input"
+                                                            id="ver_todo_documentos" name="ver_todo_documentos"
+                                                            v-model="registro.ver_todo_documentos">
+                                                        <label class="custom-control-label" for="VerTodosLosArchivos">
+                                                            Ver todos los documentos
+                                                        </label>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -252,7 +280,7 @@
                                     <span>
                                         <i class="ion-upload m-r-5"></i>Subir Avatar
                                     </span>
-                                    <input type="file" class="upload" @change="obtenerArchivo($event)">
+                                    <input type="file" class="upload" @change="obtenerArchivo">
                                 </div>
                             </div>
 
@@ -294,18 +322,22 @@
 
 <script>
 export default {
+    props: ['usuarioactual'],
     mounted() {
         this.ListarDatos();
+        this.listardependencias();
+        this.registro.dependencia_id = this.usuarioactual.dependencia_id;
     },
     data() {
         return {
             id: 0,
             registros: [],
             roles: [],
-            registro: { num_docu: '', reg_med: '', name: '', email: '', tipo_user: '', password: '', estado: 0, imagen_perfil: '', rolesUsuario: [] },
+            registro: { dependencia_id: 0, num_docu: '', name: '', email: '', password: '', estado: 0, imagen_perfil: '', rolesUsuario: [], ver_todo_documentos: 0 },
             tituloModal: 'Nuevo registro',
             actualizar: false,
             errores: {},
+            dependencias: [], //Listo las dependencias
         };
     },
     methods: {
@@ -342,30 +374,17 @@ export default {
                     "checked": false,
                 });
             });
+            console.log(me.registro.rolesUsuario);
         },
         async guardarRegistro() {
-
-            var formData = new FormData();
-
             try {
-                if (this.actualizar === false) {
-                    /* formData.append('tipo_user', this.registro.tipo_user);
-                    formData.append('num_docu', this.registro.num_docu);
-                    formData.append('reg_med', this.registro.reg_med);
-                    formData.append('name', this.registro.name);
-                    formData.append('email', this.registro.email);
-                    formData.append('estado', this.registro.estado);
-                    formData.append('password', this.registro.password);
-                    formData.append("file", this.registro.imagen_perfil);
-                    formData.append("rolesUsuario", this.registro.rolesUsuario); */
 
-                    //const config = { headers: { 'Content-Type': 'multipart/form-data' } }
+                if (this.actualizar === false) {
+
                     const res = await axios.post('/seguridad-usuarios', this.registro);
 
                     if (res.status == 200) {
 
-                        this.ListarDatos()
-
                         $.toast({
                             heading: 'Ok!!!',
                             text: res.data.message,
@@ -375,16 +394,17 @@ export default {
                             hideAfter: 3500,
                             stack: 6
                         });
+
+                        this.ListarDatos();
+                        this.ListarDatos();
+                        this.limpiarFormulario();
+                        this.btnCerralModalForm();
                     }
                 } else {
 
-                    formData.append("file", this.registro.imagen_perfil);
+                    const res = await axios.put('/seguridad-usuarios/' + this.id, this.registro);
 
-                    const config = { headers: { 'Content-Type': 'multipart/form-data' } }
-                    const res = await axios.put('/seguridad-usuarios/' + this.id, { registro: this.registro, form_data: formData });
                     if (res.status == 200) {
-
-                        this.ListarDatos()
 
                         $.toast({
                             heading: 'Ok!!!',
@@ -395,16 +415,17 @@ export default {
                             hideAfter: 3500,
                             stack: 6
                         });
+
+                        this.ListarDatos();
+                        this.ListarDatos();
+                        this.limpiarFormulario();
+                        this.btnCerralModalForm();
                     }
                 }
             } catch (error) {
                 console.log(error);
-                this.errores = error.response.data.errors;
+                this.errores = error.response;
             }
-
-            this.ListarDatos();
-            this.limpiarFormulario();
-            this.btnCerralModalForm();
         },
         async cambiarEstado(estado, data = {}) {
             var $this = this;
@@ -430,6 +451,14 @@ export default {
                 }
             });
         },
+        async listardependencias() {
+            try {
+                const res = await axios.get("/config-dependencias");
+                this.dependencias = res.data;
+            } catch (error) {
+                console.log(error);
+            }
+        },
         obtenerArchivo(event) {
             this.registro.imagen_perfil = event.target.files[0];
         },
@@ -437,16 +466,15 @@ export default {
             if (this.actualizar == true) {
                 this.tituloModal = "Actualizar el registro: " + data.name;
                 this.id = data.id;
-                this.registro.tipo_user = data.tipo_user;
+                this.registro.dependencia_id = data.dependencia_id;
                 this.registro.num_docu = data.num_docu;
-                this.registro.reg_med = data.reg_med;
                 this.registro.name = data.name;
                 this.registro.email = data.email;
                 this.registro.estado = data.estado;
 
                 /**
                  * Listo los los datos del usuario con sus respectivos roles
-                 * Recorro los roles que estan en en Frond y los desactivo para
+                 * Recorro los roles que estan en el Frond y los desactivo para
                  * marcar los roles del usuario a editar
                  */
                 axios.get('/seguridad-usuarios/' + this.id).then(res => {
@@ -467,9 +495,8 @@ export default {
                 this.actualizar = false;
                 this.tituloModal = "Nuevo registro";
                 this.id = 0;
-                this.registro.tipo_user = '';
+                this.registro.dependencia_id = 0;
                 this.registro.num_docu = "";
-                this.registro.reg_med = "";
                 this.registro.name = "";
                 this.registro.email = "";
                 this.registro.password = "";
@@ -486,9 +513,8 @@ export default {
             this.actualizar = false;
             this.tituloModal = "Nuevo registro";
             this.id = 0;
-            this.registro.tipo_user = '';
+            this.registro.dependencia_id = 0;
             this.registro.num_docu = "";
-            this.registro.reg_med = "";
             this.registro.name = "";
             this.registro.email = "";
             this.registro.password = "";

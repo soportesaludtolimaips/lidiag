@@ -17,9 +17,9 @@ class LoginController extends Controller
         $res = Auth::attempt(['email' => $email, 'password' => $password, 'estado' => 1]);
 
         if ($res) {
-            return response()->json(['authUser' => Auth::user(), 'code' => 200]);
+            return redirect()->route('dashboard');
         } else {
-            return response()->json(['code' => 401]);
+            return redirect()->route('login')->withErrors(['Invalid credentials']);
         }
     }
 

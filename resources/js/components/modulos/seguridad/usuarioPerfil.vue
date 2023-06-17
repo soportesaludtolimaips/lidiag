@@ -36,6 +36,17 @@
                             <img v-else :src="registro.imagen_perfil" :alt="registro.name" class="img-circle" width="150">
                             <h4 class="card-title m-t-10">{{ registro.name }}</h4>
                             <h6 class="card-subtitle">{{ registro.tipo_user }}</h6>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="fileupload btn btn-danger btn-rounded waves-effect waves-light">
+                                        <span>
+                                            <i class="ion-upload m-r-5"></i>Seleccionar archivo
+                                        </span>
+                                        <input type="file" class="upload" @change='obtenerArchivo'>
+                                    </div>
+                                </div>
+                            </div>
                         </center>
                     </div>
                     <div>
@@ -44,12 +55,12 @@
                     <div class="card-body">
                         <small class="text-muted">Email address</small>
                         <h6>{{ registro.email }}</h6>
-                        <small class="text-muted p-t-30 db">Teléfono</small>
+                        <!-- <small class="text-muted p-t-30 db">Teléfono</small>
                         <h6>{{ registro.tel }}</h6>
                         <br />
                         <button class="btn btn-circle btn-secondary"><i class="fa fa-facebook"></i></button>
                         <button class="btn btn-circle btn-secondary"><i class="fa fa-twitter"></i></button>
-                        <button class="btn btn-circle btn-secondary"><i class="fa fa-youtube"></i></button>
+                        <button class="btn btn-circle btn-secondary"><i class="fa fa-youtube"></i></button> -->
                     </div>
                 </div>
             </div>
@@ -60,66 +71,13 @@
                     <!-- Nav tabs -->
                     <ul class="nav nav-tabs profile-tab" role="tablist">
                         <li class="nav-item">
-                            <a class="nav-link active" data-toggle="tab" href="#home" role="tab">Linea de tiempo</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-toggle="tab" href="#settings" role="tab">Ajustes</a>
+                            <a class="nav-link active" data-toggle="tab" href="#settings" role="tab">Ajustes</a>
                         </li>
                     </ul>
                     <!-- Tab panes -->
                     <div class="tab-content">
-                        <div class="tab-pane active" id="home" role="tabpanel">
-                            <div class="card-body">
-                                <div class="profiletimeline">
-                                    <div class="sl-item">
-                                        <div class="sl-left">
-                                            <img src="/admin-wrap/assets/images/users/1.jpg" alt="user"
-                                                class="img-circle" />
-                                        </div>
-                                        <div class="sl-right">
-                                            <div>
-                                                <a href="#" class="link">John Doe</a>
-                                                <span class="sl-date">
-                                                    5 minutes ago
-                                                </span>
-                                                <p>assign a new task <a href="#"> Design weblayout</a></p>
-                                                <div class="row">
-                                                    <div class="col-lg-3 col-md-6 m-b-20">
-                                                        <img src="/admin-wrap/assets/images/big/img1.jpg"
-                                                            class="img-responsive radius" />
-                                                    </div>
-                                                    <div class="col-lg-3 col-md-6 m-b-20">
-                                                        <img src="/admin-wrap/assets/images/big/img2.jpg"
-                                                            class="img-responsive radius" />
-                                                    </div>
-                                                    <div class="col-lg-3 col-md-6 m-b-20">
-                                                        <img src="/admin-wrap/assets/images/big/img3.jpg"
-                                                            class="img-responsive radius" />
-                                                    </div>
-                                                    <div class="col-lg-3 col-md-6 m-b-20">
-                                                        <img src="/admin-wrap/assets/images/big/img4.jpg"
-                                                            class="img-responsive radius" />
-                                                    </div>
-                                                </div>
-                                                <div class="like-comm">
-                                                    <a href="javascript:void(0)" class="link m-r-10">2
-                                                        comment
-                                                    </a>
-                                                    <a href="javascript:void(0)" class="link m-r-10">
-                                                        <i class="fa fa-heart text-danger"></i> 5 Love
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <hr>
-
-                                </div>
-                            </div>
-                        </div>
-                        <!--second tab-->
-                        <div class="tab-pane" id="settings" role="tabpanel">
+                        <!--second tab -->
+                        <div class="tab-pane active" id="settings" role="tabpanel">
                             <div class="card-body">
                                 <form class="form-horizontal form-material">
                                     <div class="form-group">
@@ -127,15 +85,6 @@
                                         <div class="col-md-6">
                                             <input type="text" id="num_docu" name="num_docu" v-model="registro.num_docu"
                                                 placeholder="Ingrese aqui el número de documento"
-                                                class="form-control form-control-line">
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="col-md-6">Registro Médico</label>
-                                        <div class="col-md-6">
-                                            <input type="text" id="reg_medico" name="reg_medico"
-                                                v-model="registro.reg_medico"
-                                                placeholder="Ingrese aqui el número del registro médico"
                                                 class="form-control form-control-line">
                                         </div>
                                     </div>
@@ -157,25 +106,18 @@
                                     <div class="form-group">
                                         <label class="col-md-12">Password</label>
                                         <div class="col-md-12">
-                                            <input type="password" id="password" name="password"
+                                            <input type="password" id="password" name="password" v-model="registro.password"
                                                 class="form-control form-control-line">
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                        <label class="col-md-12">Teléfono</label>
-                                        <div class="col-md-12">
-                                            <input type="text" id="tel" tel="tel" v-model="registro.tel"
-                                                :placeholder="registro.tel" class="form-control form-control-line">
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
                                         <div class="col-sm-12">
-                                            <button class="btn btn-success m-r-5">
+                                            <button type="button" class="btn btn-success m-r-5" @click="actualizarPerfil()">
                                                 <i class="fa fa-pencil"></i> Actualizar Perfil
                                             </button>
-                                            <button type="button" class="btn btn-inverse">
+                                            <!-- <button type="button" class="btn btn-inverse">
                                                 <i class="fa fa-reply"></i> Cancel
-                                            </button>
+                                            </button> -->
                                         </div>
                                     </div>
                                 </form>
@@ -194,13 +136,14 @@
 
 <script>
 export default {
+    props: ['usuarioactual'],
     mounted() {
         this.obtenerRegistro();
     },
     data() {
         return {
-            id: this.$attrs.id,
-            registro: { num_docu: '', reg_med: '', name: '', email: '', tel: '', facebook: '', twitter: '', youtube: '', tipo_user: '', password: '', estado: 0, imagen_perfil: '' },
+            id: this.usuarioactual.id,
+            registro: { id: this.usuarioactual.id, num_docu: '', dependencia_id: this.usuarioactual.dependencia_id, name: '', email: '', password: '', estado: 0, imagen_perfil: null },
             errores: {},
         };
     },
@@ -210,22 +153,43 @@ export default {
                 const res = await axios.get("/seguridad-usuarios/" + this.id);
 
                 if (res.status == 200) {
-                    this.registro.tipo_user = res.data.usuario.tipo_user;
                     this.registro.num_docu = res.data.usuario.num_docu;
-                    this.registro.reg_med = res.data.usuario.reg_med;
                     this.registro.name = res.data.usuario.name;
                     this.registro.email = res.data.usuario.email;
-                    this.registro.tel = res.data.usuario.tel;
-                    this.registro.facebook = res.data.usuario.facebook;
-                    this.registro.twitter = res.data.usuario.twitter;
-                    this.registro.youtube = res.data.usuario.youtube;
-                    this.registro.estado = res.data.usuario.estado;
+                }
+            } catch (error) {
+                this.errores = error.response.data.errors;
+            }
+        },
+        async actualizarPerfil() {
+            try {
+
+                let registro = new FormData();
+                for (let key in this.registro) {
+                    registro.append(key, this.registro[key]);
+                }
+
+                const res = await axios.put('/seguridad-actualizar-perfil/' + this.id, this.registro);
+                if (res.status == 200) {
+
+                    $.toast({
+                        heading: 'Ok!!!',
+                        text: res.data.message,
+                        position: 'top-right',
+                        loaderBg: '#ff6849',
+                        icon: 'success',
+                        hideAfter: 3500,
+                        stack: 6
+                    });
                 }
             } catch (error) {
                 console.log(error);
                 this.errores = error.response.data.errors;
             }
-        }
+        },
+        obtenerArchivo(e) {
+            this.registro.imagen_perfil = e.target.files[0];
+        },
     }
 }
 </script>

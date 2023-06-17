@@ -1,5 +1,5 @@
 @extends('layouts.app')
 
 @section('content')
-    <config-sucursal-component />
+    <config-sede-component />
 @endsection

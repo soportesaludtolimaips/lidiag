@@ -14,7 +14,13 @@ export default defineConfig({
             ],
             refresh: true,
         }),
-        vue(),
+        vue({
+            template: {
+                compilerOptions: {
+                    isCustomElement: (tag) => ['md-linedivider'].includes(tag),
+                }
+            }
+        })
     ],
     resolve: {
         alias: {
