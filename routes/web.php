@@ -61,7 +61,7 @@ Route::resource('/config-sedes', ConfigSucursalController::class)->names('config
 /**
  * Estudios
  */
-
+Route::view('/estudios.asignar.listar', 'modulos.estudios.asignar-estudio')->name('estudios.asignar.listar');
 Route::post('/study.listarEstudios', [StudyController::class, 'listarEstudios'])->name('study.listarEstudios');
 
 Route::get('/user.listarUsuarios/{tipo_user}', [UserController::class, 'listarUsuarios'])->name('user.listarUsuarios');
@@ -70,7 +70,10 @@ Route::resource('/estudios', EstudioController::class)->names('estudios')->excep
 Route::resource('/estudios-productos', EstudioProductoController::class)->names('estudios.productos');
 Route::resource('/estudios-diagnosticos', EstudioDiagnosticoController::class)->names('estudios.diagnosticos');
 
+Route::view('/estudios.leer.estudio.listar', 'modulos.estudios.leer-estudio')->name('estudios.leer.estudio.listar');
 Route::post('/estudio-leerEstudio', [EstudioController::class, 'leerEstudio'])->name('estudio.leerEstudio');
+
+Route::view('/estudios.transcribir.listar', 'modulos.estudios.transcribir-estudio')->name('estudios.transcribir.listar');
 Route::get('/estudio-listarPendientesTrascribir', [EstudioController::class, 'listarPendientesTrascribir'])->name('estudio.listarPendientesTrascribir');
 Route::post('/estudio-guardarTranscripcion', [EstudioController::class, 'guardarTranscripcion'])->name('estudio.guardarTranscripcion');
 Route::get('/estudio-listarPendientesMedico', [EstudioController::class, 'listarPendientesMedico'])->name('estudio.listarPendientesMedico');

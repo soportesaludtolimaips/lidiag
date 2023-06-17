@@ -69,11 +69,9 @@ class RoleSeeder extends Seeder
         /**
          * Estudios
          */
-        Permission::create(['name' => 'estudio.listarPendientesTrascribir'])->syncRoles([$Rol1, $Rol3, $Rol4]);
-        Permission::create(['name' => 'estudio.guardarTranscripcion'])->syncRoles([$Rol1, $Rol3, $Rol4]);
-
-        Permission::create(['name' => 'estudio.listarPendientesMedico'])->syncRoles([$Rol1, $Rol2, $Rol4]);
-        Permission::create(['name' => 'estudio.leerEstudio'])->syncRoles([$Rol1, $Rol2]);
+        Permission::create(['name' => 'estudio.asignar'])->syncRoles([$Rol1, $Rol3, $Rol4]);
+        Permission::create(['name' => 'estudio.transcribir'])->syncRoles([$Rol1, $Rol3, $Rol4]);
+        Permission::create(['name' => 'estudio.leerEstudio'])->syncRoles([$Rol2]);
 
         /**
          * Reportes

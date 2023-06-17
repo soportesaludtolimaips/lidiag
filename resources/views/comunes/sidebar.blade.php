@@ -19,25 +19,32 @@
                         <li><a href="index4.html">Modern</a></li>
                     </ul> --}}
                 </li>
-                @if (auth()->user()->hasAnyPermission(['subir-documento.index', 'consultar-documento.index']))
+                @if (auth()->user()->hasAnyPermission(['estudio.asignar', 'estudio.transcribir', 'estudio.leerEstudio']))
                     <li class="nav-small-cap">--- ESTUDIOS</li>
                     <li>
                         <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
                             <i class="icon-Bookmark"></i>
-                            <span class="hide-menu">SGC</span>
+                            <span class="hide-menu">Asignación de estudios</span>
                         </a>
                         <ul aria-expanded="false" class="collapse">
-                            @can('subir-documento.index')
+                            @can('estudio.asignar')
                                 <li>
-                                    <a href="{{ route('sgc.cargue.documento.listar') }}">
+                                    <a href="{{ route('estudios.asignar.listar') }}">
                                         <i class="fa fa-upload text-info"></i> Asignar Estudios
                                     </a>
                                 </li>
                             @endcan
-                            @can('consultar-documento.index')
+                            @can('estudio.transcribir')
                                 <li>
-                                    <a href="{{ route('sgc.consulta.documento.listar') }}">
-                                        <i class="fa fa-search text-info"></i> Consulta de documentos
+                                    <a href="{{ route('estudios.transcribir.listar') }}">
+                                        <i class="fa fa-search text-info"></i> Pendientes por transcribir
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('estudio.transcribir')
+                                <li>
+                                    <a href="{{ route('estudios.leer.estudio.listar') }}">
+                                        <i class="fa fa-search text-info"></i> Pendientes por leer
                                     </a>
                                 </li>
                             @endcan
