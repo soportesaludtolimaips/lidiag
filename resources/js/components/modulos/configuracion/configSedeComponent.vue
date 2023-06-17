@@ -196,9 +196,8 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="control-label">Url Oviyam</label>
-                                        <input type="text" id="url_oviyam" name="url_oviyam"
-                                            v-model="registro.url_oviyam" class="form-control"
-                                            placeholder="Ingrese aquí la URL del Ovyam de la sede">
+                                        <input type="text" id="url_oviyam" name="url_oviyam" v-model="registro.url_oviyam"
+                                            class="form-control" placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.url_oviyam">{{
                                             errores.url_oviyam[0]
                                         }}</span>
@@ -229,8 +228,7 @@
                                     <i class="fa fa-pencil"></i> Actualizar
                                 </button>
 
-                                <button type="button" class="btn btn-inverse"
-                                    @click="btnCerralModalForm()">Cancel</button>
+                                <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">Cancel</button>
                             </div>
                         </div>
                     </form>
@@ -251,7 +249,7 @@ export default {
         return {
             id: 0,
             registros: [],
-            registro: { sucursal: '', ip_dcm: '', bd_dcm: '', usuario_dcm: '', password_dcm: '', usuario_oviyam: '', password_oviyam: '', url_oviyam: '', estado: 0 },
+            registro: { sede: '', ip_dcm: '', bd_dcm: '', usuario_dcm: '', password_dcm: '', usuario_oviyam: '', password_oviyam: '', url_oviyam: '', estado: 0 },
             tituloModal: 'Nuevo registro',
             actualizar: false,
             errores: {},
@@ -259,7 +257,7 @@ export default {
     },
     methods: {
         async ListarDatos() {
-            const res = await axios.get("/config-sucursales");
+            const res = await axios.get("/config-sedes");
 
             $('#example23').DataTable().destroy();
 
@@ -277,7 +275,7 @@ export default {
         async guardarRegistro() {
             try {
                 if (this.actualizar === false) {
-                    const res = await axios.post('/config-sucursales', this.registro);
+                    const res = await axios.post('/config-sedes', this.registro);
 
                     if (res.status == 200) {
 
@@ -294,7 +292,7 @@ export default {
                         });
                     }
                 } else {
-                    const res = await axios.put('/config-sucursales/' + this.id, this.registro);
+                    const res = await axios.put('/config-sedes/' + this.id, this.registro);
                     if (res.status == 200) {
 
                         this.ListarDatos()
@@ -328,7 +326,7 @@ export default {
                 closeOnConfirm: false
             }, function (isConfirm) {
                 if (isConfirm) {
-                    axios.delete('/config-sucursales/' + id).then(response => {
+                    axios.delete('/config-sedes/' + id).then(response => {
                         swal("Ok!!!!", response.data.message, "success");
                         $this.ListarDatos()
                     }).catch(error => {
