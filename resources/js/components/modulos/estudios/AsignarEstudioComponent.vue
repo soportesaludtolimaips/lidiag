@@ -425,6 +425,7 @@
 
 <script>
 export default {
+    props: ['sucursualActual'],
     mounted() {
         this.listarMedicos();
         this.listarPrioridades();
@@ -547,7 +548,6 @@ export default {
             try {
                 const res = await axios.get("/config-prioridades");
                 this.prioridades = res.data;
-                console.log(this.prioridades)
             } catch (error) {
                 console.log(error);
             }

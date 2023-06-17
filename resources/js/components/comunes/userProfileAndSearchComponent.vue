@@ -299,7 +299,6 @@ export default {
         async listarSucursales() {
             try {
                 const res = await axios.get('/config-sucursales');
-                console.log(res.data)
                 this.sucursales = res.data;
             } catch (error) {
                 console.log(error);

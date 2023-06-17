@@ -43,7 +43,7 @@
             <!-- Container fluid  -->
             <!-- ============================================================== -->
             <div class="container-fluid">
-                <router-view :usuario="usuario"></router-view>
+                <router-view :usuario="usuario" :sucursualActual="sucursualActual"></router-view>
             </div>
             <!-- ============================================================== -->
             <!-- End Container fluid  -->
@@ -71,7 +71,7 @@ import sidebarComponent from './comunes/sidebarComponent.vue'
 import footerComponent from './comunes/footerComponent.vue'
 
 export default {
-    props: ['ruta', 'usuario'],
+    props: ['ruta', 'usuario', 'sucursualActual'],
     components: { logoComponent, toggleAndNavItemsComponent, userProfileAndSearchComponent, sidebarComponent, footerComponent }
 }
 </script>
