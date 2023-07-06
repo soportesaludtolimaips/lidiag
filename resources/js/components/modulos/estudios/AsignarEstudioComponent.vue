@@ -432,6 +432,11 @@ export default {
         this.listarProductos();
         this.listarDiagnosticos();
         this.establecerSede();
+        this.emitter.on("sedeSeleccionada", (data) => {
+            sessionStorage.setItem('ST-sede', data.msg)
+            this.registro.sede_id = data.msg;
+            this.establecerSede();
+        });
     },
     data() {
         return {
@@ -461,7 +466,7 @@ export default {
                 productosEstudio: [],
                 diagnosticosEstudio: [],
             },
-            busqueda: { bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "" },
+            busqueda: { bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "", sedeActual: this.sedeActual },
             errores: {},
             medicos: [],
             prioridades: [], //Listo las prioridades
@@ -469,7 +474,7 @@ export default {
             diagnosticos: [], //Listo todos los diagnosticos
             productoSelecciondo: "",
             diagnosticoSelecciondo: "",
-            sedeActual: 0,
+            sedeActual: 0
         };
     },
     methods: {
@@ -539,15 +544,17 @@ export default {
         },
         establecerSede() {
 
-            this.sedeActual = sessionStorage.getItem('ST-sede');
-            console.log(this.sedeActual)
+            this.registro.sede_id = sessionStorage.getItem('ST-sede');
 
-            if (this.sedeActual === 0) {
-                sessionStorage.setItem('ST-sede', 1)
+            if (this.registro.sede_id === 0 || this.registro.sede_id == null) {
+                sessionStorage.setItem('ST-sede', 1);
+                this.registro.sede_id = sessionStorage.getItem('ST-sede');
             } else {
-                this.sedeActual = sessionStorage.getItem('ST-sede');
+                this.registro.sede_id = sessionStorage.getItem('ST-sede');
             }
-            console.log(this.sedeActual)
+
+            this.sedeActual = this.registro.sede_id;
+            this.busqueda.sedeActual = this.registro.sede_id;
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);

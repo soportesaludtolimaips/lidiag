@@ -46,7 +46,7 @@
     <!-- Main wrapper - style you can find in pages.scss -->
     <!-- ============================================================== -->
 
-    <div>
+    <div id="app">
         <!-- ============================================================== -->
         <!-- Topbar header - style you can find in pages.scss -->
         <!-- ============================================================== -->
@@ -67,7 +67,8 @@
                     <!-- ============================================================== -->
                     <!-- User profile and search -->
                     <!-- ============================================================== -->
-                    @include('comunes.userProfileAndSearch')
+                    {{-- @include('comunes.userProfileAndSearch') --}}
+                    <user-profile-and-search-component :usuarioactual="{{ Auth::user() }}" />
                 </div>
             </nav>
         </header>
@@ -89,7 +90,7 @@
             <!-- ============================================================== -->
             <!-- Container fluid  -->
             <!-- ============================================================== -->
-            <div class="container-fluid" id="app">
+            <div class="container-fluid">
                 @yield('content')
             </div>
             <!-- ============================================================== -->

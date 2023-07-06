@@ -17,6 +17,8 @@
         "vue": "^3.2.41"
     },
     "dependencies": {
+        "mitt": "^3.0.1",
+        "vue-bus": "^1.2.1",
         "vue-loader": "^17.0.1",
         "vue-router": "^4.1.6",
         "vuetify": "^3.0.0-beta.10"

@@ -5,7 +5,12 @@
  */
 
 import './bootstrap';
-import { createApp, VueElement } from 'vue';
+import { createApp } from 'vue';
+
+import mitt from 'mitt'
+
+
+const emitter = mitt();
 
 /**
  * Next, we will create a fresh Vue application instance. You may then begin
@@ -14,7 +19,7 @@ import { createApp, VueElement } from 'vue';
  */
 
 const app = createApp({});
-
+app.config.globalProperties.emitter = emitter;
 /**
  * Principales
  */
@@ -59,6 +64,12 @@ import roleComponente from './components/modulos/seguridad/roleComponente.vue';
 app.component('role-componente', roleComponente);
 
 /**
+ * Comunes
+ */
+import userProfileAndSearchComponent from './components/comunes/userProfileAndSearchComponent.vue';
+app.component('user-profile-and-search-component', userProfileAndSearchComponent);
+
+/**
  * The following block of code may be used to automatically register your
  * Vue components. It will recursively scan this directory for the Vue
  * components and automatically register them with their "basename".
@@ -80,5 +91,7 @@ app.component('role-componente', roleComponente);
 /* import route from './routes'
 
 app.use(route); */
+
+
 
 app.mount('#app');
