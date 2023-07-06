@@ -186,13 +186,13 @@
                                     </option>
                                 </select>
                             </div>
-                            <!-- <div class="form-group">
+                            <div class="form-group">
                                 <input type="email" class="form-control" placeholder="Enter email">
                             </div>
                             <div class="form-group">
                                 <textarea class="form-control" id="exampleTextarea" rows="3"
                                     placeholder="Message"></textarea>
-                            </div> -->
+                            </div>
                         </form>
                     </li>
                 </ul>

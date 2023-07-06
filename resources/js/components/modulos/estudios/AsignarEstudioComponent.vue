@@ -425,12 +425,13 @@
 
 <script>
 export default {
-    props: ['sucursualActual'],
+    props: ['usuarioactual'],
     mounted() {
         this.listarMedicos();
         this.listarPrioridades();
         this.listarProductos();
         this.listarDiagnosticos();
+        this.establecerSede();
     },
     data() {
         return {
@@ -448,6 +449,8 @@ export default {
                 observaciones: "",
                 medico_id: "",
                 prioridad_id: "",
+                sede_id: this.sedeActual,
+                quien_registro_id: this.usuarioactual.id,
                 num_docu: "",
                 nombres: "",
                 sexo: "",
@@ -466,6 +469,7 @@ export default {
             diagnosticos: [], //Listo todos los diagnosticos
             productoSelecciondo: "",
             diagnosticoSelecciondo: "",
+            sedeActual: 0,
         };
     },
     methods: {
@@ -493,6 +497,7 @@ export default {
             }
         },
         async guardarRegistro() {
+            console.log(this.registro)
             try {
                 const res = await axios.post("/estudios", this.registro);
 
@@ -531,6 +536,18 @@ export default {
             this.registro.fec_naci = data.pat_birthdate;
 
             this.btnCerralModalForm();
+        },
+        establecerSede() {
+
+            this.sedeActual = sessionStorage.getItem('ST-sede');
+            console.log(this.sedeActual)
+
+            if (this.sedeActual === 0) {
+                sessionStorage.setItem('ST-sede', 1)
+            } else {
+                this.sedeActual = sessionStorage.getItem('ST-sede');
+            }
+            console.log(this.sedeActual)
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);

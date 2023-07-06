@@ -53,6 +53,6 @@ class ConfigAdminSaludController extends Controller
     public function destroy(ConfigAdminSalud $configAdminSalud)
     {
         $configAdminSalud->delete();
-        return response()->json(['message' => 'Registro eliminado crrectamente.']);
+        return response()->json(['message' => 'Registro eliminado correctamente.']);
     }
 }

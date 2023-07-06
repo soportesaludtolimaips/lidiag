@@ -1,5 +1,5 @@
 @extends('layouts.app')
 
 @section('content')
-    <asignar-estudio-component />
+    <asignar-studio-component :usuarioactual="{{ Auth::user() }}" />
 @endsection

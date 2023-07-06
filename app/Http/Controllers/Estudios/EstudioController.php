@@ -34,10 +34,9 @@ class EstudioController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(EstudioAsignarRequest $request)
+    public function store(Request $request)
     {
-
-
+        return $request;
         $nombrePaciente = str_replace('^^^', '', $request->nombres);
         $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
         $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
@@ -67,13 +66,12 @@ class EstudioController extends Controller
                 'paciente_id' => $paciente->id,
                 'medico_id' => $request->medico_id,
                 'quien_registro_id' => 1,
-                'sucursal_id' => 1,
+                'sede_id' => $request->sede_id,
                 'prioridad_id' => $request->prioridad_id,
                 'observaciones' => $request->observaciones,
                 'atencion' => $request->atencion
             ]
         );
-
 
         foreach ($request->productosEstudio as $Producto) {
             EstudioProducto::create([
@@ -142,10 +140,10 @@ class EstudioController extends Controller
             'priori.nom_priori',
             'priori.nivel AS priori_nivel',
             'priori.tiempo AS priori_tiempo',
-            'sucur.sucursal as nom_sucur'
+            'sesde.nom_sede as nom_sede'
         )
             ->join('pacientes AS pacien', 'estudios.paciente_id',  '=', 'pacien.id')
-            ->join('config_sucursales AS sucur', 'estudios.sucursal_id', '=', 'sucur.id')
+            ->join('config_sedes AS sesde', 'estudios.sede_id', '=', 'sesde.id')
             ->join('estudios_productos AS produc', 'produc.estudio_id', '=', 'estudios.id')
             ->join('users', 'estudios.quien_registro_id', '=', 'users.id')
             ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
@@ -185,10 +183,10 @@ class EstudioController extends Controller
             'priori.nivel AS priori_nivel',
             'priori.tiempo AS priori_tiempo',
             'medi.name as medico',
-            'sucur.sucursal as nom_sucur'
+            'sede.nom_sede as nom_sede'
         )
             ->join('pacientes AS pacien', 'estudios.paciente_id',  '=', 'pacien.id')
-            ->join('config_sucursales AS sucur', 'estudios.sucursal_id', '=', 'sucur.id')
+            ->join('config_sedes AS sede', 'estudios.sede_id', '=', 'sede.id')
             ->join('estudios_productos AS produc', 'produc.estudio_id', '=', 'estudios.id')
             ->join('users', 'estudios.quien_registro_id', '=', 'users.id')
             ->join('users as medi', 'estudios.medico_id', '=', 'medi.id')
@@ -225,11 +223,11 @@ class EstudioController extends Controller
 
         $estudio = Estudio::findOrFail($request->id_estudio);
 
-        $sucursalEstudio = $estudio->sucursal;
+        $sedeEstudio = $estudio->sede;
         $prioridadEstudio = $estudio->prioridad;
 
         if ($request->email != "") {
-            $mailable = new NotificacionDeLectura($paciente, $estudio, $prioridadEstudio, $sucursalEstudio);
+            $mailable = new NotificacionDeLectura($paciente, $estudio, $prioridadEstudio, $sedeEstudio);
             Mail::to($request->email)->send($mailable);
         }
 

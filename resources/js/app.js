@@ -42,7 +42,7 @@ app.component('config-sede-component', configSedeComponent);
  * Estudios
  */
 import AsignarEstudioComponent from './components/modulos/estudios/AsignarEstudioComponent.vue';
-app.component('Asignar-studio-component', AsignarEstudioComponent);
+app.component('asignar-studio-component', AsignarEstudioComponent);
 import leerEstudioComponent from './components/modulos/estudios/leerEstudioComponent.vue';
 app.component('leer-estudio-component', leerEstudioComponent);
 import transcribirEstudioComponent from './components/modulos/estudios/transcribirEstudioComponent.vue';
