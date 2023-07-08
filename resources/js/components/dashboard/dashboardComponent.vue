@@ -10,10 +10,7 @@
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Inicio</a>
                     </li>
-                    <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Configuración</a>
-                    </li>
-                    <li class="breadcrumb-item active">Administradores de Salud</li>
+                    <li class="breadcrumb-item active">Dashboard</li>
                 </ol>
             </div>
         </div>
@@ -29,7 +26,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Dashboard</h4>
-                        <h6 class="card-subtitle">Administración de las administradoras de salud "EPS".</h6>
+                        <h6 class="card-subtitle">Tus datos estadisticos.</h6>
                         <div class="table-responsive m-t-40">
 
                         </div>

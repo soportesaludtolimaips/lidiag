@@ -368,7 +368,6 @@ export default {
                         });
 
                         this.ListarDatos();
-                        this.ListarDatos();
                         this.limpiarFormulario();
                         this.btnCerralModalForm();
                     }
@@ -388,10 +387,9 @@ export default {
                             stack: 6
                         });
 
-                        this.ListarDatos();
-                        this.ListarDatos();
+                        /* this.ListarDatos();
                         this.limpiarFormulario();
-                        this.btnCerralModalForm();
+                        this.btnCerralModalForm(); */
                     }
                 }
             } catch (error) {
@@ -442,7 +440,7 @@ export default {
                  * marcar los roles del usuario a editar
                  */
                 axios.get('/seguridad-usuarios/' + this.id).then(res => {
-
+                    console.log(res.data.RolesDeUsuario)
                     const RolesDelUsuario = res.data.RolesDeUsuario;
                     let me = this;
 

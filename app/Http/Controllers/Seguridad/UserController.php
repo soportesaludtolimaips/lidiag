@@ -84,7 +84,6 @@ class UserController extends Controller
             'reg_med' => $request->reg_med,
             'name' => $request->name,
             'email' => $request->email,
-            'tipo_user' => $request->tipo_user,
             'password' => bcrypt($request->password),
             //'imagen_perfil' => asset('storage/img_users/' . $nuevoNombreAvatar),
         ]);
@@ -112,6 +111,7 @@ class UserController extends Controller
      */
     public function update(Request $request, User $seguridad_usuario)
     {
+
         if ($request->file) {
 
             $avatar = $request->registro['file'];
@@ -126,26 +126,26 @@ class UserController extends Controller
             $seguridad_usuario->avatar = asset('storage/img_users/' . $nuevoNombreAvatar);
         }
 
-        $seguridad_usuario->num_docu = $request->registro['num_docu'];
-        $seguridad_usuario->reg_med = $request->registro['reg_med'];
-        $seguridad_usuario->name = $request->registro['name'];
-        $seguridad_usuario->email = $request->registro['email'];
+        $seguridad_usuario->num_docu = $request->num_docu;
+        $seguridad_usuario->reg_med = $request->reg_med;
+        $seguridad_usuario->name = $request->name;
+        $seguridad_usuario->email = $request->email;
 
-        if ($request->registro['password']) {
-            $seguridad_usuario->password = bcrypt($request->registro['password']);
+        if ($request->password) {
+            $seguridad_usuario->password = bcrypt($request->password);
         }
 
         $seguridad_usuario->save();
 
-        $rolesDeUsuario = $request->registro['rolesUsuario'];
+        $rolesDeUsuario = $request->rolesUsuario;
         $rolesInsertar = array();
         foreach ($rolesDeUsuario as $rolesDeUsuario) {
-            if ($rolesDeUsuario['checked'] == true) {
-                $rolesInsertar[] = $rolesDeUsuario['name'];
+            if ($rolesDeUsuario['checked'] === true) {
+                $rolesInsertar[] = $rolesDeUsuario['id'];
             }
         }
 
-        $seguridad_usuario->assignRole($rolesInsertar);
+        $seguridad_usuario->roles()->sync($rolesInsertar);
 
         return response()->json(['message' => 'Registro actualizado correctamente.']);
     }
