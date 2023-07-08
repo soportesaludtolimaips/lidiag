@@ -42,9 +42,9 @@
                                     <tr>
                                         <th></th>
                                         <th># Documento</th>
+                                        <th>Registro Medico</th>
                                         <th>Nombres</th>
                                         <th>E-Mail</th>
-                                        <th>Dependencia</th>
                                         <th>Estado</th>
                                         <th></th>
                                     </tr>
@@ -61,9 +61,9 @@
                                             </div>
                                         </td>
                                         <td>{{ item.num_docu }}</td>
+                                        <td>{{ item.reg_med }}</td>
                                         <td>{{ item.name }}</td>
                                         <td>{{ item.email }}</td>
-                                        <td>{{ item.dependencia['nom_dependencia'] }}</td>
                                         <td>
                                             <span class="label label-success" v-if="item.estado == 1">Activo</span>
                                             <span class="label label-danger" v-if="item.estado == 0">Inactivo</span>
@@ -126,23 +126,6 @@
                     <!-- ============================================================== -->
                     <form action="#">
                         <div class="form-body">
-                            <div class="row p-t-20">
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label>Dependencia</label>
-                                        <select v-model="registro.dependencia_id" name="dependencia_id" id="dependencia_id"
-                                            class="form-control custom-select" @change="listarProcesos">
-                                            <option v-for="( ItemDependencias, index ) in  dependencias " :key="index"
-                                                :value="ItemDependencias.id">
-                                                {{ ItemDependencias.nom_dependencia }}
-                                            </option>
-                                        </select>
-                                        <span class="text-danger" v-if="errores.dependencia_id">
-                                            {{ errores.dependencia_id[0] }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
                             <div class="row p-t-5">
                                 <div class="col-md-6">
                                     <div class="form-group">
@@ -151,6 +134,16 @@
                                             placeholder="Número de documeto del usuario">
                                         <span class="text-danger" v-if="errores.num_docu">{{
                                             errores.num_docu[0]
+                                        }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Registro meduci</label>
+                                        <input type="text" id="reg_med" v-model="registro.reg_med" class="form-control"
+                                            placeholder="Registro medico">
+                                        <span class="text-danger" v-if="errores.reg_med">{{
+                                            errores.reg_med[0]
                                         }}</span>
                                     </div>
                                 </div>
@@ -254,25 +247,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <p class="text-info"><i class="fa fa-unlock"></i> Permisos para documentos</p>
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <div class="form-group">
-                                                <div class="controls">
-                                                    <div class="custom-control custom-checkbox">
-                                                        <input type="checkbox" class="custom-control-input"
-                                                            id="ver_todo_documentos" name="ver_todo_documentos"
-                                                            v-model="registro.ver_todo_documentos">
-                                                        <label class="custom-control-label" for="VerTodosLosArchivos">
-                                                            Ver todos los documentos
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
 
                             <div class="col-md-12 m-b-20">
@@ -325,15 +299,13 @@ export default {
     props: ['usuarioactual'],
     mounted() {
         this.ListarDatos();
-        this.listardependencias();
-        this.registro.dependencia_id = this.usuarioactual.dependencia_id;
     },
     data() {
         return {
             id: 0,
             registros: [],
             roles: [],
-            registro: { dependencia_id: 0, num_docu: '', name: '', email: '', password: '', estado: 0, imagen_perfil: '', rolesUsuario: [], ver_todo_documentos: 0 },
+            registro: { num_docu: '', reg_med: '', name: '', email: '', password: '', estado: 0, imagen_perfil: '', rolesUsuario: [] },
             tituloModal: 'Nuevo registro',
             actualizar: false,
             errores: {},
@@ -439,7 +411,8 @@ export default {
                 closeOnConfirm: false
             }, function (isConfirm) {
                 if (isConfirm) {
-                    axios.put('/seguridad-usuarios/estado/' + data.id, { estado: ((estado == 0) ? 1 : 0) }).then(response => {
+
+                    axios.put('/seguridad-usuarios/estado/' + data.id, { id: data.id, estado: ((estado == 0) ? 1 : 0) }).then(response => {
 
                         swal("Ok!!!!", 'el usaurio ' + data.name + ' se ' + ((estado == 0) ? ' activo' : 'desactivo') + ' correctamente',
                             "success");
@@ -451,14 +424,6 @@ export default {
                 }
             });
         },
-        async listardependencias() {
-            try {
-                const res = await axios.get("/config-dependencias");
-                this.dependencias = res.data;
-            } catch (error) {
-                console.log(error);
-            }
-        },
         obtenerArchivo(event) {
             this.registro.imagen_perfil = event.target.files[0];
         },
@@ -466,11 +431,10 @@ export default {
             if (this.actualizar == true) {
                 this.tituloModal = "Actualizar el registro: " + data.name;
                 this.id = data.id;
-                this.registro.dependencia_id = data.dependencia_id;
                 this.registro.num_docu = data.num_docu;
+                this.registro.reg_med = data.reg_med;
                 this.registro.name = data.name;
                 this.registro.email = data.email;
-                this.registro.estado = data.estado;
 
                 /**
                  * Listo los los datos del usuario con sus respectivos roles
@@ -495,8 +459,8 @@ export default {
                 this.actualizar = false;
                 this.tituloModal = "Nuevo registro";
                 this.id = 0;
-                this.registro.dependencia_id = 0;
                 this.registro.num_docu = "";
+                this.registro.reg_med = "";
                 this.registro.name = "";
                 this.registro.email = "";
                 this.registro.password = "";
@@ -513,8 +477,8 @@ export default {
             this.actualizar = false;
             this.tituloModal = "Nuevo registro";
             this.id = 0;
-            this.registro.dependencia_id = 0;
             this.registro.num_docu = "";
+            this.registro.reg_med = 0;
             this.registro.name = "";
             this.registro.email = "";
             this.registro.password = "";

@@ -50,8 +50,9 @@ class UserController extends Controller
         return response()->json(['usuario' => $usuario, 'roles' => $roles, 'RolesDeUsuario' => $RolesDeUsuario]);
     }
 
-    public function estadoUsuario(Request $request, User $seguridad_usuario)
+    public function estadoUsuario(Request $request)
     {
+        $seguridad_usuario = User::find($request->id);
         $seguridad_usuario->estado = $request->estado;
         $seguridad_usuario->save();
 
@@ -129,7 +130,6 @@ class UserController extends Controller
         $seguridad_usuario->reg_med = $request->registro['reg_med'];
         $seguridad_usuario->name = $request->registro['name'];
         $seguridad_usuario->email = $request->registro['email'];
-        $seguridad_usuario->tipo_user = $request->registro['tipo_user'];
 
         if ($request->registro['password']) {
             $seguridad_usuario->password = bcrypt($request->registro['password']);

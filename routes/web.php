@@ -83,6 +83,7 @@ Route::get('/estudio-listarPendientesMedico', [EstudioController::class, 'listar
 Route::view('/seguridad.usuarios.listar', 'modulos.seguridad.usuarios')->name('seguridad.usuarios.listar');
 Route::resource('/seguridad-usuarios', UserController::class)->names('seguridad.usuarios');
 Route::put('/seguridad-actualizar-perfil/{idUsua}', [UserController::class, 'actualizarPerfil'])->name('seguridad.actualizar.perfil');
+Route::put('/seguridad-usuarios/estado/{idUsua}', [UserController::class, 'estadoUsuario'])->name('seguridad.usuario.estado');
 
 Route::view('/seguridad.roles.listar', 'modulos.seguridad.roles')->name('seguridad.roles.listar');
 Route::resource('/seguridad-roles', RolController::class)->names('seguridad.roles');
