@@ -306,15 +306,16 @@ export default {
         },
         estableserSede() {
 
-            this.sedeSeleccionada = sessionStorage.getItem('ST-sede');
+            //this.sedeSeleccionada = sessionStorage.getItem('ST-sede');
 
             if (this.sedeSeleccionada === 0 || this.sedeSeleccionada == null) {
                 sessionStorage.setItem('ST-sede', 1);
-                this.sedeSeleccionada = sessionStorage.getItem('ST-sede');
             } else {
-                this.sedeSeleccionada = sessionStorage.getItem('ST-sede');
+                sessionStorage.setItem('ST-sede', this.sedeSeleccionada);
             }
 
+            console.log('***** User Profile ******');
+            console.log(this.sedeSeleccionada)
             this.emitter.emit("sedeSeleccionada", { msg: this.sedeSeleccionada });
         }
     }

@@ -36,7 +36,7 @@ class EstudioController extends Controller
      */
     public function store(Request $request)
     {
-        return $request->sede_id;
+
         $nombrePaciente = str_replace('^^^', '', $request->nombres);
         $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
         $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
@@ -136,9 +136,11 @@ class EstudioController extends Controller
             'produc.nom_produc',
             'produc.fechor_lectura',
             'users.name AS quien_registro',
+            'priori.id as priori_id',
             'priori.nom_priori',
             'priori.nivel AS priori_nivel',
             'priori.tiempo AS priori_tiempo',
+            'priori.style',
             'sesde.nom_sede as nom_sede'
         )->join('pacientes AS pacien', 'estudios.paciente_id',  '=', 'pacien.id')
             ->join('config_sedes AS sesde', 'estudios.sede_id', '=', 'sesde.id')

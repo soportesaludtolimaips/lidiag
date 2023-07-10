@@ -91,8 +91,19 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(item, index) in registros" :key="index">
-                                        <td width="2%" class="badge-danger"></td>
+                                    <tr v-for="(item, index) in  registros " :key="index">
+                                        <td width="2%">
+
+
+                                            <button type="button" v-if="item.priori_id == 1"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">A</button>
+                                            <button type="button" v-else-if="item.priori_id == 2"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm btn-warning">M</button>
+                                            <button type="button" v-else-if="item.priori_id == 3"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm btn-info">B</button>
+                                            <button type="button" v-else="item.priori_id == 4"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm">S</button>
+                                        </td>
                                         <td>{{ item.nom_sede }}</td>
                                         <td>{{ item.fec_estudio }}</td>
                                         <td>{{ item.quien_registro }}</td>

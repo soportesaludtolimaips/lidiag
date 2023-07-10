@@ -433,9 +433,12 @@ export default {
         this.listarDiagnosticos();
         this.establecerSede();
         this.emitter.on("sedeSeleccionada", (data) => {
-            sessionStorage.setItem('ST-sede', data.msg)
+            console.log('********* Asignar Estudio ***********');
+            console.log(data.msg)
+            //sessionStorage.setItem('ST-sede', data.msg)
             this.registro.sede_id = data.msg;
             this.establecerSede();
+            $("#example23").DataTable().destroy();
         });
     },
     data() {
