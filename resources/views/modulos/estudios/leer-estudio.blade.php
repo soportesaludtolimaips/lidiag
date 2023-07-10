@@ -1,5 +1,5 @@
 @extends('layouts.app')
 
 @section('content')
-    <leer-estudio-component />
+    <leer-estudio-component :usuarioactual="{{ Auth::user() }}" />
 @endsection

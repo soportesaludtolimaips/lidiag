@@ -36,7 +36,7 @@ class EstudioController extends Controller
      */
     public function store(Request $request)
     {
-        return $request;
+        return $request->sede_id;
         $nombrePaciente = str_replace('^^^', '', $request->nombres);
         $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
         $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
@@ -65,7 +65,7 @@ class EstudioController extends Controller
                 'study_desc' => $request->study_desc,
                 'paciente_id' => $paciente->id,
                 'medico_id' => $request->medico_id,
-                'quien_registro_id' => 1,
+                'quien_registro_id' => auth()->user()->id,
                 'sede_id' => $request->sede_id,
                 'prioridad_id' => $request->prioridad_id,
                 'observaciones' => $request->observaciones,
@@ -89,11 +89,11 @@ class EstudioController extends Controller
             ]);
         }
 
-        $sucursalEstudio = $estudio->sucursal;
+        $sedeEstudio = $estudio->sede;
         $prioridadEstudio = $estudio->prioridad;
 
         if ($request->email != "") {
-            $mailable = new NotificacionAsignacionDeLectura($paciente, $estudio, $prioridadEstudio, $sucursalEstudio);
+            $mailable = new NotificacionAsignacionDeLectura($paciente, $estudio, $prioridadEstudio, $sedeEstudio);
             Mail::to($request->email)->send($mailable);
         }
 
@@ -125,7 +125,6 @@ class EstudioController extends Controller
 
     public function listarPendientesMedico(Request $request, Estudio $estudio)
     {
-
         $misPendiente = Estudio::select(
             'estudios.*',
             'pacien.num_docu',
@@ -141,15 +140,15 @@ class EstudioController extends Controller
             'priori.nivel AS priori_nivel',
             'priori.tiempo AS priori_tiempo',
             'sesde.nom_sede as nom_sede'
-        )
-            ->join('pacientes AS pacien', 'estudios.paciente_id',  '=', 'pacien.id')
+        )->join('pacientes AS pacien', 'estudios.paciente_id',  '=', 'pacien.id')
             ->join('config_sedes AS sesde', 'estudios.sede_id', '=', 'sesde.id')
             ->join('estudios_productos AS produc', 'produc.estudio_id', '=', 'estudios.id')
             ->join('users', 'estudios.quien_registro_id', '=', 'users.id')
             ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
             ->where('estudios.medico_id', $request->id)
             ->whereNull('produc.fechor_lectura')
-            ->get();
+            ->orderBy('priori.nom_priori')->get();
+        return $misPendiente;
         return response()->json($misPendiente);
     }
 

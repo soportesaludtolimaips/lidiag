@@ -17,9 +17,9 @@ return new class extends Migration
             $table->id();
             $table->string('nom_sede', 70);
             $table->string('ip_dcm', 15)->nullable();
-            $table->string('bd_dcm', 20)->nullable();
-            $table->string('usuario_dcm', 20)->nullable();
-            $table->string('password_dcm', 20)->nullable();
+            $table->string('bd_dcm', 50)->nullable();
+            $table->string('usuario_dcm', 30)->nullable();
+            $table->string('password_dcm', 30)->nullable();
             $table->string('usuario_oviyam', 20)->nullable();
             $table->string('password_oviyam', 20)->nullable();
             $table->string('url_oviyam', 100)->nullable();

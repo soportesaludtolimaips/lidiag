@@ -279,6 +279,7 @@ export default {
     props: ['ruta', 'usuarioactual'],
     mounted() {
         this.listarSedes();
+        this.estableserSede();
     },
     data() {
         return {
@@ -304,6 +305,16 @@ export default {
             }
         },
         estableserSede() {
+
+            this.sedeSeleccionada = sessionStorage.getItem('ST-sede');
+
+            if (this.sedeSeleccionada === 0 || this.sedeSeleccionada == null) {
+                sessionStorage.setItem('ST-sede', 1);
+                this.sedeSeleccionada = sessionStorage.getItem('ST-sede');
+            } else {
+                this.sedeSeleccionada = sessionStorage.getItem('ST-sede');
+            }
+
             this.emitter.emit("sedeSeleccionada", { msg: this.sedeSeleccionada });
         }
     }

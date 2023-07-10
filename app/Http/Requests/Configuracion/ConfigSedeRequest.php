@@ -24,11 +24,11 @@ class ConfigsedeRequest extends FormRequest
     public function rules()
     {
         return [
-            'sede' => 'required|min:2|max:70',
+            'nom_sede' => 'required|min:2|max:70',
             'ip_dcm' => 'required|min:7|max:15',
-            'bd_dcm' => 'required|min:2|max:10',
+            'bd_dcm' => 'required|min:2|max:30',
             'usuario_dcm' => 'required|min:2|max:20',
-            'password_dcm' => 'required|min:2|max:15',
+            //'password_dcm' => 'required|min:2|max:15',
             'usuario_oviyam' => 'required|min:2|max:20',
             'password_oviyam' => 'required|min:2|max:10',
             'url_oviyam' => 'required|min:10|max:100',
@@ -38,18 +38,18 @@ class ConfigsedeRequest extends FormRequest
     public function messages()
     {
         return [
-            'sede.required' => 'Te hizo falta el nombre de la sede',
-            'sede.min' => 'El nombre de la sede debe tener mínimo 2 caracteres',
-            'sede.max' => 'El nombre de la sede debe tener máximo 70 caracteres',
+            'nom_sede.required' => 'Te hizo falta el nombre de la sede',
+            'nom_sede.min' => 'El nombre de la sede debe tener mínimo 2 caracteres',
+            'nom_sede.max' => 'El nombre de la sede debe tener máximo 70 caracteres',
             'ip_dcm.required' => 'Te hizo falta la IP de la sede',
             'ip_dcm.min' => 'La IP de la sede debe tener mínimo 15 caracteres',
             'ip_dcm.max' => 'La IP de la sede debe tener máximo 15 caracteres',
             'usuario_dcm.required' => 'Te hizo falta el usuario de la Bd DCCHEEM de la sede',
             'usuario_dcm.min' => 'El usuario de la Bd DCCHEEM de la sede debe tener mínimo 2 caracteres',
             'usuario_dcm.max' => 'El usuario de la Bd DCCHEEM de la sede debe tener máximo 20 caracteres',
-            'password_dcm.required' => 'Te hizo falta el password de la Bd DCCHEEM de la sede',
-            'password_dcm.min' => 'El password de la Bd DCCHEEM de la sede debe tener mínimo 2 caracteres',
-            'password_dcm.max' => 'El password de la Bd DCCHEEM de la sede debe tener máximo 20 caracteres',
+            //'password_dcm.required' => 'Te hizo falta el password de la Bd DCCHEEM de la sede',
+            //'password_dcm.min' => 'El password de la Bd DCCHEEM de la sede debe tener mínimo 2 caracteres',
+            //'password_dcm.max' => 'El password de la Bd DCCHEEM de la sede debe tener máximo 20 caracteres',
             'usuario_oviyam.required' => 'Te hizo falta el usuaro Oviyam de la sede',
             'usuario_oviyam.min' => 'El usuaro Oviyam de la sede debe tener mínimo 2 caracteres',
             'usuario_oviyam.max' => 'El usuaro Oviyam de la sede debe tener máximo 20 caracteres',

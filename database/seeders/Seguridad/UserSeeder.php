@@ -20,8 +20,8 @@ class UserSeeder extends Seeder
 
 
 
-        User::create(['num_docu' => '1113784184', 'reg_med' => '', 'name' => 'Cristian Andrey Muñoz Hortua', 'email' => 'chumy901602@hotmail.com', 'password' => bcrypt('123456')])->assignRole('Administrador');
-        User::create(['num_docu' => '97612752', 'reg_med' => '', 'name' => 'administrador administrador', 'email' => 'administrador@administrador.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '97612752', 'reg_med' => '', 'name' => 'administrador administrador', 'email' => 'administrador@administrador.com', 'password' => bcrypt('123456')])->assignRole('Administrador');
+        User::create(['num_docu' => '1113784184', 'reg_med' => '', 'name' => 'Cristian Andrey Muñoz Hortua', 'email' => 'chumy901602@hotmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
         User::create(['num_docu' => '1105687606', 'reg_med' => '', 'name' => 'LUISA FERNANDA CARTAGENA OVIEDO', 'email' => 'luisacartagena0395@gmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
         User::create(['num_docu' => '000000', 'reg_med' => '', 'name' => 'ESTEFANIA HERMOSA', 'email' => 'hermosavida123@gmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
         User::create(['num_docu' => '1006147882', 'reg_med' => '', 'name' => 'KEVIN LOPEZ', 'email' => 'lopezmonteskevin96@gmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');

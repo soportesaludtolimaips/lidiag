@@ -33,16 +33,6 @@ class StudyController extends Controller
 
         //Aplicamos la nueva configuracion de bade datos
         Config::set('database.default', 'mysql_sucursal');
-        $connections = DB::getConnections();
-        foreach ($connections as $name => $connection) {
-            echo "Conexión: " . $name . "\n";
-            echo "Driver: " . $connection->getDriverName() . "\n";
-            echo "Host: " . $connection->getConfig('host') . "\n";
-            echo "Database: " . $connection->getConfig('database') . "\n";
-            echo "Username: " . $connection->getConfig('username') . "\n";
-            echo "Password: " . $connection->getConfig('password') . "\n";
-            echo "\n";
-        }
 
         $estudios = new Study();
         $query = $estudios->query();

@@ -81,6 +81,7 @@
                                 <thead>
                                     <tr>
                                         <th></th>
+                                        <th>Sede</th>
                                         <th>Fecha del Toma</th>
                                         <th>Quien Asigno</th>
                                         <th>Paciente</th>
@@ -92,6 +93,7 @@
                                 <tbody>
                                     <tr v-for="(item, index) in registros" :key="index">
                                         <td width="2%" class="badge-danger"></td>
+                                        <td>{{ item.nom_sede }}</td>
                                         <td>{{ item.fec_estudio }}</td>
                                         <td>{{ item.quien_registro }}</td>
                                         <td>
@@ -283,7 +285,7 @@
 
 <script>
 export default {
-    props: ['usuario'],
+    props: ['usuarioactual'],
     mounted() {
         this.listarMisPendientes();
     },
@@ -322,9 +324,9 @@ export default {
         }, */
         async listarMisPendientes() {
             try {
-                const res = await axios.get("/estudio-listarPendientesMedico?id=" + this.usuario.id);
+                const res = await axios.get("/estudio-listarPendientesMedico?id=" + this.usuarioactual.id);
                 $("#example23").DataTable().destroy();
-
+                console.log(res.data)
                 this.registros = res.data;
 
                 this.$nextTick(() => {

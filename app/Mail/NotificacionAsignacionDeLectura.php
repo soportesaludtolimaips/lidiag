@@ -12,18 +12,18 @@ use Illuminate\Queue\SerializesModels;
 class NotificacionAsignacionDeLectura extends Mailable
 {
     use Queueable, SerializesModels;
-    protected $estudio, $paciente, $sucursalEstudio, $prioridadEstudio;
+    protected $estudio, $paciente, $sedeEstudio, $prioridadEstudio;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($paciente, $estudio, $sucursalEstudio, $prioridadEstudio)
+    public function __construct($paciente, $estudio, $sedeEstudio, $prioridadEstudio)
     {
         $this->paciente = $paciente;
         $this->estudio = $estudio;
-        $this->sucursalEstudio = $sucursalEstudio;
+        $this->sedeEstudio = $sedeEstudio;
         $this->prioridadEstudio = $prioridadEstudio;
     }
 
@@ -55,8 +55,8 @@ class NotificacionAsignacionDeLectura extends Mailable
     public function content()
     {
         return new Content(
-            view: 'notificaciones-email.notificacion-aignacion-lectura',
-            with: ['paciente' => $this->paciente, 'estudio' => $this->estudio, 'sucursalEstudio' => $this->sucursalEstudio, 'prioridadEstudio' => $this->prioridadEstudio]
+            view: 'modulos.notificaciones-email.notificacion-aignacion-lectura',
+            with: ['paciente' => $this->paciente, 'estudio' => $this->estudio, 'sedeEstudio' => $this->sedeEstudio, 'prioridadEstudio' => $this->prioridadEstudio]
         );
     }
 

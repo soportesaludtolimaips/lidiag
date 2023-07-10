@@ -41,7 +41,7 @@
                                     </a>
                                 </li>
                             @endcan
-                            @can('estudio.transcribir')
+                            @can('estudio.leerEstudio')
                                 <li>
                                     <a href="{{ route('estudios.leer.estudio.listar') }}">
                                         <i class="fa fa-search text-info"></i> Pendientes por leer

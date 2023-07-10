@@ -47,10 +47,8 @@
                                         <th>Ip Pacs</th>
                                         <th>BD Pacs</th>
                                         <th>Usuario Pacs</th>
-                                        <th>Pasword Pacs</th>
                                         <th>Usuario Oviyam</th>
                                         <th>Password Oviyam</th>
-                                        <th>Url Oviyam</th>
                                         <th>Estado</th>
                                         <th></th>
                                     </tr>
@@ -61,9 +59,7 @@
                                         <td>{{ item.ip_dcm }}</td>
                                         <td>{{ item.bd_dcm }}</td>
                                         <td>{{ item.usuario_dcm }}</td>
-                                        <td>{{ item.password_dcm }}</td>
                                         <td>{{ item.usuario_oviyam }}</td>
-                                        <td>{{ item.password_oviyam }}</td>
                                         <td>{{ item.url_oviyam }}</td>
                                         <td>
                                             <span class="label label-success" v-if="item.estado">Activo</span>
@@ -116,10 +112,8 @@
                                     <div class="form-group">
                                         <label class="control-label">Sede</label>
                                         <input type="text" id="nom_sede" name="nom_sede" v-model="registro.nom_sede"
-                                            class="form-control" placeholder="Ingrese aqui la razón social de la sede">
-                                        <span class="text-danger" v-if="errores.nom_sede">{{
-                                            errores.nom_sede[0]
-                                        }}</span>
+                                            class="form-control" placeholder="Ingrese el nombre de la sede">
+                                        <span class="text-danger" v-if="errores.nom_sede">{{ errores.nom_sede[0] }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -129,7 +123,7 @@
                                     <div class="form-group">
                                         <label class="control-label">Ip BD Dcm4chee</label>
                                         <input type="text" id="ip_dcm" name="ip_dcm" v-model="registro.ip_dcm"
-                                            class="form-control" placeholder="Ip del Dcm4chee de la sucursal">
+                                            class="form-control" placeholder="Ip del Dcm4chee de la sede">
                                         <span class="text-danger" v-if="errores.ip_dcm">{{ errores.ip_dcm[0] }}</span>
                                     </div>
                                 </div>
@@ -139,7 +133,7 @@
                                         <label class="control-label">BD DCM4CHEE</label>
                                         <input type="text" id="bd_dcm" name="bd_dcm" v-model="registro.bd_dcm"
                                             class="form-control" placeholder="Ingrese aquí el nombre de la BD">
-                                        <span class="text-danger" v-if="errores.bd_dcm">{{ errores.ip_dcm[0] }}</span>
+                                        <span class="text-danger" v-if="errores.bd_dcm">{{ errores.bd_dcm[0] }}</span>
                                     </div>
                                 </div>
 
@@ -149,8 +143,7 @@
                                         <input type="text" id="usuario_dcm" name="usuario_dcm"
                                             v-model="registro.usuario_dcm" class="form-control"
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
-                                        <span class="text-danger" v-if="errores.usuario_dcm">{{
-                                            errores.usuario_dcm[0]
+                                        <span class="text-danger" v-if="errores.usuario_dcm">{{ errores.usuario_dcm[0]
                                         }}</span>
                                     </div>
                                 </div>
@@ -161,8 +154,7 @@
                                         <input type="text" id="password_dcm" name="password_dcm"
                                             v-model="registro.password_dcm" class="form-control"
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
-                                        <span class="text-danger" v-if="errores.password_dcm">{{
-                                            errores.password_dcm[0]
+                                        <span class="text-danger" v-if="errores.password_dcm">{{ errores.password_dcm[0]
                                         }}</span>
                                     </div>
                                 </div>
@@ -175,8 +167,7 @@
                                         <input type="text" id="usuario_oviyam" name="usuario_oviyam"
                                             v-model="registro.usuario_oviyam" class="form-control"
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
-                                        <span class="text-danger" v-if="errores.usuario_oviyam">{{
-                                            errores.usuario_oviyam[0]
+                                        <span class="text-danger" v-if="errores.usuario_oviyam">{{ errores.usuario_oviyam[0]
                                         }}</span>
                                     </div>
                                 </div>
@@ -249,7 +240,7 @@ export default {
         return {
             id: 0,
             registros: [],
-            registro: { sede: '', ip_dcm: '', bd_dcm: '', usuario_dcm: '', password_dcm: '', usuario_oviyam: '', password_oviyam: '', url_oviyam: '', estado: 0 },
+            registro: { id: 0, nom_sede: '', ip_dcm: '', bd_dcm: '', usuario_dcm: '', password_dcm: '', usuario_oviyam: '', password_oviyam: '', url_oviyam: '', estado: 0 },
             tituloModal: 'Nuevo registro',
             actualizar: false,
             errores: {},
@@ -279,8 +270,6 @@ export default {
 
                     if (res.status == 200) {
 
-                        this.ListarDatos()
-
                         $.toast({
                             heading: 'Ok!!!',
                             text: res.data.message,
@@ -290,12 +279,15 @@ export default {
                             hideAfter: 3500,
                             stack: 6
                         });
+
+                        this.ListarDatos();
+                        this.btnCerralModalForm();
+                        this.limpiar();
                     }
                 } else {
                     const res = await axios.put('/config-sedes/' + this.id, this.registro);
-                    if (res.status == 200) {
 
-                        this.ListarDatos()
+                    if (res.status == 200) {
 
                         $.toast({
                             heading: 'Ok!!!',
@@ -307,6 +299,9 @@ export default {
                             stack: 6
                         });
 
+                        this.ListarDatos();
+                        this.btnCerralModalForm();
+                        this.limpiar();
                     }
                 }
             } catch (error) {
@@ -337,9 +332,9 @@ export default {
         },
         mostrarRegistro(data = {}) {
             if (this.actualizar == true) {
-                this.tituloModal = "Actualizar el registro: " + data.sucursal;
-                this.id = data.id;
-                this.registro.sucursal = data.sucursal;
+                this.tituloModal = "Actualizar el registro: " + data.nom_sede;
+                this.registro.id = data.id;
+                this.registro.nom_sede = data.nom_sede;
                 this.registro.ip_dcm = data.ip_dcm;
                 this.registro.bd_dcm = data.bd_dcm;
                 this.registro.usuario_dcm = data.usuario_dcm;
@@ -348,12 +343,15 @@ export default {
                 this.registro.password_oviyam = data.password_oviyam;
                 this.registro.url_oviyam = data.url_oviyam;
                 this.registro.estado;
+
                 $('#btnCerralModalForm').click();
+                this.errores = [];
+
             } else {
                 this.actualizar = false;
                 this.tituloModal = "Nuevo registro";
-                this.id = 0;
-                this.registro.sucursal = "";
+                this.registro.id = 0;
+                this.registro.nom_sede = "";
                 this.registro.ip_dcm = "";
                 this.registro.bd_dcm = "";
                 this.registro.usuario_dcm = "";
@@ -362,11 +360,14 @@ export default {
                 this.registro.password_oviyam = "";
                 this.registro.url_oviyam = "";
                 this.registro.estado = 1;
+
                 $('#btnCerralModalForm').click();
+                this.errores = [];
             }
         },
         btnCerralModalForm() {
-            $('#btnCerralModalForm').click();
+            $(".right-sidebar").slideDown(50);
+            $(".right-sidebar").toggleClass("shw-rside");
         }
     },
 };

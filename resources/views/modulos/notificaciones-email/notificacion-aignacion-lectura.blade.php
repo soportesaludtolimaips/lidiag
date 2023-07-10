@@ -117,7 +117,7 @@
                                             <p style="margin: 0 0 24px;">
                                                 Es un gusto para nosotros informarte que hemos asignado la lectura del estudio
                                                 <span style="font-weight: 600;">{{ $estudio->study_desc }}</span> realizado en la fecha
-                                                <span style="font-weight: 600;">{{ $estudio->fec_estudio }}</span> en nuestra sucursal de {{ $sucursalEstudio->sucursal }}
+                                                <span style="font-weight: 600;">{{ $estudio->fec_estudio }}</span> en nuestra sede de {{ $sedeEstudio->nom_sede }}
                                             </p>
                                             <p style="margin: 0 0 24px;">
                                                 En un tiempo aproximado de <span style="font-weight: 600;">{{ $prioridadEstudio->tiempo }} {{ $prioridadEstudio->tipo_tiempo }}</span> té notificaremos por este medio del resultado de la lectura

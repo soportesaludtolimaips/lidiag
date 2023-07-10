@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Configuracion;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Configuracion\ConfigSedeRequest;
 use App\Models\Configuracion\ConfigSede;
+use Illuminate\Http\Request;
 
 class ConfigSedeController extends Controller
 {
@@ -38,9 +39,20 @@ class ConfigSedeController extends Controller
      * @param  \App\Models\Configuracion\ConfigSede  $configSede
      * @return \Illuminate\Http\Response
      */
-    public function update(ConfigSedeRequest $request, ConfigSede $configsede)
+    public function update(ConfigSedeRequest $request)
     {
-        $configsede->update($request->all());
+        $configsede = ConfigSede::find($request->id);
+        $configsede->nom_sede = $request->nom_sede;
+        $configsede->ip_dcm = $request->ip_dcm;
+        $configsede->bd_dcm = $request->bd_dcm;
+        $configsede->usuario_dcm = $request->usuario_dcm;
+        $configsede->password_dcm = $request->password_dcm;
+        $configsede->usuario_oviyam = $request->usuario_oviyam;
+        $configsede->password_oviyam = $request->password_oviyam;
+        $configsede->url_oviyam = $request->url_oviyam;
+        $configsede->estado = $request->estado;
+        $configsede->update();
+
         return response()->json(['message' => 'El registro se actializo correctamente.']);
     }
 
