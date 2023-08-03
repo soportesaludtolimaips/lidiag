@@ -93,8 +93,6 @@
                                 <tbody>
                                     <tr v-for="(item, index) in  registros " :key="index">
                                         <td width="2%">
-
-
                                             <button type="button" v-if="item.priori_id == 1"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">A</button>
                                             <button type="button" v-else-if="item.priori_id == 2"
@@ -109,7 +107,7 @@
                                         <td>{{ item.quien_registro }}</td>
                                         <td>
                                             {{ item.num_docu }} <br />
-                                            {{ item.nombres }}
+                                            {{ item.nom_pacien }}
                                         </td>
                                         <td>
                                             {{ item.study_desc }} <br />

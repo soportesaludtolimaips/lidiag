@@ -319,7 +319,7 @@
 
 <script>
 export default {
-    props: ['usuario'],
+    props: ['usuarioactual'],
     mounted() {
         this.listarPendientesTrascribir();
     },
@@ -327,7 +327,7 @@ export default {
         return {
             registros: [],
             tituloModal: "Transcirbir estudio",
-            registro: { id_estudio: 0, id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "", diagnosticosEstudio: [] },
+            registro: { id_estudio: 0, id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "", diagnosticosEstudio: [], id_producto_lectura: 0 },
             busqueda: { bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "" },
             errores: {}
         };
@@ -373,8 +373,8 @@ export default {
         },
         async guardarRegistro() {
             try {
-                const res = await axios.post('/estudio-guardarTranscripcion', { 'registro': this.registro, 'usua_actual': this.usuario.id });
-
+                const res = await axios.post('/estudio-guardarTranscripcion', this.registro);
+                console.log(res);
                 if (res.status == 200) {
                     $.toast({
                         heading: "Ok!!!",
@@ -387,7 +387,7 @@ export default {
                     });
 
                     this.listarPendientesTrascribir()
-                    $("#btnCerralModalForm").click();
+                    this.btnCerralModalForm();
                 }
             } catch (error) {
                 console.log(error);
@@ -395,6 +395,7 @@ export default {
             }
         },
         mostrarRegistro(data = {}) {
+            console.log(data);
             this.tituloModal = "Transcribir la lectura del paciente: " + data.nom_pacien;
             this.registro.id_estudio = data.id;
             this.registro.id_producto_lectura = data.id_producto_lectura;
@@ -402,6 +403,7 @@ export default {
             this.registro.accession_no = data.accession_no;
             this.registro.study_desc = data.study_desc;
             this.registro.lectura = data.lectura;
+            this.registro.id_producto_lectura = id_producto_lectura;
 
             this.registro.num_docu = data.num_docu;
             this.registro.nom_pacien = data.nom_pacien;
@@ -411,7 +413,7 @@ export default {
             this.registro.tel = data.tel;
             this.registro.email = data.email;
 
-            $('#btnCerralModalForm').click();
+            this.btnCerralModalForm();
             this.errores = [];
         },
         btnCerralModalForm() {

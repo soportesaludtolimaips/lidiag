@@ -168,7 +168,7 @@ class EstudioController extends Controller
     {
         $misPendiente = Estudio::select(
             'estudios.*',
-            'pacien.num_docu as num_docu_pacien',
+            'pacien.num_docu',
             'pacien.nombres as nom_pacien',
             'pacien.fec_naci',
             'pacien.direccion',
@@ -201,8 +201,6 @@ class EstudioController extends Controller
 
     public function guardarTranscripcion(Request $request)
     {
-        $usuarioActual = $request->usua_actual;
-
         $paciente = Paciente::updateOrCreate(
             ['num_docu' => $request->num_docu],
             [
@@ -216,9 +214,9 @@ class EstudioController extends Controller
             ]
         );
 
-        $transcribir = EstudioProducto::findOrFail($request->registro['id_producto_lectura']);
-        $transcribir->lectura = $request->registro['lectura'];
-        $transcribir->transcriptor_id = $usuarioActual;
+        $transcribir = EstudioProducto::findOrFail($request->id_producto_lectura);
+        $transcribir->lectura = $request->lectura;
+        $transcribir->transcriptor_id = auth()->user()->id;
         $transcribir->fechor_trascrito = Carbon::now();
         $transcribir->save();
 
@@ -226,7 +224,7 @@ class EstudioController extends Controller
 
         $sedeEstudio = $estudio->sede;
         $prioridadEstudio = $estudio->prioridad;
-
+        return $request->email;
         if ($request->email != "") {
             $mailable = new NotificacionDeLectura($paciente, $estudio, $prioridadEstudio, $sedeEstudio);
             Mail::to($request->email)->send($mailable);
