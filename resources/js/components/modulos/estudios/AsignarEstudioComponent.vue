@@ -116,8 +116,7 @@
                                             </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
-                                                @click="verImagen(item.id, item.pat_id, item.study_iuid)"
-                                                title="Ver imagenes">
+                                                @click="verImagen(item.pat_id, item.study_iuid)" title="Ver imagenes">
                                                 <i class="fa fa-file-photo-o"></i>
                                             </button>
 
@@ -655,9 +654,7 @@ export default {
         quitarDiagnosticoEstudio(indexEliminar) {
             this.registro.diagnosticosEstudio.splice(indexEliminar, 1);
         },
-        verImagen(id, pat_id, study_iuid) {
-            console.log(sessionStorage.getItem('ST-urlsede'));
-            console.log(sessionStorage.getItem('ST-servername'));
+        verImagen(pat_id, study_iuid) {
 
             let Url = sessionStorage.getItem('ST-urlsede') + '?patientID =' + pat_id + '&studyUID=' + study_iuid + '&serverName=' + sessionStorage.getItem('ST-servername')
             console.log(Url);
