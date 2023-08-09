@@ -65,5 +65,41 @@ class UserSeeder extends Seeder
         User::create(['num_docu' => '74083005', 'reg_med' => '', 'name' => 'JOSÉ RODRIGO AGUIRRE VARGAS', 'email' => 'rodrigoxp72@hotmail.com', 'password' => bcrypt('123456')])->assignRole('Medico');
         User::create(['num_docu' => '52080801', 'reg_med' => '52080801', 'name' => 'TL NORMA LUCIA CORTES MORALES', 'email' => 'NORCOR01@tl.com', 'password' => bcrypt('123456')])->assignRole('Medico');
         User::create(['num_docu' => '000000', 'reg_med' => '', 'name' => 'ESTADISTICA ESTADISTICA', 'email' => 'estadistica@estadistica.com', 'password' => bcrypt('123456')])->assignRole('Medico');
+
+
+
+
+
+
+        User::create(['num_docu' => '1054546111', 'reg_med' => '', 'name' => 'Erika Viviana Popayán Linares', 'email' => 'transcripcionsaludtolimadorada@gmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '1054554781', 'reg_med' => '', 'name' => 'Luisa Fernanda Pérez conde', 'email' => 'Perezconde_1991@hotmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '1054558125', 'reg_med' => '', 'name' => 'Jesus alberto gaviria cespedes', 'email' => 'chuchogaviria15@gmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '52464199', 'reg_med' => '', 'name' => 'Nombre yeimy zubieta', 'email' => 'yeizubi@gmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '1073322793', 'reg_med' => '', 'name' => 'Juan Felipe riveros galeano', 'email' => 'juanfe_64@hotmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '1053811400', 'reg_med' => '', 'name' => 'Manuel Alejandro montilla Rodríguez', 'email' => 'Alejo.mon2@hotmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '24717623', 'reg_med' => '', 'name' => 'Xiomara delgado cardona', 'email' => 'xidelca1284@gmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '3204795421', 'reg_med' => '', 'name' => ' Emy Esmeralda Diaz Olmos', 'email' => 'emyolmos2702@gmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '3057492365', 'reg_med' => '', 'name' => ' Luz Mélida Gonzalez Hernandez', 'email' => 'melidanov1984@hotmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '3227208260', 'reg_med' => '', 'name' => 'Jorge Andrés Rojas Ardila ', 'email' => 'Jorgerojas09@hotmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '3206039926', 'reg_med' => '', 'name' => ' Johan Camilo León Díaz', 'email' => 'Senasis96@gmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '3104543006', 'reg_med' => '', 'name' => 'María Murillo ', 'email' => 'daicymurillo@hotmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => ' 321 2504148', 'reg_med' => '', 'name' => 'Martha Biviana Guzmán Mora', 'email' => 'Radiologiahospitalhonda@gmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '3174952297', 'reg_med' => '', 'name' => 'Sandy Valentina Sanabria Castellanos', 'email' => 'sandyvskast@gmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '', 'reg_med' => '', 'name' => 'Andrés Leonardo Lozada Chacón ', 'email' => 'andreslozada0430@gmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '', 'reg_med' => '', 'name' => 'Wilson Javier Molina lozano', 'email' => 'rayosxalternouno@gmail.com ', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '79217301', 'reg_med' => '', 'name' => 'JULIO CESAR VELEZ', 'email' => 'cevelez12@hotmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '38070416', 'reg_med' => '', 'name' => 'VIKY  JAZMIN  SIERRA HERNANDEZ', 'email' => 'vikysierra228@gmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '1110482403', 'reg_med' => '', 'name' => 'OLGA ZULEMA BONILLA', 'email' => 'dannasofiq1003@gmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '1105688656', 'reg_med' => '', 'name' => 'SOL ANGIE CALDERON', 'email' => 'sol_anguie24@hotmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+
+        User::create(['num_docu' => '1108207024', 'reg_med' => '', 'name' => 'DIANA MARCELA DIAZ VILLAMIL', 'email' => 'diana.diaz221993@gmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '1110538719', 'reg_med' => '', 'name' => 'LIZETH MELIZA MUÑOZ LOZANO', 'email' => 'lizeth.ml@hotmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '100745876305', 'reg_med' => '', 'name' => 'BIBIAN YURLEY RAMOS BAHAMON', 'email' => 'bivian.ramos@gmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '1104705591', 'reg_med' => '', 'name' => 'DIEGO ALEJANDRO OTALORA CELIS', 'email' => 'diotalora90@gmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '1104701424', 'reg_med' => '', 'name' => 'JESUS NAVARRO AGUDELO', 'email' => 'chuchonava1225@gmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '1012394305', 'reg_med' => '', 'name' => 'JONATHAN GUEVARA GIRALDO', 'email' => 'jonathangiraldo635@gmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '1104701310', 'reg_med' => '', 'name' => 'ALEJANDRO MORENO AGUDELO', 'email' => 'alejandromorenoagudelo603@gmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '1104711067', 'reg_med' => '', 'name' => 'DANIELA FERNANDA RODRIGUEZ MUÑOZ', 'email' => 'drodrigurz0197@gmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
+        User::create(['num_docu' => '1111200743', 'reg_med' => '', 'name' => 'LUISA FERNANDA MARTIN GARZON', 'email' => 'lfmartin3@misena.edu.co', 'password' => bcrypt('123456')])->assignRole('Administrativo');
     }
 }

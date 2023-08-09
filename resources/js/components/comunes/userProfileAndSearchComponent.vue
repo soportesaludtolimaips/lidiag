@@ -179,7 +179,7 @@
                         <form>
                             <div class="form-group">
                                 <select class="form-control custom-select" @change="estableserSede()"
-                                    style="width: 100%; height: 36px" v-model="sedeSeleccionada">
+                                    style="width: 100%; height: 36px" v-model="sedeSeleccionada" name="sedes">
                                     <option>Seleccione la sede</option>
                                     <option v-for="ItemSede in sedes" v-bind:key="ItemSede" v-bind:value="ItemSede.id">
                                         {{ ItemSede.nom_sede }}
@@ -276,15 +276,17 @@
 </template >
 <script>
 export default {
-    props: ['ruta', 'usuarioactual'],
+    props: ['usuarioactual'],
     mounted() {
         this.listarSedes();
-        this.estableserSede();
     },
     data() {
         return {
             sedes: [], //Listo las sedes
-            sedeSeleccionada: 1,
+            sedeSeleccionada: sessionStorage.getItem('ST-sede'),
+            nomSedeSeleccionada: sessionStorage.getItem('ST-nomsede'),
+            urlSedeSeleccionada: sessionStorage.getItem('ST-urlsede'),
+            serverNameSeleccionada: sessionStorage.getItem('ST-servername')
         }
     },
     methods: {
@@ -298,25 +300,40 @@ export default {
         },
         async listarSedes() {
             try {
-                const res = await axios.get('/config-sedes');
+                const res = await axios.get('/config-sedes/listarSedesActivas');
                 this.sedes = res.data;
+
+                /* console.log('***** User Profile - Listar sedes ******');
+                console.log(sessionStorage.getItem('ST-sede'))
+                console.log(sessionStorage.getItem('ST-nomsede')) */
+
+                this.sedeSeleccionada = sessionStorage.getItem('ST-sede');
+                this.nomSedeSeleccionada = sessionStorage.getItem('ST-nomsede');
+                this.urlSedeSeleccionada = sessionStorage.getItem('ST-urlsede');
+                this.serverNameSeleccionada = sessionStorage.getItem('ST-servername');
             } catch (error) {
                 console.log(error);
             }
         },
-        estableserSede() {
+        async estableserSede() {
 
-            //this.sedeSeleccionada = sessionStorage.getItem('ST-sede');
+            const res = await axios.get('/config-sedes/' + this.sedeSeleccionada + '/buscarPorId');
+            console.log(res.data.url_oviyam);
 
-            if (this.sedeSeleccionada === 0 || this.sedeSeleccionada == null) {
-                sessionStorage.setItem('ST-sede', 1);
-            } else {
-                sessionStorage.setItem('ST-sede', this.sedeSeleccionada);
-            }
+            this.nomSedeSeleccionada = $('select[name="sedes"] option:selected').text();
+            this.urlSedeSeleccionada = res.data.url_oviyam;
+            this.serverNameSeleccionada = res.data.tap_oviyam;
 
-            console.log('***** User Profile ******');
-            console.log(this.sedeSeleccionada)
-            this.emitter.emit("sedeSeleccionada", { msg: this.sedeSeleccionada });
+            sessionStorage.setItem('ST-sede', this.sedeSeleccionada);
+            sessionStorage.setItem('ST-nomsede', this.nomSedeSeleccionada);
+            sessionStorage.setItem('ST-urlsede', res.data.url_oviyam);
+            sessionStorage.setItem('ST-servername', res.data.tap_oviyam);
+
+            console.log(this.nomSedeSeleccionada)
+
+            /* console.log('***** User Profile ******');
+            console.log(this.sedeSeleccionada) */
+            this.emitter.emit("sedeSeleccionada", { idSede: this.sedeSeleccionada, nomSede: this.nomSedeSeleccionada, url: this.urlSedeSeleccionada, serverName: this.serverNameSeleccionada });
         }
     }
 }

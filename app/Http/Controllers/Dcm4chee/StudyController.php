@@ -19,8 +19,7 @@ class StudyController extends Controller
 
     public function listarEstudios(Request $request, Study $study)
     {
-
-        $sedeActual = ConfigSede::find($request->sedeActual);
+        $sedeActual = ConfigSede::find($request->sede_id);
 
         //Configuramos la segunda base de datos
         config(['database.connections.mysql_sucursal' => [

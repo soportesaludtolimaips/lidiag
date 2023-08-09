@@ -69,6 +69,9 @@ app.component('role-componente', roleComponente);
 import userProfileAndSearchComponent from './components/comunes/userProfileAndSearchComponent.vue';
 app.component('user-profile-and-search-component', userProfileAndSearchComponent);
 
+import footerComponent from './components/comunes/footerComponent.vue';
+app.component('footer-component', footerComponent);
+
 /**
  * The following block of code may be used to automatically register your
  * Vue components. It will recursively scan this directory for the Vue

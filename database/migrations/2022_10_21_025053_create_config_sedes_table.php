@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('usuario_oviyam', 20)->nullable();
             $table->string('password_oviyam', 20)->nullable();
             $table->string('url_oviyam', 100)->nullable();
+            $table->string('tap_oviyam', 100)->nullable();
             $table->boolean('estado')->default(true)->default(1);
             $table->timestamps();
         });

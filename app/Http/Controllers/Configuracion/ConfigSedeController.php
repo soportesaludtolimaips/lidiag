@@ -32,6 +32,16 @@ class ConfigSedeController extends Controller
         return response()->json(['message' => 'El registro se creo correctamente']);
     }
 
+    public function buscarPorId(ConfigSede $configsede)
+    {
+        return $configsede;
+    }
+
+    public function listarSedesActivas()
+    {
+        $sedes = ConfigSede::where('estado', '=', 1)->get();
+        return response()->json($sedes);
+    }
     /**
      * Update the specified resource in storage.
      *

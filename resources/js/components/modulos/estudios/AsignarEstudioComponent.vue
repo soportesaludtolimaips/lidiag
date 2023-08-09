@@ -44,8 +44,11 @@
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Inicio</label>
-                                            <input type="date" id="nom_diagnos" name="nom_diagnos"
-                                                v-model="busqueda.fehc_ini" class="form-control" />
+                                            <input type="date" id="fecha_ini" name="fecha_ini" v-model="busqueda.fehc_ini"
+                                                class="form-control" />
+                                            <span class="text-danger" v-if="errores.fecha_ini">
+                                                {{ erroresBusqueda.fecha_ini[0] }}
+                                            </span>
                                         </div>
                                     </div>
                                     <div class="col-md-2">
@@ -53,6 +56,9 @@
                                             <label class="control-label">Fecha Fin</label>
                                             <input type="date" id="fecha_fin" name="fecha_fin" v-model="busqueda.fecha_fin"
                                                 class="form-control" />
+                                            <span class="text-danger" v-if="errores.fecha_fin">
+                                                {{ erroresBusqueda.fecha_fin[0] }}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -110,9 +116,11 @@
                                             </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
-                                                @click="elimnarRegistro(item.id)" title="Ver imagenes">
+                                                @click="verImagen(item.id, item.pat_id, item.study_iuid)"
+                                                title="Ver imagenes">
                                                 <i class="fa fa-file-photo-o"></i>
                                             </button>
+
                                         </td>
                                     </tr>
                                 </tbody>
@@ -123,7 +131,7 @@
             </div>
         </div>
         <!-- ============================================================== -->
-        <!-- End PAge Content -->
+        <!-- End Page Content -->
         <!-- ============================================================== -->
 
         <!-- ============================================================== -->
@@ -433,10 +441,7 @@ export default {
         this.listarDiagnosticos();
         this.establecerSede();
         this.emitter.on("sedeSeleccionada", (data) => {
-            console.log('********* Asignar Estudio ***********');
-            console.log(data.msg)
-            //sessionStorage.setItem('ST-sede', data.msg)
-            this.registro.sede_id = data.msg;
+            this.registro.sede_id = data.idSede;
             this.establecerSede();
             $("#example23").DataTable().destroy();
         });
@@ -448,60 +453,88 @@ export default {
             registros: [],
             tituloModal: "Nuevo registro",
             registro: {
-                study_pk: "",
-                study_iuid: "",
-                study_datetime: "",
-                study_id: "",
-                accession_no: "",
-                study_desc: "",
-                observaciones: "",
-                medico_id: "",
-                prioridad_id: "",
-                sede_id: this.sedeActual,
-                quien_registro_id: this.usuarioactual.id,
-                num_docu: "",
-                nombres: "",
-                sexo: "",
-                fec_naci: "",
-                email: "",
-                direccion: "",
-                telefono: "",
-                productosEstudio: [],
-                diagnosticosEstudio: [],
+                study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", observaciones: "", medico_id: "", prioridad_id: "", sede_id: this.sedeActual,
+                quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", direccion: "", telefono: "", productosEstudio: [], diagnosticosEstudio: []
             },
-            busqueda: { bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "", sedeActual: this.sedeActual },
+            busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "" },
             errores: {},
+            erroresBusqueda: {},
             medicos: [],
             prioridades: [], //Listo las prioridades
             productos: [], //Listo todos los productos
             diagnosticos: [], //Listo todos los diagnosticos
             productoSelecciondo: "",
             diagnosticoSelecciondo: "",
-            sedeActual: 0
+            sedeActual: sessionStorage.getItem('ST-sede')
         };
     },
     methods: {
         async buscarStudy() {
             try {
 
-                if (this.busqueda.fehc_ini == "") {
-                    alert("Debe establece la fecha de inicio")
+                if (sessionStorage.getItem('ST-sede') == null) {
+                    //swal("Oops!!!!", 'Debe establece la sede en la cual vas a trabajar.', "warning");
+                    $.toast({
+                        heading: "Ok!!!",
+                        text: 'Debe establece la sede en la cual vas a trabajar.',
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "warning",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                } else if (this.busqueda.fehc_ini == "" || this.busqueda.fehc_fin == "") {
+                    //swal("Oops!!!!", 'Debe establece la fecha de inicio.', "warning");
+                    $.toast({
+                        heading: "Ok!!!",
+                        text: 'Debe establece la fecha de inicio o finalización para la busqueda.',
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "warning",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
                 } else {
                     const res = await axios.post("/study.listarEstudios", this.busqueda);
+                    if (res.status == 200) {
+                        $("#example23").DataTable().destroy();
 
-                    $("#example23").DataTable().destroy();
+                        this.registros = res.data;
 
-                    this.registros = res.data;
-
-                    this.$nextTick(() => {
-                        $("#example23").DataTable({
-                            dom: "Bfrtip",
-                            buttons: ["copy", "csv", "excel", "pdf", "print"],
+                        this.$nextTick(() => {
+                            $("#example23").DataTable({
+                                dom: "Bfrtip",
+                                buttons: ["copy", "csv", "excel", "pdf", "print"],
+                            });
                         });
-                    });
+                    } else if (res.status == 500) {
+                        console.log(res.data.message);
+                        $.toast({
+                            heading: "Ok!!!",
+                            text: res.data.message,
+                            position: "top-right",
+                            loaderBg: "#ff6849",
+                            icon: "danger",
+                            hideAfter: 3500,
+                            stack: 6,
+                        });
+                    }
                 }
             } catch (error) {
-                this.errores = error.response.data.errors;
+                if (error.response.status == 500) {
+                    $.toast({
+                        heading: "Upss!!!",
+                        text: error.response.data.message,
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "error",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                }
+                console.log(error.response.status);
+                console.log(error.response.data.message);
+                this.erroresBusqueda = error.response.data.errors;
             }
         },
         async guardarRegistro() {
@@ -548,16 +581,9 @@ export default {
         establecerSede() {
 
             this.registro.sede_id = sessionStorage.getItem('ST-sede');
-
-            if (this.registro.sede_id === 0 || this.registro.sede_id == null) {
-                sessionStorage.setItem('ST-sede', 1);
-                this.registro.sede_id = sessionStorage.getItem('ST-sede');
-            } else {
-                this.registro.sede_id = sessionStorage.getItem('ST-sede');
-            }
-
-            this.sedeActual = this.registro.sede_id;
-            this.busqueda.sedeActual = this.registro.sede_id;
+            this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
+            /* console.log('***** Asignar Ustudio ******');
+            console.log(this.registro.sede_id) */
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);
@@ -628,6 +654,15 @@ export default {
         },
         quitarDiagnosticoEstudio(indexEliminar) {
             this.registro.diagnosticosEstudio.splice(indexEliminar, 1);
+        },
+        verImagen(id, pat_id, study_iuid) {
+            console.log(sessionStorage.getItem('ST-urlsede'));
+            console.log(sessionStorage.getItem('ST-servername'));
+
+            let Url = sessionStorage.getItem('ST-urlsede') + '?patientID =' + pat_id + '&studyUID=' + study_iuid + '&serverName=' + sessionStorage.getItem('ST-servername')
+            console.log(Url);
+
+            window.open(Url, '_blank');
         },
     },
 };
