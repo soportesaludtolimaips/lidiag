@@ -91,7 +91,7 @@
 </head>
 
 <body style="margin: 0; padding: 0; width: 100%; word-break: break-word; -webkit-font-smoothing: antialiased; --bg-opacity: 1; background-color: #eceff1; background-color: rgba(236, 239, 241, var(--bg-opacity));">
-    <div style="display: none;">Correo notificacion de asignación de lectura</div>
+    <div style="display: none;">Correo notificación de asignación de lectura</div>
     <div role="article" aria-roledescription="email" aria-label="Promotional Mail" lang="en">
         <table style="font-family: Montserrat, -apple-system, 'Segoe UI', sans-serif; width: 100%;" width="100%" cellpadding="0" cellspacing="0" role="presentation">
             <tr>

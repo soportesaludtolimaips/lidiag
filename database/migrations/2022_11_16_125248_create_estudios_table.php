@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('study_iuid', 100);
             $table->string('study_id', 50);
             $table->dateTime('fec_estudio');
-            $table->string('accession_no', 150);
+            $table->string('accession_no', 150)->nullable();
             $table->string('study_desc', 250)->nullable();
 
             $table->unsignedBigInteger('paciente_id');

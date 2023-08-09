@@ -93,7 +93,7 @@ class EstudioController extends Controller
         $prioridadEstudio = $estudio->prioridad;
 
         if ($request->email != "") {
-            $mailable = new NotificacionAsignacionDeLectura($paciente, $estudio, $prioridadEstudio, $sedeEstudio);
+            $mailable = new NotificacionAsignacionDeLectura($paciente, $estudio);
             Mail::to($request->email)->send($mailable);
         }
 

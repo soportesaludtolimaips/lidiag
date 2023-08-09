@@ -12,19 +12,17 @@ use Illuminate\Queue\SerializesModels;
 class NotificacionAsignacionDeLectura extends Mailable
 {
     use Queueable, SerializesModels;
-    protected $estudio, $paciente, $sedeEstudio, $prioridadEstudio;
+    protected $paciente, $estudio;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($paciente, $estudio, $sedeEstudio, $prioridadEstudio)
+    public function __construct($paciente, $estudio)
     {
         $this->paciente = $paciente;
         $this->estudio = $estudio;
-        $this->sedeEstudio = $sedeEstudio;
-        $this->prioridadEstudio = $prioridadEstudio;
     }
 
     /**
@@ -35,7 +33,7 @@ class NotificacionAsignacionDeLectura extends Mailable
     public function envelope()
     {
         return new Envelope(
-            subject: 'Notificacion Asignacion De Lectura',
+            subject: 'Notificacion: Asignación De Lectura',
             metadata: [
                 'paciente_id' => $this->paciente->id,
                 'num_docu' => $this->paciente->num_docu,
@@ -56,7 +54,7 @@ class NotificacionAsignacionDeLectura extends Mailable
     {
         return new Content(
             view: 'modulos.notificaciones-email.notificacion-aignacion-lectura',
-            with: ['paciente' => $this->paciente, 'estudio' => $this->estudio, 'sedeEstudio' => $this->sedeEstudio, 'prioridadEstudio' => $this->prioridadEstudio]
+            with: ['paciente' => $this->paciente, 'estudio' => $this->estudio, 'sedeEstudio' => $this->estudio->sede, 'prioridadEstudio' => $this->estudio->prioridad]
         );
     }
 
