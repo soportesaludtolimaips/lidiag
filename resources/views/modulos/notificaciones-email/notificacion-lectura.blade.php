@@ -117,7 +117,7 @@
                                             <p style="margin: 0 0 24px;">
                                                 Es un gusto para nosotros informarte que ya esta listo el reporte de la lectura del estudio
                                                 <span style="font-weight: 600;">{{ $estudio->study_desc }}</span> realizado en la fecha
-                                                <span style="font-weight: 600;">{{ $estudio->fec_estudio }}</span> en nuestra sucursal de {{ $sucursalEstudio->sucursal }}
+                                                <span style="font-weight: 600;">{{ $estudio->fec_estudio }}</span> en nuestra sede de {{ $sedeEstudio->nom_sede }}
                                             </p>
                                             <p class="sm-leading-32" style="font-weight: 600; font-size: 20px; margin: 0 0 24px; --text-opacity: 1; color: #263238; color: rgba(38, 50, 56, var(--text-opacity));">
                                                 Gracias por confiar en nosotros.

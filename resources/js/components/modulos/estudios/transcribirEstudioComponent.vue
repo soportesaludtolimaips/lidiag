@@ -93,7 +93,16 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="(item, index) in registros" :key="index">
-                                        <td width="2%" class="badge-danger"></td>
+                                        <td width="2%">
+                                            <button type="button" v-if="item.priori_id == 1"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">A</button>
+                                            <button type="button" v-else-if="item.priori_id == 2"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm btn-warning">M</button>
+                                            <button type="button" v-else-if="item.priori_id == 3"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm btn-info">B</button>
+                                            <button type="button" v-else="item.priori_id == 4"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm">S</button>
+                                        </td>
                                         <td>{{ item.nom_sucur }}</td>
                                         <td>{{ item.fec_estudio }}</td>
                                         <td>{{ item.quien_registro }}</td>
@@ -386,8 +395,8 @@ export default {
                         stack: 6,
                     });
 
-                    this.listarPendientesTrascribir()
-                    this.btnCerralModalForm();
+                    /* this.listarPendientesTrascribir()
+                    this.btnCerralModalForm(); */
                 }
             } catch (error) {
                 console.log(error);
@@ -395,7 +404,7 @@ export default {
             }
         },
         mostrarRegistro(data = {}) {
-            console.log(data);
+
             this.tituloModal = "Transcribir la lectura del paciente: " + data.nom_pacien;
             this.registro.id_estudio = data.id;
             this.registro.id_producto_lectura = data.id_producto_lectura;
@@ -403,7 +412,6 @@ export default {
             this.registro.accession_no = data.accession_no;
             this.registro.study_desc = data.study_desc;
             this.registro.lectura = data.lectura;
-            this.registro.id_producto_lectura = id_producto_lectura;
 
             this.registro.num_docu = data.num_docu;
             this.registro.nom_pacien = data.nom_pacien;

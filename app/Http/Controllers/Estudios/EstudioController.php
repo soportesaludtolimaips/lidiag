@@ -140,7 +140,7 @@ class EstudioController extends Controller
             'priori.nom_priori',
             'priori.nivel AS priori_nivel',
             'priori.tiempo AS priori_tiempo',
-            'priori.style',
+
             'sesde.nom_sede as nom_sede'
         )->join('pacientes AS pacien', 'estudios.paciente_id',  '=', 'pacien.id')
             ->join('config_sedes AS sesde', 'estudios.sede_id', '=', 'sesde.id')
@@ -180,6 +180,7 @@ class EstudioController extends Controller
             'produc.fechor_lectura',
             'produc.lectura',
             'users.name AS quien_registro',
+            'priori.id as priori_id',
             'priori.nom_priori',
             'priori.nivel AS priori_nivel',
             'priori.tiempo AS priori_tiempo',
@@ -222,11 +223,8 @@ class EstudioController extends Controller
 
         $estudio = Estudio::findOrFail($request->id_estudio);
 
-        $sedeEstudio = $estudio->sede;
-        $prioridadEstudio = $estudio->prioridad;
-        return $request->email;
         if ($request->email != "") {
-            $mailable = new NotificacionDeLectura($paciente, $estudio, $prioridadEstudio, $sedeEstudio);
+            $mailable = new NotificacionDeLectura($paciente, $estudio);
             Mail::to($request->email)->send($mailable);
         }
 

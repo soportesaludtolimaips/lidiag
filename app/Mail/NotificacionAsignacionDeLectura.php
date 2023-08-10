@@ -35,12 +35,10 @@ class NotificacionAsignacionDeLectura extends Mailable
         return new Envelope(
             subject: 'Notificacion: Asignación De Lectura',
             metadata: [
-                'paciente_id' => $this->paciente->id,
                 'num_docu' => $this->paciente->num_docu,
                 'nombres' => $this->paciente->nombres,
                 'study_id' => $this->estudio->id,
                 'fec_estudio' => $this->estudio->fec_estudio,
-                'accession_no' => $this->estudio->accession_no,
             ],
         );
     }

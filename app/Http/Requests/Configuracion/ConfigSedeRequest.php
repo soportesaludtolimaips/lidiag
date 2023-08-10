@@ -4,7 +4,7 @@ namespace App\Http\Requests\Configuracion;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ConfigsedeRequest extends FormRequest
+class ConfigSedeRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

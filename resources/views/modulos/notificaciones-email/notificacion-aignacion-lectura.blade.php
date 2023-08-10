@@ -120,7 +120,7 @@
                                                 <span style="font-weight: 600;">{{ $estudio->fec_estudio }}</span> en nuestra sede de {{ $sedeEstudio->nom_sede }}
                                             </p>
                                             <p style="margin: 0 0 24px;">
-                                                En un tiempo aproximado de <span style="font-weight: 600;">{{ $prioridadEstudio->tiempo }} {{ $prioridadEstudio->tipo_tiempo }}</span> té notificaremos por este medio del resultado de la lectura
+                                                En un tiempo aproximado de <span style="font-weight: 600;">{{ $prioridadEstudio->tiempo }} {{ $prioridadEstudio->tipo_tiempo }}</span> té notificaremos por este medio del resultado de tu lectura
                                             </p>
                                             <p class="sm-leading-32" style="font-weight: 600; font-size: 20px; margin: 0 0 24px; --text-opacity: 1; color: #263238; color: rgba(38, 50, 56, var(--text-opacity));">
                                                 Gracias por confiar en nosotros.

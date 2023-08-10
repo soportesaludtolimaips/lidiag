@@ -12,18 +12,16 @@ use Illuminate\Queue\SerializesModels;
 class NotificacionDeLectura extends Mailable
 {
     use Queueable, SerializesModels;
-
+    protected $paciente, $estudio;
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($paciente, $estudio, $sucursalEstudio, $prioridadEstudio)
+    public function __construct($paciente, $estudio)
     {
         $this->paciente = $paciente;
         $this->estudio = $estudio;
-        $this->sucursalEstudio = $sucursalEstudio;
-        $this->prioridadEstudio = $prioridadEstudio;
     }
 
     /**
@@ -33,15 +31,14 @@ class NotificacionDeLectura extends Mailable
      */
     public function envelope()
     {
+
         return new Envelope(
-            subject: 'Notificacion De Lectura',
+            subject: 'Notificación: Reporte de lectura de imagen diagnostica disponible',
             metadata: [
-                'paciente_id' => $this->paciente->id,
                 'num_docu' => $this->paciente->num_docu,
                 'nombres' => $this->paciente->nombres,
                 'study_id' => $this->estudio->id,
                 'fec_estudio' => $this->estudio->fec_estudio,
-                'accession_no' => $this->estudio->accession_no,
             ],
         );
     }
@@ -54,8 +51,8 @@ class NotificacionDeLectura extends Mailable
     public function content()
     {
         return new Content(
-            view: 'notificaciones-email.notificacion-aignacion-lectura',
-            with: ['paciente' => $this->paciente, 'estudio' => $this->estudio, 'sucursalEstudio' => $this->sucursalEstudio, 'prioridadEstudio' => $this->prioridadEstudio]
+            view: 'modulos.notificaciones-email.notificacion-lectura',
+            with: ['paciente' => $this->paciente, 'estudio' => $this->estudio, 'sedeEstudio' => $this->estudio->sede, 'prioridadEstudio' => $this->estudio->prioridad]
         );
     }
 
