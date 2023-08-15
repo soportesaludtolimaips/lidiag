@@ -16,6 +16,8 @@ return new class extends Migration
         Schema::create('config_sedes', function (Blueprint $table) {
             $table->id();
             $table->string('nom_sede', 70);
+            $table->string('dir', 100)->nullable();
+            $table->string('logo', 100)->nullable();
             $table->string('ip_dcm', 15)->nullable();
             $table->string('bd_dcm', 50)->nullable();
             $table->string('usuario_dcm', 30)->nullable();

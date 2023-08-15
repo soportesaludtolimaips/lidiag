@@ -110,14 +110,14 @@
                                     <tr>
                                         <td class="sm-px-24" style="--bg-opacity: 1; background-color: #ffffff; background-color: rgba(255, 255, 255, var(--bg-opacity)); border-radius: 4px; font-family: Montserrat, -apple-system, 'Segoe UI', sans-serif; font-size: 14px; line-height: 24px; padding: 48px; text-align: left; --text-opacity: 1; color: #626262; color: rgba(98, 98, 98, var(--text-opacity));" bgcolor="rgba(255, 255, 255, var(--bg-opacity))" align="left">
                                             <p style="font-weight: 600; font-size: 18px; margin-bottom: 0;">Hola</p>
-                                            <p style="font-weight: 700; font-size: 20px; margin-top: 0; --text-opacity: 1; color: #ff5850; color: rgba(255, 88, 80, var(--text-opacity));">{{ $paciente->nombres }}!</p>
+                                            <p style="font-weight: 700; font-size: 20px; margin-top: 0; --text-opacity: 1; color: #ff5850; color: rgba(255, 88, 80, var(--text-opacity));">{{ $reporteLectura->estudio->paciente->nombres }}!</p>
                                             <p class="sm-leading-32" style="font-weight: 600; font-size: 20px; margin: 0 0 24px; --text-opacity: 1; color: #263238; color: rgba(38, 50, 56, var(--text-opacity));">
                                                 Reporte de lectura!
                                             </p>
                                             <p style="margin: 0 0 24px;">
-                                                Es un gusto para nosotros informarte que ya esta listo el reporte de la lectura del estudio
-                                                <span style="font-weight: 600;">{{ $estudio->study_desc }}</span> realizado en la fecha
-                                                <span style="font-weight: 600;">{{ $estudio->fec_estudio }}</span> en nuestra sede de {{ $sedeEstudio->nom_sede }}
+                                                Es un gusto para nosotros informarte que ya esta listo el reporte de la lectura del estudio <span style="font-weight: 600;">{{ $reporteLectura->nom_produc }}</span>,
+                                                <span style="font-weight: 600;">{{ $reporteLectura->study_desc }}</span> realizado en la fecha
+                                                <span style="font-weight: 600;">{{ $reporteLectura->estudio->fec_estudio }}</span> en nuestra sede de <span style="font-weight: 600;">{{ $reporteLectura->estudio->sede->nom_sede }}</span>
                                             </p>
                                             <p class="sm-leading-32" style="font-weight: 600; font-size: 20px; margin: 0 0 24px; --text-opacity: 1; color: #263238; color: rgba(38, 50, 56, var(--text-opacity));">
                                                 Gracias por confiar en nosotros.

@@ -16,7 +16,7 @@ class EstudioProducto extends Model
 
     public function estudio()
     {
-        return $this->hasOne(Estudio::class);
+        return $this->belongsTo(Estudio::class, 'estudio_id');
     }
 
     public function transcriptor()

@@ -382,10 +382,10 @@ export default {
         },
         async guardarRegistro() {
 
-            const res = await axios.get('http://lidiag-reportes.test/api/estudios');
-            console.log(res);
+            /* const res = await axios.get('http://lidiag-reportes.test/api/estudios');
+            console.log(res); */
 
-            /* try {
+            try {
                 const res = await axios.post('/estudio-guardarTranscripcion', this.registro);
                 console.log(res);
                 if (res.status == 200) {
@@ -398,16 +398,17 @@ export default {
                         hideAfter: 3500,
                         stack: 6,
                     });
+
+
+                    /* this.listarPendientesTrascribir()
+                    this.btnCerralModalForm();
                     */
 
-            /* this.listarPendientesTrascribir()
-            this.btnCerralModalForm(); */
-            /*
+                }
+            } catch (error) {
+                console.log(error);
+                this.errores = error.response.data.errors;
             }
-            } catch(error) {
-            console.log(error);
-            this.errores = error.response.data.errors;
-            } */
         },
         mostrarRegistro(data = {}) {
 
@@ -444,7 +445,7 @@ export default {
 };
 
 /* $(function () {
-    $('.textarea_editor').wysihtml5();
+$('.textarea_editor').wysihtml5();
 }); */
 </script>
 

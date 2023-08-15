@@ -12,16 +12,15 @@ use Illuminate\Queue\SerializesModels;
 class NotificacionDeLectura extends Mailable
 {
     use Queueable, SerializesModels;
-    protected $paciente, $estudio;
+    protected $reporteLectura;
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($paciente, $estudio)
+    public function __construct($reporteLectura)
     {
-        $this->paciente = $paciente;
-        $this->estudio = $estudio;
+        $this->reporteLectura = $reporteLectura;
     }
 
     /**
@@ -35,10 +34,9 @@ class NotificacionDeLectura extends Mailable
         return new Envelope(
             subject: 'Notificación: Reporte de lectura de imagen diagnostica disponible',
             metadata: [
-                'num_docu' => $this->paciente->num_docu,
-                'nombres' => $this->paciente->nombres,
-                'study_id' => $this->estudio->id,
-                'fec_estudio' => $this->estudio->fec_estudio,
+                'num_docu' => $this->reporteLectura->estudio->paciente->num_docu,
+                'nombres' => $this->reporteLectura->estudio->paciente->nombres,
+                'fec_estudio' => $this->reporteLectura->estudio->fec_estudio,
             ],
         );
     }
@@ -52,7 +50,7 @@ class NotificacionDeLectura extends Mailable
     {
         return new Content(
             view: 'modulos.notificaciones-email.notificacion-lectura',
-            with: ['paciente' => $this->paciente, 'estudio' => $this->estudio, 'sedeEstudio' => $this->estudio->sede, 'prioridadEstudio' => $this->estudio->prioridad]
+            with: ['reporteLectura' => $this->reporteLectura]
         );
     }
 
@@ -63,6 +61,6 @@ class NotificacionDeLectura extends Mailable
      */
     public function attachments()
     {
-        return [];
+        return [public_path('reporte_lecturas/' . $this->reporteLectura->estudio->id . '.pdf')];
     }
 }

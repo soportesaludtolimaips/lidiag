@@ -11,9 +11,11 @@ use App\Models\General\Paciente;
 use App\Models\Estudio\Estudio;
 use App\Models\Estudio\EstudioDiagnostico;
 use App\Models\Estudio\EstudioProducto;
+use Dompdf\Dompdf;
 use Illuminate\Http\Request;
 use Mail;
 use Illuminate\Support\Carbon;
+use App\Http\Controllers\Reportes\ResporteLecturaController;
 
 class EstudioController extends Controller
 {
@@ -215,18 +217,41 @@ class EstudioController extends Controller
             ]
         );
 
-        $transcribir = EstudioProducto::findOrFail($request->id_producto_lectura);
-        $transcribir->lectura = $request->lectura;
-        $transcribir->transcriptor_id = auth()->user()->id;
-        $transcribir->fechor_trascrito = Carbon::now();
-        $transcribir->save();
 
-        $estudio = Estudio::findOrFail($request->id_estudio);
 
-        if ($request->email != "") {
-            $mailable = new NotificacionDeLectura($paciente, $estudio);
+
+
+        //return $transcribirEstudios;
+        /* $data = [
+            'estudio' => $transcribirEstudios
+        ];
+
+        $pdf = app('dompdf.wrapper');
+        $pdf->loadView('modulos.reportes.reportes-lecturas.resporte-lectura', $data)->save(storage_path('app/reporte_lecturas/') . $transcribirEstudios->estudio->id . '.pdf'); */
+
+        /**
+         * Actualizo la lectura del estudio
+         */
+        /* $transcribirEstudios = EstudioProducto::findOrFail($request->id_producto_lectura);
+        $transcribirEstudios->lectura = $request->lectura;
+        $transcribirEstudios->transcriptor_id = auth()->user()->id;
+        $transcribirEstudios->fechor_trascrito = Carbon::now();
+        $transcribirEstudios->save(); */
+
+        /**
+         * Genero el PDF del reporte de la lectura del estudio
+         */
+        $reporteLectura = EstudioProducto::with('estudio.paciente')->with('estudio.medico')->with('estudio.sede')->findOrFail($request->id_producto_lectura);
+        $generarReporte = new ResporteLecturaController($reporteLectura);
+        $generarReporte->generar_reporte();
+
+        /**
+         * Envio el email con la lectura del estudio
+         */
+        /* if ($request->email != "") {
+            $mailable = new NotificacionDeLectura($reporteLectura);
             Mail::to($request->email)->send($mailable);
-        }
+        } */
 
         return response()->json(['message' => 'La transcripción se guardo correctamente.']);
     }
