@@ -16,6 +16,7 @@ return [
     */
 
     'name' => env('APP_NAME', 'LIDiag'),
+    'url_api_reportes' => env('URL_API_REPORTES', 'http://lidiag-reportes.test/'),
 
     /*
     |--------------------------------------------------------------------------

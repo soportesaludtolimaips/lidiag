@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Estudios;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Estudio\EstudioAsignarRequest;
 use App\Http\Requests\Estudio\estudioLeerRequest;
 use App\Mail\NotificacionAsignacionDeLectura;
 use App\Mail\NotificacionDeLectura;
@@ -11,11 +10,11 @@ use App\Models\General\Paciente;
 use App\Models\Estudio\Estudio;
 use App\Models\Estudio\EstudioDiagnostico;
 use App\Models\Estudio\EstudioProducto;
-use Dompdf\Dompdf;
 use Illuminate\Http\Request;
 use Mail;
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\Reportes\ResporteLecturaController;
+use Illuminate\Support\Facades\Http;
 
 class EstudioController extends Controller
 {
@@ -91,8 +90,8 @@ class EstudioController extends Controller
             ]);
         }
 
-        $sedeEstudio = $estudio->sede;
-        $prioridadEstudio = $estudio->prioridad;
+        /* $sedeEstudio = $estudio->sede;
+        $prioridadEstudio = $estudio->prioridad; */
 
         if ($request->email != "") {
             $mailable = new NotificacionAsignacionDeLectura($paciente, $estudio);
@@ -218,17 +217,6 @@ class EstudioController extends Controller
         );
 
 
-
-
-
-        //return $transcribirEstudios;
-        /* $data = [
-            'estudio' => $transcribirEstudios
-        ];
-
-        $pdf = app('dompdf.wrapper');
-        $pdf->loadView('modulos.reportes.reportes-lecturas.resporte-lectura', $data)->save(storage_path('app/reporte_lecturas/') . $transcribirEstudios->estudio->id . '.pdf'); */
-
         /**
          * Actualizo la lectura del estudio
          */
@@ -245,6 +233,10 @@ class EstudioController extends Controller
         $generarReporte = new ResporteLecturaController($reporteLectura);
         $generarReporte->generar_reporte();
 
+        $urlApiReportes = config('app.url_api_reportes') . "api/estudios";
+        $response = Http::post($urlApiReportes, $reporteLectura);
+        return $response;
+
         /**
          * Envio el email con la lectura del estudio
          */
@@ -252,6 +244,8 @@ class EstudioController extends Controller
             $mailable = new NotificacionDeLectura($reporteLectura);
             Mail::to($request->email)->send($mailable);
         } */
+
+
 
         return response()->json(['message' => 'La transcripción se guardo correctamente.']);
     }
