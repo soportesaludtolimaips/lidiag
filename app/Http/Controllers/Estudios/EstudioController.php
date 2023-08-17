@@ -233,17 +233,17 @@ class EstudioController extends Controller
         $generarReporte = new ResporteLecturaController($reporteLectura);
         $generarReporte->generar_reporte();
 
-        $urlApiReportes = config('app.url_api_reportes') . "api/estudios";
+        /* $urlApiReportes = config('app.url_api_reportes') . "api/estudios";
         $response = Http::post($urlApiReportes, $reporteLectura);
-        return $response;
+        return $response; */
 
         /**
          * Envio el email con la lectura del estudio
          */
-        /* if ($request->email != "") {
+        if ($request->email != "") {
             $mailable = new NotificacionDeLectura($reporteLectura);
             Mail::to($request->email)->send($mailable);
-        } */
+        }
 
 
 

@@ -3,9 +3,9 @@ import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
-    server: {
+    /* server: {
         host: '172.16.8.185',  // Add this to force IPv4 only
-    },
+    }, */
     plugins: [
         laravel({
             input: [
