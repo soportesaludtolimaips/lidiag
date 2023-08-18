@@ -15,6 +15,8 @@ use Mail;
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\Reportes\ResporteLecturaController;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Http\File;
+use Illuminate\Support\Facades\Storage;
 
 class EstudioController extends Controller
 {
@@ -236,18 +238,32 @@ class EstudioController extends Controller
         $generarReporte->generar_reporte();
 
         $urlApiReportes = config('app.url_api_reportes') . "api/estudios";
-        $response = Http::post($urlApiReportes, $reporteLectura);
-        return $response;
+        $archivoPath = storage_path('app/reporte_lecturas/' . $nomArchivoReporte);
 
-        /**
-         * Envio el email con el adjunto del reporte de la lectura del estudio
-         */
-        if ($request->email != "") {
-            $mailable = new NotificacionDeLectura($reporteLectura, $nomArchivoReporte);
-            Mail::to($request->email)->send($mailable);
+        //$response = Http::post($urlApiReportes, $reporteLectura);
+
+        $response = Http::attach(
+            'archivo',  // Nombre del campo de archivo en la API
+            file_get_contents($archivoPath),
+            'nombre-archivo'  // Nombre del archivo en la API
+        )->post($urlApiReportes);
+
+        if ($response->successful()) {
+            return "Archivo enviado exitosamente a la API";
+        } else {
+            return "Error al enviar el archivo: " . $response->body();
         }
 
 
+        return $response;
+
+        /**
+         * Envio de email con el adjunto del reporte de la lectura del estudio
+         */
+        if ($request->email != "") {
+            $mailable = new NotificacionDeLectura($reporteLectura, fopen(storage_path('app/reporte_lecturas/') . $this->nomArchivoReporte), $nomArchivoReporte);
+            Mail::to($request->email)->send($mailable);
+        }
 
         return response()->json(['message' => 'La transcripción se guardo correctamente.']);
     }
