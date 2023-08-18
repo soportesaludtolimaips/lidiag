@@ -229,19 +229,21 @@ class EstudioController extends Controller
         /**
          * Genero el PDF del reporte de la lectura del estudio
          */
+
         $reporteLectura = EstudioProducto::with('estudio.paciente')->with('estudio.medico')->with('estudio.sede')->findOrFail($request->id_producto_lectura);
-        $generarReporte = new ResporteLecturaController($reporteLectura);
+        $nomArchivoReporte = $reporteLectura->id . "-" . $reporteLectura->estudio->paciente->num_docu . "-" . $reporteLectura->nom_produc . ".pdf";
+        $generarReporte = new ResporteLecturaController($reporteLectura, $nomArchivoReporte);
         $generarReporte->generar_reporte();
 
-        /* $urlApiReportes = config('app.url_api_reportes') . "api/estudios";
+        $urlApiReportes = config('app.url_api_reportes') . "api/estudios";
         $response = Http::post($urlApiReportes, $reporteLectura);
-        return $response; */
+        return $response;
 
         /**
-         * Envio el email con la lectura del estudio
+         * Envio el email con el adjunto del reporte de la lectura del estudio
          */
         if ($request->email != "") {
-            $mailable = new NotificacionDeLectura($reporteLectura);
+            $mailable = new NotificacionDeLectura($reporteLectura, $nomArchivoReporte);
             Mail::to($request->email)->send($mailable);
         }
 

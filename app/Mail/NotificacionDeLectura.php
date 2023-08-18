@@ -12,15 +12,16 @@ use Illuminate\Queue\SerializesModels;
 class NotificacionDeLectura extends Mailable
 {
     use Queueable, SerializesModels;
-    protected $reporteLectura;
+    protected $reporteLectura, $nomArchivoReporte;
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($reporteLectura)
+    public function __construct($reporteLectura, $nomArchivoReporte)
     {
         $this->reporteLectura = $reporteLectura;
+        $this->nomArchivoReporte = $nomArchivoReporte;
     }
 
     /**
@@ -61,6 +62,6 @@ class NotificacionDeLectura extends Mailable
      */
     public function attachments()
     {
-        return [public_path('reporte_lecturas/' . $this->reporteLectura->estudio->id . '.pdf')];
+        return [public_path('reporte_lecturas/' . $this->nomArchivoReporte)];
     }
 }
