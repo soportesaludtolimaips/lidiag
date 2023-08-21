@@ -15,8 +15,6 @@ use Mail;
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\Reportes\ResporteLecturaController;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Http\File;
-use Illuminate\Support\Facades\Storage;
 
 class EstudioController extends Controller
 {
@@ -205,6 +203,10 @@ class EstudioController extends Controller
 
     public function guardarTranscripcion(Request $request)
     {
+
+        /**
+         * Actualizo los datos del paciente
+         */
         $paciente = Paciente::updateOrCreate(
             ['num_docu' => $request->num_docu],
             [
@@ -218,50 +220,49 @@ class EstudioController extends Controller
             ]
         );
 
-
         /**
          * Actualizo la lectura del estudio
          */
-        /* $transcribirEstudios = EstudioProducto::findOrFail($request->id_producto_lectura);
+        $transcribirEstudios = EstudioProducto::findOrFail($request->id_producto_lectura);
         $transcribirEstudios->lectura = $request->lectura;
         $transcribirEstudios->transcriptor_id = auth()->user()->id;
         $transcribirEstudios->fechor_trascrito = Carbon::now();
-        $transcribirEstudios->save(); */
+        $transcribirEstudios->save();
 
         /**
          * Genero el PDF del reporte de la lectura del estudio
          */
-
         $reporteLectura = EstudioProducto::with('estudio.paciente')->with('estudio.medico')->with('estudio.sede')->findOrFail($request->id_producto_lectura);
         $nomArchivoReporte = $reporteLectura->id . "-" . $reporteLectura->estudio->paciente->num_docu . "-" . $reporteLectura->nom_produc . ".pdf";
         $generarReporte = new ResporteLecturaController($reporteLectura, $nomArchivoReporte);
         $generarReporte->generar_reporte();
 
-        $urlApiReportes = config('app.url_api_reportes') . "api/estudios";
-        $archivoPath = storage_path('app/reporte_lecturas/' . $nomArchivoReporte);
-
-        //$response = Http::post($urlApiReportes, $reporteLectura);
+        /**
+         * Envio la lectura a Lidiag-reportes para que este diponible para la descarga por parte del paciente
+         */
+        $urlApiReportes = config('app.url_api_reportes') . "api/almacenarLectura";
 
         $response = Http::attach(
-            'archivo',  // Nombre del campo de archivo en la API
-            file_get_contents($archivoPath),
-            'nombre-archivo'  // Nombre del archivo en la API
-        )->post($urlApiReportes);
-
-        if ($response->successful()) {
-            return "Archivo enviado exitosamente a la API";
-        } else {
-            return "Error al enviar el archivo: " . $response->body();
-        }
-
-
-        return $response;
+            'file_reporte',
+            file_get_contents(storage_path('app/reporte_lecturas/' . $nomArchivoReporte)),
+            $nomArchivoReporte
+        )->post($urlApiReportes, [
+            'num_docu' => $request->num_docu,
+            'name' => $request->nom_pacien,
+            'fec_naci' => $request->fec_naci,
+            'study_iuid' => $reporteLectura->estudio->study_iuid,
+            'nom_produc' => $reporteLectura->nom_produc,
+            'fechor_lectura' => $reporteLectura->fechor_lectura,
+            'nom_sede' => $reporteLectura->estudio->sede->nom_sede,
+            'url_oviyam' => $reporteLectura->estudio->sede->url_oviyam,
+            'tap_oviyam' => $reporteLectura->estudio->sede->tap_oviyam,
+        ]);
 
         /**
          * Envio de email con el adjunto del reporte de la lectura del estudio
          */
         if ($request->email != "") {
-            $mailable = new NotificacionDeLectura($reporteLectura, fopen(storage_path('app/reporte_lecturas/') . $this->nomArchivoReporte), $nomArchivoReporte);
+            $mailable = new NotificacionDeLectura($reporteLectura, $nomArchivoReporte);
             Mail::to($request->email)->send($mailable);
         }
 

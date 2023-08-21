@@ -17,6 +17,7 @@ return [
 
     'name' => env('APP_NAME', 'LIDiag'),
     'url_api_reportes' => env('URL_API_REPORTES', 'http://lidiag-reportes.test/'),
+    'password_api_reportes' => env('PASSWORD_API_REPORTES', 'KJD6&.gfg63"@'),
 
     /*
     |--------------------------------------------------------------------------

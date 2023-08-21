@@ -382,7 +382,7 @@ export default {
         },
         async guardarRegistro() {
 
-            /* const res = await axios.get('http://lidiag-reportes.test/api/estudios');
+            /* const res = await axios.post('http://lidiag-reportes.test/estudios', this.registro);
             console.log(res); */
 
             try {
@@ -399,11 +399,8 @@ export default {
                         stack: 6,
                     });
 
-
                     /* this.listarPendientesTrascribir()
-                    this.btnCerralModalForm();
-                    */
-
+                    this.btnCerralModalForm(); */
                 }
             } catch (error) {
                 console.log(error);
