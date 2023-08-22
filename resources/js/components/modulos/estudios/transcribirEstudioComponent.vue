@@ -382,9 +382,6 @@ export default {
         },
         async guardarRegistro() {
 
-            /* const res = await axios.post('http://lidiag-reportes.test/estudios', this.registro);
-            console.log(res); */
-
             try {
                 const res = await axios.post('/estudio-guardarTranscripcion', this.registro);
 
