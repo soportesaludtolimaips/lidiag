@@ -557,7 +557,7 @@ export default {
             }
         },
         mostrarRegistro(data = {}) {
-            console.log(data)
+
             this.tituloModal = "Agendar al paciente: " + data.pat_name;
             this.id = data.id;
             this.registro.study_pk = data.study_pk;
@@ -573,7 +573,6 @@ export default {
             this.registro.fec_naci = data.pat_birthdate;
 
             this.btnCerralModalForm();
-
         },
         establecerSede() {
 
@@ -597,8 +596,11 @@ export default {
             this.registro.sexo = '';
             this.registro.fec_naci = '';
 
-            this.registro.diagnosticosEstudio = [];
-            this.registro.productosEstudio = [];
+            this.registro.diagnosticosEstudio.splice(0, this.registro.diagnosticosEstudio.length);
+            this.registro.productosEstudio.splice(0, this.registro.productosEstudio.length);
+
+            this.istarMedicos();
+            this.listarPrioridades();
         },
         async listarMedicos() {
             try {
