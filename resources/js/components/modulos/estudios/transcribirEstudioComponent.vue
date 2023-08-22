@@ -399,8 +399,8 @@ export default {
                         stack: 6,
                     });
 
-                    /* this.listarPendientesTrascribir()
-                    this.btnCerralModalForm(); */
+                    this.listarPendientesTrascribir()
+                    this.btnCerralModalForm();
                 }
             } catch (error) {
                 console.log(error);
