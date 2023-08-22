@@ -303,10 +303,6 @@ export default {
                 const res = await axios.get('/config-sedes/listarSedesActivas');
                 this.sedes = res.data;
 
-                /* console.log('***** User Profile - Listar sedes ******');
-                console.log(sessionStorage.getItem('ST-sede'))
-                console.log(sessionStorage.getItem('ST-nomsede')) */
-
                 this.sedeSeleccionada = sessionStorage.getItem('ST-sede');
                 this.nomSedeSeleccionada = sessionStorage.getItem('ST-nomsede');
                 this.urlSedeSeleccionada = sessionStorage.getItem('ST-urlsede');
@@ -318,7 +314,6 @@ export default {
         async estableserSede() {
 
             const res = await axios.get('/config-sedes/' + this.sedeSeleccionada + '/buscarPorId');
-            console.log(res.data.url_oviyam);
 
             this.nomSedeSeleccionada = $('select[name="sedes"] option:selected').text();
             this.urlSedeSeleccionada = res.data.url_oviyam;
@@ -329,10 +324,6 @@ export default {
             sessionStorage.setItem('ST-urlsede', res.data.url_oviyam);
             sessionStorage.setItem('ST-servername', res.data.tap_oviyam);
 
-            console.log(this.nomSedeSeleccionada)
-
-            /* console.log('***** User Profile ******');
-            console.log(this.sedeSeleccionada) */
             this.emitter.emit("sedeSeleccionada", { idSede: this.sedeSeleccionada, nomSede: this.nomSedeSeleccionada, url: this.urlSedeSeleccionada, serverName: this.serverNameSeleccionada });
         }
     }

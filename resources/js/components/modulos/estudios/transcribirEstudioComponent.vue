@@ -387,7 +387,7 @@ export default {
 
             try {
                 const res = await axios.post('/estudio-guardarTranscripcion', this.registro);
-                console.log(res);
+
                 if (res.status == 200) {
                     $.toast({
                         heading: "Ok!!!",
