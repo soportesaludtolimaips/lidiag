@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Mail;
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\Reportes\ResporteLecturaController;
+use App\Http\Requests\Estudio\estudioAsignarRequest;
 use Illuminate\Support\Facades\Http;
 
 class EstudioController extends Controller
@@ -35,7 +36,7 @@ class EstudioController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(estudioAsignarRequest $request)
     {
 
         $nombrePaciente = str_replace('^^^', '', $request->nombres);

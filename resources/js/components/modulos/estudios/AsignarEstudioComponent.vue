@@ -472,9 +472,8 @@ export default {
             try {
 
                 if (sessionStorage.getItem('ST-sede') == null) {
-                    //swal("Oops!!!!", 'Debe establece la sede en la cual vas a trabajar.', "warning");
                     $.toast({
-                        heading: "Ok!!!",
+                        heading: "Upsss!!!",
                         text: 'Debe establece la sede en la cual vas a trabajar.',
                         position: "top-right",
                         loaderBg: "#ff6849",
@@ -483,9 +482,8 @@ export default {
                         stack: 6,
                     });
                 } else if (this.busqueda.fehc_ini == "" || this.busqueda.fehc_fin == "") {
-                    //swal("Oops!!!!", 'Debe establece la fecha de inicio.', "warning");
                     $.toast({
-                        heading: "Ok!!!",
+                        heading: "Upsss!!!",
                         text: 'Debe establece la fecha de inicio o finalización para la busqueda.',
                         position: "top-right",
                         loaderBg: "#ff6849",
@@ -509,7 +507,7 @@ export default {
                     } else if (res.status == 500) {
                         console.log(res.data.message);
                         $.toast({
-                            heading: "Ok!!!",
+                            heading: "Upsss!!!",
                             text: res.data.message,
                             position: "top-right",
                             loaderBg: "#ff6849",
@@ -531,8 +529,7 @@ export default {
                         stack: 6,
                     });
                 }
-                console.log(error.response.status);
-                console.log(error.response.data.message);
+
                 this.erroresBusqueda = error.response.data.errors;
             }
         },
@@ -552,14 +549,15 @@ export default {
                         stack: 6,
                     });
 
-                    $("#btnCerralModalForm").click();
+                    this.btnCerralModalForm();
+                    this.limpiar();
                 }
             } catch (error) {
                 this.errores = error.response.data.errors;
             }
         },
         mostrarRegistro(data = {}) {
-
+            console.log(data)
             this.tituloModal = "Agendar al paciente: " + data.pat_name;
             this.id = data.id;
             this.registro.study_pk = data.study_pk;
@@ -575,7 +573,7 @@ export default {
             this.registro.fec_naci = data.pat_birthdate;
 
             this.btnCerralModalForm();
-            this.limpiar();
+
         },
         establecerSede() {
 
