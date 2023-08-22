@@ -12,13 +12,9 @@ export default {
     mounted() {
         this.establecerSede();
         this.emitter.on("sedeSeleccionada", (data) => {
-            console.log('********* Footer emitter ***********');
-            console.log(data.idSede)
-            console.log(data.nomSede)
             sessionStorage.setItem('ST-sede', data.idSede)
             sessionStorage.setItem('ST-nomsede', data.nomSede)
             this.nomSede = data.nomSede;
-
         });
     },
     data() {
