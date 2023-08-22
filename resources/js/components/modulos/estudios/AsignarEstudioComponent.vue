@@ -537,7 +537,7 @@ export default {
             }
         },
         async guardarRegistro() {
-            console.log(this.registro)
+
             try {
                 const res = await axios.post("/estudios", this.registro);
 
@@ -555,7 +555,6 @@ export default {
                     $("#btnCerralModalForm").click();
                 }
             } catch (error) {
-                console.log(error);
                 this.errores = error.response.data.errors;
             }
         },
@@ -576,17 +575,32 @@ export default {
             this.registro.fec_naci = data.pat_birthdate;
 
             this.btnCerralModalForm();
+            this.limpiar();
         },
         establecerSede() {
 
             this.registro.sede_id = sessionStorage.getItem('ST-sede');
             this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
-            /* console.log('***** Asignar Ustudio ******');
-            console.log(this.registro.sede_id) */
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);
             $(".right-sidebar").toggleClass("shw-rside");
+        },
+        limpiar() {
+            this.registro.study_pk = '';
+            this.registro.study_iuid = '';
+            this.registro.study_id = '';
+            this.registro.study_datetime = '';
+            this.registro.accession_no = '';
+            this.registro.study_desc = '';
+
+            this.registro.num_docu = '';
+            this.registro.nombres = '';
+            this.registro.sexo = '';
+            this.registro.fec_naci = '';
+
+            this.registro.diagnosticosEstudio = [];
+            this.registro.productosEstudio = [];
         },
         async listarMedicos() {
             try {
