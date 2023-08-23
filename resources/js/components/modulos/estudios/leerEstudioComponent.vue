@@ -99,7 +99,7 @@
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-warning">M</button>
                                             <button type="button" v-else-if="item.priori_id == 3"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-info">B</button>
-                                            <button type="button" v-else="item.priori_id == 4"
+                                            <button type="button" v-else-if="item.priori_id == 4"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm">S</button>
                                         </td>
                                         <td>{{ item.nom_sede }}</td>
@@ -256,10 +256,17 @@
                                         <button type="button" class="btn btn-secondary btn-xs float-right">
                                             <i class="fa fa-file-image-o"></i>
                                         </button>
+
+                                        <a class="btn btn-secondary" :click="procesarConvertirVozTexto()"
+                                            id="mic_motivo_consulta">
+                                            <img id="start_img" title="Grabadora" src="../../../public/dist/img/mic.gif">
+                                        </a>
+                                        <textarea name="motivo_consulta" rows="3"
+                                            class="form-control input-sm motivo_consulta" id="motivo_consulta"
+                                            placeholder="Enter ..."></textarea>
+
                                     </p>
-                                    <span class="text-danger" v-if="errores.lectura">{{
-                                        errores.lectura[0]
-                                    }}</span>
+                                    <span class="text-danger" v-if="errores.lectura">{{ errores.lectura[0] }}</span>
                                     <div class="row">
                                         <div class="col-12">
                                             <div class="form-group">
@@ -293,6 +300,9 @@
 </template>
 
 <script>
+
+//import convertir from '../../../../js/components/modulos/varios/SpeechToText'
+
 export default {
     props: ['usuarioactual'],
     mounted() {
@@ -310,6 +320,9 @@ export default {
         };
     },
     methods: {
+        procesarConvertirVozTexto() {
+            //convertir.procesar();
+        },
         /* async buscarStudy() {
             try {
                 const res = await axios.post('api/study.listarEstudios', this.busqueda);
@@ -335,7 +348,7 @@ export default {
             try {
                 const res = await axios.get("/estudio-listarPendientesMedico?id=" + this.usuarioactual.id);
                 $("#example23").DataTable().destroy();
-                console.log(res.data)
+
                 this.registros = res.data;
 
                 this.$nextTick(() => {
@@ -407,12 +420,6 @@ export default {
             $(".right-sidebar").toggleClass("shw-rside");
         },
     },
-    computed: {
-        estiloPrioridad: function () {
-            this.tipoPrioridad;
-            console.log("Estilo " + this.registro)
-        }
-    }
 };
 
 /* $(function () {

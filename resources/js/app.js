@@ -52,11 +52,12 @@ import leerEstudioComponent from './components/modulos/estudios/leerEstudioCompo
 app.component('leer-estudio-component', leerEstudioComponent);
 import transcribirEstudioComponent from './components/modulos/estudios/transcribirEstudioComponent.vue';
 app.component('transcribir-estudio-component', transcribirEstudioComponent);
-import usuarioComponent from './components/modulos/seguridad/usuarioComponent.vue';
+
 
 /**
  * Seguridad
- */
+*/
+import usuarioComponent from './components/modulos/seguridad/usuarioComponent.vue';
 app.component('usuario-component', usuarioComponent);
 import usuarioPerfil from './components/modulos/seguridad/usuarioPerfil.vue';
 app.component('usuario-perfil-component', usuarioPerfil);
