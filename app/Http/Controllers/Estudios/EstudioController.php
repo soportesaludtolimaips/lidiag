@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
 use App\Http\Controllers\Reportes\ResporteLecturaController;
 use App\Http\Requests\Estudio\estudioAsignarRequest;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Config;
 
 class EstudioController extends Controller
 {

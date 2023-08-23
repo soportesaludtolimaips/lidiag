@@ -26,6 +26,10 @@ return new class extends Migration
             $table->string('password_oviyam', 20)->nullable();
             $table->string('url_oviyam', 100)->nullable();
             $table->string('tap_oviyam', 100)->nullable();
+            $table->string('encabezado', 100)->nullable();
+            $table->string('pie_pagina', 100)->nullable();
+            $table->string('logo_1', 100)->nullable();
+            $table->string('logo_2', 100)->nullable();
             $table->boolean('estado')->default(true)->default(1);
             $table->timestamps();
         });
