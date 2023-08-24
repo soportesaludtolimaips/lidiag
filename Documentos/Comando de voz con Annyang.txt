@@ -1,0 +1,68 @@
+Annyang
+
+"Annyang" is a JavaScript library for adding speech recognition capabilities to web applications. It allows users to control your application through voice commands. Vue.js is a popular JavaScript framework for building user interfaces.
+
+To use Annyang with Vue.js, you would need to integrate the two technologies together. Here's a basic example of how you might do this:
+
+Install Annyang:
+Start by including the Annyang library in your project. You can include it via a CDN or install it using a package manager like npm or yarn.
+
+
+bash
+Copy code
+npm install annyang
+Create a Vue Component:
+Create a Vue component where you'll handle the speech recognition functionality.
+
+vue
+Copy code
+<template>
+  <div>
+    <button @click="startListening">Start Listening</button>
+    <div v-if="transcript">
+      <p>Transcript: {{ transcript }}</p>
+    </div>
+  </div>
+</template>
+
+<script>
+import annyang from 'annyang';
+
+export default {
+  data() {
+    return {
+      transcript: '',
+    };
+  },
+  methods: {
+    startListening() {
+      if (annyang) {
+        const commands = {
+          'hello': () => {
+            this.transcript = 'Hello command recognized!';
+          },
+          // Add more commands here
+        };
+
+        annyang.addCommands(commands);
+        annyang.start();
+      }
+    },
+  },
+  beforeDestroy() {
+    if (annyang) {
+      annyang.abort();
+    }
+  },
+};
+</script>
+
+<style>
+/* Your component styles here */
+</style>
+Usage:
+In this example, when the "Start Listening" button is clicked, Annyang will start listening for voice commands. When you say "hello", it will trigger the associated function and update the transcript in the UI.
+
+Please note that the above example is quite basic and may require further customization based on your specific use case and application structure. You can expand on this by adding more commands, handling different scenarios, and enhancing the user experience.
+
+Remember to check the Annyang documentation and Vue.js documentation for more details on their respective APIs and capabilities. Additionally, browser support for speech recognition may vary, so be sure to consider that when implementing this feature.

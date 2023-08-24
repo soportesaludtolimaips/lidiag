@@ -1,0 +1,34 @@
+Para convertir voz a texto en una aplicación web desarrollada con Vue.js, puedes utilizar la API de reconocimiento de voz del navegador llamada Web Speech API. Esta API permite acceder al micrófono del usuario y convertir su entrada de voz en texto.
+
+Aquí tienes los pasos básicos para lograrlo:
+
+Configuración del proyecto: Asegúrate de tener un proyecto Vue.js configurado y en funcionamiento.
+
+Acceder a la API de reconocimiento de voz: Primero, necesitas acceder a la API de reconocimiento de voz del navegador. Puedes hacerlo en el método mounted de tu componente Vue.
+
+mounted() {
+  if ('webkitSpeechRecognition' in window) {
+    this.recognition = new webkitSpeechRecognition();
+    this.recognition.lang = 'es'; // Establece el idioma de reconocimiento (puede ser diferente según tus necesidades)
+    this.recognition.continuous = false; // El reconocimiento no será continuo, se detendrá después de un resultado
+    this.recognition.interimResults = false; // No se mostrarán resultados provisionales
+  } else {
+    console.log('La API de reconocimiento de voz no es compatible con este navegador.');
+  }
+},
+Capturar y manejar el resultado: Puedes capturar el resultado del reconocimiento de voz utilizando eventos proporcionados por la API. Por ejemplo:
+methods: {
+  startRecognition() {
+    this.recognition.start();
+    
+    this.recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      this.transcribedText = transcript; // Asigna el texto transcrito a una variable en tu componente
+    };
+    
+    this.recognition.onend = () => {
+      console.log('Reconocimiento de voz finalizado.');
+    };
+  },
+},
+Interfaz de usuario: En tu template Vue, puedes agregar un botón para iniciar el reconocimiento de voz y mostrar el texto transcrito en tiempo real.

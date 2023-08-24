@@ -1,7 +1,8 @@
 
 export const recognition_motivo = new webkitSpeechRecognition();
 export var recognizing_motivo = false;
-export const escucha_motivo = document.querySelector('#start_img');
+//export const escucha_motivo = document.querySelector('#start_img');
+
 if (!('webkitSpeechRecognition' in window)) {
     alert("¡API no soportada!");
 } else {
@@ -15,13 +16,16 @@ if (!('webkitSpeechRecognition' in window)) {
         recognizing_motivo = true;
         console.log("empezando a escuchar");
     }
+
     recognition_motivo.onresult = function (event) {
 
         for (var i = event.resultIndex; i < event.results.length; i++) {
             if (event.results[i].isFinal)
-                document.getElementById("motivo_consulta").value += event.results[i][0].transcript;
+                //document.getElementById("motivo_consulta").value += event.results[i][0].transcript;
+                console.log(event.results[i][0].transcript);
         }
     }
+
     recognition_motivo.onerror = function (event) { }
     recognition_motivo.onend = function () {
         recognizing_motivo = false;
@@ -30,7 +34,7 @@ if (!('webkitSpeechRecognition' in window)) {
     }
 }
 
-export function procesar() {
+export default procesar() {
     if (recognizing_motivo == false) {
         recognition_motivo.start();
         recognizing_motivo = true;

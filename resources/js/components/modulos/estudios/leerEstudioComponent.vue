@@ -257,14 +257,7 @@
                                             <i class="fa fa-file-image-o"></i>
                                         </button>
 
-                                        <a class="btn btn-secondary" :click="procesarConvertirVozTexto()"
-                                            id="mic_motivo_consulta">
-                                            <img id="start_img" title="Grabadora" src="../../../public/dist/img/mic.gif">
-                                        </a>
-                                        <textarea name="motivo_consulta" rows="3"
-                                            class="form-control input-sm motivo_consulta" id="motivo_consulta"
-                                            placeholder="Enter ..."></textarea>
-
+                                        <button @click="startSpeechRecognition">Iniciar Reconocimiento de Voz</button>
                                     </p>
                                     <span class="text-danger" v-if="errores.lectura">{{ errores.lectura[0] }}</span>
                                     <div class="row">
@@ -300,28 +293,77 @@
 </template>
 
 <script>
-
-//import convertir from '../../../../js/components/modulos/varios/SpeechToText'
-
 export default {
     props: ['usuarioactual'],
     mounted() {
         this.listarMisPendientes();
+        if ('webkitSpeechRecognition' in window) {
+            this.recognition = new webkitSpeechRecognition();
+            this.recognition.lang = 'es-CO'; // Establece el idioma de reconocimiento (puede ser diferente según tus necesidades)
+            this.recognition.continuous = true; // El reconocimiento nserá continuo, se detendrá después de un resultado
+            this.recognition.interimResults = true; // No se mostrarán resultados provisionales
+
+            this.recognition.onstart = function () {
+                this.recognition = true;
+                console.log("empezando a escuchar");
+            }
+
+            this.recognition.onresult = function (event) {
+
+                for (var i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal)
+                        this.registro.lectura += event.results[i][0].transcript;
+                    console.log(event.results[i][0].transcript);
+                }
+            }
+
+            this.recognition.onerror = function (event) { }
+            this.recognition.onend = function () {
+                this.recognition = false;
+                //escucha.src = '../../../public/dist/img/mic.gif';
+                console.log("terminó de escuchar, llegó a su fin");
+            }
+        } else {
+            console.log('La API de reconocimiento de voz no es compatible con este navegador.');
+        }
     },
     data() {
         return {
             id: 0,
             registros: [],
             tituloModal: "Nuevo registro",
-            registro: { id_producto_lectura: 0, lectura: "Hola esta es una prueba de la lectura", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "", diagnosticosEstudio: [] },
+            registro: { id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "", diagnosticosEstudio: [] },
             busqueda: { bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "" },
             errores: {},
-            tipoPrioridad: 0
+            tipoPrioridad: 0,
+            recognizedText: '',
         };
     },
     methods: {
-        procesarConvertirVozTexto() {
-            //convertir.procesar();
+        startSpeechRecognition() {
+            /* this.recognition.start();
+
+            this.recognition.onresult = (event) => {
+                for (var i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal)
+                        this.registro.lectura += event.results[i][0].transcript;
+                    console.log(event.results[i][0].transcript);
+                }
+            };
+
+            this.recognition.onend = () => {
+                console.log('Reconocimiento de voz finalizado.');
+            }; */
+
+            if (this.recognition == false) {
+                this.recognition.start();
+                this.recognition = true;
+                //escucha_motivo.src = '../../../public/dist/img/mic-animate.gif';
+            } else {
+                this.recognition.stop();
+                this.recognition = false;
+                //escucha_motivo.src = '../../../public/dist/img/mic.gif';
+            }
         },
         /* async buscarStudy() {
             try {

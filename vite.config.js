@@ -1,11 +1,19 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
+import fs from 'fs';
+
+const host = 'lidiag.test';
 
 export default defineConfig({
-    /* server: {
-        host: '172.16.8.185',  // Add this to force IPv4 only
-    }, */
+    server: {
+        host,
+        hmr: { host },
+        https: {
+            key: fs.readFileSync('C:/laragon/etc/ssl/laragon.key'),
+            cert: fs.readFileSync('C:/laragon/etc/ssl/laragon.crt'),
+        }
+    },
     plugins: [
         laravel({
             input: [
