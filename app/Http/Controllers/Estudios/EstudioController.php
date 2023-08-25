@@ -143,8 +143,9 @@ class EstudioController extends Controller
             'priori.nom_priori',
             'priori.nivel AS priori_nivel',
             'priori.tiempo AS priori_tiempo',
-
-            'sesde.nom_sede as nom_sede'
+            'sesde.nom_sede as nom_sede',
+            'sesde.url_oviyam',
+            'sesde.tap_oviyam'
         )->join('pacientes AS pacien', 'estudios.paciente_id',  '=', 'pacien.id')
             ->join('config_sedes AS sesde', 'estudios.sede_id', '=', 'sesde.id')
             ->join('estudios_productos AS produc', 'produc.estudio_id', '=', 'estudios.id')
@@ -153,6 +154,7 @@ class EstudioController extends Controller
             ->where('estudios.medico_id', $request->id)
             ->whereNull('produc.fechor_lectura')
             ->orderBy('priori.nom_priori')->get();
+
         return $misPendiente;
         return response()->json($misPendiente);
     }

@@ -153,9 +153,13 @@
                         <div class="form-body">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <p class="text-info">
-                                        <i class="fa fa-user"></i> DATOS DEL PACIENTE
-                                    </p>
+
+                                    <h5 class="card-title text-info">
+                                        <i class="fa fa-user"></i> Datos del Paciente
+                                    </h5>
+                                    <hr>
+
+
                                     <div class="row">
                                         <div class="col-md-3">
                                             <div class="form-group">
@@ -197,9 +201,10 @@
                                         </div>
                                     </div>
 
-                                    <p class="text-info">
-                                        <i class="fa fa-user"></i> DATOS DEL ESTUDIO
-                                    </p>
+                                    <h5 class="card-title text-info">
+                                        <i class="fa fa-user"></i> Datos del Estudio
+                                    </h5>
+                                    <hr>
 
                                     <input type="hidden" id="id_producto_lectura" name="id_producto_lectura"
                                         v-model="registro.id_producto_lectura" />
@@ -249,23 +254,43 @@
                                             </div>
                                         </div>
                                     </div>
+
+                                    <h5 class="card-title text-info">
+                                        <i class="fa fa-user"></i> Productos
+                                    </h5>
+                                    <hr>
+
+                                    <h5 class="card-title text-info">
+                                        <i class="fa fa-user"></i> Diagnosticos
+                                    </h5>
+                                    <hr>
+
                                 </div>
                                 <div class="col-md-6">
-                                    <p class="text-info">
-                                        <i class="fa fa-user"></i> LECTURA
-                                        <button type="button" class="btn btn-secondary btn-xs float-right">
-                                            <i class="fa fa-file-image-o"></i>
-                                        </button>
+                                    <div class="row">
+                                        <div class="col-md-5 align-self-center text-info">
+                                            <i class="fa fa-user "></i> LECTURA
 
-                                        <button @click="startSpeechRecognition">Iniciar Reconocimiento de Voz</button>
-                                    </p>
+                                        </div>
+                                        <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                                            <button type="button" class="btn btn-secondary btn-xs" @click="verImagen()">
+                                                <i class="fa fa-file-image-o"></i>
+                                            </button>
+
+                                            <a class="" @click="startSpeechRecognition" style="width: 30px; height: 30px;">
+                                                <img title="Grabadora" :src="microfono">
+                                            </a>
+                                        </div>
+
+                                    </div>
                                     <span class="text-danger" v-if="errores.lectura">{{ errores.lectura[0] }}</span>
                                     <div class="row">
                                         <div class="col-12">
                                             <div class="form-group">
-                                                <textarea class="textarea_editor form-control" rows="15" name="lectura"
+                                                <textarea class="textarea_editor form-control" rows="25" name="lectura"
                                                     id="lectura" v-model="registro.lectura"
-                                                    placeholder="Ingrese aquí la lectura del estudio"></textarea>
+                                                    placeholder="Ingrese aquí la lectura del estudio"
+                                                    style="height: 100%;"></textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -296,15 +321,49 @@
 export default {
     props: ['usuarioactual'],
     mounted() {
+
         this.listarMisPendientes();
+
         if ('webkitSpeechRecognition' in window) {
             this.recognition = new webkitSpeechRecognition();
+            this.recognizing = false;
             this.recognition.lang = 'es-CO'; // Establece el idioma de reconocimiento (puede ser diferente según tus necesidades)
             this.recognition.continuous = true; // El reconocimiento nserá continuo, se detendrá después de un resultado
             this.recognition.interimResults = true; // No se mostrarán resultados provisionales
-
+        } else {
+            console.log('La API de reconocimiento de voz no es compatible con este navegador.');
+        }
+    },
+    data() {
+        return {
+            id: 0,
+            registros: [],
+            tituloModal: "Nuevo registro",
+            registro: { id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "", diagnosticosEstudio: [] },
+            busqueda: { bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "" },
+            datosImagen: { urlOviyam: '', patientId: '', studyUID: '', serverName: '' },
+            errores: {},
+            tipoPrioridad: 0,
+            recognizedText: '',
+            microfono: 'admin-wrap/assets/images/mic.gif',
+        };
+    },
+    methods: {
+        startSpeechRecognition() {
+            if (this.recognizing == false) {
+                this.recognition.start();
+                this.recognizing = true;
+                this.convertirVozTexto();
+                this.microfono = 'admin-wrap/assets/images/mic-animate.gif';
+            } else {
+                this.recognition.stop();
+                this.recognizing = false;
+                this.microfono = 'admin-wrap/assets/images/mic.gif';
+            }
+        },
+        convertirVozTexto() {
             this.recognition.onstart = function () {
-                this.recognition = true;
+                this.recognizing = true;
                 console.log("empezando a escuchar");
             }
 
@@ -319,80 +378,18 @@ export default {
 
             this.recognition.onerror = function (event) { }
             this.recognition.onend = function () {
-                this.recognition = false;
-                //escucha.src = '../../../public/dist/img/mic.gif';
+                this.recognizing = false;
+                this.microfono = 'admin-wrap/assets/images/mic.gif';
                 console.log("terminó de escuchar, llegó a su fin");
             }
-        } else {
-            console.log('La API de reconocimiento de voz no es compatible con este navegador.');
-        }
-    },
-    data() {
-        return {
-            id: 0,
-            registros: [],
-            tituloModal: "Nuevo registro",
-            registro: { id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "", diagnosticosEstudio: [] },
-            busqueda: { bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "" },
-            errores: {},
-            tipoPrioridad: 0,
-            recognizedText: '',
-        };
-    },
-    methods: {
-        startSpeechRecognition() {
-            /* this.recognition.start();
-
-            this.recognition.onresult = (event) => {
-                for (var i = event.resultIndex; i < event.results.length; i++) {
-                    if (event.results[i].isFinal)
-                        this.registro.lectura += event.results[i][0].transcript;
-                    console.log(event.results[i][0].transcript);
-                }
-            };
-
-            this.recognition.onend = () => {
-                console.log('Reconocimiento de voz finalizado.');
-            }; */
-
-            if (this.recognition == false) {
-                this.recognition.start();
-                this.recognition = true;
-                //escucha_motivo.src = '../../../public/dist/img/mic-animate.gif';
-            } else {
-                this.recognition.stop();
-                this.recognition = false;
-                //escucha_motivo.src = '../../../public/dist/img/mic.gif';
-            }
         },
-        /* async buscarStudy() {
-            try {
-                const res = await axios.post('api/study.listarEstudios', this.busqueda);
-
-                $('#example23').DataTable().destroy();
-
-                this.registros = res.data;
-
-                this.$nextTick(() => {
-                    $('#example23').DataTable({
-                        dom: 'Bfrtip',
-                        buttons: [
-                            'copy', 'csv', 'excel', 'pdf', 'print'
-                        ]
-                    });
-                });
-            } catch (error) {
-                console.log(error);
-                this.errores = error.response.data.errors;
-            }
-        }, */
         async listarMisPendientes() {
             try {
                 const res = await axios.get("/estudio-listarPendientesMedico?id=" + this.usuarioactual.id);
                 $("#example23").DataTable().destroy();
 
                 this.registros = res.data;
-
+                console.log(this.registros)
                 this.$nextTick(() => {
                     $("#example23").DataTable({
                         dom: "Bfrtip",
@@ -427,6 +424,13 @@ export default {
                 this.errores = error.response.data.errors;
             }
         },
+        verImagen() {
+
+            let Url = this.datosImagen.urlOviyam + '?patientID =' + this.datosImagen.patientId + '&studyUID=' + this.datosImagen.studyUID + '&serverName=' + this.datosImagen.serverName
+            console.log(Url);
+
+            window.open(Url, '_blank');
+        },
         mostrarRegistro(data = {}) {
             this.tituloModal = "Lectura de paciente: " + data.nom_pacien + "Producto: \n" + data.nom_produc;
             this.id = data.id;
@@ -439,6 +443,11 @@ export default {
             this.registro.nom_pacien = data.nom_pacien;
             this.registro.sexo = data.pat_sex;
             this.registro.fec_naci = data.pat_birthdate;
+
+            this.datosImagen.urlOviyam = data.url_oviyam;
+            this.datosImagen.patientId = data.num_docu;
+            this.datosImagen.studyUID = data.study_iuid;
+            this.datosImagen.serverName = data.tap_oviyam;
 
             this.btnCerralModalForm();
             this.errores = [];
