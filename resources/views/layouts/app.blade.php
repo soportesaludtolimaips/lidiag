@@ -14,6 +14,7 @@
     <title>{{ config('appName') }}</title>
     <!-- Bootstrap Core CSS -->
     <link href="{{ asset('admin-wrap/assets/node_modules/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('admin-wrap//assets/node_modules/html5-editor/bootstrap-wysihtml5.css') }}" />
     <!--alerts CSS -->
     <link href="{{ asset('admin-wrap/assets/node_modules/sweetalert/sweetalert.css') }}" rel="stylesheet" type="text/css">
     <!-- toast CSS -->
@@ -134,6 +135,16 @@
     <script src="{{ asset('admin-wrap/js/custom.min.js') }}"></script>
     <script src="{{ asset('admin-wrap/assets/node_modules/toast-master/js/jquery.toast.js') }}"></script>
     <script src="{{ asset('admin-wrap/js/toastr.js') }}"></script>
+
+    <!-- wysuhtml5 Plugin JavaScript -->
+    <script src="{{ asset('admin-wrap/assets/node_modules/html5-editor/wysihtml5-0.3.0.js') }}"></script>
+    <script src="{{ asset('admin-wrap/assets/node_modules/html5-editor/bootstrap-wysihtml5.js') }}"></script>
+    <script>
+        $(function() {
+            $('.textarea_editor').wysihtml5();
+        });
+    </script>
+
     <!-- This is data table -->
     <script src="{{ asset('admin-wrap/assets/node_modules/datatables/jquery.dataTables.min.js') }}"></script>
     <!-- start - This is for export functionality only -->
@@ -153,6 +164,8 @@
     <!-- Style switcher -->
     <!-- ============================================================== -->
     <script src="{{ asset('admin-wrap/assets/node_modules/styleswitcher/jQuery.style.switcher.js') }}"></script>
+
+
 </body>
 
 </html>

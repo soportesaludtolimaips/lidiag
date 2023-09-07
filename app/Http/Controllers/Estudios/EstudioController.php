@@ -15,6 +15,7 @@ use Mail;
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\Reportes\ResporteLecturaController;
 use App\Http\Requests\Estudio\estudioAsignarRequest;
+use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Config;
 
@@ -128,6 +129,9 @@ class EstudioController extends Controller
 
     public function listarPendientesMedico(Request $request, Estudio $estudio)
     {
+
+
+
         $misPendiente = Estudio::select(
             'estudios.*',
             'pacien.num_docu',
@@ -146,7 +150,8 @@ class EstudioController extends Controller
             'sesde.nom_sede as nom_sede',
             'sesde.url_oviyam',
             'sesde.tap_oviyam'
-        )->join('pacientes AS pacien', 'estudios.paciente_id',  '=', 'pacien.id')
+        )
+            ->join('pacientes AS pacien', 'estudios.paciente_id',  '=', 'pacien.id')
             ->join('config_sedes AS sesde', 'estudios.sede_id', '=', 'sesde.id')
             ->join('estudios_productos AS produc', 'produc.estudio_id', '=', 'estudios.id')
             ->join('users', 'estudios.quien_registro_id', '=', 'users.id')
@@ -155,8 +160,13 @@ class EstudioController extends Controller
             ->whereNull('produc.fechor_lectura')
             ->orderBy('priori.nom_priori')->get();
 
-        return $misPendiente;
-        return response()->json($misPendiente);
+        return response()->json($misPendiente, 200);
+    }
+
+    public function listarDiagnosticoPorEstudio(Request $request)
+    {
+        $diagnosticos = EstudioDiagnostico::where('estudio_id', '=', $request->id)->get();
+        return response()->json($diagnosticos);
     }
 
     public function leerEstudio(estudioLeerRequest $request, EstudioProducto $estudioProducto)
@@ -171,6 +181,8 @@ class EstudioController extends Controller
 
     public function listarPendientesTrascribir(Request $request)
     {
+
+
         $misPendiente = Estudio::select(
             'estudios.*',
             'pacien.num_docu',

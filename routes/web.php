@@ -68,6 +68,7 @@ Route::post('/study.listarEstudios', [StudyController::class, 'listarEstudios'])
 Route::get('/user.listarUsuarios/{tipo_user}', [UserController::class, 'listarUsuarios'])->name('user.listarUsuarios');
 
 Route::resource('/estudios', EstudioController::class)->names('estudios')->except(['create', 'show']);
+Route::get('/study-listar-diagnostico-por-estudio', [EstudioController::class, 'listarDiagnosticoPorEstudio'])->name('study.listar.diagnostico.por.estudio');
 Route::resource('/estudios-productos', EstudioProductoController::class)->names('estudios.productos');
 Route::resource('/estudios-diagnosticos', EstudioDiagnosticoController::class)->names('estudios.diagnosticos');
 
