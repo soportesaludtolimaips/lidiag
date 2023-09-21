@@ -505,7 +505,7 @@ export default {
                             });
                         });
                     } else if (res.status == 500) {
-                        console.log(res.data.message);
+
                         $.toast({
                             heading: "Upsss!!!",
                             text: res.data.message,
@@ -575,9 +575,9 @@ export default {
             this.btnCerralModalForm();
         },
         establecerSede() {
-
             this.registro.sede_id = sessionStorage.getItem('ST-sede');
             this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
+            this.registros = [];
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);
