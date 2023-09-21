@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('logo', 100)->nullable();
             $table->string('ip_dcm', 15)->nullable();
             $table->string('bd_dcm', 50)->nullable();
+            $table->string('puerto_dcm', 5)->nullable();
             $table->string('usuario_dcm', 30)->nullable();
             $table->string('password_dcm', 30)->nullable();
             $table->string('usuario_oviyam', 20)->nullable();
