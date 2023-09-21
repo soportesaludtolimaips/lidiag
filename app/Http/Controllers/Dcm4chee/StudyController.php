@@ -25,9 +25,12 @@ class StudyController extends Controller
         config(['database.connections.mysql_sucursal' => [
             'driver' => 'mysql',
             'host' => env('DB_SUCURSAL_HOST', $sedeActual->ip_dcm),
+            'port' => env('DB_SUCURSAL_PUERTO', $sedeActual->puerto_dcm),
             'database' => env('DB_SUCURSAL_DATABASE', $sedeActual->bd_dcm),
             'username' => env('DB_SUCURSAL_USERNAME', $sedeActual->usuario_dcm),
             'password' => env('DB_SUCURSAL_PASSWORD', $sedeActual->password_dcm),
+            'charset' => env('DB_SUCURSAL_charset', 'latin1'),
+            'collation' => env('DB_SUCURSAL_collation', 'latin1_swedish_ci'),
         ]]);
 
         //Aplicamos la nueva configuracion de bade datos
@@ -59,6 +62,7 @@ class StudyController extends Controller
         }
 
         $result = $query->get();
-        return response()->json($result);
+        return json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE);
+        //return response()->json($result);
     }
 }
