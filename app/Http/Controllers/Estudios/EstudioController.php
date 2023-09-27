@@ -166,9 +166,8 @@ class EstudioController extends Controller
         return response()->json($diagnosticos);
     }
 
-    public function leerEstudio(Request $request, EstudioProducto $estudioProducto)
+    public function leerEstudio(estudioLeerRequest $request, EstudioProducto $estudioProducto)
     {
-        return $request;
         $productoLectura = EstudioProducto::findOrFail($request->id_producto_lectura);
         $productoLectura->lectura = $request->lectura;
         $productoLectura->fechor_lectura = Carbon::now();

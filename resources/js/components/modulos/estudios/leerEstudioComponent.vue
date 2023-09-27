@@ -330,8 +330,8 @@
                                     <div class="col-12">
                                         <div class="form-group">
 
-                                            <textarea v-model="recognizedText" class="form-control" rows="15" id="lectura"
-                                                style="height: 100%;"
+                                            <textarea v-model="registro.lectura" class="textarea_editor form-control"
+                                                rows="15" id="lectura" style="height: 100%;"
                                                 placeholder="Ingrese aquí la lectura del estudio ..."></textarea>
 
                                             <!-- <textarea class="textarea_editor form-control" rows="5" name="lectura"
@@ -420,8 +420,6 @@ export default {
         },
         convertirVozTexto() {
 
-            /*  this.recognition = new webkitSpeechRecognition() || new SpeechRecognition();
-             this.recognition.lang = 'es-ES'; // Establece el idioma que deseas reconocer */
             this.recognition.onstart = () => {
                 this.recognizing = true;
                 console.log("Empezo a escuchar");
@@ -429,10 +427,9 @@ export default {
             this.recognition.onresult = (event) => {
                 for (var i = event.resultIndex; i < event.results.length; i++) {
                     if (event.results[i].isFinal) {
-
                         const result = event.results[0][0].transcript;
-                        this.recognizedText += result + '\n\n';
-                        console.log(this.recognizedText);
+                        this.registro.lectura += result + '\n\n';
+                        console.log(this.registro.lectura);
                     }
                 }
             };
@@ -441,7 +438,6 @@ export default {
                 this.microfono = 'admin-wrap/assets/images/mic.gif';
                 console.log("Termino de escuchar, llegó a su fin");
             };
-
         },
         async listarMisPendientes() {
             try {
@@ -462,8 +458,6 @@ export default {
         },
         async guardarRegistro() {
             try {
-                console.log('********************************');
-                console.log(this.registro);
                 const res = await axios.post('/estudio-leerEstudio', this.registro);
 
                 if (res.status == 200) {

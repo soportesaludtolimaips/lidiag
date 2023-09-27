@@ -141,7 +141,7 @@
     <script src="{{ asset('admin-wrap/assets/node_modules/html5-editor/bootstrap-wysihtml5.js') }}"></script>
     <script>
         $(function() {
-            $('.textarea_editor').wysihtml5();
+            $('#textarea_editor').wysihtml5();
         });
     </script>
 
