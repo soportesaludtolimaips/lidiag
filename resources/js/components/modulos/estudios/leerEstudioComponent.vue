@@ -330,8 +330,8 @@
                                     <div class="col-12">
                                         <div class="form-group">
 
-                                            <textarea class="textarea_editor form-control" rows="15" id="lectura"
-                                                style="height: 500px;" v-model="registro.lectura"
+                                            <textarea v-model="recognizedText" class="form-control" rows="15" id="lectura"
+                                                style="height: 100%;"
                                                 placeholder="Ingrese aquí la lectura del estudio ..."></textarea>
 
                                             <!-- <textarea class="textarea_editor form-control" rows="5" name="lectura"
@@ -399,6 +399,10 @@ export default {
             tipoPrioridad: 0,
             recognizedText: '',
             microfono: 'admin-wrap/assets/images/mic.gif',
+            lecturaEstudio: "",
+            recognizedText: '',
+            recognizing: false,
+            recognition: null,
         };
     },
     methods: {
@@ -415,27 +419,29 @@ export default {
             }
         },
         convertirVozTexto() {
-            this.recognition.onstart = function () {
+
+            /*  this.recognition = new webkitSpeechRecognition() || new SpeechRecognition();
+             this.recognition.lang = 'es-ES'; // Establece el idioma que deseas reconocer */
+            this.recognition.onstart = () => {
                 this.recognizing = true;
-                console.log("empezando a escuchar");
-            }
-
-            this.recognition.onresult = function (event) {
+                console.log("Empezo a escuchar");
+            };
+            this.recognition.onresult = (event) => {
                 for (var i = event.resultIndex; i < event.results.length; i++) {
-                    if (event.results[i].isFinal)
-                        //this.registro.lectura += event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
 
-                        this.registro.lectura = 'Prueb a ';
-                    console.log(event.results[i][0].transcript);
+                        const result = event.results[0][0].transcript;
+                        this.recognizedText += result + '\n\n';
+                        console.log(this.recognizedText);
+                    }
                 }
-            }
-
-            this.recognition.onerror = function (event) { }
-            this.recognition.onend = function () {
+            };
+            this.recognition.onend = () => {
                 this.recognizing = false;
                 this.microfono = 'admin-wrap/assets/images/mic.gif';
-                console.log("terminó de escuchar, llegó a su fin");
-            }
+                console.log("Termino de escuchar, llegó a su fin");
+            };
+
         },
         async listarMisPendientes() {
             try {
@@ -456,6 +462,8 @@ export default {
         },
         async guardarRegistro() {
             try {
+                console.log('********************************');
+                console.log(this.registro);
                 const res = await axios.post('/estudio-leerEstudio', this.registro);
 
                 if (res.status == 200) {
@@ -469,9 +477,9 @@ export default {
                         stack: 6,
                     });
 
-                    this.listarMisPendientes();
+                    /* this.listarMisPendientes();
                     this.btnCerralModalForm();
-                    this.limpiar();
+                    this.limpiar(); */
                 }
             } catch (error) {
                 console.log(error);
@@ -479,10 +487,7 @@ export default {
             }
         },
         verImagen() {
-
             let Url = this.datosImagen.urlOviyam + '?patientID =' + this.datosImagen.patientId + '&studyUID=' + this.datosImagen.studyUID + '&serverName=' + this.datosImagen.serverName
-            console.log(Url);
-
             window.open(Url, '_blank');
         },
         async mostrarRegistro(data = {}) {
@@ -531,6 +536,9 @@ export default {
             $(".right-sidebar").toggleClass("shw-rside");
         },
     },
+    /*  updated() {
+         this.registro.lectura = this.lecturaEstudio;
+     } */
 
 }
 </script>

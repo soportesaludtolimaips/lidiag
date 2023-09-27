@@ -3,7 +3,7 @@
         © 2017 Adminwrap by wrappixel.com
 
         <div class="float-right">
-            <h4 class="text-info">Usted esta el la sede: {{ nomSede }}</h4>
+            <h4 class="text-info">Usted esta en la sede: {{ nomSede }}</h4>
         </div>
     </footer>
 </template>

@@ -129,9 +129,6 @@ class EstudioController extends Controller
 
     public function listarPendientesMedico(Request $request, Estudio $estudio)
     {
-
-
-
         $misPendiente = Estudio::select(
             'estudios.*',
             'pacien.num_docu',
@@ -169,8 +166,9 @@ class EstudioController extends Controller
         return response()->json($diagnosticos);
     }
 
-    public function leerEstudio(estudioLeerRequest $request, EstudioProducto $estudioProducto)
+    public function leerEstudio(Request $request, EstudioProducto $estudioProducto)
     {
+        return $request;
         $productoLectura = EstudioProducto::findOrFail($request->id_producto_lectura);
         $productoLectura->lectura = $request->lectura;
         $productoLectura->fechor_lectura = Carbon::now();
