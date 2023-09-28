@@ -153,7 +153,10 @@
                         <div class="form-body">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <p class="text-info"><i class="fa fa-user"></i> DATOS DEL PACIENTE</p>
+                                    <h5 class="card-title text-info">
+                                        <i class="fa fa-user"></i> Datos del Paciente
+                                    </h5>
+                                    <hr>
                                     <div class="row">
                                         <div class="col-md-3">
                                             <div class="form-group">
@@ -225,7 +228,10 @@
                                         </div>
                                     </div>
 
-                                    <p class="text-info"><i class="fa fa-user"></i> DATOS DEL ESTUDIO</p>
+                                    <h5 class="card-title text-info">
+                                        <i class="fa fa-edit"></i> Datos del Estudio
+                                    </h5>
+                                    <hr>
 
                                     <input type="hidden" id="study_pk" name="study_pk" v-model="registro.study_pk" />
                                     <input type="hidden" id="study_iuid" name="study_iuid" v-model="registro.study_iuid" />
@@ -275,9 +281,36 @@
                                             </div>
                                         </div>
                                     </div>
+
+                                    <h5 class="card-title text-info">
+                                        <i class="fa fa-edit"></i> Adjunto
+                                    </h5>
+                                    <hr>
+
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <input type="file" class="form-control" id="exampleInputFile"
+                                                    aria-describedby="fileHelp" @change='obtenerArchivo1'>
+                                            </div>
+                                            <div class="form-group">
+                                                <input type="file" class="form-control" id="exampleInputFile"
+                                                    aria-describedby="fileHelp" @change='obtenerArchivo2'>
+                                            </div>
+                                            <div class="form-group">
+                                                <input type="file" class="form-control" id="exampleInputFile"
+                                                    aria-describedby="fileHelp" @change='obtenerArchivo3'>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                 </div>
                                 <div class="col-md-6">
-                                    <p class="text-info"><i class="fa fa-user"></i> DATOS DE LA ASIGNACIÓN</p>
+
+                                    <h5 class="card-title text-info">
+                                        <i class="fa fa-user"></i> Datos de la Asignacion
+                                    </h5>
+                                    <hr>
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
@@ -455,6 +488,7 @@ export default {
                 study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", observaciones: "", medico_id: "", prioridad_id: "", sede_id: this.sedeActual,
                 quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", direccion: "", telefono: "", productosEstudio: [], diagnosticosEstudio: []
             },
+            soportesHC: { archivo1: null, archivo2: null, archivo3: null }, //Soporte de historia clinica
             busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "" },
             errores: {},
             erroresBusqueda: {},
@@ -536,7 +570,21 @@ export default {
         async guardarRegistro() {
 
             try {
-                const res = await axios.post("/estudios", this.registro);
+                const config = {
+                    headers: {
+                        'content-type': 'multipart/form-data',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    }
+                }
+                // form data
+                let formData = new FormData();
+
+                formData.append('registro', JSON.stringify(this.registro));
+                formData.append('archivo1', this.soportesHC.archivo1);
+                formData.append('archivo2', this.soportesHC.archivo2);
+                formData.append('archivo3', this.soportesHC.archivo3);
+
+                const resArchivos = await axios.post('/estudios', formData, config);
 
                 if (res.status == 200) {
                     $.toast({
@@ -548,13 +596,24 @@ export default {
                         hideAfter: 3500,
                         stack: 6,
                     });
-
-                    this.btnCerralModalForm();
-                    this.limpiar();
                 }
+                this.btnCerralModalForm();
+                this.limpiar();
             } catch (error) {
                 this.errores = error.response.data.errors;
             }
+        },
+        obtenerArchivo1(e) {
+            this.soportesHC.archivo1 = e.target.files[0];
+            console.log(this.soportesHC.archivo1)
+        },
+        obtenerArchivo2(e) {
+            this.soportesHC.archivo2 = e.target.files[0];
+            console.log(this.soportesHC.archivo2)
+        },
+        obtenerArchivo3(e) {
+            this.soportesHC.archivo3 = e.target.files[0];
+            console.log(this.soportesHC.archivo3)
         },
         mostrarRegistro(data = {}) {
 

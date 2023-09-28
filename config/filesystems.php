@@ -73,6 +73,12 @@ return [
             'url' => env('APP_URL') . '/firmas_medicos',
             'visibility' => 'public',
         ],
+        'soportes_hc' => [
+            'driver' => 'local',
+            'root' => storage_path('app/soportes_hc'),
+            'url' => env('APP_URL') . '/soportes_hc',
+            'visibility' => 'public',
+        ],
 
     ],
 
@@ -92,6 +98,7 @@ return [
         public_path('reporte_lecturas') => storage_path('app/reporte_lecturas'),
         public_path('logos') => storage_path('app/logos'),
         public_path('firmas_medicos') => storage_path('app/firmas_medicos'),
+        public_path('soportes_hc') => storage_path('app/soportes_hc'),
     ],
 
 ];

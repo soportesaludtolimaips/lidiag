@@ -14,10 +14,10 @@ use Illuminate\Http\Request;
 use Mail;
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\Reportes\ResporteLecturaController;
-use App\Http\Requests\Estudio\estudioAsignarRequest;
-use App\Models\User;
+use App\Models\Estudio\EstudioSoportesHC;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Storage;
+use Str;
 
 class EstudioController extends Controller
 {
@@ -38,63 +38,116 @@ class EstudioController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(estudioAsignarRequest $request)
+    public function store(Request $request)
     {
+        $registro = json_decode($request->registro);
 
-        $nombrePaciente = str_replace('^^^', '', $request->nombres);
+        $nombrePaciente = str_replace('^^^', '', $registro->nombres);
         $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
         $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
 
         $paciente = Paciente::updateOrCreate(
-            ['num_docu' => $request->num_docu],
+            ['num_docu' => $registro->num_docu],
             [
-                'num_docu' => $request->num_docu,
+                'num_docu' => $registro->num_docu,
                 'nombres' => $nombrePaciente,
-                'direccion' => $request->direccion,
-                'sexo' => $request->sexo,
-                'fec_naci' => $request->fec_naci,
-                'tel' => $request->tel,
-                'email' => $request->email
+                'direccion' => $registro->direccion,
+                'sexo' => $registro->sexo,
+                'fec_naci' => $registro->fec_naci,
+                'tel' => $registro->telefono,
+                'email' => $registro->email
             ]
         );
 
         $estudio = Estudio::firstOrCreate(
-            ['study_id' => $request->study_id],
+            ['study_id' => $registro->study_id],
             [
-                'study_pk' => $request->study_pk,
-                'study_iuid' => $request->study_iuid,
-                'study_id' => $request->study_id,
-                'fec_estudio' => $request->study_datetime,
-                'accession_no' => $request->accession_no,
-                'study_desc' => $request->study_desc,
+                'study_pk' => $registro->study_pk,
+                'study_iuid' => $registro->study_iuid,
+                'study_id' => $registro->study_id,
+                'fec_estudio' => $registro->study_datetime,
+                'accession_no' => $registro->accession_no,
+                'study_desc' => $registro->study_desc,
                 'paciente_id' => $paciente->id,
-                'medico_id' => $request->medico_id,
+                'medico_id' => $registro->medico_id,
                 'quien_registro_id' => auth()->user()->id,
-                'sede_id' => $request->sede_id,
-                'prioridad_id' => $request->prioridad_id,
-                'observaciones' => $request->observaciones,
-                'atencion' => $request->atencion
+                'sede_id' => $registro->sede_id,
+                'prioridad_id' => $registro->prioridad_id,
+                'observaciones' => $registro->observaciones,
+                //'atencion' => $registro->atencion
             ]
         );
 
-        foreach ($request->productosEstudio as $Producto) {
+        /**
+         * Elimino los productos existentes para almacenar los nuevos
+         */
+        $productos = EstudioProducto::where('estudio_id', '=', $estudio->id);
+        $productos->delete();
+        foreach ($registro->productosEstudio as $Producto) {
             EstudioProducto::create([
                 'estudio_id' => $estudio->id,
-                'cod_cups' => $Producto['cod_cups'],
-                'nom_produc' => $Producto['nom_produc'],
+                'cod_cups' => $Producto->cod_cups,
+                'nom_produc' => $Producto->nom_produc,
             ]);
         }
 
-        foreach ($request->diagnosticosEstudio as $Diagnostico) {
+        /**
+         * Elimino los diagnosticos existentes para almacenar los nuevos
+         */
+        $diagnosticos = EstudioDiagnostico::where('estudio_id', '=', $estudio->id);
+        $diagnosticos->delete();
+        foreach ($registro->diagnosticosEstudio as $Diagnostico) {
             EstudioDiagnostico::create([
                 'estudio_id' => $estudio->id,
-                'cod_diagnos' => $Diagnostico['cod_diagnos'],
-                'nom_diagnos' => $Diagnostico['nom_diagnos'],
+                'cod_diagnos' => $Diagnostico->cod_diagnos,
+                'nom_diagnos' => $Diagnostico->nom_diagnos,
             ]);
         }
 
-        /* $sedeEstudio = $estudio->sede;
-        $prioridadEstudio = $estudio->prioridad; */
+        /**
+         * Almacenos los losportes de la HCA
+         */
+        if ($request->hasFile('archivo1')) {
+            $archivo = $request->archivo1;
+            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+            $nombreOriginal = $archivo->getClientOriginalName();
+
+            $archivoSoporteHC = new EstudioSoportesHC();
+            $archivoSoporteHC->estudio_id = $estudio->id;
+            $archivoSoporteHC->archivo_original = $nombreOriginal;
+            $archivoSoporteHC->archivo_encrip = $nombreEncrip;
+            $archivoSoporteHC->save();
+
+            Storage::putFileAs('soportes_hc', $archivo, $nombreEncrip);
+        }
+
+        if ($request->hasFile('archivo2')) {
+            $archivo = $request->archivo2;
+            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+            $nombreOriginal = $archivo->getClientOriginalName();
+
+            $archivoSoporteHC = new EstudioSoportesHC();
+            $archivoSoporteHC->estudio_id = $estudio->id;
+            $archivoSoporteHC->archivo_original = $nombreOriginal;
+            $archivoSoporteHC->archivo_encrip = $nombreEncrip;
+            $archivoSoporteHC->save();
+
+            Storage::putFileAs('soportes_hc', $archivo, $nombreEncrip);
+        }
+
+        if ($request->hasFile('archivo3')) {
+            $archivo = $request->archivo3;
+            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+            $nombreOriginal = $archivo->getClientOriginalName();
+
+            $archivoSoporteHC = new EstudioSoportesHC();
+            $archivoSoporteHC->estudio_id = $estudio->id;
+            $archivoSoporteHC->archivo_original = $nombreOriginal;
+            $archivoSoporteHC->archivo_encrip = $nombreEncrip;
+            $archivoSoporteHC->save();
+
+            Storage::putFileAs('soportes_hc', $archivo, $nombreEncrip);
+        }
 
         if ($request->email != "") {
             $mailable = new NotificacionAsignacionDeLectura($paciente, $estudio);
@@ -102,6 +155,10 @@ class EstudioController extends Controller
         }
 
         return response()->json(['message' => 'La asignación de la lectura se realizó correctamente.']);
+    }
+
+    public function uploadSoportesHC(Request $request)
+    {
     }
 
     /**
