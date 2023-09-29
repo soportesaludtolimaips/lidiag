@@ -155,9 +155,10 @@
                         <div class="form-body">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <p class="text-info">
-                                        <i class="fa fa-user"></i> DATOS DEL PACIENTE
-                                    </p>
+                                    <h5 class="card-title text-info">
+                                        <i class="fa fa-user"></i> Datos del Paciente
+                                    </h5>
+                                    <hr>
                                     <div class="row">
                                         <div class="col-md-3">
                                             <div class="form-group">
@@ -231,9 +232,10 @@
                                         </div>
                                     </div>
 
-                                    <p class="text-info">
-                                        <i class="fa fa-user"></i> DATOS DEL ESTUDIO
-                                    </p>
+                                    <h5 class="card-title text-info">
+                                        <i class="fa fa-user"></i> Datos del Estudio
+                                    </h5>
+                                    <hr>
 
                                     <input type="hidden" id="id_producto_lectura" name="id_producto_lectura"
                                         v-model="registro.id_producto_lectura" />
@@ -283,23 +285,105 @@
                                             </div>
                                         </div>
                                     </div>
+
+                                    <h5 class="card-title text-info">
+                                        <i class="fa fa-user"></i> Producto
+                                    </h5>
+                                    <hr>
+
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <table id=" example23"
+                                                class="display nowrap table table-hover table-striped table-bordered"
+                                                cellspacing="0" width="100%">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Codigo</th>
+                                                        <th>Producto</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>{{ productoEstudio.cod_produc }}</td>
+                                                        <td>{{ productoEstudio.nom_produc }}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <br />
+                                    <h5 class="card-title text-info">
+                                        <i class="fa fa-user"></i> Diagnosticos
+                                    </h5>
+                                    <hr>
+
+                                    <div class="row">
+                                        <div class="col-md-12" style="width:100px; height:150px; overflow-y: scroll;">
+                                            <table id=" example23"
+                                                class="display nowrap table table-hover table-striped table-bordered"
+                                                cellspacing="0" width="100%">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Codigo</th>
+                                                        <th>Diagnostico</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="(item, index) in  diagnosticosEstudio " :key="index">
+                                                        <td>{{ item.cod_diagnos }}</td>
+                                                        <td>{{ item.nom_diagnos }}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <p class="text-info">
-                                        <i class="fa fa-user"></i> LECTURA
-                                        <button type="button" class="btn btn-secondary btn-xs float-right">
-                                            <i class="fa fa-file-image-o"></i>
-                                        </button>
-                                    </p>
-                                    <span class="text-danger" v-if="errores.lectura">{{
-                                        errores.lectura[0]
-                                    }}</span>
+                                    <div class="row">
+                                        <div class="col-9">
+                                            <h5 class="card-title text-info">
+                                                <i class="fa fa-edit"></i> Lectura
+                                            </h5>
+                                            <hr>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                                                <button type="button" class="btn btn-secondary btn-xs" @click="verImagen()">
+                                                    <i class="fa fa-file-image-o"></i>
+                                                </button>
+
+                                                <a class="" @click="startSpeechRecognition"
+                                                    style="width: 30px; height: 30px;">
+                                                    <img title="Grabadora" :src="microfono">
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="text-danger" v-if="errores.lectura">{{ errores.lectura[0] }}</span>
                                     <div class="row">
                                         <div class="col-12">
                                             <div class="form-group">
-                                                <textarea class="textarea_editor form-control" rows="25" name="lectura"
-                                                    id="lectura" v-model="registro.lectura"
-                                                    placeholder="Ingrese aquí la lectura del estudio"></textarea>
+                                                <textarea v-model="registro.lectura" class="textarea_editor form-control"
+                                                    rows="15" id="lectura" style="height: 100%;"
+                                                    placeholder="Ingrese aquí la lectura del estudio ..."></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <h5 class="card-title text-info">
+                                        <i class="fa fa-paperclip"></i> Adjuntos
+                                    </h5>
+                                    <hr>
+
+                                    <div class="row">
+                                        <div class="card card-body">
+                                            <div class="row">
+                                                <div class="col-md-8 col-lg-9" v-for="(itemArchivo, index) in soportesHC"
+                                                    :key="index">
+                                                    <a href="javascript:void(0)"
+                                                        @click="descargaSoportte(itemArchivo.archivo_encrip)">{{
+                                                            itemArchivo.archivo_original }}</a>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -331,9 +415,22 @@ export default {
     props: ['usuarioactual'],
     mounted() {
         this.listarPendientesTrascribir();
+
+        if ('webkitSpeechRecognition' in window) {
+            this.recognition = new webkitSpeechRecognition();
+            this.recognizing = false;
+            this.recognition.lang = 'es-CO'; // Establece el idioma de reconocimiento (puede ser diferente según tus necesidades)
+            this.recognition.continuous = true; // El reconocimiento nserá continuo, se detendrá después de un resultado
+            this.recognition.interimResults = true; // No se mostrarán resultados provisionales
+        } else {
+            console.log('La API de reconocimiento de voz no es compatible con este navegador.');
+        }
     },
     data() {
         return {
+            productoEstudio: { cod_produc: '', nom_produc: '' },
+            diagnosticosEstudio: [],
+            soportesHC: [],
             registros: [],
             tituloModal: "Transcirbir estudio",
             registro: { id_estudio: 0, id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "", diagnosticosEstudio: [], id_producto_lectura: 0 },
@@ -363,6 +460,39 @@ export default {
                 this.errores = error.response.data.errors;
             }
         }, */
+        startSpeechRecognition() {
+            if (this.recognizing == false) {
+                this.recognition.start();
+                this.recognizing = true;
+                this.convertirVozTexto();
+                this.microfono = 'admin-wrap/assets/images/mic-animate.gif';
+            } else {
+                this.recognition.stop();
+                this.recognizing = false;
+                this.microfono = 'admin-wrap/assets/images/mic.gif';
+            }
+        },
+        convertirVozTexto() {
+
+            this.recognition.onstart = () => {
+                this.recognizing = true;
+                console.log("Empezo a escuchar");
+            };
+            this.recognition.onresult = (event) => {
+                for (var i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        const result = event.results[0][0].transcript;
+                        this.registro.lectura += result + '\n\n';
+                        console.log(this.registro.lectura);
+                    }
+                }
+            };
+            this.recognition.onend = () => {
+                this.recognizing = false;
+                this.microfono = 'admin-wrap/assets/images/mic.gif';
+                console.log("Termino de escuchar, llegó a su fin");
+            };
+        },
         async listarPendientesTrascribir() {
             try {
                 const res = await axios.get("/estudio-listarPendientesTrascribir");
@@ -404,23 +534,49 @@ export default {
                 this.errores = error.response.data.errors;
             }
         },
+        descargaSoportte(nomArchivoEncriptado) {
+            const url = `/descarga-soportes-hc/${nomArchivoEncriptado}`;
+
+            axios.get(url, { responseType: 'blob' })
+                .then(response => {
+                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', nomArchivoEncriptado);
+                    document.body.appendChild(link);
+                    link.click();
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        },
         mostrarRegistro(data = {}) {
 
             this.tituloModal = "Transcribir la lectura del paciente: " + data.nom_pacien;
-            this.registro.id_estudio = data.id;
+           this.id = data.id;
             this.registro.id_producto_lectura = data.id_producto_lectura;
             this.registro.fec_estudio = data.fec_estudio;
             this.registro.accession_no = data.accession_no;
             this.registro.study_desc = data.study_desc;
-            this.registro.lectura = data.lectura;
 
             this.registro.num_docu = data.num_docu;
             this.registro.nom_pacien = data.nom_pacien;
             this.registro.sexo = data.pat_sex;
             this.registro.fec_naci = data.pat_birthdate;
-            this.registro.direccion = data.direccion;
-            this.registro.tel = data.tel;
-            this.registro.email = data.email;
+
+            this.datosImagen.urlOviyam = data.url_oviyam;
+            this.datosImagen.patientId = data.num_docu;
+            this.datosImagen.studyUID = data.study_iuid;
+            this.datosImagen.serverName = data.tap_oviyam;
+
+            this.productoEstudio.cod_produc = data.cod_cups;
+            this.productoEstudio.nom_produc = data.nom_produc;
+
+            const res = await axios.get('/study-listar-diagnostico-por-estudio?id=' + this.id);
+            this.diagnosticosEstudio = res.data;
+
+            const resSoportesHC = await axios.get('/listar-soportes-hc-estudio?id=' + this.id);
+            this.soportesHC = resSoportesHC.data;
 
             this.btnCerralModalForm();
             this.errores = [];
