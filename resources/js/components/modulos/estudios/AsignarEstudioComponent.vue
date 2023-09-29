@@ -584,7 +584,7 @@ export default {
                 formData.append('archivo2', this.soportesHC.archivo2);
                 formData.append('archivo3', this.soportesHC.archivo3);
 
-                const resArchivos = await axios.post('/estudios', formData, config);
+                const res = await axios.post('/estudios', formData, config);
 
                 if (res.status == 200) {
                     $.toast({

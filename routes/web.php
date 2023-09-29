@@ -14,9 +14,11 @@ use App\Http\Controllers\Configuracion\ConfigPrioridadController;
 use App\Http\Controllers\Configuracion\ConfigSedeController;
 
 use App\Http\Controllers\Dcm4chee\StudyController;
+use App\Http\Controllers\Estudio\EstudioSoporteHC;
 use App\Http\Controllers\Estudios\EstudioController;
 use App\Http\Controllers\Estudios\EstudioProductoController;
 use App\Http\Controllers\Estudios\EstudioDiagnosticoController;
+use App\Http\Controllers\Estudios\EstudioSoporteHCController;
 
 /*
 |--------------------------------------------------------------------------
@@ -71,6 +73,8 @@ Route::resource('/estudios', EstudioController::class)->names('estudios')->excep
 Route::get('/study-listar-diagnostico-por-estudio', [EstudioController::class, 'listarDiagnosticoPorEstudio'])->name('study.listar.diagnostico.por.estudio');
 Route::resource('/estudios-productos', EstudioProductoController::class)->names('estudios.productos');
 Route::resource('/estudios-diagnosticos', EstudioDiagnosticoController::class)->names('estudios.diagnosticos');
+Route::get('/listar-soportes-hc-estudio', [EstudioSoporteHCController::class, 'listarSoportesHistoriaClinicaPorPorEstudio'])->name('study.listar.soporte.hc.estudio');
+Route::get('/descarga-soportes-hc/{nomArchivoEncriptadote}', [EstudioSoporteHCController::class, 'descargarSoporte'])->name('study.descarga.soporte.hc');
 
 Route::view('/estudios.leer.estudio.listar', 'modulos.estudios.leer-estudio')->name('estudios.leer.estudio.listar');
 Route::post('/estudio-leerEstudio', [EstudioController::class, 'leerEstudio'])->name('estudio.leerEstudio');

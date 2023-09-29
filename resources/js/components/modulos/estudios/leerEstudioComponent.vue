@@ -329,15 +329,9 @@
                                 <div class="row">
                                     <div class="col-12">
                                         <div class="form-group">
-
                                             <textarea v-model="registro.lectura" class="textarea_editor form-control"
                                                 rows="15" id="lectura" style="height: 100%;"
                                                 placeholder="Ingrese aquí la lectura del estudio ..."></textarea>
-
-                                            <!-- <textarea class="textarea_editor form-control" rows="5" name="lectura"
-                                                id="lectura" v-model="registro.lectura"
-                                                placeholder="Ingrese aquí la lectura del estudio"
-                                                style="height: 100%;"></textarea> -->
                                         </div>
                                     </div>
                                 </div>
@@ -346,6 +340,19 @@
                                     <i class="fa fa-paperclip"></i> Adjuntos
                                 </h5>
                                 <hr>
+
+                                <div class="row">
+                                    <div class="card card-body">
+                                        <div class="row">
+                                            <div class="col-md-8 col-lg-9" v-for="(itemArchivo, index) in soportesHC"
+                                                :key="index">
+                                                <a href="javascript:void(0)"
+                                                    @click="descargaSoportte(itemArchivo.archivo_encrip)">{{
+                                                        itemArchivo.archivo_original }}</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -391,6 +398,7 @@ export default {
             registros: [],
             productoEstudio: { cod_produc: '', nom_produc: '' },
             diagnosticosEstudio: [],
+            soportesHC: [],
             tituloModal: "Nuevo registro",
             registro: { id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "", diagnosticosEstudio: [] },
             busqueda: { bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "" },
@@ -508,8 +516,27 @@ export default {
             const res = await axios.get('/study-listar-diagnostico-por-estudio?id=' + this.id);
             this.diagnosticosEstudio = res.data;
 
+            const resSoportesHC = await axios.get('/listar-soportes-hc-estudio?id=' + this.id);
+            this.soportesHC = resSoportesHC.data;
+
             this.btnCerralModalForm();
             this.errores = [];
+        },
+        descargaSoportte(nomArchivoEncriptado) {
+            const url = `/descarga-soportes-hc/${nomArchivoEncriptado}`;
+
+            axios.get(url, { responseType: 'blob' })
+                .then(response => {
+                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', nomArchivoEncriptado);
+                    document.body.appendChild(link);
+                    link.click();
+                })
+                .catch(error => {
+                    console.error(error);
+                });
         },
         limpiar() {
             this.tituloModal = "";
