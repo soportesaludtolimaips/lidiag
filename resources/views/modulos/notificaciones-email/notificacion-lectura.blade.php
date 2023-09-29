@@ -121,7 +121,7 @@
                                             </p>
 
                                             <p style="margin: 0 0 24px;">
-                                                Para descargar el reporte de la lectura y las imágenes puede acceder al siguiente link {{ config('app.url_api_reportes') }}
+                                                Para descargar el reporte de la lectura y las imágenes puede acceder al siguiente link {{ config('app.URL_API_REPORTES') }}
                                             </p>
                                             <p style="margin: 0 0 24px;">
                                                 <span style="font-weight: 600;">Usuario: {{ $reporteLectura->estudio->paciente->num_docu }}</span>

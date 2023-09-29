@@ -38,7 +38,7 @@ class EstudioController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(estudioLeerRequest $request)
     {
         $registro = json_decode($request->registro);
 
@@ -235,8 +235,6 @@ class EstudioController extends Controller
 
     public function listarPendientesTrascribir(Request $request)
     {
-
-
         $misPendiente = Estudio::select(
             'estudios.*',
             'pacien.num_docu',
@@ -293,11 +291,11 @@ class EstudioController extends Controller
         /**
          * Actualizo la lectura del estudio
          */
-        $transcribirEstudios = EstudioProducto::findOrFail($request->id_producto_lectura);
+        /*  $transcribirEstudios = EstudioProducto::findOrFail($request->id_producto_lectura);
         $transcribirEstudios->lectura = $request->lectura;
         $transcribirEstudios->transcriptor_id = auth()->user()->id;
         $transcribirEstudios->fechor_trascrito = Carbon::now();
-        $transcribirEstudios->save();
+        $transcribirEstudios->save(); */
 
         /**
          * Genero el PDF del reporte de la lectura del estudio
@@ -310,7 +308,7 @@ class EstudioController extends Controller
         /**
          * Envio la lectura a Lidiag-reportes para que este diponible para la descarga por parte del paciente
          */
-        $urlApiReportes = config('app.url_api_reportes') . "api/almacenarLectura";
+        $urlApiReportes = config('app.URL_API_REPORTES') . "api/almacenarLectura";
 
         $response = Http::attach(
             'file_reporte',
@@ -334,6 +332,7 @@ class EstudioController extends Controller
         if ($request->email != "") {
             $mailable = new NotificacionDeLectura($reporteLectura, $nomArchivoReporte);
             Mail::to($request->email)->send($mailable);
+            return "Si envio el email";
         }
 
         return response()->json(['message' => 'La transcripción se guardo correctamente.']);
