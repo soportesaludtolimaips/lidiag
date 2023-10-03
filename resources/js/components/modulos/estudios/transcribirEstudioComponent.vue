@@ -139,7 +139,7 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div class="right-sidebar">
+        <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%;">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
