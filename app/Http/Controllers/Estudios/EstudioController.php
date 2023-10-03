@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Mail;
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\Reportes\ResporteLecturaController;
+use App\Http\Requests\Estudio\estudioAsignarRequest;
 use App\Models\Estudio\EstudioSoportesHC;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -38,7 +39,7 @@ class EstudioController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(estudioLeerRequest $request)
+    public function store(Request $request)
     {
         $registro = json_decode($request->registro);
 
