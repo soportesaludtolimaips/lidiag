@@ -294,11 +294,11 @@ class EstudioController extends Controller
         /**
          * Actualizo la lectura del estudio
          */
-        /*  $transcribirEstudios = EstudioProducto::findOrFail($request->id_producto_lectura);
+        $transcribirEstudios = EstudioProducto::findOrFail($request->id_producto_lectura);
         $transcribirEstudios->lectura = $request->lectura;
         $transcribirEstudios->transcriptor_id = auth()->user()->id;
         $transcribirEstudios->fechor_trascrito = Carbon::now();
-        $transcribirEstudios->save(); */
+        $transcribirEstudios->save();
 
         /**
          * Genero el PDF del reporte de la lectura del estudio
