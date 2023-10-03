@@ -61,7 +61,7 @@ class EstudioController extends Controller
         );
 
         $estudio = Estudio::firstOrCreate(
-            ['study_id' => $registro->study_id],
+            ['study_id' => $registro->study_pk],
             [
                 'study_pk' => $registro->study_pk,
                 'study_iuid' => $registro->study_iuid,
