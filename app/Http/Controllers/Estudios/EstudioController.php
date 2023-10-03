@@ -311,11 +311,11 @@ class EstudioController extends Controller
         /**
          * Envio la lectura a Lidiag-reportes para que este diponible para la descarga por parte del paciente
          */
-        $urlApiReportes = config('app.URL_API_REPORTES') . "api/almacenarLectura";
+        $urlApiReportes = config('app.URL_API_REPORTES') . "almacenarLectura";
 
         $response = Http::attach(
             'file_reporte',
-            file_get_contents(storage_path('app/reporte_lecturas/' . $nomArchivoReporte)),
+            file_get_contents(storage_path('reporte_lecturas/' . $nomArchivoReporte)),
             $nomArchivoReporte
         )->post($urlApiReportes, [
             'num_docu' => $request->num_docu,
