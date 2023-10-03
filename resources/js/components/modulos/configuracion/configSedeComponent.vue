@@ -118,6 +118,11 @@
                                 </div>
                             </div>
 
+                            <h5 class="card-title text-info">
+                                <i class="fa fa-paperclip"></i> Datos de configuración de DCMCHEE
+                            </h5>
+                            <hr>
+
                             <div class="row">
                                 <div class="col-md-3">
                                     <div class="form-group">
@@ -137,9 +142,9 @@
                                     </div>
                                 </div>
 
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <div class="form-group">
-                                        <label class="control-label">Usuario Bd DCM4CHEE</label>
+                                        <label class="control-label">Usuario Bd</label>
                                         <input type="text" id="usuario_dcm" name="usuario_dcm"
                                             v-model="registro.usuario_dcm" class="form-control"
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
@@ -148,9 +153,9 @@
                                     </div>
                                 </div>
 
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <div class="form-group">
-                                        <label class="control-label">Password DCM4CHEE</label>
+                                        <label class="control-label">Password</label>
                                         <input type="text" id="password_dcm" name="password_dcm"
                                             v-model="registro.password_dcm" class="form-control"
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
@@ -158,10 +163,25 @@
                                         }}</span>
                                     </div>
                                 </div>
+
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="control-label">Puerto</label>
+                                        <input type="number" id="puerto_dcm" name="puerto_dcm" v-model="registro.puerto_dcm"
+                                            class="form-control" placeholder="Ingrese aquí la URL del Ovyam de la sede">
+                                        <span class="text-danger" v-if="errores.puerto_dcm">{{ errores.puerto_dcm[0]
+                                        }}</span>
+                                    </div>
+                                </div>
                             </div>
 
+                            <h5 class="card-title text-info">
+                                <i class="fa fa-paperclip"></i> Datos de configuración de OVIYAM
+                            </h5>
+                            <hr>
+
                             <div class="row">
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <div class="form-group">
                                         <label class="control-label">Usuario Oviyam</label>
                                         <input type="text" id="usuario_oviyam" name="usuario_oviyam"
@@ -172,7 +192,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <div class="form-group">
                                         <label class="control-label">Password Oviyam</label>
                                         <input type="text" id="password_oviyam" name="password_oviyam"
@@ -192,6 +212,57 @@
                                         <span class="text-danger" v-if="errores.url_oviyam">{{
                                             errores.url_oviyam[0]
                                         }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="control-label">Tab Oviyam</label>
+                                        <input type="text" id="tap_oviyam" name="tap_oviyam" v-model="registro.tap_oviyam"
+                                            class="form-control" placeholder="Ingrese aquí la URL del Ovyam de la sede">
+                                        <span class="text-danger" v-if="errores.tap_oviyam">{{
+                                            errores.tap_oviyam[0]
+                                        }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h5 class="card-title text-info">
+                                <i class="fa fa-paperclip"></i> Datos de configuración de la plantilla
+                            </h5>
+                            <hr>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label">Encavezado</label>
+                                        <input type="text" id="encabezado" name="encabezado" v-model="registro.encabezado"
+                                            class="form-control" placeholder="Ingrese aquí la URL del Ovyam de la sede">
+                                        <span class="text-danger" v-if="errores.encabezado">{{ errores.encabezado[0]
+                                        }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label">Pie de pagina</label>
+                                        <input type="text" id="pie_pagina" name="pie_pagina" v-model="registro.pie_pagina"
+                                            class="form-control" placeholder="Ingrese aquí la URL del Ovyam de la sede">
+                                        <span class="text-danger" v-if="errores.pie_pagina">{{
+                                            errores.pie_pagina[0]
+                                        }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Logo 1</label>
+                                        <input type="file" class="form-control" id="exampleInputFile"
+                                            aria-describedby="fileHelp" @change='obtenerLogo1' accept=".jpg, .jpeg, .png">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Logo 2</label>
+                                        <input type="file" class="form-control" id="exampleInputFile"
+                                            aria-describedby="fileHelp" @change='obtenerLogo2' accept=".jpg, .jpeg, .png">
                                     </div>
                                 </div>
                             </div>
@@ -240,10 +311,14 @@ export default {
         return {
             id: 0,
             registros: [],
-            registro: { id: 0, nom_sede: '', ip_dcm: '', bd_dcm: '', usuario_dcm: '', password_dcm: '', usuario_oviyam: '', password_oviyam: '', url_oviyam: '', estado: 0 },
+            registro: {
+                id: 0, nom_sede: '', ip_dcm: '', bd_dcm: '', puerto_dcm: '', usuario_dcm: '', password_dcm: '', usuario_oviyam: '', password_oviyam: '', url_oviyam: '', tap_oviyam: '', encabezado: '', pie_pagina: '',
+                logo_1: '', logo_2: '', estado: 0
+            },
             tituloModal: 'Nuevo registro',
             actualizar: false,
             errores: {},
+            logos: { logo1: null, logo2: null }, //Logos
         };
     },
     methods: {
@@ -269,7 +344,6 @@ export default {
                     const res = await axios.post('/config-sedes', this.registro);
 
                     if (res.status == 200) {
-
                         $.toast({
                             heading: 'Ok!!!',
                             text: res.data.message,
@@ -285,10 +359,10 @@ export default {
                         this.limpiar();
                     }
                 } else {
-                    const res = await axios.put('/config-sedes/' + this.id, this.registro);
+
+                    const res = await axios.put('/config-sedes/' + this.registro.id, this.registro);
 
                     if (res.status == 200) {
-
                         $.toast({
                             heading: 'Ok!!!',
                             text: res.data.message,
@@ -306,7 +380,7 @@ export default {
                 }
             } catch (error) {
                 console.log(error);
-                this.errores = error.response.data.errors;
+                this.errores = error.response;
             }
         },
         elimnarRegistro(id) {
@@ -330,6 +404,13 @@ export default {
                 }
             });
         },
+        obtenerLogo1(e) {
+            this.logos.logo1 = e.target.files[0];
+            console.log(this.logos.logo1)
+        },
+        obtenerLogo2(e) {
+            this.logos.logo2 = e.target.files[0];
+        },
         mostrarRegistro(data = {}) {
             if (this.actualizar == true) {
                 this.tituloModal = "Actualizar el registro: " + data.nom_sede;
@@ -337,11 +418,14 @@ export default {
                 this.registro.nom_sede = data.nom_sede;
                 this.registro.ip_dcm = data.ip_dcm;
                 this.registro.bd_dcm = data.bd_dcm;
+                this.registro.puerto_dcm = data.puerto_dcm;
                 this.registro.usuario_dcm = data.usuario_dcm;
                 this.registro.password_dcm = data.password_dcm;
                 this.registro.usuario_oviyam = data.usuario_oviyam;
                 this.registro.password_oviyam = data.password_oviyam;
                 this.registro.url_oviyam = data.url_oviyam;
+                this.registro.encabezado = data.encabezado;
+                this.registro.pie_pagina = data.pie_pagina;
                 this.registro.estado;
 
                 $('#btnCerralModalForm').click();
@@ -354,11 +438,14 @@ export default {
                 this.registro.nom_sede = "";
                 this.registro.ip_dcm = "";
                 this.registro.bd_dcm = "";
+                this.registro.puerto_dcm = "";
                 this.registro.usuario_dcm = "";
                 this.registro.password_dcm = "";
                 this.registro.usuario_oviyam = "";
                 this.registro.password_oviyam = "";
                 this.registro.url_oviyam = "";
+                this.registro.encabezado = "";
+                this.registro.pie_pagina = "";
                 this.registro.estado = 1;
 
                 $('#btnCerralModalForm').click();

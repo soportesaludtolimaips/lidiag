@@ -254,7 +254,9 @@ class EstudioController extends Controller
             'priori.nivel AS priori_nivel',
             'priori.tiempo AS priori_tiempo',
             'medi.name as medico',
-            'sede.nom_sede as nom_sede'
+            'sede.nom_sede as nom_sede',
+            'sede.url_oviyam',
+            'sede.tap_oviyam'
         )
             ->join('pacientes AS pacien', 'estudios.paciente_id',  '=', 'pacien.id')
             ->join('config_sedes AS sede', 'estudios.sede_id', '=', 'sede.id')
@@ -265,7 +267,7 @@ class EstudioController extends Controller
             ->whereNull('produc.fechor_trascrito')
             ->whereNotNull('produc.fechor_lectura')
             ->get();
-
+        return $misPendiente;
         return response()->json($misPendiente);
     }
 
@@ -332,7 +334,6 @@ class EstudioController extends Controller
         if ($request->email != "") {
             $mailable = new NotificacionDeLectura($reporteLectura, $nomArchivoReporte);
             Mail::to($request->email)->send($mailable);
-            return "Si envio el email";
         }
 
         return response()->json(['message' => 'La transcripción se guardo correctamente.']);

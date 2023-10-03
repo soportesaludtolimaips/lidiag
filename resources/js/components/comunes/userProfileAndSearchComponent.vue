@@ -300,7 +300,7 @@ export default {
         },
         async listarSedes() {
             try {
-                const res = await axios.get('/config-sedes/listarSedesActivas');
+                const res = await axios.get('/config-sedes/listar/sedes/activas');
                 this.sedes = res.data;
 
                 this.sedeSeleccionada = sessionStorage.getItem('ST-sede');

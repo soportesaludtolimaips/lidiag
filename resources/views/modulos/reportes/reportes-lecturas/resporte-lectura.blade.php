@@ -75,11 +75,15 @@
         <table style="width: 100%;">
             <tr>
                 <td style="width: 40%;">
-                    <img src="{{ url('logos/' . $reporteLectura->estudio->sede->logo_1) }}" width="80%" height="80%" />
+                    @if ($reporteLectura->estudio->sede->logo_1 != '')
+                        <img src="{{ url('logos/' . $reporteLectura->estudio->sede->logo_1) }}" width="80%" height="80%" />
+                    @endif
                 </td>
                 <td style="width: 80%; text-align: center;">{{ $reporteLectura->estudio->sede->encabezado }}</td>
                 <td style="width: 40%;">
-                    <img src="{{ url('logos/' . $reporteLectura->estudio->sede->logo_2) }}" width="80%" height="80%" />
+                    @if ($reporteLectura->estudio->sede->logo_2 != '')
+                        <img src="{{ url('logos/' . $reporteLectura->estudio->sede->logo_2) }}" width="80%" height="80%" />
+                    @endif
                 </td>
             </tr>
         </table>
@@ -101,8 +105,9 @@
         <p class="estudio">ESTUDIO: {{ $reporteLectura->nom_produc }}</p>
 
         <p>{{ $reporteLectura->lectura }}</p>
-
-        <img class="firma-medico" src="{{ url('firmas_medicos/' . $reporteLectura->estudio->medico->firma) }}" width="100px" height="80px" />
+        @if ($reporteLectura->estudio->medico->firma != '')
+            <img class="firma-medico" src="{{ url('firmas_medicos/' . $reporteLectura->estudio->medico->firma) }}" width="100px" height="80px" />
+        @endif
         <p class="titulo-negrita">DR. {{ $reporteLectura->estudio->medico->name }}</p>
         <p class="titulo-negrita">MEDICO RADIOLOGO</p>
         <p class="titulo-negrita">RM: {{ $reporteLectura->estudio->medico->reg_med }}</p>

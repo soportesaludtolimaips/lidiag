@@ -557,10 +557,6 @@ export default {
             $(".right-sidebar").toggleClass("shw-rside");
         },
     },
-    /*  updated() {
-         this.registro.lectura = this.lecturaEstudio;
-     } */
-
 }
 </script>
 

@@ -435,7 +435,9 @@ export default {
             tituloModal: "Transcirbir estudio",
             registro: { id_estudio: 0, id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "", diagnosticosEstudio: [], id_producto_lectura: 0 },
             busqueda: { bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "" },
-            errores: {}
+            datosImagen: { urlOviyam: '', patientId: '', studyUID: '', serverName: '' },
+            errores: {},
+            microfono: 'admin-wrap/assets/images/mic.gif',
         };
     },
     methods: {
@@ -550,10 +552,14 @@ export default {
                     console.error(error);
                 });
         },
-        mostrarRegistro(data = {}) {
-
+        verImagen() {
+            let Url = this.datosImagen.urlOviyam + '?patientID =' + this.datosImagen.patientId + '&studyUID=' + this.datosImagen.studyUID + '&serverName=' + this.datosImagen.serverName
+            window.open(Url, '_blank');
+        },
+        async mostrarRegistro(data = {}) {
+            console.log(data)
             this.tituloModal = "Transcribir la lectura del paciente: " + data.nom_pacien;
-           this.id = data.id;
+            this.id = data.id;
             this.registro.id_producto_lectura = data.id_producto_lectura;
             this.registro.fec_estudio = data.fec_estudio;
             this.registro.accession_no = data.accession_no;
@@ -563,6 +569,7 @@ export default {
             this.registro.nom_pacien = data.nom_pacien;
             this.registro.sexo = data.pat_sex;
             this.registro.fec_naci = data.pat_birthdate;
+            this.registro.lectura = data.lectura;
 
             this.datosImagen.urlOviyam = data.url_oviyam;
             this.datosImagen.patientId = data.num_docu;
