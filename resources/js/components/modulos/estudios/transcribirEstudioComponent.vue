@@ -103,7 +103,7 @@
                                             <button type="button" v-else="item.priori_id == 4"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm">S</button>
                                         </td>
-                                        <td>{{ item.nom_sucur }}</td>
+                                        <td>{{ item.nom_sede }}</td>
                                         <td>{{ item.fec_estudio }}</td>
                                         <td>{{ item.quien_registro }}</td>
                                         <td>{{ item.medico }}</td>
