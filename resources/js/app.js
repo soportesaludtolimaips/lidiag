@@ -52,6 +52,9 @@ import leerEstudioComponent from './components/modulos/estudios/leerEstudioCompo
 app.component('leer-estudio-component', leerEstudioComponent);
 import transcribirEstudioComponent from './components/modulos/estudios/transcribirEstudioComponent.vue';
 app.component('transcribir-estudio-component', transcribirEstudioComponent);
+import notificarEstudioComponent from './components/modulos/estudios/notificarEstudioComponent.vue';
+app.component('notificar-estudio-component', notificarEstudioComponent);
+
 
 
 /**

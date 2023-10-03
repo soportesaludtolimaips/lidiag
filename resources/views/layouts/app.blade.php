@@ -19,6 +19,13 @@
     <link href="{{ asset('admin-wrap/assets/node_modules/sweetalert/sweetalert.css') }}" rel="stylesheet" type="text/css">
     <!-- toast CSS -->
     <link href="{{ asset('admin-wrap/assets/node_modules/toast-master/css/jquery.toast.css') }}" rel="stylesheet">
+    <!-- chartist CSS -->
+    <link href="admin-wrap/assets/node_modules/morrisjs/morris.css" rel="stylesheet">
+    <!--c3 CSS -->
+    <link href="admin-wrap/assets/node_modules/c3-master/c3.min.css" rel="stylesheet">
+    <!--Toaster Popup message CSS -->
+    <link href="admin-wrap/assets/node_modules/toast-master/css/jquery.toast.css" rel="stylesheet">
+
     <!-- Custom CSS -->
     <link href="{{ asset('admin-wrap/css/style.css') }}" rel="stylesheet">
     <!-- You can change the theme colors from here -->
@@ -144,6 +151,15 @@
             $('#textarea_editor').wysihtml5();
         });
     </script>
+
+    <!--morris JavaScript -->
+    <script src="admin-wrap/assets/node_modules/raphael/raphael-min.js"></script>
+    <script src="admin-wrap/assets/node_modules/morrisjs/morris.min.js"></script>
+    <!--c3 JavaScript -->
+    <script src="admin-wrap/assets/node_modules/d3/d3.min.js"></script>
+    <script src="admin-wrap/assets/node_modules/c3-master/c3.min.js"></script>
+    <!-- Popup message jquery -->
+    <script src="admin-wrap/assets/node_modules/toast-master/js/jquery.toast.js"></script>
 
     <!-- This is data table -->
     <script src="{{ asset('admin-wrap/assets/node_modules/datatables/jquery.dataTables.min.js') }}"></script>

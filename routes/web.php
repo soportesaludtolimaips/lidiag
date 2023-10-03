@@ -67,6 +67,8 @@ Route::get('/config-sedes/listar/sedes/activas', [ConfigSedeController::class, '
 Route::view('/estudios.asignar.listar', 'modulos.estudios.asignar-estudio')->name('estudios.asignar.listar');
 Route::post('/study.listarEstudios', [StudyController::class, 'listarEstudios'])->name('study.listarEstudios');
 
+Route::view('/estudios.notificar', 'modulos.estudios.notificar-estudio')->name('estudios.notificar');
+
 Route::get('/user.listarUsuarios/{tipo_user}', [UserController::class, 'listarUsuarios'])->name('user.listarUsuarios');
 
 Route::resource('/estudios', EstudioController::class)->names('estudios')->except(['create', 'show']);

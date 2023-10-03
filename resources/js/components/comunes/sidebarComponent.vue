@@ -31,6 +31,7 @@
                             <li><router-link to="/AsignarEstudios">Asignar estudio</router-link></li>
                             <li><router-link to="/transcribirEstudios">Transcribir</router-link></li>
                             <li><router-link to="/leerEstudios">Mis estudios pendientes</router-link></li>
+                            <li><router-link to="/notificarEstudios">Notificar estudio</router-link></li>
                         </ul>
                     </li>
 

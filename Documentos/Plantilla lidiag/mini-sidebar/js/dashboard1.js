@@ -9,18 +9,18 @@ $(function () {
     // ============================================================== 
     // Our Visitor
     // ============================================================== 
-    
+
     var chart = c3.generate({
         bindto: '#visitor',
         data: {
             columns: [
                 ['Other', 30],
-                ['Desktop', 10],
+                ['Desktop', 100],
                 ['Tablet', 40],
-                ['Mobile', 50],
+                ['Mobile', 500],
             ],
-            
-            type : 'donut',
+
+            type: 'donut',
             onclick: function (d, i) { console.log("onclick", d, i); },
             onmouseover: function (d, i) { console.log("onmouseover", d, i); },
             onmouseout: function (d, i) { console.log("onmouseout", d, i); }
@@ -28,19 +28,19 @@ $(function () {
         donut: {
             label: {
                 show: false
-              },
-            title:"Visits",
-            width:20,
-            
+            },
+            title: "Visits",
+            width: 20,
+
         },
-        
+
         legend: {
-          hide: true
-          //or hide: 'data1'
-          //or hide: ['data1', 'data2']
+            hide: true
+            //or hide: 'data1'
+            //or hide: ['data1', 'data2']
         },
         color: {
-              pattern: ['#eceff1', '#24d2b5', '#6772e5', '#20aee3']
+            pattern: ['#eceff1', '#24d2b5', '#6772e5', '#20aee3']
         }
     });
     // ============================================================== 
@@ -55,45 +55,45 @@ $(function () {
             ],
             type: 'bar'
         },
-         bar: {
+        bar: {
             space: 0.2,
             // or
             width: 15 // this makes bar width 100px
         },
         axis: {
             y: {
-            tick: {
-                count : 4,
-                
-                outer: false
+                tick: {
+                    count: 4,
+
+                    outer: false
                 }
             }
         },
         legend: {
-          hide: true
-          //or hide: 'data1'
-          //or hide: ['data1', 'data2']
+            hide: true
+            //or hide: 'data1'
+            //or hide: ['data1', 'data2']
         },
         grid: {
-        x: {
-            show: false
+            x: {
+                show: false
+            },
+            y: {
+                show: true
+            }
         },
-        y: {
-            show: true
-        }
-    },
         size: {
             height: 290
         },
         color: {
-              pattern: [ '#24d2b5', '#20aee3']
+            pattern: ['#24d2b5', '#20aee3']
         }
     });
-    
+
     // ============================================================== 
     // Sales Different
     // ============================================================== 
-    
+
     var chart = c3.generate({
         bindto: '#sales',
         data: {
@@ -101,10 +101,10 @@ $(function () {
                 ['One+', 50],
                 ['T', 60],
                 ['Samsung', 20],
-                
+
             ],
-            
-            type : 'donut',
+
+            type: 'donut',
             onclick: function (d, i) { console.log("onclick", d, i); },
             onmouseover: function (d, i) { console.log("onmouseover", d, i); },
             onmouseout: function (d, i) { console.log("onmouseout", d, i); }
@@ -112,27 +112,27 @@ $(function () {
         donut: {
             label: {
                 show: false
-              },
-            title:"",
-            width:18,
-            
+            },
+            title: "",
+            width: 18,
+
         },
         size: {
             height: 150
         },
         legend: {
-          hide: true
-          //or hide: 'data1'
-          //or hide: ['data1', 'data2']
+            hide: true
+            //or hide: 'data1'
+            //or hide: ['data1', 'data2']
         },
         color: {
-              pattern: ['#eceff1', '#24d2b5', '#6772e5', '#20aee3']
+            pattern: ['#eceff1', '#24d2b5', '#6772e5', '#20aee3']
         }
     });
     // ============================================================== 
     // Sales Prediction
     // ============================================================== 
-    
+
     var chart = c3.generate({
         bindto: '#prediction',
         data: {
@@ -148,62 +148,62 @@ $(function () {
         color: {
             pattern: ['#ff9041', '#20aee3', '#24d2b5', '#6772e5'], // the three color levels for the percentage values.
             threshold: {
-    //            unit: 'value', // percentage is default
-    //            max: 200, // 100 is default
+                //            unit: 'value', // percentage is default
+                //            max: 200, // 100 is default
                 values: [30, 60, 90, 100]
             }
         },
         gauge: {
-            width:22,      
+            width: 22,
         },
         size: {
             height: 120,
-            width:150
+            width: 150
         }
-        });
-    
+    });
+
     // ============================================================== 
     // Sales chart
     // ============================================================== 
     Morris.Area({
         element: 'sales-chart',
         data: [{
-                period: '2011',
-                Sales: 50,
-                Earning: 80,
-                Marketing: 20
-            }, {
-                period: '2012',
-                Sales: 130,
-                Earning: 100,
-                Marketing: 80
-            }, {
-                period: '2013',
-                Sales: 80,
-                Earning: 60,
-                Marketing: 70
-            }, {
-                period: '2014',
-                Sales: 70,
-                Earning: 200,
-                Marketing: 140
-            }, {
-                period: '2015',
-                Sales: 180,
-                Earning: 150,
-                Marketing: 140
-            }, {
-                period: '2016',
-                Sales: 105,
-                Earning: 100,
-                Marketing: 80
-            },
-            {
-                period: '2017',
-                Sales: 250,
-                Earning: 150,
-                Marketing: 200
-            }
+            period: '2011',
+            Sales: 50,
+            Earning: 80,
+            Marketing: 20
+        }, {
+            period: '2012',
+            Sales: 130,
+            Earning: 100,
+            Marketing: 80
+        }, {
+            period: '2013',
+            Sales: 80,
+            Earning: 60,
+            Marketing: 70
+        }, {
+            period: '2014',
+            Sales: 70,
+            Earning: 200,
+            Marketing: 140
+        }, {
+            period: '2015',
+            Sales: 180,
+            Earning: 150,
+            Marketing: 140
+        }, {
+            period: '2016',
+            Sales: 105,
+            Earning: 100,
+            Marketing: 80
+        },
+        {
+            period: '2017',
+            Sales: 250,
+            Earning: 150,
+            Marketing: 200
+        }
         ],
         xkey: 'period',
         ykeys: ['Sales', 'Earning', 'Marketing'],
@@ -223,14 +223,14 @@ $(function () {
     // ============================================================== 
     // This is for the popup message while page load
     // ============================================================== 
-        $.toast({
-            heading: 'Welcome to Adminwrap',
-            text: 'Most powerfull and elegant design with tons of elements.',
-            position: 'top-right',
-            loaderBg: '#f33c49',
-            icon: 'info',
-            hideAfter: 6000,
-            stack: 6
-        })
-    
+    $.toast({
+        heading: 'Welcome to Adminwrap',
+        text: 'Most powerfull and elegant design with tons of elements.',
+        position: 'top-right',
+        loaderBg: '#f33c49',
+        icon: 'info',
+        hideAfter: 6000,
+        stack: 6
+    })
+
 });

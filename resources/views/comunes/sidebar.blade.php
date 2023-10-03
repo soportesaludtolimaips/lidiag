@@ -48,6 +48,11 @@
                                     </a>
                                 </li>
                             @endcan
+                            <li>
+                                <a href="{{ route('estudios.notificar') }}">
+                                    <i class="fa fa-envelope-o text-info"></i> Notificar estudio
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif
