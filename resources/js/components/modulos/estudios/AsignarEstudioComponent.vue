@@ -605,15 +605,12 @@ export default {
         },
         obtenerArchivo1(e) {
             this.soportesHC.archivo1 = e.target.files[0];
-            console.log(this.soportesHC.archivo1)
         },
         obtenerArchivo2(e) {
             this.soportesHC.archivo2 = e.target.files[0];
-            console.log(this.soportesHC.archivo2)
         },
         obtenerArchivo3(e) {
             this.soportesHC.archivo3 = e.target.files[0];
-            console.log(this.soportesHC.archivo3)
         },
         mostrarRegistro(data = {}) {
 
