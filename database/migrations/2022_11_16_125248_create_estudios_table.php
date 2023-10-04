@@ -21,6 +21,7 @@ return new class extends Migration
             $table->dateTime('fec_estudio');
             $table->string('accession_no', 150)->nullable();
             $table->string('study_desc', 250)->nullable();
+            $table->string('mods_in_study', 5)->nullable();
 
             $table->unsignedBigInteger('paciente_id');
             $table->foreign('paciente_id')->references('id')->on('pacientes');

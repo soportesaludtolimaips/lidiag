@@ -69,6 +69,7 @@ class EstudioController extends Controller
                 'fec_estudio' => $registro->study_datetime,
                 'accession_no' => $registro->accession_no,
                 'study_desc' => $registro->study_desc,
+                'mods_in_study' => $registro->mods_in_study,
                 'paciente_id' => $paciente->id,
                 'medico_id' => $registro->medico_id,
                 'quien_registro_id' => auth()->user()->id,

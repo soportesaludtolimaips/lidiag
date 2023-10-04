@@ -485,7 +485,7 @@ export default {
             registros: [],
             tituloModal: "Nuevo registro",
             registro: {
-                study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", observaciones: "", medico_id: "", prioridad_id: "", sede_id: this.sedeActual,
+                study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", mods_in_study: "", observaciones: "", medico_id: "", prioridad_id: "", sede_id: this.sedeActual,
                 quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", direccion: "", telefono: "", productosEstudio: [], diagnosticosEstudio: []
             },
             soportesHC: { archivo1: null, archivo2: null, archivo3: null }, //Soporte de historia clinica
@@ -622,6 +622,7 @@ export default {
             this.registro.study_datetime = data.study_datetime;
             this.registro.accession_no = data.accession_no;
             this.registro.study_desc = data.study_desc;
+            this.registro.mods_in_study = data.mods_in_study;
 
             this.registro.num_docu = data.pat_id;
             this.registro.nombres = data.pat_name;
@@ -646,6 +647,7 @@ export default {
             this.registro.study_datetime = '';
             this.registro.accession_no = '';
             this.registro.study_desc = '';
+            this.registro.mods_in_study = "";
 
             this.registro.num_docu = '';
             this.registro.nombres = '';
@@ -655,8 +657,13 @@ export default {
             this.registro.diagnosticosEstudio.splice(0, this.registro.diagnosticosEstudio.length);
             this.registro.productosEstudio.splice(0, this.registro.productosEstudio.length);
 
-            this.istarMedicos();
-            this.listarPrioridades();
+            this.registro.medico_id = 0;
+            this.registro.prioridad_id = 0;
+            this.productoSelecciondo = 0;
+            this.diagnosticoSelecciondo = 0;
+
+            /* this.istarMedicos();
+            this.listarPrioridades(); */
         },
         async listarMedicos() {
             try {

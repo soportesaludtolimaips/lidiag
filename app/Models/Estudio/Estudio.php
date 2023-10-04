@@ -14,7 +14,7 @@ class Estudio extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['study_pk', 'study_iuid', 'study_id', 'fec_estudio', 'accession_no', 'study_desc', 'paciente_id', 'medico_id', 'quien_registro_id', 'sede_id', 'prioridad_id', 'observaciones', 'estado'];
+    protected $fillable = ['study_pk', 'study_iuid', 'study_id', 'fec_estudio', 'accession_no', 'study_desc', 'mods_in_study', 'paciente_id', 'medico_id', 'quien_registro_id', 'sede_id', 'prioridad_id', 'observaciones', 'estado'];
 
     public function paciente()
     {

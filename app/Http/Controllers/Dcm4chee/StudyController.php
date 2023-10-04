@@ -46,6 +46,7 @@ class StudyController extends Controller
             'study.study_datetime',
             'study.accession_no',
             'study.study_desc',
+            'study.mods_in_study',
             'patient.pat_id',
             'patient.pat_name',
             'patient.pat_sex',
