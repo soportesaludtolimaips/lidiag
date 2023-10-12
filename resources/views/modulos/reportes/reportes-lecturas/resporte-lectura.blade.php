@@ -105,6 +105,10 @@
         <p class="estudio">ESTUDIO: {{ $reporteLectura->nom_produc }}</p>
 
         <p>{{ $reporteLectura->lectura }}</p>
+
+        <br>
+        <br>
+
         @if ($reporteLectura->estudio->medico->firma != '')
             <img class="firma-medico" src="{{ url('firmas_medicos/' . $reporteLectura->estudio->medico->firma) }}" width="100px" height="80px" />
         @endif

@@ -9,11 +9,10 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class NotificacionDeLectura extends Mailable
+class ReportarLectura extends Mailable
 {
     use Queueable, SerializesModels;
     protected $reporteLectura, $nomArchivoReporte;
-
     /**
      * Create a new message instance.
      *
@@ -32,9 +31,8 @@ class NotificacionDeLectura extends Mailable
      */
     public function envelope()
     {
-
         return new Envelope(
-            subject: 'Notificación: Reporte de lectura de imagen diagnostica disponible',
+            subject: 'Notificación: Reporte de lectura de imagen diagnostica',
             metadata: [
                 'num_docu' => $this->reporteLectura->estudio->paciente->num_docu,
                 'nombres' => $this->reporteLectura->estudio->paciente->nombres,
@@ -51,7 +49,7 @@ class NotificacionDeLectura extends Mailable
     public function content()
     {
         return new Content(
-            view: 'modulos.notificaciones-email.notificacion-lectura',
+            view: 'modulos.notificaciones-email.reportar-lectura',
             with: ['reporteLectura' => $this->reporteLectura]
         );
     }

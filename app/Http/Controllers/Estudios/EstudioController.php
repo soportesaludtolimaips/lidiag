@@ -15,6 +15,7 @@ use Mail;
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\Reportes\ResporteLecturaController;
 use App\Http\Requests\Estudio\estudioAsignarRequest;
+use App\Mail\ReportarLectura;
 use App\Models\Estudio\EstudioSoportesHC;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -70,6 +71,7 @@ class EstudioController extends Controller
                 'accession_no' => $registro->accession_no,
                 'study_desc' => $registro->study_desc,
                 'mods_in_study' => $registro->mods_in_study,
+                'email_reportar' => $registro->email_reportar,
                 'paciente_id' => $paciente->id,
                 'medico_id' => $registro->medico_id,
                 'quien_registro_id' => auth()->user()->id,
@@ -292,6 +294,7 @@ class EstudioController extends Controller
             ]
         );
 
+
         /**
          * Actualizo la lectura del estudio
          */
@@ -336,6 +339,11 @@ class EstudioController extends Controller
         if ($request->email != "") {
             $mailable = new NotificacionDeLectura($reporteLectura, $nomArchivoReporte);
             Mail::to($request->email)->send($mailable);
+        }
+
+        if ($request->email_reportar != "") {
+            $mailable = new ReportarLectura($reporteLectura, $nomArchivoReporte);
+            Mail::to($request->email_reportar)->send($mailable);
         }
 
         return response()->json(['message' => 'La transcripción se guardo correctamente.']);

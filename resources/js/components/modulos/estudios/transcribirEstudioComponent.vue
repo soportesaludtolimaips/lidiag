@@ -278,6 +278,14 @@
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
+                                                <label class="control-label">Reportar al Email</label>
+                                                <input type="text" id="email_reportar" name="email_reportar"
+                                                    v-model="registro.email_reportar" class="form-control"
+                                                    placeholder="Ingrese aqi el email a reportar" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="form-group">
                                                 <label class="control-label">Observaciones</label>
                                                 <input type="text" id="observaciones" name="observaciones"
                                                     v-model="registro.observaciones" class="form-control"
@@ -433,7 +441,7 @@ export default {
             soportesHC: [],
             registros: [],
             tituloModal: "Transcirbir estudio",
-            registro: { id_estudio: 0, id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "", diagnosticosEstudio: [], id_producto_lectura: 0 },
+            registro: { id_estudio: 0, id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", email_reportar: '', num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "", diagnosticosEstudio: [], id_producto_lectura: 0 },
             busqueda: { bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "" },
             datosImagen: { urlOviyam: '', patientId: '', studyUID: '', serverName: '' },
             errores: {},
@@ -557,16 +565,20 @@ export default {
             window.open(Url, '_blank');
         },
         async mostrarRegistro(data = {}) {
-            console.log(data)
+
             this.tituloModal = "Transcribir la lectura del paciente: " + data.nom_pacien;
             this.id = data.id;
             this.registro.id_producto_lectura = data.id_producto_lectura;
             this.registro.fec_estudio = data.fec_estudio;
             this.registro.accession_no = data.accession_no;
             this.registro.study_desc = data.study_desc;
+            this.registro.email_reportar = data.email_reportar;
 
             this.registro.num_docu = data.num_docu;
             this.registro.nom_pacien = data.nom_pacien;
+            this.registro.direccion = data.direccion;
+            this.registro.email = data.email;
+            this.registro.tel = data.tel;
             this.registro.sexo = data.pat_sex;
             this.registro.fec_naci = data.pat_birthdate;
             this.registro.lectura = data.lectura;

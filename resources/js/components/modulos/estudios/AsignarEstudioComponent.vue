@@ -274,6 +274,14 @@
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
+                                                <label class="control-label">Reportar al Email</label>
+                                                <input type="text" id="email_reportar" name="email_reportar"
+                                                    v-model="registro.email_reportar" class="form-control"
+                                                    placeholder="Ingrese aqi el email a reportar" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="form-group">
                                                 <label class="control-label">Observaciones</label>
                                                 <input type="text" id="observaciones" name="observaciones"
                                                     v-model="registro.observaciones" class="form-control"
@@ -485,7 +493,7 @@ export default {
             registros: [],
             tituloModal: "Nuevo registro",
             registro: {
-                study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", mods_in_study: "", observaciones: "", medico_id: "", prioridad_id: "", sede_id: this.sedeActual,
+                study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", mods_in_study: "", email_reportar: '', observaciones: "", medico_id: "", prioridad_id: "", sede_id: this.sedeActual,
                 quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", direccion: "", telefono: "", productosEstudio: [], diagnosticosEstudio: []
             },
             soportesHC: { archivo1: null, archivo2: null, archivo3: null }, //Soporte de historia clinica
@@ -612,7 +620,10 @@ export default {
         obtenerArchivo3(e) {
             this.soportesHC.archivo3 = e.target.files[0];
         },
-        mostrarRegistro(data = {}) {
+        async mostrarRegistro(data = {}) {
+
+            const res = await axios.get('/config-sedes/' + this.sedeActual + '/buscarPorId');
+
 
             this.tituloModal = "Agendar al paciente: " + data.pat_name;
             this.id = data.id;
@@ -623,7 +634,7 @@ export default {
             this.registro.accession_no = data.accession_no;
             this.registro.study_desc = data.study_desc;
             this.registro.mods_in_study = data.mods_in_study;
-
+            this.registro.email_reportar = res.data.email;
             this.registro.num_docu = data.pat_id;
             this.registro.nombres = data.pat_name;
             this.registro.sexo = data.pat_sex;
@@ -648,6 +659,7 @@ export default {
             this.registro.accession_no = '';
             this.registro.study_desc = '';
             this.registro.mods_in_study = "";
+            this.registro.email_reportar = "";
 
             this.registro.num_docu = '';
             this.registro.nombres = '';
