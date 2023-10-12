@@ -89,7 +89,7 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div class="right-sidebar">
+        <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%;">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -215,6 +215,9 @@ export default {
                             hideAfter: 3500,
                             stack: 6
                         });
+
+                        this.btnCerralModalForm();
+                        this.limpiar();
                     }
                 } else {
                     const res = await axios.put('/config-diagnosticos/' + this.id, this.registro);
@@ -231,6 +234,9 @@ export default {
                             hideAfter: 3500,
                             stack: 6
                         });
+
+                        this.btnCerralModalForm();
+                        this.limpiar();
                     }
                 }
             } catch (error) {
@@ -266,7 +272,7 @@ export default {
                 this.registro.cod_diagnos = data.cod_diagnos;
                 this.registro.nom_diagnos = data.nom_diagnos;
                 this.registro.estado = data.estado;
-                $('#btnCerralModalForm').click();
+
             } else {
                 this.actualizar = false;
                 this.tituloModal = "Nuevo registro";
@@ -274,12 +280,44 @@ export default {
                 this.registro.cod_diagnos = "";
                 this.registro.nom_diagnos = "";
                 this.registro.estado = 1;
-                $('#btnCerralModalForm').click();
             }
         },
+        limpiar() {
+            this.actualizar = false;
+            this.tituloModal = "Nuevo registro";
+            this.id = 0;
+            this.registro.cod_diagnos = "";
+            this.registro.nom_diagnos = "";
+            this.registro.estado = 1;
+        },
         btnCerralModalForm() {
-            $('#btnCerralModalForm').click();
+            $(".right-sidebar").slideDown(50);
+            $(".right-sidebar").toggleClass("shw-rside");
         }
     },
 };
 </script>
+<style scoped>
+.right-sidebar {
+    position: fixed;
+    right: -50%;
+    width: 50%;
+    display: none;
+    z-index: 1100;
+    background: #ffffff;
+    top: 0px;
+    padding-bottom: 20px;
+    height: 100%;
+    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
+    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
+    -webkit-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+}
+
+.shw-rside {
+    right: 0px;
+    width: 50%;
+    display: block;
+}
+</style>

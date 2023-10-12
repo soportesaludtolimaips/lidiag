@@ -265,6 +265,9 @@ export default {
                             hideAfter: 3500,
                             stack: 6
                         });
+
+                        this.btnCerralModalForm();
+                        this.limpiar();
                     }
                 } else {
                     const res = await axios.put('/config-productos/' + this.id, this.registro);
@@ -281,6 +284,9 @@ export default {
                             hideAfter: 3500,
                             stack: 6
                         });
+
+                        this.btnCerralModalForm();
+                        this.limpiar();
 
                     }
                 }
@@ -322,7 +328,7 @@ export default {
                 this.registro.tipo_oral = data.tipo_oral;
                 this.registro.tipo_venoso = data.tipo_venoso;
                 this.registro.factura = data.factura;
-                $('#btnCerralModalForm').click();
+
             } else {
                 this.actualizar = false;
                 this.tituloModal = "Nuevo registro";
@@ -335,11 +341,25 @@ export default {
                 this.registro.tipo_oral = "";
                 this.registro.tipo_venoso = "";
                 this.registro.factura = "";
-                $('#btnCerralModalForm').click();
+
             }
         },
+        limpiar() {
+            this.actualizar = false;
+            this.tituloModal = "Nuevo registro";
+            this.id = 0;
+            this.registro.cod_cups = "";
+            this.registro.nom_produc = "";
+            this.registro.porcen = "";
+            this.registro.val_produc = "";
+            this.registro.requi_lectura = "";
+            this.registro.tipo_oral = "";
+            this.registro.tipo_venoso = "";
+            this.registro.factura = "";
+        },
         btnCerralModalForm() {
-            $('#btnCerralModalForm').click();
+            $(".right-sidebar").slideDown(50);
+            $(".right-sidebar").toggleClass("shw-rside");
         }
     },
 };

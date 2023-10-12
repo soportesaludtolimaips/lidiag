@@ -15,7 +15,7 @@ class ConfigDiagnosticoController extends Controller
      */
     public function index()
     {
-        $diagnosticos = ConfigDiagnostico::all();
+        $diagnosticos = ConfigDiagnostico::orderBy('nom_diagnos')->get();
         return response()->json($diagnosticos);
     }
 

@@ -108,12 +108,20 @@
                     <form action="#">
                         <div class="form-body">
                             <div class="row p-t-20">
-                                <div class="col-md-12">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="control-label">Sede</label>
                                         <input type="text" id="nom_sede" name="nom_sede" v-model="registro.nom_sede"
                                             class="form-control" placeholder="Ingrese el nombre de la sede">
                                         <span class="text-danger" v-if="errores.nom_sede">{{ errores.nom_sede[0] }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Email</label>
+                                        <input type="text" id="email" name="email" v-model="registro.email"
+                                            class="form-control" placeholder="Ingrese el nombre de la sede">
+                                        <span class="text-danger" v-if="errores.email">{{ errores.email[0] }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -312,7 +320,7 @@ export default {
             id: 0,
             registros: [],
             registro: {
-                id: 0, nom_sede: '', ip_dcm: '', bd_dcm: '', puerto_dcm: '', usuario_dcm: '', password_dcm: '', usuario_oviyam: '', password_oviyam: '', url_oviyam: '', tap_oviyam: '', encabezado: '', pie_pagina: '',
+                id: 0, nom_sede: '', emai: '', ip_dcm: '', bd_dcm: '', puerto_dcm: '', usuario_dcm: '', password_dcm: '', usuario_oviyam: '', password_oviyam: '', url_oviyam: '', tap_oviyam: '', encabezado: '', pie_pagina: '',
                 logo_1: '', logo_2: '', estado: 0
             },
             tituloModal: 'Nuevo registro',
@@ -412,10 +420,12 @@ export default {
             this.logos.logo2 = e.target.files[0];
         },
         mostrarRegistro(data = {}) {
+            console.log(data)
             if (this.actualizar == true) {
                 this.tituloModal = "Actualizar el registro: " + data.nom_sede;
                 this.registro.id = data.id;
                 this.registro.nom_sede = data.nom_sede;
+                this.registro.email = data.email;
                 this.registro.ip_dcm = data.ip_dcm;
                 this.registro.bd_dcm = data.bd_dcm;
                 this.registro.puerto_dcm = data.puerto_dcm;
@@ -436,6 +446,7 @@ export default {
                 this.tituloModal = "Nuevo registro";
                 this.registro.id = 0;
                 this.registro.nom_sede = "";
+                this.registro.email = "";
                 this.registro.ip_dcm = "";
                 this.registro.bd_dcm = "";
                 this.registro.puerto_dcm = "";

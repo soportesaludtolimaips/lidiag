@@ -18,7 +18,7 @@ class ConfigSedeController extends Controller
      */
     public function index()
     {
-        $sedes = ConfigSede::all();
+        $sedes = ConfigSede::orderBy('nom_sede')->get();
         return response()->json($sedes);
     }
 
@@ -34,6 +34,7 @@ class ConfigSedeController extends Controller
 
         $configSede = new ConfigSede();
         $configSede->nom_sede = $registro->nom_sede;
+        $configsede->email = $request->email;
         $configSede->ip_dcm = $registro->ip_dcm;
         $configSede->bd_dcm = $registro->bd_dcm;
         $configSede->puerto_dcm = $registro->puerto_dcm;
@@ -90,6 +91,7 @@ class ConfigSedeController extends Controller
     {
         $configsede = ConfigSede::findOrFail($request->id);
         $configsede->nom_sede = $request->nom_sede;
+        $configsede->email = $request->email;
         $configsede->ip_dcm = $request->ip_dcm;
         $configsede->bd_dcm = $request->bd_dcm;
         $configsede->puerto_dcm = $request->puerto_dcm;
