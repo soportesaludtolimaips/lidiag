@@ -31,7 +31,7 @@
                                 <i class="text-success icon-Target-Market"></i>
                             </div>
                             <div class="align-slef-center">
-                                <h2 class="m-b-0">2346
+                                <h2 class="m-b-0">0
                                     <small>
                                         <i class="ti-angle-down text-danger"></i>
                                     </small>
@@ -52,7 +52,7 @@
                                 <i class="text-info icon-Dollar-Sign"></i>
                             </div>
                             <div class="align-slef-center">
-                                <h2 class="m-b-0">$8,759
+                                <h2 class="m-b-0">0
                                     <small>
                                         <i class="ti-angle-up text-success"></i>
                                     </small>
@@ -73,7 +73,7 @@
                                 <i class="text-primary icon-Inbox-Forward"></i>
                             </div>
                             <div class="align-slef-center">
-                                <h2 class="m-b-0">2,356
+                                <h2 class="m-b-0">0
                                     <small>
                                         <i class="ti-angle-up text-success"></i>
                                     </small>
@@ -94,7 +94,7 @@
                                 <i class="text-danger icon-Contrast"></i>
                             </div>
                             <div class="align-slef-center">
-                                <h2 class="m-b-0">38%
+                                <h2 class="m-b-0">0
                                     <small><i class="ti-angle-down text-danger"></i>
                                     </small>
                                 </h2>
@@ -167,11 +167,11 @@
                     <div class="col-md-12">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="card-title">Sales Difference</h5>
+                                <h5 class="card-title">Diferencias de estudios</h5>
                                 <div class="d-flex no-block">
                                     <div class="align-self-center no-shrink">
-                                        <h2 class="m-b-0">$4316</h2>
-                                        <h6 class="text-muted">(150-165 Sales)</h6>
+                                        <h2 class="m-b-0">0</h2>
+                                        <h6 class="text-muted">(0-0 Leido)</h6>
                                     </div>
                                     <div class="ml-auto">
                                         <div id="sales" class="" style=" width:150px; height:140px;"></div>
@@ -184,11 +184,11 @@
                     <div class="col-md-12">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="card-title">Sales Prediction</h5>
+                                <h5 class="card-title">Predicción de estudios</h5>
                                 <div class="d-flex no-block">
                                     <div class="align-self-end no-shrink">
-                                        <h2 class="m-b-0">$3528</h2>
-                                        <h6 class="text-muted">(150-165 Sales)</h6>
+                                        <h2 class="m-b-0">0</h2>
+                                        <h6 class="text-muted">(0-0 Estudios)</h6>
                                     </div>
                                     <div class="ml-auto">
                                         <div id="prediction"></div>
@@ -230,10 +230,10 @@
             <div class="col-lg-4">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Browser Stats</h5>
+                        <h5 class="card-title">Estudios más solicitados</h5>
                         <table class="table browser m-t-30 no-border">
                             <tbody>
-                                <tr>
+                                <!-- <tr>
                                     <td style="width:40px"><img src="/admin-wrap/assets/images/browser/chrome-logo.png"
                                             alt="logo">
                                     </td>
@@ -264,7 +264,7 @@
                                     <td><img src="/admin-wrap/assets/images/browser/netscape-logo.png" alt="logo"></td>
                                     <td>Netscape Navigator</td>
                                     <td class="text-right">04%</td>
-                                </tr>
+                                </tr> -->
                             </tbody>
                         </table>
                     </div>
@@ -289,10 +289,10 @@ export default {
                 bindto: '#visitor',
                 data: {
                     columns: [
-                        ['Other', 30],
-                        ['Desktop', 10],
-                        ['Tablet', 40],
-                        ['Mobile', 50],
+                        ['Other', 0],
+                        ['Desktop', 0],
+                        ['Tablet', 0],
+                        ['Mobile', 0],
                     ],
 
                     type: 'donut',
@@ -327,8 +327,8 @@ export default {
                 bindto: '#income',
                 data: {
                     columns: [
-                        ['Growth Income', 100, 200, 100, 300],
-                        ['Net Income', 130, 100, 140, 200]
+                        ['Growth Income', 0, 0, 0, 0],
+                        ['Net Income', 0, 0, 0, 0]
                     ],
                     type: 'bar'
                 },
@@ -374,40 +374,40 @@ export default {
                 element: 'sales-chart',
                 data: [{
                     period: '2011',
-                    Sales: 50,
-                    Earning: 80,
-                    Marketing: 20
+                    Sales: 0,
+                    Earning: 0,
+                    Marketing: 0
                 }, {
                     period: '2012',
-                    Sales: 130,
-                    Earning: 100,
-                    Marketing: 80
+                    Sales: 0,
+                    Earning: 0,
+                    Marketing: 0
                 }, {
                     period: '2013',
-                    Sales: 80,
-                    Earning: 60,
-                    Marketing: 70
+                    Sales: 0,
+                    Earning: 0,
+                    Marketing: 0
                 }, {
                     period: '2014',
-                    Sales: 70,
-                    Earning: 200,
-                    Marketing: 140
+                    Sales: 0,
+                    Earning: 0,
+                    Marketing: 0
                 }, {
                     period: '2015',
-                    Sales: 180,
-                    Earning: 150,
-                    Marketing: 140
+                    Sales: 0,
+                    Earning: 0,
+                    Marketing: 0
                 }, {
                     period: '2016',
-                    Sales: 105,
-                    Earning: 100,
-                    Marketing: 80
+                    Sales: 0,
+                    Earning: 0,
+                    Marketing: 0
                 },
                 {
                     period: '2017',
-                    Sales: 250,
-                    Earning: 150,
-                    Marketing: 200
+                    Sales: 0,
+                    Earning: 0,
+                    Marketing: 0
                 }
                 ],
                 xkey: 'period',
@@ -430,9 +430,9 @@ export default {
                 bindto: '#sales',
                 data: {
                     columns: [
-                        ['One+', 50],
-                        ['T', 60],
-                        ['Samsung', 20],
+                        ['One+', 0],
+                        ['T', 0],
+                        ['Samsung', 0],
 
                     ],
 
