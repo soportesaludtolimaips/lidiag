@@ -17,12 +17,12 @@ return new class extends Migration
             $table->id();
             $table->string('cod_cups', 20);
             $table->string('nom_produc', 200);
-            $table->string('porcen')->default(0);
-            $table->float('val_produc')->default(0.0);
-            $table->boolean('requi_lectura')->default(1);
-            $table->boolean('tipo_oral')->default(0);
-            $table->boolean('tipo_venoso')->default(0);
-            $table->boolean('factura')->default(0);
+            $table->string('porcen')->default(0)->nullable();
+            $table->float('val_produc')->default(0.0)->nullable();
+            $table->boolean('requi_lectura')->default(1)->nullable();
+            $table->boolean('tipo_oral')->default(0)->nullable();
+            $table->boolean('tipo_venoso')->default(0)->nullable();
+            $table->boolean('factura')->default(0)->nullable();
             $table->boolean('estado')->default(1);
             $table->timestamps();
         });

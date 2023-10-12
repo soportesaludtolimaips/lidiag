@@ -99,7 +99,7 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div class="right-sidebar">
+        <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%;">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -184,6 +184,12 @@
                                 </div>
                             </div>
 
+                            <div class="checkbox checkbox-success">
+                                <input type="checkbox" id="estado" name="estado" v-model="registro.estado"
+                                    :checked="registro.estado" value="1">
+                                <label for="estado"> Activo </label>
+                            </div>
+
                             <div class="form-actions mt-3">
                                 <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
                                     v-if="!actualizar">
@@ -218,7 +224,7 @@ export default {
         return {
             id: 0,
             registros: [],
-            registro: { cod_cups: '', nom_produc: '', porcen: 0, val_produc: 0, requi_lectura: 0, tipo_oral: 0, tipo_venoso: 0, factura: 0, estado: 0 },
+            registro: { cod_cups: '', nom_produc: '', porcen: 0, val_produc: 0, requi_lectura: 0, tipo_oral: 0, tipo_venoso: 0, factura: 0, estado: 1 },
             tituloModal: 'Nuevo registro',
             actualizar: false,
             errores: {},
@@ -338,3 +344,27 @@ export default {
     },
 };
 </script>
+<style scoped>
+.right-sidebar {
+    position: fixed;
+    right: -50%;
+    width: 50%;
+    display: none;
+    z-index: 1100;
+    background: #ffffff;
+    top: 0px;
+    padding-bottom: 20px;
+    height: 100%;
+    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
+    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
+    -webkit-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+}
+
+.shw-rside {
+    right: 0px;
+    width: 50%;
+    display: block;
+}
+</style>

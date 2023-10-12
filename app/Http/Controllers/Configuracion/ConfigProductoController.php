@@ -17,7 +17,7 @@ class ConfigProductoController extends Controller
      */
     public function index()
     {
-        $producto = ConfigProducto::all();
+        $producto = ConfigProducto::orderBy('nom_produc')->get();
         return response()->json($producto);
     }
 
