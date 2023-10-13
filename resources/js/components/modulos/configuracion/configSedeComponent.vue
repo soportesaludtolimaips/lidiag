@@ -420,7 +420,6 @@ export default {
             this.logos.logo2 = e.target.files[0];
         },
         mostrarRegistro(data = {}) {
-            console.log(data)
             if (this.actualizar == true) {
                 this.tituloModal = "Actualizar el registro: " + data.nom_sede;
                 this.registro.id = data.id;
@@ -436,7 +435,7 @@ export default {
                 this.registro.url_oviyam = data.url_oviyam;
                 this.registro.encabezado = data.encabezado;
                 this.registro.pie_pagina = data.pie_pagina;
-                this.registro.estado;
+                this.registro.estado = data.estado;
 
                 $('#btnCerralModalForm').click();
                 this.errores = [];
@@ -462,6 +461,27 @@ export default {
                 $('#btnCerralModalForm').click();
                 this.errores = [];
             }
+        },
+        limpiar() {
+            this.actualizar = false;
+            this.tituloModal = "Nuevo registro";
+            this.registro.id = 0;
+            this.registro.nom_sede = "";
+            this.registro.email = "";
+            this.registro.ip_dcm = "";
+            this.registro.bd_dcm = "";
+            this.registro.puerto_dcm = "";
+            this.registro.usuario_dcm = "";
+            this.registro.password_dcm = "";
+            this.registro.usuario_oviyam = "";
+            this.registro.password_oviyam = "";
+            this.registro.url_oviyam = "";
+            this.registro.encabezado = "";
+            this.registro.pie_pagina = "";
+            this.registro.estado = 1;
+
+            $('#btnCerralModalForm').click();
+            this.errores = [];
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);
