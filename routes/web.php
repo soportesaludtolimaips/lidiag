@@ -66,6 +66,7 @@ Route::get('/config-sedes/listar/sedes/activas', [ConfigSedeController::class, '
  */
 Route::view('/estudios.asignar.listar', 'modulos.estudios.asignar-estudio')->name('estudios.asignar.listar');
 Route::post('/study.listarEstudios', [StudyController::class, 'listarEstudios'])->name('study.listarEstudios');
+Route::view('/estudios.notificar.index', 'modulos.estudios.notificar-estudio')->name('estudios.notificar.index');
 
 Route::view('/estudios.notificar', 'modulos.estudios.notificar-estudio')->name('estudios.notificar');
 

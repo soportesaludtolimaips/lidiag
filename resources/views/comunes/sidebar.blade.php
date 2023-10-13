@@ -19,7 +19,7 @@
                         <li><a href="index4.html">Modern</a></li>
                     </ul> --}}
                 </li>
-                @if (auth()->user()->hasAnyPermission(['estudio.asignar', 'estudio.transcribir', 'estudio.leerEstudio']))
+                @if (auth()->user()->hasAnyPermission(['estudio.asignar', 'estudio.transcribir', 'estudio.leerEstudio', 'estudios.notificar.index']))
                     <li class="nav-small-cap">--- ESTUDIOS</li>
                     <li>
                         <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
@@ -48,11 +48,13 @@
                                     </a>
                                 </li>
                             @endcan
-                            <li>
-                                <a href="{{ route('estudios.notificar') }}">
-                                    <i class="fa fa-envelope-o text-info"></i> Notificar estudio
-                                </a>
-                            </li>
+                            @can('estudios.notificar.index')
+                                <li>
+                                    <a href="{{ route('estudios.notificar.index') }}">
+                                        <i class="fa fa-envelope-o text-info"></i> Notificar estudio
+                                    </a>
+                                </li>
+                            @endcan
                         </ul>
                     </li>
                 @endif
