@@ -30,7 +30,9 @@ return new class extends Migration
             $table->datetime('fechor_lectura')->nullable();
             $table->text('lectura')->nullable();
             $table->datetime('fechor_trascrito')->nullable();
+            $table->string('medico_ordena', 200)->nullable();
             $table->boolean('visible')->default(1);
+            $table->boolean('activo')->default(1);
             $table->timestamps();
         });
     }

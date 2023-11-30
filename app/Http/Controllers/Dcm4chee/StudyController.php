@@ -53,17 +53,16 @@ class StudyController extends Controller
             'patient.pat_birthdate'
         )->join('patient', 'study.patient_fk', 'patient.pk');
 
-        if ($request->bus_nom_num_docu) {
+        if ($request->bus_nom_num_docu != "") {
             $query->where('patient.pat_id', 'like', "%$request->bus_nom_num_docu%")
                 ->orWhere('patient.pat_name', 'like', "%$request->bus_nom_num_docu%");
         }
 
-        if ($request->fehc_ini and $request->fecha_fin) {
-            $query->whereBetween('study.study_datetime', [$request->fehc_ini, $request->fecha_fin]);
+        if ($request->bus_fehc_ini != "" and $request->bus_fecha_fin != "") {
+            $query->whereBetween('study.study_datetime', [$request->bus_fehc_ini, $request->bus_fecha_fin]);
         }
 
         $result = $query->get();
         return json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE);
-        //return response()->json($result);
     }
 }

@@ -20,12 +20,11 @@
     <!-- toast CSS -->
     <link href="{{ asset('admin-wrap/assets/node_modules/toast-master/css/jquery.toast.css') }}" rel="stylesheet">
     <!-- chartist CSS -->
-    <link href="admin-wrap/assets/node_modules/morrisjs/morris.css" rel="stylesheet">
+    <link href="{{ asset('admin-wrap/assets/node_modules/morrisjs/morris.css') }}" rel="stylesheet">
     <!--c3 CSS -->
-    <link href="admin-wrap/assets/node_modules/c3-master/c3.min.css" rel="stylesheet">
-    <!--Toaster Popup message CSS -->
-    <link href="admin-wrap/assets/node_modules/toast-master/css/jquery.toast.css" rel="stylesheet">
-
+    <link href="{{ asset('admin-wrap/assets/node_modules/c3-master/c3.min.css') }}" rel="stylesheet">
+    <!-- page css -->
+    <link href="{{ asset('admin-wrap/css/pages/form-icheck.css') }}" rel="stylesheet">
     <!-- Custom CSS -->
     <link href="{{ asset('admin-wrap/css/style.css') }}" rel="stylesheet">
     <!-- You can change the theme colors from here -->
@@ -176,6 +175,9 @@
     <!-- Sweet-Alert  -->
     <script src="{{ asset('admin-wrap/assets/node_modules/sweetalert/sweetalert.min.js') }}"></script>
     <script src="{{ asset('admin-wrap/assets/node_modules/sweetalert/jquery.sweet-alert.custom.js') }}"></script>
+    <!-- icheck -->
+    <script src="{{ asset('admin-wrap/assets/node_modules/icheck/icheck.min.js') }}"></script>
+    <script src="{{ asset('admin-wrap/assets/node_modules/icheck/icheck.init.js') }}"></script>
     <!-- ============================================================== -->
     <!-- Style switcher -->
     <!-- ============================================================== -->

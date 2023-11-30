@@ -433,6 +433,7 @@ export default {
                 this.registro.usuario_oviyam = data.usuario_oviyam;
                 this.registro.password_oviyam = data.password_oviyam;
                 this.registro.url_oviyam = data.url_oviyam;
+                this.registro.tap_oviyam = data.tap_oviyam;
                 this.registro.encabezado = data.encabezado;
                 this.registro.pie_pagina = data.pie_pagina;
                 this.registro.estado = data.estado;
@@ -454,6 +455,7 @@ export default {
                 this.registro.usuario_oviyam = "";
                 this.registro.password_oviyam = "";
                 this.registro.url_oviyam = "";
+                this.registro.tap_oviyam = "";
                 this.registro.encabezado = "";
                 this.registro.pie_pagina = "";
                 this.registro.estado = 1;

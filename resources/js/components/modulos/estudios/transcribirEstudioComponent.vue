@@ -75,9 +75,8 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de estudios pendientes por transcribir</h4>
-                        <div class="table-responsive m-t-40">
-                            <table id="example23" class="display nowrap table table-hover table-striped table-bordered"
-                                cellspacing="0" width="100%">
+                        <div class="col-md-12 table-responsive m-t-40">
+                            <table id="myTable" class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
                                         <th></th>
@@ -372,7 +371,7 @@
                                         <div class="col-12">
                                             <div class="form-group">
                                                 <textarea v-model="registro.lectura" class="textarea_editor form-control"
-                                                    rows="15" id="lectura" style="height: 100%;"
+                                                    rows="20" id="lectura" style="height: 100%;"
                                                     placeholder="Ingrese aquí la lectura del estudio ..."></textarea>
                                             </div>
                                         </div>
@@ -419,6 +418,9 @@
 </template>
 
 <script>
+/**
+ * 
+ */
 export default {
     props: ['usuarioactual'],
     mounted() {
@@ -441,8 +443,11 @@ export default {
             soportesHC: [],
             registros: [],
             tituloModal: "Transcirbir estudio",
-            registro: { id_estudio: 0, id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", email_reportar: '', num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "", diagnosticosEstudio: [], id_producto_lectura: 0 },
-            busqueda: { bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "" },
+            registro: {
+                id_estudio: 0, id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", email_reportar: '', num_docu: "", nom_pacien: "", sexo: "",
+                fec_naci: "", email: "", diagnosticosEstudio: [], id_producto_lectura: 0, sede_id: "", atencion: null, medico_id: null,
+            },
+            busqueda: { bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
             datosImagen: { urlOviyam: '', patientId: '', studyUID: '', serverName: '' },
             errores: {},
             microfono: 'admin-wrap/assets/images/mic.gif',
@@ -536,8 +541,8 @@ export default {
                         stack: 6,
                     });
 
-                    this.listarPendientesTrascribir()
-                    this.btnCerralModalForm();
+                    /* this.listarPendientesTrascribir()
+                    this.btnCerralModalForm(); */
                 }
             } catch (error) {
                 console.log(error);
@@ -573,7 +578,8 @@ export default {
             this.registro.accession_no = data.accession_no;
             this.registro.study_desc = data.study_desc;
             this.registro.email_reportar = data.email_reportar;
-
+            this.registro.atencion = data.atencion;
+            this.registro.medico_id = data.medico_id;
             this.registro.num_docu = data.num_docu;
             this.registro.nom_pacien = data.nom_pacien;
             this.registro.direccion = data.direccion;
@@ -590,6 +596,8 @@ export default {
 
             this.productoEstudio.cod_produc = data.cod_cups;
             this.productoEstudio.nom_produc = data.nom_produc;
+
+            this.registro.sede_id = data.sede_id;
 
             const res = await axios.get('/study-listar-diagnostico-por-estudio?id=' + this.id);
             this.diagnosticosEstudio = res.data;

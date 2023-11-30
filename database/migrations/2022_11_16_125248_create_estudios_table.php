@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('accession_no', 150)->nullable();
             $table->string('study_desc', 250)->nullable();
             $table->string('mods_in_study', 5)->nullable();
+            $table->string('email_reportar', 70)->nullable();
 
             $table->unsignedBigInteger('paciente_id');
             $table->foreign('paciente_id')->references('id')->on('pacientes');
@@ -40,6 +41,10 @@ return new class extends Migration
 
             $table->text('observaciones')->nullable();
             $table->string('atencion')->nullable();
+            $table->string('servicio')->nullable();
+            $table->string('eps', 150)->nullable();
+            $table->string('contrato', 150)->nullable();
+            $table->string('plan', 150)->nullable();
             $table->boolean('estado')->default(1);
 
             $table->timestamps();

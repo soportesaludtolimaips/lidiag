@@ -74,9 +74,8 @@
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title">Listado de mis pendientes por leer</h4>
-                    <div class="table-responsive m-t-40">
-                        <table id="example23" class="display nowrap table table-hover table-striped table-bordered"
-                            cellspacing="0" width="100%">
+                    <div class="col-md-12 table-responsive m-t-40">
+                        <table id="myTable" class="table table-bordered table-striped">
                             <thead>
                                 <tr>
                                     <th></th>
@@ -280,6 +279,7 @@
                                 <br />
                                 <h5 class="card-title text-info">
                                     <i class="fa fa-user"></i> Diagnosticos
+
                                 </h5>
                                 <hr>
 
@@ -364,6 +364,12 @@
                             <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">
                                 Cancel
                             </button>
+
+                            <div>
+                                <button @click="startRecording" :disabled="isRecording">Iniciar grabación</button>
+                                <button @click="stopRecording" :disabled="!isRecording">Detener grabación</button>
+                                <button type="button" @click="saveRecording">Enviar Audio</button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -408,9 +414,13 @@ export default {
             recognizedText: '',
             microfono: 'admin-wrap/assets/images/mic.gif',
             lecturaEstudio: "",
-            recognizedText: '',
             recognizing: false,
             recognition: null,
+
+
+            isRecording: false,
+            mediaRecorder: null,
+            audioChunks: []
         };
     },
     methods: {
@@ -487,6 +497,42 @@ export default {
                 console.log(error);
                 this.errores = error.response.data.errors;
             }
+        },
+        async startRecording() {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.mediaRecorder = new MediaRecorder(stream);
+
+            this.mediaRecorder.ondataavailable = event => {
+                if (event.data.size > 0) {
+                    this.audioChunks.push(event.data);
+                }
+            };
+
+            this.mediaRecorder.start();
+            this.isRecording = true;
+        },
+        stopRecording() {
+            this.mediaRecorder.stop();
+            this.isRecording = false;
+            this.saveRecording();
+        },
+        saveRecording() {
+            const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+
+            // Ahora puedes enviar el audioBlob a tu backend Laravel
+            // Puedes usar axios u otra biblioteca para enviar archivos.
+            // Ejemplo con axios:
+            const formData = new FormData();
+            formData.append('audio', audioBlob);
+
+            axios.post('/upload-audio', formData)
+                .then((response) => {
+                    console.log('Audio enviado con éxito:', response.data);
+                })
+                .catch((error) => {
+                    console.error('Error al enviar audio:', error);
+                });
         },
         verImagen() {
             let Url = this.datosImagen.urlOviyam + '?patientID =' + this.datosImagen.patientId + '&studyUID=' + this.datosImagen.studyUID + '&serverName=' + this.datosImagen.serverName

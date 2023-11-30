@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Estudios;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Interface\SAHIController;
+use App\Http\Controllers\Interface\SAHITranscibirController;
 use App\Http\Requests\Estudio\estudioLeerRequest;
 use App\Mail\NotificacionAsignacionDeLectura;
 use App\Mail\NotificacionDeLectura;
@@ -16,6 +18,7 @@ use Illuminate\Support\Carbon;
 use App\Http\Controllers\Reportes\ResporteLecturaController;
 use App\Http\Requests\Estudio\estudioAsignarRequest;
 use App\Mail\ReportarLectura;
+use App\Models\Configuracion\ConfigSede;
 use App\Models\Estudio\EstudioSoportesHC;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -61,6 +64,25 @@ class EstudioController extends Controller
             ]
         );
 
+        /**
+         * Si la sede tien interface relleno la informacion necesaria con los datos de la Eps, Plan y contrato
+         */
+        $eps = "";
+        $contrato = "";
+        $plan = "";
+        $servicio = "";
+
+        $sede = ConfigSede::findOrfail($registro->sede_id)->all();
+
+        if ($sede[0]->interface_software == 'SAHI') {
+            $buscarDatos = (new SAHIController)->buscarEpsPlanContrato($registro->atencion_id);
+
+            $eps = $buscarDatos[0]->NomTercero;
+            $contrato = $buscarDatos[0]->DesContrato;
+            $plan = $buscarDatos[0]->DesPlan;
+            $servicio = $buscarDatos[0]->NomUbicacion;
+        }
+        //return  $registro->study_iuid;
         $estudio = Estudio::firstOrCreate(
             ['study_id' => $registro->study_pk],
             [
@@ -71,14 +93,18 @@ class EstudioController extends Controller
                 'accession_no' => $registro->accession_no,
                 'study_desc' => $registro->study_desc,
                 'mods_in_study' => $registro->mods_in_study,
-                'email_reportar' => $registro->email_reportar,
+                //'email_reportar' => $registro->email_reportar,
                 'paciente_id' => $paciente->id,
                 'medico_id' => $registro->medico_id,
                 'quien_registro_id' => auth()->user()->id,
                 'sede_id' => $registro->sede_id,
                 'prioridad_id' => $registro->prioridad_id,
                 'observaciones' => $registro->observaciones,
-                //'atencion' => $registro->atencion
+                'atencion' => $registro->atencion_id,
+                'servicio' => $servicio,
+                'eps' => $eps,
+                'contrato' => $contrato,
+                'plan' => $plan,
             ]
         );
 
@@ -88,11 +114,13 @@ class EstudioController extends Controller
         $productos = EstudioProducto::where('estudio_id', '=', $estudio->id);
         $productos->delete();
         foreach ($registro->productosEstudio as $Producto) {
-            EstudioProducto::create([
-                'estudio_id' => $estudio->id,
-                'cod_cups' => $Producto->cod_cups,
-                'nom_produc' => $Producto->nom_produc,
-            ]);
+            if ($Producto->checked == true) {
+                EstudioProducto::create([
+                    'estudio_id' => $estudio->id,
+                    'cod_cups' => $Producto->cod_cups,
+                    'nom_produc' => $Producto->nom_produc,
+                ]);
+            }
         }
 
         /**
@@ -277,7 +305,6 @@ class EstudioController extends Controller
 
     public function guardarTranscripcion(Request $request)
     {
-
         /**
          * Actualizo los datos del paciente
          */
@@ -298,11 +325,27 @@ class EstudioController extends Controller
         /**
          * Actualizo la lectura del estudio
          */
-        $transcribirEstudios = EstudioProducto::findOrFail($request->id_producto_lectura);
+        /* $transcribirEstudios = EstudioProducto::findOrFail($request->id_producto_lectura);
         $transcribirEstudios->lectura = $request->lectura;
         $transcribirEstudios->transcriptor_id = auth()->user()->id;
         $transcribirEstudios->fechor_trascrito = Carbon::now();
-        $transcribirEstudios->save();
+        $transcribirEstudios->save(); */
+
+        /**
+         * Si la sede donde se realizó el estidoi tiene interface hago el envio del reporte a la HC del hospital
+         */
+        $sede = ConfigSede::findOrfail($request->sede_id);
+        if ($sede->interface_software === 'SAHI') {
+
+            $transcribir = (new SAHITranscibirController())->enviarEstudio($request->atencion, $request->medico_id);
+            /* $transcribir->set_idAtencion(1);
+            $transcribir->set_idMedico($request->medico_id); */
+            //$transcribir->enviarEstudio($request->atencion_id, $request->medico_id);
+
+            return $transcribir;
+        }
+
+        return "Ok";
 
         /**
          * Genero el PDF del reporte de la lectura del estudio
@@ -347,5 +390,17 @@ class EstudioController extends Controller
         }
 
         return response()->json(['message' => 'La transcripción se guardo correctamente.']);
+    }
+
+    public function uploadAudio(Request $request)
+    {
+        $audio = $request->file('audio');
+        return $audio;
+        $path = $audio->store('audio', 'public');
+        return $path;
+
+        // Puedes almacenar el $path en la base de datos o realizar otras acciones necesarias.
+
+        return response()->json(['message' => 'Audio subido con éxito']);
     }
 }

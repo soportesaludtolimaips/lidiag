@@ -19,6 +19,7 @@ use App\Http\Controllers\Estudios\EstudioController;
 use App\Http\Controllers\Estudios\EstudioProductoController;
 use App\Http\Controllers\Estudios\EstudioDiagnosticoController;
 use App\Http\Controllers\Estudios\EstudioSoporteHCController;
+use App\Http\Controllers\Interface\SAHIController;
 
 /*
 |--------------------------------------------------------------------------
@@ -68,10 +69,6 @@ Route::view('/estudios.asignar.listar', 'modulos.estudios.asignar-estudio')->nam
 Route::post('/study.listarEstudios', [StudyController::class, 'listarEstudios'])->name('study.listarEstudios');
 Route::view('/estudios.notificar.index', 'modulos.estudios.notificar-estudio')->name('estudios.notificar.index');
 
-Route::view('/estudios.notificar', 'modulos.estudios.notificar-estudio')->name('estudios.notificar');
-
-Route::get('/user.listarUsuarios/{tipo_user}', [UserController::class, 'listarUsuarios'])->name('user.listarUsuarios');
-
 Route::resource('/estudios', EstudioController::class)->names('estudios')->except(['create', 'show']);
 Route::get('/study-listar-diagnostico-por-estudio', [EstudioController::class, 'listarDiagnosticoPorEstudio'])->name('study.listar.diagnostico.por.estudio');
 Route::resource('/estudios-productos', EstudioProductoController::class)->names('estudios.productos');
@@ -81,6 +78,9 @@ Route::get('/descarga-soportes-hc/{nomArchivoEncriptadote}', [EstudioSoporteHCCo
 
 Route::view('/estudios.leer.estudio.listar', 'modulos.estudios.leer-estudio')->name('estudios.leer.estudio.listar');
 Route::post('/estudio-leerEstudio', [EstudioController::class, 'leerEstudio'])->name('estudio.leerEstudio');
+
+
+Route::post('/upload-audio', [EstudioController::class, 'uploadAudio']);
 
 Route::view('/estudios.transcribir.listar', 'modulos.estudios.transcribir-estudio')->name('estudios.transcribir.listar');
 Route::get('/estudio-listarPendientesTrascribir', [EstudioController::class, 'listarPendientesTrascribir'])->name('estudio.listarPendientesTrascribir');
@@ -94,12 +94,19 @@ Route::view('/seguridad.usuarios.listar', 'modulos.seguridad.usuarios')->name('s
 Route::resource('/seguridad-usuarios', UserController::class)->names('seguridad.usuarios');
 Route::put('/seguridad-actualizar-perfil/{idUsua}', [UserController::class, 'actualizarPerfil'])->name('seguridad.actualizar.perfil');
 Route::put('/seguridad-usuarios/estado/{idUsua}', [UserController::class, 'estadoUsuario'])->name('seguridad.usuario.estado');
+Route::get('/user.listarUsuarios/{tipo_user}', [UserController::class, 'listarUsuarios'])->name('user.listarUsuarios');
 
 Route::view('/seguridad.roles.listar', 'modulos.seguridad.roles')->name('seguridad.roles.listar');
 Route::resource('/seguridad-roles', RolController::class)->names('seguridad.roles');
 
 Route::view('/seguridad.perfil', 'modulos.seguridad.perfil')->name('seguridad.perfil');
 Route::get('/seguridad-listarPermisosUsuario/{id}', [UserController::class, 'listarPermisosUsuario'])->name('seguridad.listarPermisosUsuario');
+
+/**
+ * Interface SAHI
+ */
+Route::get('/interface-sahi-listar-atenciones/{numDocu}', [SAHIController::class, 'listarAtenciones'])->name('sahi.listar.atenciones');
+Route::get('/interface-sahi-listar-listarProductosDiagnosticos/{idAtencion}', [SAHIController::class, 'listarProductosDiagnosticos'])->name('sahi.listar.listarProductosDiagnosticos');
 
 /* Route::get('/{optional?}', function () {
     return view('layouts.app');

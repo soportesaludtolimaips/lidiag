@@ -44,31 +44,33 @@
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Inicio</label>
-                                            <input type="date" id="fecha_ini" name="fecha_ini" v-model="busqueda.fehc_ini"
-                                                class="form-control" />
-                                            <span class="text-danger" v-if="errores.fecha_ini">
-                                                {{ erroresBusqueda.fecha_ini[0] }}
+                                            <input type="date" id="bus_fehc_ini" name="bus_fehc_ini"
+                                                v-model="busqueda.bus_fehc_ini" class="form-control" />
+                                            <span class="text-danger" v-if="errores.bus_fehc_ini">
+                                                {{ erroresBusqueda.bus_fehc_ini[0] }}
                                             </span>
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Fin</label>
-                                            <input type="date" id="fecha_fin" name="fecha_fin" v-model="busqueda.fecha_fin"
-                                                class="form-control" />
-                                            <span class="text-danger" v-if="errores.fecha_fin">
-                                                {{ erroresBusqueda.fecha_fin[0] }}
+                                            <input type="date" id="bus_fecha_fin" name="bus_fecha_fin"
+                                                v-model="busqueda.bus_fecha_fin" class="form-control" />
+                                            <span class="text-danger" v-if="errores.bus_fecha_fin">
+                                                {{ erroresBusqueda.bus_fecha_fin[0] }}
                                             </span>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="form-actions mt-3">
-                                    <button type="button" class="btn btn-success m-r-5" @click="buscarStudy()"><i
-                                            class="fa fa-search"></i> Buscar</button>
+                                    <button type="button" class="btn btn-success m-r-5" @click="buscarStudy()">
+                                        <i class="fa fa-search"></i> Buscar
+                                    </button>
 
-                                    <button type="button" class="btn btn-inverse" @click="btnLimpiar()"><i
-                                            class="fa fa-refresh"></i> Limpiar</button>
+                                    <button type="button" class="btn btn-inverse" @click="btnLimpiar()">
+                                        <i class="fa fa-refresh"></i> Limpiar
+                                    </button>
                                 </div>
                             </div>
                         </form>
@@ -93,8 +95,6 @@
                                         <th>Paciente</th>
                                         <th>Accession</th>
                                         <th>Descripción</th>
-                                        <!-- <th>Sexo</th>
-                                        <th>Fec. Nacimiento</th> -->
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -105,8 +105,6 @@
                                         <td>{{ item.pat_name }}</td>
                                         <td>{{ item.accession_no }}</td>
                                         <td>{{ item.study_desc }}</td>
-                                        <!-- <td>{{ item.pat_sex }}</td>
-                                        <td>{{ item.pat_birthdate }}</td> -->
                                         <td class="text-nowrap">
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
@@ -299,15 +297,15 @@
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <input type="file" class="form-control" id="exampleInputFile"
-                                                    aria-describedby="fileHelp" @change='obtenerArchivo1'>
+                                                    aria-describedby="fileHelp" @change='obtenerArchivo1' />
                                             </div>
                                             <div class="form-group">
                                                 <input type="file" class="form-control" id="exampleInputFile"
-                                                    aria-describedby="fileHelp" @change='obtenerArchivo2'>
+                                                    aria-describedby="fileHelp" @change='obtenerArchivo2' />
                                             </div>
                                             <div class="form-group">
                                                 <input type="file" class="form-control" id="exampleInputFile"
-                                                    aria-describedby="fileHelp" @change='obtenerArchivo3'>
+                                                    aria-describedby="fileHelp" @change='obtenerArchivo3' />
                                             </div>
                                         </div>
                                     </div>
@@ -320,7 +318,7 @@
                                     </h5>
                                     <hr>
                                     <div class="row">
-                                        <div class="col-md-6">
+                                        <div class="col-md-4">
                                             <div class="form-group">
                                                 <label>Médico</label>
                                                 <select v-model="registro.medico_id" name="medico_id" id="medico_id"
@@ -335,7 +333,7 @@
                                                 </span>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-4">
                                             <div class="form-group">
                                                 <label class="control-label">Prioridad</label>
                                                 <select v-model="registro.prioridad_id" name="prioridad_id"
@@ -351,9 +349,30 @@
                                                 </span>
                                             </div>
                                         </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label class="control-label">Atención {{ interfaceAtencionSeleccionada
+                                                }}</label>
+                                                <select v-model="interfaceAtencionSeleccionada"
+                                                    name="interfaceAtencionSeleccionada" id="interfaceAtencionSeleccionada"
+                                                    class="form-control custom-select"
+                                                    @change="interfaceListarProductosDiagnosticos()">
+                                                    <option v-for="(ItemAtencion, index) in interfaceAtenciones"
+                                                        :key="index" :value="ItemAtencion.IdAtencion">
+                                                        {{ ItemAtencion.IdAtencion }} - {{ ItemAtencion.FecIngreso }}
+                                                    </option>
+                                                </select>
+                                                <span class="text-danger" v-if="errores.prioridad_id">
+                                                    {{ errores.prioridad_id[0] }}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                     <p class="text-info">
+
                                         <i class="fa fa-user"></i> PRODUCTOS
+                                        <hr>
+
                                         <span class="text-danger" v-if="errores.prioridad_id">
                                             {{ errores.productosEstudio[0] }}
                                         </span>
@@ -374,19 +393,35 @@
                                                 </option>
                                             </select>
                                         </div>
-                                        <div class="col-md-12">
-                                            <table id="example23"
-                                                class="display nowrap table table-hover table-striped table-bordered"
-                                                cellspacing="0" width="100%">
+                                        <div class="col-md-12 table-responsive m-t-40">
+                                            <table id="myTable" class="table table-bordered table-striped">
                                                 <thead>
                                                     <tr>
+                                                        <th></th>
                                                         <th>Código</th>
-                                                        <th width="150px">Producto</th>
+                                                        <th>Producto</th>
                                                         <th></th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     <tr v-for="(item, index) in registro.productosEstudio" :key="item.id">
+                                                        <td>
+                                                            <input type="checkbox" class="iCheck-helper"
+                                                                id="flat-checkbox-2" data-checkbox="icheckbox_flat-red"
+                                                                v-model="item.checked">
+                                                            <label for="flat-checkbox-2"></label>
+                                                            <!-- <div class="icheckbox_flat-blue checked"
+                                                                style="position: relative;">
+                                                                <input type="checkbox"
+                                                                    class="check" id="flat-checkbox-2" checked=""
+                                                                    data-checkbox="icheckbox_flat-red"
+                                                                    style="position: absolute; opacity: 0;"><ins
+                                                                    class="iCheck-helper"
+                                                                    style="position: absolute; top: 0%; left: 0%; display: block; width: 100%; height: 100%; margin: 0px; padding: 0px; background: rgb(255, 255, 255); border: 0px; opacity: 0;"></ins>
+                                                            </div>
+                                                            <label for="flat-checkbox-2" class="">Checkbox 2</label> -->
+
+                                                        </td>
                                                         <td>{{ item.cod_cups }}</td>
                                                         <td>{{ item.nom_produc }}</td>
                                                         <td class="text-nowrap">
@@ -402,7 +437,10 @@
                                         </div>
                                     </div>
                                     <p class="text-info">
+
                                         <i class="fa fa-user"></i> DIAGNOSTICOS
+                                        <hr>
+
                                         <span class="text-danger" v-if="errores.prioridad_id">
                                             {{ errores.diagnosticosEstudio[0] }}
                                         </span>
@@ -423,14 +461,12 @@
                                                 </option>
                                             </select>
                                         </div>
-                                        <div class="col-md-12">
-                                            <table id="example23"
-                                                class="display nowrap table table-hover table-striped table-bordered"
-                                                cellspacing="0" width="100%">
+                                        <div class="col-md-12 table-responsive m-t-40">
+                                            <table id="myTable" class="table table-bordered table-striped">
                                                 <thead>
                                                     <tr>
-                                                        <th width="10%">Código</th>
-                                                        <th width="80%">Diagnostico</th>
+                                                        <th>Código</th>
+                                                        <th>Diagnostico</th>
                                                         <th></th>
                                                     </tr>
                                                 </thead>
@@ -493,11 +529,14 @@ export default {
             registros: [],
             tituloModal: "Nuevo registro",
             registro: {
-                study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", mods_in_study: "", email_reportar: '', observaciones: "", medico_id: "", prioridad_id: "", sede_id: this.sedeActual,
-                quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", direccion: "", telefono: "", productosEstudio: [], diagnosticosEstudio: []
+                study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", mods_in_study: "", email_reportar: '', observaciones: "", medico_id: "", prioridad_id: "",
+                sede_id: this.sedeActual, quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", direccion: "", telefono: "",
+                productosEstudio: [], diagnosticosEstudio: [], atencion_id: null
             },
             soportesHC: { archivo1: null, archivo2: null, archivo3: null }, //Soporte de historia clinica
-            busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "" },
+            busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "9961357", bus_fehc_ini: "", bus_fecha_fin: "" },
+            interfaceAtenciones: [], //Ateniones disponibles del paciente
+            interfaceAtencionSeleccionada: null, //Atencion seleccinada para listar los productos y diagnosticos
             errores: {},
             erroresBusqueda: {},
             medicos: [],
@@ -506,13 +545,13 @@ export default {
             diagnosticos: [], //Listo todos los diagnosticos
             productoSelecciondo: "",
             diagnosticoSelecciondo: "",
-            sedeActual: sessionStorage.getItem('ST-sede')
+            sedeActual: sessionStorage.getItem('ST-sede'),
+            productosAtencion: [],
         };
     },
     methods: {
         async buscarStudy() {
             try {
-
                 if (sessionStorage.getItem('ST-sede') == null) {
                     $.toast({
                         heading: "Upsss!!!",
@@ -523,7 +562,7 @@ export default {
                         hideAfter: 3500,
                         stack: 6,
                     });
-                } else if (this.busqueda.fehc_ini == "" || this.busqueda.fehc_fin == "") {
+                } else if (this.busqueda.bus_nom_num_docu == '' && this.busqueda.bus_fehc_ini == "" && this.busqueda.bus_fecha_fin == "") {
                     $.toast({
                         heading: "Upsss!!!",
                         text: 'Debe establece la fecha de inicio o finalización para la busqueda.',
@@ -605,8 +644,8 @@ export default {
                         stack: 6,
                     });
                 }
-                this.btnCerralModalForm();
-                this.limpiar();
+                /* this.btnCerralModalForm();
+                this.limpiar(); */
             } catch (error) {
                 this.errores = error.response.data.errors;
             }
@@ -624,7 +663,6 @@ export default {
 
             const res = await axios.get('/config-sedes/' + this.sedeActual + '/buscarPorId');
 
-
             this.tituloModal = "Agendar al paciente: " + data.pat_name;
             this.id = data.id;
             this.registro.study_pk = data.study_pk;
@@ -641,6 +679,40 @@ export default {
             this.registro.fec_naci = data.pat_birthdate;
 
             this.btnCerralModalForm();
+
+            /**
+             * Verificar si la sede tiene interface, traigo la informacion de las producto y diagnosticos
+             */
+            const resAtenciones = await axios.get('/interface-sahi-listar-atenciones/' + this.registro.num_docu);
+            this.interfaceAtenciones = resAtenciones.data
+        },
+        async interfaceListarProductosDiagnosticos() {
+            /**
+             * Listo los productos de una atención
+             */
+            const resProuctos = await axios.get('/interface-sahi-listar-listarProductosDiagnosticos/' + this.interfaceAtencionSeleccionada);
+
+            this.registro.productosEstudio = [];
+            if (resProuctos.data.productos.length > 0) {
+                resProuctos.data.productos.forEach(element => {
+
+                    this.registro.productosEstudio.push(
+                        {
+                            checked: false,
+                            id: element.IdProducto,
+                            cod_cups: element.cod_cups,
+                            nom_produc: element.nom_produc
+                        }
+                    );
+                });
+            }
+
+            this.registro.diagnosticosEstudio = [];
+            if (resProuctos.data.diagnosticos.length > 0) {
+                this.registro.diagnosticosEstudio = resProuctos.data.diagnosticos;
+            }
+
+            this.registro.atencion_id = this.interfaceAtencionSeleccionada;
         },
         establecerSede() {
             this.registro.sede_id = sessionStorage.getItem('ST-sede');
@@ -697,6 +769,7 @@ export default {
             try {
                 const res = await axios.get("/config-productos");
                 this.productos = res.data;
+
             } catch (error) {
                 console.log(error);
             }

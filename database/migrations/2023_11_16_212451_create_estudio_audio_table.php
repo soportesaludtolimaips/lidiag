@@ -13,8 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('config_sedes', function (Blueprint $table) {
-            $table->string('email')->nullable()->after('nom_sede');
+        Schema::create('estudios_audios', function (Blueprint $table) {
+            $table->id();
+
+            $table->unsignedBigInteger('estudio_id');
+            $table->foreign('estudio_id')->references('id')->on('estudios');
+
+            $table->string('audio');
+            $table->timestamps();
         });
     }
 
@@ -25,8 +31,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('config_sedes', function (Blueprint $table) {
-            $table->string('email');
-        });
+        Schema::dropIfExists('estudios_audios');
     }
 };

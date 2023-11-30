@@ -12,7 +12,7 @@ class EstudioProducto extends Model
 
     protected $table = 'estudios_productos';
 
-    protected $fillable = ['estudio_id', 'producto_id', 'transcriptor_id', 'cod_cups', 'nom_produc', 'fechor_lectura', 'lectura', 'fechor_trascrito', 'visible'];
+    protected $fillable = ['estudio_id', 'producto_id', 'transcriptor_id', 'cod_cups', 'nom_produc', 'fechor_lectura', 'lectura', 'fechor_trascrito', 'medico_ordena', 'visible'];
 
     public function estudio()
     {

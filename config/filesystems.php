@@ -79,7 +79,12 @@ return [
             'url' => env('APP_URL') . '/soportes_hc',
             'visibility' => 'public',
         ],
-
+        'audios' => [
+            'driver' => 'local',
+            'root' => storage_path('app/audios'),
+            'url' => env('APP_URL') . '/audios',
+            'visibility' => 'public',
+        ],
     ],
 
     /*
@@ -99,6 +104,7 @@ return [
         public_path('logos') => storage_path('app/logos'),
         public_path('firmas_medicos') => storage_path('app/firmas_medicos'),
         public_path('soportes_hc') => storage_path('app/soportes_hc'),
+        public_path('audios') => storage_path('app/audios'),
     ],
 
 ];
