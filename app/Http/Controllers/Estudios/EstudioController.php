@@ -325,7 +325,9 @@ class EstudioController extends Controller
         /**
          * Actualizo la lectura del estudio
          */
-        /* $transcribirEstudios = EstudioProducto::findOrFail($request->id_producto_lectura);
+        $transcribirEstudios = EstudioProducto::findOrFail($request->id_producto_lectura);
+
+        /*
         $transcribirEstudios->lectura = $request->lectura;
         $transcribirEstudios->transcriptor_id = auth()->user()->id;
         $transcribirEstudios->fechor_trascrito = Carbon::now();
@@ -337,7 +339,19 @@ class EstudioController extends Controller
         $sede = ConfigSede::findOrfail($request->sede_id);
         if ($sede->interface_software === 'SAHI') {
 
-            $transcribir = (new SAHITranscibirController())->enviarEstudio($request->atencion, $request->medico_id);
+            $transcribir = (new SAHITranscibirController())->enviarEstudio($request->atencion, $request->medico_id, $request->lectura, $request->cod_cups);
+            /* $transcribir = (new SAHITranscibirController());
+            $transcribir->set_idAtencion($request->atencion);
+            $transcribir->set_idMedico($request->medico_id);
+            $transcribir->set_reporteEstudio($request->lectura);
+            $transcribir->set_codCups($request->cod_cups);
+            $transcribir->enviarEstudio($request->atencion, $request->medico_id, $request->lectura, $request->cod_cups); */
+            return $transcribir;
+
+            return $transcribir->pr($transcribir->getMessages()[1]);
+            if ($transcribir->pr($transcribir->getMessages()[1] == true)) {
+                return "Todo bien";
+            }
             /* $transcribir->set_idAtencion(1);
             $transcribir->set_idMedico($request->medico_id); */
             //$transcribir->enviarEstudio($request->atencion_id, $request->medico_id);

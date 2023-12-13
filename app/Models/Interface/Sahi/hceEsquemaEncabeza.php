@@ -17,4 +17,6 @@ class hceEsquemaEncabeza extends Model
         'IdEsquemaEncabezado', 'IdEsquema',  'idEncabezadoPadre', 'ValEsquemaConsecutivo', 'valDetConsecutivo', 'IdUbicacion', 'idAtencion',  'ValUltimoNroRegistro',
         'IndActivado', 'IndHabilitado',  'IdUsuarioR', 'FecRegistro', 'IdProductoR', 'NomProducto', 'CodProducto', 'IdEstudio'
     ];
+
+    public $timestamps = false;
 }

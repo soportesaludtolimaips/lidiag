@@ -47,8 +47,18 @@ class SAHIController extends Controller
 
     public function buscarEpsPlanContrato($idAtencion)
     {
-        $datos = FacFactura::select('facFactura.IdFactura', 'genTercero.NomTercero', 'conContrato.CodCon', 'conPlan.IdPlan', 'conPlan.DesPlan', 'conPlan.CodLegal', 'conContrato.DesContrato', ' genUbicacion.NomUbicacion')
-            ->join('genUbicacio', 'admAtencion.IdUbicacionIng', 'genUbicacion.IdUbicacion')
+        $datos = FacFactura::select(
+            'facFactura.IdFactura',
+            'genTercero.NomTercero',
+            'conContrato.CodCon',
+            'conPlan.IdPlan',
+            'conPlan.DesPlan',
+            'conPlan.CodLegal',
+            'conContrato.DesContrato',
+            'genUbicacion.NomUbicacion'
+        )
+            ->join('admAtencion', 'facFactura.IdDestino', 'admAtencion.IdAtencion')
+            ->join('genUbicacion', 'admAtencion.IdUbicacionIng', 'genUbicacion.IdUbicacion')
             ->join('conPlan', 'facFactura.IdPlan', 'conPlan.IdPlan')
             ->join('conContrato', 'facFactura.IdContrato', 'conContrato.IdContrato')
             ->join('genTercero', 'conPlan.IdTercero', 'genTercero.IdTercero')

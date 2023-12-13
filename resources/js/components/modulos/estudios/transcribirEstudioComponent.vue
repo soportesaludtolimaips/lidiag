@@ -445,76 +445,21 @@ export default {
             tituloModal: "Transcirbir estudio",
             registro: {
                 id_estudio: 0, id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", email_reportar: '', num_docu: "", nom_pacien: "", sexo: "",
-                fec_naci: "", email: "", diagnosticosEstudio: [], id_producto_lectura: 0, sede_id: "", atencion: null, medico_id: null,
+                fec_naci: "", email: "", diagnosticosEstudio: [], sede_id: "", atencion: null, medico_id: null, cod_cups: ''
             },
             busqueda: { bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
             datosImagen: { urlOviyam: '', patientId: '', studyUID: '', serverName: '' },
             errores: {},
-            microfono: 'admin-wrap/assets/images/mic.gif',
         };
     },
     methods: {
-        /* async buscarStudy() {
-            try {
-                const res = await axios.post('/study.listarEstudios', this.busqueda);
-
-                $('#example23').DataTable().destroy();
-
-                this.registros = res.data;
-
-                this.$nextTick(() => {
-                    $('#example23').DataTable({
-                        dom: 'Bfrtip',
-                        buttons: [
-                            'copy', 'csv', 'excel', 'pdf', 'print'
-                        ]
-                    });
-                });
-            } catch (error) {
-                console.log(error);
-                this.errores = error.response.data.errors;
-            }
-        }, */
-        startSpeechRecognition() {
-            if (this.recognizing == false) {
-                this.recognition.start();
-                this.recognizing = true;
-                this.convertirVozTexto();
-                this.microfono = 'admin-wrap/assets/images/mic-animate.gif';
-            } else {
-                this.recognition.stop();
-                this.recognizing = false;
-                this.microfono = 'admin-wrap/assets/images/mic.gif';
-            }
-        },
-        convertirVozTexto() {
-
-            this.recognition.onstart = () => {
-                this.recognizing = true;
-                console.log("Empezo a escuchar");
-            };
-            this.recognition.onresult = (event) => {
-                for (var i = event.resultIndex; i < event.results.length; i++) {
-                    if (event.results[i].isFinal) {
-                        const result = event.results[0][0].transcript;
-                        this.registro.lectura += result + '\n\n';
-                        console.log(this.registro.lectura);
-                    }
-                }
-            };
-            this.recognition.onend = () => {
-                this.recognizing = false;
-                this.microfono = 'admin-wrap/assets/images/mic.gif';
-                console.log("Termino de escuchar, llegó a su fin");
-            };
-        },
         async listarPendientesTrascribir() {
             try {
                 const res = await axios.get("/estudio-listarPendientesTrascribir");
                 $("#example23").DataTable().destroy();
 
                 this.registros = res.data;
-
+                console.log(res.data);
                 this.$nextTick(() => {
                     $("#example23").DataTable({
                         dom: "Bfrtip",
@@ -588,6 +533,7 @@ export default {
             this.registro.sexo = data.pat_sex;
             this.registro.fec_naci = data.pat_birthdate;
             this.registro.lectura = data.lectura;
+            this.registro.cod_cups = data.cod_cups;
 
             this.datosImagen.urlOviyam = data.url_oviyam;
             this.datosImagen.patientId = data.num_docu;
