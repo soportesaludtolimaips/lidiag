@@ -534,7 +534,7 @@ export default {
                 productosEstudio: [], diagnosticosEstudio: [], atencion_id: null
             },
             soportesHC: { archivo1: null, archivo2: null, archivo3: null }, //Soporte de historia clinica
-            busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "9961357", bus_fehc_ini: "", bus_fecha_fin: "" },
+            busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
             interfaceAtenciones: [], //Ateniones disponibles del paciente
             interfaceAtencionSeleccionada: null, //Atencion seleccinada para listar los productos y diagnosticos
             errores: {},
