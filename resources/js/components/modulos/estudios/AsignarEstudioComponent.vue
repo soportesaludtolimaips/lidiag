@@ -684,6 +684,7 @@ export default {
              * Verificar si la sede tiene interface, traigo la informacion de las producto y diagnosticos
              */
             const resAtenciones = await axios.get('/interface-sahi-listar-atenciones/' + this.registro.num_docu);
+            console.log(resAtenciones.data)
             this.interfaceAtenciones = resAtenciones.data
         },
         async interfaceListarProductosDiagnosticos() {
