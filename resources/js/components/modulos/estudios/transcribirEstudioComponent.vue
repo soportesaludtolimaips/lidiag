@@ -325,7 +325,7 @@
                                     <hr>
 
                                     <div class="row">
-                                        <div class="col-md-12" style="width:100px; height:150px; overflow-y: scroll;">
+                                        <div class="col-md-12" style="height:150px; overflow-y: scroll;">
                                             <table id=" example23"
                                                 class="display nowrap table table-hover table-striped table-bordered"
                                                 cellspacing="0" width="100%">
@@ -358,11 +358,6 @@
                                                 <button type="button" class="btn btn-secondary btn-xs" @click="verImagen()">
                                                     <i class="fa fa-file-image-o"></i>
                                                 </button>
-
-                                                <a class="" @click="startSpeechRecognition"
-                                                    style="width: 30px; height: 30px;">
-                                                    <img title="Grabadora" :src="microfono">
-                                                </a>
                                             </div>
                                         </div>
                                     </div>
@@ -425,16 +420,6 @@ export default {
     props: ['usuarioactual'],
     mounted() {
         this.listarPendientesTrascribir();
-
-        if ('webkitSpeechRecognition' in window) {
-            this.recognition = new webkitSpeechRecognition();
-            this.recognizing = false;
-            this.recognition.lang = 'es-CO'; // Establece el idioma de reconocimiento (puede ser diferente según tus necesidades)
-            this.recognition.continuous = true; // El reconocimiento nserá continuo, se detendrá después de un resultado
-            this.recognition.interimResults = true; // No se mostrarán resultados provisionales
-        } else {
-            console.log('La API de reconocimiento de voz no es compatible con este navegador.');
-        }
     },
     data() {
         return {
@@ -459,7 +444,7 @@ export default {
                 $("#example23").DataTable().destroy();
 
                 this.registros = res.data;
-                console.log(res.data);
+
                 this.$nextTick(() => {
                     $("#example23").DataTable({
                         dom: "Bfrtip",
