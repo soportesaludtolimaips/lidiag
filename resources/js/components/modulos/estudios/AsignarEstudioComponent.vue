@@ -747,8 +747,8 @@ export default {
             this.productoSelecciondo = 0;
             this.diagnosticoSelecciondo = 0;
 
-            /* this.istarMedicos();
-            this.listarPrioridades(); */
+            this.istarMedicos();
+            this.listarPrioridades();
         },
         async listarMedicos() {
             try {
