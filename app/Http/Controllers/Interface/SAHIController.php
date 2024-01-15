@@ -20,7 +20,8 @@ class SAHIController extends Controller
             ->join('admCliente', 'admCliente.IdCliente', 'admAtencion.IdCliente')
             ->where('admCliente.NumDocumento', $request->numDocu)
             ->orderByDesc('admAtencion.IdAtencion')
-            ->limit(10)
+            ->limit(20)
+            ->orderBy('admAtencion.IdAtencion', 'DESC')
             ->get();
 
         return response()->json($atenciones);
