@@ -82,7 +82,7 @@ class EstudioController extends Controller
             $plan = $buscarDatos[0]->DesPlan;
             $servicio = $buscarDatos[0]->NomUbicacion;
         }
-        //return  $registro->study_iuid;
+
         $estudio = Estudio::firstOrCreate(
             ['study_id' => $registro->study_pk],
             [
@@ -137,7 +137,7 @@ class EstudioController extends Controller
         }
 
         /**
-         * Almacenos los losportes de la HCA
+         * Almacenos los soportes de la HC
          */
         if ($request->hasFile('archivo1')) {
             $archivo = $request->archivo1;

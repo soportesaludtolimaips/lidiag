@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('twitter', 100)->nullable();
             $table->string('youtube', 100)->nullable();
             $table->string('interface_id')->nullable();
+            $table->boolean('permitir_transcribir')->nullable()->default(); // Permiso para que el usuario este asignando lectura puede realizar la lectura
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
