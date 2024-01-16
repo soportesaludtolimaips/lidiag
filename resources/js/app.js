@@ -50,6 +50,8 @@ import AsignarEstudioComponent from './components/modulos/estudios/AsignarEstudi
 app.component('asignar-studio-component', AsignarEstudioComponent);
 import leerEstudioComponent from './components/modulos/estudios/leerEstudioComponent.vue';
 app.component('leer-estudio-component', leerEstudioComponent);
+import leerEstudioAdministrativoComponent from './components/modulos/estudios/leerEstudioAdministrativoComponent.vue';
+app.component('leer-y-transcribir-administrativo-component', leerEstudioAdministrativoComponent);
 import transcribirEstudioComponent from './components/modulos/estudios/transcribirEstudioComponent.vue';
 app.component('transcribir-estudio-component', transcribirEstudioComponent);
 import notificarEstudioComponent from './components/modulos/estudios/notificarEstudioComponent.vue';

@@ -19,7 +19,6 @@ class SAHIController extends Controller
         $atenciones = Atencion::select('admAtencion.IdAtencion', 'admAtencion.FecIngreso')
             ->join('admCliente', 'admCliente.IdCliente', 'admAtencion.IdCliente')
             ->where('admCliente.NumDocumento', $request->numDocu)
-            ->orderByDesc('admAtencion.IdAtencion')
             ->limit(20)
             ->orderBy('admAtencion.IdAtencion', 'DESC')
             ->get();
