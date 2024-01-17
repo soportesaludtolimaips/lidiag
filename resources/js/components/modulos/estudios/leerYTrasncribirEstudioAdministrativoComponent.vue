@@ -481,7 +481,7 @@ export default {
                                 stack: 6,
                             });
 
-                            this.listarMisPendientes();
+                            this.listarPendientesLeerTranscirbir();
                             this.btnCerralModalForm();
                             this.limpiar();
                         }
