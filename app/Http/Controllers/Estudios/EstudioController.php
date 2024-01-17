@@ -305,6 +305,7 @@ class EstudioController extends Controller
 
     public function guardarTranscripcion(Request $request)
     {
+        return $request;
         /**
          * Actualizo los datos del paciente
          */
@@ -320,7 +321,6 @@ class EstudioController extends Controller
                 'email' => $request->email
             ]
         );
-
 
         /**
          * Actualizo la lectura del estudio

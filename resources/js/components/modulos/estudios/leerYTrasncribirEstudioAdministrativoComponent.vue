@@ -382,6 +382,12 @@ export default {
     props: ['usuarioactual'],
     mounted() {
         this.listarPendientesLeerTranscirbir();
+        this.establecerSede();
+        this.emitter.on("sedeSeleccionada", (data) => {
+            this.registro.sede_id = data.idSede;
+            this.establecerSede();
+            $("#example23").DataTable().destroy();
+        });
     },
     data() {
         return {
@@ -393,7 +399,7 @@ export default {
             tituloModal: "Nuevo registro",
             registro: {
                 id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "",
-                diagnosticosEstudio: [], medico_id: '', sede_id: 1, atencion: null, cod_cups: ''
+                diagnosticosEstudio: [], medico_id: '', sede_id: this.sedeActual, atencion: null, cod_cups: ''
             },
             datosImagen: { urlOviyam: '', patientId: '', studyUID: '', serverName: '' },
             errores: {},
@@ -401,6 +407,7 @@ export default {
             microfono: 'admin-wrap/assets/images/mic.gif',
             recognizing: false,
             recognition: null,
+            sedeActual: sessionStorage.getItem('ST-sede'),
         };
     },
     methods: {
@@ -546,7 +553,7 @@ export default {
                 });
         },
         establecerSede() {
-            this.sede_id = sessionStorage.getItem('ST-sede');
+            this.registro.sede_id = sessionStorage.getItem('ST-sede');
             this.registros = [];
         },
         limpiar() {
