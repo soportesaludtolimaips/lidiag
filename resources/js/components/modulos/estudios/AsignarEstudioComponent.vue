@@ -368,23 +368,22 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <p class="text-info">
 
+                                    <h5 class="card-title text-info">
                                         <i class="fa fa-user"></i> PRODUCTOS
                                         <hr>
+                                    </h5>
 
-                                        <span class="text-danger" v-if="errores.prioridad_id">
-                                            {{ errores.productosEstudio[0] }}
-                                        </span>
-                                        <button type="button"
-                                            class="btn waves-effect waves-light btn-xs btn-info float-right"
-                                            data-toggle="modal" data-target="#exampleModal">
-                                            <i class="fa fa-search"></i>
-                                        </button>
-                                    </p>
+                                    <span class="text-danger" v-if="errores.prioridad_id">
+                                        {{ errores.productosEstudio[0] }}
+                                    </span>
+                                    <!-- <button type="button" class="btn waves-effect waves-light btn-xs btn-info float-right"
+                                        data-toggle="modal" data-target="#exampleModal">
+                                        <i class="fa fa-search"></i>
+                                    </button> -->
+
                                     <div class="row">
-                                        <div class="col-md-12">
-                                            <!-- select2 -->
+                                        <!-- <div class="col-md-12">
                                             <select class="form-control custom-select" @change="guardarProductosEstudio(10)"
                                                 style="width: 100%; height: 36px" v-model="productoSelecciondo">
                                                 <option v-for="ItemProducto in productos" v-bind:key="ItemProducto"
@@ -392,8 +391,8 @@
                                                     {{ ItemProducto.nom_produc }}
                                                 </option>
                                             </select>
-                                        </div>
-                                        <div class="col-md-12 table-responsive m-t-40">
+                                        </div> -->
+                                        <div class="col-md-12 table-responsive" style="overflow-y: scroll; height: 250px;">
                                             <table id="myTable" class="table table-bordered table-striped">
                                                 <thead>
                                                     <tr>
@@ -436,22 +435,22 @@
                                             </table>
                                         </div>
                                     </div>
-                                    <p class="text-info">
 
-                                        <i class="fa fa-user"></i> DIAGNOSTICOS
-                                        <hr>
+                                    <h5 class="card-title text-info m-t-40">
+                                        <i class="fa fa-user "></i> DIAGNOSTICOS
+                                    </h5>
 
-                                        <span class="text-danger" v-if="errores.prioridad_id">
-                                            {{ errores.diagnosticosEstudio[0] }}
-                                        </span>
-                                        <button type="button"
-                                            class="btn waves-effect waves-light btn-xs btn-info float-right">
-                                            <i class="fa fa-search"></i>
-                                        </button>
-                                    </p>
+                                    <hr>
+
+                                    <span class="text-danger" v-if="errores.prioridad_id">
+                                        {{ errores.diagnosticosEstudio[0] }}
+                                    </span>
+                                    <!-- <button type="button" class="btn waves-effect waves-light btn-xs btn-info float-right">
+                                        <i class="fa fa-search"></i>
+                                    </button> -->
+
                                     <div class="row">
-                                        <div class="col-md-12">
-                                            <!-- select2 -->
+                                        <!-- <div class="col-md-12">
                                             <select class="form-control custom-select"
                                                 @change="guardarDiagnosticosEstudio(10)" style="width: 100%; height: 36px"
                                                 v-model="diagnosticoSelecciondo">
@@ -460,8 +459,8 @@
                                                     {{ ItemDiagnostico.nom_diagnos }}
                                                 </option>
                                             </select>
-                                        </div>
-                                        <div class="col-md-12 table-responsive m-t-40">
+                                        </div> -->
+                                        <div class="col-md-12 table-responsive">
                                             <table id="myTable" class="table table-bordered table-striped">
                                                 <thead>
                                                     <tr>

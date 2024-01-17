@@ -471,8 +471,9 @@ export default {
                         stack: 6,
                     });
 
-                    /* this.listarPendientesTrascribir()
-                    this.btnCerralModalForm(); */
+                    this.listarMisPendientes();
+                    this.btnCerralModalForm();
+                    this.limpiar();
                 }
             } catch (error) {
                 console.log(error);

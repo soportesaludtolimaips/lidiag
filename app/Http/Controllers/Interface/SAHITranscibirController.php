@@ -95,11 +95,8 @@ class SAHITranscibirController extends Controller
         /**
          * Establecer los datos del medico por medio del ID del usuario
          */
-        $this->IdUsuario = $this->getUsuario()[0]->IdUsuario;
-        $this->IdPersonal = $this->getUsuario()[0]->IdPersonal;
-        $this->nomMedico = $this->getUsuario()[0]->Nompersonal . " " . $this->getUsuario()[0]->ApePersonal;
 
-        if (!$this->IdUsuario) {
+        if (!$this->idMedico) {
             return response()->json([
                 'message' => 'El médico no se encuentra registrado en SAHI, por favor consulte con el administrador del sistema.',
                 'status' => 307,
@@ -107,17 +104,19 @@ class SAHITranscibirController extends Controller
             ]);
         }
 
+        $this->IdUsuario = $this->getUsuario()[0]->IdUsuario;
+        $this->IdPersonal = $this->getUsuario()[0]->IdPersonal;
+        $this->nomMedico = $this->getUsuario()[0]->Nompersonal . " " . $this->getUsuario()[0]->ApePersonal;
+
         /**
          * Busco la ubicación actual de la atención
          */
         $ubucacionActual = $this->getUbicacionActual();
-        if ($ubucacionActual) {
+        if (!$ubucacionActual) {
             return response()->json([
                 'message' => 'No se pudo obtener la ubicación actual de la atención.',
                 'status' => 205
             ]);
-        } else {
-            return "okkkkk";
         }
 
         /**
@@ -165,6 +164,11 @@ class SAHITranscibirController extends Controller
          */
         $producto = $this->storaProducto($conseEsquemaEncavezado2);
         //return "Producto: " . $producto;
+
+        return response()->json([
+            'message' => 'La transcripción se realizó con exíto.',
+            'status' => 200
+        ]);
     }
 
     private function generarConsecutivoEsquemaEncavezado()
@@ -333,7 +337,11 @@ class SAHITranscibirController extends Controller
             ->where('ASI_USUA.IdUsuario', $medicoLidiag->interface_id)
             ->get();
 
-        return $usuarioSAHI;
+        if ($usuarioSAHI) {
+            return $usuarioSAHI;
+        } else {
+            return false;
+        }
     }
 
     private function getUbicacionActual()

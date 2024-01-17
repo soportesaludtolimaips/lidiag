@@ -82,6 +82,7 @@
                                     <th>Sede</th>
                                     <th>Fecha del Toma</th>
                                     <th>Quien Asigno</th>
+                                    <th>Medico</th>
                                     <th>Paciente</th>
                                     <th>Detalle</th>
                                     <th>Producto</th>
@@ -103,6 +104,7 @@
                                     <td>{{ item.nom_sede }}</td>
                                     <td>{{ item.fec_estudio }}</td>
                                     <td>{{ item.quien_registro }}</td>
+                                    <td>{{ item.medico_name }}}</td>
                                     <td>
                                         {{ item.num_docu }} <br />
                                         {{ item.nom_pacien }}
@@ -364,12 +366,6 @@
                             <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">
                                 Cancel
                             </button>
-
-                            <div>
-                                <button @click="startRecording" :disabled="isRecording">Iniciar grabación</button>
-                                <button @click="stopRecording" :disabled="!isRecording">Detener grabación</button>
-                                <button type="button" @click="saveRecording">Enviar Audio</button>
-                            </div>
                         </div>
                     </div>
                 </form>
@@ -385,18 +381,7 @@
 export default {
     props: ['usuarioactual'],
     mounted() {
-
-        this.listarMisPendientes();
-
-        if ('webkitSpeechRecognition' in window) {
-            this.recognition = new webkitSpeechRecognition();
-            this.recognizing = false;
-            this.recognition.lang = 'es-CO'; // Establece el idioma de reconocimiento (puede ser diferente según tus necesidades)
-            this.recognition.continuous = true; // El reconocimiento nserá continuo, se detendrá después de un resultado
-            this.recognition.interimResults = true; // No se mostrarán resultados provisionales
-        } else {
-            console.log('La API de reconocimiento de voz no es compatible con este navegador.');
-        }
+        this.listarPendientesLeerTranscirbir();
     },
     data() {
         return {
@@ -406,36 +391,19 @@ export default {
             diagnosticosEstudio: [],
             soportesHC: [],
             tituloModal: "Nuevo registro",
-            registro: { id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "", diagnosticosEstudio: [] },
-            busqueda: { bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "" },
+            registro: {
+                id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "",
+                diagnosticosEstudio: [], medico_id: '', sede_id: 1, atencion: null, cod_cups: ''
+            },
             datosImagen: { urlOviyam: '', patientId: '', studyUID: '', serverName: '' },
             errores: {},
             tipoPrioridad: 0,
-            recognizedText: '',
             microfono: 'admin-wrap/assets/images/mic.gif',
-            lecturaEstudio: "",
             recognizing: false,
             recognition: null,
-
-
-            isRecording: false,
-            mediaRecorder: null,
-            audioChunks: []
         };
     },
     methods: {
-        startSpeechRecognition() {
-            if (this.recognizing == false) {
-                this.recognition.start();
-                this.recognizing = true;
-                this.convertirVozTexto();
-                this.microfono = 'admin-wrap/assets/images/mic-animate.gif';
-            } else {
-                this.recognition.stop();
-                this.recognizing = false;
-                this.microfono = 'admin-wrap/assets/images/mic.gif';
-            }
-        },
         convertirVozTexto() {
 
             this.recognition.onstart = () => {
@@ -457,11 +425,10 @@ export default {
                 console.log("Termino de escuchar, llegó a su fin");
             };
         },
-        async listarMisPendientes() {
+        async listarPendientesLeerTranscirbir() {
             try {
-                const res = await axios.get("/estudio-listarPendientesMedico?id=" + this.usuarioactual.id);
+                const res = await axios.get("/estudio-listarPendientesPorLeerTranscribir");
                 $("#example23").DataTable().destroy();
-
                 this.registros = res.data;
 
                 this.$nextTick(() => {
@@ -476,63 +443,54 @@ export default {
         },
         async guardarRegistro() {
             try {
-                const res = await axios.post('/estudio-leerEstudio', this.registro);
-
-                if (res.status == 200) {
+                if (this.registros.lectura === "") {
                     $.toast({
-                        heading: "Ok!!!",
-                        text: res.data.message,
+                        heading: "Upsss!!!",
+                        text: 'Te hizo falta la lectura.',
                         position: "top-right",
                         loaderBg: "#ff6849",
-                        icon: "success",
+                        icon: "warning",
                         hideAfter: 3500,
                         stack: 6,
                     });
+                } else {
 
-                    this.listarMisPendientes();
-                    this.btnCerralModalForm();
-                    this.limpiar();
+                    const res = await axios.post('/estudio-leerEstudio', this.registro);
+
+                    if (res.status == 200) {
+                        $.toast({
+                            heading: "Ok!!!",
+                            text: res.data.message,
+                            position: "top-right",
+                            loaderBg: "#ff6849",
+                            icon: "success",
+                            hideAfter: 3500,
+                            stack: 6,
+                        });
+
+                        const resTranscibir = await axios.post('/estudio-guardarTranscripcion', this.registro);
+
+                        if (resTranscibir.status == 200) {
+                            $.toast({
+                                heading: "Ok!!!",
+                                text: 'Transcripcion correcta   ',
+                                position: "top-right",
+                                loaderBg: "#ff6849",
+                                icon: "success",
+                                hideAfter: 3500,
+                                stack: 6,
+                            });
+
+                            this.listarMisPendientes();
+                            this.btnCerralModalForm();
+                            this.limpiar();
+                        }
+                    }
                 }
             } catch (error) {
                 console.log(error);
                 this.errores = error.response.data.errors;
             }
-        },
-        async startRecording() {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            this.mediaRecorder = new MediaRecorder(stream);
-
-            this.mediaRecorder.ondataavailable = event => {
-                if (event.data.size > 0) {
-                    this.audioChunks.push(event.data);
-                }
-            };
-
-            this.mediaRecorder.start();
-            this.isRecording = true;
-        },
-        stopRecording() {
-            this.mediaRecorder.stop();
-            this.isRecording = false;
-            this.saveRecording();
-        },
-        saveRecording() {
-            const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
-            const audioUrl = URL.createObjectURL(audioBlob);
-
-            // Ahora puedes enviar el audioBlob a tu backend Laravel
-            // Puedes usar axios u otra biblioteca para enviar archivos.
-            // Ejemplo con axios:
-            const formData = new FormData();
-            formData.append('audio', audioBlob);
-
-            axios.post('/upload-audio', formData)
-                .then((response) => {
-                    console.log('Audio enviado con éxito:', response.data);
-                })
-                .catch((error) => {
-                    console.error('Error al enviar audio:', error);
-                });
         },
         verImagen() {
             let Url = this.datosImagen.urlOviyam + '?patientID =' + this.datosImagen.patientId + '&studyUID=' + this.datosImagen.studyUID + '&serverName=' + this.datosImagen.serverName
@@ -550,6 +508,9 @@ export default {
             this.registro.nom_pacien = data.nom_pacien;
             this.registro.sexo = data.pat_sex;
             this.registro.fec_naci = data.pat_birthdate;
+            this.registro.medico_id = data.medico_id;
+            this.registro.atencion = data.atencion;
+            this.registro.cod_cups = data.cod_cups;
 
             this.datosImagen.urlOviyam = data.url_oviyam;
             this.datosImagen.patientId = data.num_docu;
@@ -583,6 +544,10 @@ export default {
                 .catch(error => {
                     console.error(error);
                 });
+        },
+        establecerSede() {
+            this.sede_id = sessionStorage.getItem('ST-sede');
+            this.registros = [];
         },
         limpiar() {
             this.tituloModal = "";

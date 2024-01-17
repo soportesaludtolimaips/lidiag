@@ -299,7 +299,7 @@ class EstudioController extends Controller
             ->whereNull('produc.fechor_trascrito')
             ->whereNotNull('produc.fechor_lectura')
             ->get();
-        return $misPendiente;
+
         return response()->json($misPendiente);
     }
 
@@ -340,26 +340,7 @@ class EstudioController extends Controller
         if ($sede->interface_software === 'SAHI') {
 
             $transcribir = (new SAHITranscibirController())->enviarEstudio($request->atencion, $request->medico_id, $request->lectura, $request->cod_cups);
-            /* $transcribir = (new SAHITranscibirController());
-            $transcribir->set_idAtencion($request->atencion);
-            $transcribir->set_idMedico($request->medico_id);
-            $transcribir->set_reporteEstudio($request->lectura);
-            $transcribir->set_codCups($request->cod_cups);
-            $transcribir->enviarEstudio($request->atencion, $request->medico_id, $request->lectura, $request->cod_cups); */
-            return $transcribir;
-
-            return $transcribir->pr($transcribir->getMessages()[1]);
-            if ($transcribir->pr($transcribir->getMessages()[1] == true)) {
-                return "Todo bien";
-            }
-            /* $transcribir->set_idAtencion(1);
-            $transcribir->set_idMedico($request->medico_id); */
-            //$transcribir->enviarEstudio($request->atencion_id, $request->medico_id);
-
-            return $transcribir;
         }
-
-        return "Ok";
 
         /**
          * Genero el PDF del reporte de la lectura del estudio
@@ -416,5 +397,41 @@ class EstudioController extends Controller
         // Puedes almacenar el $path en la base de datos o realizar otras acciones necesarias.
 
         return response()->json(['message' => 'Audio subido con éxito']);
+    }
+
+    public function penditesPorLeerTranscribir(Request $request)
+    {
+        $pendiente = Estudio::select(
+            'estudios.*',
+            'pacien.num_docu',
+            'pacien.nombres as nom_pacien',
+            'pacien.fec_naci',
+            'pacien.sexo',
+            'produc.id as id_producto_lectura',
+            'produc.cod_cups',
+            'produc.nom_produc',
+            'produc.fechor_lectura',
+            'users.name AS quien_registro',
+            'priori.id as priori_id',
+            'priori.nom_priori',
+            'priori.nivel AS priori_nivel',
+            'priori.tiempo AS priori_tiempo',
+            'sesde.nom_sede as nom_sede',
+            'sesde.url_oviyam',
+            'sesde.tap_oviyam',
+            'medico.id as medico_id',
+            'medico.name as medico_name'
+        )
+            ->join('pacientes AS pacien', 'estudios.paciente_id',  '=', 'pacien.id')
+            ->join('config_sedes AS sesde', 'estudios.sede_id', '=', 'sesde.id')
+            ->join('estudios_productos AS produc', 'produc.estudio_id', '=', 'estudios.id')
+            ->join('users', 'estudios.quien_registro_id', '=', 'users.id')
+            ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
+            ->join('users as medico', 'estudios.medico_id', '=', 'medico.id')
+            ->whereNull('produc.fechor_lectura')
+            ->where('medico.permitir_transcribir', '=', 1)
+            ->orderBy('priori.nom_priori')->get();
+
+        return response()->json($pendiente, 200);
     }
 }
