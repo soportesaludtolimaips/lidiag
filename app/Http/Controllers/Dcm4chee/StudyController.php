@@ -5,9 +5,10 @@ namespace App\Http\Controllers\Dcm4chee;
 use App\Http\Controllers\Controller;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\Dcm4chee\Study;
+use App\Models\Estudio\Estudio;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Http\Request;
-use DB;
+use Illuminate\Support\Facades\DB;
 
 class StudyController extends Controller
 {
@@ -39,19 +40,8 @@ class StudyController extends Controller
         $estudios = new Study();
         $query = $estudios->query();
 
-        $query->select(
-            'study.pk as study_pk',
-            'study.study_iuid',
-            'study.study_id',
-            'study.study_datetime',
-            'study.accession_no',
-            'study.study_desc',
-            'study.mods_in_study',
-            'patient.pat_id',
-            'patient.pat_name',
-            'patient.pat_sex',
-            'patient.pat_birthdate'
-        )->join('patient', 'study.patient_fk', 'patient.pk');
+        $query->select('study.pk as study_pk', 'study.study_iuid', 'study.study_id', 'study.study_datetime', 'study.accession_no', 'study.study_desc', 'study.mods_in_study', 'patient.pat_id', 'patient.pat_name', 'patient.pat_sex', 'patient.pat_birthdate')
+            ->join('patient', 'study.patient_fk', 'patient.pk');
 
         if ($request->bus_nom_num_docu != "") {
             $query->where('patient.pat_id', 'like', "%$request->bus_nom_num_docu%")

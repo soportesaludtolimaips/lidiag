@@ -100,7 +100,6 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="item in registros" :key="item.id">
-                                        <td>{{ item.study_datetime }}</td>
                                         <td>{{ item.pat_id }}</td>
                                         <td>{{ item.pat_name }}</td>
                                         <td>{{ item.accession_no }}</td>
@@ -117,7 +116,6 @@
                                                 @click="verImagen(item.pat_id, item.study_iuid)" title="Ver imagenes">
                                                 <i class="fa fa-file-photo-o"></i>
                                             </button>
-
                                         </td>
                                     </tr>
                                 </tbody>
@@ -573,11 +571,11 @@ export default {
                     });
                 } else {
                     const res = await axios.post("/study.listarEstudios", this.busqueda);
+                    console.log(res.data[0].study_pk)
                     if (res.status == 200) {
                         $("#example23").DataTable().destroy();
 
                         this.registros = res.data;
-
                         this.$nextTick(() => {
                             $("#example23").DataTable({
                                 dom: "Bfrtip",

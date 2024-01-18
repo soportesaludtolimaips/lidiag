@@ -5,6 +5,7 @@ namespace App\Models\Dcm4chee;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Dcm4chee\Patient;
+use App\Models\Estudio\Estudio;
 
 class Study extends Model
 {
