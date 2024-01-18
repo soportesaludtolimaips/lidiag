@@ -346,7 +346,6 @@ export default {
                     "checked": false,
                 });
             });
-            console.log(me.registro.rolesUsuario);
         },
         async guardarRegistro() {
             try {
@@ -387,9 +386,9 @@ export default {
                             stack: 6
                         });
 
-                        /* this.ListarDatos();
+                        this.ListarDatos();
                         this.limpiarFormulario();
-                        this.btnCerralModalForm(); */
+                        this.btnCerralModalForm();
                     }
                 }
             } catch (error) {
