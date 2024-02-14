@@ -2,7 +2,7 @@
 
 namespace App\Models\General;
 
-use App\Models\Lecturas\Lectura;
+use App\Models\Estudio\Estudio;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -14,6 +14,6 @@ class Paciente extends Model
 
     public function lecturas()
     {
-        return $this->hasMany(Lectura::class);
+        return $this->hasMany(Estudio::class);
     }
 }

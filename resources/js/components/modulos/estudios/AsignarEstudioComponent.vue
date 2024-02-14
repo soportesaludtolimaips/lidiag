@@ -100,6 +100,7 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="item in registros" :key="item.id">
+                                        <td>{{ item.agendado }} - {{ item.study_datetime }}</td>
                                         <td>{{ item.pat_id }}</td>
                                         <td>{{ item.pat_name }}</td>
                                         <td>{{ item.accession_no }}</td>
@@ -552,7 +553,7 @@ export default {
                 if (sessionStorage.getItem('ST-sede') == null) {
                     $.toast({
                         heading: "Upsss!!!",
-                        text: 'Debe establece la sede en la cual vas a trabajar.',
+                        text: 'Debes establece la sede en la cual vas a trabajar.',
                         position: "top-right",
                         loaderBg: "#ff6849",
                         icon: "warning",
@@ -562,7 +563,7 @@ export default {
                 } else if (this.busqueda.bus_nom_num_docu == '' && this.busqueda.bus_fehc_ini == "" && this.busqueda.bus_fecha_fin == "") {
                     $.toast({
                         heading: "Upsss!!!",
-                        text: 'Debe establece la fecha de inicio o finalización para la busqueda.',
+                        text: 'Debes establece la fecha de inicio o finalización para la busqueda.',
                         position: "top-right",
                         loaderBg: "#ff6849",
                         icon: "warning",
@@ -571,10 +572,41 @@ export default {
                     });
                 } else {
                     const res = await axios.post("/study.listarEstudios", this.busqueda);
-                    console.log(res.data[0].study_pk)
+
+                    var studiasAgendados = [];
+                    /* studiasAgendados = res.data;
+                    for (const item in studiasAgendados) {
+                        console.log(this.estudioAgendado(studiasAgendados[item].pat_id))
+                    } */
+
+                    let me = this;
+
+                    /* res.data.map(function (currentValue, index, array) {
+
+                        //var estaAgendado = me.estudioAgendado(currentValue.pat_id)
+                        //console.log(estaAgendado)
+
+                        studiasAgendados.push({
+                            'accession_no': currentValue.accession_no,
+                            'mods_in_study': currentValue.mods_in_study,
+                            'pat_birthdate': currentValue.pat_birthdate,
+                            'pat_id': currentValue.pat_id,
+                            'pat_name': currentValue.pat_name,
+                            'pat_sex': currentValue.pat_sex,
+                            'study_datetime': currentValue.study_datetime,
+                            'study_desc': currentValue.study_desc,
+                            'study_id': currentValue.study_id,
+                            'study_iuid': currentValue.study_iuid,
+                            'study_pk': currentValue.study_pk,
+                            'agendado': estaAgendado,
+                        });
+                    }); */
+
+
                     if (res.status == 200) {
                         $("#example23").DataTable().destroy();
 
+                        //this.registros = studiasAgendados;
                         this.registros = res.data;
                         this.$nextTick(() => {
                             $("#example23").DataTable({
@@ -596,6 +628,7 @@ export default {
                     }
                 }
             } catch (error) {
+                console.log(error)
                 if (error.response.status == 500) {
                     $.toast({
                         heading: "Upss!!!",
@@ -711,6 +744,15 @@ export default {
 
             this.registro.atencion_id = this.interfaceAtencionSeleccionada;
         },
+        /* async estudioAgendado(numDocu) {
+            const res = await axios.get('/estudio-buscar-por-numdocu/' + numDocu);
+            console.log(res.data.message);
+            if (res.data.message === 'Si') {
+                return true;
+            } else {
+                return false;
+            }
+        }, */
         establecerSede() {
             this.registro.sede_id = sessionStorage.getItem('ST-sede');
             this.busqueda.sede_id = sessionStorage.getItem('ST-sede');

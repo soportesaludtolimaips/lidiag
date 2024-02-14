@@ -40,8 +40,22 @@ class StudyController extends Controller
         $estudios = new Study();
         $query = $estudios->query();
 
-        $query->select('study.pk as study_pk', 'study.study_iuid', 'study.study_id', 'study.study_datetime', 'study.accession_no', 'study.study_desc', 'study.mods_in_study', 'patient.pat_id', 'patient.pat_name', 'patient.pat_sex', 'patient.pat_birthdate')
+        $query->select(
+            'study.pk as study_pk',
+            'study.study_iuid',
+            'study.study_id',
+            'study.study_datetime',
+            'study.accession_no',
+            'study.study_desc',
+            'study.mods_in_study',
+            'patient.pat_id',
+            'patient.pat_name',
+            'patient.pat_sex',
+            'patient.pat_birthdate',
+        )
             ->join('patient', 'study.patient_fk', 'patient.pk');
+
+        //return $query->toSql();
 
         if ($request->bus_nom_num_docu != "") {
             $query->where('patient.pat_id', 'like', "%$request->bus_nom_num_docu%")

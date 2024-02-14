@@ -418,9 +418,9 @@ export default {
             recognition: null,
 
 
-            isRecording: false,
             mediaRecorder: null,
-            audioChunks: []
+            chunks: [],
+            recording: false,
         };
     },
     methods: {
@@ -499,32 +499,40 @@ export default {
             }
         },
         async startRecording() {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            this.mediaRecorder = new MediaRecorder(stream);
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then((stream) => {
+                    this.mediaRecorder = new MediaRecorder(stream);
 
-            this.mediaRecorder.ondataavailable = event => {
-                if (event.data.size > 0) {
-                    this.audioChunks.push(event.data);
-                }
-            };
+                    this.mediaRecorder.ondataavailable = (event) => {
+                        if (event.data.size > 0) {
+                            this.chunks.push(event.data);
+                        }
+                    };
 
-            this.mediaRecorder.start();
-            this.isRecording = true;
+                    this.mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(this.chunks, { type: 'audio/wav' });
+                        this.chunks = [];
+                        // Puedes hacer algo con el archivo de audio, como enviarlo al backend
+                        // Aquí, estamos simulando el envío a través de una función `sendToBackend`
+                        this.sendToBackend(audioBlob);
+                    };
+
+                    this.mediaRecorder.start();
+                    this.recording = true;
+                })
+                .catch((error) => {
+                    console.error('Error al acceder al micrófono:', error);
+                });
         },
         stopRecording() {
-            this.mediaRecorder.stop();
-            this.isRecording = false;
-            this.saveRecording();
+            if (this.mediaRecorder && this.recording) {
+                this.mediaRecorder.stop();
+                this.recording = false;
+            }
         },
         saveRecording() {
-            const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
-            const audioUrl = URL.createObjectURL(audioBlob);
-
-            // Ahora puedes enviar el audioBlob a tu backend Laravel
-            // Puedes usar axios u otra biblioteca para enviar archivos.
-            // Ejemplo con axios:
             const formData = new FormData();
-            formData.append('audio', audioBlob);
+            formData.append('audio', audioBlob, 'audio.wav');
 
             axios.post('/upload-audio', formData)
                 .then((response) => {

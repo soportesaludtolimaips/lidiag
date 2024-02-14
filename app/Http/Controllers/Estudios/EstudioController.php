@@ -23,6 +23,7 @@ use App\Models\Estudio\EstudioSoportesHC;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Str;
+use Illuminate\Support\Facades\DB;
 
 class EstudioController extends Controller
 {
@@ -431,5 +432,22 @@ class EstudioController extends Controller
             ->orderBy('priori.nom_priori')->get();
 
         return response()->json($pendiente, 200);
+    }
+
+    public function buscarEstudioPorNumDocu(Request $request)
+    {
+
+        //$estudios = Paciente::where('num_docu', '=', $request->numDocu)->first()->lecturas;
+
+        $estudios = Estudio::select('pacientes.num_docu')
+            ->join('pacientes', 'estudios.paciente_id', 'pacientes.id')
+            ->where('pacientes.num_docu', '=', $request->numDocu)
+            ->count();
+
+        if ($estudios > 0) {
+            return response()->json(['message' => 'Si', 200]);
+        } else {
+            return response()->json(['message' => 'No', 200]);
+        }
     }
 }
