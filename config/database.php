@@ -62,7 +62,25 @@ return [
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
-
+        'mysql_importar_dicom' => [
+            'driver' => 'mysql',
+            'url' => env('DATABASE_URL'),
+            'host' => env('DB_HOST_IMPORTAR', '10.35.47.6'),
+            'port' => env('DB_PORT_IMPORTAR', '3306'),
+            'database' => env('DB_DATABASE_IMPORTAR', 'dicom_produccion'),
+            'username' => env('DB_USERNAME_IMPORTAR', 'importar'),
+            'password' => env('DB_PASSWORD_IMPORTAR', '123456'),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
         'mysql_sucursal' => [
             'driver' => 'mysql',
             'host' => env('DB_HOST_2', '127.0.0.1'),

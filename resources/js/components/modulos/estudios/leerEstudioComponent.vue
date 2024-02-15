@@ -23,52 +23,6 @@
     <!-- ============================================================== -->
     <!-- Start Page Content -->
     <!-- ============================================================== -->
-    <!-- <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title text-themecolor"><i class="fa fa-filter"></i> Filtros para busqueda de mis
-                            pendientes</h4>
-                        <form action="#">
-                            <div class="form-body">
-                                <div class="row p-t-2">
-                                    <div class="col-md-3">
-                                        <div class="form-group">
-                                            <label class="control-label">Nombres de paciente o # de documento</label>
-                                            <input type="text" id="bus_nom_num_docu" name="bus_nom_num_docu"
-                                                v-model="busqueda.bus_nom_num_docu" class="form-control"
-                                                placeholder="Nombres de paciente o # de documento" />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="control-label">Fecha Inicio</label>
-                                            <input type="date" id="nom_diagnos" name="nom_diagnos"
-                                                v-model="busqueda.fehc_ini" class="form-control" />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="control-label">Fecha Fin</label>
-                                            <input type="date" id="fecha_fin" name="fecha_fin"
-                                                v-model="busqueda.fecha_fin" class="form-control" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="form-actions mt-3">
-                                    <button type="button" class="btn btn-success m-r-5" @click="buscarStudy()"><i
-                                            class="fa fa-search"></i> Buscar</button>
-                                    <button type="button" class="btn btn-inverse" @click="btnLimpiar()"><i
-                                            class="fa fa-refresh"></i> Limpiar</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div> -->
-
     <div class="row">
         <div class="col-12">
             <div class="card">
@@ -366,9 +320,9 @@
                             </button>
 
                             <div>
-                                <button @click="startRecording" :disabled="isRecording">Iniciar grabación</button>
-                                <button @click="stopRecording" :disabled="!isRecording">Detener grabación</button>
-                                <button type="button" @click="saveRecording">Enviar Audio</button>
+                                <button @click="startRecording">Comenzar a grabar</button>
+                                <button @click="stopRecording">Detener la grabación</button>
+                                <button @click="uploadAudio">Subir audio</button>
                             </div>
                         </div>
                     </div>
@@ -417,7 +371,6 @@ export default {
             recognizing: false,
             recognition: null,
 
-
             mediaRecorder: null,
             chunks: [],
             recording: false,
@@ -441,6 +394,7 @@ export default {
             this.recognition.onstart = () => {
                 this.recognizing = true;
                 console.log("Empezo a escuchar");
+                this.startRecording();
             };
             this.recognition.onresult = (event) => {
                 for (var i = event.resultIndex; i < event.results.length; i++) {
@@ -455,6 +409,7 @@ export default {
                 this.recognizing = false;
                 this.microfono = 'admin-wrap/assets/images/mic.gif';
                 console.log("Termino de escuchar, llegó a su fin");
+                this.stopRecording();
             };
         },
         async listarMisPendientes() {
@@ -514,7 +469,7 @@ export default {
                         this.chunks = [];
                         // Puedes hacer algo con el archivo de audio, como enviarlo al backend
                         // Aquí, estamos simulando el envío a través de una función `sendToBackend`
-                        this.sendToBackend(audioBlob);
+                        this.saveRecording(audioBlob);
                     };
 
                     this.mediaRecorder.start();
@@ -530,9 +485,10 @@ export default {
                 this.recording = false;
             }
         },
-        saveRecording() {
+        saveRecording(audioBlob) {
             const formData = new FormData();
             formData.append('audio', audioBlob, 'audio.wav');
+            formData.append('estudio_id', this.id);
 
             axios.post('/upload-audio', formData)
                 .then((response) => {

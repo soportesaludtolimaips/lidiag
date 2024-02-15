@@ -16,14 +16,13 @@ use Illuminate\Http\Request;
 use Mail;
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\Reportes\ResporteLecturaController;
-use App\Http\Requests\Estudio\estudioAsignarRequest;
 use App\Mail\ReportarLectura;
 use App\Models\Configuracion\ConfigSede;
+use App\Models\Estudio\EstudioAudio;
 use App\Models\Estudio\EstudioSoportesHC;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Str;
-use Illuminate\Support\Facades\DB;
 
 class EstudioController extends Controller
 {
@@ -388,14 +387,23 @@ class EstudioController extends Controller
 
     public function uploadAudio(Request $request)
     {
-        $audio = $request->file('audio');
-        return $audio;
-        $path = $audio->store('audio', 'public');
-        return $path;
+        if ($request->hasFile('audio')) {
+            $audio = $request->file('audio');
+            $bandera = Str::random(30);
+            $nombreAudio = $audio->getClientOriginalName();
+            $nuevoNombreAudio = $bandera . '_' . $nombreAudio;
 
-        // Puedes almacenar el $path en la base de datos o realizar otras acciones necesarias.
+            $audio->storeAs('audios', $nuevoNombreAudio, 'public');
 
-        return response()->json(['message' => 'Audio subido con éxito']);
+            $estudioAudio = new EstudioAudio();
+            $estudioAudio->estudio_id = $request->estudio_id;
+            $estudioAudio->audio = 'audios/' . $nuevoNombreAudio;
+            $estudioAudio->save();
+
+            return response()->json(['success' => true, 'message' => 'Audio subido con éxito']);
+        }
+
+        return response()->json(['success' => false, 'message' => 'No se proporcionó un archivo de audio'], 400);
     }
 
     public function penditesPorLeerTranscribir(Request $request)

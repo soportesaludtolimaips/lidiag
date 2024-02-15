@@ -19,6 +19,7 @@ use App\Http\Controllers\Estudios\EstudioController;
 use App\Http\Controllers\Estudios\EstudioProductoController;
 use App\Http\Controllers\Estudios\EstudioDiagnosticoController;
 use App\Http\Controllers\Estudios\EstudioSoporteHCController;
+use App\Http\Controllers\Importar\ImportarDicom;
 use App\Http\Controllers\Interface\SAHIController;
 
 /*
@@ -111,6 +112,10 @@ Route::get('/seguridad-listarPermisosUsuario/{id}', [UserController::class, 'lis
 Route::get('/interface-sahi-listar-atenciones/{numDocu}', [SAHIController::class, 'listarAtenciones'])->name('sahi.listar.atenciones');
 Route::get('/interface-sahi-listar-listarProductosDiagnosticos/{idAtencion}', [SAHIController::class, 'listarProductosDiagnosticos'])->name('sahi.listar.listarProductosDiagnosticos');
 
+/**
+ * Interface SAHI
+ */
+Route::get('/importar-dicom', [ImportarDicom::class, 'importarDicom']);
 /* Route::get('/{optional?}', function () {
     return view('layouts.app');
 })->name('basepath')->where('optional', '.*');

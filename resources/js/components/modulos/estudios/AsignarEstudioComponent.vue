@@ -459,7 +459,7 @@
                                                 </option>
                                             </select>
                                         </div> -->
-                                        <div class="col-md-12 table-responsive">
+                                        <div class="col-md-12 table-responsive" style="overflow-y: scroll; height: 250px;">
                                             <table id="myTable" class="table table-bordered table-striped">
                                                 <thead>
                                                     <tr>
@@ -674,8 +674,8 @@ export default {
                         stack: 6,
                     });
                 }
-                /* this.btnCerralModalForm();
-                this.limpiar(); */
+                this.btnCerralModalForm();
+                this.limpiar();
             } catch (error) {
                 this.errores = error.response.data.errors;
             }
