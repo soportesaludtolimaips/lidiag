@@ -63,7 +63,7 @@ class ImportarDicom extends Controller
              */
             $paciente = PacienteDicom::where('pat_id', '=', $studyDicom[0]->patient_fk)
                 ->get();
-            //return $paciente;
+            return $paciente;
 
             /**
              * Busco el medico en Dicom
