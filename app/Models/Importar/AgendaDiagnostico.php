@@ -10,4 +10,6 @@ class AgendaDiagnostico extends Model
     use HasFactory;
 
     protected $connection = 'mysql_importar_dicom';
+
+    protected $table = 'agenda_diagnosticos';
 }

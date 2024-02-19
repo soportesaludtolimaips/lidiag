@@ -10,6 +10,8 @@ use App\Models\General\Paciente;
 use App\Models\Importar\Agenda;
 use App\Models\Importar\AgendaDiagnostico;
 use App\Models\Importar\AgendaProducto;
+use App\Models\Importar\ConfigDiagnosticoDicom;
+use App\Models\Importar\ConfigProductoDicom;
 use App\Models\Importar\GeneralPersonal;
 use App\Models\Importar\PacienteDicom;
 use App\Models\Importar\StudyDicom;
@@ -56,12 +58,10 @@ class ImportarDicom extends Controller
             $studyDcm = Study::select('pk', 'patient_fk', 'study_iuid', 'study_id', 'study_datetime', 'study_desc', 'mods_in_study')
                 ->where('pk', '=', $agenda->study_pk)
                 ->get();
-            return "Ok";
 
             fwrite($file, '****************** BUSQUEDA DEL ESTUDIO EN DCM ******************'  . PHP_EOL);
             fwrite($file, '$studyDcm: ' . $studyDcm  . PHP_EOL);
 
-            return "Ok";
             /**
              * INICIO LAS BUSQUEDAS DEL DICOM
              */
@@ -79,15 +79,20 @@ class ImportarDicom extends Controller
             /**
              * Busco los productos en Dicom
              */
-            $productosDicom = AgendaProducto::where('id_agenda', '=', $agenda->id_agenda)
+            $agendaProductosDicom = AgendaProducto::where('id_agenda', '=', $agenda->id_agenda)
+                ->get();
+
+            $productoDicom = ConfigProductoDicom::where('id_produc', '=', $agendaProductosDicom[0]->id_produc)
                 ->get();
 
             /**
              * Busco los diagnosticos en Dicom
              */
-            $diagnosticosDicom = AgendaDiagnostico::where('id_agenda', '=', $agenda->id_agenda)
+            $agendaDiagnosticosDicom = AgendaDiagnostico::where('id_agenda', '=', $agenda->id_agenda)
                 ->get();
-            return $diagnosticosDicom;
+
+            $diagnosticoDicom = ConfigDiagnosticoDicom::where('id_diag', '=', $agendaDiagnosticosDicom[0]->id_diag)
+                ->get();
 
             /**
              * Busco el paciente en Dicom
@@ -127,7 +132,7 @@ class ImportarDicom extends Controller
                 ['num_docu' => $pacienteDicom[0]->pat_id],
                 [
                     'num_docu' => $pacienteDicom[0]->pat_id,
-                    'nombres' => $pacienteDicom[0]->pat_name
+                    'nombres' =>  str_replace('^^^', '', $pacienteDicom[0]->pat_name)
                 ]
             );
 
