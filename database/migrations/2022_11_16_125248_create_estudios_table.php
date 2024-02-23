@@ -17,11 +17,11 @@ return new class extends Migration
             $table->id();
             $table->bigInteger('study_pk');
             $table->string('study_iuid', 100);
-            $table->string('study_id', 50);
+            $table->string('study_id', 50)->nullable();
             $table->dateTime('fec_estudio');
             $table->string('accession_no', 150)->nullable();
             $table->string('study_desc', 250)->nullable();
-            $table->string('mods_in_study', 5)->nullable();
+            $table->string('mods_in_study', 15)->nullable();
             $table->string('email_reportar', 70)->nullable();
 
             $table->unsignedBigInteger('paciente_id');

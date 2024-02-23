@@ -3,9 +3,13 @@
 namespace App\Http\Controllers\Importar;
 
 use App\Http\Controllers\Controller;
+use App\Models\Configuracion\ConfigDiagnostico;
+use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\Dcm4chee\Study;
 use App\Models\Estudio\Estudio;
+use App\Models\Estudio\EstudioDiagnostico;
+use App\Models\Estudio\EstudioProducto;
 use App\Models\General\Paciente;
 use App\Models\Importar\Agenda;
 use App\Models\Importar\AgendaDiagnostico;
@@ -16,25 +20,31 @@ use App\Models\Importar\GeneralPersonal;
 use App\Models\Importar\PacienteDicom;
 use App\Models\Importar\StudyDicom;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\DB;
 
 class ImportarDicom extends Controller
 {
     public function importarDicom()
     {
+        $fechaHoraIniEjecucion = Carbon::now();
+
+        $startTime = microtime(true);
         $sedeActual = ConfigSede::find(1);
 
-        $agendas = Agenda::limit(100)->get();
+        $agendas = Agenda::orderBy('fechor_regis')
+            ->where('study_pk', '>', 120685)
+            //->skip(0)->take(10000)
+            ->orderBy('id_agenda', 'ASC')
+            //->limit(2)
+            ->get();
+        //return $agendas->count();
         $i = 0;
 
         foreach ($agendas as $agenda) {
-            $i++;
 
-            $file = fopen("log_importar.txt", "a");
-            fwrite($file, '*******************************************************************************************************************' . PHP_EOL);
-            fwrite($file, '*                                             ' . $i . '                                                          *' . PHP_EOL);
-            fwrite($file, '*******************************************************************************************************************' . PHP_EOL);
+            $i++;
+            echo "Importando el estudio " . $agenda . "<br><br>Total de estudios: " . $i . "<br><br><br>";
 
             /***
              * Busco el estudio el DCM
@@ -54,128 +64,221 @@ class ImportarDicom extends Controller
 
             //Aplicamos la nueva configuracion de bade datos
             Config::set('database.default', 'mysql_sucursal');
-
             $studyDcm = Study::select('pk', 'patient_fk', 'study_iuid', 'study_id', 'study_datetime', 'study_desc', 'mods_in_study')
                 ->where('pk', '=', $agenda->study_pk)
                 ->get();
 
-            fwrite($file, '****************** BUSQUEDA DEL ESTUDIO EN DCM ******************'  . PHP_EOL);
-            fwrite($file, '$studyDcm: ' . $studyDcm  . PHP_EOL);
+            if ($studyDcm->count() > 0) {
+                /**
+                 * INICIO LAS BUSQUEDAS DEL DICOM
+                 */
 
-            /**
-             * INICIO LAS BUSQUEDAS DEL DICOM
-             */
+                /**
+                 * Busco el estudio en Dicom pada saber cual es el paciente
+                 */
+                echo '************************************************************************<br>';
+                echo '$studyDcm: ' . $studyDcm . "<br>";
+                echo '************************************************************************<br>';
 
-            /**
-             * Busco el estudio en Dicom pada saber cual es el paciente
-             */
-            Config::set('database.default', 'mysql_importar_dicom');
-            $studyDicom = StudyDicom::where('study_iuid', '=', $studyDcm[0]->study_iuid)
-                ->get();
+                Config::set('database.default', 'mysql_importar_dicom');
+                $studyDicom = StudyDicom::where('study_iuid', '=', $studyDcm[0]->study_iuid)
+                    ->get();
 
-            fwrite($file, '****************** Busco el estudio en Dicom pada saber cual es el paciente ******************'  . PHP_EOL);
-            fwrite($file, '$studyDicom: ' . $studyDicom  . PHP_EOL);
+                if ($studyDicom->count() > 0) {
+                    echo '************************************************************************<br>';
+                    echo '$studyDicom: ' . $studyDicom . "<br>";
+                    echo '************************************************************************<br>';
+                    /**
+                     * Busco los productos en Dicom
+                     */
+                    $agendaProductosDicom = AgendaProducto::where('id_agenda', '=', $agenda->id_agenda)
+                        ->get();
 
-            /**
-             * Busco los productos en Dicom
-             */
-            $agendaProductosDicom = AgendaProducto::where('id_agenda', '=', $agenda->id_agenda)
-                ->get();
+                    /**
+                     * Busco los diagnosticos en Dicom
+                     */
+                    $agendaDiagnosticosDicom = AgendaDiagnostico::where('id_agenda', '=', $agenda->id_agenda)
+                        ->get();
 
-            $productoDicom = ConfigProductoDicom::where('id_produc', '=', $agendaProductosDicom[0]->id_produc)
-                ->get();
+                    /**
+                     * Busco el paciente en Dicom
+                     */
+                    $pacienteDicom = PacienteDicom::where('pk', '=', $studyDicom[0]->patient_fk)
+                        ->get();
 
-            /**
-             * Busco los diagnosticos en Dicom
-             */
-            $agendaDiagnosticosDicom = AgendaDiagnostico::where('id_agenda', '=', $agenda->id_agenda)
-                ->get();
+                    /**
+                     * Busco el medico en Dicom
+                     */
+                    $medicoDicom = GeneralPersonal::where('id_personal', '=', $agenda->id_medico)
+                        ->get();
 
-            $diagnosticoDicom = ConfigDiagnosticoDicom::where('id_diag', '=', $agendaDiagnosticosDicom[0]->id_diag)
-                ->get();
+                    /**
+                     * Busco quien agendo en Dicom
+                     */
+                    Config::set('database.default', 'mysql_importar_dicom');
+                    $quienAgendoDicom = GeneralPersonal::where('id_personal', '=', $agenda->id_quien_agendo)
+                        ->get();
 
-            /**
-             * Busco el paciente en Dicom
-             */
-            $pacienteDicom = PacienteDicom::where('pk', '=', $studyDicom[0]->patient_fk)
-                ->get();
+                    /**
+                     * INICIO LOS INSERT EN LIDIAG
+                     */
 
-            fwrite($file, '******************  pat_id ******************'  . PHP_EOL);
-            fwrite($file, '$pacienteDicom: ' . $pacienteDicom  . PHP_EOL);
+                    /**
+                     * Inserto el paciente en Lidiag
+                     */
+                    Config::set('database.default', 'mysql');
+                    $pacienteLidiag = Paciente::firstOrCreate(
+                        ['num_docu' => $pacienteDicom[0]->pat_id],
+                        [
+                            'num_docu' => $pacienteDicom[0]->pat_id,
+                            'nombres' =>  str_replace('^^^', '', $pacienteDicom[0]->pat_name)
+                        ]
+                    );
 
-            /**
-             * Busco el medico en Dicom
-             */
-            $medicoDicom = GeneralPersonal::where('id_personal', '=', $agenda->id_medico)
-                ->get();
+                    /**
+                     * Busco el medico en Lidiag
+                     */
+                    $medicoLidiag = User::where('num_docu', '=', $medicoDicom[0]->num_docu)
+                        ->get();
 
-            fwrite($file, '******************  Medico Dicom ******************'  . PHP_EOL);
-            fwrite($file, '$pacienteDicom: ' . $pacienteDicom  . PHP_EOL);
+                    if ($medicoLidiag->count() <= 0) {
 
-            /**
-             * Busco quien agendo en Dicom
-             */
-            Config::set('database.default', 'mysql_importar_dicom');
-            $quienAgendoDicom = GeneralPersonal::where('id_personal', '=', $agenda->id_quien_agendo)
-                ->get();
+                        $medicoLidiag  = new User();
+                        $medicoLidiag->num_docu = $medicoDicom[0]->num_docu;
+                        $medicoLidiag->reg_med = $medicoDicom[0]->reg_med;
+                        $medicoLidiag->name = $medicoDicom[0]->nom . ' ' . $medicoDicom[0]->ape;
+                        $medicoLidiag->email = $medicoDicom[0]->nom . $medicoDicom[0]->ape . "st.com";
+                        $medicoLidiag->password = bcrypt('123456');
+                        $medicoLidiag->save();
+                        $medicoLidiag->assignRole('Medico');
 
-            /**
-             * INICIO LOS INSERT EN LIDIAG
-             */
+                        $medicoParaInsertar = $medicoLidiag->id;
+                    } else {
+                        $medicoParaInsertar = $medicoLidiag[0]->id;
+                    }
 
-            /**
-             * Inserto el paciente en Lidiag
-             */
-            fwrite($file, '****************** Inserto el paciente en Lidiag ******************'  . PHP_EOL);
-            Config::set('database.default', 'mysql');
-            $pacienteLidiag = Paciente::firstOrCreate(
-                ['num_docu' => $pacienteDicom[0]->pat_id],
-                [
-                    'num_docu' => $pacienteDicom[0]->pat_id,
-                    'nombres' =>  str_replace('^^^', '', $pacienteDicom[0]->pat_name)
-                ]
-            );
+                    /**
+                     * Busco quien en Lidiag
+                     */
+                    $quienAgendoLidiag = User::where('num_docu', '=', $quienAgendoDicom[0]->num_docu)
+                        ->get();
 
-            fwrite($file, '******************  Paciente Lidiag ******************'  . PHP_EOL);
-            fwrite($file, '$pacienteDicom: ' . $pacienteDicom  . PHP_EOL);
+                    /**
+                     * Inserto el estudio en Lidiag
+                     */
+                    $estudio = new Estudio();
+                    $estudio->study_pk = $agenda->study_pk;
+                    $estudio->study_iuid = $studyDcm[0]->study_iuid;
+                    $estudio->study_id = $studyDcm[0]->study_id;
+                    $estudio->fec_estudio = $studyDcm[0]->study_datetime;
+                    $estudio->accession_no = $studyDcm[0]->accession_no;
+                    $estudio->study_desc = mb_convert_encoding($studyDcm[0]->study_desc, 'UTF-8', 'ISO-8859-1');
+                    $estudio->mods_in_study = $studyDcm[0]->mods_in_study;
+                    //$estudio->email_reporta = $agenda->;
+                    $estudio->paciente_id = $pacienteLidiag->id;
+                    $estudio->medico_id = $medicoParaInsertar;
+                    $estudio->quien_registro_id = $quienAgendoLidiag[0]->id;
+                    $estudio->sede_id = 1;
+                    $estudio->prioridad_id = $agenda->id_prioridad;
+                    $estudio->observaciones = $agenda->observaciones;
+                    $estudio->atencion = $agenda->id_atencion;
+                    //$estudio->servicio = $agenda->;
+                    $estudio->eps = $agenda->eps;
+                    $estudio->contrato = $agenda->plan_contrato;
+                    $estudio->plan = $agenda->plan_contrato;
+                    $estudio->estado = $agenda->acti;
+                    $estudio->save();
 
-            /**
-             * Busco el medico en Lidiag
-             */
-            $medicoLidiag = User::where('num_docu', '=', $medicoDicom[0]->num_docu)
-                ->get();
-            fwrite($file, '******************  Medico Dicom ******************'  . PHP_EOL);
-            fwrite($file, '$pacienteDicom: ' . $medicoLidiag  . PHP_EOL);
+                    /**
+                     * Inserto los diagnosticos en Lidiag
+                     */
+                    foreach ($agendaDiagnosticosDicom as $diganos) {
 
-            /**
-             * Busco quien en Lidiag
-             */
-            $quienAgendoLidiag = User::where('num_docu', '=', $quienAgendoDicom[0]->num_docu)
-                ->get();
+                        $diagnosticoDicom = ConfigDiagnosticoDicom::where('id_diag', '=', $diganos->id_diag)
+                            ->get();
 
-            $estudio = new Estudio();
-            $estudio->study_pk = $agenda->study_pk;
-            $estudio->study_iuid = $studyDcm[0]->study_iuid;
-            $estudio->study_id = $studyDcm[0]->study_id;
-            $estudio->fec_estudio = $studyDcm[0]->study_datetime;
-            $estudio->study_desc = $studyDcm[0]->study_desc;
-            $estudio->mods_in_study = $studyDcm[0]->mods_in_study;
-            //$estudio->email_reporta = $agenda->;
-            $estudio->paciente_id = $pacienteLidiag->id;
-            $estudio->medico_id = $medicoLidiag[0]->id;
-            $estudio->quien_registro_id = $quienAgendoLidiag[0]->id;
-            $estudio->sede_id = 1;
-            $estudio->prioridad_id = $agenda->id_prioridad;
-            $estudio->observaciones = $agenda->observaciones;
-            $estudio->atencion = $agenda->id_atencion;
-            //$estudio->servicio = $agenda->;
-            $estudio->eps = $agenda->eps;
-            $estudio->contrato = $agenda->plan_contrato;
-            $estudio->plan = $agenda->plan_contrato;
-            $estudio->estado = $agenda->acti;
-            $estudio->save();
+                        $configDiganosticoLidiag = ConfigDiagnostico::firstOrCreate(
+                            ['cod_diagnos' => $diagnosticoDicom[0]->cod_diag],
+                            [
+                                'cod_diagnos' => $diagnosticoDicom[0]->cod_diag,
+                                'nom_diagnos' => $diagnosticoDicom[0]->nom_diag
+                            ]
+                        );
+
+                        /**
+                         * Relaciono el diagnostico con el estudio
+                         */
+                        $diganosEstudio = new EstudioDiagnostico();
+                        $diganosEstudio->estudio_id = $estudio->id;
+                        $diganosEstudio->cod_diagnos = $diagnosticoDicom[0]->cod_diag;
+                        $diganosEstudio->nom_diagnos = trim($diagnosticoDicom[0]->nom_diag);
+                        $diganosEstudio->save();
+                    }
+
+                    /**
+                     * Inserto los productos en Lidiag
+                     */
+                    foreach ($agendaProductosDicom as $produc) {
+
+                        $productoDicom = ConfigProductoDicom::where('id_produc', '=', $produc->id_produc)
+                            ->get();
+
+                        /**
+                         * Busco quien transcribio en Dicom
+                         */
+                        Config::set('database.default', 'mysql_importar_dicom');
+                        $quienAgendoDicom = GeneralPersonal::where('id_personal', '=', $produc->id_transcriptor)
+                            ->get();
+
+                        /**
+                         * Busco quien hizo la transcripcion
+                         */
+                        Config::set('database.default', 'mysql');
+                        $quienTranscribio = User::where('num_docu', '=', 1006147882)
+                            ->get();
+
+                        $configProductoLidiag = ConfigProducto::firstOrCreate(
+                            ['nom_produc' => trim($produc->nom_produc)],
+                            [
+                                'cod_cups' => trim($productoDicom[0]->cod_cups),
+                                'nom_produc' => trim($productoDicom[0]->nom_produc),
+                                'requi_lectura' => $productoDicom[0]->requi_lectura,
+                            ]
+                        );
+
+                        /**
+                         * Relacion el producto con el estudio
+                         */
+                        $prdoctoEstudio = new EstudioProducto();
+                        $prdoctoEstudio->estudio_id = $estudio->id;
+                        $prdoctoEstudio->transcriptor_id = $quienTranscribio[0]->id;
+                        $prdoctoEstudio->cod_cups = $configProductoLidiag->cod_cups;
+                        $prdoctoEstudio->nom_produc = $configProductoLidiag->nom_produc;
+                        $prdoctoEstudio->fechor_lectura = $produc->fechor_lectura;
+                        $prdoctoEstudio->lectura = $produc->lectura;
+                        $prdoctoEstudio->fechor_trascrito = $produc->fechor_trascrito;
+
+                        $prdoctoEstudio->activo = $agenda->acti;
+                        $prdoctoEstudio->save();
+                    }
+                }
+            }
         }
 
-        //return "La importacion termno con exito\n Total de estudios importador: " . $i;
+        $endTime = microtime(true);
+        $executionTime = $endTime - $startTime;
+
+        // Convertir el tiempo a minutos
+        $executionTimeInMinutes = $executionTime / 60;
+
+        $fechaHoraFinEjecucion = Carbon::now();
+        echo "<br><br><br><br><br><br>";
+        echo 'Inicio: ' . $fechaHoraIniEjecucion . "<br>";
+        echo 'Fin: ' . $fechaHoraFinEjecucion . "<br>";
+
+        // Puedes imprimir o registrar el tiempo
+        echo "Tiempo de ejecución: $executionTime segundos";
+        echo "Tiempo de ejecución en minutos: $executionTimeInMinutes minutos";
+        return "<br><br><br><br>La importacion termno con exito\n Total de estudios importador: " . $i;
     }
 }

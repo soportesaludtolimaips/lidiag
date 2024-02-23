@@ -112,13 +112,13 @@
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
                                                 @click="actualizar = true;
-                                                mostrarRegistro(item);" title="Asignar estudio">
-                                                <i class=" fa fa-child"></i>
+                                                notificarEmail(item);" title="Asignar estudio">
+                                                <i class=" fa fa-envelope-o"></i>
                                             </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
-                                                @click="verImagen(item.pat_id, item.study_iuid)" title="Ver imagenes">
-                                                <i class="fa fa-file-photo-o"></i>
+                                                @click="imprimirReporte(item)" title="Ver imagenes">
+                                                <i class="fa fa-file-pdf-o"></i>
                                             </button>
 
                                         </td>
@@ -506,17 +506,7 @@ export default {
         async buscarStudy() {
             try {
 
-                if (sessionStorage.getItem('ST-sede') == null) {
-                    $.toast({
-                        heading: "Upsss!!!",
-                        text: 'Debe establece la sede en la cual vas a trabajar.',
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "warning",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                } else if (this.busqueda.fehc_ini == "" || this.busqueda.fehc_fin == "") {
+                if (this.busqueda.bus_nom_num_docu == '' && this.busqueda.bus_fehc_ini == "" && this.busqueda.bus_fecha_fin == "") {
                     $.toast({
                         heading: "Upsss!!!",
                         text: 'Debe establece la fecha de inicio o finalización para la busqueda.',

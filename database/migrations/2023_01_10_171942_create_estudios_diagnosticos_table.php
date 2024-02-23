@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreign('estudio_id')->references('id')->on('estudios');
 
             $table->string('cod_diagnos')->nullable();
-            $table->string('nom_diagnos', 200);
+            $table->string('nom_diagnos', 300);
             $table->timestamps();
         });
     }

@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('config_diagnosticos', function (Blueprint $table) {
             $table->id();
             $table->string('cod_diagnos', 20);
-            $table->string('nom_diagnos', 200);
+            $table->string('nom_diagnos');
             $table->boolean('estado')->default(true);
             $table->timestamps();
         });
