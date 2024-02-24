@@ -18,6 +18,7 @@ use App\Http\Controllers\Estudio\EstudioSoporteHC;
 use App\Http\Controllers\Estudios\EstudioController;
 use App\Http\Controllers\Estudios\EstudioProductoController;
 use App\Http\Controllers\Estudios\EstudioDiagnosticoController;
+use App\Http\Controllers\Estudios\EstudioNotificacionController;
 use App\Http\Controllers\Estudios\EstudioSoporteHCController;
 use App\Http\Controllers\Importar\ImportarDicom;
 use App\Http\Controllers\Interface\SAHIController;
@@ -76,6 +77,7 @@ Route::resource('/estudios-productos', EstudioProductoController::class)->names(
 Route::resource('/estudios-diagnosticos', EstudioDiagnosticoController::class)->names('estudios.diagnosticos');
 Route::get('/listar-soportes-hc-estudio', [EstudioSoporteHCController::class, 'listarSoportesHistoriaClinicaPorPorEstudio'])->name('study.listar.soporte.hc.estudio');
 Route::get('/descarga-soportes-hc/{nomArchivoEncriptadote}', [EstudioSoporteHCController::class, 'descargarSoporte'])->name('study.descarga.soporte.hc');
+Route::get('/listar-estudios-notificaciones', [EstudioNotificacionController::class, 'listarEstudios'])->name('listar.estudios.notificaciones');
 
 Route::view('/estudios.leer.estudio.listar', 'modulos.estudios.leer-estudio')->name('estudios.leer.estudio.listar');
 Route::post('/estudio-leerEstudio', [EstudioController::class, 'leerEstudio'])->name('estudio.leerEstudio');

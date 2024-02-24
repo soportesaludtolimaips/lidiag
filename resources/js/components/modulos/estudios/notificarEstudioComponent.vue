@@ -117,7 +117,7 @@
                                             </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
-                                                @click="imprimirReporte(item)" title="Ver imagenes">
+                                                @click="imprimirReporte(item)" title="Imprimir reporte">
                                                 <i class="fa fa-file-pdf-o"></i>
                                             </button>
 
@@ -233,216 +233,6 @@
                                         <i class="fa fa-edit"></i> Datos del Estudio
                                     </h5>
                                     <hr>
-
-                                    <input type="hidden" id="study_pk" name="study_pk" v-model="registro.study_pk" />
-                                    <input type="hidden" id="study_iuid" name="study_iuid" v-model="registro.study_iuid" />
-                                    <input type="hidden" id="study_id" name="study_id" v-model="registro.study_id" />
-
-                                    <div class="row">
-                                        <div class="col-md-5">
-                                            <div class="form-group">
-                                                <label class="control-label">Descripción</label>
-                                                <input type="text" id="study_desc" name="study_desc"
-                                                    v-model="registro.study_desc" class="form-control" />
-                                                <span class="text-danger" v-if="errores.study_desc">
-                                                    {{ errores.study_desc[0] }}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label class="control-label">Detalle</label>
-                                                <input type="text" id="accession_no" name="accession_no"
-                                                    v-model="registro.accession_no" class="form-control" />
-                                                <span class="text-danger" v-if="errores.accession_no">
-                                                    {{ errores.accession_no[0] }}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label class="control-label">Fecha</label>
-                                                <input type="text" id="study_datetime" name="study_datetime"
-                                                    v-model="registro.study_datetime" class="form-control" />
-                                                <span class="text-danger" v-if="errores.study_datetime">
-                                                    {{ errores.study_datetime[0] }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <div class="form-group">
-                                                <label class="control-label">Observaciones</label>
-                                                <input type="text" id="observaciones" name="observaciones"
-                                                    v-model="registro.observaciones" class="form-control"
-                                                    placeholder="Ingrese aqi las observaciones del estudio" />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <h5 class="card-title text-info">
-                                        <i class="fa fa-edit"></i> Adjunto
-                                    </h5>
-                                    <hr>
-
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <div class="form-group">
-                                                <input type="file" class="form-control" id="exampleInputFile"
-                                                    aria-describedby="fileHelp" @change='obtenerArchivo1'>
-                                            </div>
-                                            <div class="form-group">
-                                                <input type="file" class="form-control" id="exampleInputFile"
-                                                    aria-describedby="fileHelp" @change='obtenerArchivo2'>
-                                            </div>
-                                            <div class="form-group">
-                                                <input type="file" class="form-control" id="exampleInputFile"
-                                                    aria-describedby="fileHelp" @change='obtenerArchivo3'>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                </div>
-                                <div class="col-md-6">
-
-                                    <h5 class="card-title text-info">
-                                        <i class="fa fa-user"></i> Datos de la Asignacion
-                                    </h5>
-                                    <hr>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>Médico</label>
-                                                <select v-model="registro.medico_id" name="medico_id" id="medico_id"
-                                                    class="form-control custom-select">
-                                                    <option v-for="(ItemMedico, index) in medicos" :key="index"
-                                                        :value="ItemMedico.id">
-                                                        {{ ItemMedico.name }}
-                                                    </option>
-                                                </select>
-                                                <span class="text-danger" v-if="errores.medico_id">
-                                                    {{ errores.medico_id[0] }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="control-label">Prioridad</label>
-                                                <select v-model="registro.prioridad_id" name="prioridad_id"
-                                                    id="prioridad_id" class="form-control custom-select">
-                                                    <option v-for="(ItemPrioridad, index) in prioridades" :key="index"
-                                                        :value="ItemPrioridad.id">
-                                                        {{ ItemPrioridad.nom_priori }} - {{ ItemPrioridad.tiempo }} {{
-                                                            ItemPrioridad.tipo_tiempo }} {{ ItemPrioridad.observacion }}
-                                                    </option>
-                                                </select>
-                                                <span class="text-danger" v-if="errores.prioridad_id">
-                                                    {{ errores.prioridad_id[0] }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <p class="text-info">
-                                        <i class="fa fa-user"></i> PRODUCTOS
-                                        <span class="text-danger" v-if="errores.prioridad_id">
-                                            {{ errores.productosEstudio[0] }}
-                                        </span>
-                                        <button type="button"
-                                            class="btn waves-effect waves-light btn-xs btn-info float-right"
-                                            data-toggle="modal" data-target="#exampleModal">
-                                            <i class="fa fa-search"></i>
-                                        </button>
-                                    </p>
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <!-- select2 -->
-                                            <select class="form-control custom-select" @change="guardarProductosEstudio(10)"
-                                                style="width: 100%; height: 36px" v-model="productoSelecciondo">
-                                                <option v-for="ItemProducto in productos" v-bind:key="ItemProducto"
-                                                    v-bind:value="ItemProducto.id">
-                                                    {{ ItemProducto.nom_produc }}
-                                                </option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-12">
-                                            <table id="example23"
-                                                class="display nowrap table table-hover table-striped table-bordered"
-                                                cellspacing="0" width="100%">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Código</th>
-                                                        <th width="150px">Producto</th>
-                                                        <th></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr v-for="(item, index) in registro.productosEstudio" :key="item.id">
-                                                        <td>{{ item.cod_cups }}</td>
-                                                        <td>{{ item.nom_produc }}</td>
-                                                        <td class="text-nowrap">
-                                                            <button type="button"
-                                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                                @click="quitarProductoEstudio(index)">
-                                                                <i class="fa fa-trash"></i>
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                    <p class="text-info">
-                                        <i class="fa fa-user"></i> DIAGNOSTICOS
-                                        <span class="text-danger" v-if="errores.prioridad_id">
-                                            {{ errores.diagnosticosEstudio[0] }}
-                                        </span>
-                                        <button type="button"
-                                            class="btn waves-effect waves-light btn-xs btn-info float-right">
-                                            <i class="fa fa-search"></i>
-                                        </button>
-                                    </p>
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <!-- select2 -->
-                                            <select class="form-control custom-select"
-                                                @change="guardarDiagnosticosEstudio(10)" style="width: 100%; height: 36px"
-                                                v-model="diagnosticoSelecciondo">
-                                                <option v-for="ItemDiagnostico in diagnosticos" v-bind:key="ItemDiagnostico"
-                                                    v-bind:value="ItemDiagnostico.id">
-                                                    {{ ItemDiagnostico.nom_diagnos }}
-                                                </option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-12">
-                                            <table id="example23"
-                                                class="display nowrap table table-hover table-striped table-bordered"
-                                                cellspacing="0" width="100%">
-                                                <thead>
-                                                    <tr>
-                                                        <th width="10%">Código</th>
-                                                        <th width="80%">Diagnostico</th>
-                                                        <th></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr v-for="item in registro.diagnosticosEstudio" :key="item.id">
-                                                        <td>{{ item.cod_diagnos }}</td>
-                                                        <td>{{ item.nom_diagnos }}</td>
-                                                        <td class="text-nowrap">
-                                                            <button type="button"
-                                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                                @click="quitarDiagnosticoEstudio(index)">
-                                                                <i class="fa fa-trash"></i>
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
 
@@ -463,25 +253,13 @@
         <!-- ============================================================== -->
     </div>
 </template>
-
 <script>
 export default {
     props: ['usuarioactual'],
     mounted() {
-        this.listarMedicos();
-        this.listarPrioridades();
-        this.listarProductos();
-        this.listarDiagnosticos();
-        this.establecerSede();
-        this.emitter.on("sedeSeleccionada", (data) => {
-            this.registro.sede_id = data.idSede;
-            this.establecerSede();
-            $("#example23").DataTable().destroy();
-        });
     },
     data() {
         return {
-            dataIndex: 0,
             id: 0,
             registros: [],
             tituloModal: "Nuevo registro",
@@ -489,17 +267,9 @@ export default {
                 study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", observaciones: "", medico_id: "", prioridad_id: "", sede_id: this.sedeActual,
                 quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", direccion: "", telefono: "", productosEstudio: [], diagnosticosEstudio: []
             },
-            soportesHC: { archivo1: null, archivo2: null, archivo3: null }, //Soporte de historia clinica
             busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "" },
             errores: {},
             erroresBusqueda: {},
-            medicos: [],
-            prioridades: [], //Listo las prioridades
-            productos: [], //Listo todos los productos
-            diagnosticos: [], //Listo todos los diagnosticos
-            productoSelecciondo: "",
-            diagnosticoSelecciondo: "",
-            sedeActual: sessionStorage.getItem('ST-sede')
         };
     },
     methods: {
@@ -558,22 +328,8 @@ export default {
                 this.erroresBusqueda = error.response.data.errors;
             }
         },
-        async guardarRegistro() {
-
+        async imprimirReporte() {
             try {
-                const config = {
-                    headers: {
-                        'content-type': 'multipart/form-data',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    }
-                }
-                // form data
-                let formData = new FormData();
-
-                formData.append('registro', JSON.stringify(this.registro));
-                formData.append('archivo1', this.soportesHC.archivo1);
-                formData.append('archivo2', this.soportesHC.archivo2);
-                formData.append('archivo3', this.soportesHC.archivo3);
 
                 const res = await axios.post('/estudios', formData, config);
 
@@ -594,15 +350,6 @@ export default {
                 this.errores = error.response.data.errors;
             }
         },
-        obtenerArchivo1(e) {
-            this.soportesHC.archivo1 = e.target.files[0];
-        },
-        obtenerArchivo2(e) {
-            this.soportesHC.archivo2 = e.target.files[0];
-        },
-        obtenerArchivo3(e) {
-            this.soportesHC.archivo3 = e.target.files[0];
-        },
         mostrarRegistro(data = {}) {
 
             this.tituloModal = "Agendar al paciente: " + data.pat_name;
@@ -621,11 +368,6 @@ export default {
 
             this.btnCerralModalForm();
         },
-        establecerSede() {
-            this.registro.sede_id = sessionStorage.getItem('ST-sede');
-            this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
-            this.registros = [];
-        },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);
             $(".right-sidebar").toggleClass("shw-rside");
@@ -642,85 +384,6 @@ export default {
             this.registro.nombres = '';
             this.registro.sexo = '';
             this.registro.fec_naci = '';
-
-            this.registro.diagnosticosEstudio.splice(0, this.registro.diagnosticosEstudio.length);
-            this.registro.productosEstudio.splice(0, this.registro.productosEstudio.length);
-
-            this.istarMedicos();
-            this.listarPrioridades();
-        },
-        async listarMedicos() {
-            try {
-                const res = await axios.get("/user.listarUsuarios/Medico");
-                this.medicos = res.data;
-            } catch (error) {
-                console.log(error);
-            }
-        },
-        async listarPrioridades() {
-            try {
-                const res = await axios.get("/config-prioridades");
-                this.prioridades = res.data;
-            } catch (error) {
-                console.log(error);
-            }
-        },
-        async listarProductos() {
-            try {
-                const res = await axios.get("/config-productos");
-                this.productos = res.data;
-            } catch (error) {
-                console.log(error);
-            }
-        },
-        async listarDiagnosticos() {
-            try {
-                const res = await axios.get("/config-diagnosticos");
-                this.diagnosticos = res.data;
-            } catch (error) {
-                console.log(error);
-            }
-        },
-        guardarProductosEstudio() {
-            var indexProductoEstudio = this.productos.findIndex((x) => x.id == this.productoSelecciondo);
-            if (indexProductoEstudio > 0) {
-                var productoEstudioId = this.productos[indexProductoEstudio].id;
-                var productoEstudioCod_Cubs = this.productos[indexProductoEstudio].cod_cups;
-                var productoEstudioNomProduc = this.productos[indexProductoEstudio].nom_produc;
-
-                this.registro.productosEstudio.push({
-                    id: productoEstudioId,
-                    cod_cups: productoEstudioCod_Cubs,
-                    nom_produc: productoEstudioNomProduc,
-                });
-            }
-        },
-        quitarProductoEstudio(indexEliminar) {
-            this.registro.productosEstudio.splice(indexEliminar, 1);
-        },
-        guardarDiagnosticosEstudio() {
-            var indexDiagnosticoSeleccionado = this.diagnosticos.findIndex((x) => x.id == this.diagnosticoSelecciondo);
-            if (indexDiagnosticoSeleccionado > 0) {
-                var diagnosticoEstudioId = this.diagnosticos[indexDiagnosticoSeleccionado].id;
-                var diagnosticoEstudioCod = this.diagnosticos[indexDiagnosticoSeleccionado].cod_diagnos;
-                var diagnosticoEstudioDiagnos = this.diagnosticos[indexDiagnosticoSeleccionado].nom_diagnos;
-
-                this.registro.diagnosticosEstudio.push({
-                    id: diagnosticoEstudioId,
-                    cod_diagnos: diagnosticoEstudioCod,
-                    nom_diagnos: diagnosticoEstudioDiagnos,
-                });
-            }
-        },
-        quitarDiagnosticoEstudio(indexEliminar) {
-            this.registro.diagnosticosEstudio.splice(indexEliminar, 1);
-        },
-        verImagen(pat_id, study_iuid) {
-
-            let Url = sessionStorage.getItem('ST-urlsede') + '?patientID =' + pat_id + '&studyUID=' + study_iuid + '&serverName=' + sessionStorage.getItem('ST-servername')
-            console.log(Url);
-
-            window.open(Url, '_blank');
         },
     },
 };

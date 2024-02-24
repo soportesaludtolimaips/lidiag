@@ -336,7 +336,6 @@ class EstudioController extends Controller
          */
         $sede = ConfigSede::findOrfail($request->sede_id);
         if ($sede->interface_software === 'SAHI') {
-
             $transcribir = (new SAHITranscibirController())->enviarEstudio($request->atencion, $request->medico_id, $request->lectura, $request->cod_cups);
         }
 
@@ -457,5 +456,17 @@ class EstudioController extends Controller
         } else {
             return response()->json(['message' => 'No', 200]);
         }
+    }
+
+    public function generarPdf(Request $request)
+    {
+        return $request;
+        /**
+         * Genero el PDF del reporte de la lectura del estudio
+         */
+        $reporteLectura = EstudioProducto::with('estudio.paciente')->with('estudio.medico')->with('estudio.sede')->findOrFail($request->id_producto_lectura);
+        $nomArchivoReporte = $reporteLectura->id . "-" . $reporteLectura->estudio->paciente->num_docu . "-" . $reporteLectura->nom_produc . ".pdf";
+        $generarReporte = new ResporteLecturaController($reporteLectura, $nomArchivoReporte);
+        $generarReporte->generar_reporte();
     }
 }
