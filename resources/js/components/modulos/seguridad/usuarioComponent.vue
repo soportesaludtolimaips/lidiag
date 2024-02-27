@@ -54,7 +54,7 @@
                                         <td>
                                             <div class="user-img">
                                                 <img v-if="!item.imagen_perfil"
-                                                    src="/admin-wrap/assets/images/users/avatar_default.png"
+                                                    src="@/admin-wrap/assets/images/users/avatar_default.png"
                                                     :alt="item.name" class="img-circle" height="40" width="40">
                                                 <img v-else :src="item.imagen_perfil" :alt="item.name" class="img-circle"
                                                     height="40" width="40">

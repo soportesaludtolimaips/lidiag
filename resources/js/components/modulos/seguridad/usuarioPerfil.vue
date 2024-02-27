@@ -31,7 +31,7 @@
                 <div class="card">
                     <div class="card-body">
                         <center class="m-t-30">
-                            <img v-if="!registro.imagen_perfil" src="/admin-wrap/assets/images/users/avatar_default.png"
+                            <img v-if="!registro.imagen_perfil" src="@/admin-wrap/assets/images/users/avatar_default.png"
                                 :alt="registro.name" class="img-circle" width="150">
                             <img v-else :src="registro.imagen_perfil" :alt="registro.name" class="img-circle" width="150">
                             <h4 class="card-title m-t-10">{{ registro.name }}</h4>

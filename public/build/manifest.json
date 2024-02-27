@@ -1,0 +1,46 @@
+{
+  "resources/js/admin-wrap/assets/images/users/avatar_default.png": {
+    "file": "assets/avatar_default.c5fcd33f.png",
+    "src": "resources/js/admin-wrap/assets/images/users/avatar_default.png"
+  },
+  "resources/js/admin-wrap/assets/images/users/1.jpg": {
+    "file": "assets/1.ce8cb704.jpg",
+    "src": "resources/js/admin-wrap/assets/images/users/1.jpg"
+  },
+  "resources/js/admin-wrap/assets/images/users/2.jpg": {
+    "file": "assets/2.0e80fe8f.jpg",
+    "src": "resources/js/admin-wrap/assets/images/users/2.jpg"
+  },
+  "resources/js/admin-wrap/assets/images/users/3.jpg": {
+    "file": "assets/3.b47e804d.jpg",
+    "src": "resources/js/admin-wrap/assets/images/users/3.jpg"
+  },
+  "resources/js/admin-wrap/assets/images/users/4.jpg": {
+    "file": "assets/4.4898eec9.jpg",
+    "src": "resources/js/admin-wrap/assets/images/users/4.jpg"
+  },
+  "resources/js/app.js": {
+    "file": "assets/app.1b4c5c45.js",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "css": [
+      "assets/app.61617a8f.css"
+    ],
+    "assets": [
+      "assets/avatar_default.c5fcd33f.png",
+      "assets/1.ce8cb704.jpg",
+      "assets/2.0e80fe8f.jpg",
+      "assets/3.b47e804d.jpg",
+      "assets/4.4898eec9.jpg"
+    ]
+  },
+  "resources/js/app.css": {
+    "file": "assets/app.61617a8f.css",
+    "src": "resources/js/app.css"
+  },
+  "resources/sass/app.scss": {
+    "file": "assets/app.59ae0e18.css",
+    "src": "resources/sass/app.scss",
+    "isEntry": true
+  }
+}
