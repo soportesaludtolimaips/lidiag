@@ -42,23 +42,6 @@ class EstudioNotificacionController extends Controller
             ->get();
 
         return $estudios;
-
-
-        /* $paciente = new Paciente();
-        $query = $paciente->query();
-
-        $query->select(
-            'pacientes.num_docu',
-            'pacientes.nombres',
-        );
-
-        if ($request->bus_nom_num_docu) {
-            $query->where('pacientes.num_docu', 'like', "%$request->bus_nom_num_docu%")
-                ->orWhere('pacientes.nombres', 'like', "%$request->bus_nom_num_docu%");
-        }
-
-        $result = $query->get();
-        return json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE); */
     }
 
     public function notificarEmail(Request $request)
