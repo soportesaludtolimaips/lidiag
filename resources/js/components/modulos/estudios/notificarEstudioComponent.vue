@@ -407,8 +407,8 @@ export default {
 <style scoped>
 .right-sidebar {
     position: fixed;
-    right: -80%;
-    width: 80%;
+    right: -40%;
+    width: 40%;
     display: none;
     z-index: 1100;
     background: #ffffff;
@@ -424,7 +424,7 @@ export default {
 
 .shw-rside {
     right: 0px;
-    width: 80%;
+    width: 40%;
     display: block;
 }
 </style>
