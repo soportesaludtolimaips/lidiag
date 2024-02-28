@@ -26,6 +26,8 @@ use Str;
 
 class EstudioController extends Controller
 {
+
+    protected $nomArchivoReporte;
     /**
      * Display a listing of the resource.
      *
@@ -305,7 +307,6 @@ class EstudioController extends Controller
 
     public function guardarTranscripcion(Request $request)
     {
-        return $request;
         /**
          * Actualizo los datos del paciente
          */
@@ -332,7 +333,7 @@ class EstudioController extends Controller
         $transcribirEstudios->save();
 
         /**
-         * Si la sede donde se realizó el estidoi tiene interface hago el envio del reporte a la HC del hospital
+         * Si la sede donde se realizó el estudio tiene interface hago el envio del reporte a la HC del hospital
          */
         $sede = ConfigSede::findOrfail($request->sede_id);
         if ($sede->interface_software === 'SAHI') {
@@ -342,15 +343,19 @@ class EstudioController extends Controller
         /**
          * Genero el PDF del reporte de la lectura del estudio
          */
-        $reporteLectura = EstudioProducto::with('estudio.paciente')->with('estudio.medico')->with('estudio.sede')->findOrFail($request->id_producto_lectura);
+        $this->generarPdfLectura($request->id_producto_lectura);
+        /* $reporteLectura = EstudioProducto::with('estudio.paciente')->with('estudio.medico')->with('estudio.sede')->findOrFail($request->id_producto_lectura);
         $nomArchivoReporte = $reporteLectura->id . "-" . $reporteLectura->estudio->paciente->num_docu . "-" . $reporteLectura->nom_produc . ".pdf";
         $generarReporte = new ResporteLecturaController($reporteLectura, $nomArchivoReporte);
-        $generarReporte->generar_reporte();
+        $generarReporte->generar_reporte(); */
+
+        $notificar = (new EstudioNotificacionController())->notificarEmail($request->id_producto_lectura, $request->num_docu, $request->nom_pacien, $request->fec_naci, $request->email, $request->email_reportar);
+
 
         /**
          * Envio la lectura a Lidiag-reportes para que este diponible para la descarga por parte del paciente
          */
-        $urlApiReportes = config('app.URL_API_REPORTES') . "api/almacenarLectura";
+        /* $urlApiReportes = config('app.URL_API_REPORTES') . "api/almacenarLectura";
 
         $response = Http::attach(
             'file_reporte',
@@ -366,12 +371,12 @@ class EstudioController extends Controller
             'nom_sede' => $reporteLectura->estudio->sede->nom_sede,
             'url_oviyam' => $reporteLectura->estudio->sede->url_oviyam,
             'tap_oviyam' => $reporteLectura->estudio->sede->tap_oviyam,
-        ]);
+        ]); */
 
         /**
          * Envio de email con el adjunto del reporte de la lectura del estudio
          */
-        if ($request->email != "") {
+        /* if ($request->email != "") {
             $mailable = new NotificacionDeLectura($reporteLectura, $nomArchivoReporte);
             Mail::to($request->email)->send($mailable);
         }
@@ -379,7 +384,7 @@ class EstudioController extends Controller
         if ($request->email_reportar != "") {
             $mailable = new ReportarLectura($reporteLectura, $nomArchivoReporte);
             Mail::to($request->email_reportar)->send($mailable);
-        }
+        } */
 
         return response()->json(['message' => 'La transcripción se guardo correctamente.']);
     }
@@ -480,5 +485,12 @@ class EstudioController extends Controller
     {
         $rutaArchivo = storage_path('app/reporte_lecturas/' . $nomArchivo);
         return response()->download($rutaArchivo);
+    }
+
+    public function notificarEmail(Request $request)
+    {
+        $this->generarPdfLectura($request->id_producto_lectura);
+        $notificar = (new EstudioNotificacionController())->notificarEmail($request->id_producto_lectura, $request->num_docu, $request->nombres, $request->fec_naci, $request->email, $request->email_reportar);
+        return $notificar;
     }
 }

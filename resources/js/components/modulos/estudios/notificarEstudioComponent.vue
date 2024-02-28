@@ -86,7 +86,7 @@
                             un paciente.</h6>
                         <div class="table-responsive m-t-40">
                             <table id="example23" class="display nowrap table table-hover table-striped table-bordered"
-                                cellspacing="0" width="100%">
+                                cellspacing="0">
                                 <thead>
                                     <tr>
                                         <th>Fecha del Estudio</th>
@@ -119,9 +119,8 @@
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
                                                 @click="actualizar = true;
-                                                notificarEmail(item.id_producto_lectura);"
-                                                title="Ntificar por correo electronico">
-                                                <i class=" fa fa-envelope-o"></i>
+                                                mostrarRegistro(item);" title="Ntificar por correo electronico">
+                                                <i class="fa fa-envelope-o"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -155,7 +154,7 @@
                     <form action="#">
                         <div class="form-body">
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-12">
                                     <h5 class="card-title text-info">
                                         <i class="fa fa-user"></i> Datos del Paciente
                                     </h5>
@@ -235,12 +234,18 @@
                                         <i class="fa fa-edit"></i> Datos del Estudio
                                     </h5>
                                     <hr>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <input type="text" id="nom_produc" name="nom_produc" class="form-control"
+                                                v-model="registro.nom_produc" />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                             <div class="form-actions mt-3">
-                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()">
-                                    <i class="fa fa-check"></i> Guardar
+                                <button type="button" class="btn btn-success m-r-5" @click="notificar()">
+                                    <i class="fa fa-envelope-o"></i> Notificar
                                 </button>
 
                                 <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">Cancel</button>
@@ -262,14 +267,12 @@ export default {
     },
     data() {
         return {
-            id: 0,
             registros: [],
             tituloModal: "Nuevo registro",
             registro: {
-                study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", observaciones: "", medico_id: "", prioridad_id: "", sede_id: this.sedeActual,
-                quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", direccion: "", telefono: "", productosEstudio: [], diagnosticosEstudio: []
+                num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "jhonlozano2000@gmail.com", email_reportar: "", direccion: "", telefono: "", nom_produc: "", id_producto_lectura: null
             },
-            busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "93123187", fehc_ini: "", fecha_fin: "" },
+            busqueda: { bus_nom_num_docu: "93123187", fehc_ini: "", fecha_fin: "" },
             errores: {},
             erroresBusqueda: {},
         };
@@ -333,8 +336,7 @@ export default {
         async imprimirReporte(id) {
             try {
 
-                const res = await axios.get('/generar.pdf.lectura/' + id);
-                console.log(res.data)
+                const res = await axios.get(`/generar.pdf.lectura/${id}`);
 
                 const url = `/descargar.pdf.lectura/${res.data}`;
 
@@ -354,21 +356,34 @@ export default {
                 this.errores = error.response.data.errors;
             }
         },
+        async notificar() {
+
+            const res = await axios.post('/notificar.email', this.registro);
+
+            if (res.status == 200) {
+                $.toast({
+                    heading: "Ok!!!",
+                    text: 'La notificación se generó correctamente',
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "success",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+            }
+            this.btnCerralModalForm();
+            this.limpiar();
+        },
         mostrarRegistro(data = {}) {
+            this.tituloModal = "Notificar al paciente: " + data.pat_name;
 
-            this.tituloModal = "Agendar al paciente: " + data.pat_name;
-            this.id = data.id;
-            this.registro.study_pk = data.study_pk;
-            this.registro.study_iuid = data.study_iuid;
-            this.registro.study_id = data.study_id;
-            this.registro.study_datetime = data.study_datetime;
-            this.registro.accession_no = data.accession_no;
-            this.registro.study_desc = data.study_desc;
-
-            this.registro.num_docu = data.pat_id;
-            this.registro.nombres = data.pat_name;
-            this.registro.sexo = data.pat_sex;
-            this.registro.fec_naci = data.pat_birthdate;
+            this.registro.num_docu = data.num_docu;
+            this.registro.nombres = data.nombres;
+            this.registro.sexo = data.sexo;
+            this.registro.fec_naci = data.fec_naci;
+            this.registro.telefono = data.tel;
+            this.registro.nom_produc = data.nom_produc;
+            this.registro.id_producto_lectura = data.id_producto_lectura;
 
             this.btnCerralModalForm();
         },
@@ -377,17 +392,13 @@ export default {
             $(".right-sidebar").toggleClass("shw-rside");
         },
         limpiar() {
-            this.registro.study_pk = '';
-            this.registro.study_iuid = '';
-            this.registro.study_id = '';
-            this.registro.study_datetime = '';
-            this.registro.accession_no = '';
-            this.registro.study_desc = '';
-
             this.registro.num_docu = '';
             this.registro.nombres = '';
             this.registro.sexo = '';
             this.registro.fec_naci = '';
+            this.registro.telefono = '';
+            this.registro.nom_produc = '';
+            this.registro.id_producto_lectura = '';
         },
     },
 };
