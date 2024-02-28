@@ -103,7 +103,7 @@
                                 <!-- Message -->
                                 <a href="#">
                                     <div class="user-img">
-                                        <img src="/admin-wrap/assets/images/users/1.jpg" alt="user" class="img-circle">
+                                        <img src="@/admin-wrap/assets/images/users/1.jpg" alt="user" class="img-circle">
                                         <span class="profile-status online pull-right"></span>
                                     </div>
                                     <div class="mail-contnet">
@@ -115,7 +115,7 @@
                                 <!-- Message -->
                                 <a href="#">
                                     <div class="user-img">
-                                        <img src="/admin-wrap/assets/images/users/2.jpg" alt="user" class="img-circle">
+                                        <img src="@/admin-wrap/assets/images/users/2.jpg" alt="user" class="img-circle">
                                         <span class="profile-status busy pull-right"></span>
                                     </div>
                                     <div class="mail-contnet">
@@ -127,7 +127,7 @@
                                 <!-- Message -->
                                 <a href="#">
                                     <div class="user-img">
-                                        <img src="/admin-wrap/assets/images/users/3.jpg" alt="user" class="img-circle">
+                                        <img src="@/admin-wrap/assets/images/users/3.jpg" alt="user" class="img-circle">
                                         <span class="profile-status away pull-right"></span>
                                     </div>
                                     <div class="mail-contnet">
@@ -138,7 +138,7 @@
                                 <!-- Message -->
                                 <a href="#">
                                     <div class="user-img">
-                                        <img src="/admin-wrap/assets/images/users/4.jpg" alt="user" class="img-circle">
+                                        <img src="@/admin-wrap/assets/images/users/4.jpg" alt="user" class="img-circle">
                                         <span class="profile-status offline pull-right"></span>
                                     </div>
                                     <div class="mail-contnet">
@@ -228,7 +228,7 @@
         <li class="nav-item dropdown u-pro">
             <a class="nav-link dropdown-toggle waves-effect waves-dark profile-pic" href="" data-toggle="dropdown"
                 aria-haspopup="true" aria-expanded="false">
-                <img src="/admin-wrap/assets/images/users/1.jpg" alt="user" class="" />
+                <img src="@/admin-wrap/assets/images/users/1.jpg" alt="user" class="" />
                 <span class="hidden-md-down"> &nbsp; {{ usuarioactual.name }}
                     <i class="fa fa-angle-down"></i>
                 </span>
@@ -238,7 +238,7 @@
                     <li>
                         <div class="dw-user-box">
                             <div class="u-img">
-                                <img src="/admin-wrap/assets/images/users/1.jpg" alt="user">
+                                <img src="@/admin-wrap/assets/images/users/1.jpg" alt="user">
                             </div>
                             <div class="u-text">
                                 <h4>{{ usuarioactual.name }}</h4>
