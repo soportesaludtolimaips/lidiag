@@ -95,8 +95,7 @@
                                         <th>Paciente</th>
                                         <th>Telefono</th>
                                         <th>Email</th>
-                                        <!-- <th>Sexo</th>
-                                        <th>Fec. Nacimiento</th> -->
+                                        <th>Producto</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -108,6 +107,7 @@
                                         <td>{{ item.nombres }}</td>
                                         <td>{{ item.tel }}</td>
                                         <td>{{ item.email }}</td>
+                                        <td>{{ item.nom_produc }}</td>
                                         <!-- <td>{{ item.pat_sex }}</td>
                                         <td>{{ item.pat_birthdate }}</td> -->
                                         <td class="text-nowrap">

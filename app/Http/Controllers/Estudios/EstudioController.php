@@ -463,7 +463,6 @@ class EstudioController extends Controller
         /**
          * Genero el PDF del reporte de la lectura del estudio
          */
-
         $reporteLectura = EstudioProducto::with('estudio.paciente')->with('estudio.medico')->with('estudio.sede')->findOrFail($id_producto_lectura);
         $nomArchivoReporte = $reporteLectura->id . "-" . $reporteLectura->estudio->paciente->num_docu . "-" . $reporteLectura->nom_produc . ".pdf";
 
