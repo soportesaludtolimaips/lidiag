@@ -90,10 +90,11 @@
                                 <thead>
                                     <tr>
                                         <th>Fecha del Estudio</th>
+                                        <th>Fecha de lectura</th>
                                         <th># Documento</th>
                                         <th>Paciente</th>
-                                        <th>Accession</th>
-                                        <th>Descripción</th>
+                                        <th>Telefono</th>
+                                        <th>Email</th>
                                         <!-- <th>Sexo</th>
                                         <th>Fec. Nacimiento</th> -->
                                         <th></th>
@@ -101,26 +102,27 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="item in registros" :key="item.id">
-                                        <td>{{ item.study_datetime }}</td>
-                                        <td>{{ item.pat_id }}</td>
-                                        <td>{{ item.pat_name }}</td>
-                                        <td>{{ item.accession_no }}</td>
-                                        <td>{{ item.study_desc }}</td>
+                                        <td>{{ item.fec_estudio }}</td>
+                                        <td>{{ item.fechor_lectura }}</td>
+                                        <td>{{ item.num_docu }}</td>
+                                        <td>{{ item.nombres }}</td>
+                                        <td>{{ item.tel }}</td>
+                                        <td>{{ item.email }}</td>
                                         <!-- <td>{{ item.pat_sex }}</td>
                                         <td>{{ item.pat_birthdate }}</td> -->
                                         <td class="text-nowrap">
                                             <button type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
-                                                @click="actualizar = true;
-                                                notificarEmail(item);" title="Asignar estudio">
-                                                <i class=" fa fa-envelope-o"></i>
-                                            </button>
-                                            <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
-                                                @click="imprimirReporte(item)" title="Imprimir reporte">
+                                                @click="imprimirReporte(item.id_producto_lectura)" title="Imprimir reporte">
                                                 <i class="fa fa-file-pdf-o"></i>
                                             </button>
-
+                                            <button type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
+                                                @click="actualizar = true;
+                                                notificarEmail(item.id_producto_lectura);"
+                                                title="Ntificar por correo electronico">
+                                                <i class=" fa fa-envelope-o"></i>
+                                            </button>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -267,7 +269,7 @@ export default {
                 study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", observaciones: "", medico_id: "", prioridad_id: "", sede_id: this.sedeActual,
                 quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", direccion: "", telefono: "", productosEstudio: [], diagnosticosEstudio: []
             },
-            busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "" },
+            busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "93123187", fehc_ini: "", fecha_fin: "" },
             errores: {},
             erroresBusqueda: {},
         };
@@ -287,7 +289,7 @@ export default {
                         stack: 6,
                     });
                 } else {
-                    const res = await axios.post("/study.listarEstudios", this.busqueda);
+                    const res = await axios.post("/listar.estudios.notificaciones", this.busqueda);
                     if (res.status == 200) {
                         $("#example23").DataTable().destroy();
 
@@ -328,24 +330,26 @@ export default {
                 this.erroresBusqueda = error.response.data.errors;
             }
         },
-        async imprimirReporte() {
+        async imprimirReporte(id) {
             try {
 
-                const res = await axios.post('/estudios', formData, config);
+                const res = await axios.get('/generar.pdf.lectura/' + id);
+                console.log(res.data)
 
-                if (res.status == 200) {
-                    $.toast({
-                        heading: "Ok!!!",
-                        text: res.data.message,
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "success",
-                        hideAfter: 3500,
-                        stack: 6,
+                const url = `/descargar.pdf.lectura/${res.data}`;
+
+                axios.get(url, { responseType: 'blob' })
+                    .then(response => {
+                        const url = window.URL.createObjectURL(new Blob([response.data]));
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.setAttribute('download', res.data);
+                        document.body.appendChild(link);
+                        link.click();
+                    })
+                    .catch(error => {
+                        console.error(error);
                     });
-                }
-                this.btnCerralModalForm();
-                this.limpiar();
             } catch (error) {
                 this.errores = error.response.data.errors;
             }

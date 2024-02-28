@@ -458,15 +458,28 @@ class EstudioController extends Controller
         }
     }
 
-    public function generarPdf(Request $request)
+    public function generarPdfLectura($id_producto_lectura)
     {
-        return $request;
         /**
          * Genero el PDF del reporte de la lectura del estudio
          */
-        $reporteLectura = EstudioProducto::with('estudio.paciente')->with('estudio.medico')->with('estudio.sede')->findOrFail($request->id_producto_lectura);
+
+        $reporteLectura = EstudioProducto::with('estudio.paciente')->with('estudio.medico')->with('estudio.sede')->findOrFail($id_producto_lectura);
         $nomArchivoReporte = $reporteLectura->id . "-" . $reporteLectura->estudio->paciente->num_docu . "-" . $reporteLectura->nom_produc . ".pdf";
-        $generarReporte = new ResporteLecturaController($reporteLectura, $nomArchivoReporte);
-        $generarReporte->generar_reporte();
+
+        $existe = Storage::exists($nomArchivoReporte);
+
+        if (!file_exists($existe)) {
+            $generarReporte = new ResporteLecturaController($reporteLectura, $nomArchivoReporte);
+            $generarReporte->generar_reporte();
+        }
+
+        return $nomArchivoReporte;
+    }
+
+    public function descargarPdfLectura($nomArchivo)
+    {
+        $rutaArchivo = storage_path('app/reporte_lecturas/' . $nomArchivo);
+        return response()->download($rutaArchivo);
     }
 }

@@ -12,7 +12,7 @@ class Paciente extends Model
 
     protected $fillable = ['num_docu', 'nombres', 'direccion', 'sexo', 'fec_naci', 'tel', 'email'];
 
-    public function lecturas()
+    public function estudios()
     {
         return $this->hasMany(Estudio::class);
     }

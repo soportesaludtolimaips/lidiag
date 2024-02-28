@@ -22,26 +22,46 @@ class EstudioNotificacionController extends Controller
      */
     public function listarEstudios(Request $request)
     {
-        $paciente = new Paciente();
+
+        $estudios = Estudio::select(
+            'pacientes.id AS paciente_id',
+            'pacientes.num_docu',
+            'pacientes.nombres',
+            'pacientes.tel',
+            'pacientes.email',
+            'estudios.id AS estudio_id',
+            'estudios.fec_estudio',
+            'estudios_productos.id AS id_producto_lectura',
+            'estudios_productos.nom_produc',
+            'estudios_productos.fechor_lectura'
+        )
+            ->join('pacientes', 'estudios.paciente_id', 'pacientes.id')
+            ->join('estudios_productos', 'estudios_productos.estudio_id', 'estudios.id')
+            ->where('pacientes.num_docu', 'like', "%$request->bus_nom_num_docu%")
+            ->orWhere('pacientes.nombres', 'like', "%$request->bus_nom_num_docu%")
+            ->get();
+
+        return $estudios;
+
+
+        /* $paciente = new Paciente();
         $query = $paciente->query();
 
         $query->select(
-            'patient.pat_id',
-            'patient.pat_name',
-            'patient.pat_sex',
-            'patient.pat_birthdate'
+            'pacientes.num_docu',
+            'pacientes.nombres',
         );
 
         if ($request->bus_nom_num_docu) {
-            $query->where('patient.pat_id', 'like', "%$request->bus_nom_num_docu%")
-                ->orWhere('patient.pat_name', 'like', "%$request->bus_nom_num_docu%");
+            $query->where('pacientes.num_docu', 'like', "%$request->bus_nom_num_docu%")
+                ->orWhere('pacientes.nombres', 'like', "%$request->bus_nom_num_docu%");
         }
 
         $result = $query->get();
-        return json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE);
+        return json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE); */
     }
 
-    public function notificar(Request $request)
+    public function notificarEmail(Request $request)
     {
         /**
          * Envio de email con el adjunto del reporte de la lectura del estudio

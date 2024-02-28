@@ -77,7 +77,9 @@ Route::resource('/estudios-productos', EstudioProductoController::class)->names(
 Route::resource('/estudios-diagnosticos', EstudioDiagnosticoController::class)->names('estudios.diagnosticos');
 Route::get('/listar-soportes-hc-estudio', [EstudioSoporteHCController::class, 'listarSoportesHistoriaClinicaPorPorEstudio'])->name('study.listar.soporte.hc.estudio');
 Route::get('/descarga-soportes-hc/{nomArchivoEncriptadote}', [EstudioSoporteHCController::class, 'descargarSoporte'])->name('study.descarga.soporte.hc');
-Route::get('/listar-estudios-notificaciones', [EstudioNotificacionController::class, 'listarEstudios'])->name('listar.estudios.notificaciones');
+Route::post('/listar.estudios.notificaciones', [EstudioNotificacionController::class, 'listarEstudios'])->name('listar.estudios.notificaciones');
+Route::get('/generar.pdf.lectura/{id_producto_lectura}', [EstudioController::class, 'generarPdfLectura'])->name('generar.pdf.lectura');
+Route::get('/descargar.pdf.lectura/{nomArchivo}', [EstudioController::class, 'generarPdfLectura'])->name('descargar.pdf.lectura');
 
 Route::view('/estudios.leer.estudio.listar', 'modulos.estudios.leer-estudio')->name('estudios.leer.estudio.listar');
 Route::post('/estudio-leerEstudio', [EstudioController::class, 'leerEstudio'])->name('estudio.leerEstudio');
