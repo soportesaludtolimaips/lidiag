@@ -12,7 +12,7 @@ use App\Http\Controllers\Configuracion\ConfigProductoController;
 use App\Http\Controllers\Configuracion\ConfigDiagnosticoController;
 use App\Http\Controllers\Configuracion\ConfigPrioridadController;
 use App\Http\Controllers\Configuracion\ConfigSedeController;
-
+use App\Http\Controllers\Dashboard\DashBoardController;
 use App\Http\Controllers\Dcm4chee\StudyController;
 use App\Http\Controllers\Estudio\EstudioSoporteHC;
 use App\Http\Controllers\Estudios\EstudioController;
@@ -22,6 +22,7 @@ use App\Http\Controllers\Estudios\EstudioNotificacionController;
 use App\Http\Controllers\Estudios\EstudioSoporteHCController;
 use App\Http\Controllers\Importar\ImportarDicom;
 use App\Http\Controllers\Interface\SAHIController;
+use App\Http\Controllers\Reportes\ReporteProduccion;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,26 +44,7 @@ Auth::routes();
 Route::post('/autenticacion/login', [LoginController::class, 'login']);
 Route::post('/autenticacion/logout', [LoginController::class, 'logout']);
 Route::view('dashboard', 'modulos.dashboard.dashboard')->name('dashboard')->middleware('auth');
-
-/**
- * Configuración
- */
-Route::view('/config.adminsalud.listar', 'modulos.configuracion.config-admin-salud')->name('config.adminsalud.listar');
-Route::resource('/config-admin-salud', ConfigAdminSaludController::class)->names('config.admin.salud')->except(['create', 'show']);
-
-Route::view('/config.diagnosticos.listar', 'modulos.configuracion.config-diagnosticos')->name('config.diagnosticos.listar');
-Route::resource('/config-diagnosticos', ConfigDiagnosticoController::class)->names('config.diagnosticos')->except(['create', 'show']);
-
-Route::view('/config.prioridades.listar', 'modulos.configuracion.config-prioridades')->name('config.prioridades.listar');
-Route::resource('/config-prioridades', ConfigPrioridadController::class)->names('config.prioridades')->except(['create', 'show']);
-
-Route::view('/config.productos.listar', 'modulos.configuracion.config-productos')->name('config.productos.listar');
-Route::resource('/config-productos', ConfigProductoController::class)->names('config.productos')->except(['create']);
-
-Route::view('/config.sedes.listar', 'modulos.configuracion.config-sedes')->name('config.sedes.listar');
-Route::resource('/config-sedes', ConfigSedeController::class)->names('config.sedes')->except(['create', 'show']);
-Route::get('/config-sedes/{configsede}/buscarPorId', [ConfigSedeController::class, 'buscarPorId'])->name('config.sedes.buscarPorId');
-Route::get('/config-sedes/listar/sedes/activas', [ConfigSedeController::class, 'listarSedesActivas'])->name('config.sedes.listarSedesActivas');
+Route::get('reportes.dashboard', [DashBoardController::class, 'Dashboard'])->name('reportes.dashboard')->middleware('auth');
 
 /**
  * Estudios
@@ -95,6 +77,34 @@ Route::post('/estudio-guardarTranscripcion', [EstudioController::class, 'guardar
 Route::get('/estudio-listarPendientesMedico', [EstudioController::class, 'listarPendientesMedico'])->name('estudio.listarPendientesMedico');
 Route::get('/estudio-listarPendientesPorLeerTranscribir', [EstudioController::class, 'penditesPorLeerTranscribir'])->name('estudio.listarPendientesPorLeerTranscribir');
 Route::get('/estudio-buscar-por-numdocu/{numDocu}', [EstudioController::class, 'buscarEstudioPorNumDocu'])->name('estudio.buscarEstudioPorNumDocu');
+
+/**
+ * Reportes
+ */
+Route::view('reportes-produccion', 'modulos.reportes.reportes-produccion')->name('reportes.produccion')->middleware('auth');
+Route::post('descarga-reportes-produccion', [ReporteProduccion::class, 'reporteProduccionDetallado'])->name('descarga.reportes.produccion')->middleware('auth');
+
+
+/**
+ * Configuración
+ */
+Route::view('/config.adminsalud.listar', 'modulos.configuracion.config-admin-salud')->name('config.adminsalud.listar');
+Route::resource('/config-admin-salud', ConfigAdminSaludController::class)->names('config.admin.salud')->except(['create', 'show']);
+
+Route::view('/config.diagnosticos.listar', 'modulos.configuracion.config-diagnosticos')->name('config.diagnosticos.listar');
+Route::resource('/config-diagnosticos', ConfigDiagnosticoController::class)->names('config.diagnosticos')->except(['create', 'show']);
+
+Route::view('/config.prioridades.listar', 'modulos.configuracion.config-prioridades')->name('config.prioridades.listar');
+Route::resource('/config-prioridades', ConfigPrioridadController::class)->names('config.prioridades')->except(['create', 'show']);
+
+Route::view('/config.productos.listar', 'modulos.configuracion.config-productos')->name('config.productos.listar');
+Route::resource('/config-productos', ConfigProductoController::class)->names('config.productos')->except(['create']);
+
+Route::view('/config.sedes.listar', 'modulos.configuracion.config-sedes')->name('config.sedes.listar');
+Route::resource('/config-sedes', ConfigSedeController::class)->names('config.sedes')->except(['create', 'show']);
+Route::get('/config-sedes/{configsede}/buscarPorId', [ConfigSedeController::class, 'buscarPorId'])->name('config.sedes.buscarPorId');
+Route::get('/config-sedes/listar/sedes/activas', [ConfigSedeController::class, 'listarSedesActivas'])->name('config.sedes.listarSedesActivas');
+
 
 /**
  * Seguridad

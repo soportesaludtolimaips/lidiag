@@ -62,6 +62,17 @@
                     </li>
                 @endif
 
+                @if (auth()->user()->hasAnyPermission(['estudio.asignar', 'estudio.transcribir', 'estudio.leerEstudio', 'estudios.notificar.index']))
+                    <li class="nav-small-cap">--- REPORTES</li>
+                    <li>
+                        <a href="{{ route('reportes.produccion') }}" class="waves-effect waves-dark" aria-expanded="false">
+                            <i class="icon-Book"></i>
+                            <span class="hide-menu">Reportes</span>
+                        </a>
+
+                    </li>
+                @endif
+
                 @if (auth()->user()->hasAnyPermission(['config.admin.salud.index', 'config.diagnosticos.index', 'config.prioridades.index', 'config.productos.index', 'config.sedes.index']))
                     <li class="nav-small-cap">--- PARAMETRIZACIÓN</li>
                     <li>

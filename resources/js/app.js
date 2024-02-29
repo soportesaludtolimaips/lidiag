@@ -70,6 +70,13 @@ import roleComponente from './components/modulos/seguridad/roleComponente.vue';
 app.component('role-componente', roleComponente);
 
 /**
+ * Reportes
+ */
+import reporteProduccionComponent from './components/modulos/reportes/reporteProduccionComponent.vue';
+app.component('reportes-produccion-component', reporteProduccionComponent);
+
+
+/**
  * Comunes
  */
 import userProfileAndSearchComponent from './components/comunes/userProfileAndSearchComponent.vue';

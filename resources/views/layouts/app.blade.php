@@ -14,7 +14,10 @@
     <title>{{ config('appName') }}</title>
     <!-- Bootstrap Core CSS -->
     <link href="{{ asset('admin-wrap/assets/node_modules/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('admin-wrap//assets/node_modules/html5-editor/bootstrap-wysihtml5.css') }}" />
+    <link href="{{ asset('admin-wrap/assets/node_modules/html5-editor/bootstrap-wysihtml5.css') }}" rel="stylesheet" />
+    <link href="{{ asset('admin-wrap/assets/node_modules/bootstrap-material-datetimepicker/css/bootstrap-material-datetimepicker.css') }}" rel="stylesheet">
+    <!-- Page plugins css -->
+    <link href="{{ asset('admin-wrap/assets/node_modules/clockpicker/dist/jquery-clockpicker.min.css') }}" rel="stylesheet">
     <!--alerts CSS -->
     <link href="{{ asset('admin-wrap/assets/node_modules/sweetalert/sweetalert.css') }}" rel="stylesheet" type="text/css">
     <!-- toast CSS -->
@@ -23,6 +26,13 @@
     <link href="{{ asset('admin-wrap/assets/node_modules/morrisjs/morris.css') }}" rel="stylesheet">
     <!--c3 CSS -->
     <link href="{{ asset('admin-wrap/assets/node_modules/c3-master/c3.min.css') }}" rel="stylesheet">
+    <!-- Color picker plugins css -->
+    <link href="{{ asset('admin-wrap/assets/node_modules/jquery-asColorPicker-master/css/asColorPicker.css') }}" rel="stylesheet">
+    <!-- Date picker plugins css -->
+    <link href="{{ asset('admin-wrap/assets/node_modules/bootstrap-datepicker/bootstrap-datepicker.min.css') }}" rel="stylesheet" type="text/css" />
+    <!-- Daterange picker plugins css -->
+    <link href="{{ asset('admin-wrap/assets/node_modules/timepicker/bootstrap-timepicker.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('admin-wrap/assets/node_modules/bootstrap-daterangepicker/daterangepicker.css') }}" rel="stylesheet">
     <!-- page css -->
     <link href="{{ asset('admin-wrap/css/pages/form-icheck.css') }}" rel="stylesheet">
     <!-- Custom CSS -->
@@ -101,6 +111,7 @@
             <div class="container-fluid">
                 @yield('content')
             </div>
+
             <!-- ============================================================== -->
             <!-- End Container fluid  -->
             <!-- ============================================================== -->
@@ -178,12 +189,12 @@
     <!-- icheck -->
     <script src="{{ asset('admin-wrap/assets/node_modules/icheck/icheck.min.js') }}"></script>
     <script src="{{ asset('admin-wrap/assets/node_modules/icheck/icheck.init.js') }}"></script>
+
+
     <!-- ============================================================== -->
     <!-- Style switcher -->
     <!-- ============================================================== -->
     <script src="{{ asset('admin-wrap/assets/node_modules/styleswitcher/jQuery.style.switcher.js') }}"></script>
-
-
 </body>
 
 </html>

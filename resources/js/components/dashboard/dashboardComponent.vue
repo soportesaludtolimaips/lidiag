@@ -31,33 +31,12 @@
                                 <i class="text-success icon-Target-Market"></i>
                             </div>
                             <div class="align-slef-center">
-                                <h2 class="m-b-0">0
+                                <h2 class="m-b-0">{{ indicadores.estudiosAsignados }}
                                     <small>
                                         <i class="ti-angle-down text-danger"></i>
                                     </small>
                                 </h2>
-                                <h6 class="text-muted m-b-0">Total estudios agendados</h6>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Column -->
-            <!-- Column -->
-            <div class="col-lg-3 col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex p-10 no-block">
-                            <div class="align-self-center display-6 m-r-20">
-                                <i class="text-info icon-Dollar-Sign"></i>
-                            </div>
-                            <div class="align-slef-center">
-                                <h2 class="m-b-0">0
-                                    <small>
-                                        <i class="ti-angle-up text-success"></i>
-                                    </small>
-                                </h2>
-                                <h6 class="text-muted m-b-0">Total estudios por transcribir</h6>
+                                <h6 class="text-muted m-b-0">Total estudios asignados</h6>
                             </div>
                         </div>
                     </div>
@@ -73,7 +52,7 @@
                                 <i class="text-primary icon-Inbox-Forward"></i>
                             </div>
                             <div class="align-slef-center">
-                                <h2 class="m-b-0">0
+                                <h2 class="m-b-0">{{ indicadores.estudiosLeidos }}
                                     <small>
                                         <i class="ti-angle-up text-success"></i>
                                     </small>
@@ -85,6 +64,28 @@
                 </div>
             </div>
             <!-- Column -->
+            <!-- Column -->
+            <div class="col-lg-3 col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex p-10 no-block">
+                            <div class="align-self-center display-6 m-r-20">
+                                <i class="text-info icon-Dollar-Sign"></i>
+                            </div>
+                            <div class="align-slef-center">
+                                <h2 class="m-b-0">{{ indicadores.estudiosPorTranscribir }}
+                                    <small>
+                                        <i class="ti-angle-up text-success"></i>
+                                    </small>
+                                </h2>
+                                <h6 class="text-muted m-b-0">Total estudios por transcribir</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Column -->
+
             <!-- Column -->
             <div class="col-lg-3 col-md-6">
                 <div class="card">
@@ -161,43 +162,19 @@
                 </div>
             </div>
             <!-- Column -->
-            <div class="col-lg-4 col-md-12">
-                <div class="row">
-                    <!-- Column -->
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Diferencias de estudios</h5>
-                                <div class="d-flex no-block">
-                                    <div class="align-self-center no-shrink">
-                                        <h2 class="m-b-0">0</h2>
-                                        <h6 class="text-muted">(0-0 Leido)</h6>
-                                    </div>
-                                    <div class="ml-auto">
-                                        <div id="sales" class="" style=" width:150px; height:140px;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Estudios más solicitados</h5>
+                        <table class="table browser m-t-30 no-border">
+                            <tbody>
+                                <tr v-for="item in indicadores.estudiosMasSolicitados" :key="item.id">
+                                    <td>{{ item.mods_in_study }}</td>
+                                    <td class="text-right">{{ item.total }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <!-- Column -->
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Predicción de estudios</h5>
-                                <div class="d-flex no-block">
-                                    <div class="align-self-end no-shrink">
-                                        <h2 class="m-b-0">0</h2>
-                                        <h6 class="text-muted">(0-0 Estudios)</h6>
-                                    </div>
-                                    <div class="ml-auto">
-                                        <div id="prediction"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Column -->
                 </div>
             </div>
         </div>
@@ -227,49 +204,7 @@
                 </div>
             </div>
             <!-- Column -->
-            <div class="col-lg-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Estudios más solicitados</h5>
-                        <table class="table browser m-t-30 no-border">
-                            <tbody>
-                                <!-- <tr>
-                                    <td style="width:40px"><img src="/admin-wrap/assets/images/browser/chrome-logo.png"
-                                            alt="logo">
-                                    </td>
-                                    <td>Google Chrome</td>
-                                    <td class="text-right">23%</td>
-                                </tr>
-                                <tr>
-                                    <td><img src="/admin-wrap/assets/images/browser/firefox-logo.png" alt="logo"></td>
-                                    <td>Mozila Firefox</td>
-                                    <td class="text-right">15%</td>
-                                </tr>
-                                <tr>
-                                    <td><img src="/admin-wrap/assets/images/browser/safari-logo.png" alt="logo"></td>
-                                    <td>Apple Safari</td>
-                                    <td class="text-right">07%</td>
-                                </tr>
-                                <tr>
-                                    <td><img src="/admin-wrap/assets/images/browser/internet-logo.png" alt="logo"></td>
-                                    <td>Internet Explorer</td>
-                                    <td class="text-right">09%</td>
-                                </tr>
-                                <tr>
-                                    <td><img src="/admin-wrap/assets/images/browser/opera-logo.png" alt="logo"></td>
-                                    <td>Opera mini</td>
-                                    <td class="text-right">23%</td>
-                                </tr>
-                                <tr>
-                                    <td><img src="/admin-wrap/assets/images/browser/netscape-logo.png" alt="logo"></td>
-                                    <td>Netscape Navigator</td>
-                                    <td class="text-right">04%</td>
-                                </tr> -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+
         </div>
         <!-- ============================================================== -->
         <!-- End Sales Chart -->
@@ -280,19 +215,58 @@
 <script>
 
 export default {
+    props: ['usuarioactual'],
     mounted() {
         this.estudiosTorta();
+        this.generarIndicadores();
+    },
+    data() {
+        return {
+            indicadores: { estudiosAsignados: 0, estudiosLeidos: 0, estudiosPorTranscribir: 0, estudiosDescargados: 0, estudiosMasSolicitados: [] }
+        }
     },
     methods: {
+        async generarIndicadores() {
+            const res = await axios.get('/reportes.dashboard');
+
+            this.indicadores.estudiosAsignados = res.data.estudiosAsignados
+            this.indicadores.estudiosLeidos = res.data.estudiosLeidos
+            this.indicadores.estudiosPorTranscribir = res.data.estudiosPorTranscribir
+            this.indicadores.estudiosMasSolicitados = res.data.estudiosMasSolicitados
+            console.log('************** ojo ******************')
+            console.log(res.data.estudiosMasSolicitados)
+            console.log('************** ojo ******************')
+
+
+
+            console.log(Object.values(res.data.estudiosMasSolicitados).map(({ total, mods_in_study }) => (total, mods_in_study)));
+        },
         estudiosTorta() {
+
             var chart = c3.generate({
                 bindto: '#visitor',
                 data: {
                     columns: [
-                        ['Other', 0],
-                        ['Desktop', 0],
-                        ['Tablet', 0],
-                        ['Mobile', 0],
+                        ["CR", 67452,
+                        ],
+                        [
+                            "CT", 18364,
+                        ],
+                        [
+                            "MG", 2532,
+                        ],
+                        [
+                            "MR", 1667,
+                        ],
+                        [
+                            "MR\\SR", 10,
+                        ],
+                        [
+                            "PR\\MR", 66,
+                        ],
+                        [
+                            "PR\\MR\\SR", 9,
+                        ]
                     ],
 
                     type: 'donut',
@@ -320,7 +294,7 @@ export default {
             });
 
 
-            // ============================================================== 
+            // ==============================================================
             // Our Income
             // ==============================================================
             var chart = c3.generate({
@@ -367,9 +341,9 @@ export default {
                 }
             });
 
-            // ============================================================== 
+            // ==============================================================
             // Sales chart
-            // ============================================================== 
+            // ==============================================================
             Morris.Area({
                 element: 'sales-chart',
                 data: [{

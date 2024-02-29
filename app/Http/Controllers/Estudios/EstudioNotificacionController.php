@@ -16,6 +16,11 @@ use Illuminate\Support\Facades\Storage;
 
 class EstudioNotificacionController extends Controller
 {
+    public function __construct()
+    {
+        ini_set('max_execution_time', -1);
+    }
+
     /**
      * Remove the specified resource from storage.
      *
@@ -59,7 +64,7 @@ class EstudioNotificacionController extends Controller
          */
         $urlApiReportes = config('app.URL_API_REPORTES') . "api/almacenarLectura";
 
-        $response = Http::attach(
+        $response = Http::timeout(60)->attach(
             'file_reporte',
             file_get_contents(storage_path('app/reporte_lecturas/' . $nomArchivoReporte)),
             $nomArchivoReporte
@@ -74,7 +79,7 @@ class EstudioNotificacionController extends Controller
             'url_oviyam' => $reporteLectura->estudio->sede->url_oviyam,
             'tap_oviyam' => $reporteLectura->estudio->sede->tap_oviyam,
         ]);
-        echo $response;
+
         /**
          * Envio de email con el adjunto del reporte de la lectura del estudio
          */
