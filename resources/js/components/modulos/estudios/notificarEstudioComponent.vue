@@ -338,6 +338,10 @@ export default {
 
                 const res = await axios.get(`/generar.pdf.lectura/${id}`);
 
+                window.open(`/descargar.pdf.lectura/${res.data}`);
+
+                /* const res = await axios.get(`/generar.pdf.lectura/${id}`);
+
                 const url = `/descargar.pdf.lectura/${res.data}`;
 
                 axios.get(url, { responseType: 'blob' })
@@ -351,7 +355,7 @@ export default {
                     })
                     .catch(error => {
                         console.error(error);
-                    });
+                    }); */
             } catch (error) {
                 this.errores = error.response.data.errors;
             }

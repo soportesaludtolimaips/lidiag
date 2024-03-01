@@ -484,7 +484,10 @@ class EstudioController extends Controller
     public function descargarPdfLectura($nomArchivo)
     {
         $rutaArchivo = storage_path('app/reporte_lecturas/' . $nomArchivo);
-        return response()->download($rutaArchivo);
+        $headers = array(
+            'Content-Type: application/pdf',
+        );
+        return response()->download($rutaArchivo, $nomArchivo, $headers);
     }
 
     public function notificarEmail(Request $request)

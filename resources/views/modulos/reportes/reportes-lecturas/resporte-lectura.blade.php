@@ -3,9 +3,9 @@
 <head>
     <style>
         /**
-                Set the margins of the page to 0, so the footer and the header
-                can be of the full height and width !
-             **/
+        Set the margins of the page to 0, so the footer and the header
+        can be of the full height and width !
+        **/
         @page {
             margin: 0cm 0cm;
         }
@@ -76,13 +76,13 @@
             <tr>
                 <td style="width: 40%;">
                     @if ($reporteLectura->estudio->sede->logo_1 != '')
-                        <img src="{{ url('logos/' . $reporteLectura->estudio->sede->logo_1) }}" width="80%" height="80%" />
+                        <img src="{{ url('logos/' . $reporteLectura->estudio->sede->logo_1) }}" width="80%" height="60%" />
                     @endif
                 </td>
                 <td style="width: 80%; text-align: center;">{{ $reporteLectura->estudio->sede->encabezado }}</td>
                 <td style="width: 40%;">
                     @if ($reporteLectura->estudio->sede->logo_2 != '')
-                        <img src="{{ url('logos/' . $reporteLectura->estudio->sede->logo_2) }}" width="80%" height="80%" />
+                        <img src="{{ url('logos/' . $reporteLectura->estudio->sede->logo_2) }}" width="80%" height="60%" />
                     @endif
                 </td>
             </tr>
@@ -115,7 +115,6 @@
         <p class="titulo-negrita">DR. {{ $reporteLectura->estudio->medico->name }}</p>
         <p class="titulo-negrita">MEDICO RADIOLOGO</p>
         <p class="titulo-negrita">RM: {{ $reporteLectura->estudio->medico->reg_med }}</p>
-
     </main>
 
     <script type="text/php">
