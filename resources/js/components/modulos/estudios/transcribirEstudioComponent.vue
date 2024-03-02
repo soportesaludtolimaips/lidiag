@@ -368,6 +368,14 @@
                                                 <textarea v-model="registro.lectura" class="textarea_editor form-control"
                                                     rows="20" id="lectura" style="height: 100%;"
                                                     placeholder="Ingrese aquí la lectura del estudio ..."></textarea>
+
+                                                <form method="post">
+                                                    <div class="form-group">
+                                                        <textarea class="textarea_editor form-control" rows="15"
+                                                            placeholder="Enter text ..."
+                                                            v-model="registro.lectura"></textarea>
+                                                    </div>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>
@@ -413,9 +421,9 @@
 </template>
 
 <script>
-/**
- * 
- */
+$(function () {
+    $('#textarea_editor').wysihtml5();
+});
 export default {
     props: ['usuarioactual'],
     mounted() {
@@ -518,7 +526,7 @@ export default {
             this.registro.tel = data.tel;
             this.registro.sexo = data.pat_sex;
             this.registro.fec_naci = data.pat_birthdate;
-            this.registro.lectura = data.lectura;
+            this.registro.lectura = `Atención: ${data.atencion}\nFecha y Hora: ${data.fec_estudio}\n\n${data.nom_produc}\n\n${data.lectura}`;
             this.registro.cod_cups = data.cod_cups;
 
             this.datosImagen.urlOviyam = data.url_oviyam;

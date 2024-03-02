@@ -47,6 +47,7 @@ class EstudioController extends Controller
      */
     public function store(Request $request)
     {
+
         $registro = json_decode($request->registro);
 
         $nombrePaciente = str_replace('^^^', '', $registro->nombres);
@@ -77,14 +78,20 @@ class EstudioController extends Controller
         $sede = ConfigSede::findOrfail($registro->sede_id)->all();
 
         if ($sede[0]->interface_software == 'SAHI') {
+
             $buscarDatos = (new SAHIController)->buscarEpsPlanContrato($registro->atencion_id);
 
-            $eps = $buscarDatos[0]->NomTercero;
-            $contrato = $buscarDatos[0]->DesContrato;
-            $plan = $buscarDatos[0]->DesPlan;
-            $servicio = $buscarDatos[0]->NomUbicacion;
+            if (!$buscarDatos) {
+                $eps = $buscarDatos[0]->NomTercero;
+                $contrato = $buscarDatos[0]->DesContrato;
+                $plan = $buscarDatos[0]->DesPlan;
+                $servicio = $buscarDatos[0]->NomUbicacion;
+            }
         }
 
+        /**
+         * Inserto el estudio en Lidiag
+         */
         $estudio = Estudio::firstOrCreate(
             ['study_id' => $registro->study_pk],
             [
@@ -95,7 +102,7 @@ class EstudioController extends Controller
                 'accession_no' => $registro->accession_no,
                 'study_desc' => $registro->study_desc,
                 'mods_in_study' => $registro->mods_in_study,
-                //'email_reportar' => $registro->email_reportar,
+                'email_reportar' => $registro->email_reportar,
                 'paciente_id' => $paciente->id,
                 'medico_id' => $registro->medico_id,
                 'quien_registro_id' => auth()->user()->id,

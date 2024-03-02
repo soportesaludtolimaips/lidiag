@@ -286,7 +286,8 @@ export default {
             sedeSeleccionada: sessionStorage.getItem('ST-sede'),
             nomSedeSeleccionada: sessionStorage.getItem('ST-nomsede'),
             urlSedeSeleccionada: sessionStorage.getItem('ST-urlsede'),
-            serverNameSeleccionada: sessionStorage.getItem('ST-servername')
+            serverNameSeleccionada: sessionStorage.getItem('ST-servername'),
+            email_repor: sessionStorage.getItem('ST-email_repor')
         }
     },
     methods: {
@@ -303,10 +304,11 @@ export default {
                 const res = await axios.get('/config-sedes/listar/sedes/activas');
                 this.sedes = res.data;
 
-                this.sedeSeleccionada = sessionStorage.getItem('ST-sede');
+                /* this.sedeSeleccionada = sessionStorage.getItem('ST-sede');
                 this.nomSedeSeleccionada = sessionStorage.getItem('ST-nomsede');
                 this.urlSedeSeleccionada = sessionStorage.getItem('ST-urlsede');
                 this.serverNameSeleccionada = sessionStorage.getItem('ST-servername');
+                this.email_repor = sessionStorage.getItem('ST-email_repor'); */
             } catch (error) {
                 console.log(error);
             }
@@ -316,15 +318,14 @@ export default {
             const res = await axios.get('/config-sedes/' + this.sedeSeleccionada + '/buscarPorId');
 
             this.nomSedeSeleccionada = $('select[name="sedes"] option:selected').text();
-            this.urlSedeSeleccionada = res.data.url_oviyam;
-            this.serverNameSeleccionada = res.data.tap_oviyam;
 
             sessionStorage.setItem('ST-sede', this.sedeSeleccionada);
             sessionStorage.setItem('ST-nomsede', this.nomSedeSeleccionada);
             sessionStorage.setItem('ST-urlsede', res.data.url_oviyam);
             sessionStorage.setItem('ST-servername', res.data.tap_oviyam);
+            sessionStorage.setItem('ST-email_repor', res.data.email_repor);
 
-            this.emitter.emit("sedeSeleccionada", { idSede: this.sedeSeleccionada, nomSede: this.nomSedeSeleccionada, url: this.urlSedeSeleccionada, serverName: this.serverNameSeleccionada });
+            this.emitter.emit("sedeSeleccionada", { idSede: this.sedeSeleccionada, nomSede: this.nomSedeSeleccionada, url: this.urlSedeSeleccionada, serverName: this.serverNameSeleccionada, email_repor: res.data.email_repor });
         }
     }
 }

@@ -46,9 +46,9 @@
                                             <label class="control-label">Fecha Inicio</label>
                                             <input type="date" id="bus_fehc_ini" name="bus_fehc_ini"
                                                 v-model="busqueda.bus_fehc_ini" class="form-control" />
-                                            <span class="text-danger" v-if="errores.bus_fehc_ini">
+                                            <!-- <span class="text-danger" v-if="errores.bus_fehc_ini">
                                                 {{ erroresBusqueda.bus_fehc_ini[0] }}
-                                            </span>
+                                            </span> -->
                                         </div>
                                     </div>
                                     <div class="col-md-2">
@@ -56,9 +56,9 @@
                                             <label class="control-label">Fecha Fin</label>
                                             <input type="date" id="bus_fecha_fin" name="bus_fecha_fin"
                                                 v-model="busqueda.bus_fecha_fin" class="form-control" />
-                                            <span class="text-danger" v-if="errores.bus_fecha_fin">
+                                            <!-- <span class="text-danger" v-if="errores.bus_fecha_fin">
                                                 {{ erroresBusqueda.bus_fecha_fin[0] }}
-                                            </span>
+                                            </span> -->
                                         </div>
                                     </div>
                                 </div>
@@ -80,14 +80,15 @@
         </div>
 
         <div class="row">
-            <div class="col-12">
+            <div class="col-12 table-responsive">
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de estudios disponibles</h4>
-                        <h6 class="card-subtitle">Asigne los estudios a los médicos para su respectiva lectura.</h6>
-                        <div class="table-responsive m-t-40">
-                            <table id="example23" class="display nowrap table table-hover table-striped table-bordered"
-                                cellspacing="0" width="100%">
+                        <h6 class="card-subtitle text-info">Asigne los estudios a los médicos para su respectiva lectura.
+                        </h6>
+                        <div class="table-responsive">
+                            <table id="example23" class="table table-bordered table-striped" cellspacing="0" width="100%">
+
                                 <thead>
                                     <tr>
                                         <th>Fecha del Estudio</th>
@@ -272,9 +273,8 @@
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <label class="control-label">Reportar al Email</label>
-                                                <input type="text" id="email_reportar" name="email_reportar"
-                                                    v-model="registro.email_reportar" class="form-control"
-                                                    placeholder="Ingrese aqi el email a reportar" />
+                                                <input type="email" id="email_reportar" name="email_reportar"
+                                                    v-model="registro.email_reportar" class="form-control" />
                                             </div>
                                         </div>
                                         <div class="col-md-12">
@@ -348,7 +348,7 @@
                                                 </span>
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-4" v-if="sedeInterface === true">
                                             <div class="form-group">
                                                 <label class="control-label">Atención {{ interfaceAtencionSeleccionada
                                                 }}</label>
@@ -509,11 +509,13 @@
 export default {
     props: ['usuarioactual'],
     mounted() {
+        this.registro.email_reportar = "";
         this.listarMedicos();
         this.listarPrioridades();
         this.listarProductos();
         this.listarDiagnosticos();
         this.establecerSede();
+        this.limpiar();
         this.emitter.on("sedeSeleccionada", (data) => {
             this.registro.sede_id = data.idSede;
             this.establecerSede();
@@ -527,8 +529,8 @@ export default {
             registros: [],
             tituloModal: "Nuevo registro",
             registro: {
-                study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", mods_in_study: "", email_reportar: '', observaciones: "", medico_id: "", prioridad_id: "",
-                sede_id: this.sedeActual, quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", direccion: "", telefono: "",
+                study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", mods_in_study: "", observaciones: "", medico_id: "", prioridad_id: "",
+                sede_id: this.sedeActual, quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", telefono: "",
                 productosEstudio: [], diagnosticosEstudio: [], atencion_id: null
             },
             soportesHC: { archivo1: null, archivo2: null, archivo3: null }, //Soporte de historia clinica
@@ -545,6 +547,7 @@ export default {
             diagnosticoSelecciondo: "",
             sedeActual: sessionStorage.getItem('ST-sede'),
             productosAtencion: [],
+            sedeInterface: false
         };
     },
     methods: {
@@ -661,7 +664,9 @@ export default {
                 formData.append('archivo2', this.soportesHC.archivo2);
                 formData.append('archivo3', this.soportesHC.archivo3);
 
-                const res = await axios.post('/estudios', formData, config);
+                const res = await axios.post('/estudios', formData, {
+                    headers: { "Content-Type": "multipart/form-data" }
+                });
 
                 if (res.status == 200) {
                     $.toast({
@@ -674,8 +679,10 @@ export default {
                         stack: 6,
                     });
                 }
+
                 this.btnCerralModalForm();
                 this.limpiar();
+
             } catch (error) {
                 this.errores = error.response.data.errors;
             }
@@ -691,8 +698,10 @@ export default {
         },
         async mostrarRegistro(data = {}) {
 
-            const res = await axios.get('/config-sedes/' + this.sedeActual + '/buscarPorId');
+            this.limpiar();
 
+            const res = await axios.get('/config-sedes/' + this.sedeActual + '/buscarPorId');
+            console.log(res.data.email);
             this.tituloModal = "Agendar al paciente: " + data.pat_name;
             this.id = data.id;
             this.registro.study_pk = data.study_pk;
@@ -702,7 +711,8 @@ export default {
             this.registro.accession_no = data.accession_no;
             this.registro.study_desc = data.study_desc;
             this.registro.mods_in_study = data.mods_in_study;
-            this.registro.email_reportar = res.data.email;
+            this.registro.email = '';
+            this.registro.email_reportar = sessionStorage.getItem('ST-email_repor');
             this.registro.num_docu = data.pat_id;
             this.registro.nombres = data.pat_name;
             this.registro.sexo = data.pat_sex;
@@ -756,6 +766,13 @@ export default {
         establecerSede() {
             this.registro.sede_id = sessionStorage.getItem('ST-sede');
             this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
+            this.sedeActual = sessionStorage.getItem('ST-sede');
+            console.log(this.registro.sede_id)
+            if (this.registro.sede_id = 1) {
+                this.sedeInterface = true;
+            } else {
+                this.sedeInterface = false;
+            }
             this.registros = [];
         },
         btnCerralModalForm() {
@@ -775,6 +792,7 @@ export default {
             this.registro.num_docu = '';
             this.registro.nombres = '';
             this.registro.sexo = '';
+            this.registro.email = '';
             this.registro.fec_naci = '';
 
             this.registro.diagnosticosEstudio.splice(0, this.registro.diagnosticosEstudio.length);
@@ -785,7 +803,7 @@ export default {
             this.productoSelecciondo = 0;
             this.diagnosticoSelecciondo = 0;
 
-            this.istarMedicos();
+            this.listarMedicos();
             this.listarPrioridades();
         },
         async listarMedicos() {

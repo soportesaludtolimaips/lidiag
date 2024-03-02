@@ -270,11 +270,12 @@ export default {
             registros: [],
             tituloModal: "Nuevo registro",
             registro: {
-                num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "jhonlozano2000@gmail.com", email_reportar: "", direccion: "", telefono: "", nom_produc: "", id_producto_lectura: null
+                num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", telefono: "", nom_produc: "", id_producto_lectura: null
             },
-            busqueda: { bus_nom_num_docu: "93123187", fehc_ini: "", fecha_fin: "" },
+            busqueda: { bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "" },
             errores: {},
             erroresBusqueda: {},
+
         };
     },
     methods: {

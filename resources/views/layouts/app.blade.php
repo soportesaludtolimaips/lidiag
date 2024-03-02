@@ -156,11 +156,7 @@
     <!-- wysuhtml5 Plugin JavaScript -->
     <script src="{{ asset('admin-wrap/assets/node_modules/html5-editor/wysihtml5-0.3.0.js') }}"></script>
     <script src="{{ asset('admin-wrap/assets/node_modules/html5-editor/bootstrap-wysihtml5.js') }}"></script>
-    <script>
-        $(function() {
-            $('#textarea_editor').wysihtml5();
-        });
-    </script>
+    <script></script>
 
     <!--morris JavaScript -->
     <script src="admin-wrap/assets/node_modules/raphael/raphael-min.js"></script>
