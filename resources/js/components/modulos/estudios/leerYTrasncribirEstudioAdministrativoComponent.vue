@@ -70,12 +70,12 @@
         </div> -->
 
     <div class="row">
-        <div class="col-12">
+        <div class="col-12 table-responsive">
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title">Listado de estudiso pendientes por leer y transcribir</h4>
-                    <div class="col-md-12 table-responsive m-t-40">
-                        <table id="myTable" class="table table-bordered table-striped">
+                    <div class="table-responsive">
+                        <table id="example23" class="table table-bordered table-striped" cellspacing="0" width="100%">
                             <thead>
                                 <tr>
                                     <th></th>
@@ -165,9 +165,9 @@
                                             <label class="control-label"># Documento</label>
                                             <input type="text" id="num_docu" name="num_docu" v-model="registro.num_docu"
                                                 class="form-control" placeholder="# de Documento" />
-                                            <span class="text-danger" v-if="errores.num_docu">{{
-                                                errores.num_docu[0]
-                                            }}</span>
+                                            <span class="text-danger" v-if="errores.num_docu">
+                                                {{ errores.num_docu[0] }}
+                                            </span>
                                         </div>
                                     </div>
 
@@ -175,10 +175,11 @@
                                         <div class="form-group">
                                             <label class="control-label">Nombres</label>
                                             <input type="text" id="nom_pacien" name="nom_pacien"
-                                                v-model="registro.nom_pacien" class="form-control" placeholder="Nombres" />
-                                            <span class="text-danger" v-if="errores.nom_pacien">{{
-                                                errores.nom_pacien[0]
-                                            }}</span>
+                                                v-model="registro.nom_pacien" class="form-control"
+                                                placeholder="Nombres" />
+                                            <span class="text-danger" v-if="errores.nom_pacien">
+                                                {{ errores.nom_pacien[0] }}
+                                            </span>
                                         </div>
                                     </div>
 
@@ -214,9 +215,9 @@
                                             <label class="control-label">Descripción</label>
                                             <input type="text" id="study_desc" name="study_desc"
                                                 v-model="registro.study_desc" class="form-control" />
-                                            <span class="text-danger" v-if="errores.study_desc">{{
-                                                errores.study_desc[0]
-                                            }}</span>
+                                            <span class="text-danger" v-if="errores.study_desc">
+                                                {{ errores.study_desc[0] }}
+                                            </span>
                                         </div>
                                     </div>
 
@@ -225,9 +226,9 @@
                                             <label class="control-label">Detalle</label>
                                             <input type="text" id="accession_no" name="accession_no"
                                                 v-model="registro.accession_no" class="form-control" />
-                                            <span class="text-danger" v-if="errores.accession_no">{{
-                                                errores.accession_no[0]
-                                            }}</span>
+                                            <span class="text-danger" v-if="errores.accession_no">
+                                                {{ errores.accession_no[0] }}
+                                            </span>
                                         </div>
                                     </div>
 
@@ -236,9 +237,9 @@
                                             <label class="control-label">Fecha</label>
                                             <input type="text" id="fec_estudio" name="fec_estudio"
                                                 v-model="registro.fec_estudio" class="form-control" />
-                                            <span class="text-danger" v-if="errores.fec_estudio">{{
-                                                errores.fec_estudio[0]
-                                            }}</span>
+                                            <span class="text-danger" v-if="errores.fec_estudio">
+                                                {{ errores.fec_estudio[0] }}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -320,7 +321,8 @@
                                                 <i class="fa fa-file-image-o"></i>
                                             </button>
 
-                                            <a class="" @click="startSpeechRecognition" style="width: 30px; height: 30px;">
+                                            <a class="" @click="startSpeechRecognition"
+                                                style="width: 30px; height: 30px;">
                                                 <img title="Grabadora" :src="microfono">
                                             </a>
                                         </div>
@@ -350,7 +352,7 @@
                                                 :key="index">
                                                 <a href="javascript:void(0)"
                                                     @click="descargaSoportte(itemArchivo.archivo_encrip)">{{
-                                                        itemArchivo.archivo_original }}</a>
+                                    itemArchivo.archivo_original }}</a>
                                             </div>
                                         </div>
                                     </div>
@@ -435,6 +437,7 @@ export default {
         async listarPendientesLeerTranscirbir() {
             try {
                 const res = await axios.get("/estudio-listarPendientesPorLeerTranscribir");
+
                 $("#example23").DataTable().destroy();
                 this.registros = res.data;
 

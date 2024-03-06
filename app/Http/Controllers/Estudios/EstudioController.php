@@ -307,7 +307,8 @@ class EstudioController extends Controller
             ->join('users as medi', 'estudios.medico_id', '=', 'medi.id')
             ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
             ->whereNull('produc.fechor_trascrito')
-            ->whereNotNull('produc.fechor_lectura')
+            ->whereNotNull('produc.lectura')
+            ->orderBy('estudios.created_at', 'ASC')
             ->get();
 
         return response()->json($misPendiente);

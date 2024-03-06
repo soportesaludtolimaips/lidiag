@@ -90,7 +90,6 @@
                         <div class="table-responsive">
                             <table id="example23" class="table table-bordered table-striped" cellspacing="0"
                                 width="100%">
-
                                 <thead>
                                     <tr>
                                         <th>Fecha del Estudio</th>

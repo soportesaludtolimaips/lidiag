@@ -71,17 +71,18 @@
         </div> -->
 
         <div class="row">
-            <div class="col-12">
+            <div class="col-12 table-responsive">
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de estudios pendientes por transcribir</h4>
-                        <div class="col-md-12 table-responsive m-t-40">
-                            <table id="myTable" class="table table-bordered table-striped">
+                        <div class="table-responsive">
+                            <table id="example23" class="table table-bordered table-striped" cellspacing="0"
+                                width="100%">
                                 <thead>
                                     <tr>
                                         <th></th>
                                         <th>Sucursal</th>
-                                        <th>Fecha del Toma</th>
+                                        <th>Fecha de la Toma</th>
                                         <th>Quien Asigno</th>
                                         <th>Medico</th>
                                         <th>Paciente</th>
@@ -158,43 +159,28 @@
                                         <i class="fa fa-user"></i> Datos del Paciente
                                     </h5>
                                     <hr>
+
                                     <div class="row">
-                                        <div class="col-md-3">
+                                        <div class="col-md-6">
                                             <div class="form-group">
-                                                <label class="control-label"># Documento</label>
-                                                <input type="text" id="num_docu" name="num_docu" v-model="registro.num_docu"
-                                                    class="form-control" placeholder="# de Documento" />
-                                                <span class="text-danger" v-if="errores.num_docu">{{
-                                                    errores.num_docu[0]
-                                                }}</span>
+
+                                                <dl>
+                                                    <dt>Paciente:</dt>
+                                                    <dd>{{ registro.nom_pacien }}</dd>
+                                                    <dt># Documento:</dt>
+                                                    <dd>{{ registro.num_docu }}</dd>
+                                                </dl>
                                             </div>
                                         </div>
 
-                                        <div class="col-md-5">
+                                        <div class="col-md-6">
                                             <div class="form-group">
-                                                <label class="control-label">Nombres</label>
-                                                <input type="text" id="nom_pacien" name="nom_pacien"
-                                                    v-model="registro.nom_pacien" class="form-control"
-                                                    placeholder="Nombres" />
-                                                <span class="text-danger" v-if="errores.nom_pacien">{{
-                                                    errores.nom_pacien[0]
-                                                }}</span>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-2">
-                                            <div class="form-group">
-                                                <label class="control-label">Sexo</label>
-                                                <input type="text" id="sexo" name="sexo" v-model="registro.sexo"
-                                                    class="form-control" />
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-2">
-                                            <div class="form-group">
-                                                <label class="control-label">Fec. Nacimi</label>
-                                                <input type="date" id="fec_naci" name="fec_naci" v-model="registro.fec_naci"
-                                                    class="form-control" />
+                                                <dl>
+                                                    <dt>Fecha de nacimiento:</dt>
+                                                    <dd>{{ registro.fec_naci }}</dd>
+                                                    <dt>Sexo:</dt>
+                                                    <dd>{{ registro.sexo }}</dd>
+                                                </dl>
                                             </div>
                                         </div>
                                     </div>
@@ -243,34 +229,28 @@
                                     <div class="row">
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label class="control-label">Descripción</label>
-                                                <input type="text" id="study_desc" name="study_desc"
-                                                    v-model="registro.study_desc" class="form-control" />
-                                                <span class="text-danger" v-if="errores.study_desc">{{
-                                                    errores.study_desc[0]
-                                                }}</span>
+                                                <dl>
+                                                    <dt>Descripción:</dt>
+                                                    <dd>{{ registro.study_desc }}</dd>
+                                                </dl>
                                             </div>
                                         </div>
 
                                         <div class="col-md-4">
                                             <div class="form-group">
-                                                <label class="control-label">Detalle</label>
-                                                <input type="text" id="accession_no" name="accession_no"
-                                                    v-model="registro.accession_no" class="form-control" />
-                                                <span class="text-danger" v-if="errores.accession_no">{{
-                                                    errores.accession_no[0]
-                                                }}</span>
+                                                <dl>
+                                                    <dt>Detalle</dt>
+                                                    <dd>{{ registro.accession_no }}</dd>
+                                                </dl>
                                             </div>
                                         </div>
 
                                         <div class="col-md-3">
                                             <div class="form-group">
-                                                <label class="control-label">Fecha</label>
-                                                <input type="text" id="fec_estudio" name="fec_estudio"
-                                                    v-model="registro.fec_estudio" class="form-control" />
-                                                <span class="text-danger" v-if="errores.fec_estudio">{{
-                                                    errores.fec_estudio[0]
-                                                }}</span>
+                                                <dl>
+                                                    <dt>Fecha del estudio</dt>
+                                                    <dd>{{ registro.fec_estudio }}</dd>
+                                                </dl>
                                             </div>
                                         </div>
                                     </div>
@@ -282,13 +262,12 @@
                                                     v-model="registro.email_reportar" class="form-control"
                                                     placeholder="Ingrese aqi el email a reportar" />
                                             </div>
-                                        </div>
-                                        <div class="col-md-12">
+
                                             <div class="form-group">
-                                                <label class="control-label">Observaciones</label>
-                                                <input type="text" id="observaciones" name="observaciones"
-                                                    v-model="registro.observaciones" class="form-control"
-                                                    placeholder="Ingrese aqi las observaciones del estudio" />
+                                                <dl>
+                                                    <dt>Observaciones</dt>
+                                                    <dd>{{ registro.observaciones }}</dd>
+                                                </dl>
                                             </div>
                                         </div>
                                     </div>
@@ -298,52 +277,28 @@
                                     </h5>
                                     <hr>
 
-                                    <div class="row">
+                                    <div class="row table-responsive">
                                         <div class="col-md-12">
-                                            <table id=" example23"
-                                                class="display nowrap table table-hover table-striped table-bordered"
-                                                cellspacing="0" width="100%">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Codigo</th>
-                                                        <th>Producto</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>{{ productoEstudio.cod_produc }}</td>
-                                                        <td>{{ productoEstudio.nom_produc }}</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
+                                            <dl>
+                                                <dd>{{ productoEstudio.nom_produc }}</dd>
+                                            </dl>
                                         </div>
                                     </div>
                                     <br />
-                                    <h5 class="card-title text-info">
+
+                                    <!-- <h5 class="card-title text-info">
                                         <i class="fa fa-user"></i> Diagnosticos
                                     </h5>
                                     <hr>
 
-                                    <div class="row">
-                                        <div class="col-md-12" style="height:150px; overflow-y: scroll;">
-                                            <table id=" example23"
-                                                class="display nowrap table table-hover table-striped table-bordered"
-                                                cellspacing="0" width="100%">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Codigo</th>
-                                                        <th>Diagnostico</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr v-for="(item, index) in  diagnosticosEstudio " :key="index">
-                                                        <td>{{ item.cod_diagnos }}</td>
-                                                        <td>{{ item.nom_diagnos }}</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
+                                    <div class="row table-responsive" style="height:150px; overflow-y: scroll;">
+                                        <div class="col-md-12">
+                                            <ul v-for="(item, index) in  diagnosticosEstudio " :key="index">
+                                                <li>{{ item.nom_diagnos }}</li>
+
+                                            </ul>
                                         </div>
-                                    </div>
+                                    </div> -->
                                 </div>
                                 <div class="col-md-6">
                                     <div class="row">
@@ -355,7 +310,8 @@
                                         </div>
                                         <div class="col-3">
                                             <div class="col-md-7 align-self-center text-right d-none d-md-block">
-                                                <button type="button" class="btn btn-secondary btn-xs" @click="verImagen()">
+                                                <button type="button" class="btn btn-secondary btn-xs"
+                                                    @click="verImagen()">
                                                     <i class="fa fa-file-image-o"></i>
                                                 </button>
                                             </div>
@@ -365,17 +321,18 @@
                                     <div class="row">
                                         <div class="col-12">
                                             <div class="form-group">
-                                                <textarea v-model="registro.lectura" class="textarea_editor form-control"
-                                                    rows="20" id="lectura" style="height: 100%;"
+                                                <textarea v-model="registro.lectura"
+                                                    class="textarea_editor form-control" rows="20" id="lectura"
+                                                    style="height: 100%;"
                                                     placeholder="Ingrese aquí la lectura del estudio ..."></textarea>
 
-                                                <form method="post">
+                                                <!-- <form method="post">
                                                     <div class="form-group">
                                                         <textarea class="textarea_editor form-control" rows="15"
                                                             placeholder="Enter text ..."
                                                             v-model="registro.lectura"></textarea>
                                                     </div>
-                                                </form>
+                                                </form> -->
                                             </div>
                                         </div>
                                     </div>
@@ -388,11 +345,11 @@
                                     <div class="row">
                                         <div class="card card-body">
                                             <div class="row">
-                                                <div class="col-md-8 col-lg-9" v-for="(itemArchivo, index) in soportesHC"
-                                                    :key="index">
+                                                <div class="col-md-8 col-lg-9"
+                                                    v-for="(itemArchivo, index) in soportesHC" :key="index">
                                                     <a href="javascript:void(0)"
                                                         @click="descargaSoportte(itemArchivo.archivo_encrip)">{{
-                                                            itemArchivo.archivo_original }}</a>
+                                        itemArchivo.archivo_original }}</a>
                                                 </div>
                                             </div>
                                         </div>
