@@ -84,10 +84,12 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de estudios disponibles</h4>
-                        <h6 class="card-subtitle text-info">Asigne los estudios a los médicos para su respectiva lectura.
+                        <h6 class="card-subtitle text-info">Asigne los estudios a los médicos para su respectiva
+                            lectura.
                         </h6>
                         <div class="table-responsive">
-                            <table id="example23" class="table table-bordered table-striped" cellspacing="0" width="100%">
+                            <table id="example23" class="table table-bordered table-striped" cellspacing="0"
+                                width="100%">
 
                                 <thead>
                                     <tr>
@@ -159,8 +161,9 @@
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label class="control-label"># Documento</label>
-                                                <input type="text" id="num_docu" name="num_docu" v-model="registro.num_docu"
-                                                    class="form-control" placeholder="# de Documento" />
+                                                <input type="text" id="num_docu" name="num_docu"
+                                                    v-model="registro.num_docu" class="form-control"
+                                                    placeholder="# de Documento" />
                                                 <span class="text-danger" v-if="errores.num_docu">
                                                     {{ errores.num_docu[0] }}
                                                 </span>
@@ -170,8 +173,9 @@
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <label class="control-label">Nombres</label>
-                                                <input type="text" id="nombres" name="nombres" v-model="registro.nombres"
-                                                    class="form-control" placeholder="Nombres" />
+                                                <input type="text" id="nombres" name="nombres"
+                                                    v-model="registro.nombres" class="form-control"
+                                                    placeholder="Nombres" />
                                                 <span class="text-danger" v-if="errores.nombres">
                                                     {{ errores.nombres[0] }}
                                                 </span>
@@ -189,8 +193,8 @@
                                         <div class="col-md-2">
                                             <div class="form-group">
                                                 <label class="control-label">Fec. Nacimi</label>
-                                                <input type="date" id="fec_naci" name="fec_naci" v-model="registro.fec_naci"
-                                                    class="form-control" />
+                                                <input type="date" id="fec_naci" name="fec_naci"
+                                                    v-model="registro.fec_naci" class="form-control" />
                                             </div>
                                         </div>
                                     </div>
@@ -232,7 +236,8 @@
                                     <hr>
 
                                     <input type="hidden" id="study_pk" name="study_pk" v-model="registro.study_pk" />
-                                    <input type="hidden" id="study_iuid" name="study_iuid" v-model="registro.study_iuid" />
+                                    <input type="hidden" id="study_iuid" name="study_iuid"
+                                        v-model="registro.study_iuid" />
                                     <input type="hidden" id="study_id" name="study_id" v-model="registro.study_id" />
 
                                     <div class="row">
@@ -340,7 +345,7 @@
                                                     <option v-for="(ItemPrioridad, index) in prioridades" :key="index"
                                                         :value="ItemPrioridad.id">
                                                         {{ ItemPrioridad.nom_priori }} - {{ ItemPrioridad.tiempo }} {{
-                                                            ItemPrioridad.tipo_tiempo }} {{ ItemPrioridad.observacion }}
+                                                    ItemPrioridad.tipo_tiempo }} {{ ItemPrioridad.observacion }}
                                                     </option>
                                                 </select>
                                                 <span class="text-danger" v-if="errores.prioridad_id">
@@ -351,9 +356,10 @@
                                         <div class="col-md-4" v-if="sedeInterface === true">
                                             <div class="form-group">
                                                 <label class="control-label">Atención {{ interfaceAtencionSeleccionada
-                                                }}</label>
+                                                    }}</label>
                                                 <select v-model="interfaceAtencionSeleccionada"
-                                                    name="interfaceAtencionSeleccionada" id="interfaceAtencionSeleccionada"
+                                                    name="interfaceAtencionSeleccionada"
+                                                    id="interfaceAtencionSeleccionada"
                                                     class="form-control custom-select"
                                                     @change="interfaceListarProductosDiagnosticos()">
                                                     <option v-for="(ItemAtencion, index) in interfaceAtenciones"
@@ -382,16 +388,18 @@
                                     </button> -->
 
                                     <div class="row">
-                                        <!-- <div class="col-md-12">
-                                            <select class="form-control custom-select" @change="guardarProductosEstudio(10)"
-                                                style="width: 100%; height: 36px" v-model="productoSelecciondo">
+                                        <div class="col-md-12" v-if="sedeInterface === false">
+                                            <select class="form-control custom-select"
+                                                @change="guardarProductosEstudio(10)" style="width: 100%; height: 36px"
+                                                v-model="productoSelecciondo">
                                                 <option v-for="ItemProducto in productos" v-bind:key="ItemProducto"
                                                     v-bind:value="ItemProducto.id">
                                                     {{ ItemProducto.nom_produc }}
                                                 </option>
                                             </select>
-                                        </div> -->
-                                        <div class="col-md-12 table-responsive" style="overflow-y: scroll; height: 250px;">
+                                        </div>
+                                        <div class="col-md-12 table-responsive"
+                                            style="overflow-y: scroll; height: 250px;" v-if="sedeInterface === true">
                                             <table id="myTable" class="table table-bordered table-striped">
                                                 <thead>
                                                     <tr>
@@ -402,7 +410,8 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <tr v-for="(item, index) in registro.productosEstudio" :key="item.id">
+                                                    <tr v-for="(item, index) in registro.productosEstudio"
+                                                        :key="item.id">
                                                         <td>
                                                             <input type="checkbox" class="iCheck-helper"
                                                                 id="flat-checkbox-2" data-checkbox="icheckbox_flat-red"
@@ -449,17 +458,18 @@
                                     </button> -->
 
                                     <div class="row">
-                                        <!-- <div class="col-md-12">
+                                        <div class="col-md-12" v-if="sedeInterface === false">
                                             <select class="form-control custom-select"
-                                                @change="guardarDiagnosticosEstudio(10)" style="width: 100%; height: 36px"
-                                                v-model="diagnosticoSelecciondo">
-                                                <option v-for="ItemDiagnostico in diagnosticos" v-bind:key="ItemDiagnostico"
-                                                    v-bind:value="ItemDiagnostico.id">
+                                                @change="guardarDiagnosticosEstudio(10)"
+                                                style="width: 100%; height: 36px" v-model="diagnosticoSelecciondo">
+                                                <option v-for="ItemDiagnostico in diagnosticos"
+                                                    v-bind:key="ItemDiagnostico" v-bind:value="ItemDiagnostico.id">
                                                     {{ ItemDiagnostico.nom_diagnos }}
                                                 </option>
                                             </select>
-                                        </div> -->
-                                        <div class="col-md-12 table-responsive" style="overflow-y: scroll; height: 250px;">
+                                        </div>
+                                        <div class="col-md-12 table-responsive"
+                                            style="overflow-y: scroll; height: 250px;" v-if="sedeInterface === true">
                                             <table id="myTable" class="table table-bordered table-striped">
                                                 <thead>
                                                     <tr>
@@ -492,7 +502,8 @@
                                     <i class="fa fa-check"></i> Guardar
                                 </button>
 
-                                <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">Cancel</button>
+                                <button type="button" class="btn btn-inverse"
+                                    @click="btnCerralModalForm()">Cancel</button>
                             </div>
                         </div>
                     </form>
@@ -767,8 +778,8 @@ export default {
             this.registro.sede_id = sessionStorage.getItem('ST-sede');
             this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
             this.sedeActual = sessionStorage.getItem('ST-sede');
-            console.log(this.registro.sede_id)
-            if (this.registro.sede_id = 1) {
+
+            if (this.registro.sede_id == 1) {
                 this.sedeInterface = true;
             } else {
                 this.sedeInterface = false;

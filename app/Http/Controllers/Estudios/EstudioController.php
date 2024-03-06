@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Mail;
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\Reportes\ResporteLecturaController;
+use App\Http\Requests\Estudio\estudioAsignarRequest;
 use App\Mail\ReportarLectura;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\Estudio\EstudioAudio;
@@ -45,7 +46,7 @@ class EstudioController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(estudioAsignarRequest $request)
     {
 
         $registro = json_decode($request->registro);
@@ -402,6 +403,7 @@ class EstudioController extends Controller
             $audio = $request->file('audio');
             $bandera = Str::random(30);
             $nombreAudio = $audio->getClientOriginalName();
+            return $nombreAudio;
             $nuevoNombreAudio = $bandera . '_' . $nombreAudio;
 
             $audio->storeAs('audios', $nuevoNombreAudio, 'public');

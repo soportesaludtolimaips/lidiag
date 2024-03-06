@@ -72,6 +72,7 @@ class ConfigSedeController extends Controller
 
     public function buscarPorId(ConfigSede $configsede)
     {
+        //return 'ok';
         return $configsede;
     }
 
@@ -80,6 +81,7 @@ class ConfigSedeController extends Controller
         $sedes = ConfigSede::where('estado', '=', 1)->get();
         return response()->json($sedes);
     }
+
     /**
      * Update the specified resource in storage.
      *

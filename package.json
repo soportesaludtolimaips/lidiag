@@ -17,12 +17,14 @@
         "vue": "^3.2.41"
     },
     "dependencies": {
+        "@google-cloud/speech": "^6.3.0",
         "@vitejs/plugin-basic-ssl": "^1.0.1",
         "mitt": "^3.0.1",
         "recorder-js": "^1.0.7",
         "recordrtc": "^5.6.2",
         "vue-bus": "^1.2.1",
         "vue-loader": "^17.0.1",
+        "vue-recorder": "^0.1.0",
         "vue-router": "^4.1.6",
         "vuetify": "^3.0.0-beta.10"
     }
