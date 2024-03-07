@@ -32,11 +32,8 @@ class ImportarDicom extends Controller
         $startTime = microtime(true);
         $sedeActual = ConfigSede::find(1);
 
-        $agendas = Agenda::orderBy('fechor_regis')
-            ->where('study_pk', '>', 120685)
-            //->skip(0)->take(10000)
-            ->orderBy('id_agenda', 'ASC')
-            //->limit(2)
+        $agendas = Agenda::orderBy('fechor_regis', 'ASC')
+            ->where('study_pk', '>', 135262)
             ->get();
         //return $agendas->count();
         $i = 0;
@@ -109,6 +106,7 @@ class ImportarDicom extends Controller
                     /**
                      * Busco el medico en Dicom
                      */
+                    Config::set('database.default', 'mysql_importar_dicom');
                     $medicoDicom = GeneralPersonal::where('id_personal', '=', $agenda->id_medico)
                         ->get();
 
@@ -158,7 +156,7 @@ class ImportarDicom extends Controller
                     }
 
                     /**
-                     * Busco quien en Lidiag
+                     * Busco quien agendo en Lidiag
                      */
                     $quienAgendoLidiag = User::where('num_docu', '=', $quienAgendoDicom[0]->num_docu)
                         ->get();

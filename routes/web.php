@@ -20,6 +20,7 @@ use App\Http\Controllers\Estudios\EstudioProductoController;
 use App\Http\Controllers\Estudios\EstudioDiagnosticoController;
 use App\Http\Controllers\Estudios\EstudioNotificacionController;
 use App\Http\Controllers\Estudios\EstudioSoporteHCController;
+use App\Http\Controllers\Importar\ActualizarMedico;
 use App\Http\Controllers\Importar\ImportarDicom;
 use App\Http\Controllers\Interface\SAHIController;
 use App\Http\Controllers\Reportes\ReporteProduccion;
@@ -131,6 +132,7 @@ Route::get('/interface-sahi-listar-listarProductosDiagnosticos/{idAtencion}', [S
  * Interface SAHI
  */
 Route::get('/importar-dicom', [ImportarDicom::class, 'importarDicom']);
+Route::get('/actulizar-medico', [ActualizarMedico::class, 'actualizarMedico']);
 /* Route::get('/{optional?}', function () {
     return view('layouts.app');
 })->name('basepath')->where('optional', '.*');
