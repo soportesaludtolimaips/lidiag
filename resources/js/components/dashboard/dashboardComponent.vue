@@ -65,46 +65,48 @@
             </div>
             <!-- Column -->
             <!-- Column -->
-            <div class="col-lg-3 col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex p-10 no-block">
-                            <div class="align-self-center display-6 m-r-20">
-                                <i class="text-info icon-Dollar-Sign"></i>
-                            </div>
-                            <div class="align-slef-center">
-                                <h2 class="m-b-0">{{ indicadores.estudiosPorTranscribir }}
-                                    <small>
-                                        <i class="ti-angle-up text-success"></i>
-                                    </small>
-                                </h2>
-                                <h6 class="text-muted m-b-0">Total estudios por transcribir</h6>
+            <template v-if="this.rolesusuario == 'Administrador'">
+                <div class="col-lg-3 col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex p-10 no-block">
+                                <div class="align-self-center display-6 m-r-20">
+                                    <i class="text-info icon-Dollar-Sign"></i>
+                                </div>
+                                <div class="align-slef-center">
+                                    <h2 class="m-b-0">{{ indicadores.estudiosPorTranscribir }}
+                                        <small>
+                                            <i class="ti-angle-up text-success"></i>
+                                        </small>
+                                    </h2>
+                                    <h6 class="text-muted m-b-0">Total estudios por transcribir</h6>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <!-- Column -->
+                <!-- Column -->
 
-            <!-- Column -->
-            <div class="col-lg-3 col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex p-10 no-block">
-                            <div class="align-self-center display-6 m-r-20">
-                                <i class="text-danger icon-Contrast"></i>
-                            </div>
-                            <div class="align-slef-center">
-                                <h2 class="m-b-0">0
-                                    <small><i class="ti-angle-down text-danger"></i>
-                                    </small>
-                                </h2>
-                                <h6 class="text-muted m-b-0">Total de estudios descargados</h6>
+                <!-- Column -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex p-10 no-block">
+                                <div class="align-self-center display-6 m-r-20">
+                                    <i class="text-danger icon-Contrast"></i>
+                                </div>
+                                <div class="align-slef-center">
+                                    <h2 class="m-b-0">0
+                                        <small><i class="ti-angle-down text-danger"></i>
+                                        </small>
+                                    </h2>
+                                    <h6 class="text-muted m-b-0">Total de estudios descargados</h6>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </template>
             <!-- Column -->
             <!-- Column -->
         </div>
@@ -215,10 +217,11 @@
 <script>
 
 export default {
-    props: ['usuarioactual'],
+    props: ['usuarioactual', 'rolesusuario'],
     mounted() {
         this.estudiosTorta();
         this.generarIndicadores();
+
     },
     data() {
         return {
@@ -233,11 +236,9 @@ export default {
             this.indicadores.estudiosLeidos = res.data.estudiosLeidos
             this.indicadores.estudiosPorTranscribir = res.data.estudiosPorTranscribir
             this.indicadores.estudiosMasSolicitados = res.data.estudiosMasSolicitados
-            console.log('************** ojo ******************')
+            /* console.log('************** ojo ******************')
             console.log(res.data.estudiosMasSolicitados)
-            console.log('************** ojo ******************')
-
-
+            console.log('************** ojo ******************') */
 
             console.log(Object.values(res.data.estudiosMasSolicitados).map(({ total, mods_in_study }) => (total, mods_in_study)));
         },
