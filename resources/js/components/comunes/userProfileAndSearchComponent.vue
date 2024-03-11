@@ -265,8 +265,9 @@
                     </li>
                     <li role="separator" class="divider"></li>
                     <li>
-                        <a href="#" @click.prevent="Logout">
-                            <i class="fa fa-power-off"></i> Salir
+                        <a href="{{ route('logout') }}"
+                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            <i class="fa fa-power-off"></i> Logout
                         </a>
                     </li>
                 </ul>
