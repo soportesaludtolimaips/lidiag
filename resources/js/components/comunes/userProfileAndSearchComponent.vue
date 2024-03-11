@@ -166,8 +166,8 @@
         <!-- mega menu -->
         <!-- ============================================================== -->
         <li class="nav-item dropdown mega-dropdown">
-            <a class="nav-link dropdown-toggle waves-effect waves-dark" href="" data-toggle="dropdown" aria-haspopup="true"
-                aria-expanded="false">
+            <a class="nav-link dropdown-toggle waves-effect waves-dark" href="" data-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false">
                 <i class="icon-Box-Close"></i></a>
             <div class="dropdown-menu animated bounceInDown">
                 <ul class="mega-dropdown-menu row">
@@ -273,7 +273,7 @@
             </div>
         </li>
     </ul>
-</template >
+</template>
 <script>
 export default {
     props: ['usuarioactual'],
@@ -284,10 +284,6 @@ export default {
         return {
             sedes: [], //Listo las sedes
             sedeSeleccionada: sessionStorage.getItem('ST-sede'),
-            nomSedeSeleccionada: sessionStorage.getItem('ST-nomsede'),
-            urlSedeSeleccionada: sessionStorage.getItem('ST-urlsede'),
-            serverNameSeleccionada: sessionStorage.getItem('ST-servername'),
-            email_repor: sessionStorage.getItem('ST-email_repor')
         }
     },
     methods: {
