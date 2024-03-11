@@ -53,7 +53,7 @@ class UserSeeder extends Seeder
         User::create(['num_docu' => '72004207', 'reg_med' => '72004207', 'name' => 'Miguel José Acosta López', 'email' => 'migueljose.ime@gmail.com', 'password' => bcrypt('123456')])->assignRole('Medico');
         User::create(['num_docu' => '1085260394', 'reg_med' => '', 'name' => 'TL DEISHI MIREYA VALLEJO', 'email' => 'DEIVAL01@tl.com', 'password' => bcrypt('123456')])->assignRole('Medico');
         User::create(['num_docu' => '43876298', 'reg_med' => '43876298', 'name' => 'TL GENNY MELINA AMAYA PANIAGUA', 'email' => 'GENAMA01@tl.com', 'password' => bcrypt('123456')])->assignRole('Medico');
-        User::create(['num_docu' => '79554448', 'reg_med' => '80082041', 'name' => 'CARLOS ANDRES CORTES VILLARREAL', 'email' => 'carlosandrescortesv@gmail.com', 'password' => bcrypt('123456'), 'interface_id' => '2012'])->assignRole('Medico');
+        User::create(['num_docu' => '80082041', 'reg_med' => '80082041', 'name' => 'CARLOS ANDRES CORTES VILLARREAL', 'email' => 'carlosandrescortesv@gmail.com', 'password' => bcrypt('123456'), 'interface_id' => '2012'])->assignRole('Medico');
         User::create(['num_docu' => '93284421', 'reg_med' => '', 'name' => 'JOSE FABIO MARIN CASTAÑO', 'email' => 'josefabiomarin1403@gmail.com', 'password' => bcrypt('123456')])->assignRole('Medico');
         User::create(['num_docu' => '77184037', 'reg_med' => '2520', 'name' => 'TL JAIRO FERNANDO COLLAZO LIMA', 'email' => 'JAICOL01@tl.com', 'password' => bcrypt('123456')])->assignRole('Medico');
         User::create(['num_docu' => '93401481', 'reg_med' => '73257', 'name' => 'FRANCISCO JAVIER ANDRADE LINARES', 'email' => 'dr_andradel@yahoo.es', 'password' => bcrypt('123456')])->assignRole('Medico');
