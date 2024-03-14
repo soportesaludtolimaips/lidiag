@@ -15,6 +15,7 @@ use App\Http\Controllers\Configuracion\ConfigSedeController;
 use App\Http\Controllers\Dashboard\DashBoardController;
 use App\Http\Controllers\Dcm4chee\StudyController;
 use App\Http\Controllers\Estudio\EstudioSoporteHC;
+use App\Http\Controllers\Estudios\AudiosEstudioController;
 use App\Http\Controllers\Estudios\EstudioController;
 use App\Http\Controllers\Estudios\EstudioProductoController;
 use App\Http\Controllers\Estudios\EstudioDiagnosticoController;
@@ -68,8 +69,8 @@ Route::post('/notificar.email', [EstudioController::class, 'notificarEmail'])->n
 Route::view('/estudios.leer.estudio.listar', 'modulos.estudios.leer-estudio')->name('estudios.leer.estudio.listar');
 Route::post('/estudio-leerEstudio', [EstudioController::class, 'leerEstudio'])->name('estudio.leerEstudio');
 
-
 Route::post('/upload-audio', [EstudioController::class, 'uploadAudio']);
+Route::get('/listar-audios-estudio/{estudio_id}', [AudiosEstudioController::class, 'listarAudiosPorEstudio'])->name('listarAudiosPorEstudio');
 
 Route::view('/estudios.transcribir.listar', 'modulos.estudios.transcribir-estudio')->name('estudios.transcribir.listar');
 Route::view('/estudios.transcribirYleer.listar', 'modulos.estudios.transcribirYleer-estudio')->name('estudios.leerytranscribir.listar');
@@ -84,7 +85,6 @@ Route::get('/estudio-buscar-por-numdocu/{numDocu}', [EstudioController::class, '
  */
 Route::view('reportes-produccion', 'modulos.reportes.reportes-produccion')->name('reportes.produccion')->middleware('auth');
 Route::post('descarga-reportes-produccion', [ReporteProduccion::class, 'reporteProduccionDetallado'])->name('descarga.reportes.produccion')->middleware('auth');
-
 
 /**
  * Configuración

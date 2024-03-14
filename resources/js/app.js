@@ -4,11 +4,10 @@
  * building robust, powerful web applications using Vue and Laravel.
  */
 
-import './bootstrap';
-import { createApp } from 'vue';
+import "./bootstrap";
+import { createApp } from "vue";
 
-import mitt from 'mitt'
-
+import mitt from "mitt";
 
 const emitter = mitt();
 
@@ -24,66 +23,61 @@ app.config.globalProperties.emitter = emitter;
  * Principales
  */
 
-import dashboardComponent from './components/dashboard/dashboardComponent.vue';
-app.component('dashboard-component', dashboardComponent);
-
+import dashboardComponent from "./components/dashboard/dashboardComponent.vue";
+app.component("dashboard-component", dashboardComponent);
 
 /**
  * Cofiguración
  */
-import configAdminSaludComponent from './components/modulos/configuracion/configAdminSaludComponent.vue';
-app.component('config-admin-salud-component', configAdminSaludComponent);
-import configDiagnosticoComponent from './components/modulos/configuracion/configDiagnosticoComponent.vue';
-app.component('config-diagnostico-component', configDiagnosticoComponent);
-import configPrioridadComponent from './components/modulos/configuracion/configPrioridadComponent.vue';
-app.component('config-prioridad-component', configPrioridadComponent);
-import configProductoComponent from './components/modulos/configuracion/configProductoComponent.vue';
-app.component('config-producto-component', configProductoComponent);
-import configSedeComponent from './components/modulos/configuracion/configSedeComponent.vue';
-app.component('config-sede-component', configSedeComponent);
-
+import configAdminSaludComponent from "./components/modulos/configuracion/configAdminSaludComponent.vue";
+app.component("config-admin-salud-component", configAdminSaludComponent);
+import configDiagnosticoComponent from "./components/modulos/configuracion/configDiagnosticoComponent.vue";
+app.component("config-diagnostico-component", configDiagnosticoComponent);
+import configPrioridadComponent from "./components/modulos/configuracion/configPrioridadComponent.vue";
+app.component("config-prioridad-component", configPrioridadComponent);
+import configProductoComponent from "./components/modulos/configuracion/configProductoComponent.vue";
+app.component("config-producto-component", configProductoComponent);
+import configSedeComponent from "./components/modulos/configuracion/configSedeComponent.vue";
+app.component("config-sede-component", configSedeComponent);
 
 /**
  * Estudios
  */
-import AsignarEstudioComponent from './components/modulos/estudios/AsignarEstudioComponent.vue';
-app.component('asignar-studio-component', AsignarEstudioComponent);
-import leerEstudioComponent from './components/modulos/estudios/leerEstudioComponent.vue';
-app.component('leer-estudio-component', leerEstudioComponent);
-import leerYTrasncribirEstudioAdministrativoComponent from './components/modulos/estudios/leerYTrasncribirEstudioAdministrativoComponent.vue';
-app.component('leer-y-transcribir-administrativo-component', leerYTrasncribirEstudioAdministrativoComponent);
-import transcribirEstudioComponent from './components/modulos/estudios/transcribirEstudioComponent.vue';
-app.component('transcribir-estudio-component', transcribirEstudioComponent);
-import notificarEstudioComponent from './components/modulos/estudios/notificarEstudioComponent.vue';
-app.component('notificar-estudio-component', notificarEstudioComponent);
-
-
+import AsignarEstudioComponent from "./components/modulos/estudios/AsignarEstudioComponent.vue";
+app.component("asignar-studio-component", AsignarEstudioComponent);
+import leerEstudioComponent from "./components/modulos/estudios/leerEstudioComponent.vue";
+app.component("leer-estudio-component", leerEstudioComponent);
+import leerYTrasncribirEstudioAdministrativoComponent from "./components/modulos/estudios/leerYTrasncribirEstudioAdministrativoComponent.vue";
+app.component("leer-y-transcribir-administrativo-component", leerYTrasncribirEstudioAdministrativoComponent);
+import transcribirEstudioComponent from "./components/modulos/estudios/transcribirEstudioComponent.vue";
+app.component("transcribir-estudio-component", transcribirEstudioComponent);
+import notificarEstudioComponent from "./components/modulos/estudios/notificarEstudioComponent.vue";
+app.component("notificar-estudio-component", notificarEstudioComponent);
 
 /**
  * Seguridad
-*/
-import usuarioComponent from './components/modulos/seguridad/usuarioComponent.vue';
-app.component('usuario-component', usuarioComponent);
-import usuarioPerfil from './components/modulos/seguridad/usuarioPerfil.vue';
-app.component('usuario-perfil-component', usuarioPerfil);
-import roleComponente from './components/modulos/seguridad/roleComponente.vue';
-app.component('role-componente', roleComponente);
+ */
+import usuarioComponent from "./components/modulos/seguridad/usuarioComponent.vue";
+app.component("usuario-component", usuarioComponent);
+import usuarioPerfil from "./components/modulos/seguridad/usuarioPerfil.vue";
+app.component("usuario-perfil-component", usuarioPerfil);
+import roleComponente from "./components/modulos/seguridad/roleComponente.vue";
+app.component("role-componente", roleComponente);
 
 /**
  * Reportes
  */
-import reporteProduccionComponent from './components/modulos/reportes/reporteProduccionComponent.vue';
-app.component('reportes-produccion-component', reporteProduccionComponent);
-
+import reporteProduccionComponent from "./components/modulos/reportes/reporteProduccionComponent.vue";
+app.component("reportes-produccion-component", reporteProduccionComponent);
 
 /**
  * Comunes
  */
-import userProfileAndSearchComponent from './components/comunes/userProfileAndSearchComponent.vue';
-app.component('user-profile-and-search-component', userProfileAndSearchComponent);
+import userProfileAndSearchComponent from "./components/comunes/userProfileAndSearchComponent.vue";
+app.component("user-profile-and-search-component", userProfileAndSearchComponent);
 
-import footerComponent from './components/comunes/footerComponent.vue';
-app.component('footer-component', footerComponent);
+import footerComponent from "./components/comunes/footerComponent.vue";
+app.component("footer-component", footerComponent);
 
 /**
  * The following block of code may be used to automatically register your
@@ -103,11 +97,8 @@ app.component('footer-component', footerComponent);
  * scaffolding. Otherwise, you will need to add an element yourself.
  */
 
-
 /* import route from './routes'
 
 app.use(route); */
 
-
-
-app.mount('#app');
+app.mount("#app");

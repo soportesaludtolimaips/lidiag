@@ -225,7 +225,6 @@
                                             <button type="button" class="btn btn-secondary btn-xs" @click="verImagen()">
                                                 <i class="fa fa-file-image-o"></i>
                                             </button>
-
                                             <a class="" @click="startSpeechRecognition"
                                                 style="width: 30px; height: 30px;">
                                                 <img title="Grabadora" :src="microfono">
@@ -245,21 +244,47 @@
                                     </div>
                                 </div>
 
-                                <h5 class="card-title text-info">
-                                    <i class="fa fa-paperclip"></i> Adjuntos
-                                </h5>
-                                <hr>
-
                                 <div class="row">
-                                    <div class="card card-body">
-                                        <div class="row">
-                                            <div class="col-md-8 col-lg-9" v-for="(itemArchivo, index) in soportesHC"
-                                                :key="index">
-                                                <a href="javascript:void(0)"
-                                                    @click="descargaSoportte(itemArchivo.archivo_encrip)">{{
-                                    itemArchivo.archivo_original }}</a>
+                                    <div class="col-md-12">
+
+                                        <!-- Nav tabs -->
+                                        <ul class="nav nav-tabs" role="tablist">
+                                            <li class="nav-item">
+                                                <a class="nav-link active" data-toggle="tab" href="#home8" role="tab">
+                                                    <h5 class=" card-title text-info">
+                                                        <i class="fa fa-paperclip"></i> Adjuntos
+                                                    </h5>
+                                                </a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" data-toggle="tab" href="#profile8" role="tab">
+                                                    <span>
+                                                        <h5 class="card-title text-info">
+                                                            <i class="fa fa-file-audio-o"></i> Audios
+                                                        </h5>
+                                                    </span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                        <!-- Tab panes -->
+                                        <div class="tab-content tabcontent-border">
+                                            <div class="tab-pane active p-20" id="home8" role="tabpanel">
+                                                <div class="col-md-8 col-lg-9"
+                                                    v-for="(itemArchivo, index) in soportesHC" :key="index">
+                                                    <a href="javascript:void(0)"
+                                                        @click="descargaSoportte(itemArchivo.archivo_encrip)">
+                                                        {{ itemArchivo.archivo_original }}
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <div class="tab-pane  p-20" id="profile8" role="tabpanel">
+                                                <template v-for="( item, index ) in  audiosDeEstudio " :key="index">
+                                                    <audio :src="item.audio" controls
+                                                        style="height: 15px; width: 100%;"></audio>
+                                                </template>
                                             </div>
                                         </div>
+
                                     </div>
                                 </div>
                             </div>
@@ -315,19 +340,21 @@ export default {
             datosImagen: { urlOviyam: '', patientId: '', studyUID: '', serverName: '' },
             errores: {},
             tipoPrioridad: 0,
-            recognizedText: '',
+            /**
+             * Variables para convertir de voz a texto
+             */
             microfono: 'admin-wrap/assets/images/mic.gif',
-            lecturaEstudio: "",
             recognizing: false,
             recognition: null,
-
+            /*
+            * Variables para grabar audio
+            */
             mediaRecorder: null,
             chunks: [],
             recording: false,
-
-
-            transcribedText: "",
             recorder: null,
+            audiosDeEstudio: [],
+            audioActual: null,
         };
     },
     methods: {
@@ -350,10 +377,11 @@ export default {
                 console.log("Empezo a escuchar");
                 this.startRecording();
             };
+
             this.recognition.onresult = (event) => {
                 for (var i = event.resultIndex; i < event.results.length; i++) {
                     if (event.results[i].isFinal) {
-                        const result = event.results[0][0].transcript;
+                        const result = event.results[i][0].transcript;
                         this.registro.lectura += result + '\n\n';
                         console.log(this.registro.lectura);
                     }
@@ -365,47 +393,6 @@ export default {
                 console.log("Termino de escuchar, llegó a su fin");
                 this.stopRecording();
             };
-        },
-        async listarMisPendientes() {
-            try {
-                const res = await axios.get("/estudio-listarPendientesMedico?id=" + this.usuarioactual.id);
-                $("#example23").DataTable().destroy();
-
-                this.registros = res.data;
-
-                this.$nextTick(() => {
-                    $("#example23").DataTable({
-                        dom: "Bfrtip",
-                        buttons: ["copy", "csv", "excel", "pdf", "print"],
-                    });
-                });
-            } catch (error) {
-                console.log(error);
-            }
-        },
-        async guardarRegistro() {
-            try {
-                const res = await axios.post('/estudio-leerEstudio', this.registro);
-
-                if (res.status == 200) {
-                    $.toast({
-                        heading: "Ok!!!",
-                        text: res.data.message,
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "success",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-
-                    this.listarMisPendientes();
-                    this.btnCerralModalForm();
-                    this.limpiar();
-                }
-            } catch (error) {
-                console.log(error);
-                this.errores = error.response.data.errors;
-            }
         },
         async startRecording() {
             navigator.mediaDevices.getUserMedia({ audio: true })
@@ -451,6 +438,49 @@ export default {
                 .catch((error) => {
                     console.error('Error al enviar audio:', error);
                 });
+
+            this.listarAudios();
+        },
+        async listarMisPendientes() {
+            try {
+                const res = await axios.get("/estudio-listarPendientesMedico?id=" + this.usuarioactual.id);
+                $("#example23").DataTable().destroy();
+
+                this.registros = res.data;
+
+                this.$nextTick(() => {
+                    $("#example23").DataTable({
+                        dom: "Bfrtip",
+                        buttons: ["copy", "csv", "excel", "pdf", "print"],
+                    });
+                });
+            } catch (error) {
+                console.log(error);
+            }
+        },
+        async guardarRegistro() {
+            try {
+                const res = await axios.post('/estudio-leerEstudio', this.registro);
+
+                if (res.status == 200) {
+                    $.toast({
+                        heading: "Ok!!!",
+                        text: res.data.message,
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "success",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+
+                    this.listarMisPendientes();
+                    this.btnCerralModalForm();
+                    this.limpiar();
+                }
+            } catch (error) {
+                console.log(error);
+                this.errores = error.response.data.errors;
+            }
         },
         verImagen() {
             let Url = this.datosImagen.urlOviyam + '?patientID =' + this.datosImagen.patientId + '&studyUID=' + this.datosImagen.studyUID + '&serverName=' + this.datosImagen.serverName
@@ -485,6 +515,8 @@ export default {
 
             this.btnCerralModalForm();
             this.errores = [];
+
+            this.listarAudios();
         },
         descargaSoportte(nomArchivoEncriptado) {
             const url = `/descarga-soportes-hc/${nomArchivoEncriptado}`;
@@ -501,6 +533,14 @@ export default {
                 .catch(error => {
                     console.error(error);
                 });
+        },
+        async listarAudios() {
+            const res = await axios.get('/listar-audios-estudio/' + this.id);
+            this.audiosDeEstudio = res.data;
+        },
+        changeTrack(index) {
+            this.audioActual = this.audiosDeEstudio[index].audio;
+            console.log(this.audioActual)
         },
         limpiar() {
             this.tituloModal = "";
@@ -546,5 +586,10 @@ export default {
     right: 0px;
     width: 100%;
     display: block;
+}
+
+.audio {
+    width: 50px;
+    height: 5px;
 }
 </style>

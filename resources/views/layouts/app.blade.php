@@ -47,6 +47,9 @@
 <![endif]-->
 
     @vite(['resources/js/app.js'])
+
+    <script src="https://cdn.jsdelivr.net/npm/howler"></script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs"></script>
 </head>
 
 <body class="fix-header card-no-border fix-sidebar">
@@ -156,7 +159,7 @@
     <!-- wysuhtml5 Plugin JavaScript -->
     <script src="{{ asset('admin-wrap/assets/node_modules/html5-editor/wysihtml5-0.3.0.js') }}"></script>
     <script src="{{ asset('admin-wrap/assets/node_modules/html5-editor/bootstrap-wysihtml5.js') }}"></script>
-    <script></script>
+
 
     <!--morris JavaScript -->
     <script src="admin-wrap/assets/node_modules/raphael/raphael-min.js"></script>
@@ -185,6 +188,8 @@
     <!-- icheck -->
     <script src="{{ asset('admin-wrap/assets/node_modules/icheck/icheck.min.js') }}"></script>
     <script src="{{ asset('admin-wrap/assets/node_modules/icheck/icheck.init.js') }}"></script>
+
+
 
 
     <!-- ============================================================== -->

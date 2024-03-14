@@ -401,17 +401,15 @@ class EstudioController extends Controller
     public function uploadAudio(Request $request)
     {
         if ($request->hasFile('audio')) {
-            $audio = $request->file('audio');
-            $bandera = Str::random(30);
-            $nombreAudio = $audio->getClientOriginalName();
-            return $nombreAudio;
-            $nuevoNombreAudio = $bandera . '_' . $nombreAudio;
 
-            $audio->storeAs('audios', $nuevoNombreAudio, 'public');
+            $audioFile = $request->file('audio');
+            $nombreArchivo = 'audio_' . time() . '.' . $audioFile->getClientOriginalExtension();
+
+            $audioFilePath = $audioFile->storeAs('audios', $nombreArchivo);
 
             $estudioAudio = new EstudioAudio();
             $estudioAudio->estudio_id = $request->estudio_id;
-            $estudioAudio->audio = 'audios/' . $nuevoNombreAudio;
+            $estudioAudio->audio = 'audios/' . $nombreArchivo;
             $estudioAudio->save();
 
             return response()->json(['success' => true, 'message' => 'Audio subido con éxito']);

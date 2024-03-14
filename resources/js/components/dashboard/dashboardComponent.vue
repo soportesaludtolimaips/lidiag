@@ -221,7 +221,6 @@ export default {
     mounted() {
         this.estudiosTorta();
         this.generarIndicadores();
-
     },
     data() {
         return {
