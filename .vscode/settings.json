@@ -1,0 +1,8 @@
+{
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "volar.format.initialIndent": {
+        "html": true
+    },
+    "vue3snippets.enable-compile-vue-file-on-did-save-code": false,
+    "vue.codeActions.enabled": false
+}
