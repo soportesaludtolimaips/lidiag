@@ -100,10 +100,10 @@
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-warning">M</button>
                                             <button type="button" v-else-if="item.priori_id == 3"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-info">B</button>
-                                            <button type="button" v-else="item.priori_id == 4"
+                                            <button type="button" v-else-if="item.priori_id == 4"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm">S</button>
                                         </td>
-                                        <td>{{ item.nom_sede }}</td>
+                                        <td>{{ item.id }} - {{ item.nom_sede }}</td>
                                         <td>{{ item.fec_estudio }}</td>
                                         <td>{{ item.quien_registro }}</td>
                                         <td>{{ item.medico }}</td>
@@ -163,7 +163,6 @@
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
-
                                                 <dl>
                                                     <dt>Paciente:</dt>
                                                     <dd>{{ registro.nom_pacien }}</dd>
@@ -337,21 +336,48 @@
                                         </div>
                                     </div>
 
-                                    <h5 class="card-title text-info">
-                                        <i class="fa fa-paperclip"></i> Adjuntos
-                                    </h5>
-                                    <hr>
-
                                     <div class="row">
-                                        <div class="card card-body">
-                                            <div class="row">
-                                                <div class="col-md-8 col-lg-9"
-                                                    v-for="(itemArchivo, index) in soportesHC" :key="index">
-                                                    <a href="javascript:void(0)"
-                                                        @click="descargaSoportte(itemArchivo.archivo_encrip)">{{
-                                        itemArchivo.archivo_original }}</a>
+                                        <div class="col-md-12">
+
+                                            <!-- Nav tabs -->
+                                            <ul class="nav nav-tabs" role="tablist">
+                                                <li class="nav-item">
+                                                    <a class="nav-link active" data-toggle="tab" href="#home8"
+                                                        role="tab">
+                                                        <h5 class=" card-title text-info">
+                                                            <i class="fa fa-paperclip"></i> Adjuntos
+                                                        </h5>
+                                                    </a>
+                                                </li>
+                                                <li class="nav-item">
+                                                    <a class="nav-link" data-toggle="tab" href="#profile8" role="tab">
+                                                        <span>
+                                                            <h5 class="card-title text-info">
+                                                                <i class="fa fa-file-audio-o"></i> Audios
+                                                            </h5>
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                            <!-- Tab panes -->
+                                            <div class="tab-content tabcontent-border">
+                                                <div class="tab-pane active p-20" id="home8" role="tabpanel">
+                                                    <div class="col-md-8 col-lg-9"
+                                                        v-for="(itemArchivo, index) in soportesHC" :key="index">
+                                                        <a href="javascript:void(0)"
+                                                            @click="descargaSoportte(itemArchivo.archivo_encrip)">
+                                                            {{ itemArchivo.archivo_original }}
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                                <div class="tab-pane  p-20" id="profile8" role="tabpanel">
+                                                    <template v-for="( item, index ) in audiosDeEstudio " :key="index">
+                                                        <audio :src="item.audio" controls
+                                                            style="height: 15px; width: 100%;"></audio>
+                                                    </template>
                                                 </div>
                                             </div>
+
                                         </div>
                                     </div>
                                 </div>

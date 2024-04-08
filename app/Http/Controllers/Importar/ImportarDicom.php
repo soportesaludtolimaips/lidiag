@@ -33,7 +33,7 @@ class ImportarDicom extends Controller
         $sedeActual = ConfigSede::find(1);
 
         $agendas = Agenda::orderBy('fechor_regis', 'ASC')
-            ->where('study_pk', '>', 123572)
+            ->where('study_pk', '>', 135262)
             ->get();
         //return $agendas->count();
         $i = 0;
@@ -249,6 +249,7 @@ class ImportarDicom extends Controller
                          */
                         $prdoctoEstudio = new EstudioProducto();
                         $prdoctoEstudio->estudio_id = $estudio->id;
+                        $prdoctoEstudio->producto_id = $configProductoLidiag->id;
                         $prdoctoEstudio->transcriptor_id = $quienTranscribio[0]->id;
                         $prdoctoEstudio->cod_cups = $configProductoLidiag->cod_cups;
                         $prdoctoEstudio->nom_produc = $configProductoLidiag->nom_produc;
