@@ -24,12 +24,12 @@
     <!-- Start Page Content -->
     <!-- ============================================================== -->
     <div class="row">
-        <div class="col-12">
+        <div class="col-12 table-responsive">
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title">Listado de mis pendientes por leer</h4>
-                    <div class="col-md-12 table-responsive m-t-40">
-                        <table id="myTable" class="table table-bordered table-striped">
+                    <div class="table-responsive">
+                        <table id="example23" class="table table-bordered table-striped" cellspacing="0" width="100%">
                             <thead>
                                 <tr>
                                     <th></th>
@@ -43,7 +43,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(item, index) in  registros " :key="index">
+                                <tr v-for="(item, index) in registros " :key="index">
                                     <td width="2%">
                                         <button type="button" v-if="item.priori_id == 1"
                                             class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">A</button>
@@ -205,7 +205,7 @@
 
                                 <div class="row table-responsive" style="height:150px; overflow-y: scroll;">
                                     <div class="col-md-12">
-                                        <ul v-for="(item, index) in  diagnosticosEstudio " :key="index">
+                                        <ul v-for="(item, index) in diagnosticosEstudio " :key="index">
                                             <li>{{ item.nom_diagnos }}</li>
 
                                         </ul>
@@ -278,7 +278,7 @@
                                                 </div>
                                             </div>
                                             <div class="tab-pane  p-20" id="profile8" role="tabpanel">
-                                                <template v-for="( item, index ) in  audiosDeEstudio " :key="index">
+                                                <template v-for="( item, index ) in audiosDeEstudio " :key="index">
                                                     <audio :src="item.audio" controls
                                                         style="height: 15px; width: 100%;"></audio>
                                                 </template>

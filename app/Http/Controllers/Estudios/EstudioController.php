@@ -300,7 +300,10 @@ class EstudioController extends Controller
             ->join('estudios_productos AS produc', 'produc.estudio_id', '=', 'estudios.id')
             ->join('users', 'estudios.quien_registro_id', '=', 'users.id')
             ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
+            ->join('config_productos AS config_produc', 'estudios.producto_id', '=', 'config_produc.id')
             ->where('estudios.medico_id', $request->id)
+            ->where('config_productos.requi_lectura', '=', 1)
+            ->whereNull('produc.fechor_trascrito')
             ->whereNull('produc.fechor_lectura')
             ->orderBy('priori.nom_priori')->get();
 
@@ -356,6 +359,7 @@ class EstudioController extends Controller
             ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
             ->whereNull('produc.fechor_trascrito')
             ->whereNotNull('produc.lectura')
+            ->where('produc.activo', '=', 1)
             ->orderBy('estudios.created_at', 'ASC')
             ->get();
 
