@@ -33,7 +33,7 @@ class ImportarDicom extends Controller
         $sedeActual = ConfigSede::find(1);
 
         $agendas = Agenda::orderBy('fechor_regis', 'ASC')
-            ->where('study_pk', '>', 135262)
+            ->where('study_pk', '>', 137386)
             ->get();
         //return $agendas->count();
         $i = 0;

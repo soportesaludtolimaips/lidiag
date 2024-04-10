@@ -8,6 +8,7 @@ use App\Models\Dcm4chee\Study;
 use App\Models\Estudio\Estudio;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
 class StudyController extends Controller
@@ -55,8 +56,6 @@ class StudyController extends Controller
         )
             ->join('patient', 'study.patient_fk', 'patient.pk');
 
-        //return $query->toSql();
-
         if ($request->bus_nom_num_docu != "") {
             $query->where('patient.pat_id', 'like', "%$request->bus_nom_num_docu%")
                 ->orWhere('patient.pat_name', 'like', "%$request->bus_nom_num_docu%");
@@ -66,7 +65,12 @@ class StudyController extends Controller
             $query->whereBetween('study.study_datetime', [$request->bus_fehc_ini, $request->bus_fecha_fin]);
         }
 
-        $result = $query->get();
-        return json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE);
+        $resultPrueba = $query->get();
+        foreach ($resultPrueba as $estudio) {
+            $resultPrueba = Arr::add($resultPrueba, 'resultPrueba', 'OK');
+        }
+        return $resultPrueba;
+        //$result = $query->get();
+        //return json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE);
     }
 }
