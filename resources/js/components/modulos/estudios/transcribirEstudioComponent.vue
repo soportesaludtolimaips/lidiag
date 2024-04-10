@@ -93,7 +93,7 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="(item, index) in registros" :key="index">
-                                        <td width="2%">
+                                        <td>
                                             <button type="button" v-if="item.priori_id == 1"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">A</button>
                                             <button type="button" v-else-if="item.priori_id == 2"
