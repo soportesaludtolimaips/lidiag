@@ -66,11 +66,20 @@ class StudyController extends Controller
         }
 
         $resultPrueba = $query->get();
-        foreach ($resultPrueba as $estudio) {
-            $resultPrueba = Arr::add($resultPrueba, 'resultPrueba', 'OK');
+        Config::set('database.default', 'mysql');
+
+        $nuevosRegistro = [];
+        foreach ($resultPrueba as $resul) {
+            $agendado = Estudio::select('study_pk')
+                ->where('study_pk', '=', $resul->study_pk)
+                ->get();
+
+            $resul->agendado = $agendado->count();
+            $nuevosRegistro[] = $resul;
         }
-        return $resultPrueba;
-        //$result = $query->get();
-        //return json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE);
+
+        //return $nuevosRegistro;
+
+        return json_encode($nuevosRegistro, JSON_INVALID_UTF8_SUBSTITUTE);
     }
 }

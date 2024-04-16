@@ -282,10 +282,10 @@ class EstudioController extends Controller
             'pacien.nombres as nom_pacien',
             'pacien.fec_naci',
             'pacien.sexo',
-            'produc.id as id_producto_lectura',
-            'produc.cod_cups',
-            'produc.nom_produc',
-            'produc.fechor_lectura',
+            'estu_produc.id as id_producto_lectura',
+            'estu_produc.cod_cups',
+            'estu_produc.nom_produc',
+            'estu_produc.fechor_lectura',
             'users.name AS quien_registro',
             'priori.id as priori_id',
             'priori.nom_priori',
@@ -297,14 +297,16 @@ class EstudioController extends Controller
         )
             ->join('pacientes AS pacien', 'estudios.paciente_id',  '=', 'pacien.id')
             ->join('config_sedes AS sesde', 'estudios.sede_id', '=', 'sesde.id')
-            ->join('estudios_productos AS produc', 'produc.estudio_id', '=', 'estudios.id')
+            ->join('estudios_productos AS estu_produc', 'estu_produc.estudio_id', '=', 'estudios.id')
             ->join('users', 'estudios.quien_registro_id', '=', 'users.id')
             ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
-            ->join('config_productos AS config_produc', 'estudios.producto_id', '=', 'config_produc.id')
+            ->join('config_productos AS config_produc', 'estu_produc.producto_id', '=', 'config_produc.id')
             ->where('estudios.medico_id', $request->id)
-            ->where('config_productos.requi_lectura', '=', 1)
-            ->whereNull('produc.fechor_trascrito')
-            ->whereNull('produc.fechor_lectura')
+            ->where('estu_produc.activo', '=', 1)
+            ->where('estu_produc.transcriptor_id', '=', 0)
+            ->where('config_produc.requi_lectura', '=', 1)
+            ->whereNull('estu_produc.fechor_trascrito')
+            ->whereNull('estu_produc.fechor_lectura')
             ->orderBy('priori.nom_priori')->get();
 
         return response()->json($misPendiente, 200);

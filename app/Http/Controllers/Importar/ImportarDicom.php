@@ -33,7 +33,7 @@ class ImportarDicom extends Controller
         $sedeActual = ConfigSede::find(1);
 
         $agendas = Agenda::orderBy('fechor_regis', 'ASC')
-            ->where('study_pk', '>', 137386)
+            ->where('study_pk', '>', 137732)
             ->get();
         //return $agendas->count();
         $i = 0;
@@ -73,18 +73,19 @@ class ImportarDicom extends Controller
                 /**
                  * Busco el estudio en Dicom pada saber cual es el paciente
                  */
-                echo '************************************************************************<br>';
+                echo '************************************* studyDcm *********************************** <br />';
                 echo '$studyDcm: ' . $studyDcm . "<br>";
-                echo '************************************************************************<br>';
+                echo '************************************************************************ <br /><br />';
 
                 Config::set('database.default', 'mysql_importar_dicom');
                 $studyDicom = StudyDicom::where('study_iuid', '=', $studyDcm[0]->study_iuid)
                     ->get();
 
                 if ($studyDicom->count() > 0) {
-                    echo '************************************************************************<br>';
+                    echo '*********************************** studyDicom ************************************* <br />';
                     echo '$studyDicom: ' . $studyDicom . "<br>";
-                    echo '************************************************************************<br>';
+                    echo '************************************************************************ <br /><br />';
+
                     /**
                      * Busco los productos en Dicom
                      */
@@ -113,7 +114,7 @@ class ImportarDicom extends Controller
                     /**
                      * Busco quien agendo en Dicom
                      */
-                    Config::set('database.default', 'mysql_importar_dicom');
+
                     $quienAgendoDicom = GeneralPersonal::where('id_personal', '=', $agenda->id_quien_agendo)
                         ->get();
 
@@ -217,24 +218,53 @@ class ImportarDicom extends Controller
                      * Inserto los productos en Lidiag
                      */
                     foreach ($agendaProductosDicom as $produc) {
-
-                        $productoDicom = ConfigProductoDicom::where('id_produc', '=', $produc->id_produc)
-                            ->get();
-
-                        /**
-                         * Busco quien transcribio en Dicom
-                         */
                         Config::set('database.default', 'mysql_importar_dicom');
-                        $quienAgendoDicom = GeneralPersonal::where('id_personal', '=', $produc->id_transcriptor)
+                        /**
+                         * Busco el producto configurado el Dicom
+                         */
+                        $configProductoDicom = ConfigProductoDicom::where('id_produc', '=', $produc->id_produc)
                             ->get();
+                        echo '****************************** configProductoDicom ****************************************** <br />';
+                        echo '$configProductoDicom: ' . $configProductoDicom . "<br>";
+                        echo '************************************************************************ <br /><br />';
 
                         /**
-                         * Busco quien hizo la transcripcion
+                         * Busco el producto agendado el Dicom
+                         */
+                        $productoDicom = AgendaProducto::where('id_agenda', '=', $agenda->id_agenda)
+                            ->where('id_produc', '=', $produc->id_produc)
+                            ->get();
+
+                        echo '****************************** productoDicom ****************************************** <br />';
+                        echo '$productoDicom: ' . $productoDicom . "<br>";
+                        echo '************************************************************************ <br /><br />';
+
+                        /**
+                         * Busco quien agendo en Dicom
+                         */
+                        $quienAgendoDicom = GeneralPersonal::where('id_personal', '=', $productoDicom[0]->id_transcriptor)
+                            ->get();
+
+                        echo '****************************** quienAgendoDicom ****************************************** <br />';
+                        echo '$quienAgendoDicom: ' . $quienAgendoDicom . "<br>";
+                        echo '************************************************************************ <br /><br />';
+
+                        /**
+                         * Busco quien hizo la transcripción en Lidiag
                          */
                         Config::set('database.default', 'mysql');
-                        $quienTranscribio = User::where('num_docu', '=', 1006147882)
-                            ->get();
+                        $idTranscriptor = null;
+                        if ($productoDicom[0]->id_transcriptor != 0) {
+                            Config::set('database.default', 'mysql');
+                            $quienTranscribio = User::where('num_docu', '=', $quienAgendoDicom[0]->num_docu)
+                                ->get();
 
+                            $idTranscriptor = $quienTranscribio[0]->id;
+                        }
+
+                        /**
+                         * Se agrega o actualíza el producto en Lidiag
+                         */
                         $configProductoLidiag = ConfigProducto::firstOrCreate(
                             ['nom_produc' => trim($produc->nom_produc)],
                             [
@@ -245,12 +275,12 @@ class ImportarDicom extends Controller
                         );
 
                         /**
-                         * Relacion el producto con el estudio
+                         * Relaciono el producto con el estudio
                          */
                         $prdoctoEstudio = new EstudioProducto();
                         $prdoctoEstudio->estudio_id = $estudio->id;
                         $prdoctoEstudio->producto_id = $configProductoLidiag->id;
-                        $prdoctoEstudio->transcriptor_id = $quienTranscribio[0]->id;
+                        $prdoctoEstudio->transcriptor_id = $idTranscriptor;
                         $prdoctoEstudio->cod_cups = $configProductoLidiag->cod_cups;
                         $prdoctoEstudio->nom_produc = $configProductoLidiag->nom_produc;
                         $prdoctoEstudio->fechor_lectura = $produc->fechor_lectura;
