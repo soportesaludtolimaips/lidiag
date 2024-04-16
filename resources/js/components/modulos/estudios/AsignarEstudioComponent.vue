@@ -101,8 +101,9 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="item in registros" :key="item.id">
-                                        <td>{{ item.agendado }} - {{ item.study_datetime }}</td>
+                                    <tr v-for="item in registros" :key="item.id"
+                                        :class="{ 'text-primary': item.agendado === 1 }">
+                                        <td>{{ item.study_datetime }}</td>
                                         <td>{{ item.pat_id }}</td>
                                         <td>{{ item.pat_name }}</td>
                                         <td>{{ item.accession_no }}</td>
@@ -344,7 +345,7 @@
                                                     <option v-for="(ItemPrioridad, index) in prioridades" :key="index"
                                                         :value="ItemPrioridad.id">
                                                         {{ ItemPrioridad.nom_priori }} - {{ ItemPrioridad.tiempo }} {{
-                                                    ItemPrioridad.tipo_tiempo }} {{ ItemPrioridad.observacion }}
+                                                            ItemPrioridad.tipo_tiempo }} {{ ItemPrioridad.observacion }}
                                                     </option>
                                                 </select>
                                                 <span class="text-danger" v-if="errores.prioridad_id">
@@ -916,5 +917,14 @@ export default {
     right: 0px;
     width: 80%;
     display: block;
+}
+
+
+.fila-verde {
+    background-color: lightgreen;
+}
+
+.fila-roja {
+    background-color: salmon;
 }
 </style>
