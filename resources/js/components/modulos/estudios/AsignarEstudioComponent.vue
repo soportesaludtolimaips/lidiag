@@ -102,7 +102,7 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="item in registros" :key="item.id"
-                                        :class="{ 'text-primary': item.agendado === 1 }">
+                                        :class="{ 'text-info': item.agendado === 1 }">
                                         <td>{{ item.study_datetime }}</td>
                                         <td>{{ item.pat_id }}</td>
                                         <td>{{ item.pat_name }}</td>
