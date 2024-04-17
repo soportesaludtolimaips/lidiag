@@ -587,40 +587,9 @@ export default {
                 } else {
                     const res = await axios.post("/study.listarEstudios", this.busqueda);
 
-                    var studiasAgendados = [];
-                    /* studiasAgendados = res.data;
-                    for (const item in studiasAgendados) {
-                        console.log(this.estudioAgendado(studiasAgendados[item].pat_id))
-                    } */
-
-                    let me = this;
-
-                    /* res.data.map(function (currentValue, index, array) {
-
-                        //var estaAgendado = me.estudioAgendado(currentValue.pat_id)
-                        //console.log(estaAgendado)
-
-                        studiasAgendados.push({
-                            'accession_no': currentValue.accession_no,
-                            'mods_in_study': currentValue.mods_in_study,
-                            'pat_birthdate': currentValue.pat_birthdate,
-                            'pat_id': currentValue.pat_id,
-                            'pat_name': currentValue.pat_name,
-                            'pat_sex': currentValue.pat_sex,
-                            'study_datetime': currentValue.study_datetime,
-                            'study_desc': currentValue.study_desc,
-                            'study_id': currentValue.study_id,
-                            'study_iuid': currentValue.study_iuid,
-                            'study_pk': currentValue.study_pk,
-                            'agendado': estaAgendado,
-                        });
-                    }); */
-
-
                     if (res.status == 200) {
                         $("#example23").DataTable().destroy();
 
-                        //this.registros = studiasAgendados;
                         this.registros = res.data;
                         this.$nextTick(() => {
                             $("#example23").DataTable({
@@ -667,17 +636,14 @@ export default {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     }
                 }
-                // form data
-                let formData = new FormData();
-                console.log(this.registro)
+
+                const formData = new FormData();
                 formData.append('registro', JSON.stringify(this.registro));
                 formData.append('archivo1', this.soportesHC.archivo1);
                 formData.append('archivo2', this.soportesHC.archivo2);
                 formData.append('archivo3', this.soportesHC.archivo3);
 
-                const res = await axios.post('/estudios', formData, {
-                    headers: { "Content-Type": "multipart/form-data" }
-                });
+                const res = await axios.post('/estudios', formData);
 
                 if (res.status == 200) {
                     $.toast({
@@ -765,15 +731,6 @@ export default {
 
             this.registro.atencion_id = this.interfaceAtencionSeleccionada;
         },
-        /* async estudioAgendado(numDocu) {
-            const res = await axios.get('/estudio-buscar-por-numdocu/' + numDocu);
-            console.log(res.data.message);
-            if (res.data.message === 'Si') {
-                return true;
-            } else {
-                return false;
-            }
-        }, */
         establecerSede() {
             this.registro.sede_id = sessionStorage.getItem('ST-sede');
             this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
