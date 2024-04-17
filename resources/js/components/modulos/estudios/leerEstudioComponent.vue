@@ -426,18 +426,20 @@ export default {
                 this.recording = false;
             }
         },
-        saveRecording(audioBlob) {
+        async saveRecording(audioBlob) {
             const formData = new FormData();
             formData.append('audio', audioBlob, 'audio.wav');
             formData.append('estudio_id', this.id);
+            formData.append('estudio_producto_id', this.registro.id_producto_lectura);
 
-            axios.post('/upload-audio', formData)
+            const res = await axios.post('/upload-audio', formData)
                 .then((response) => {
                     console.log('Audio enviado con éxito:', response.data);
                 })
                 .catch((error) => {
                     console.error('Error al enviar audio:', error);
                 });
+
 
             this.listarAudios();
         },

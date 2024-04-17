@@ -15,8 +15,10 @@ use Illuminate\Http\Request;
 use Mail;
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\Reportes\ResporteLecturaController;
+use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\Estudio\EstudioSoportesHC;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Str;
 
@@ -46,58 +48,6 @@ class EstudioController extends Controller
     public function store(Request $request)
     {
         $registro = json_decode($request->registro);
-
-        // Comprobar si la solicitud tiene datos antes de intentar validarlos
-        if (!$request->has($registro)) {
-            return response()->json([
-                'error' => 'No se encontraron datos en la solicitud.'
-            ], 422);
-        }
-
-        $rules = [
-            'registro.study_datetime' => 'required',
-            'registro.num_docu' => 'required|min:3|max:20',
-            'registro.nombres' => 'required|min:3|max:50',
-            'registro.medico_id' => 'required',
-            'registro.prioridad_id' => 'required',
-            'registro.productosEstudio' => 'required',
-            'registro.diagnosticosEstudio' => 'required',
-        ];
-
-        $messages  =  [
-            'registro.study_datetime.required' => 'Te hizo falta la fecha del estudio.',
-            'registro.num_docu.required' => 'Te hizo falta el número de documento del paciente.',
-            'registro.num_docu.min' => 'El número de documento del paciente debe tener mínimo 3 caracteres.',
-            'registro.num_docu.max' => 'El número de documento del paciente debe tener máximo 20 caracteres.',
-            'registro.nombres.required' => 'Te hizo falta el nombre del paciente.',
-            'registro.nombres.min' => 'El nombre del paciente debe tener mínimo 3 caracteres.',
-            'registro.nombres.max' => 'El nombre del paciente debe tener máximo 50 caracteres.',
-            'registro.medico_id.required' => 'Te hizo falta el médico.',
-            'registro.prioridad_id.required' => 'Te hizo falta la prioridad.',
-            'registro.productosEstudio.required' => 'Te hizo falta almenos un producto.',
-        ];
-
-        $validator = Validator::make(json_decode($request->registro), $rules, $messages);
-
-        // Comprobar si la validación falla
-        if ($validator->fails()) {
-            return response()->json([
-                'error' => $validator->errors()->first()
-            ], 422); // Código de estado HTTP 422 para datos no válidos
-        }
-
-        // Si los datos son válidos, continuar con tu lógica de negocio
-        $data = json_decode($request->input('data'), true);
-
-        // Por ejemplo, podrías guardar los datos en la base de datos
-        // $model = TuModelo::create($data);
-
-        // Y luego devolver una respuesta de éxito
-        return response()->json([
-            'message' => 'Datos recibidos correctamente',
-            'data' => $data
-        ], 200); // Código de estado HTTP 200 para solicitud exitosa
-
 
         $nombrePaciente = str_replace('^^^', '', $registro->nombres);
         $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
@@ -173,10 +123,21 @@ class EstudioController extends Controller
         $productos->delete();
         foreach ($registro->productosEstudio as $Producto) {
             if ($Producto->checked == true) {
+
+                $productoDicom = ConfigProducto::firstOrCreate(
+                    ['cod_cups' => $Producto->cod_cups],
+                    [
+                        'cod_cups' => $Producto->cod_cups,
+                        'nom_produc' => $Producto->nom_produc,
+                        'requi_lectura' => 1,
+                    ]
+                );
+
                 EstudioProducto::create([
                     'estudio_id' => $estudio->id,
-                    'cod_cups' => $Producto->cod_cups,
-                    'nom_produc' => $Producto->nom_produc,
+                    'producto_id' => $productoDicom->id,
+                    'cod_cups' => $productoDicom->cod_cups,
+                    'nom_produc' => $productoDicom->nom_produc,
                 ]);
             }
         }
@@ -303,7 +264,7 @@ class EstudioController extends Controller
             ->join('config_productos AS config_produc', 'estu_produc.producto_id', '=', 'config_produc.id')
             ->where('estudios.medico_id', $request->id)
             ->where('estu_produc.activo', '=', 1)
-            ->where('estu_produc.transcriptor_id', '=', 0)
+            ->whereNull('estu_produc.transcriptor_id')
             ->where('config_produc.requi_lectura', '=', 1)
             ->whereNull('estu_produc.fechor_trascrito')
             ->whereNull('estu_produc.fechor_lectura')
@@ -407,18 +368,20 @@ class EstudioController extends Controller
          * Genero el PDF del reporte de la lectura del estudio
          */
         $this->generarPdfLectura($request->id_producto_lectura);
-        /* $reporteLectura = EstudioProducto::with('estudio.paciente')->with('estudio.medico')->with('estudio.sede')->findOrFail($request->id_producto_lectura);
+        $reporteLectura = EstudioProducto::with('estudio.paciente')->with('estudio.medico')->with('estudio.sede')->findOrFail($request->id_producto_lectura);
         $nomArchivoReporte = $reporteLectura->id . "-" . $reporteLectura->estudio->paciente->num_docu . "-" . $reporteLectura->nom_produc . ".pdf";
         $generarReporte = new ResporteLecturaController($reporteLectura, $nomArchivoReporte);
-        $generarReporte->generar_reporte(); */
+        $generarReporte->generar_reporte();
 
+        /**
+         * Notifico por correo electronico del paciente
+         */
         $notificar = (new EstudioNotificacionController())->notificarEmail($request->id_producto_lectura, $request->num_docu, $request->nom_pacien, $request->fec_naci, $request->email, $request->email_reportar);
-
 
         /**
          * Envio la lectura a Lidiag-reportes para que este diponible para la descarga por parte del paciente
          */
-        /* $urlApiReportes = config('app.URL_API_REPORTES') . "api/almacenarLectura";
+        $urlApiReportes = config('app.URL_API_REPORTES') . "api/almacenarLectura";
 
         $response = Http::attach(
             'file_reporte',
@@ -434,7 +397,7 @@ class EstudioController extends Controller
             'nom_sede' => $reporteLectura->estudio->sede->nom_sede,
             'url_oviyam' => $reporteLectura->estudio->sede->url_oviyam,
             'tap_oviyam' => $reporteLectura->estudio->sede->tap_oviyam,
-        ]); */
+        ]);
 
         /**
          * Envio de email con el adjunto del reporte de la lectura del estudio
@@ -450,26 +413,6 @@ class EstudioController extends Controller
         } */
 
         return response()->json(['message' => 'La transcripción se guardo correctamente.']);
-    }
-
-    public function uploadAudio(Request $request)
-    {
-        /* if ($request->hasFile('audio')) {
-
-            $audioFile = $request->file('audio');
-            $nombreArchivo = 'audio_' . time() . '.' . $audioFile->getClientOriginalExtension();
-
-            $audioFilePath = $audioFile->storeAs('audios', $nombreArchivo);
-
-            $estudioAudio = new EstudioAudio();
-            $estudioAudio->estudio_id = $request->estudio_id;
-            $estudioAudio->audio = 'audios/' . $nombreArchivo;
-            $estudioAudio->save();
-
-            return response()->json(['success' => true, 'message' => 'Audio subido con éxito']);
-        }
-
-        return response()->json(['success' => false, 'message' => 'No se proporcionó un archivo de audio'], 400); */
     }
 
     public function penditesPorLeerTranscribir(Request $request)

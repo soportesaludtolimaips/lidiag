@@ -491,6 +491,10 @@ export default {
             let Url = this.datosImagen.urlOviyam + '?patientID =' + this.datosImagen.patientId + '&studyUID=' + this.datosImagen.studyUID + '&serverName=' + this.datosImagen.serverName
             window.open(Url, '_blank');
         },
+        async listarAudios() {
+            const res = await axios.get('/listar-audios-estudio/' + this.id);
+            this.audiosDeEstudio = res.data;
+        },
         async mostrarRegistro(data = {}) {
 
             this.tituloModal = "Transcribir la lectura del paciente: " + data.nom_pacien;
@@ -530,6 +534,7 @@ export default {
 
             this.btnCerralModalForm();
             this.errores = [];
+            this.listarAudios()
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);

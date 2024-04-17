@@ -5,7 +5,7 @@
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '1457d5f71467e864f445205e6fc51d0f6494d00a',
+        'reference' => 'c4608b35532116c1ceb3417cfca9f6f12d50a6ae',
         'name' => 'laravel/laravel',
         'dev' => true,
     ),
@@ -86,12 +86,12 @@
             'dev_requirement' => false,
         ),
         'dompdf/dompdf' => array(
-            'pretty_version' => 'v2.0.4',
-            'version' => '2.0.4.0',
+            'pretty_version' => 'v2.0.7',
+            'version' => '2.0.7.0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../dompdf/dompdf',
             'aliases' => array(),
-            'reference' => '093f2d9739cec57428e39ddadedfd4f3ae862c0f',
+            'reference' => 'ab0123052b42ad0867348f25df8c228f1ece8f14',
             'dev_requirement' => false,
         ),
         'dragonmantank/cron-expression' => array(
@@ -406,7 +406,7 @@
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '1457d5f71467e864f445205e6fc51d0f6494d00a',
+            'reference' => 'c4608b35532116c1ceb3417cfca9f6f12d50a6ae',
             'dev_requirement' => false,
         ),
         'laravel/pint' => array(
@@ -527,12 +527,12 @@
             'dev_requirement' => true,
         ),
         'monolog/monolog' => array(
-            'pretty_version' => '2.9.2',
-            'version' => '2.9.2.0',
+            'pretty_version' => '2.9.3',
+            'version' => '2.9.3.0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../monolog/monolog',
             'aliases' => array(),
-            'reference' => '437cb3628f4cf6042cc10ae97fc2b8472e48ca1f',
+            'reference' => 'a30bfe2e142720dfa990d0a7e573997f5d884215',
             'dev_requirement' => false,
         ),
         'mtdowling/cron-expression' => array(
@@ -632,12 +632,12 @@
             'dev_requirement' => false,
         ),
         'phenx/php-svg-lib' => array(
-            'pretty_version' => '0.5.3',
-            'version' => '0.5.3.0',
+            'pretty_version' => '0.5.4',
+            'version' => '0.5.4.0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../phenx/php-svg-lib',
             'aliases' => array(),
-            'reference' => '0e46722c154726a5f9ac218197ccc28adba16fcf',
+            'reference' => '46b25da81613a9cf43c83b2a8c2c1bdab27df691',
             'dev_requirement' => false,
         ),
         'phpoption/phpoption' => array(
@@ -805,8 +805,8 @@
         'psr/log-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '1.0.0 || 2.0.0 || 3.0.0',
-                1 => '1.0|2.0|3.0',
+                0 => '1.0|2.0|3.0',
+                1 => '1.0.0 || 2.0.0 || 3.0.0',
             ),
         ),
         'psr/simple-cache' => array(
@@ -1038,12 +1038,12 @@
             'dev_requirement' => true,
         ),
         'spatie/ignition' => array(
-            'pretty_version' => '1.13.1',
-            'version' => '1.13.1.0',
+            'pretty_version' => '1.13.2',
+            'version' => '1.13.2.0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../spatie/ignition',
             'aliases' => array(),
-            'reference' => '889bf1dfa59e161590f677728b47bf4a6893983b',
+            'reference' => '952798e239d9969e4e694b124c2cc222798dbb28',
             'dev_requirement' => true,
         ),
         'spatie/laravel-ignition' => array(
