@@ -332,9 +332,9 @@
                                                         {{ ItemMedico.name }}
                                                     </option>
                                                 </select>
-                                                <span class="text-danger" v-if="errores.medico_id">
+                                                <!-- <span class="text-danger" v-if="errores.medico_id">
                                                     {{ errores.medico_id[0] }}
-                                                </span>
+                                                </span> -->
                                             </div>
                                         </div>
                                         <div class="col-md-4">
@@ -348,9 +348,9 @@
                                                             ItemPrioridad.tipo_tiempo }} {{ ItemPrioridad.observacion }}
                                                     </option>
                                                 </select>
-                                                <span class="text-danger" v-if="errores.prioridad_id">
+                                                <!-- <span class="text-danger" v-if="errores.prioridad_id">
                                                     {{ errores.prioridad_id[0] }}
-                                                </span>
+                                                </span> -->
                                             </div>
                                         </div>
                                         <div class="col-md-4" v-if="sedeInterface === true">
@@ -366,9 +366,9 @@
                                                         {{ ItemAtencion.IdAtencion }} - {{ ItemAtencion.FecIngreso }}
                                                     </option>
                                                 </select>
-                                                <span class="text-danger" v-if="errores.prioridad_id">
+                                                <!-- <span class="text-danger" v-if="errores.prioridad_id">
                                                     {{ errores.prioridad_id[0] }}
-                                                </span>
+                                                </span> -->
                                             </div>
                                         </div>
                                     </div>
