@@ -67,7 +67,7 @@ class EstudioController extends Controller
         );
 
         /**
-         * Si la sede tien interface relleno la informacion necesaria con los datos de la Eps, Plan y contrato
+         * Si la sede tiene interface relleno la informacion necesaria con los datos de la Eps, Plan y contrato
          */
         $eps = "";
         $contrato = "";
@@ -376,7 +376,10 @@ class EstudioController extends Controller
         /**
          * Notifico por correo electronico del paciente
          */
-        $notificar = (new EstudioNotificacionController())->notificarEmail($request->id_producto_lectura, $request->num_docu, $request->nom_pacien, $request->fec_naci, $request->email, $request->email_reportar);
+        if ($request->email != '') {
+            $notificar = (new EstudioNotificacionController())->notificarEmail($request->id_producto_lectura, $request->num_docu, $request->nom_pacien, $request->fec_naci, $request->email, $request->email_reportar);
+            return $notificar;
+        }
 
         /**
          * Envio la lectura a Lidiag-reportes para que este diponible para la descarga por parte del paciente

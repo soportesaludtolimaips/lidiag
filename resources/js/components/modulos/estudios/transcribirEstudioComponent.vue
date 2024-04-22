@@ -425,6 +425,7 @@ export default {
             },
             busqueda: { bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
             datosImagen: { urlOviyam: '', patientId: '', studyUID: '', serverName: '' },
+            audiosDeEstudio: [],
             errores: {},
         };
     },
@@ -462,9 +463,19 @@ export default {
                         stack: 6,
                     });
 
-                    this.listarMisPendientes();
+                    /* this.listarMisPendientes();
                     this.btnCerralModalForm();
-                    this.limpiar();
+                    this.limpiar(); */
+                } else {
+                    $.toast({
+                        heading: "Upss!!!",
+                        text: res.data.message,
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "danger",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
                 }
             } catch (error) {
                 console.log(error);
@@ -493,6 +504,8 @@ export default {
         },
         async listarAudios() {
             const res = await axios.get('/listar-audios-estudio/' + this.id);
+            console.log(res.data)
+
             this.audiosDeEstudio = res.data;
         },
         async mostrarRegistro(data = {}) {
