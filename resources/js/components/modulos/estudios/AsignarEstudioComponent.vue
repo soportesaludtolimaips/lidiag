@@ -355,8 +355,7 @@
                                         </div>
                                         <div class="col-md-4" v-if="sedeInterface === true">
                                             <div class="form-group">
-                                                <label class="control-label">Atención {{ interfaceAtencionSeleccionada
-                                                    }}</label>
+                                                <label class="control-label">Atención</label>
                                                 <select v-model="interfaceAtencionSeleccionada"
                                                     name="interfaceAtencionSeleccionada"
                                                     id="interfaceAtencionSeleccionada"
@@ -399,7 +398,7 @@
                                             </select>
                                         </div>
                                         <div class="col-md-12 table-responsive"
-                                            style="overflow-y: scroll; height: 250px;" v-if="sedeInterface === true">
+                                            style="overflow-y: scroll; height: 250px;">
                                             <table id="myTable" class="table table-bordered table-striped">
                                                 <thead>
                                                     <tr>
@@ -469,7 +468,7 @@
                                             </select>
                                         </div>
                                         <div class="col-md-12 table-responsive"
-                                            style="overflow-y: scroll; height: 250px;" v-if="sedeInterface === true">
+                                            style="overflow-y: scroll; height: 250px;">
                                             <table id="myTable" class="table table-bordered table-striped">
                                                 <thead>
                                                     <tr>
@@ -657,8 +656,8 @@ export default {
                     });
                 }
 
-                this.btnCerralModalForm();
-                this.limpiar();
+                /* this.btnCerralModalForm();
+                this.limpiar(); */
 
             } catch (error) {
                 this.errores = error.response.data.errors;
@@ -809,8 +808,6 @@ export default {
         },
         guardarProductosEstudio() {
             var indexProductoEstudio = this.productos.findIndex((x) => x.id == this.productoSelecciondo);
-            console.log('*********************')
-            console.log(indexProductoEstudio)
 
             if (indexProductoEstudio > 0) {
                 var productoEstudioId = this.productos[indexProductoEstudio].id;
