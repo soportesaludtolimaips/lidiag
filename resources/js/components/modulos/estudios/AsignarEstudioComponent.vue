@@ -204,9 +204,9 @@
                                                 <label class="control-label">Dirección</label>
                                                 <input type="text" id="direccion" name="direccion"
                                                     v-model="registro.direccion" class="form-control" />
-                                                <span class="text-danger" v-if="errores.direccion">
+                                                <!-- <span class="text-danger" v-if="errores.direccion">
                                                     {{ errores.direccion[0] }}
-                                                </span>
+                                                </span> -->
                                             </div>
                                         </div>
                                         <div class="col-md-3">
@@ -214,9 +214,9 @@
                                                 <label class="control-label">Télefono</label>
                                                 <input type="number" id="telefono" name="telefono"
                                                     v-model="registro.telefono" class="form-control" />
-                                                <span class="text-danger" v-if="errores.telefono">
+                                                <!-- <span class="text-danger" v-if="errores.telefono">
                                                     {{ errores.telefono[0] }}
-                                                </span>
+                                                </span> -->
                                             </div>
                                         </div>
                                         <div class="col-md-5">
@@ -224,8 +224,8 @@
                                                 <label class="control-label">E - Mail</label>
                                                 <input type="email" id="email" name="email" v-model="registro.email"
                                                     class="form-control" />
-                                                <span class="text-danger" v-if="errores.email">
-                                                    {{ errores.email[0] }}</span>
+                                                <!-- <span class="text-danger" v-if="errores.email">
+                                                    {{ errores.email[0] }}</span> -->
                                             </div>
                                         </div>
                                     </div>
@@ -246,9 +246,9 @@
                                                 <label class="control-label">Descripción</label>
                                                 <input type="text" id="study_desc" name="study_desc"
                                                     v-model="registro.study_desc" class="form-control" />
-                                                <span class="text-danger" v-if="errores.study_desc">
+                                                <!-- <span class="text-danger" v-if="errores.study_desc">
                                                     {{ errores.study_desc[0] }}
-                                                </span>
+                                                </span> -->
                                             </div>
                                         </div>
 
@@ -257,9 +257,9 @@
                                                 <label class="control-label">Detalle</label>
                                                 <input type="text" id="accession_no" name="accession_no"
                                                     v-model="registro.accession_no" class="form-control" />
-                                                <span class="text-danger" v-if="errores.accession_no">
+                                                <!-- <span class="text-danger" v-if="errores.accession_no">
                                                     {{ errores.accession_no[0] }}
-                                                </span>
+                                                </span> -->
                                             </div>
                                         </div>
 
@@ -268,9 +268,9 @@
                                                 <label class="control-label">Fecha</label>
                                                 <input type="text" id="study_datetime" name="study_datetime"
                                                     v-model="registro.study_datetime" class="form-control" />
-                                                <span class="text-danger" v-if="errores.study_datetime">
+                                                <!-- <span class="text-danger" v-if="errores.study_datetime">
                                                     {{ errores.study_datetime[0] }}
-                                                </span>
+                                                </span> -->
                                             </div>
                                         </div>
                                     </div>
