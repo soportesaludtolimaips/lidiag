@@ -809,11 +809,14 @@ export default {
         },
         guardarProductosEstudio() {
             var indexProductoEstudio = this.productos.findIndex((x) => x.id == this.productoSelecciondo);
+            console.log('*********************')
+            console.log(indexProductoEstudio)
+
             if (indexProductoEstudio > 0) {
                 var productoEstudioId = this.productos[indexProductoEstudio].id;
                 var productoEstudioCod_Cubs = this.productos[indexProductoEstudio].cod_cups;
                 var productoEstudioNomProduc = this.productos[indexProductoEstudio].nom_produc;
-
+                console.log(productoEstudioNomProduc)
                 this.registro.productosEstudio.push({
                     id: productoEstudioId,
                     cod_cups: productoEstudioCod_Cubs,

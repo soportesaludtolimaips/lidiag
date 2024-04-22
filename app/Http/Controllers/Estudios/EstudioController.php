@@ -122,24 +122,24 @@ class EstudioController extends Controller
         $productos = EstudioProducto::where('estudio_id', '=', $estudio->id);
         $productos->delete();
         foreach ($registro->productosEstudio as $Producto) {
-            if ($Producto->checked == true) {
+            //if ($Producto->checked == true) {
 
-                $productoDicom = ConfigProducto::firstOrCreate(
-                    ['cod_cups' => $Producto->cod_cups],
-                    [
-                        'cod_cups' => $Producto->cod_cups,
-                        'nom_produc' => $Producto->nom_produc,
-                        'requi_lectura' => 1,
-                    ]
-                );
+            $productoDicom = ConfigProducto::firstOrCreate(
+                ['cod_cups' => $Producto->cod_cups],
+                [
+                    'cod_cups' => $Producto->cod_cups,
+                    'nom_produc' => $Producto->nom_produc,
+                    'requi_lectura' => 1,
+                ]
+            );
 
-                EstudioProducto::create([
-                    'estudio_id' => $estudio->id,
-                    'producto_id' => $productoDicom->id,
-                    'cod_cups' => $productoDicom->cod_cups,
-                    'nom_produc' => $productoDicom->nom_produc,
-                ]);
-            }
+            EstudioProducto::create([
+                'estudio_id' => $estudio->id,
+                'producto_id' => $productoDicom->id,
+                'cod_cups' => $productoDicom->cod_cups,
+                'nom_produc' => $productoDicom->nom_produc,
+            ]);
+            //}
         }
 
         /**
