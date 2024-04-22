@@ -657,8 +657,8 @@ export default {
                     });
                 }
 
-                /* this.btnCerralModalForm();
-                this.limpiar(); */
+                this.btnCerralModalForm();
+                this.limpiar();
 
             } catch (error) {
                 this.errores = error.response.data.errors;

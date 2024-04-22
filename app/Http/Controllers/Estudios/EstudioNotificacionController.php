@@ -83,11 +83,11 @@ class EstudioNotificacionController extends Controller
         /**
          * Actualizo los datos del paciente
          */
-        $pacienteUpdate = Paciente::where('num_docu', '=', $num_docu);
+        /* $pacienteUpdate = Paciente::where('num_docu', '=', $num_docu)->get();
         $pacienteUpdate->name = $nom_pacien;
         $pacienteUpdate->fec_naci = $fec_naci;
         $pacienteUpdate->email = $email;
-        $pacienteUpdate->save();
+        $pacienteUpdate->save(); */
 
         /**
          * Envio de email con el adjunto del reporte de la lectura del estudio
