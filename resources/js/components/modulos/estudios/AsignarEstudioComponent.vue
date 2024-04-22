@@ -164,9 +164,9 @@
                                                 <input type="text" id="num_docu" name="num_docu"
                                                     v-model="registro.num_docu" class="form-control"
                                                     placeholder="# de Documento" />
-                                                <span class="text-danger" v-if="errores.num_docu">
+                                                <!-- <span class="text-danger" v-if="errores.num_docu">
                                                     {{ errores.num_docu[0] }}
-                                                </span>
+                                                </span> -->
                                             </div>
                                         </div>
 
@@ -176,9 +176,9 @@
                                                 <input type="text" id="nombres" name="nombres"
                                                     v-model="registro.nombres" class="form-control"
                                                     placeholder="Nombres" />
-                                                <span class="text-danger" v-if="errores.nombres">
+                                                <!-- <span class="text-danger" v-if="errores.nombres">
                                                     {{ errores.nombres[0] }}
-                                                </span>
+                                                </span> -->
                                             </div>
                                         </div>
 
