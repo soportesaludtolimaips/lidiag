@@ -47,7 +47,64 @@ class EstudioController extends Controller
      */
     public function store(Request $request)
     {
-        $registro = json_decode($request->registro);
+        // Validar el campo 'registro' de la solicitud
+        $validatedData = $request->validate([
+            'registro' => 'required|json',
+        ], [
+            'registro.required' => 'El campo "registro" es obligatorio.',
+            'registro.json' => 'El campo "registro" debe contener un JSON válido.',
+        ]);
+
+        // Decodificar el JSON de 'registro' a un array asociativo
+        $registro = json_decode($validatedData['registro'], true);
+
+        // Verifica si la decodificación fue exitosa
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return response()->json([
+                'error' => 'El contenido de "registro" no es un JSON válido.',
+            ], 400);
+        }
+
+        // Imprime el contenido de $registro para verificar los datos
+        // Puedes usar Log::debug() en lugar de dd() en un entorno de producción
+        // dd($registro);
+
+        // Validar los campos dentro de 'registro'
+        // Validar los campos dentro de 'registro'
+        $validator = Validator::make($registro, [
+            'medico_id' => 'required|integer|not_in:0',  // Validación para que no sea 0
+            'prioridad_id' => 'required|integer|not_in:0',  // Validación para que no sea 0
+            'num_docu' => 'required',
+            'nombres' => 'required',
+            'productosEstudio' => 'required|array|min:1',  // Debe ser un array con al menos un elemento
+            'diagnosticosEstudio' => 'required|array|min:1',  // Debe ser un array con al menos un elemento
+        ], [
+            'medico_id.required' => 'Te hizo falta el medico.',
+            'medico_id.not_in' => 'Te hizo falta el medico.',
+            'prioridad_id.required' => 'Te hizo falta la prioridad del estudio.',
+            'prioridad_id.not_in' => 'Te hizo falta la prioridad del estudio.',
+            'num_docu.required' => 'Te hizo falta el número de documento del paciente.',
+            'nombres.required' => 'Te hizo falta los nombres del paciente.',
+            'productosEstudio.required' => 'Debe elegir al menos un producto.',
+            'productosEstudio.min' => 'Debe elegir al menos un producto.',
+            'diagnosticosEstudio.required' => 'Debe elegir al menos un diagnostico.',
+            'diagnosticosEstudio.min' => 'Debe elegir al menos un diagnostico.',
+        ]);
+
+        // Si la validación falla, devuelve los errores
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
+        // Aquí puedes continuar con el procesamiento de los datos validados
+        // Por ejemplo, almacenar los datos en la base de datos, realizar operaciones, etc.
+
+        // Retorna una respuesta de éxito
+        return response()->json([
+            'message' => 'Datos procesados con éxito.',
+            'registro' => $registro,
+        ], 201);
+
 
         $nombrePaciente = str_replace('^^^', '', $registro->nombres);
         $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
@@ -74,9 +131,8 @@ class EstudioController extends Controller
         $plan = "";
         $servicio = "";
 
-        $sede = ConfigSede::findOrfail($registro->sede_id)->all();
-
-        if ($sede[0]->interface_software == 'SAHI') {
+        $sede = ConfigSede::findOrfail($registro->sede_id);
+        if ($sede->interface_software === 'SAHI') {
 
             $buscarDatos = (new SAHIController)->buscarEpsPlanContrato($registro->atencion_id);
 
@@ -163,45 +219,13 @@ class EstudioController extends Controller
          * Almacenos los soportes de la HC
          */
         if ($request->hasFile('archivo1')) {
-            $archivo = $request->archivo1;
-            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
-            $nombreOriginal = $archivo->getClientOriginalName();
-
-            $archivoSoporteHC = new EstudioSoportesHC();
-            $archivoSoporteHC->estudio_id = $estudio->id;
-            $archivoSoporteHC->archivo_original = $nombreOriginal;
-            $archivoSoporteHC->archivo_encrip = $nombreEncrip;
-            $archivoSoporteHC->save();
-
-            Storage::putFileAs('soportes_hc', $archivo, $nombreEncrip);
+            $this->procesarArchivo($request->archivo1, $estudio->id);
         }
-
         if ($request->hasFile('archivo2')) {
-            $archivo = $request->archivo2;
-            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
-            $nombreOriginal = $archivo->getClientOriginalName();
-
-            $archivoSoporteHC = new EstudioSoportesHC();
-            $archivoSoporteHC->estudio_id = $estudio->id;
-            $archivoSoporteHC->archivo_original = $nombreOriginal;
-            $archivoSoporteHC->archivo_encrip = $nombreEncrip;
-            $archivoSoporteHC->save();
-
-            Storage::putFileAs('soportes_hc', $archivo, $nombreEncrip);
+            $this->procesarArchivo($request->archivo2, $estudio->id);
         }
-
         if ($request->hasFile('archivo3')) {
-            $archivo = $request->archivo3;
-            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
-            $nombreOriginal = $archivo->getClientOriginalName();
-
-            $archivoSoporteHC = new EstudioSoportesHC();
-            $archivoSoporteHC->estudio_id = $estudio->id;
-            $archivoSoporteHC->archivo_original = $nombreOriginal;
-            $archivoSoporteHC->archivo_encrip = $nombreEncrip;
-            $archivoSoporteHC->save();
-
-            Storage::putFileAs('soportes_hc', $archivo, $nombreEncrip);
+            $this->procesarArchivo($request->archivo3, $estudio->id);
         }
 
         if ($request->email != "") {
@@ -212,8 +236,18 @@ class EstudioController extends Controller
         return response()->json(['message' => 'La asignación de la lectura se realizó correctamente.']);
     }
 
-    public function uploadSoportesHC(Request $request)
+    function procesarArchivo($archivo, $estudioId)
     {
+        $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+        $nombreOriginal = $archivo->getClientOriginalName();
+
+        $archivoSoporteHC = new EstudioSoportesHC();
+        $archivoSoporteHC->estudio_id = $estudioId;
+        $archivoSoporteHC->archivo_original = $nombreOriginal;
+        $archivoSoporteHC->archivo_encrip = $nombreEncrip;
+        $archivoSoporteHC->save();
+
+        Storage::putFileAs('soportes_hc', $archivo, $nombreEncrip);
     }
 
     /**
@@ -267,9 +301,9 @@ class EstudioController extends Controller
             ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
             ->join('config_productos AS config_produc', 'estu_produc.producto_id', '=', 'config_produc.id')
             ->where('estudios.medico_id', $request->id)
-            ->where('estu_produc.activo', '=', 1)
+            ->where('estu_produc.activo', 1)
             ->whereNull('estu_produc.transcriptor_id')
-            ->where('config_produc.requi_lectura', '=', 1)
+            ->where('config_produc.requi_lectura', 1)
             ->whereNull('estu_produc.fechor_trascrito')
             ->whereNull('estu_produc.fechor_lectura')
             ->orderBy('priori.nom_priori')->get();

@@ -332,9 +332,9 @@
                                                         {{ ItemMedico.name }}
                                                     </option>
                                                 </select>
-                                                <!-- <span class="text-danger" v-if="errores.medico_id">
+                                                <span class="text-danger" v-if="errores.medico_id">
                                                     {{ errores.medico_id[0] }}
-                                                </span> -->
+                                                </span>
                                             </div>
                                         </div>
                                         <div class="col-md-4">
@@ -348,9 +348,9 @@
                                                             ItemPrioridad.tipo_tiempo }} {{ ItemPrioridad.observacion }}
                                                     </option>
                                                 </select>
-                                                <!-- <span class="text-danger" v-if="errores.prioridad_id">
+                                                <span class="text-danger" v-if="errores.prioridad_id">
                                                     {{ errores.prioridad_id[0] }}
-                                                </span> -->
+                                                </span>
                                             </div>
                                         </div>
                                         <div class="col-md-4" v-if="sedeInterface === true">
@@ -378,7 +378,7 @@
                                         <hr>
                                     </h5>
 
-                                    <span class="text-danger" v-if="errores.prioridad_id">
+                                    <span class="text-danger" v-if="errores.productosEstudio">
                                         {{ errores.productosEstudio[0] }}
                                     </span>
                                     <!-- <button type="button" class="btn waves-effect waves-light btn-xs btn-info float-right"
@@ -449,7 +449,7 @@
 
                                     <hr>
 
-                                    <span class="text-danger" v-if="errores.prioridad_id">
+                                    <span class="text-danger" v-if="errores.diagnosticosEstudio">
                                         {{ errores.diagnosticosEstudio[0] }}
                                     </span>
                                     <!-- <button type="button" class="btn waves-effect waves-light btn-xs btn-info float-right">
@@ -660,7 +660,7 @@ export default {
                 this.limpiar(); */
 
             } catch (error) {
-                this.errores = error.response.data.errors;
+                this.errores = error.response.data;
             }
         },
         obtenerArchivo1(e) {
@@ -676,8 +676,7 @@ export default {
 
             this.limpiar();
 
-            const res = await axios.get('/config-sedes/' + this.sedeActual + '/buscarPorId');
-            console.log(res.data.email);
+
             this.tituloModal = "Agendar al paciente: " + data.pat_name;
             this.id = data.id;
             this.registro.study_pk = data.study_pk;
@@ -699,8 +698,11 @@ export default {
             /**
              * Verificar si la sede tiene interface, traigo la informacion de las producto y diagnosticos
              */
-            const resAtenciones = await axios.get('/interface-sahi-listar-atenciones/' + this.registro.num_docu);
-            this.interfaceAtenciones = resAtenciones.data
+            const res = await axios.get('/config-sedes/' + this.sedeActual + '/buscarPorId');
+            if (res.data.interface_software != '') {
+                const resAtenciones = await axios.get('/interface-sahi-listar-atenciones/' + this.registro.num_docu);
+                this.interfaceAtenciones = resAtenciones.data
+            }
         },
         async interfaceListarProductosDiagnosticos() {
             /**
