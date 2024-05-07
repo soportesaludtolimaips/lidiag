@@ -118,7 +118,14 @@
                                                 <span style="font-weight: 600;">{{ $reporteLectura->estudio->fec_estudio }}</span> en nuestra sede de <span style="font-weight: 600;">{{ $reporteLectura->estudio->sede->nom_sede }}</span>
                                                 <samp>Está en sus manos para los fines pertinentes.</samp>
                                             </p>
-
+                                            <p style="margin: 0 0 24px;">
+                                                Para descargar el reporte de la lectura y las imágenes puede acceder al siguiente link {{ config('app.URL_API_REPORTES') }}
+                                            </p>
+                                            <p style="margin: 0 0 24px;">
+                                                <span style="font-weight: 600;">Usuario: {{ $reporteLectura->estudio->paciente->num_docu }}</span>
+                                                <br>
+                                                <span style="font-weight: 600;">Contraseña: {{ $reporteLectura->estudio->paciente->num_docu }}</span>
+                                            </p>
                                             <p class="sm-leading-32" style="font-weight: 600; font-size: 20px; margin: 0 0 24px; --text-opacity: 1; color: #263238; color: rgba(38, 50, 56, var(--text-opacity));">
                                                 Gracias por confiar en nosotros.
                                             </p>

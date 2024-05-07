@@ -656,8 +656,8 @@ export default {
                     });
                 }
 
-                /* this.btnCerralModalForm();
-                this.limpiar(); */
+                this.btnCerralModalForm();
+                this.limpiar();
 
             } catch (error) {
                 this.errores = error.response.data;
@@ -699,7 +699,7 @@ export default {
              * Verificar si la sede tiene interface, traigo la informacion de las producto y diagnosticos
              */
             const res = await axios.get('/config-sedes/' + this.sedeActual + '/buscarPorId');
-            if (res.data.interface_software != '') {
+            if (res.data.interface_software != null) {
                 const resAtenciones = await axios.get('/interface-sahi-listar-atenciones/' + this.registro.num_docu);
                 this.interfaceAtenciones = resAtenciones.data
             }

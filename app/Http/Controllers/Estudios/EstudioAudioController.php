@@ -36,8 +36,8 @@ class EstudioAudioController extends Controller
 
     public function listarAudiosPorEstudio(Request $request)
     {
-
         $estudioId = $request->estudio_id;
+
         $audios = EstudioAudio::where('estudio_id', '=', $estudioId)
             ->get();
 

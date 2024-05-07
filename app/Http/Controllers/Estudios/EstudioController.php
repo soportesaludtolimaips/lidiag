@@ -100,16 +100,15 @@ class EstudioController extends Controller
         // Por ejemplo, almacenar los datos en la base de datos, realizar operaciones, etc.
 
         // Retorna una respuesta de éxito
-        return response()->json([
+        /* return response()->json([
             'message' => 'Datos procesados con éxito.',
             'registro' => $registro,
-        ], 201);
+        ], 201); */
 
-
-        $nombrePaciente = str_replace('^^^', '', $registro->nombres);
+        $nombrePaciente = str_replace('^^^', '', $registro['nombres']);
         $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
         $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
-
+        return iconv('ISO-8859-1', 'UTF-8', $nombrePaciente);
         $paciente = Paciente::updateOrCreate(
             ['num_docu' => $registro->num_docu],
             [
@@ -250,29 +249,6 @@ class EstudioController extends Controller
         Storage::putFileAs('soportes_hc', $archivo, $nombreEncrip);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Estudios\Estudio  $estudio
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Estudio $estudio)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Estudios\Estudio  $estudio
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Estudio $estudio)
-    {
-        //
-    }
-
     public function listarPendientesMedico(Request $request, Estudio $estudio)
     {
         $misPendiente = Estudio::select(
@@ -388,11 +364,11 @@ class EstudioController extends Controller
         /**
          * Actualizo la lectura del estudio
          */
-        $transcribirEstudios = EstudioProducto::findOrFail($request->id_producto_lectura);
+        /* $transcribirEstudios = EstudioProducto::findOrFail($request->id_producto_lectura);
         $transcribirEstudios->lectura = $request->lectura;
         $transcribirEstudios->transcriptor_id = auth()->user()->id;
         $transcribirEstudios->fechor_trascrito = Carbon::now();
-        $transcribirEstudios->save();
+        $transcribirEstudios->save(); */
 
         /**
          * Si la sede donde se realizó el estudio tiene interface hago el envio del reporte a la HC del hospital
