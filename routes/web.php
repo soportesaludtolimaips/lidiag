@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\EmailController;
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Seguridad\UserController;
@@ -14,15 +13,12 @@ use App\Http\Controllers\Configuracion\ConfigPrioridadController;
 use App\Http\Controllers\Configuracion\ConfigSedeController;
 use App\Http\Controllers\Dashboard\DashBoardController;
 use App\Http\Controllers\Dcm4chee\StudyController;
-use App\Http\Controllers\Estudio\EstudioSoporteHC;
-use App\Http\Controllers\Estudios\AudiosEstudioController;
 use App\Http\Controllers\Estudios\EstudioAudioController;
 use App\Http\Controllers\Estudios\EstudioController;
 use App\Http\Controllers\Estudios\EstudioProductoController;
 use App\Http\Controllers\Estudios\EstudioDiagnosticoController;
 use App\Http\Controllers\Estudios\EstudioNotificacionController;
 use App\Http\Controllers\Estudios\EstudioSoporteHCController;
-use App\Http\Controllers\Importar\ActualizarMedico;
 use App\Http\Controllers\Importar\ImportarDicom;
 use App\Http\Controllers\Interface\SAHIController;
 use App\Http\Controllers\Reportes\ReporteProduccion;
@@ -133,7 +129,7 @@ Route::get('/interface-sahi-listar-listarProductosDiagnosticos/{idAtencion}', [S
  * Interface SAHI
  */
 Route::get('/importar-dicom', [ImportarDicom::class, 'importarDicom']);
-Route::get('/actulizar-medico', [ActualizarMedico::class, 'actualizarMedico']);
+
 /* Route::get('/{optional?}', function () {
     return view('layouts.app');
 })->name('basepath')->where('optional', '.*');

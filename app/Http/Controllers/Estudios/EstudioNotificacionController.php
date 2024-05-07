@@ -3,16 +3,13 @@
 namespace App\Http\Controllers\Estudios;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\Reportes\ResporteLecturaController;
 use App\Mail\NotificacionDeLectura;
 use App\Mail\ReportarLectura;
 use App\Models\Estudio\Estudio;
 use App\Models\Estudio\EstudioProducto;
-use App\Models\General\Paciente;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
 
 class EstudioNotificacionController extends Controller
 {
