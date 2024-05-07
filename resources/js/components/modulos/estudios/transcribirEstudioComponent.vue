@@ -504,6 +504,7 @@ export default {
         },
         async listarAudios() {
             const res = await axios.get('/listar-audios-estudio/' + this.id);
+            console.log('*********************** audios ************************')
             console.log(res.data)
 
             this.audiosDeEstudio = res.data;
@@ -545,9 +546,9 @@ export default {
             const resSoportesHC = await axios.get('/listar-soportes-hc-estudio?id=' + this.id);
             this.soportesHC = resSoportesHC.data;
 
+            this.listarAudios()
             this.btnCerralModalForm();
             this.errores = [];
-            this.listarAudios()
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);

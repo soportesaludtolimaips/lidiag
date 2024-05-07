@@ -78,8 +78,23 @@ class StudyController extends Controller
             $nuevosRegistro[] = $resul;
         }
 
-        //return $nuevosRegistro;
+        // Recorre el array para convertir las cadenas
+        foreach ($nuevosRegistro as $key => $value) {
+            if (is_string($value)) {
+                // Convertir la cadena usando iconv con TRANSLIT para reemplazar caracteres inválidos
+                $nuevosRegistro[$key] = iconv('UTF-8', 'UTF-8//TRANSLIT//IGNORE', $value);
+            }
+        }
 
-        return json_encode($nuevosRegistro, JSON_INVALID_UTF8_SUBSTITUTE);
+        // Ahora que las cadenas han sido convertidas, puedes continuar con el procesamiento
+        // ...
+
+        // Codifica los datos como JSON
+        $nuevosRegistrosJson = json_encode($nuevosRegistro, JSON_INVALID_UTF8_SUBSTITUTE);
+
+        // Devuelve la respuesta JSON
+        return response($nuevosRegistrosJson, 200);
+
+        //    return json_encode($nuevosRegistro, JSON_INVALID_UTF8_SUBSTITUTE);
     }
 }
