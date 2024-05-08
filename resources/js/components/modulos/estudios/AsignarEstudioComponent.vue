@@ -353,6 +353,7 @@
                                                 </span>
                                             </div>
                                         </div>
+
                                         <div class="col-md-4" v-if="sedeInterface === true">
                                             <div class="form-group">
                                                 <label class="control-label">Atención</label>
@@ -656,6 +657,7 @@ export default {
                     });
                 }
 
+                this.listarMisPendientes();
                 this.btnCerralModalForm();
                 this.limpiar();
 

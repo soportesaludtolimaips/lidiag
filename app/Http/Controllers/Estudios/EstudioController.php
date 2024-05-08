@@ -110,15 +110,15 @@ class EstudioController extends Controller
         $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
 
         $paciente = Paciente::updateOrCreate(
-            ['num_docu' => $registro->num_docu],
+            ['num_docu' => $registro['num_docu']],
             [
-                'num_docu' => $registro->num_docu,
+                'num_docu' => $registro['num_docu'],
                 'nombres' => $nombrePaciente,
-                'direccion' => $registro->direccion,
-                'sexo' => $registro->sexo,
-                'fec_naci' => $registro->fec_naci,
-                'tel' => $registro->telefono,
-                'email' => $registro->email
+                'direccion' => $registro['direccion'],
+                'sexo' => $registro['sexo'],
+                'fec_naci' => $registro['fec_naci'],
+                'tel' => $registro['telefono'],
+                'email' => $registro['email']
             ]
         );
 
@@ -130,7 +130,7 @@ class EstudioController extends Controller
         $plan = "";
         $servicio = "";
 
-        $sede = ConfigSede::findOrfail($registro->sede_id);
+        $sede = ConfigSede::findOrfail($registro['sede_id']);
         if ($sede->interface_software === 'SAHI') {
 
             $buscarDatos = (new SAHIController)->buscarEpsPlanContrato($registro->atencion_id);
@@ -147,23 +147,23 @@ class EstudioController extends Controller
          * Inserto el estudio en Lidiag
          */
         $estudio = Estudio::firstOrCreate(
-            ['study_id' => $registro->study_pk],
+            ['study_id' => $registro['study_pk']],
             [
-                'study_pk' => $registro->study_pk,
-                'study_iuid' => $registro->study_iuid,
-                'study_id' => $registro->study_id,
-                'fec_estudio' => $registro->study_datetime,
-                'accession_no' => $registro->accession_no,
-                'study_desc' => $registro->study_desc,
-                'mods_in_study' => $registro->mods_in_study,
-                'email_reportar' => $registro->email_reportar,
+                'study_pk' => $registro['study_pk'],
+                'study_iuid' => $registro['study_iuid'],
+                'study_id' => $registro['study_id'],
+                'fec_estudio' => $registro['study_datetime'],
+                'accession_no' => $registro['accession_no'],
+                'study_desc' => $registro['study_desc'],
+                'mods_in_study' => $registro['mods_in_study'],
+                'email_reportar' => $registro['email_reportar'],
                 'paciente_id' => $paciente->id,
-                'medico_id' => $registro->medico_id,
+                'medico_id' => $registro['medico_id'],
                 'quien_registro_id' => auth()->user()->id,
-                'sede_id' => $registro->sede_id,
-                'prioridad_id' => $registro->prioridad_id,
-                'observaciones' => $registro->observaciones,
-                'atencion' => $registro->atencion_id,
+                'sede_id' => $registro['sede_id'],
+                'prioridad_id' => $registro['prioridad_id'],
+                'observaciones' => $registro['observaciones'],
+                'atencion' => $registro['atencion_id'],
                 'servicio' => $servicio,
                 'eps' => $eps,
                 'contrato' => $contrato,
@@ -176,14 +176,14 @@ class EstudioController extends Controller
          */
         $productos = EstudioProducto::where('estudio_id', '=', $estudio->id);
         $productos->delete();
-        foreach ($registro->productosEstudio as $Producto) {
-            if ($Producto->checked == true) {
+        foreach ($registro['productosEstudio'] as $Producto) {
+            if ($Producto['checked'] == true) {
 
                 $productoDicom = ConfigProducto::firstOrCreate(
-                    ['cod_cups' => $Producto->cod_cups],
+                    ['cod_cups' => $Producto['cod_cups']],
                     [
-                        'cod_cups' => $Producto->cod_cups,
-                        'nom_produc' => $Producto->nom_produc,
+                        'cod_cups' => $Producto['cod_cups'],
+                        'nom_produc' => $Producto['nom_produc'],
                         'requi_lectura' => 0,
                     ]
                 );
@@ -206,11 +206,11 @@ class EstudioController extends Controller
          */
         $diagnosticos = EstudioDiagnostico::where('estudio_id', '=', $estudio->id);
         $diagnosticos->delete();
-        foreach ($registro->diagnosticosEstudio as $Diagnostico) {
+        foreach ($registro['diagnosticosEstudio'] as $Diagnostico) {
             EstudioDiagnostico::create([
                 'estudio_id' => $estudio->id,
-                'cod_diagnos' => $Diagnostico->cod_diagnos,
-                'nom_diagnos' => $Diagnostico->nom_diagnos,
+                'cod_diagnos' => $Diagnostico['cod_diagnos'],
+                'nom_diagnos' => $Diagnostico['nom_diagnos'],
             ]);
         }
 
