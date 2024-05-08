@@ -463,9 +463,9 @@ export default {
                         stack: 6,
                     });
 
-                    /* this.listarMisPendientes();
+                    this.listarMisPendientes();
                     this.btnCerralModalForm();
-                    this.limpiar(); */
+                    this.limpiar();
                 } else {
                     $.toast({
                         heading: "Upss!!!",
