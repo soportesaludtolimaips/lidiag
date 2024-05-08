@@ -108,7 +108,7 @@ class EstudioController extends Controller
         $nombrePaciente = str_replace('^^^', '', $registro['nombres']);
         $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
         $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
-        return iconv('ISO-8859-1', 'UTF-8', $nombrePaciente);
+
         $paciente = Paciente::updateOrCreate(
             ['num_docu' => $registro->num_docu],
             [
