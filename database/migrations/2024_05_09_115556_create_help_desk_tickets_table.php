@@ -17,16 +17,16 @@ return new class extends Migration
             $table->id();
 
             $table->unsignedBigInteger('quien_registra_id');
-            $table->foreign('quien_registra_id')->on('id')->references('users');
+            $table->foreign('quien_registra_id')->references('id')->on('users');
 
             $table->unsignedBigInteger('sedes_id')->nullable();
-            $table->foreign('sedes_id')->on('id')->references('config_sedes');
+            $table->foreign('sedes_id')->references('id')->on('config_sedes');
 
             $table->unsignedBigInteger('quien_atiende_id')->nullable()->comment('Usuario al cual fue asignado el teckect');
-            $table->foreign('quien_atiende_id')->on('id')->references('users');
+            $table->foreign('quien_atiende_id')->references('id')->on('users');
 
             $table->unsignedBigInteger('quien_soluciona_id')->nullable()->comment('Usuario que soluciona el incidente');
-            $table->foreign('quien_soluciona_id')->on('id')->references('users');
+            $table->foreign('quien_soluciona_id')->references('id')->on('users');
 
             $table->text('descripcion_insidencia')->nullable();
             $table->text('descripcion_solucion')->nullable();
