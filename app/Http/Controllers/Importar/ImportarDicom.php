@@ -33,7 +33,7 @@ class ImportarDicom extends Controller
         $sedeActual = ConfigSede::find(1);
 
         $agendas = Agenda::orderBy('fechor_regis', 'ASC')
-            ->where('study_pk', '>', 137732)
+            //->where('study_pk', '>=', 139478)
             ->get();
         //return $agendas->count();
         $i = 0;
@@ -118,6 +118,7 @@ class ImportarDicom extends Controller
                     $quienAgendoDicom = GeneralPersonal::where('id_personal', '=', $agenda->id_quien_agendo)
                         ->get();
 
+
                     /**
                      * INICIO LOS INSERT EN LIDIAG
                      */
@@ -133,6 +134,22 @@ class ImportarDicom extends Controller
                             'nombres' =>  str_replace('^^^', '', $pacienteDicom[0]->pat_name)
                         ]
                     );
+
+                    /**
+                     * Inserto quien agendo
+                     */
+                    $userQuienAgendoLidiag = User::firstOrCreate(
+                        ['num_docu' => $quienAgendoDicom[0]->num_docu],
+                        [
+                            'num_docu' => $quienAgendoDicom[0]->num_docu,
+                            'name' => $quienAgendoDicom[0]->nom . " " . $quienAgendoDicom[0]->ape,
+                            'email' => $quienAgendoDicom[0]->e_mail,
+                            'password' =>  bcrypt('123456')
+                        ]
+                    );
+                    //return $userQuienLidiag->id;
+
+                    //User::create([ 'password' => bcrypt('123456')])->assignRole('Administrador');
 
                     /**
                      * Busco el medico en Lidiag
@@ -176,7 +193,7 @@ class ImportarDicom extends Controller
                     //$estudio->email_reporta = $agenda->;
                     $estudio->paciente_id = $pacienteLidiag->id;
                     $estudio->medico_id = $medicoParaInsertar;
-                    $estudio->quien_registro_id = $quienAgendoLidiag[0]->id;
+                    $estudio->quien_registro_id = $userQuienAgendoLidiag->id;
                     $estudio->sede_id = 1;
                     $estudio->prioridad_id = $agenda->id_prioridad;
                     $estudio->observaciones = $agenda->observaciones;
