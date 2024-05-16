@@ -313,11 +313,11 @@ class EstudioController extends Controller
             'pacien.direccion',
             'pacien.email',
             'pacien.tel',
-            'produc.id as id_producto_lectura',
-            'produc.cod_cups',
-            'produc.nom_produc',
-            'produc.fechor_lectura',
-            'produc.lectura',
+            'estudios_productos.id as id_producto_lectura',
+            'estudios_productos.cod_cups',
+            'estudios_productos.nom_produc',
+            'estudios_productos.fechor_lectura',
+            'estudios_productos.lectura',
             'users.name AS quien_registro',
             'priori.id as priori_id',
             'priori.nom_priori',
@@ -328,15 +328,16 @@ class EstudioController extends Controller
             'sede.url_oviyam',
             'sede.tap_oviyam'
         )
-            ->join('pacientes AS pacien', 'estudios.paciente_id',  '=', 'pacien.id')
+            ->join('estudios_productos', 'estudios_productos.estudio_id', '=', 'estudios.id')
+            ->join('pacientes AS pacien', 'estudios.paciente_id', '=', 'pacien.id')
             ->join('config_sedes AS sede', 'estudios.sede_id', '=', 'sede.id')
-            ->join('estudios_productos AS produc', 'produc.estudio_id', '=', 'estudios.id')
             ->join('users', 'estudios.quien_registro_id', '=', 'users.id')
             ->join('users as medi', 'estudios.medico_id', '=', 'medi.id')
             ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
-            ->whereNull('produc.fechor_trascrito')
-            ->whereNotNull('produc.lectura')
-            ->where('produc.activo', '=', 1)
+            ->join('config_productos', 'estudios_productos.producto_id', '=', 'config_productos.id')
+            ->whereNotNull('estudios_productos.fechor_lectura')
+            ->where('estudios_productos.activo', '=', 1)
+            ->whereNull('estudios_productos.transcriptor_id')
             ->orderBy('estudios.created_at', 'ASC')
             ->get();
 

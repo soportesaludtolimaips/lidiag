@@ -62,6 +62,26 @@
                     </li>
                 @endif
 
+                @if (auth()->user()->hasAnyPermission(['estudio.asignar', 'estudio.transcribir', 'estudio.leerEstudio', 'estudios.notificar.index']))
+                    <li class="nav-small-cap">--- Citas</li>
+                    <li>
+                        <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
+                            <i class="icon-Address-Book"></i>
+                            <span class="hide-menu">Agenda</span>
+                        </a>
+                        <ul aria-expanded="false" class="collapse">
+                            @can('estudio.asignar')
+                                <li>
+                                    <a href="{{ route('estudios.asignar.listar') }}">
+                                        <i class="fa fa-calendar"></i> Citas
+                                    </a>
+                                </li>
+                            @endcan
+
+                        </ul>
+                    </li>
+                @endif
+
                 @if (auth()->user()->hasAnyPermission(['reportes.indicadores', 'reportes.detallados']))
                     <li class="nav-small-cap">--- REPORTES</li>
                     <li>

@@ -55,6 +55,12 @@ import notificarEstudioComponent from "./components/modulos/estudios/notificarEs
 app.component("notificar-estudio-component", notificarEstudioComponent);
 
 /**
+ * Citas
+ */
+import citasGestionarComponent from "./components/modulos/citas/citasGestionarComponent.vue";
+app.component("citas-gestionar-component", citasGestionarComponent);
+
+/**
  * Seguridad
  */
 import usuarioComponent from "./components/modulos/seguridad/usuarioComponent.vue";
@@ -100,5 +106,8 @@ app.component("footer-component", footerComponent);
 /* import route from './routes'
 
 app.use(route); */
+
+// Importar archivo CSS antes de crear la aplicación Vue
+import "@/admin-wrap/assets/node_modules/calendar/dist/fullcalendar.css";
 
 app.mount("#app");
