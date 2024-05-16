@@ -30,6 +30,8 @@
     <link href="{{ asset('admin-wrap/assets/node_modules/jquery-asColorPicker-master/css/asColorPicker.css') }}" rel="stylesheet">
     <!-- Date picker plugins css -->
     <link href="{{ asset('admin-wrap/assets/node_modules/bootstrap-datepicker/bootstrap-datepicker.min.css') }}" rel="stylesheet" type="text/css" />
+    <!-- Calendar CSS -->
+    {{-- <link href="{{ asset('admin-wrap/assets/node_modules/calendar/dist/fullcalendar.css') }}" rel="stylesheet" /> --}}
     <!-- Daterange picker plugins css -->
     <link href="{{ asset('admin-wrap/assets/node_modules/timepicker/bootstrap-timepicker.min.css') }}" rel="stylesheet">
     <link href="{{ asset('admin-wrap/assets/node_modules/bootstrap-daterangepicker/daterangepicker.css') }}" rel="stylesheet">
@@ -46,7 +48,7 @@
     <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
 <![endif]-->
 
-    @vite(['resources/js/app.js'])
+
 
     <script src="https://cdn.jsdelivr.net/npm/howler"></script>
     <script src="https://cdn.jsdelivr.net/npm/animejs"></script>
@@ -182,6 +184,13 @@
     <script src="https://cdn.datatables.net/buttons/1.2.2/js/buttons.print.min.js"></script>
     <!-- end - This is for export functionality only -->
     <!-- Custom Theme JavaScript -->
+
+    <!-- Calendar JavaScript -->
+    {{-- <script src="{{ asset('admin-wrap/assets/node_modules/calendar/jquery-ui.min.js') }}"></script>
+    <script src="{{ asset('admin-wrap/assets/node_modules/moment/moment.js') }}"></script>
+    <script src='{{ asset('admin-wrap/assets/node_modules/calendar/dist/fullcalendar.min.js') }}'></script>
+    <script src="{{ asset('admin-wrap/assets/node_modules/calendar/dist/cal-init.js') }}"></script> --}}
+
     <!-- Sweet-Alert  -->
     <script src="{{ asset('admin-wrap/assets/node_modules/sweetalert/sweetalert.min.js') }}"></script>
     <script src="{{ asset('admin-wrap/assets/node_modules/sweetalert/jquery.sweet-alert.custom.js') }}"></script>
@@ -196,6 +205,8 @@
     <!-- Style switcher -->
     <!-- ============================================================== -->
     <script src="{{ asset('admin-wrap/assets/node_modules/styleswitcher/jQuery.style.switcher.js') }}"></script>
+
+    @vite(['resources/js/app.js'])
 </body>
 
 </html>

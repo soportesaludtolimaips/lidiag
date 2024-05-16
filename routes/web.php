@@ -78,6 +78,13 @@ Route::get('/estudio-listarPendientesPorLeerTranscribir', [EstudioController::cl
 Route::get('/estudio-buscar-por-numdocu/{numDocu}', [EstudioController::class, 'buscarEstudioPorNumDocu'])->name('estudio.buscarEstudioPorNumDocu');
 
 /**
+ * cutas
+ */
+Route::view('/citas', 'modulos.citas.citas-gestionar')->name('citas');
+Route::resource('/config-productos', ConfigProductoController::class)->names('config.productos')->except(['create']);
+
+
+/**
  * Reportes
  */
 Route::view('reportes-produccion', 'modulos.reportes.reportes-produccion')->name('reportes.produccion')->middleware('auth');

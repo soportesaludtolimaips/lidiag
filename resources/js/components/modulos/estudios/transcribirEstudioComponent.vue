@@ -69,12 +69,14 @@
                 </div>
             </div>
         </div> -->
-
         <div class="row">
             <div class="col-12 table-responsive">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Listado de estudios pendientes por transcribir</h4>
+                        <h4 class="card-title">Listado de estudios disponibles</h4>
+                        <h6 class="card-subtitle text-info">Asigne los estudios a los médicos para su respectiva
+                            lectura.
+                        </h6>
                         <div class="table-responsive">
                             <table id="example23" class="table table-bordered table-striped" cellspacing="0"
                                 width="100%">
@@ -103,7 +105,7 @@
                                             <button type="button" v-else-if="item.priori_id == 4"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm">S</button>
                                         </td>
-                                        <td>{{ item.id }} - {{ item.nom_sede }}</td>
+                                        <td>{{ item.nom_sede }}</td>
                                         <td>{{ item.fec_estudio }}</td>
                                         <td>{{ item.quien_registro }}</td>
                                         <td>{{ item.medico }}</td>
