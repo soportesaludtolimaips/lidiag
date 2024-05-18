@@ -35,17 +35,25 @@
                                 <div class="row p-t-2">
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label class="control-label">Nombres de paciente o # de documento </label>
+                                            <label class="control-label"># de documento </label>
                                             <input type="text" id="bus_nom_num_docu" name="bus_nom_num_docu"
-                                                v-model="busqueda.bus_nom_num_docu" class="form-control"
-                                                placeholder="Nombres de paciente o # de documento" />
+                                                v-model="busqueda.bus_num_docu" class="form-control"
+                                                placeholder="# de documento de paciente" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label class="control-label">Nombres del paciente</label>
+                                            <input type="text" id="bus_nom_num_docu" name="bus_nom_num_docu"
+                                                v-model="busqueda.bus_nom" class="form-control"
+                                                placeholder="Nombres del paciente" />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Inicio</label>
-                                            <input type="date" id="fecha_ini" name="fecha_ini" v-model="busqueda.fehc_ini"
-                                                class="form-control" />
+                                            <input type="date" id="fecha_ini" name="fecha_ini"
+                                                v-model="busqueda.fehc_ini" class="form-control" />
                                             <span class="text-danger" v-if="errores.fecha_ini">
                                                 {{ erroresBusqueda.fecha_ini[0] }}
                                             </span>
@@ -54,8 +62,8 @@
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Fin</label>
-                                            <input type="date" id="fecha_fin" name="fecha_fin" v-model="busqueda.fecha_fin"
-                                                class="form-control" />
+                                            <input type="date" id="fecha_fin" name="fecha_fin"
+                                                v-model="busqueda.fecha_fin" class="form-control" />
                                             <span class="text-danger" v-if="errores.fecha_fin">
                                                 {{ erroresBusqueda.fecha_fin[0] }}
                                             </span>
@@ -82,7 +90,8 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de estudios disponibles para notificar</h4>
-                        <h6 class="card-subtitle">Notifique por correo electrónico el descargue del reporte y de imágenes de
+                        <h6 class="card-subtitle">Notifique por correo electrónico el descargue del reporte y de
+                            imágenes de
                             un paciente.</h6>
                         <div class="table-responsive m-t-40">
                             <table id="example23" class="display nowrap table table-hover table-striped table-bordered"
@@ -113,7 +122,7 @@
                                         <td class="text-nowrap">
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
-                                                @click="imprimirReporte(item.id_producto_lectura)" title="Imprimir reporte">
+                                                @click="imprimirReporte(item)" title="Imprimir reporte">
                                                 <i class="fa fa-file-pdf-o"></i>
                                             </button>
                                             <button type="button"
@@ -163,8 +172,9 @@
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label class="control-label"># Documento</label>
-                                                <input type="text" id="num_docu" name="num_docu" v-model="registro.num_docu"
-                                                    class="form-control" placeholder="# de Documento" />
+                                                <input type="text" id="num_docu" name="num_docu"
+                                                    v-model="registro.num_docu" class="form-control"
+                                                    placeholder="# de Documento" />
                                                 <span class="text-danger" v-if="errores.num_docu">
                                                     {{ errores.num_docu[0] }}
                                                 </span>
@@ -174,8 +184,9 @@
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <label class="control-label">Nombres</label>
-                                                <input type="text" id="nombres" name="nombres" v-model="registro.nombres"
-                                                    class="form-control" placeholder="Nombres" />
+                                                <input type="text" id="nombres" name="nombres"
+                                                    v-model="registro.nombres" class="form-control"
+                                                    placeholder="Nombres" />
                                                 <span class="text-danger" v-if="errores.nombres">
                                                     {{ errores.nombres[0] }}
                                                 </span>
@@ -193,8 +204,8 @@
                                         <div class="col-md-2">
                                             <div class="form-group">
                                                 <label class="control-label">Fec. Nacimi</label>
-                                                <input type="date" id="fec_naci" name="fec_naci" v-model="registro.fec_naci"
-                                                    class="form-control" />
+                                                <input type="date" id="fec_naci" name="fec_naci"
+                                                    v-model="registro.fec_naci" class="form-control" />
                                             </div>
                                         </div>
                                     </div>
@@ -248,7 +259,8 @@
                                     <i class="fa fa-envelope-o"></i> Notificar
                                 </button>
 
-                                <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">Cancel</button>
+                                <button type="button" class="btn btn-inverse"
+                                    @click="btnCerralModalForm()">Cancel</button>
                             </div>
                         </div>
                     </form>
@@ -272,17 +284,16 @@ export default {
             registro: {
                 num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", telefono: "", nom_produc: "", id_producto_lectura: null
             },
-            busqueda: { bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "" },
+            busqueda: { bus_num_docu: "", bus_nom: '', fehc_ini: "", fecha_fin: "" },
             errores: {},
             erroresBusqueda: {},
-
         };
     },
     methods: {
         async buscarStudy() {
             try {
 
-                if (this.busqueda.bus_nom_num_docu == '' && this.busqueda.bus_fehc_ini == "" && this.busqueda.bus_fecha_fin == "") {
+                if (this.busqueda.bus_num_docu == '' && this.busqueda.bus_fehc_ini == "" && this.busqueda.bus_fecha_fin == "") {
                     $.toast({
                         heading: "Upsss!!!",
                         text: 'Debe establece la fecha de inicio o finalización para la busqueda.',
@@ -294,6 +305,7 @@ export default {
                     });
                 } else {
                     const res = await axios.post("/listar.estudios.notificaciones", this.busqueda);
+
                     if (res.status == 200) {
                         $("#example23").DataTable().destroy();
 
@@ -334,12 +346,13 @@ export default {
                 this.erroresBusqueda = error.response.data.errors;
             }
         },
-        async imprimirReporte(id) {
+        async imprimirReporte(estudio) {
             try {
 
-                const res = await axios.get(`/generar.pdf.lectura/${id}`);
+                //const res = await axios.get(`/generar.pdf.lectura/${id}`);
+                const res = await axios.post("/edit-word", estudio);
 
-                window.open(`/descargar.pdf.lectura/${res.data}`);
+                //window.open(`/descargar.pdf.lectura/${res.data}`);
 
                 /* const res = await axios.get(`/generar.pdf.lectura/${id}`);
 

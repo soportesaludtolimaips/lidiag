@@ -89,9 +89,10 @@ class ConfigSedeController extends Controller
      * @param  \App\Models\Configuracion\ConfigSede  $configSede
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request)
+    public function update(Request $request, $id)
     {
-        $configsede = ConfigSede::findOrFail($request->id);
+        return $request->registro;
+        $configsede = ConfigSede::findOrFail($id);
         $configsede->nom_sede = $request->nom_sede;
         $configsede->email = $request->email;
         $configsede->ip_dcm = $request->ip_dcm;
@@ -110,28 +111,14 @@ class ConfigSedeController extends Controller
         /**
          * Almacenos los logos de la sede
          */
-        /* if ($request->hasFile('logo1')) {
-
-            Storage::disk('logo1')->delete($configSede->logo_1);
-
+        if ($request->hasFile('logo1')) {
             $archivo = $request->logo1;
             $nombreEncrip = Str::random(50) . "." . $archivo->extension();
 
-            $archivo->storeAs('logos', $nombreEncrip);
-            $configSede->logo_1 = $nombreEncrip;
+            $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
+            $configsede->plantilla = $nombreEncrip;
         }
 
-        if ($request->hasFile('logo2')) {
-
-            Storage::disk('logo2')->delete($configSede->logo_1);
-
-            $archivo = $request->logo2;
-            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
-
-            $archivo->storeAs('logos', $nombreEncrip);
-            $configSede->logo_2 = $nombreEncrip;
-        }
- */
         $configsede->update();
 
         return response()->json(['message' => 'El registro se actualizo correctamente.']);

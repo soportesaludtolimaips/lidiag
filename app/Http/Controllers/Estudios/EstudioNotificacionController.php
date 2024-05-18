@@ -27,28 +27,44 @@ class EstudioNotificacionController extends Controller
     public function listarEstudios(Request $request)
     {
 
-        $estudios = Estudio::select(
-            'pacientes.id AS paciente_id',
-            'pacientes.num_docu',
-            'pacientes.nombres',
-            'pacientes.tel',
-            'pacientes.email',
-            'pacientes.direccion',
-            'pacientes.sexo',
-            'pacientes.fec_naci',
-            'estudios.id AS estudio_id',
-            'estudios.fec_estudio',
-            'estudios_productos.id AS id_producto_lectura',
-            'estudios_productos.nom_produc',
-            'estudios_productos.fechor_lectura'
-        )
-            ->join('pacientes', 'estudios.paciente_id', 'pacientes.id')
-            ->join('estudios_productos', 'estudios_productos.estudio_id', 'estudios.id')
-            ->where('pacientes.num_docu', 'like', "%$request->bus_nom_num_docu%")
-            ->orWhere('pacientes.nombres', 'like', "%$request->bus_nom_num_docu%")
-            ->get();
+        $estudios = new Estudio();
+        $query = $estudios->query();
 
-        return $estudios;
+        $query->select(
+            'estudios.*',
+            'pacien.num_docu',
+            'pacien.nombres as nom_pacien',
+            'pacien.fec_naci',
+            'pacien.direccion',
+            'pacien.email',
+            'pacien.tel',
+            'estudios_productos.cod_cups',
+            'estudios_productos.nom_produc',
+            'estudios_productos.fechor_lectura',
+            'estudios_productos.fechor_trascrito',
+            'estudios_productos.lectura',
+            'medi.name as medico',
+            'medi.reg_med',
+            'medi.num_docu',
+            'medi.firma',
+            'sede.nom_sede as nom_sede',
+        )
+            ->join('estudios_productos', 'estudios_productos.estudio_id', '=', 'estudios.id')
+            ->join('pacientes AS pacien', 'estudios.paciente_id', '=', 'pacien.id')
+            ->join('config_sedes AS sede', 'estudios.sede_id', '=', 'sede.id')
+            ->join('users as medi', 'estudios.medico_id', '=', 'medi.id')
+            ->join('config_productos', 'estudios_productos.producto_id', '=', 'config_productos.id')
+            ->whereNotNull('estudios_productos.transcriptor_id');
+
+        if ($request->bus_num_docu != "") {
+            $query->where('pacien.num_docu', 'like', "%$request->bus_num_docu%");
+        }
+
+        if ($request->bus_nom != "") {
+            $query->where('pacien.nombres', 'like', "%$request->bus_nom%");
+        }
+
+        return $query->get();
     }
 
     public function notificarEmail($id_producto_lectura, $num_docu, $nom_pacien, $fec_naci, $email, $email_reportar)

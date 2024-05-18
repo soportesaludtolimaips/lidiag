@@ -19,6 +19,7 @@ use App\Http\Controllers\Estudios\EstudioProductoController;
 use App\Http\Controllers\Estudios\EstudioDiagnosticoController;
 use App\Http\Controllers\Estudios\EstudioNotificacionController;
 use App\Http\Controllers\Estudios\EstudioSoporteHCController;
+use App\Http\Controllers\Estudios\PlantillaEstudioController;
 use App\Http\Controllers\Importar\ImportarDicom;
 use App\Http\Controllers\Interface\SAHIController;
 use App\Http\Controllers\Reportes\ReporteProduccion;
@@ -62,6 +63,8 @@ Route::post('/listar.estudios.notificaciones', [EstudioNotificacionController::c
 Route::get('/generar.pdf.lectura/{id_producto_lectura}', [EstudioController::class, 'generarPdfLectura'])->name('generar.pdf.lectura');
 Route::get('/descargar.pdf.lectura/{nomArchivo}', [EstudioController::class, 'descargarPdfLectura'])->name('descargar.pdf.lectura');
 Route::post('/notificar.email', [EstudioController::class, 'notificarEmail'])->name('notificar.email');
+
+Route::post('/edit-word', [PlantillaEstudioController::class, 'editWord']);
 
 Route::view('/estudios.leer.estudio.listar', 'modulos.estudios.leer-estudio')->name('estudios.leer.estudio.listar');
 Route::post('/estudio-leerEstudio', [EstudioController::class, 'leerEstudio'])->name('estudio.leerEstudio');
@@ -107,8 +110,8 @@ Route::resource('/config-productos', ConfigProductoController::class)->names('co
 
 Route::view('/config.sedes.listar', 'modulos.configuracion.config-sedes')->name('config.sedes.listar');
 Route::resource('/config-sedes', ConfigSedeController::class)->names('config.sedes')->except(['create', 'show']);
-Route::get('/config-sedes/{configsede}/buscarPorId', [ConfigSedeController::class, 'buscarPorId'])->name('config.sedes.buscarPorId');
-Route::get('/config-sedes/listar/sedes/activas', [ConfigSedeController::class, 'listarSedesActivas'])->name('config.sedes.listarSedesActivas');
+/* Route::get('/config-sedes/{configsede}/buscarPorId', [ConfigSedeController::class, 'buscarPorId'])->name('config.sedes.buscarPorId');
+Route::get('/config-sedes/listar/sedes/activas', [ConfigSedeController::class, 'listarSedesActivas'])->name('config.sedes.listarSedesActivas'); */
 
 
 /**

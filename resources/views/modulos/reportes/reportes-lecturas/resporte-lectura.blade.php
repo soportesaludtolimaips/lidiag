@@ -101,7 +101,15 @@
         <div class="titulo-negrita">Paciente: {{ $reporteLectura->estudio->paciente->nombres }}</div>
         <div class="titulo-negrita">Documento: {{ $reporteLectura->estudio->paciente->num_docu }}</div>
         <div class="titulo-negrita">Edad: {{ $reporteLectura->estudio->paciente->fec_naci }}</div>
+        <div class="titulo-negrita">Eps: {{ $reporteLectura->estudio->eps }} - Contrato: {{ $reporteLectura->estudio->contrato }}</div>
 
+        <p>
+        <div class="titulo-negrita">{{ '======================== ESTUDIOS RADIOLÓICOS ========================' }}</div>
+
+        <div class="titulo-negrita">Fecha Hora Estudio: {{ $reporteLectura->estudio->fec_estudio }}</div>
+
+        <div class="titulo-negrita">Fecha Hora Lectura: {{ $reporteLectura->fechor_lectura }}</div>
+        </p>
         <p class="estudio">ESTUDIO: {{ $reporteLectura->nom_produc }}</p>
 
         <p>{{ $reporteLectura->lectura }}</p>
