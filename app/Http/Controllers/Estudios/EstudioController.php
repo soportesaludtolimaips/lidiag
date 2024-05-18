@@ -324,6 +324,8 @@ class EstudioController extends Controller
             'priori.nivel AS priori_nivel',
             'priori.tiempo AS priori_tiempo',
             'medi.name as medico',
+            'medi.reg_med',
+            'medi.num_docu AS num_docu_medi',
             'sede.nom_sede as nom_sede',
             'sede.url_oviyam',
             'sede.tap_oviyam'
@@ -492,8 +494,8 @@ class EstudioController extends Controller
          * Genero el PDF del reporte de la lectura del estudio
          */
         $reporteLectura = EstudioProducto::with('estudio.paciente')->with('estudio.medico')->with('estudio.sede')->findOrFail($id_producto_lectura);
-        $nomArchivoReporte = $reporteLectura->id . "-" . $reporteLectura->estudio->paciente->num_docu . "-" . $reporteLectura->nom_produc . ".pdf";
 
+        $nomArchivoReporte = $reporteLectura->id . "-" . $reporteLectura->estudio->paciente->num_docu . "-" . $reporteLectura->nom_produc . ".pdf";
         $existe = Storage::exists($nomArchivoReporte);
 
         if (!file_exists($existe)) {
