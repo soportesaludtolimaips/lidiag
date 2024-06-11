@@ -217,14 +217,14 @@ export default {
     // Otros detalles del componente
     mounted() {
         // Importar los scripts de AdminWrap
-        import('@/admin-wrap/assets/node_modules/calendar/jquery-ui.min.js');
+        /* import('@/admin-wrap/assets/node_modules/calendar/jquery-ui.min.js');
         import('@/admin-wrap/assets/node_modules/moment/moment.js');
         import('@/admin-wrap/assets/node_modules/calendar/dist/fullcalendar.min.js');
-        import('@/admin-wrap/assets/node_modules/calendar/dist/cal-init.js');
+        import('@/admin-wrap/assets/node_modules/calendar/dist/cal-init.js'); */
     }
 }
 </script>
 
 <style>
-@import url('@/admin-wrap/assets/node_modules/calendar/dist/fullcalendar.css');
+/* @import url('@/admin-wrap/assets/node_modules/calendar/dist/fullcalendar.css'); */
 </style>

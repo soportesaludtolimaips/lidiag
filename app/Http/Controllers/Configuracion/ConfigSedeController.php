@@ -124,6 +124,11 @@ class ConfigSedeController extends Controller
         return response()->json(['message' => 'El registro se actualizo correctamente.']);
     }
 
+    public function updateWitchPlantillas(Request $request)
+    {
+        return $request;
+    }
+
     /**
      * Remove the specified resource from storage.
      *
