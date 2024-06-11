@@ -119,10 +119,12 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">Email</label>
-                                        <input type="text" id="email" name="email" v-model="registro.email"
-                                            class="form-control" placeholder="Ingrese el nombre de la sede">
-                                        <span class="text-danger" v-if="errores.email">{{ errores.email[0] }}</span>
+                                        <label class="control-label">Email Para Reportar</label>
+                                        <input type="text" id="email_repor" name="email_repor"
+                                            v-model="registro.email_repor" class="form-control"
+                                            placeholder="Ingrese el email para reportar las lecturas">
+                                        <span class="text-danger" v-if="errores.email_repor">{{ errores.email_repor[0]
+                                            }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -199,7 +201,7 @@
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.usuario_oviyam">{{
                                             errores.usuario_oviyam[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
 
@@ -211,7 +213,7 @@
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.password_oviyam">{{
                                             errores.password_oviyam[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
 
@@ -223,7 +225,7 @@
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.url_oviyam">{{
                                             errores.url_oviyam[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                                 <div class="col-md-2">
@@ -234,7 +236,7 @@
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.tap_oviyam">{{
                                             errores.tap_oviyam[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -299,7 +301,7 @@ export default {
             id: 0,
             registros: [],
             registro: {
-                id: 0, nom_sede: '', emai: '', ip_dcm: '', bd_dcm: '', puerto_dcm: '', usuario_dcm: '', password_dcm: '', usuario_oviyam: '', password_oviyam: '',
+                id: 0, nom_sede: '', email_repor: '', ip_dcm: '', bd_dcm: '', puerto_dcm: '', usuario_dcm: '', password_dcm: '', usuario_oviyam: '', password_oviyam: '',
                 url_oviyam: '', tap_oviyam: '', estado: 0
             },
             tituloModal: 'Nuevo registro',
@@ -373,7 +375,7 @@ export default {
 
                     try {
                         const id = this.registro.id; // ID de la configuración de la sede que deseas actualizar
-                        const res = await axios.post('/config/sedes/update/plantilla/', formData, {
+                        const res = await axios.post('/config/sedes/updateWitchPlantillas', formData, {
                             headers: { "Content-Type": "multipart/form-data" }
                         });
                         console.log(res.data); // Manejar la respuesta del servidor
@@ -434,7 +436,7 @@ export default {
                 this.tituloModal = "Actualizar el registro: " + data.nom_sede;
                 this.registro.id = data.id;
                 this.registro.nom_sede = data.nom_sede;
-                this.registro.email = data.email;
+                this.registro.email_repor = data.email_repor;
                 this.registro.ip_dcm = data.ip_dcm;
                 this.registro.bd_dcm = data.bd_dcm;
                 this.registro.puerto_dcm = data.puerto_dcm;
@@ -455,7 +457,7 @@ export default {
                 this.tituloModal = "Nuevo registro";
                 this.registro.id = 0;
                 this.registro.nom_sede = "";
-                this.registro.email = "";
+                this.registro.email_repor = "";
                 this.registro.ip_dcm = "";
                 this.registro.bd_dcm = "";
                 this.registro.puerto_dcm = "";
@@ -477,7 +479,7 @@ export default {
             this.tituloModal = "Nuevo registro";
             this.registro.id = 0;
             this.registro.nom_sede = "";
-            this.registro.email = "";
+            this.registro.email_repor = "";
             this.registro.ip_dcm = "";
             this.registro.bd_dcm = "";
             this.registro.puerto_dcm = "";
