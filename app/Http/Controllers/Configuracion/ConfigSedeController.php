@@ -33,39 +33,30 @@ class ConfigSedeController extends Controller
         $registro = json_decode($request->registro);
 
         $configSede = new ConfigSede();
-        $configSede->nom_sede = $registro->nom_sede;
-        $configsede->email = $request->email;
-        $configSede->ip_dcm = $registro->ip_dcm;
-        $configSede->bd_dcm = $registro->bd_dcm;
-        $configSede->puerto_dcm = $registro->puerto_dcm;
-        $configSede->usuario_dcm = $registro->usuario_dcm;
-        $configSede->password_dcm = $registro->password_dcm;
-        $configSede->usuario_oviyam = $registro->usuario_oviyam;
-        $configSede->password_oviyam = $registro->password_oviyam;
-        $configSede->url_oviyam = $registro->url_oviyam;
-        $configSede->tap_oviyam = $registro->tap_oviyam;
-        $configSede->encabezado = $registro->encabezado;
-        $configSede->pie_pagina = $registro->pie_pagina;
-        $configSede->estado = $registro->estado;
+        $configsede->nom_sede = $registro->nom_sede;
+        $configsede->email_repor = $registro->email_repor;
+        $configsede->ip_dcm = $registro->ip_dcm;
+        $configsede->bd_dcm = $registro->bd_dcm;
+        $configsede->puerto_dcm = $registro->puerto_dcm;
+        $configsede->usuario_dcm = $registro->usuario_dcm;
+        $configsede->password_dcm = $registro->password_dcm;
+        $configsede->usuario_oviyam = $registro->usuario_oviyam;
+        $configsede->password_oviyam = $registro->password_oviyam;
+        $configsede->url_oviyam = $registro->url_oviyam;
+        $configsede->tap_oviyam = $registro->tap_oviyam;
+        $configsede->estado = $registro->estado;
 
         /**
          * Almacenos los logos de la sede
          */
-        if ($request->hasFile('logo1')) {
+        if ($request->hasFile('plantilla')) {
             $archivo = $request->logo1;
             $nombreEncrip = Str::random(50) . "." . $archivo->extension();
 
-            $archivo->storeAs('logos', $nombreEncrip);
-            $configSede->logo_1 = $nombreEncrip;
+            $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
+            $configsede->plantilla = $nombreEncrip;
         }
 
-        if ($request->hasFile('logo2')) {
-            $archivo = $request->logo2;
-            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
-
-            $archivo->storeAs('logos', $nombreEncrip);
-            $configSede->logo_2 = $nombreEncrip;
-        }
         $configSede->save();
         return response()->json(['message' => 'El registro se creo correctamente']);
     }
@@ -89,31 +80,35 @@ class ConfigSedeController extends Controller
      * @param  \App\Models\Configuracion\ConfigSede  $configSede
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
-        return $request->registro;
-        $configsede = ConfigSede::findOrFail($id);
-        $configsede->nom_sede = $request->nom_sede;
-        $configsede->email = $request->email;
-        $configsede->ip_dcm = $request->ip_dcm;
-        $configsede->bd_dcm = $request->bd_dcm;
-        $configsede->puerto_dcm = $request->puerto_dcm;
-        $configsede->usuario_dcm = $request->usuario_dcm;
-        $configsede->password_dcm = $request->password_dcm;
-        $configsede->usuario_oviyam = $request->usuario_oviyam;
-        $configsede->password_oviyam = $request->password_oviyam;
-        $configsede->url_oviyam = $request->url_oviyam;
-        $configsede->tap_oviyam = $request->tap_oviyam;
-        $configsede->encabezado = $request->encabezado;
-        $configsede->pie_pagina = $request->pie_pagina;
-        $configsede->estado = $request->estado;
+        $registro = json_decode($request->registro);
+
+        $configsede = ConfigSede::findOrFail($registro->id);
+        $configsede->nom_sede = $registro->nom_sede;
+        $configsede->email_repor = $registro->email_repor;
+        $configsede->ip_dcm = $registro->ip_dcm;
+        $configsede->bd_dcm = $registro->bd_dcm;
+        $configsede->puerto_dcm = $registro->puerto_dcm;
+        $configsede->usuario_dcm = $registro->usuario_dcm;
+        $configsede->password_dcm = $registro->password_dcm;
+        $configsede->usuario_oviyam = $registro->usuario_oviyam;
+        $configsede->password_oviyam = $registro->password_oviyam;
+        $configsede->url_oviyam = $registro->url_oviyam;
+        $configsede->tap_oviyam = $registro->tap_oviyam;
+        $configsede->estado = $registro->estado;
 
         /**
          * Almacenos los logos de la sede
          */
-        if ($request->hasFile('logo1')) {
-            $archivo = $request->logo1;
+        if ($request->hasFile('plantilla')) {
+            $archivo = $request->plantilla;
             $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+
+            /** Elimino el archivo de la plantilla actual */
+            if ($configsede->plantilla <> '') {
+                Storage::disk('plantillas_lecturas')->delete($configsede->plantilla);
+            }
 
             $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
             $configsede->plantilla = $nombreEncrip;
@@ -126,7 +121,12 @@ class ConfigSedeController extends Controller
 
     public function updateWitchPlantillas(Request $request)
     {
-        return $request;
+        if ($request->hasFile('plantilla')) {
+            $filename = $request->plantilla->getClientOriginalName();
+            info($filename); //log
+        }
+
+        return $filename;
     }
 
     /**
