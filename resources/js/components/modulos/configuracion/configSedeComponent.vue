@@ -354,7 +354,10 @@ export default {
                     }
                 } else {
                     const formData = new FormData();
-                    formData.append('nom_sede', this.registro.nom_sede);
+                    formData.append('registro', JSON.stringify(this.registro));
+                    formData.append('plantilla', this.plantilla);
+
+                    /* formData.append('nom_sede', this.registro.nom_sede);
                     formData.append('email', this.registro.email);
                     formData.append('ip_dcm', this.registro.ip_dcm);
                     formData.append('bd_dcm', this.registro.bd_dcm);
@@ -366,14 +369,12 @@ export default {
                     formData.append('url_oviyam', this.registro.url_oviyam);
                     formData.append('tap_oviyam', this.registro.tap_oviyam);
                     formData.append('estado', this.registro.estado);
-                    formData.append('plantilla', this.plantilla);
+                    formData.append('plantilla', this.plantilla); */
 
                     try {
                         const id = this.registro.id; // ID de la configuración de la sede que deseas actualizar
-                        const res = await axios.put(`/config-sedes/${id}`, formData, {
-                            headers: {
-                                'Content-Type': 'multipart/form-data'
-                            }
+                        const res = await axios.post('/config/sedes/update/plantilla/', formData, {
+                            headers: { "Content-Type": "multipart/form-data" }
                         });
                         console.log(res.data); // Manejar la respuesta del servidor
                     } catch (error) {
