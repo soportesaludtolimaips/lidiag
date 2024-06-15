@@ -3,24 +3,36 @@
 namespace App\Http\Controllers\Estudios;
 
 use App\Http\Controllers\Controller;
+use App\Models\Configuracion\ConfigSede;
 use Illuminate\Http\Request;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Carbon\Carbon;
 use Dompdf\Dompdf;
-use Dompdf\Options;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Process;
 
 class PlantillaEstudioController extends Controller
 {
     public function editWord(Request $request)
     {
+        $nomPlantilla = ConfigSede::find($request->sede_id);
+        //$pathPlantilla = Storage::disk('plantillas_lecturas')->url($nomPlantilla->plantilla);
+
+
         // Ruta del archivo de plantilla
-        $filePath = storage_path('app/public/plantillaEspinal.docx');
+        $filePath = storage_path('app/plantillas_lecturas/' . $nomPlantilla->plantilla);
 
         // Cargar el archivo de plantilla
         $templateProcessor = new TemplateProcessor($filePath);
 
         // Obtener datos desde la solicitud
-        $templateProcessor->setValue('nombre_paciente', $request->nom_pacien);
+
+        $nombrePaciente = str_replace('^^^', '', $request->nom_pacien);
+        $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
+        $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
+
+
+        $templateProcessor->setValue('nombre_paciente', $nombrePaciente);
         $templateProcessor->setValue('num_docu', $request->num_docu);
         $templateProcessor->setValue('sexo', $request->sexo);
         $templateProcessor->setValue('edad', $request->edad);
@@ -36,7 +48,8 @@ class PlantillaEstudioController extends Controller
         $templateProcessor->setValue('fechor_transcipcion', $fecTrascrito);
 
         $templateProcessor->setValue('atencion', $request->atencion);
-        $lectura = htmlspecialchars($request->lectura);
+        $lectura = htmlspecialchars(mb_convert_encoding($request->lectura, 'ISO-8859-1'));
+
         $templateProcessor->setValue('lectura', $lectura);
 
         $templateProcessor->setValue('nombres_medico', $request->medico);
@@ -55,31 +68,39 @@ class PlantillaEstudioController extends Controller
         }
 
         // Ruta para guardar el archivo editado
-        $outputPath = storage_path('app/public/edited_document.docx');
+        $outputPath = storage_path('app/reporte_lecturas/' . $request->num_docu . "-" . $nombrePaciente . '.docx');
         $templateProcessor->saveAs($outputPath);
 
-        // Crear una instancia de Dompdf
-        $options = new Options();
-        $options->set('isHtml5ParserEnabled', true);
-        $dompdf = new Dompdf($options);
+        $plantillaPdf = $this->convertDocxToPdf($request->num_docu . "-" . $nombrePaciente);
+        if ($plantillaPdf) {
+            return response()->json(['messaje' => 'Plantilla creada correctament', 'plantilla' => $request->num_docu . "-" . $nombrePaciente . ".pdf"], 200);
+        } else {
+            return response()->json('No se pudo convertir la plantilla a PDF', 400);
+        }
+    }
 
-        // Cargar el HTML generado a partir del archivo de Word
-        $html = file_get_contents($outputPath);
+    function convertDocxToPdf($nomPlantilla)
+    {
 
-        // Convertir HTML a PDF
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper('A4', 'portrait');
-        $dompdf->render();
+        // Rutas de los archivos de entrada y salida
+        $sourceFile = storage_path('app/reporte_lecturas/' . $nomPlantilla . '.docx');
+        $destinationFile = storage_path('app/reporte_lecturas/' . $nomPlantilla . '.pdf');
 
-        // Ruta para guardar el archivo PDF
-        $pdfOutputPath = storage_path('app/public/converted_document.pdf');
+        // Comando para convertir el archivo .docx a PDF utilizando unoconv
+        $command = escapeshellcmd('C:\unoconv\unoconv -f pdf -o ' . escapeshellarg($destinationFile) . ' ' . escapeshellarg($sourceFile));
 
-        // Guardar el archivo PDF
-        file_put_contents($pdfOutputPath, $dompdf->output());
+        // Ejecutar el comando
+        $output = shell_exec($command);
 
-        // Eliminar el archivo de Word temporal
-        unlink($outputPath);
+        // Verificar si la conversión fue exitosa
+        if (!file_exists($destinationFile)) {
+            // Registrar el error
+            \Log::error('Error converting DOCX to PDF: ' . $output);
+            return response()->json(['error' => 'Error converting DOCX to PDF'], 500);
+        }
 
-        return response()->download($pdfOutputPath);
+        // Devolver el archivo PDF como descarga
+        //return response()->download($destinationFile);
+        return $destinationFile;
     }
 }

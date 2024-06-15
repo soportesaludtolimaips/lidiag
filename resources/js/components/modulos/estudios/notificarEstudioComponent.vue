@@ -284,7 +284,7 @@ export default {
             registro: {
                 num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", telefono: "", nom_produc: "", id_producto_lectura: null
             },
-            busqueda: { bus_num_docu: "", bus_nom: '', fehc_ini: "", fecha_fin: "" },
+            busqueda: { bus_num_docu: "1111122887", bus_nom: '', fehc_ini: "", fecha_fin: "" },
             errores: {},
             erroresBusqueda: {},
         };
@@ -348,28 +348,10 @@ export default {
         },
         async imprimirReporte(estudio) {
             try {
-
-                //const res = await axios.get(`/generar.pdf.lectura/${id}`);
                 const res = await axios.post("/edit-word", estudio);
 
-                //window.open(`/descargar.pdf.lectura/${res.data}`);
+                window.open(`/descargar.pdf.lectura/${res.data.plantilla}`);
 
-                /* const res = await axios.get(`/generar.pdf.lectura/${id}`);
-
-                const url = `/descargar.pdf.lectura/${res.data}`;
-
-                axios.get(url, { responseType: 'blob' })
-                    .then(response => {
-                        const url = window.URL.createObjectURL(new Blob([response.data]));
-                        const link = document.createElement('a');
-                        link.href = url;
-                        link.setAttribute('download', res.data);
-                        document.body.appendChild(link);
-                        link.click();
-                    })
-                    .catch(error => {
-                        console.error(error);
-                    }); */
             } catch (error) {
                 this.errores = error.response.data.errors;
             }
@@ -389,19 +371,20 @@ export default {
                     stack: 6,
                 });
             }
-            this.btnCerralModalForm();
-            this.limpiar();
+            /* this.btnCerralModalForm();
+            this.limpiar(); */
         },
         mostrarRegistro(data = {}) {
+            console.log(data)
             this.tituloModal = "Notificar al paciente: " + data.pat_name;
 
             this.registro.num_docu = data.num_docu;
-            this.registro.nombres = data.nombres;
+            this.registro.nombres = data.nom_pacien;
             this.registro.sexo = data.sexo;
             this.registro.fec_naci = data.fec_naci;
             this.registro.telefono = data.tel;
             this.registro.nom_produc = data.nom_produc;
-            this.registro.id_producto_lectura = data.id_producto_lectura;
+            this.registro.id_producto_lectura = data.id;
 
             this.btnCerralModalForm();
         },

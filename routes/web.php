@@ -65,6 +65,7 @@ Route::get('/descargar.pdf.lectura/{nomArchivo}', [EstudioController::class, 'de
 Route::post('/notificar.email', [EstudioController::class, 'notificarEmail'])->name('notificar.email');
 
 Route::post('/edit-word', [PlantillaEstudioController::class, 'editWord']);
+Route::post('/convertDocxToPdf', [PlantillaEstudioController::class, 'convertDocxToPdf']);
 
 Route::view('/estudios.leer.estudio.listar', 'modulos.estudios.leer-estudio')->name('estudios.leer.estudio.listar');
 Route::post('/estudio-leerEstudio', [EstudioController::class, 'leerEstudio'])->name('estudio.leerEstudio');

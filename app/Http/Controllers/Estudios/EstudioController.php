@@ -474,7 +474,7 @@ class EstudioController extends Controller
     public function buscarEstudioPorNumDocu(Request $request)
     {
 
-        //$estudios = Paciente::where('num_docu', '=', $request->numDocu)->first()->lecturas;
+        $estudios = Paciente::where('num_docu', '=', $request->numDocu)->first()->lecturas;
 
         $estudios = Estudio::select('pacientes.num_docu')
             ->join('pacientes', 'estudios.paciente_id', 'pacientes.id')
@@ -517,6 +517,7 @@ class EstudioController extends Controller
 
     public function notificarEmail(Request $request)
     {
+
         $this->generarPdfLectura($request->id_producto_lectura);
         $notificar = (new EstudioNotificacionController())->notificarEmail($request->id_producto_lectura, $request->num_docu, $request->nombres, $request->fec_naci, $request->email, $request->email_reportar);
         return $notificar;
