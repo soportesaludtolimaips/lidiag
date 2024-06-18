@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\NotificacionDeLectura;
 use App\Mail\ReportarLectura;
 use App\Models\Estudio\Estudio;
-use App\Models\Estudio\EstudioProducto;
+use App\Models\General\Paciente;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
@@ -70,8 +70,6 @@ class EstudioNotificacionController extends Controller
 
     public function notificarEmail($estudio)
     {
-
-
         $nombrePaciente = str_replace('^^^', '', $estudio->nom_pacien);
         $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
         $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
@@ -101,11 +99,12 @@ class EstudioNotificacionController extends Controller
         /**
          * Actualizo los datos del paciente
          */
-        /* $pacienteUpdate = Paciente::where('num_docu', '=', $num_docu)->get();
-        $pacienteUpdate->name = $nom_pacien;
-        $pacienteUpdate->fec_naci = $fec_naci;
-        $pacienteUpdate->email = $email;
-        $pacienteUpdate->save(); */
+        $pacienteUpdate = Paciente::where('num_docu', '=', $estudio->num_docu)->get();
+        return $pacienteUpdate;
+        $pacienteUpdate->name = $estudio->nom_pacien;
+        $pacienteUpdate->fec_naci = $estudio->fec_naci;
+        $pacienteUpdate->email = $estudio->email;
+        $pacienteUpdate->save();
 
         /**
          * Envio de email con el adjunto del reporte de la lectura del estudio
