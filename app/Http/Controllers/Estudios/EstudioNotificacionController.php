@@ -26,7 +26,6 @@ class EstudioNotificacionController extends Controller
      */
     public function listarEstudios(Request $request)
     {
-
         $estudios = new Estudio();
         $query = $estudios->query();
 
@@ -47,7 +46,9 @@ class EstudioNotificacionController extends Controller
             'medi.reg_med',
             'medi.num_docu',
             'medi.firma',
-            'sede.nom_sede as nom_sede',
+            'sede.nom_sede',
+            'sede.url_oviyam',
+            'sede.tap_oviyam',
         )
             ->join('estudios_productos', 'estudios_productos.estudio_id', '=', 'estudios.id')
             ->join('pacientes AS pacien', 'estudios.paciente_id', '=', 'pacien.id')
@@ -67,11 +68,15 @@ class EstudioNotificacionController extends Controller
         return $query->get();
     }
 
-    public function notificarEmail($id_producto_lectura, $num_docu, $nom_pacien, $fec_naci, $email, $email_reportar)
+    public function notificarEmail($estudio)
     {
-        $reporteLectura = EstudioProducto::with('estudio.paciente')->with('estudio.medico')->with('estudio.sede')->findOrFail($id_producto_lectura);
-        $nomArchivoReporte = $reporteLectura->id . "-" . $reporteLectura->estudio->paciente->num_docu . "-" . $reporteLectura->nom_produc . ".pdf";
 
+
+        $nombrePaciente = str_replace('^^^', '', $estudio->nom_pacien);
+        $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
+        $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
+
+        $nomArchivoReporte = $estudio->num_docu . "-" . $nombrePaciente . ".pdf";
         /**
          * Envio la lectura a Lidiag-reportes para que este diponible para la descarga por parte del paciente
          */
@@ -82,15 +87,15 @@ class EstudioNotificacionController extends Controller
             file_get_contents(storage_path('app/reporte_lecturas/' . $nomArchivoReporte)),
             $nomArchivoReporte
         )->post($urlApiReportes, [
-            'num_docu' => $num_docu,
-            'name' => $nom_pacien,
-            'fec_naci' => $fec_naci,
-            'study_iuid' => $reporteLectura->estudio->study_iuid,
-            'nom_produc' => $reporteLectura->nom_produc,
-            'fechor_lectura' => $reporteLectura->fechor_lectura,
-            'nom_sede' => $reporteLectura->estudio->sede->nom_sede,
-            'url_oviyam' => $reporteLectura->estudio->sede->url_oviyam,
-            'tap_oviyam' => $reporteLectura->estudio->sede->tap_oviyam,
+            'num_docu' => $estudio->num_docu,
+            'name' => $nombrePaciente,
+            'fec_naci' => $estudio->fec_naci,
+            'study_iuid' => $estudio->study_iuid,
+            'nom_produc' => $estudio->nom_produc,
+            'fechor_lectura' => $estudio->fechor_lectura,
+            'nom_sede' => $estudio->nom_sede,
+            'url_oviyam' => $estudio->url_oviyam,
+            'tap_oviyam' => $estudio->tap_oviyam,
         ]);
 
         /**
@@ -105,14 +110,14 @@ class EstudioNotificacionController extends Controller
         /**
          * Envio de email con el adjunto del reporte de la lectura del estudio
          */
-        if ($email != "") {
-            $mailable = new NotificacionDeLectura($reporteLectura, $nomArchivoReporte);
-            Mail::to($email)->send($mailable);
+        if ($estudio->email != "") {
+            $mailable = new NotificacionDeLectura($estudio, $nomArchivoReporte);
+            Mail::to($estudio->email)->send($mailable);
         }
 
-        if ($email_reportar != "") {
-            $mailable = new ReportarLectura($reporteLectura, $nomArchivoReporte);
-            Mail::to($email_reportar)->send($mailable);
+        if ($estudio->email_reportar != "") {
+            $mailable = new ReportarLectura($estudio, $nomArchivoReporte);
+            Mail::to($estudio->email_reportar)->send($mailable);
         }
 
         return response()->json(['message' => 'La notificación se generó correctamente.']);

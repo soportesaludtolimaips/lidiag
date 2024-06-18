@@ -284,6 +284,7 @@ export default {
             registro: {
                 num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", telefono: "", nom_produc: "", id_producto_lectura: null
             },
+            estudio: null,
             busqueda: { bus_num_docu: "1111122887", bus_nom: '', fehc_ini: "", fecha_fin: "" },
             errores: {},
             erroresBusqueda: {},
@@ -358,7 +359,9 @@ export default {
         },
         async notificar() {
 
-            const res = await axios.post('/notificar.email', this.registro);
+            this.estudio.email = this.registro.email;
+
+            const res = await axios.post('/notificar.email', this.estudio);
 
             if (res.status == 200) {
                 $.toast({
@@ -376,6 +379,7 @@ export default {
         },
         mostrarRegistro(data = {}) {
             console.log(data)
+            this.estudio = data;
             this.tituloModal = "Notificar al paciente: " + data.pat_name;
 
             this.registro.num_docu = data.num_docu;

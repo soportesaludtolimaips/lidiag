@@ -473,7 +473,6 @@ class EstudioController extends Controller
 
     public function buscarEstudioPorNumDocu(Request $request)
     {
-
         $estudios = Paciente::where('num_docu', '=', $request->numDocu)->first()->lecturas;
 
         $estudios = Estudio::select('pacientes.num_docu')
@@ -488,11 +487,11 @@ class EstudioController extends Controller
         }
     }
 
-    public function generarPdfLectura($id_producto_lectura)
+    /**
+     * Genero el PDF del reporte de la lectura del estudio
+     */
+    /* public function generarPdfLectura($id_producto_lectura)
     {
-        /**
-         * Genero el PDF del reporte de la lectura del estudio
-         */
         $reporteLectura = EstudioProducto::with('estudio.paciente')->with('estudio.medico')->with('estudio.sede')->findOrFail($id_producto_lectura);
 
         $nomArchivoReporte = $reporteLectura->id . "-" . $reporteLectura->estudio->paciente->num_docu . "-" . $reporteLectura->nom_produc . ".pdf";
@@ -504,7 +503,7 @@ class EstudioController extends Controller
         }
 
         return $nomArchivoReporte;
-    }
+    } */
 
     public function descargarPdfLectura($nomArchivo)
     {
@@ -517,9 +516,12 @@ class EstudioController extends Controller
 
     public function notificarEmail(Request $request)
     {
-
-        $this->generarPdfLectura($request->id_producto_lectura);
-        $notificar = (new EstudioNotificacionController())->notificarEmail($request->id_producto_lectura, $request->num_docu, $request->nombres, $request->fec_naci, $request->email, $request->email_reportar);
-        return $notificar;
+        $genearPlantilla = (new PlantillaEstudioController())->editWord($request);
+        if ($genearPlantilla->status() == 200) {
+            $notificar = (new EstudioNotificacionController())->notificarEmail($request);
+            return $notificar;
+        } else {
+            return $genearPlantilla;
+        }
     }
 }

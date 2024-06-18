@@ -15,22 +15,23 @@ class PlantillaEstudioController extends Controller
 {
     public function editWord(Request $request)
     {
-        $nomPlantilla = ConfigSede::find($request->sede_id);
-        //$pathPlantilla = Storage::disk('plantillas_lecturas')->url($nomPlantilla->plantilla);
 
+        /**
+         * Buscarmos la sede para saber cual es la plantilla
+         */
+        $nomPlantilla = ConfigSede::find($request->sede_id);
 
         // Ruta del archivo de plantilla
         $filePath = storage_path('app/plantillas_lecturas/' . $nomPlantilla->plantilla);
+
 
         // Cargar el archivo de plantilla
         $templateProcessor = new TemplateProcessor($filePath);
 
         // Obtener datos desde la solicitud
-
         $nombrePaciente = str_replace('^^^', '', $request->nom_pacien);
         $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
         $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
-
 
         $templateProcessor->setValue('nombre_paciente', $nombrePaciente);
         $templateProcessor->setValue('num_docu', $request->num_docu);
