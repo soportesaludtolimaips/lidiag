@@ -60,12 +60,10 @@ Route::resource('/estudios-diagnosticos', EstudioDiagnosticoController::class)->
 Route::get('/listar-soportes-hc-estudio', [EstudioSoporteHCController::class, 'listarSoportesHistoriaClinicaPorPorEstudio'])->name('study.listar.soporte.hc.estudio');
 Route::get('/descarga-soportes-hc/{nomArchivoEncriptadote}', [EstudioSoporteHCController::class, 'descargarSoporte'])->name('study.descarga.soporte.hc');
 Route::post('/listar.estudios.notificaciones', [EstudioNotificacionController::class, 'listarEstudios'])->name('listar.estudios.notificaciones');
-//Route::get('/generar.pdf.lectura/{id_producto_lectura}', [EstudioController::class, 'generarPdfLectura'])->name('generar.pdf.lectura');
 Route::get('/descargar.pdf.lectura/{nomArchivo}', [EstudioController::class, 'descargarPdfLectura'])->name('descargar.pdf.lectura');
 Route::post('/notificar.email', [EstudioController::class, 'notificarEmail'])->name('notificar.email');
 
 Route::post('/edit-word', [PlantillaEstudioController::class, 'editWord']);
-Route::post('/convertDocxToPdf', [PlantillaEstudioController::class, 'convertDocxToPdf']);
 
 Route::view('/estudios.leer.estudio.listar', 'modulos.estudios.leer-estudio')->name('estudios.leer.estudio.listar');
 Route::post('/estudio-leerEstudio', [EstudioController::class, 'leerEstudio'])->name('estudio.leerEstudio');
@@ -86,7 +84,6 @@ Route::get('/estudio-buscar-por-numdocu/{numDocu}', [EstudioController::class, '
  */
 Route::view('/citas', 'modulos.citas.citas-gestionar')->name('citas');
 Route::resource('/config-productos', ConfigProductoController::class)->names('config.productos')->except(['create']);
-
 
 /**
  * Reportes
@@ -112,8 +109,8 @@ Route::resource('/config-productos', ConfigProductoController::class)->names('co
 Route::view('/config.sedes.listar', 'modulos.configuracion.config-sedes')->name('config.sedes.listar');
 Route::post('/config/sedes/updateWitchPlantillas', [ConfigSedeController::class, 'update'])->name('config.sedes.update');
 Route::resource('/config-sedes', ConfigSedeController::class)->names('config.sedes')->except(['create', 'show']);
-/* Route::get('/config-sedes/{configsede}/buscarPorId', [ConfigSedeController::class, 'buscarPorId'])->name('config.sedes.buscarPorId');
-Route::get('/config-sedes/listar/sedes/activas', [ConfigSedeController::class, 'listarSedesActivas'])->name('config.sedes.listarSedesActivas'); */
+Route::get('/config-sedes/{configsede}/buscarPorId', [ConfigSedeController::class, 'buscarPorId'])->name('config.sedes.buscarPorId');
+Route::get('/config-sedes/listar/sedes/activas', [ConfigSedeController::class, 'listarSedesActivas'])->name('config.sedes.listarSedesActivas');
 
 
 /**
