@@ -15,15 +15,17 @@ class PlantillaEstudioController extends Controller
 {
     public function editWord(Request $request)
     {
-
         /**
          * Buscarmos la sede para saber cual es la plantilla
          */
-        $nomPlantilla = ConfigSede::find($request->sede_id);
+        $sede = ConfigSede::find($request->sede_id);
+
+        if (!$sede->plantilla) {
+            return response()->json(['message' => 'La plantilla para la sede ' . $sede->nom_sede . ' no está  configurada, por favor consulte con el administrador del sistema'], 402);
+        }
 
         // Ruta del archivo de plantilla
-        $filePath = storage_path('app/plantillas_lecturas/' . $nomPlantilla->plantilla);
-
+        $filePath = storage_path('app/plantillas_lecturas/' . $sede->plantilla);
 
         // Cargar el archivo de plantilla
         $templateProcessor = new TemplateProcessor($filePath);
@@ -49,9 +51,13 @@ class PlantillaEstudioController extends Controller
         $templateProcessor->setValue('fechor_transcipcion', $fecTrascrito);
 
         $templateProcessor->setValue('atencion', $request->atencion);
-        $lectura = htmlspecialchars(mb_convert_encoding($request->lectura, 'ISO-8859-1'));
+        $lectura = (mb_convert_encoding($request->lectura, 'ISO-8859-1'));
 
         $templateProcessor->setValue('lectura', $lectura);
+        $templateProcessor->setValue('nom_sede', $request->nom_sede);
+
+        $templateProcessor->setValue('cod_producto', $request->cod_cups);
+        $templateProcessor->setValue('nom_producto', $request->nom_produc);
 
         $templateProcessor->setValue('nombres_medico', $request->medico);
         $templateProcessor->setValue('reg_medico', $request->reg_med);
@@ -82,7 +88,6 @@ class PlantillaEstudioController extends Controller
 
     function convertDocxToPdf($nomPlantilla)
     {
-
         // Rutas de los archivos de entrada y salida
         $sourceFile = storage_path('app/reporte_lecturas/' . $nomPlantilla . '.docx');
         $destinationFile = storage_path('app/reporte_lecturas/' . $nomPlantilla . '.pdf');
@@ -100,8 +105,6 @@ class PlantillaEstudioController extends Controller
             return response()->json(['error' => 'Error converting DOCX to PDF'], 500);
         }
 
-        // Devolver el archivo PDF como descarga
-        //return response()->download($destinationFile);
         return $destinationFile;
     }
 }

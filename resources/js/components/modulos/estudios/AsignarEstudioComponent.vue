@@ -630,12 +630,6 @@ export default {
         async guardarRegistro() {
 
             try {
-                const config = {
-                    headers: {
-                        'content-type': 'multipart/form-data',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    }
-                }
 
                 const formData = new FormData();
                 formData.append('registro', JSON.stringify(this.registro));
@@ -643,7 +637,9 @@ export default {
                 formData.append('archivo2', this.soportesHC.archivo2);
                 formData.append('archivo3', this.soportesHC.archivo3);
 
-                const res = await axios.post('/estudios', formData);
+                const res = await axios.post('/estudios', formData, {
+                    headers: { "Content-Type": "multipart/form-data" }
+                });
 
                 if (res.status == 200) {
                     $.toast({
@@ -657,11 +653,12 @@ export default {
                     });
                 }
 
-                this.listarMisPendientes();
+                this.buscarStudy();
                 this.btnCerralModalForm();
                 this.limpiar();
 
             } catch (error) {
+                console.log(error)
                 this.errores = error.response.data;
             }
         },

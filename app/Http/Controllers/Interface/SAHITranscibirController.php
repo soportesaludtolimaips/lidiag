@@ -86,7 +86,6 @@ class SAHITranscibirController extends Controller
 
     public function enviarEstudio($idAtencion = null, $idMedico = null, $reporteEstudio = null, $codCups = null)
     {
-
         $this->idAtencion = $idAtencion;
         $this->idMedico = $idMedico;
         $this->reporteEstudio = $reporteEstudio;
@@ -95,7 +94,6 @@ class SAHITranscibirController extends Controller
         /**
          * Establecer los datos del medico por medio del ID del usuario
          */
-
         if (!$this->idMedico) {
             return response()->json([
                 'message' => 'El médico no se encuentra registrado en SAHI, por favor consulte con el administrador del sistema.',
@@ -104,9 +102,9 @@ class SAHITranscibirController extends Controller
             ]);
         }
 
-        $this->IdUsuario = $this->getUsuario()[0]->IdUsuario;
-        $this->IdPersonal = $this->getUsuario()[0]->IdPersonal;
-        $this->nomMedico = $this->getUsuario()[0]->Nompersonal . " " . $this->getUsuario()[0]->ApePersonal;
+        $this->IdUsuario = $this->getUsuario();
+        $this->IdPersonal = $this->getUsuario();
+        $this->nomMedico = $this->getUsuario() . " " . $this->getUsuario();
 
         /**
          * Busco la ubicación actual de la atención
@@ -353,7 +351,7 @@ class SAHITranscibirController extends Controller
         if (!$ubicacion) {
             return false;
         } else {
-            return $ubicacion[0]->IdUbicacionActual;
+            return $ubicacion;
         }
     }
 }

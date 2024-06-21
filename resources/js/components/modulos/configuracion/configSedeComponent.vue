@@ -240,17 +240,64 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <h5 class="card-title text-info">
-                                <i class="fa fa-paperclip"></i> Datos de configuración de la plantilla
-                            </h5>
-                            <hr>
                             <div class="row">
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="control-label">Plantilla</label>
-                                        <input type="file" class="form-control" id="exampleInputFile"
-                                            aria-describedby="fileHelp" @change='obtenerPlantilla' accept=".doc, .docx">
+                                <div class="col-md-4">
+                                    <h5 class="card-title text-info">
+                                        <i class="fa fa-paperclip"></i> Datos de configuración de la plantilla
+                                    </h5>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="control-label">Plantilla</label>
+                                                <input type="file" class="form-control" id="exampleInputFile"
+                                                    aria-describedby="fileHelp" @change='obtenerPlantilla'
+                                                    accept=".doc, .docx">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <h5 class="card-title text-info">
+                                        <i class="fa fa-file-o"></i> Variables disponibles para la plantilla
+                                    </h5>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="row">
+
+                                                <div class="col-md-12">
+                                                    <div class="form-group">
+                                                        <label class="text-info">Paciente</label>:
+                                                        <code>${nombre_paciente}</code> Nombres del paciente,
+                                                        <code>${num_docu}</code> Número de documento del paciente,
+                                                        <code>${sexo}</code> Sexo del paciente,
+                                                        <code>${edad}</code> Edad del paciente,
+                                                        <code>${eps}</code> Eps del paciente,
+                                                        <code>${contrato}</code> Contrato de vinculación con la
+                                                        Eps.<br /><br />
+
+                                                        <label class="text-info">Estudio</label>:
+                                                        <code>${fechor_estudio}</code> Fecha y Hora del estudio,
+                                                        <code>${fechor_lectura}</code> Fecha y Hora de lectura,
+                                                        <code>${fechor_transcipcion}</code> Fecha y Hora de
+                                                        transcripción,
+                                                        <code>${atencion}</code> Atención o número de
+                                                        folio,
+                                                        <code>${cod_produc}</code> Código del producto,
+                                                        <code>${nom_produc}</code> Nombre del producto,
+                                                        <code>${lectura}</code>,
+                                                        <code>${nom_sede} Sede de la tóma</code>.
+                                                        <br /><br />
+
+                                                        <label class="text-info">Medico</label>:
+                                                        <code>${nombres_medico}</code>, <code>${reg_medico}</code>,
+                                                        <code>${num_docu_medico}</code>,
+                                                        <code>${firma_medico}</code>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -355,36 +402,16 @@ export default {
                         this.limpiar();
                     }
                 } else {
+
                     const formData = new FormData();
                     formData.append('registro', JSON.stringify(this.registro));
                     formData.append('plantilla', this.plantilla);
 
-                    /* formData.append('nom_sede', this.registro.nom_sede);
-                    formData.append('email', this.registro.email);
-                    formData.append('ip_dcm', this.registro.ip_dcm);
-                    formData.append('bd_dcm', this.registro.bd_dcm);
-                    formData.append('puerto_dcm', this.registro.puerto_dcm);
-                    formData.append('usuario_dcm', this.registro.usuario_dcm);
-                    formData.append('password_dcm', this.registro.password_dcm);
-                    formData.append('usuario_oviyam', this.registro.usuario_oviyam);
-                    formData.append('password_oviyam', this.registro.password_oviyam);
-                    formData.append('url_oviyam', this.registro.url_oviyam);
-                    formData.append('tap_oviyam', this.registro.tap_oviyam);
-                    formData.append('estado', this.registro.estado);
-                    formData.append('plantilla', this.plantilla); */
+                    const res = await axios.post('/config/sedes/updateWitchPlantillas', formData, {
+                        headers: { "Content-Type": "multipart/form-data" }
+                    });
 
-                    try {
-                        const id = this.registro.id; // ID de la configuración de la sede que deseas actualizar
-                        const res = await axios.post('/config/sedes/updateWitchPlantillas', formData, {
-                            headers: { "Content-Type": "multipart/form-data" }
-                        });
-                        console.log(res.data); // Manejar la respuesta del servidor
-                    } catch (error) {
-                        console.error(error); // Manejar errores
-                    }
-
-
-                    /* if (res.status == 200) {
+                    if (res.status == 200) {
                         $.toast({
                             heading: 'Ok!!!',
                             text: res.data.message,
@@ -398,7 +425,7 @@ export default {
                         this.ListarDatos();
                         this.btnCerralModalForm();
                         this.limpiar();
-                    } */
+                    }
                 }
             } catch (error) {
                 console.log(error);

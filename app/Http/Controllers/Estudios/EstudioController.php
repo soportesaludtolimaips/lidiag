@@ -235,20 +235,6 @@ class EstudioController extends Controller
         return response()->json(['message' => 'La asignación de la lectura se realizó correctamente.']);
     }
 
-    function procesarArchivo($archivo, $estudioId)
-    {
-        $nombreEncrip = Str::random(50) . "." . $archivo->extension();
-        $nombreOriginal = $archivo->getClientOriginalName();
-
-        $archivoSoporteHC = new EstudioSoportesHC();
-        $archivoSoporteHC->estudio_id = $estudioId;
-        $archivoSoporteHC->archivo_original = $nombreOriginal;
-        $archivoSoporteHC->archivo_encrip = $nombreEncrip;
-        $archivoSoporteHC->save();
-
-        Storage::putFileAs('soportes_hc', $archivo, $nombreEncrip);
-    }
-
     public function listarPendientesMedico(Request $request, Estudio $estudio)
     {
         $misPendiente = Estudio::select(
@@ -324,9 +310,10 @@ class EstudioController extends Controller
             'priori.nivel AS priori_nivel',
             'priori.tiempo AS priori_tiempo',
             'medi.name as medico',
+            'medi.firma',
             'medi.reg_med',
             'medi.num_docu AS num_docu_medi',
-            'sede.nom_sede as nom_sede',
+            'sede.nom_sede',
             'sede.url_oviyam',
             'sede.tap_oviyam'
         )
@@ -348,7 +335,6 @@ class EstudioController extends Controller
 
     public function guardarTranscripcion(Request $request)
     {
-        return $request;
         /**
          * Actualizo los datos del paciente
          */
@@ -368,11 +354,11 @@ class EstudioController extends Controller
         /**
          * Actualizo la lectura del estudio
          */
-        /* $transcribirEstudios = EstudioProducto::findOrFail($request->id_producto_lectura);
+        $transcribirEstudios = EstudioProducto::findOrFail($request->id_producto_lectura);
         $transcribirEstudios->lectura = $request->lectura;
         $transcribirEstudios->transcriptor_id = auth()->user()->id;
         $transcribirEstudios->fechor_trascrito = Carbon::now();
-        $transcribirEstudios->save(); */
+        $transcribirEstudios->save();
 
         /**
          * Si la sede donde se realizó el estudio tiene interface hago el envio del reporte a la HC del hospital
@@ -383,14 +369,26 @@ class EstudioController extends Controller
         }
 
         /**
-         * Genero el PDF del reporte de la lectura del estudio y notifico por correo electronico
+         * Genero el reporte de la lectura del estudio
+         * 1. Genero laplantilla .docx con la informacion de la lectura por prte del medico
+         * 2. Convierto la plantilla .docx a .pdf
+         * 3. Notificacion por correo electronico
          */
+
         $genearPlantilla = (new PlantillaEstudioController())->editWord($request);
-        if ($genearPlantilla->status() == 200) {
-            $notificar = (new EstudioNotificacionController())->notificarEmail($request);
-            return $notificar;
+        if ($genearPlantilla->status() === 402) {
+            return response()->json(['message' => 'La plantilla para la sede ' . $sede->nom_sede . ', no está  configurada, por favor consulte con el administrador del sistema'], 402);
         } else {
-            return $genearPlantilla;
+            if ($genearPlantilla->status() == 200) {
+
+                $notificar = (new EstudioNotificacionController())->notificarEmail($request);
+
+                if ($notificar->status() == 200) {
+                    return response()->json('Lectura transferido correctamente', 200);
+                }
+            } else {
+                return response()->json('Error en la trnaferencia de la lectura', 400);
+            }
         }
 
         return response()->json(['message' => 'La transcripción se guardo correctamente.']);

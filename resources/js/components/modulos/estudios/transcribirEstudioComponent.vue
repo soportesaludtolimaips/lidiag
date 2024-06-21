@@ -281,7 +281,7 @@
                                     <div class="row table-responsive">
                                         <div class="col-md-12">
                                             <dl>
-                                                <dd>{{ productoEstudio.nom_produc }}</dd>
+                                                <dd>{{ registro.nom_produc }}</dd>
                                             </dl>
                                         </div>
                                     </div>
@@ -416,14 +416,15 @@ export default {
     },
     data() {
         return {
-            productoEstudio: { cod_produc: '', nom_produc: '' },
             diagnosticosEstudio: [],
             soportesHC: [],
             registros: [],
             tituloModal: "Transcirbir estudio",
             registro: {
                 id_estudio: 0, id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", email_reportar: '', num_docu: "", nom_pacien: "", sexo: "",
-                fec_naci: "", email: "", diagnosticosEstudio: [], sede_id: "", atencion: null, medico_id: null, cod_cups: ''
+                fec_naci: "", email: "", diagnosticosEstudio: [], sede_id: "", atencion: null, servicio: null, eps: null, contrato: null, medico_id: null, cod_cups: '', nom_produc: '', num_docu_medi: '',
+                reg_med: '', medico: '', firma: '',
+
             },
             busqueda: { bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
             datosImagen: { urlOviyam: '', patientId: '', studyUID: '', serverName: '' },
@@ -452,12 +453,23 @@ export default {
         async guardarRegistro() {
 
             try {
+
+                $.toast({
+                    heading: "Ok!!!",
+                    text: 'Enviando lectura, por favor espere',
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "info",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+
                 const res = await axios.post('/estudio-guardarTranscripcion', this.registro);
 
                 if (res.status == 200) {
                     $.toast({
                         heading: "Ok!!!",
-                        text: res.data.message,
+                        text: 'Lectura transferida correctamente',
                         position: "top-right",
                         loaderBg: "#ff6849",
                         icon: "success",
@@ -465,7 +477,7 @@ export default {
                         stack: 6,
                     });
 
-                    this.listarMisPendientes();
+                    this.listarPendientesTrascribir();
                     this.btnCerralModalForm();
                     this.limpiar();
                 } else {
@@ -480,8 +492,19 @@ export default {
                     });
                 }
             } catch (error) {
-                console.log(error);
-                this.errores = error.response.data.errors;
+
+                if (error.response.data.status = 402) {
+
+                    $.toast({
+                        heading: "Upss!!!",
+                        text: error.response.data.message,
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "error",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                }
             }
         },
         descargaSoportte(nomArchivoEncriptado) {
@@ -506,9 +529,6 @@ export default {
         },
         async listarAudios() {
             const res = await axios.get('/listar-audios-estudio/' + this.id);
-            console.log('*********************** audios ************************')
-            console.log(res.data)
-
             this.audiosDeEstudio = res.data;
         },
         async mostrarRegistro(data = {}) {
@@ -529,18 +549,21 @@ export default {
             this.registro.tel = data.tel;
             this.registro.sexo = data.pat_sex;
             this.registro.fec_naci = data.pat_birthdate;
+            this.registro.cod_produc = data.cod_cups;
+            this.registro.nom_produc = data.nom_produc;
+            this.registro.num_docu_medi = data.num_docu_medi;
+            this.registro.reg_med = data.reg_med;
+            this.registro.medico = data.medico;
+            this.registro.firma = data.firma;
             this.registro.lectura = `Atención: ${data.atencion}\nFecha y Hora: ${data.fec_estudio}\n\n${data.nom_produc}\n\n${data.lectura}`;
-            this.registro.cod_cups = data.cod_cups;
 
             this.datosImagen.urlOviyam = data.url_oviyam;
             this.datosImagen.patientId = data.num_docu;
             this.datosImagen.studyUID = data.study_iuid;
             this.datosImagen.serverName = data.tap_oviyam;
 
-            this.productoEstudio.cod_produc = data.cod_cups;
-            this.productoEstudio.nom_produc = data.nom_produc;
-
             this.registro.sede_id = data.sede_id;
+            this.registro.nom_sede = data.nom_sede;
 
             const res = await axios.get('/study-listar-diagnostico-por-estudio?id=' + this.id);
             this.diagnosticosEstudio = res.data;
@@ -552,10 +575,19 @@ export default {
             this.btnCerralModalForm();
             this.errores = [];
         },
+        limpiar() {
+            this.actualizar = false;
+            this.tituloModal = "Nuevo registro";
+            this.registro.email_reportar = "";
+            this.registro.email = "";
+
+            $('#btnCerralModalForm').click();
+            this.errores = [];
+        },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);
             $(".right-sidebar").toggleClass("shw-rside");
-        },
+        }
     },
     computed: {
         estiloPrioridad: function () {

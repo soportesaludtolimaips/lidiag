@@ -116,7 +116,7 @@ class ConfigSedeController extends Controller
 
         $configsede->update();
 
-        return response()->json(['message' => 'El registro se actualizo correctamente.']);
+        return response()->json(['message' => 'El registro se actualizo correctamente.'], 200);
     }
 
     public function updateWitchPlantillas(Request $request)
