@@ -12,15 +12,15 @@ use Illuminate\Queue\SerializesModels;
 class ReportarLectura extends Mailable
 {
     use Queueable, SerializesModels;
-    protected $reporteLectura, $nomArchivoReporte;
+    protected $estudio, $nomArchivoReporte;
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($reporteLectura, $nomArchivoReporte)
+    public function __construct($estudio, $nomArchivoReporte)
     {
-        $this->reporteLectura = $reporteLectura;
+        $this->estudio = $estudio;
         $this->nomArchivoReporte = $nomArchivoReporte;
     }
 
@@ -34,9 +34,9 @@ class ReportarLectura extends Mailable
         return new Envelope(
             subject: 'Notificación: Reporte de lectura de imagen diagnostica',
             metadata: [
-                'num_docu' => $this->reporteLectura->estudio->paciente->num_docu,
-                'nombres' => $this->reporteLectura->estudio->paciente->nombres,
-                'fec_estudio' => $this->reporteLectura->estudio->fec_estudio,
+                'num_docu' => $this->estudio->paciente->num_docu,
+                'nombres' => $this->estudio->paciente->nombres,
+                'fec_estudio' => $this->estudio->fec_estudio,
             ],
         );
     }
@@ -50,7 +50,7 @@ class ReportarLectura extends Mailable
     {
         return new Content(
             view: 'modulos.notificaciones-email.reportar-lectura',
-            with: ['reporteLectura' => $this->reporteLectura]
+            with: ['reporteLectura' => $this->estudio]
         );
     }
 

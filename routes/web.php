@@ -108,7 +108,7 @@ Route::resource('/config-productos', ConfigProductoController::class)->names('co
 
 Route::view('/config.sedes.listar', 'modulos.configuracion.config-sedes')->name('config.sedes.listar');
 Route::post('/config/sedes/updateWitchPlantillas', [ConfigSedeController::class, 'update'])->name('config.sedes.update');
-Route::resource('/config-sedes', ConfigSedeController::class)->names('config.sedes')->except(['create', 'show']);
+Route::resource('/config-sedes', ConfigSedeController::class)->names('config.sedes')->except(['create', 'show', 'update']);
 Route::get('/config-sedes/{configsede}/buscarPorId', [ConfigSedeController::class, 'buscarPorId'])->name('config.sedes.buscarPorId');
 Route::get('/config-sedes/listar/sedes/activas', [ConfigSedeController::class, 'listarSedesActivas'])->name('config.sedes.listarSedesActivas');
 

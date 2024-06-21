@@ -88,7 +88,6 @@ class EstudioNotificacionController extends Controller
             'num_docu' => $estudio->num_docu,
             'name' => $nombrePaciente,
             'fec_naci' => $estudio->fec_naci,
-            'study_iuid' => $estudio->study_iuid,
             'nom_produc' => $estudio->nom_produc,
             'fechor_lectura' => $estudio->fechor_lectura,
             'nom_sede' => $estudio->nom_sede,
@@ -99,12 +98,15 @@ class EstudioNotificacionController extends Controller
         /**
          * Actualizo los datos del paciente
          */
-        $pacienteUpdate = Paciente::where('num_docu', '=', $estudio->num_docu)->get();
-        return $pacienteUpdate;
-        $pacienteUpdate->name = $estudio->nom_pacien;
-        $pacienteUpdate->fec_naci = $estudio->fec_naci;
-        $pacienteUpdate->email = $estudio->email;
-        $pacienteUpdate->save();
+
+        Paciente::updateOrCreate(
+            ['num_docu' => $estudio->num_docu],
+            [
+                'name' => $estudio->nom_pacien,
+                'fec_naci' => $estudio->fec_naci,
+                'email' => $estudio->email
+            ]
+        );
 
         /**
          * Envio de email con el adjunto del reporte de la lectura del estudio
