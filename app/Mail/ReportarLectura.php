@@ -34,8 +34,8 @@ class ReportarLectura extends Mailable
         return new Envelope(
             subject: 'Notificación: Reporte de lectura de imagen diagnostica',
             metadata: [
-                'num_docu' => $this->estudio->paciente->num_docu,
-                'nombres' => $this->estudio->paciente->nombres,
+                'num_docu' => $this->estudio->num_docu,
+                'nombres' => $this->estudio->nombres,
                 'fec_estudio' => $this->estudio->fec_estudio,
             ],
         );
