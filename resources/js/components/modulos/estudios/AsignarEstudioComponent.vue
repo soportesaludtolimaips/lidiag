@@ -653,9 +653,9 @@ export default {
                     });
                 }
 
-                this.buscarStudy();
+                /* this.buscarStudy();
                 this.btnCerralModalForm();
-                this.limpiar();
+                this.limpiar(); */
 
             } catch (error) {
                 console.log(error)
@@ -814,11 +814,12 @@ export default {
                 var productoEstudioId = this.productos[indexProductoEstudio].id;
                 var productoEstudioCod_Cubs = this.productos[indexProductoEstudio].cod_cups;
                 var productoEstudioNomProduc = this.productos[indexProductoEstudio].nom_produc;
-                console.log(productoEstudioNomProduc)
+
                 this.registro.productosEstudio.push({
                     id: productoEstudioId,
                     cod_cups: productoEstudioCod_Cubs,
                     nom_produc: productoEstudioNomProduc,
+                    checked: false,
                 });
             }
         },

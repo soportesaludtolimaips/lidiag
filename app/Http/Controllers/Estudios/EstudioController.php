@@ -14,13 +14,8 @@ use App\Models\Estudio\EstudioProducto;
 use Illuminate\Http\Request;
 use Mail;
 use Illuminate\Support\Carbon;
-use App\Http\Controllers\Reportes\ResporteLecturaController;
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigSede;
-use App\Models\Estudio\EstudioSoportesHC;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
-use Str;
 
 use Illuminate\Support\Facades\Validator;
 
@@ -47,30 +42,8 @@ class EstudioController extends Controller
      */
     public function store(Request $request)
     {
-        // Validar el campo 'registro' de la solicitud
-        $validatedData = $request->validate([
-            'registro' => 'required|json',
-        ], [
-            'registro.required' => 'El campo "registro" es obligatorio.',
-            'registro.json' => 'El campo "registro" debe contener un JSON válido.',
-        ]);
+        $registro = json_decode($request->input('registro'), true);
 
-        // Decodificar el JSON de 'registro' a un array asociativo
-        $registro = json_decode($validatedData['registro'], true);
-
-        // Verifica si la decodificación fue exitosa
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            return response()->json([
-                'error' => 'El contenido de "registro" no es un JSON válido.',
-            ], 400);
-        }
-
-        // Imprime el contenido de $registro para verificar los datos
-        // Puedes usar Log::debug() en lugar de dd() en un entorno de producción
-        // dd($registro);
-
-        // Validar los campos dentro de 'registro'
-        // Validar los campos dentro de 'registro'
         $validator = Validator::make($registro, [
             'medico_id' => 'required|integer|not_in:0',  // Validación para que no sea 0
             'prioridad_id' => 'required|integer|not_in:0',  // Validación para que no sea 0
@@ -95,15 +68,6 @@ class EstudioController extends Controller
         if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
         }
-
-        // Aquí puedes continuar con el procesamiento de los datos validados
-        // Por ejemplo, almacenar los datos en la base de datos, realizar operaciones, etc.
-
-        // Retorna una respuesta de éxito
-        /* return response()->json([
-            'message' => 'Datos procesados con éxito.',
-            'registro' => $registro,
-        ], 201); */
 
         $nombrePaciente = str_replace('^^^', '', $registro['nombres']);
         $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
@@ -227,10 +191,10 @@ class EstudioController extends Controller
             $this->procesarArchivo($request->archivo3, $estudio->id);
         }
 
-        if ($request->email != "") {
+        /* if ($request->email != "") {
             $mailable = new NotificacionAsignacionDeLectura($paciente, $estudio);
             Mail::to($request->email)->send($mailable);
-        }
+        } */
 
         return response()->json(['message' => 'La asignación de la lectura se realizó correctamente.']);
     }
@@ -354,11 +318,11 @@ class EstudioController extends Controller
         /**
          * Actualizo la lectura del estudio
          */
-        $transcribirEstudios = EstudioProducto::findOrFail($request->id_producto_lectura);
+        /* $transcribirEstudios = EstudioProducto::findOrFail($request->id_producto_lectura);
         $transcribirEstudios->lectura = $request->lectura;
         $transcribirEstudios->transcriptor_id = auth()->user()->id;
         $transcribirEstudios->fechor_trascrito = Carbon::now();
-        $transcribirEstudios->save();
+        $transcribirEstudios->save(); */
 
         /**
          * Si la sede donde se realizó el estudio tiene interface hago el envio del reporte a la HC del hospital
@@ -384,7 +348,7 @@ class EstudioController extends Controller
                 $notificar = (new EstudioNotificacionController())->notificarEmail($request);
 
                 if ($notificar->status() == 200) {
-                    return response()->json('Lectura transferido correctamente', 200);
+                    return response()->json('Lectura transferida correctamente', 200);
                 }
             } else {
                 return response()->json('Error en la trnaferencia de la lectura', 400);
