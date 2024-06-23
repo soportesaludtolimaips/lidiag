@@ -653,9 +653,9 @@ export default {
                     });
                 }
 
-                /* this.buscarStudy();
+                this.buscarStudy();
                 this.btnCerralModalForm();
-                this.limpiar(); */
+                this.limpiar();
 
             } catch (error) {
                 console.log(error)
