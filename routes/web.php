@@ -117,13 +117,15 @@ Route::get('/config-sedes/listar/sedes/activas', [ConfigSedeController::class, '
  * Seguridad
  */
 Route::view('/seguridad.usuarios.listar', 'modulos.seguridad.usuarios')->name('seguridad.usuarios.listar');
-Route::resource('/seguridad-usuarios', UserController::class)->names('seguridad.usuarios');
+Route::resource('/seguridad-usuarios', UserController::class)->names('seguridad.usuarios')->except('update');
+Route::post('/seguridad/usuarios/update', [UserController::class, 'update'])->name('seguridad.update');
 Route::put('/seguridad-actualizar-perfil/{idUsua}', [UserController::class, 'actualizarPerfil'])->name('seguridad.actualizar.perfil');
 Route::put('/seguridad-usuarios/estado/{idUsua}', [UserController::class, 'estadoUsuario'])->name('seguridad.usuario.estado');
 Route::get('/user.listarUsuarios/{tipo_user}', [UserController::class, 'listarUsuarios'])->name('user.listarUsuarios');
 
 Route::view('/seguridad.roles.listar', 'modulos.seguridad.roles')->name('seguridad.roles.listar');
 Route::resource('/seguridad-roles', RolController::class)->names('seguridad.roles');
+
 
 Route::view('/seguridad.perfil', 'modulos.seguridad.perfil')->name('seguridad.perfil');
 Route::get('/seguridad-listarPermisosUsuario/{id}', [UserController::class, 'listarPermisosUsuario'])->name('seguridad.listarPermisosUsuario');

@@ -61,10 +61,10 @@ return [
             'url' => env('APP_URL') . '/reporte_lecturas',
             'visibility' => 'public',
         ],
-        'logos' => [
+        'avatars' => [
             'driver' => 'local',
-            'root' => storage_path('app/logos'),
-            'url' => env('APP_URL') . '/logos',
+            'root' => storage_path('app/avatars'),
+            'url' => env('APP_URL') . '/avatars',
             'visibility' => 'public',
         ],
         'firmas_medicos' => [
@@ -107,7 +107,7 @@ return [
     'links' => [
         public_path('storage') => storage_path('app/public'),
         public_path('reporte_lecturas') => storage_path('app/reporte_lecturas'),
-        public_path('logos') => storage_path('app/logos'),
+        public_path('avatars') => storage_path('app/avatars'),
         public_path('firmas_medicos') => storage_path('app/firmas_medicos'),
         public_path('soportes_hc') => storage_path('app/soportes_hc'),
         public_path('audios') => storage_path('app/audios'),

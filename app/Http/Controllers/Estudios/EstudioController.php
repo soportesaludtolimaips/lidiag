@@ -6,17 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Interface\SAHIController;
 use App\Http\Controllers\Interface\SAHITranscibirController;
 use App\Http\Requests\Estudio\estudioLeerRequest;
-use App\Mail\NotificacionAsignacionDeLectura;
 use App\Models\General\Paciente;
 use App\Models\Estudio\Estudio;
 use App\Models\Estudio\EstudioDiagnostico;
 use App\Models\Estudio\EstudioProducto;
 use Illuminate\Http\Request;
-use Mail;
 use Illuminate\Support\Carbon;
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigSede;
-
 use Illuminate\Support\Facades\Validator;
 
 class EstudioController extends Controller
