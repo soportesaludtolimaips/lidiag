@@ -378,11 +378,11 @@ export default {
         async guardarRegistro() {
 
             try {
-                if (this.actualizar === false) {
+                const formData = new FormData();
+                formData.append('registro', JSON.stringify(this.registro));
+                formData.append('plantilla', this.plantilla);
 
-                    const formData = new FormData();
-                    formData.append('registro', JSON.stringify(this.registro));
-                    formData.append('plantilla', this.plantilla);
+                if (this.actualizar === false) {
 
                     const res = await axios.post('/config-sedes', formData);
 
@@ -402,11 +402,6 @@ export default {
                         this.limpiar();
                     }
                 } else {
-
-                    const formData = new FormData();
-                    formData.append('registro', JSON.stringify(this.registro));
-                    formData.append('plantilla', this.plantilla);
-
                     const res = await axios.post('/config/sedes/updateWitchPlantillas', formData, {
                         headers: { "Content-Type": "multipart/form-data" }
                     });

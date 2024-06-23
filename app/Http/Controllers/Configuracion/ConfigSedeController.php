@@ -50,7 +50,12 @@ class ConfigSedeController extends Controller
          * Almacenos los logos de la sede
          */
         if ($request->hasFile('plantilla')) {
-            $archivo = $request->logo1;
+            $archivo = $request->plantilla;
+
+            if (Storage::disk('avatars')->exists($configsede->plantilla)) {
+                Storage::disk('avatars')->delete($configsede->plantilla);
+            }
+
             $nombreEncrip = Str::random(50) . "." . $archivo->extension();
 
             $archivo->storeAs('plantillas_lecturas', $nombreEncrip);

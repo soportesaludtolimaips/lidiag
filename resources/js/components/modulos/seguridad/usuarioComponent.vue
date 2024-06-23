@@ -45,6 +45,7 @@
                                         <th>Registro Medico</th>
                                         <th>Nombres</th>
                                         <th>E-Mail</th>
+                                        <th>Firma</th>
                                         <th>Estado</th>
                                         <th></th>
                                     </tr>
@@ -56,8 +57,8 @@
                                                 <img v-if="!item.imagen_perfil"
                                                     src="@/admin-wrap/assets/images/users/avatar_default.png"
                                                     :alt="item.name" class="img-circle" height="40" width="40">
-                                                <img v-else :src="item.imagen_perfil" :alt="item.name" class="img-circle"
-                                                    height="40" width="40">
+                                                <img v-else :src="item.imagen_perfil" :alt="item.name"
+                                                    class="img-circle" height="40" width="40">
                                             </div>
                                         </td>
                                         <td>{{ item.num_docu }}</td>
@@ -65,15 +66,19 @@
                                         <td>{{ item.name }}</td>
                                         <td>{{ item.email }}</td>
                                         <td>
+                                            <span class="label label-success" v-if="item.firma != null">Si</span>
+                                            <span class="label label-danger" v-if="item.firma === null">No</span>
+                                        </td>
+                                        <td>
                                             <span class="label label-success" v-if="item.estado == 1">Activo</span>
                                             <span class="label label-danger" v-if="item.estado == 0">Inactivo</span>
                                         </td>
                                         <td class="text-nowrap">
-                                            <router-link
+                                            <!-- <router-link
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
                                                 :to="{ name: 'seguridad.usuario.perfil', params: { id: item.id } }">
                                                 <i class="fa fa-eye"></i>
-                                            </router-link>
+                                            </router-link> -->
 
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
@@ -130,8 +135,8 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="control-label"># Documento</label>
-                                        <input type="text" id="num_docu" v-model="registro.num_docu" class="form-control"
-                                            placeholder="Número de documeto del usuario">
+                                        <input type="text" id="num_docu" v-model="registro.num_docu"
+                                            class="form-control" placeholder="Número de documeto del usuario">
                                         <span class="text-danger" v-if="errores.num_docu">{{
                                             errores.num_docu[0]
                                         }}</span>
@@ -193,8 +198,9 @@
                                                     <i class="ti-lock"></i>
                                                 </span>
                                             </div>
-                                            <input type="password" id="password" name="password" v-model="registro.password"
-                                                class="form-control" placeholder="Contraseña">
+                                            <input type="password" id="password" name="password"
+                                                v-model="registro.password" class="form-control"
+                                                placeholder="Contraseña">
                                         </div>
 
                                         <span class="text-danger" v-if="errores.password">{{
@@ -252,9 +258,15 @@
                             <div class="col-md-12 m-b-20">
                                 <div class="fileupload btn btn-danger btn-rounded waves-effect waves-light">
                                     <span>
+                                        <i class="ion-upload m-r-5"></i>Subir Firma
+                                    </span>
+                                    <input type="file" class="upload" @change="obtenerFirma">
+                                </div>
+                                <div class="fileupload btn btn-danger btn-rounded waves-effect waves-light">
+                                    <span>
                                         <i class="ion-upload m-r-5"></i>Subir Avatar
                                     </span>
-                                    <input type="file" class="upload" @change="obtenerArchivo">
+                                    <input type="file" class="upload" @change="obtenerAvatar">
                                 </div>
                             </div>
 
@@ -281,7 +293,8 @@
                                     <i class="fa fa-pencil"></i> Actualizar
                                 </button>
 
-                                <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">Cancel</button>
+                                <button type="button" class="btn btn-inverse"
+                                    @click="btnCerralModalForm()">Cancel</button>
                             </div>
                         </div>
                     </form>
@@ -302,12 +315,14 @@ export default {
     },
     data() {
         return {
-            id: 0,
             registros: [],
             roles: [],
+            id: null,
             registro: { num_docu: '', reg_med: '', name: '', email: '', password: '', estado: 0, imagen_perfil: '', rolesUsuario: [] },
             tituloModal: 'Nuevo registro',
             actualizar: false,
+            avatar: null,
+            firma: null,
             errores: {},
             dependencias: [], //Listo las dependencias
         };
@@ -350,9 +365,17 @@ export default {
         async guardarRegistro() {
             try {
 
+                const formData = new FormData();
+                formData.append('registro', JSON.stringify(this.registro));
+                formData.append('id', this.id);
+                formData.append('firma', this.firma);
+                formData.append('avatar', this.avatar);
+
                 if (this.actualizar === false) {
 
-                    const res = await axios.post('/seguridad-usuarios', this.registro);
+                    const res = await axios.post('/seguridad-usuarios', formData, {
+                        headers: { "Content-Type": "multipart/form-data" }
+                    });
 
                     if (res.status == 200) {
 
@@ -372,7 +395,9 @@ export default {
                     }
                 } else {
 
-                    const res = await axios.put('/seguridad-usuarios/' + this.id, this.registro);
+                    const res = await axios.post('/seguridad/usuarios/update', formData, {
+                        headers: { "Content-Type": "multipart/form-data" }
+                    });
 
                     if (res.status == 200) {
 
@@ -392,8 +417,7 @@ export default {
                     }
                 }
             } catch (error) {
-                console.log(error);
-                this.errores = error.response;
+                this.errores = error.response.data;
             }
         },
         async cambiarEstado(estado, data = {}) {
@@ -421,8 +445,11 @@ export default {
                 }
             });
         },
-        obtenerArchivo(event) {
-            this.registro.imagen_perfil = event.target.files[0];
+        obtenerFirma(event) {
+            this.firma = event.target.files[0];
+        },
+        obtenerAvatar(event) {
+            this.avatar = event.target.files[0];
         },
         mostrarRegistro(data = {}) {
             if (this.actualizar == true) {
