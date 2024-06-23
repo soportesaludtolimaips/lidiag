@@ -67,7 +67,7 @@ class PlantillaEstudioController extends Controller
         if ($request->firma) {
             // Insertar la imagen en el archivo de Word
             $templateProcessor->setImageValue('firma_medico', [
-                'path' => storage_path('app/firmas_medicos/39.jpg'),
+                'path' => storage_path('app/' . $request->firma),
                 'width' => 100,
                 'height' => 100,
                 'ratio' => false

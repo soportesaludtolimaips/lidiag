@@ -113,7 +113,7 @@
                                         <td>{{ item.fec_estudio }}</td>
                                         <td>{{ item.fechor_lectura }}</td>
                                         <td>{{ item.num_docu }}</td>
-                                        <td>{{ item.nombres }}</td>
+                                        <td>{{ item.nom_pacien }}</td>
                                         <td>{{ item.tel }}</td>
                                         <td>{{ item.email }}</td>
                                         <td>{{ item.nom_produc }}</td>
