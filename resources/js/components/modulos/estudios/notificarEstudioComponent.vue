@@ -350,11 +350,26 @@ export default {
         async imprimirReporte(estudio) {
             try {
                 const res = await axios.post("/edit-word", estudio);
-
+                console.log(res)
                 window.open(`/descargar.pdf.lectura/${res.data.plantilla}`);
 
             } catch (error) {
-                this.errores = error.response.data.errors;
+
+
+                if (error.response.status == 402) {
+
+                    $.toast({
+                        heading: "Ok!!!",
+                        text: error.response.data.message,
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "error",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                }
+
+                this.errores = error.response.data;
             }
         },
         async notificar() {
