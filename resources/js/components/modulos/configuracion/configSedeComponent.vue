@@ -201,7 +201,7 @@
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.usuario_oviyam">{{
                                             errores.usuario_oviyam[0]
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </div>
 
@@ -213,7 +213,7 @@
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.password_oviyam">{{
                                             errores.password_oviyam[0]
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </div>
 
@@ -225,7 +225,7 @@
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.url_oviyam">{{
                                             errores.url_oviyam[0]
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </div>
                                 <div class="col-md-2">
@@ -236,7 +236,7 @@
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.tap_oviyam">{{
                                             errores.tap_oviyam[0]
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -348,8 +348,7 @@ export default {
             id: 0,
             registros: [],
             registro: {
-                id: 0, nom_sede: '', email_repor: '', ip_dcm: '', bd_dcm: '', puerto_dcm: '', usuario_dcm: '', password_dcm: '', usuario_oviyam: '', password_oviyam: '',
-                url_oviyam: '', tap_oviyam: '', estado: 0
+                id: null, nom_sede: '', email_repor: '', ip_dcm: '', bd_dcm: '', puerto_dcm: '', usuario_dcm: '', password_dcm: '', usuario_oviyam: '', password_oviyam: '', url_oviyam: '', tap_oviyam: '', estado: 0
             },
             tituloModal: 'Nuevo registro',
             actualizar: false,
@@ -397,9 +396,9 @@ export default {
                             stack: 6
                         });
 
-                        this.ListarDatos();
+                        /* this.ListarDatos();
                         this.btnCerralModalForm();
-                        this.limpiar();
+                        this.limpiar(); */
                     }
                 } else {
                     const res = await axios.post('/config/sedes/updateWitchPlantillas', formData, {
@@ -417,14 +416,14 @@ export default {
                             stack: 6
                         });
 
-                        this.ListarDatos();
+                        /* this.ListarDatos();
                         this.btnCerralModalForm();
-                        this.limpiar();
+                        this.limpiar(); */
                     }
                 }
             } catch (error) {
                 console.log(error);
-                //this.errores = error.response;
+                this.errores = error.response.data;
             }
         },
         elimnarRegistro(id) {
