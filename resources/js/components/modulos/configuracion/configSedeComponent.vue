@@ -201,7 +201,7 @@
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.usuario_oviyam">{{
                                             errores.usuario_oviyam[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
 
@@ -213,7 +213,7 @@
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.password_oviyam">{{
                                             errores.password_oviyam[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
 
@@ -225,7 +225,7 @@
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.url_oviyam">{{
                                             errores.url_oviyam[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                                 <div class="col-md-2">
@@ -236,7 +236,7 @@
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.tap_oviyam">{{
                                             errores.tap_oviyam[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -396,9 +396,9 @@ export default {
                             stack: 6
                         });
 
-                        /* this.ListarDatos();
+                        this.ListarDatos();
                         this.btnCerralModalForm();
-                        this.limpiar(); */
+                        this.limpiar();
                     }
                 } else {
                     const res = await axios.post('/config/sedes/updateWitchPlantillas', formData, {
@@ -416,9 +416,9 @@ export default {
                             stack: 6
                         });
 
-                        /* this.ListarDatos();
+                        this.ListarDatos();
                         this.btnCerralModalForm();
-                        this.limpiar(); */
+                        this.limpiar();
                     }
                 }
             } catch (error) {

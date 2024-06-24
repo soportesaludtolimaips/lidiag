@@ -96,14 +96,13 @@ class EstudioNotificacionController extends Controller
         ]);
 
         /**
-         * Actualizo los datos del paciente
+         * Actualizo el nombre y correo electronico del paciente
          */
 
         Paciente::updateOrCreate(
             ['num_docu' => $estudio->num_docu],
             [
-                'name' => $estudio->nom_pacien,
-                'fec_naci' => $estudio->fec_naci,
+                'nombres' => $estudio->nom_pacien,
                 'email' => $estudio->email
             ]
         );
