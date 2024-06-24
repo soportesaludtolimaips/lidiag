@@ -392,7 +392,7 @@ export default {
             this.limpiar();
         },
         mostrarRegistro(data = {}) {
-            console.log(data)
+
             this.estudio = data;
             this.tituloModal = "Notificar al paciente: " + data.pat_name;
 
