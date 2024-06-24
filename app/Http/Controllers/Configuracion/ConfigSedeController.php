@@ -31,21 +31,55 @@ class ConfigSedeController extends Controller
      */
     public function store(Request $request, ConfigSede $configsede)
     {
-        $registro = json_decode($request->registro);
+        $registro = json_decode($request->input('registro'), true);
+
+        $validator = Validator::make(
+            $registro,
+            [
+                'nom_sede' => 'required|string|max:150',
+                'ip_dcm' => 'required|string|max:15',
+                'bd_dcm' => 'required|string|max:50',
+                'puerto_dcm' => 'required|string|max:5',
+                'usuario_dcm' => 'required|string|max:30',
+                'password_dcm' => 'required|string|max:30',
+                'usuario_oviyam' => 'required|string|max:20',
+                'password_oviyam' => 'required|string|max:20',
+                'url_oviyam' => 'required|string|max:100',
+                'tap_oviyam' => 'required|string|max:100', // Validación para que no sea 0
+
+            ],
+            [
+                'nom_sede.required' => 'El campo Nombre de la sede es obligatorio.',
+                'ip_dcm.required' => 'El campo IP DCM es obligatorio.',
+                'bd_dcm.required' => 'El campo Base de datos DCM es obligatorio.',
+                'puerto_dcm.required' => 'El campo Puerto DCM es obligatorio.',
+                'usuario_dcm.required' => 'El campo Usuario DCM es obligatorio.',
+                'password_dcm.required' => 'El campo Contraseña DCM es obligatorio.',
+                'usuario_oviyam.required' => 'El campo Usuario OVIYAM es obligatorio.',
+                'password_oviyam.required' => 'El campo Contraseña OVIYAM es obligatorio.',
+                'url_oviyam.required' => 'El campo URL OVIYAM es obligatorio.',
+                'tap_oviyam.required' => 'El campo TAP OVIYAM es obligatorio.',
+            ]
+        );
+
+        // Si la validación falla, devuelve los errores
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
 
         $configSede = new ConfigSede();
-        $configsede->nom_sede = $registro->nom_sede;
-        $configsede->email_repor = $registro->email_repor;
-        $configsede->ip_dcm = $registro->ip_dcm;
-        $configsede->bd_dcm = $registro->bd_dcm;
-        $configsede->puerto_dcm = $registro->puerto_dcm;
-        $configsede->usuario_dcm = $registro->usuario_dcm;
-        $configsede->password_dcm = $registro->password_dcm;
-        $configsede->usuario_oviyam = $registro->usuario_oviyam;
-        $configsede->password_oviyam = $registro->password_oviyam;
-        $configsede->url_oviyam = $registro->url_oviyam;
-        $configsede->tap_oviyam = $registro->tap_oviyam;
-        $configsede->estado = $registro->estado;
+        $configsede->nom_sede = $registro['nom_sede'];
+        $configsede->email_repor = $registro['email_repor'];
+        $configsede->ip_dcm = $registro['ip_dcm'];
+        $configsede->bd_dcm = $registro['bd_dcm'];
+        $configsede->puerto_dcm = $registro['puerto_dcm'];
+        $configsede->usuario_dcm = $registro['usuario_dcm'];
+        $configsede->password_dcm = $registro['password_dcm'];
+        $configsede->usuario_oviyam = $registro['usuario_oviyam'];
+        $configsede->password_oviyam = $registro['password_oviyam'];
+        $configsede->url_oviyam = $registro['url_oviyam'];
+        $configsede->tap_oviyam = $registro['tap_oviyam'];
+        $configsede->estado = $registro['estado'];
 
         /**
          * Almacenos los logos de la sede
@@ -89,50 +123,55 @@ class ConfigSedeController extends Controller
     public function update(Request $request)
     {
 
-        $registro = json_decode($request->imput('registro'), true);
+        $registro = json_decode($request->input('registro'), true);
 
-        /* $validator = Validator::make(
+        $validator = Validator::make(
             $registro,
             [
-                'medico_id' => 'required|integer|not_in:0',  // Validación para que no sea 0
-                'prioridad_id' => 'required|integer|not_in:0',  // Validación para que no sea 0
-                'num_docu' => 'required',
-                'nombres' => 'required',
-                'productosEstudio' => 'required|array|min:1',  // Debe ser un array con al menos un elemento
-                'diagnosticosEstudio' => 'required|array|min:1',  // Debe ser un array con al menos un elemento
+                'nom_sede' => 'required|string|max:150',
+                'ip_dcm' => 'required|string|max:15',
+                'bd_dcm' => 'required|string|max:50',
+                'puerto_dcm' => 'required|string|max:5',
+                'usuario_dcm' => 'required|string|max:30',
+                'password_dcm' => 'required|string|max:30',
+                'usuario_oviyam' => 'required|string|max:20',
+                'password_oviyam' => 'required|string|max:20',
+                'url_oviyam' => 'required|string|max:100',
+                'tap_oviyam' => 'required|string|max:100', // Validación para que no sea 0
+
             ],
             [
-                'medico_id.required' => 'Te hizo falta el medico.',
-                'medico_id.not_in' => 'Te hizo falta el medico.',
-                'prioridad_id.required' => 'Te hizo falta la prioridad del estudio.',
-                'prioridad_id.not_in' => 'Te hizo falta la prioridad del estudio.',
-                'num_docu.required' => 'Te hizo falta el número de documento del paciente.',
-                'nombres.required' => 'Te hizo falta los nombres del paciente.',
-                'productosEstudio.required' => 'Debe elegir al menos un producto.',
-                'productosEstudio.min' => 'Debe elegir al menos un producto.',
-                'diagnosticosEstudio.required' => 'Debe elegir al menos un diagnostico.',
-                'diagnosticosEstudio.min' => 'Debe elegir al menos un diagnostico.',
+                'nom_sede.required' => 'El campo Nombre de la sede es obligatorio.',
+                'ip_dcm.required' => 'El campo IP DCM es obligatorio.',
+                'bd_dcm.required' => 'El campo Base de datos DCM es obligatorio.',
+                'puerto_dcm.required' => 'El campo Puerto DCM es obligatorio.',
+                'usuario_dcm.required' => 'El campo Usuario DCM es obligatorio.',
+                'password_dcm.required' => 'El campo Contraseña DCM es obligatorio.',
+                'usuario_oviyam.required' => 'El campo Usuario OVIYAM es obligatorio.',
+                'password_oviyam.required' => 'El campo Contraseña OVIYAM es obligatorio.',
+                'url_oviyam.required' => 'El campo URL OVIYAM es obligatorio.',
+                'tap_oviyam.required' => 'El campo TAP OVIYAM es obligatorio.',
             ]
         );
 
         // Si la validación falla, devuelve los errores
         if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
-        } */
+        }
 
-        $configsede = ConfigSede::findOrFail($registro->id);
-        $configsede->nom_sede = $registro->nom_sede;
-        $configsede->email_repor = $registro->email_repor;
-        $configsede->ip_dcm = $registro->ip_dcm;
-        $configsede->bd_dcm = $registro->bd_dcm;
-        $configsede->puerto_dcm = $registro->puerto_dcm;
-        $configsede->usuario_dcm = $registro->usuario_dcm;
-        $configsede->password_dcm = $registro->password_dcm;
-        $configsede->usuario_oviyam = $registro->usuario_oviyam;
-        $configsede->password_oviyam = $registro->password_oviyam;
-        $configsede->url_oviyam = $registro->url_oviyam;
-        $configsede->tap_oviyam = $registro->tap_oviyam;
-        $configsede->estado = $registro->estado;
+        $configsede = ConfigSede::findOrFail($registro['id']);
+        $configsede->nom_sede = $registro['nom_sede'];
+        $configsede->email_repor = $registro['email_repor'];
+        $configsede->ip_dcm = $registro['ip_dcm'];
+        $configsede->bd_dcm = $registro['bd_dcm'];
+        $configsede->puerto_dcm = $registro['puerto_dcm'];
+        $configsede->usuario_dcm = $registro['usuario_dcm'];
+        $configsede->password_dcm = $registro['password_dcm'];
+        $configsede->usuario_oviyam = $registro['usuario_oviyam'];
+        $configsede->password_oviyam = $registro['password_oviyam'];
+        $configsede->url_oviyam = $registro['url_oviyam'];
+        $configsede->tap_oviyam = $registro['tap_oviyam'];
+        $configsede->estado = $registro['estado'];
 
         /**
          * Almacenos los logos de la sede
