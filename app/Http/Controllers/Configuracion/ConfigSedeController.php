@@ -7,6 +7,7 @@ use App\Http\Requests\Configuracion\ConfigSedeRequest;
 use App\Models\Configuracion\ConfigSede;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Str;
 
 class ConfigSedeController extends Controller
@@ -52,8 +53,8 @@ class ConfigSedeController extends Controller
         if ($request->hasFile('plantilla')) {
             $archivo = $request->plantilla;
 
-            if (Storage::disk('avatars')->exists($configsede->plantilla)) {
-                Storage::disk('avatars')->delete($configsede->plantilla);
+            if (!is_null($configSede->plantilla) && Storage::disk('plantillas_lecturas')->exists($configsede->plantilla)) {
+                Storage::disk('plantillas_lecturas')->delete($configsede->plantilla);
             }
 
             $nombreEncrip = Str::random(50) . "." . $archivo->extension();
@@ -87,7 +88,37 @@ class ConfigSedeController extends Controller
      */
     public function update(Request $request)
     {
-        $registro = json_decode($request->registro);
+
+        $registro = json_decode($request->imput('registro'), true);
+
+        /* $validator = Validator::make(
+            $registro,
+            [
+                'medico_id' => 'required|integer|not_in:0',  // Validación para que no sea 0
+                'prioridad_id' => 'required|integer|not_in:0',  // Validación para que no sea 0
+                'num_docu' => 'required',
+                'nombres' => 'required',
+                'productosEstudio' => 'required|array|min:1',  // Debe ser un array con al menos un elemento
+                'diagnosticosEstudio' => 'required|array|min:1',  // Debe ser un array con al menos un elemento
+            ],
+            [
+                'medico_id.required' => 'Te hizo falta el medico.',
+                'medico_id.not_in' => 'Te hizo falta el medico.',
+                'prioridad_id.required' => 'Te hizo falta la prioridad del estudio.',
+                'prioridad_id.not_in' => 'Te hizo falta la prioridad del estudio.',
+                'num_docu.required' => 'Te hizo falta el número de documento del paciente.',
+                'nombres.required' => 'Te hizo falta los nombres del paciente.',
+                'productosEstudio.required' => 'Debe elegir al menos un producto.',
+                'productosEstudio.min' => 'Debe elegir al menos un producto.',
+                'diagnosticosEstudio.required' => 'Debe elegir al menos un diagnostico.',
+                'diagnosticosEstudio.min' => 'Debe elegir al menos un diagnostico.',
+            ]
+        );
+
+        // Si la validación falla, devuelve los errores
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        } */
 
         $configsede = ConfigSede::findOrFail($registro->id);
         $configsede->nom_sede = $registro->nom_sede;
@@ -108,12 +139,12 @@ class ConfigSedeController extends Controller
          */
         if ($request->hasFile('plantilla')) {
             $archivo = $request->plantilla;
-            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
 
-            /** Elimino el archivo de la plantilla actual */
-            if ($configsede->plantilla <> '') {
+            if (!is_null($configsede->plantilla) && Storage::disk('plantillas_lecturas')->exists($configsede->plantilla)) {
                 Storage::disk('plantillas_lecturas')->delete($configsede->plantilla);
             }
+
+            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
 
             $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
             $configsede->plantilla = $nombreEncrip;
