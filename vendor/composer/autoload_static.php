@@ -619,7 +619,7 @@ class ComposerStaticInit802bb6a3ba91156a78c5be01a1caa0f6
         'App\\Http\\Requests\\Estudio\\estudioLeerRequest' => __DIR__ . '/../..' . '/app/Http/Requests/Estudio/estudioLeerRequest.php',
         'App\\Http\\Requests\\Seguridad\\RolActualizarRequest' => __DIR__ . '/../..' . '/app/Http/Requests/Seguridad/RolActualizarRequest.php',
         'App\\Http\\Requests\\Seguridad\\RolAgregarRequest' => __DIR__ . '/../..' . '/app/Http/Requests/Seguridad/RolAgregarRequest.php',
-        'App\\Http\\Requests\\Seguridad\\UserAgretarRequest' => __DIR__ . '/../..' . '/app/Http/Requests/Seguridad/UserAgretarRequest.php',
+        'App\\Http\\Requests\\Seguridad\\UserAgregarRequest' => __DIR__ . '/../..' . '/app/Http/Requests/Seguridad/UserAgregarRequest.php',
         'App\\Mail\\NotificacionAsignacionDeLectura' => __DIR__ . '/../..' . '/app/Mail/NotificacionAsignacionDeLectura.php',
         'App\\Mail\\NotificacionDeLectura' => __DIR__ . '/../..' . '/app/Mail/NotificacionDeLectura.php',
         'App\\Mail\\ReportarLectura' => __DIR__ . '/../..' . '/app/Mail/ReportarLectura.php',

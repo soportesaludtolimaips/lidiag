@@ -62,7 +62,7 @@ return array(
     'App\\Http\\Requests\\Estudio\\estudioLeerRequest' => $baseDir . '/app/Http/Requests/Estudio/estudioLeerRequest.php',
     'App\\Http\\Requests\\Seguridad\\RolActualizarRequest' => $baseDir . '/app/Http/Requests/Seguridad/RolActualizarRequest.php',
     'App\\Http\\Requests\\Seguridad\\RolAgregarRequest' => $baseDir . '/app/Http/Requests/Seguridad/RolAgregarRequest.php',
-    'App\\Http\\Requests\\Seguridad\\UserAgretarRequest' => $baseDir . '/app/Http/Requests/Seguridad/UserAgretarRequest.php',
+    'App\\Http\\Requests\\Seguridad\\UserAgregarRequest' => $baseDir . '/app/Http/Requests/Seguridad/UserAgregarRequest.php',
     'App\\Mail\\NotificacionAsignacionDeLectura' => $baseDir . '/app/Mail/NotificacionAsignacionDeLectura.php',
     'App\\Mail\\NotificacionDeLectura' => $baseDir . '/app/Mail/NotificacionDeLectura.php',
     'App\\Mail\\ReportarLectura' => $baseDir . '/app/Mail/ReportarLectura.php',
