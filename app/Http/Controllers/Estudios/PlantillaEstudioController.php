@@ -80,7 +80,10 @@ class PlantillaEstudioController extends Controller
 
         $plantillaPdf = $this->convertDocxToPdf($request->num_docu . "-" . $nombrePaciente);
         if ($plantillaPdf) {
-            return response()->json(['messaje' => 'Plantilla creada correctament', 'plantilla' => $request->num_docu . "-" . $nombrePaciente . ".pdf"], 200);
+
+            $urlApiReportes = config('app.URL_API_REPORTES') . "api/almacenarLectura";
+
+            return response()->json(['messaje' => 'Plantilla creada correctament', 'plantilla' => $request->num_docu . "-" . $nombrePaciente . ".pdf", 'urlApiReportes' => $urlApiReportes], 200);
         } else {
             return response()->json('No se pudo convertir la plantilla a PDF', 400);
         }

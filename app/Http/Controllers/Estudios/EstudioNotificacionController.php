@@ -75,30 +75,10 @@ class EstudioNotificacionController extends Controller
         $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
 
         $nomArchivoReporte = $estudio->num_docu . "-" . $nombrePaciente . ".pdf";
-        /**
-         * Envio la lectura a Lidiag-reportes para que este diponible para la descarga por parte del paciente
-         */
-        $urlApiReportes = config('app.URL_API_REPORTES') . "api/almacenarLectura";
-
-        $response = Http::timeout(60)->attach(
-            'file_reporte',
-            file_get_contents(storage_path('app/reporte_lecturas/' . $nomArchivoReporte)),
-            $nomArchivoReporte
-        )->post($urlApiReportes, [
-            'num_docu' => $estudio->num_docu,
-            'name' => $nombrePaciente,
-            'fec_naci' => $estudio->fec_naci,
-            'nom_produc' => $estudio->nom_produc,
-            'fechor_lectura' => $estudio->fechor_lectura,
-            'nom_sede' => $estudio->nom_sede,
-            'url_oviyam' => $estudio->url_oviyam,
-            'tap_oviyam' => $estudio->tap_oviyam,
-        ]);
 
         /**
          * Actualizo el nombre y correo electronico del paciente
          */
-
         Paciente::updateOrCreate(
             ['num_docu' => $estudio->num_docu],
             [
