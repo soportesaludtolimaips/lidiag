@@ -375,8 +375,9 @@ export default {
         async notificar() {
 
             this.estudio.email = this.registro.email;
-
-            $.toast({
+            const resEnviarEmail = await axios.post('/notificar.email', this.estudio);
+            console.log(resEnviarEmail)
+            /* $.toast({
                 heading: "Ok!!!",
                 text: 'Generando reporte, por favor espere.',
                 position: "top-right",
@@ -450,7 +451,7 @@ export default {
                         stack: 6,
                     });
                 }
-            }
+            } */
 
             /* this.btnCerralModalForm();
             this.limpiar(); */
