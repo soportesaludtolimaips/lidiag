@@ -421,14 +421,8 @@ export default {
 
                 formData.append('reporte_lectura', file);
 
-                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
                 const resLidiagReportes = await axios.post('https://' + res.data.urlApiReportes, formData, {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-XSRF-TOKEN': csrfToken
-                    }
+                    headers: { "Content-Type": "multipart/form-data" }
                 });
 
                 if (resLidiagReportes.status == 200) {
@@ -437,7 +431,7 @@ export default {
                         text: 'La notificacion se realizó correctamente, estamos enviando el correo electronico, por favor espere..',
                         position: "top-right",
                         loaderBg: "#ff6849",
-                        icon: "info",
+                        icon: "success",
                         hideAfter: 3500,
                         stack: 6,
                     });
