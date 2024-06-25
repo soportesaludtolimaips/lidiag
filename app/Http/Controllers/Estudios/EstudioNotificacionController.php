@@ -8,7 +8,6 @@ use App\Mail\ReportarLectura;
 use App\Models\Estudio\Estudio;
 use App\Models\General\Paciente;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 
 class EstudioNotificacionController extends Controller

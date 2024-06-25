@@ -300,15 +300,15 @@
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
-                                                <input type="file" class="form-control" id="exampleInputFile"
+                                                <input type="file" class="form-control" id="exampleInputFile1"
                                                     aria-describedby="fileHelp" @change='obtenerArchivo1' />
                                             </div>
                                             <div class="form-group">
-                                                <input type="file" class="form-control" id="exampleInputFile"
+                                                <input type="file" class="form-control" id="exampleInputFile2"
                                                     aria-describedby="fileHelp" @change='obtenerArchivo2' />
                                             </div>
                                             <div class="form-group">
-                                                <input type="file" class="form-control" id="exampleInputFile"
+                                                <input type="file" class="form-control" id="exampleInputFile3"
                                                     aria-describedby="fileHelp" @change='obtenerArchivo3' />
                                             </div>
                                         </div>
@@ -770,6 +770,10 @@ export default {
             this.registro.prioridad_id = 0;
             this.productoSelecciondo = 0;
             this.diagnosticoSelecciondo = 0;
+
+            $('#exampleInputFile1').val('');
+            $('#exampleInputFile2').val('');
+            $('#exampleInputFile3').val('');
 
             this.listarMedicos();
             this.listarPrioridades();

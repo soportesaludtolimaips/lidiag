@@ -438,7 +438,6 @@ class EstudioController extends Controller
             return $genearPlantilla;
         } */
 
-
         $notificar = (new EstudioNotificacionController())->notificarEmail($request);
         return $notificar;
     }
