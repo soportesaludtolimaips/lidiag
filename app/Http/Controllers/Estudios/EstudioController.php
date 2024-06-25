@@ -14,7 +14,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigSede;
+use App\Models\Estudio\EstudioSoportesHC;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Str;
 
 class EstudioController extends Controller
 {
@@ -188,12 +191,21 @@ class EstudioController extends Controller
             $this->procesarArchivo($request->archivo3, $estudio->id);
         }
 
-        /* if ($request->email != "") {
-            $mailable = new NotificacionAsignacionDeLectura($paciente, $estudio);
-            Mail::to($request->email)->send($mailable);
-        } */
-
         return response()->json(['message' => 'La asignación de la lectura se realizó correctamente.']);
+    }
+
+    function procesarArchivo($archivo, $estudioId)
+    {
+        $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+        $nombreOriginal = $archivo->getClientOriginalName();
+
+        $archivoSoporteHC = new EstudioSoportesHC();
+        $archivoSoporteHC->estudio_id = $estudioId;
+        $archivoSoporteHC->archivo_original = $nombreOriginal;
+        $archivoSoporteHC->archivo_encrip = $nombreEncrip;
+        $archivoSoporteHC->save();
+
+        Storage::putFileAs('soportes_hc', $archivo, $nombreEncrip);
     }
 
     public function listarPendientesMedico(Request $request, Estudio $estudio)
