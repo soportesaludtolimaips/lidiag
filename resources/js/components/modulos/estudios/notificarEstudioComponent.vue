@@ -381,14 +381,12 @@ export default {
                 text: 'Generando reporte, por favor espere.',
                 position: "top-right",
                 loaderBg: "#ff6849",
-                icon: "success",
+                icon: "info",
                 hideAfter: 3500,
                 stack: 6,
             });
 
             const res = await axios.post("/edit-word", this.estudio);
-            console.log('******** archivo')
-            console.log(res.data)
 
             if (res.status == 200) {
                 $.toast({
@@ -423,8 +421,14 @@ export default {
 
                 formData.append('reporte_lectura', file);
 
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
                 const resLidiagReportes = await axios.post('https://' + res.data.urlApiReportes, formData, {
-                    headers: { "Content-Type": "multipart/form-data" }
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-XSRF-TOKEN': csrfToken
+                    }
                 });
 
                 if (resLidiagReportes.status == 200) {
@@ -433,7 +437,7 @@ export default {
                         text: 'La notificacion se realizó correctamente, estamos enviando el correo electronico, por favor espere..',
                         position: "top-right",
                         loaderBg: "#ff6849",
-                        icon: "success",
+                        icon: "info",
                         hideAfter: 3500,
                         stack: 6,
                     });
