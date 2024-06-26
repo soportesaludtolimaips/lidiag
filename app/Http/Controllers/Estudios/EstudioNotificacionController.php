@@ -26,46 +26,41 @@ class EstudioNotificacionController extends Controller
      */
     public function listarEstudios(Request $request)
     {
-        $estudios = new Estudio();
-        $query = $estudios->query();
+        $estudios = Estudio::query();
 
-        $query->select(
-            'estudios.*',
-            'pacien.num_docu',
-            'pacien.nombres as nom_pacien',
-            'pacien.fec_naci',
-            'pacien.direccion',
-            'pacien.email',
-            'pacien.tel',
+        $estudios->select(
+            'estudios.id',
+            'estudios.fec_estudio',
+            'estudios_productos.fechor_lectura',
+            'pacientes.num_docu',
+            'pacientes.nombres as nom_pacien',
+            'pacientes.direccion',
+            'pacientes.email',
+            'estudios_productos.id AS id_estudios_productos',
             'estudios_productos.cod_cups',
             'estudios_productos.nom_produc',
-            'estudios_productos.fechor_lectura',
-            'estudios_productos.fechor_trascrito',
-            'estudios_productos.lectura',
-            'medi.name as medico',
-            'medi.reg_med',
-            'medi.num_docu',
-            'medi.firma',
-            'sede.nom_sede',
-            'sede.url_oviyam',
-            'sede.tap_oviyam',
+            'config_sedes.id as sede_id',
+            'config_sedes.nom_sede',
+            'config_sedes.url_oviyam',
+            'config_sedes.tap_oviyam',
+            'config_sedes.plantilla'
         )
+
             ->join('estudios_productos', 'estudios_productos.estudio_id', '=', 'estudios.id')
-            ->join('pacientes AS pacien', 'estudios.paciente_id', '=', 'pacien.id')
-            ->join('config_sedes AS sede', 'estudios.sede_id', '=', 'sede.id')
-            ->join('users as medi', 'estudios.medico_id', '=', 'medi.id')
-            ->join('config_productos', 'estudios_productos.producto_id', '=', 'config_productos.id')
-            ->whereNotNull('estudios_productos.transcriptor_id');
+            ->join('pacientes', 'estudios.paciente_id', '=', 'pacientes.id')
+            ->join('config_sedes', 'estudios.sede_id', '=', 'config_sedes.id')
+            ->whereNotNull('estudios_productos.transcriptor_id')
+            ->where('pacientes.num_docu', '=', '65693928');
 
-        if ($request->bus_num_docu != "") {
-            $query->where('pacien.num_docu', 'like', "%$request->bus_num_docu%");
-        }
+        /* if ($request->bus_num_docu != "") {
+            $query->where('pacien.num_docu', '=', $request->bus_num_docu);
+        } */
 
-        if ($request->bus_nom != "") {
+        /* if ($request->bus_nom != "") {
             $query->where('pacien.nombres', 'like', "%$request->bus_nom%");
-        }
-
-        return $query->get();
+        } */
+        //return $query->toSql();
+        return response()->json($estudios->get());
     }
 
     public function notificarEmail($estudio)
@@ -75,7 +70,6 @@ class EstudioNotificacionController extends Controller
         $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
 
         $nomArchivoReporte = $estudio->num_docu . "-" . $nombrePaciente . ".pdf";
-
 
         /**
          * Envio la lectura a Lidiag-reportes para que este diponible para la descarga por parte del paciente
@@ -114,15 +108,16 @@ class EstudioNotificacionController extends Controller
         /**
          * Envio de email con el adjunto del reporte de la lectura del estudio
          */
+
         if ($estudio->email != "") {
             $mailable = new NotificacionDeLectura($estudio, $nomArchivoReporte);
             Mail::to($estudio->email)->send($mailable);
         }
 
-        if ($estudio->email_reportar != "") {
+        /* if ($estudio->email_reportar != "") {
             $mailable = new ReportarLectura($estudio, $nomArchivoReporte);
             Mail::to($estudio->email_reportar)->send($mailable);
-        }
+        } */
 
         return response()->json(['message' => 'La notificación se generó correctamente.']);
     }
