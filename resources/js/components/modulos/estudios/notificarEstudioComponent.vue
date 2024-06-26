@@ -453,11 +453,12 @@ export default {
                 }
             } */
 
-            /* this.btnCerralModalForm();
-            this.limpiar(); */
+            this.btnCerralModalForm();
+            this.limpiar();
         },
         mostrarRegistro(data = {}) {
             this.estudio = data;
+            console.log(data)
             this.tituloModal = "Notificar al paciente: " + data.pat_name;
 
             this.registro.num_docu = data.num_docu;

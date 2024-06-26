@@ -15,6 +15,7 @@ class PlantillaEstudioController extends Controller
 {
     public function editWord(Request $request)
     {
+
         /**
          * Buscarmos la sede para saber cual es la plantilla
          */
