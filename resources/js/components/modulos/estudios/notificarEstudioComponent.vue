@@ -286,7 +286,7 @@ export default {
                 num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", telefono: "", nom_produc: "", id_producto_lectura: null
             },
             estudio: null,
-            busqueda: { bus_num_docu: "", bus_nom: '', fehc_ini: "", fecha_fin: "" },
+            busqueda: { bus_num_docu: "28707514", bus_nom: '', fehc_ini: "", fecha_fin: "" },
             errores: {},
             erroresBusqueda: {},
         };
@@ -374,10 +374,7 @@ export default {
         },
         async notificar() {
 
-            this.estudio.email = this.registro.email;
-            const resEnviarEmail = await axios.post('/notificar.email', this.estudio);
-            console.log(resEnviarEmail)
-            /* $.toast({
+            $.toast({
                 heading: "Ok!!!",
                 text: 'Generando reporte, por favor espere.',
                 position: "top-right",
@@ -387,71 +384,21 @@ export default {
                 stack: 6,
             });
 
-            const res = await axios.post("/edit-word", this.estudio);
+            this.estudio.email = this.registro.email;
+            const res = await axios.post('/notificar.email', this.estudio);
+            console.log(res)
 
             if (res.status == 200) {
                 $.toast({
                     heading: "Ok!!!",
-                    text: res.data.messaje,
+                    text: 'La notificacion se realizó correctamente, estamos enviando el correo electronico, por favor espere..',
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: "success",
                     hideAfter: 3500,
                     stack: 6,
                 });
-
-                const fileUrl = '/reporte_lecturas/' + res.data.plantilla;
-                // Fetch para obtener el archivo como Blob
-                const response = await fetch(fileUrl);
-                const fileBlob = await response.blob();
-
-                // Crear un nuevo objeto File con el Blob
-                const file = new File([fileBlob], res.data, { type: fileBlob.type });
-
-                const formData = new FormData();
-                formData.append('num_docu', this.registro.num_docu);
-                formData.append('name', this.registro.nombres);
-                formData.append('password', this.registro.num_docu);
-
-                formData.append('nom_produc', this.estudio.nom_produc);
-                formData.append('fechor_lectura', this.estudio.fechor_lectura);
-                formData.append('nom_sede', this.estudio.nom_sede);
-                formData.append('url_oviyam', this.estudio.url_oviyam);
-                formData.append('study_iuid', this.estudio.study_iuid);
-                formData.append('tap_oviya', this.estudio.tap_oviya);
-
-                formData.append('reporte_lectura', file);
-
-                const resLidiagReportes = await axios.post('https://' + res.data.urlApiReportes, formData, {
-                    headers: { "Content-Type": "multipart/form-data" }
-                });
-
-                if (resLidiagReportes.status == 200) {
-                    $.toast({
-                        heading: "Ok!!!",
-                        text: 'La notificacion se realizó correctamente, estamos enviando el correo electronico, por favor espere..',
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "success",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                }
-
-                const resEnviarEmail = await axios.post('/notificar.email', this.estudio);
-
-                if (resEnviarEmail.status == 200) {
-                    $.toast({
-                        heading: "Ok!!!",
-                        text: 'El email se envío correctamente.',
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "success",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                }
-            } */
+            }
 
             this.btnCerralModalForm();
             this.limpiar();

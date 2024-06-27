@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Estudios;
 
 use App\Http\Controllers\Controller;
 use App\Mail\NotificacionDeLectura;
-use App\Mail\ReportarLectura;
 use App\Models\Estudio\Estudio;
 use App\Models\General\Paciente;
 use Illuminate\Http\Request;
@@ -36,7 +35,7 @@ class EstudioNotificacionController extends Controller
             'pacientes.nombres as nom_pacien',
             'pacientes.direccion',
             'pacientes.email',
-            'estudios_productos.id AS id_estudios_productos',
+            'estudios_productos.id AS estudio_producto_id',
             'estudios_productos.cod_cups',
             'estudios_productos.nom_produc',
             'config_sedes.id as sede_id',
