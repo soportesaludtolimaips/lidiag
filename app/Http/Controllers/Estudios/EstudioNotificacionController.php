@@ -26,9 +26,9 @@ class EstudioNotificacionController extends Controller
      */
     public function listarEstudios(Request $request)
     {
-        $estudios = Estudio::query();
+        $query = Estudio::query();
 
-        $estudios->select(
+        $query->select(
             'estudios.id',
             'estudios.fec_estudio',
             'estudios_productos.fechor_lectura',
@@ -45,22 +45,21 @@ class EstudioNotificacionController extends Controller
             'config_sedes.tap_oviyam',
             'config_sedes.plantilla'
         )
-
             ->join('estudios_productos', 'estudios_productos.estudio_id', '=', 'estudios.id')
             ->join('pacientes', 'estudios.paciente_id', '=', 'pacientes.id')
             ->join('config_sedes', 'estudios.sede_id', '=', 'config_sedes.id')
-            ->whereNotNull('estudios_productos.transcriptor_id')
-            ->where('pacientes.num_docu', '=', $request->bus_num_docu);
+            ->whereNotNull('estudios_productos.transcriptor_id');
 
-        /* if ($request->bus_num_docu != "") {
-            $query->where('pacien.num_docu', '=', $request->bus_num_docu);
-        } */
+        if ($request->bus_num_docu != "") {
+            $query->where('pacientes.num_docu', '=', $request->bus_num_docu);
+        }
 
-        /* if ($request->bus_nom != "") {
-            $query->where('pacien.nombres', 'like', "%$request->bus_nom%");
-        } */
-        //return $query->toSql();
-        return response()->json($estudios->get());
+        if ($request->bus_nom != "") {
+            $query->where('pacientes.nombres', 'like', "%$request->bus_nom%");
+        }
+
+        $registros = $query->get();
+        return response()->json($registros);
     }
 
     public function notificarEmail($estudio)
@@ -92,8 +91,6 @@ class EstudioNotificacionController extends Controller
             'tap_oviyam' => $estudio->tap_oviyam,
         ]);
 
-        //return $response;
-
         /**
          * Actualizo el nombre y correo electronico del paciente
          */
@@ -108,7 +105,6 @@ class EstudioNotificacionController extends Controller
         /**
          * Envio de email con el adjunto del reporte de la lectura del estudio
          */
-
         if ($estudio->email != "") {
             $mailable = new NotificacionDeLectura($estudio, $nomArchivoReporte);
             Mail::to($estudio->email)->send($mailable);
