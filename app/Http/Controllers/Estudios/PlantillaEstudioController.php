@@ -76,15 +76,22 @@ class PlantillaEstudioController extends Controller
         }
 
         // Ruta para guardar el archivo editado
-        $outputPath = storage_path('app/reporte_lecturas/' . $request->num_docu . "-" . $nombrePaciente . '.docx');
+        $nomArchivo = $request->id . "-" . $request->num_docu . "-" . $nombrePaciente;
+        $outputPath = storage_path('app/reporte_lecturas/' . $nomArchivo . '.docx');
         $templateProcessor->saveAs($outputPath);
 
-        $plantillaPdf = $this->convertDocxToPdf($request->num_docu . "-" . $nombrePaciente);
+        $plantillaPdf = $this->convertDocxToPdf($nomArchivo);
         if ($plantillaPdf) {
 
             $urlApiReportes = config('app.URL_API_REPORTES') . "api/almacenarLectura";
 
-            return response()->json(['messaje' => 'Plantilla creada correctament', 'plantilla' => $request->num_docu . "-" . $nombrePaciente . ".pdf", 'urlApiReportes' => $urlApiReportes], 200);
+            return response()->json(
+                [
+                    'messaje' => 'Plantilla creada correctament', 'plantilla' => $nomArchivo . ".pdf",
+                    'urlApiReportes' => $urlApiReportes
+                ],
+                200
+            );
         } else {
             return response()->json('No se pudo convertir la plantilla a PDF', 400);
         }
