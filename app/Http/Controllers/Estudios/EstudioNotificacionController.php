@@ -36,8 +36,13 @@ class EstudioNotificacionController extends Controller
             'pacientes.direccion',
             'pacientes.email',
             'estudios_productos.id AS estudio_producto_id',
+            'estudios_productos.lectura',
             'estudios_productos.cod_cups',
             'estudios_productos.nom_produc',
+            'users.num_docu as num_docu_medico',
+            'users.name as nombres_medico',
+            'users.reg_med as reg_medico',
+            'users.firma as firma_medico',
             'config_sedes.id as sede_id',
             'config_sedes.nom_sede',
             'config_sedes.url_oviyam',
@@ -47,6 +52,7 @@ class EstudioNotificacionController extends Controller
             ->join('estudios_productos', 'estudios_productos.estudio_id', '=', 'estudios.id')
             ->join('pacientes', 'estudios.paciente_id', '=', 'pacientes.id')
             ->join('config_sedes', 'estudios.sede_id', '=', 'config_sedes.id')
+            ->join('users', 'users.id', '=', 'estudios.medico_id')
             ->whereNotNull('estudios_productos.transcriptor_id');
 
         if ($request->bus_num_docu != "") {
@@ -67,7 +73,7 @@ class EstudioNotificacionController extends Controller
         $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
         $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
 
-        $nomArchivoReporte = $estudio->num_docu . "-" . $nombrePaciente . ".pdf";
+        $nomArchivoReporte = $estudio->id . "-" . $estudio->num_docu . "-" . $nombrePaciente . ".pdf";
 
         /**
          * Envio la lectura a Lidiag-reportes para que este diponible para la descarga por parte del paciente

@@ -77,6 +77,9 @@
 
                                     <button type="button" class="btn btn-inverse" @click="btnLimpiar()"><i
                                             class="fa fa-refresh"></i> Limpiar</button>
+
+                                    <!-- <button type="button" class="btn btn-inverse" @click="btnTraerImagenes()">Traer
+                                        imagenes</button> -->
                                 </div>
                             </div>
                         </form>
@@ -261,6 +264,8 @@
 
                                 <button type="button" class="btn btn-inverse"
                                     @click="btnCerralModalForm()">Cancel</button>
+
+
                             </div>
                         </div>
                     </form>
@@ -273,6 +278,11 @@
     </div>
 </template>
 <script>
+const API_URL = 'http://10.35.47.3:8080/dcm4chee-web3';
+let axiosInstance = axios.create({
+    withCredentials: true,  // Esto permite el uso de cookies
+});
+
 export default {
     props: ['usuarioactual'],
     mounted() {
@@ -289,6 +299,8 @@ export default {
             busqueda: { bus_num_docu: "28707514", bus_nom: '', fehc_ini: "", fecha_fin: "" },
             errores: {},
             erroresBusqueda: {},
+            imageUrl: '',
+            imageBlob: null,
         };
     },
     methods: {
@@ -373,39 +385,95 @@ export default {
             }
         },
         async notificar() {
-
-            $.toast({
-                heading: "Ok!!!",
-                text: 'Generando reporte, por favor espere.',
-                position: "top-right",
-                loaderBg: "#ff6849",
-                icon: "info",
-                hideAfter: 3500,
-                stack: 6,
-            });
-
-            this.estudio.email = this.registro.email;
-            const res = await axios.post('/notificar.email', this.estudio);
-            console.log(res)
-
-            if (res.status == 200) {
+            try {
                 $.toast({
                     heading: "Ok!!!",
-                    text: 'La notificacion se realizó correctamente, estamos enviando el correo electronico, por favor espere..',
+                    text: 'Generando reporte, por favor espere.',
                     position: "top-right",
                     loaderBg: "#ff6849",
-                    icon: "success",
+                    icon: "info",
                     hideAfter: 3500,
                     stack: 6,
                 });
-            }
 
-            this.btnCerralModalForm();
-            this.limpiar();
+                this.estudio.email = this.registro.email;
+                const res = await axios.post('/notificar.email', this.estudio);
+
+                if (res.status == 200) {
+                    $.toast({
+                        heading: "Ok!!!",
+                        text: 'La notificacion se realizó correctamente, estamos enviando el correo electronico, por favor espere..',
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "success",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                }
+                /*
+                                this.btnCerralModalForm();
+                                this.limpiar();
+                                */
+            } catch (e) {
+                if (e.response.status == 402) {
+                    $.toast({
+                        heading: "Ok!!!",
+                        text: e.response.data.message,
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "error",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                }
+            }
+        },
+        async btnTraerImagenes() {
+            try {
+                const username = 'admin ';  // Reemplaza con tu nombre de usuario
+                const password = 'admin';  // Reemplaza con tu contraseña
+                await this.loginDcm(username, password);  // Realiza el inicio de sesión
+
+                const studyInstanceUID = '1.3.51.0.7.11205627247.29189.59722.44357.20490.54522.12135';
+                const seriesInstanceUID = '1.3.51.0.7.1993270954.51192.42060.33917.35145.4208.43461';
+                const sopInstanceUID = '1.3.51.0.7.12605602729.42708.61000.39179.45802.51819.19455';
+
+                const response = await this.getImage(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
+                this.imageBlob = response.data;
+                this.imageUrl = URL.createObjectURL(this.imageBlob);
+                this.downloadImage();
+            } catch (error) {
+                console.error('Error loading image:', error);
+            }
+        },
+        loginDcm(username, password) {
+            const API_URL = 'http://10.35.47.3:8080/dcm4chee-web3';
+            return axios.post(`${API_URL}/login`, {
+                username: username,
+                password: password
+            }, {
+                withCredentials: true  // Esto permite el uso de cookies
+            });
+        },
+        getImage(studyInstanceUID, seriesInstanceUID, sopInstanceUID) {
+            const API_URL = 'http://10.35.47.3:8080/dcm4chee-web3';
+            return axios.get(`${API_URL}/studies/${studyInstanceUID}/series/${seriesInstanceUID}/instances/${sopInstanceUID}/frames/1`, {
+                responseType: 'blob',
+                withCredentials: true  // Esto permite el uso de cookies
+            });
+        },
+        downloadImage() {
+            if (this.imageBlob) {
+                const link = document.createElement('a');
+                link.href = this.imageUrl;
+                link.download = 'dicom_image.dcm';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
         },
         mostrarRegistro(data = {}) {
             this.estudio = data;
-            console.log(data)
             this.tituloModal = "Notificar al paciente: " + data.pat_name;
 
             this.registro.num_docu = data.num_docu;
