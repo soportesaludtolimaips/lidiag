@@ -296,7 +296,7 @@ export default {
                 num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", telefono: "", nom_produc: "", id_producto_lectura: null
             },
             estudio: null,
-            busqueda: { bus_num_docu: "28707514", bus_nom: '', fehc_ini: "", fecha_fin: "" },
+            busqueda: { bus_num_docu: "", bus_nom: '', fehc_ini: "", fecha_fin: "" },
             errores: {},
             erroresBusqueda: {},
             imageUrl: '',
@@ -410,10 +410,10 @@ export default {
                         stack: 6,
                     });
                 }
-                /*
-                                this.btnCerralModalForm();
-                                this.limpiar();
-                                */
+
+                this.btnCerralModalForm();
+                this.limpiar();
+
             } catch (e) {
                 if (e.response.status == 402) {
                     $.toast({
