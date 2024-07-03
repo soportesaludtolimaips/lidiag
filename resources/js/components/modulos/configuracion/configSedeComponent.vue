@@ -354,7 +354,6 @@ export default {
             actualizar: false,
             plantilla: null,
             errores: {},
-            logos: { logo1: null, logo2: null }, //Logos
         };
     },
     methods: {
@@ -399,6 +398,7 @@ export default {
                         this.ListarDatos();
                         this.btnCerralModalForm();
                         this.limpiar();
+
                     }
                 } else {
                     const res = await axios.post('/config/sedes/updateWitchPlantillas', formData, {
@@ -422,8 +422,20 @@ export default {
                     }
                 }
             } catch (error) {
-                console.log(error);
+
                 this.errores = error.response.data;
+                if (this.error.status === 402) {
+                    console.log('Si')
+                    $.toast({
+                        heading: 'Ok!!!',
+                        text: error.response.data.message,
+                        position: 'top-right',
+                        loaderBg: '#ff6849',
+                        icon: 'success',
+                        hideAfter: 3500,
+                        stack: 6
+                    });
+                }
             }
         },
         elimnarRegistro(id) {
@@ -449,7 +461,6 @@ export default {
         },
         obtenerPlantilla(e) {
             this.plantilla = e.target.files[0];
-            console.log(this.logos.logo1)
         },
         mostrarRegistro(data = {}) {
 

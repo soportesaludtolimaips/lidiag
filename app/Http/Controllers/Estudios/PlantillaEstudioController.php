@@ -15,7 +15,6 @@ class PlantillaEstudioController extends Controller
 {
     public function editWord(Request $request)
     {
-
         /**
          * Buscarmos la sede para saber cual es la plantilla
          */
@@ -60,15 +59,15 @@ class PlantillaEstudioController extends Controller
         $templateProcessor->setValue('cod_producto', $request->cod_cups);
         $templateProcessor->setValue('nom_producto', $request->nom_produc);
 
-        $templateProcessor->setValue('nombres_medico', $request->medico);
-        $templateProcessor->setValue('reg_medico', $request->reg_med);
-        $templateProcessor->setValue('num_docu_medico', $request->num_docu_medi);
+        $templateProcessor->setValue('nombres_medico', $request->nombres_medico);
+        $templateProcessor->setValue('reg_medico', $request->reg_medico);
+        $templateProcessor->setValue('num_docu_medico', $request->num_docu_medico);
 
         // Manejar la carga de la imagen
-        if ($request->firma) {
+        if ($request->firma_medico) {
             // Insertar la imagen en el archivo de Word
             $templateProcessor->setImageValue('firma_medico', [
-                'path' => storage_path('app/' . $request->firma),
+                'path' => storage_path('app/' . $request->firma_medico),
                 'width' => 100,
                 'height' => 100,
                 'ratio' => false
