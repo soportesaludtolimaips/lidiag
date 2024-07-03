@@ -1,1 +1,0 @@
-@"C:\Program Files\LibreOffice\program\python-core-3.8.19\bin\python.exe" c:\unoconv\unoconv.py %*
