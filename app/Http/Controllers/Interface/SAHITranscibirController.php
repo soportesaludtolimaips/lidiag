@@ -25,14 +25,16 @@ class SAHITranscibirController extends Controller
     private $nomMedico;
     private $reporteEstudio;
     private $codCups;
+    private $fecHorLectura;
     private $messageArray = array();
 
-    public function __construct($idAtencion = null, $idMedico = null, $reporteEstudio = null, $codCups = null)
+    public function __construct($idAtencion = null, $idMedico = null, $reporteEstudio = null, $codCups = null, $fecHorLectura = null)
     {
         $this->idAtencion = $idAtencion;
         $this->idMedico = $idMedico;
         $this->reporteEstudio = $reporteEstudio;
         $this->codCups = $codCups;
+        $this->fecHorLectura = $fecHorLectura;
     }
 
     //Set log message
@@ -84,12 +86,18 @@ class SAHITranscibirController extends Controller
         $this->codCups = $codCups;
     }
 
-    public function enviarEstudio($idAtencion = null, $idMedico = null, $reporteEstudio = null, $codCups = null)
+    public function set_fecHorLectura($fecHorLectura)
+    {
+        $this->fecHorLectura = $fecHorLectura;
+    }
+
+    public function enviarEstudio($idAtencion = null, $idMedico = null, $reporteEstudio = null, $codCups = null, $fecHorLectura = null)
     {
         $this->idAtencion = $idAtencion;
         $this->idMedico = $idMedico;
         $this->reporteEstudio = $reporteEstudio;
         $this->codCups = $codCups;
+        $this->fecHorLectura = str_replace(" ", 'T', $fecHorLectura);
 
         /**
          * Establecer los datos del medico por medio del ID del usuario
@@ -101,7 +109,6 @@ class SAHITranscibirController extends Controller
                 'statusText' => "NMédico no encontrado en SAHI"
             ]);
         }
-        return $this->IdUsuario;
         $this->IdUsuario = $this->getUsuario()[0]['IdUsuario'];
         $this->IdPersonal = $this->getUsuario()[0]['IdPersonal'];
         $this->nomMedico = $this->getUsuario()[0]['Nompersonal'] . " " . $this->getUsuario()[0]['ApePersonal'];
@@ -121,7 +128,6 @@ class SAHITranscibirController extends Controller
          * GENERO EL CONSECUTIVO DEL ENCABEZADO DEL ESQUEMA
          */
         $conseEsquemaEncavezado = $this->generarConsecutivoEsquemaEncavezado();
-
 
         /**
          * GENERO EL CONSECUTIVO DEL ENCABEZADO PADRE
@@ -152,6 +158,7 @@ class SAHITranscibirController extends Controller
          * GENERO EL CONSECUTIVO DEL SEGUNDO ENCABEZADO DEL ESQUEMA
          */
         $conseEsquemaEncavezado2 = $this->generarConsecutivoEsquemaEncavezado();
+
         /**
          * INSERTO EL SEGUNDO ESQUEMA ENCABEZADO
          */
@@ -164,8 +171,16 @@ class SAHITranscibirController extends Controller
 
         return response()->json([
             'message' => 'La transcripción se realizó con exíto.',
-            'status' => 200
-        ]);
+            'conseEsquemaEncavezado' => $conseEsquemaEncavezado,
+            'conseEsquemaEncavezadoPadre' => $conseEsquemaEncavezado,
+            'esquemaEncabeza' => $esquemaEncabeza,
+            'esquemaEncavezadoAtencion' => $esquemaEncavezadoAtencion,
+            'esquemaMemo' => $esquemaMemo,
+            'medico' => $medico,
+            'conseEsquemaEncavezado2' => $conseEsquemaEncavezado2,
+            'esquemaEncabeza2' => $esquemaEncabeza2,
+            'producto' => $producto,
+        ], 200);
     }
 
     private function generarConsecutivoEsquemaEncavezado()
@@ -188,7 +203,6 @@ class SAHITranscibirController extends Controller
 
     private function storeEsquemaEncabeza($conseEsquemaEncavezado1, $conseEsquemaEncavezado2, $ubucacionActual)
     {
-        return $this->IdUsuario;
         $esquemaEncavezado = new hceEsquemaEncabeza();
         $esquemaEncavezado->IdEsquemaEncabezado = $conseEsquemaEncavezado2;
         $esquemaEncavezado->IdEsquema = '149';
@@ -201,7 +215,7 @@ class SAHITranscibirController extends Controller
         $esquemaEncavezado->IndActivado = '1';
         $esquemaEncavezado->IndHabilitado = '1';
         $esquemaEncavezado->IdUsuarioR = $this->IdUsuario;
-        $esquemaEncavezado->FecRegistro = Carbon::now()->toTimeString();
+        $esquemaEncavezado->FecRegistro = $this->fecHorLectura;
         $esquemaEncavezado->IdProductoR = '0';
         $esquemaEncavezado->NomProducto = '';
         $esquemaEncavezado->CodProducto = '';
@@ -220,10 +234,10 @@ class SAHITranscibirController extends Controller
         $esquemAtenicon->IdUbicacion = $ubucacionActual;
         $esquemAtenicon->idTraslado = 1;
         $esquemAtenicon->IdMedico = $this->IdPersonal;
-        $esquemAtenicon->FecEsquema = Carbon::now()->toTimeString();
+        $esquemAtenicon->FecEsquema = $this->fecHorLectura;
         $esquemAtenicon->IndHabilitado =  1;
         $esquemAtenicon->IndActivado = 1;
-        $esquemAtenicon->FecCerrado = Carbon::now()->toTimeString();
+        $esquemAtenicon->FecCerrado = $this->fecHorLectura;
         $esquemAtenicon->IdUsuarioR = $this->IdUsuario;
         $esquemAtenicon->save();
 
@@ -247,8 +261,8 @@ class SAHITranscibirController extends Controller
         $medico->IdDetalleValor = 1;
         $medico->IdEsquemaEncabezado = $conseEsquemaEncavezado;
         $medico->ValNroRegistro = 1;
-        $medico->ValVarChar1 = Carbon::now()->toTimeString();
-        $medico->ValVarChar2 = Carbon::now()->toTimeString();
+        $medico->ValVarChar1 = str_replace('T', ' ', $this->fecHorLectura);
+        $medico->ValVarChar2 = str_replace('T', ' ', $this->fecHorLectura);
         $medico->ValVarChar3 = '';
         $medico->ValVarChar4 = 'MEMO1';
         $medico->ValVarChar5 = '';
@@ -268,7 +282,7 @@ class SAHITranscibirController extends Controller
         $medico->ValVarChar19 = '';
         $medico->ValVarChar20 = '';
         $medico->IdUsuarioR = $this->IdUsuario;
-        $medico->FecRegistro = Carbon::now()->toTimeString();
+        $medico->FecRegistro = $this->fecHorLectura;
         $medico->save();
 
         return $medico;
@@ -308,10 +322,10 @@ class SAHITranscibirController extends Controller
             $producto->ValVarChar19 = '';
             $producto->ValVarChar20 = '';
             $producto->IdUsuarioR = $this->IdUsuario;
-            $producto->FecRegistro = Carbon::now()->toTimeString();
+            $producto->FecRegistro = $this->fecHorLectura;
             $producto->save();
 
-            return true;
+            return $producto;
         } else {
             $this->logMessage('El producto no se encontró en SAHI');
             return false;
