@@ -110,11 +110,12 @@
                                         <td>{{ item.quien_registro }}</td>
                                         <td>{{ item.medico }}</td>
                                         <td>
-                                            {{ item.num_docu }} <br />
-                                            {{ item.nom_pacien }}
+                                            # Docu: {{ item.num_docu }} <br />
+                                            Nombres: {{ item.nom_pacien }}
                                         </td>
                                         <td>
-                                            {{ item.study_desc }} <br />
+                                            Atención: {{ item.atencion }} <br />
+                                            Descrip: {{ item.study_desc }} <br />
                                             {{ item.accession_no }}
                                         </td>
                                         <td>{{ item.nom_produc }}</td>
@@ -421,7 +422,7 @@ export default {
             registros: [],
             tituloModal: "Transcirbir estudio",
             registro: {
-                id_estudio: 0, id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", email_reportar: '', num_docu: "", nom_pacien: "", sexo: "",
+                id_estudio: 0, id_producto_lectura: 0, lectura: "", fec_lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", email_reportar: '', num_docu: "", nom_pacien: "", sexo: "",
                 fec_naci: "", email: "", diagnosticosEstudio: [], sede_id: "", atencion: null, servicio: null, eps: null, contrato: null, medico_id: null, cod_cups: '', nom_produc: '', num_docu_medi: '',
                 reg_med: '', medico: '', firma: '',
 
@@ -477,9 +478,9 @@ export default {
                         stack: 6,
                     });
 
-                    this.listarPendientesTrascribir();
+                    /* this.listarPendientesTrascribir();
                     this.btnCerralModalForm();
-                    this.limpiar();
+                    this.limpiar(); */
                 } else {
                     $.toast({
                         heading: "Upss!!!",
@@ -537,6 +538,7 @@ export default {
             this.id = data.id;
             this.registro.id_producto_lectura = data.id_producto_lectura;
             this.registro.fec_estudio = data.fec_estudio;
+            this.registro.fec_lectura = data.fechor_lectura;
             this.registro.accession_no = data.accession_no;
             this.registro.study_desc = data.study_desc;
             this.registro.email_reportar = data.email_reportar;

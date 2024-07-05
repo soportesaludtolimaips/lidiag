@@ -37,8 +37,8 @@ class ImportarDicom extends Controller
         $agendas = Agenda::orderBy('fechor_regis', 'ASC')
             //->where('study_pk', '=', 141573)
             //->where('id_agenda', '=', 110373)
-            //->where('fechor_regis', '<=', '2024-04-30')
-            ->whereRaw("DATE(fechor_regis) BETWEEN '2024-04-20' AND '2024-05-16'")
+            //->where('fechor_regis', '>', '2024-04-22 12:25:13')
+            //->whereRaw("DATE(fechor_regis) BETWEEN '2024-04-20' AND '2024-05-16'")
 
             //->limit(10)
             ->get();
