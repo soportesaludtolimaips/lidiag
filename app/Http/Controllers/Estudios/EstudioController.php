@@ -42,6 +42,7 @@ class EstudioController extends Controller
      */
     public function store(Request $request)
     {
+
         $registro = json_decode($request->input('registro'), true);
 
         $validator = Validator::make($registro, [
@@ -97,7 +98,7 @@ class EstudioController extends Controller
         $sede = ConfigSede::findOrfail($registro['sede_id']);
         if ($sede->interface_software === 'SAHI') {
 
-            $buscarDatos = (new SAHIController)->buscarEpsPlanContrato($registro->atencion_id);
+            $buscarDatos = (new SAHIController)->buscarEpsPlanContrato($registro['atencion_id']);
 
             if (!$buscarDatos) {
                 $eps = $buscarDatos[0]->NomTercero;
@@ -338,7 +339,10 @@ class EstudioController extends Controller
          */
         $sede = ConfigSede::findOrfail($request->sede_id);
         if ($sede->interface_software === 'SAHI') {
-            $transcribir = (new SAHITranscibirController())->enviarEstudio($request->atencion, $request->medico_id, $request->lectura, $request->cod_cups);
+
+            $transcribir = (new SAHITranscibirController())->enviarEstudio($request->atencion, $request->medico_id, $request->lectura, $request->cod_produc);
+            return $transcribir;
+            //$transcribir->status();
         }
 
         /**
@@ -347,7 +351,6 @@ class EstudioController extends Controller
          * 2. Convierto la plantilla .docx a .pdf
          * 3. Notificacion por correo electronico
          */
-
         $genearPlantilla = (new PlantillaEstudioController())->editWord($request);
         if ($genearPlantilla->status() === 402) {
             return response()->json(['message' => 'La plantilla para la sede ' . $sede->nom_sede . ', no está  configurada, por favor consulte con el administrador del sistema'], 402);

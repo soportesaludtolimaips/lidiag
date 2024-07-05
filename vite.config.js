@@ -13,12 +13,6 @@ export default defineConfig({
             key: fs.readFileSync("C:/laragon/etc/ssl/laragon.key"),
             cert: fs.readFileSync("C:/laragon/etc/ssl/laragon.crt"),
         },
-        proxy: {
-            "/dcm4chee-web3": {
-                target: "http://10.35.47.3:8080",
-                changeOrigin: true,
-            },
-        },
     },
     plugins: [
         laravel({

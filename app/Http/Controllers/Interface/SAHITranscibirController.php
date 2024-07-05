@@ -101,15 +101,15 @@ class SAHITranscibirController extends Controller
                 'statusText' => "NMédico no encontrado en SAHI"
             ]);
         }
-
-        $this->IdUsuario = $this->getUsuario();
-        $this->IdPersonal = $this->getUsuario();
-        $this->nomMedico = $this->getUsuario() . " " . $this->getUsuario();
+        return $this->IdUsuario;
+        $this->IdUsuario = $this->getUsuario()[0]['IdUsuario'];
+        $this->IdPersonal = $this->getUsuario()[0]['IdPersonal'];
+        $this->nomMedico = $this->getUsuario()[0]['Nompersonal'] . " " . $this->getUsuario()[0]['ApePersonal'];
 
         /**
          * Busco la ubicación actual de la atención
          */
-        $ubucacionActual = $this->getUbicacionActual();
+        $ubucacionActual = $this->getUbicacionActual()[0]['IdUbicacionActual'];
         if (!$ubucacionActual) {
             return response()->json([
                 'message' => 'No se pudo obtener la ubicación actual de la atención.',
@@ -121,6 +121,7 @@ class SAHITranscibirController extends Controller
          * GENERO EL CONSECUTIVO DEL ENCABEZADO DEL ESQUEMA
          */
         $conseEsquemaEncavezado = $this->generarConsecutivoEsquemaEncavezado();
+
 
         /**
          * GENERO EL CONSECUTIVO DEL ENCABEZADO PADRE
@@ -151,7 +152,6 @@ class SAHITranscibirController extends Controller
          * GENERO EL CONSECUTIVO DEL SEGUNDO ENCABEZADO DEL ESQUEMA
          */
         $conseEsquemaEncavezado2 = $this->generarConsecutivoEsquemaEncavezado();
-
         /**
          * INSERTO EL SEGUNDO ESQUEMA ENCABEZADO
          */
@@ -161,7 +161,6 @@ class SAHITranscibirController extends Controller
          * INSERTO LOS PROCEDIMIENTOS QUE SE LE REALIZARON AL PACIENTE
          */
         $producto = $this->storaProducto($conseEsquemaEncavezado2);
-        //return "Producto: " . $producto;
 
         return response()->json([
             'message' => 'La transcripción se realizó con exíto.',
@@ -189,6 +188,7 @@ class SAHITranscibirController extends Controller
 
     private function storeEsquemaEncabeza($conseEsquemaEncavezado1, $conseEsquemaEncavezado2, $ubucacionActual)
     {
+        return $this->IdUsuario;
         $esquemaEncavezado = new hceEsquemaEncabeza();
         $esquemaEncavezado->IdEsquemaEncabezado = $conseEsquemaEncavezado2;
         $esquemaEncavezado->IdEsquema = '149';
@@ -270,6 +270,8 @@ class SAHITranscibirController extends Controller
         $medico->IdUsuarioR = $this->IdUsuario;
         $medico->FecRegistro = Carbon::now()->toTimeString();
         $medico->save();
+
+        return $medico;
     }
 
     private function storaProducto($conseEsquemaEncavezado)
