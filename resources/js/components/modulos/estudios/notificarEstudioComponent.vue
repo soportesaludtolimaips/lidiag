@@ -124,14 +124,15 @@
                                         <td>{{ item.pat_birthdate }}</td> -->
                                         <td class="text-nowrap">
                                             <button type="button"
+                                                v-if="permisos.includes('estudios.reporteLectura.index')"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
                                                 @click="imprimirReporte(item)" title="Imprimir reporte">
                                                 <i class="fa fa-file-pdf-o"></i>
                                             </button>
-                                            <button type="button"
+                                            <button type="button" v-if="permisos.includes('estudios.notificar.index')"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
                                                 @click="actualizar = true;
-                                                mostrarRegistro(item);" title="Ntificar por correo electronico">
+                                                mostrarRegistro(item);" title="Notificar por correo electronico">
                                                 <i class="fa fa-envelope-o"></i>
                                             </button>
                                         </td>
@@ -284,7 +285,7 @@ let axiosInstance = axios.create({
 });
 
 export default {
-    props: ['usuarioactual'],
+    props: ['usuarioactual', 'permisos'],
     mounted() {
 
     },
