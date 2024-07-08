@@ -43,7 +43,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(item, index) in registros " :key="index">
+                                <tr v-for="(item, index) in registros " :key="index"
+                                    :class="{ 'text-info': item.visto === 1 }">
                                     <td width="2%">
                                         <button type="button" v-if="item.priori_id == 1"
                                             class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">A</button>
@@ -65,12 +66,19 @@
                                         {{ item.study_desc }} <br />
                                         {{ item.accession_no }}
                                     </td>
-                                    <td>{{ item.nom_produc }}</td>
+                                    <td>
+                                        {{ item.nom_produc }}
+                                    </td>
                                     <td class="text-nowrap">
                                         <button type="button"
                                             class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
                                             @click="actualizar = true; mostrarRegistro(item);">
                                             <i class="fa fa-pencil"></i>
+                                        </button>
+                                        <button type="button"
+                                            class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                            @click="actualizar = true; visto(item.id_producto_lectura);">
+                                            <i class="fa fa-eye"></i>
                                         </button>
                                     </td>
                                 </tr>
@@ -487,6 +495,10 @@ export default {
         verImagen() {
             let Url = this.datosImagen.urlOviyam + '?patientID =' + this.datosImagen.patientId + '&studyUID=' + this.datosImagen.studyUID + '&serverName=' + this.datosImagen.serverName
             window.open(Url, '_blank');
+        },
+        async visto(id) {
+            const res = await axios.post('/marcar-visto/' + id);
+            this.listarMisPendientes();
         },
         async mostrarRegistro(data = {}) {
             this.tituloModal = "Lectura de paciente: " + data.nom_pacien + "Producto: \n" + data.nom_produc;

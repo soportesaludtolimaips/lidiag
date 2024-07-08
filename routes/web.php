@@ -63,6 +63,8 @@ Route::get('/descarga-soportes-hc/{nomArchivoEncriptadote}', [EstudioSoporteHCCo
 Route::post('/listar.estudios.notificaciones', [EstudioNotificacionController::class, 'listarEstudios'])->name('listar.estudios.notificaciones');
 Route::get('/descargar.pdf.lectura/{nomArchivo}', [EstudioController::class, 'descargarPdfLectura'])->name('descargar.pdf.lectura');
 Route::post('/notificar.email', [EstudioController::class, 'notificarEmail'])->name('notificar.email');
+Route::post('/marcar-visto/{id}', [EstudioController::class, 'marcarEstudioVisto'])->name('estudios.marcarEstudioVisto');
+
 
 Route::post('/edit-word', [PlantillaEstudioController::class, 'editWord']);
 
