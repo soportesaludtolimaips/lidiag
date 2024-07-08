@@ -218,6 +218,7 @@ class EstudioController extends Controller
             'estu_produc.cod_cups',
             'estu_produc.nom_produc',
             'estu_produc.fechor_lectura',
+            'estu_produc.visto',
             'users.name AS quien_registro',
             'priori.id as priori_id',
             'priori.nom_priori',
@@ -244,6 +245,12 @@ class EstudioController extends Controller
         return response()->json($misPendiente, 200);
     }
 
+    public function marcarEstudioVisto($id)
+    {
+        $estudioProducto = EstudioProducto::FindOrFail($id);
+        $estudioProducto->visto = 1;
+        $estudioProducto->save();
+    }
     public function listarDiagnosticoPorEstudio(Request $request)
     {
         $diagnosticos = EstudioDiagnostico::where('estudio_id', '=', $request->id)->get();
