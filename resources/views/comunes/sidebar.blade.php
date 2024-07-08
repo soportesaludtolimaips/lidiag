@@ -51,7 +51,7 @@
                                     </a>
                                 </li>
                             @endcan
-                            @can('estudios.notificar.index')
+                            @can(['estudios.notificar.index', 'estudios.reporteLectura.index'])
                                 <li>
                                     <a href="{{ route('estudios.notificar.index') }}">
                                         <i class="fa fa-envelope-o text-info"></i> Notificar estudio
