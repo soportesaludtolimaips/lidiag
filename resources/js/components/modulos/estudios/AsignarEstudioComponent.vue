@@ -563,6 +563,9 @@ export default {
     },
     methods: {
         async buscarStudy() {
+
+            $("#example23").DataTable().destroy();
+
             try {
                 if (sessionStorage.getItem('ST-sede') == null) {
                     $.toast({
