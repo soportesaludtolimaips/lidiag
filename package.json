@@ -17,6 +17,10 @@
         "vue": "^3.2.41"
     },
     "dependencies": {
+        "@fullcalendar/core": "^6.1.14",
+        "@fullcalendar/daygrid": "^6.1.14",
+        "@fullcalendar/interaction": "^6.1.14",
+        "@fullcalendar/vue3": "^6.1.14",
         "@google-cloud/speech": "^6.3.0",
         "@vitejs/plugin-basic-ssl": "^1.0.1",
         "mitt": "^3.0.1",

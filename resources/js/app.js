@@ -55,10 +55,10 @@ import notificarEstudioComponent from "./components/modulos/estudios/notificarEs
 app.component("notificar-estudio-component", notificarEstudioComponent);
 
 /**
- * Citas
+ * Agenda
  */
-import citasGestionarComponent from "./components/modulos/citas/citasGestionarComponent.vue";
-app.component("citas-gestionar-component", citasGestionarComponent);
+import agendaComponent from "./components/modulos/agenda/agendaComponent.vue";
+app.component("agenda-component", agendaComponent);
 
 /**
  * Seguridad
@@ -108,6 +108,10 @@ app.component("footer-component", footerComponent);
 app.use(route); */
 
 // Importar archivo CSS antes de crear la aplicación Vue
-import "@/admin-wrap/assets/node_modules/calendar/dist/fullcalendar.css";
-
 app.mount("#app");
+/* import "./admin-wrap/assets/node_modules/jquery/jquery.min.js";
+import "./admin-wrap/assets/node_modules/calendar/jquery-ui.min.js";
+import "./admin-wrap/assets/node_modules/calendar/dist/fullcalendar.css";
+import "./admin-wrap/assets/node_modules/moment/moment.js";
+import "./admin-wrap/assets/node_modules/calendar/dist/fullcalendar.min.js";
+import "./admin-wrap/assets/node_modules/calendar/dist/cal-init.js"; */
