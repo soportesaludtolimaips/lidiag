@@ -51,7 +51,6 @@ class EstudioController extends Controller
             'num_docu' => 'required',
             'nombres' => 'required',
             'productosEstudio' => 'required|array|min:1',  // Debe ser un array con al menos un elemento
-            'diagnosticosEstudio' => 'required|array|min:1',  // Debe ser un array con al menos un elemento
         ], [
             'medico_id.required' => 'Te hizo falta el medico.',
             'medico_id.not_in' => 'Te hizo falta el medico.',
@@ -61,8 +60,6 @@ class EstudioController extends Controller
             'nombres.required' => 'Te hizo falta los nombres del paciente.',
             'productosEstudio.required' => 'Debe elegir al menos un producto.',
             'productosEstudio.min' => 'Debe elegir al menos un producto.',
-            'diagnosticosEstudio.required' => 'Debe elegir al menos un diagnostico.',
-            'diagnosticosEstudio.min' => 'Debe elegir al menos un diagnostico.',
         ]);
 
         // Si la validación falla, devuelve los errores
@@ -339,9 +336,7 @@ class EstudioController extends Controller
          */
         $sede = ConfigSede::findOrfail($request->sede_id);
         if ($sede->interface_software === 'SAHI') {
-
             $transcribir = (new SAHITranscibirController())->enviarEstudio($request->atencion, $request->medico_id, $request->lectura, $request->cod_cups, $request->fec_lectura);
-
             //$transcribir->status();
         }
 

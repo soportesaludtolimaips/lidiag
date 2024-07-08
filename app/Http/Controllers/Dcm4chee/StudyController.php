@@ -40,7 +40,7 @@ class StudyController extends Controller
 
         $estudios = new Study();
         $query = $estudios->query();
-
+        return $request->bus_fehc_ini;
         $query->select(
             'study.pk as study_pk',
             'study.study_iuid',
