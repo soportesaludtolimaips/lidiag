@@ -96,9 +96,9 @@
                         <h6 class="card-subtitle">Notifique por correo electrónico el descargue del reporte y de
                             imágenes de
                             un paciente.</h6>
-                        <div class="table-responsive m-t-40">
-                            <table id="example23" class="display nowrap table table-hover table-striped table-bordered"
-                                cellspacing="0">
+                        <div class="table-responsive">
+                            <table id="example23" class="table table-bordered table-striped" cellspacing="0"
+                                width="100%">
                                 <thead>
                                     <tr>
                                         <th>Fecha del Estudio</th>
