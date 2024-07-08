@@ -35,6 +35,8 @@
     <!-- Daterange picker plugins css -->
     <link href="{{ asset('admin-wrap/assets/node_modules/timepicker/bootstrap-timepicker.min.css') }}" rel="stylesheet">
     <link href="{{ asset('admin-wrap/assets/node_modules/bootstrap-daterangepicker/daterangepicker.css') }}" rel="stylesheet">
+    <link href="{{ asset('admin-wrap/assets/node_modules/calendar/dist/fullcalendar.css') }}" rel="stylesheet" />
+
     <!-- page css -->
     <link href="{{ asset('admin-wrap/css/pages/form-icheck.css') }}" rel="stylesheet">
     <!-- Custom CSS -->
@@ -70,6 +72,8 @@
     <!-- ============================================================== -->
 
     <div id="app">
+
+
         <!-- ============================================================== -->
         <!-- Topbar header - style you can find in pages.scss -->
         <!-- ============================================================== -->

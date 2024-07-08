@@ -62,7 +62,7 @@
                     </li>
                 @endif
 
-                @if (auth()->user()->hasAnyPermission(['estudio.asignar', 'estudio.transcribir', 'estudio.leerEstudio', 'estudios.notificar.index']))
+                @if (auth()->user()->hasAnyPermission(['agenda.index']))
                     <li class="nav-small-cap">--- Citas</li>
                     <li>
                         <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
@@ -70,9 +70,9 @@
                             <span class="hide-menu">Agenda</span>
                         </a>
                         <ul aria-expanded="false" class="collapse">
-                            @can('estudio.asignar')
+                            @can('agenda.index')
                                 <li>
-                                    <a href="{{ route('estudios.asignar.listar') }}">
+                                    <a href="{{ route('agenda') }}">
                                         <i class="fa fa-calendar"></i> Citas
                                     </a>
                                 </li>

@@ -478,9 +478,9 @@ export default {
                         stack: 6,
                     });
 
-                    /* this.listarPendientesTrascribir();
+                    this.listarPendientesTrascribir();
                     this.btnCerralModalForm();
-                    this.limpiar(); */
+                    this.limpiar();
                 } else {
                     $.toast({
                         heading: "Upss!!!",
@@ -493,7 +493,7 @@ export default {
                     });
                 }
             } catch (error) {
-
+                console.log(error)
                 if (error.response.data.status = 402) {
 
                     $.toast({
