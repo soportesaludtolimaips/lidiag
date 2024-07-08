@@ -40,7 +40,7 @@ class StudyController extends Controller
 
         $estudios = new Study();
         $query = $estudios->query();
-        return $request->bus_fehc_ini;
+
         $query->select(
             'study.pk as study_pk',
             'study.study_iuid',
@@ -62,7 +62,8 @@ class StudyController extends Controller
         }
 
         if ($request->bus_fehc_ini != "" and $request->bus_fecha_fin != "") {
-            $query->whereBetween('study.study_datetime', [$request->bus_fehc_ini, $request->bus_fecha_fin]);
+            $query->whereRaw('DATE(study.study_datetime) BETWEEN "' . $request->bus_fehc_ini . '" AND "' . $request->bus_fecha_fin . '"');
+            //$query->whereBetween('study.study_datetime', [$request->bus_fehc_ini, $request->bus_fecha_fin]);
         }
 
         $resultPrueba = $query->get();
