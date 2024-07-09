@@ -23,7 +23,7 @@ use App\Http\Controllers\Estudios\EstudioSoporteHCController;
 use App\Http\Controllers\Estudios\PlantillaEstudioController;
 use App\Http\Controllers\Importar\ImportarDicom;
 use App\Http\Controllers\Interface\SAHIController;
-use App\Http\Controllers\Reportes\ReporteProduccion;
+use App\Http\Controllers\Reportes\Reporte;
 
 /*
 |--------------------------------------------------------------------------
@@ -92,7 +92,7 @@ Route::resource('/agenda-gestionar', AgendaController::class)->names('agenda.ges
  * Reportes
  */
 Route::view('reportes-produccion', 'modulos.reportes.reportes-produccion')->name('reportes.produccion')->middleware('auth');
-Route::post('descarga-reportes-produccion', [ReporteProduccion::class, 'reporteProduccionDetallado'])->name('descarga.reportes.produccion')->middleware('auth');
+Route::post('descarga-reportes-produccion', [Reporte::class, 'reporteProduccionDetallado'])->name('descarga.reportes.produccion')->middleware('auth');
 
 /**
  * Configuración

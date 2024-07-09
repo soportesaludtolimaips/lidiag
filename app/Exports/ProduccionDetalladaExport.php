@@ -2,7 +2,7 @@
 
 namespace App\Exports;
 
-use App\Models\Estudio\EstudioAudio;
+use App\Models\Estudio\Estudio;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -11,7 +11,6 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMapping, WithStyles
 {
-
     protected $fechaIni;
     protected $fechaFin;
     protected $sedeId;
@@ -29,7 +28,7 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
     public function collection()
     {
 
-        return EstudioAudio::with([
+        return Estudio::with([
             'paciente',
             'medico',
         ])
