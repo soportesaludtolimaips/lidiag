@@ -97,7 +97,6 @@ class SAHITranscibirController extends Controller
         $this->idMedico = $idMedico;
         $this->reporteEstudio = $reporteEstudio;
         $this->codCups = $codCups;
-        return $this->codCups;
         $this->fecHorLectura = str_replace(" ", 'T', $fecHorLectura);
 
         /**
