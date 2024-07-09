@@ -55,7 +55,7 @@
                         <form>
                             <div class="form-group">
                                 <select class="form-control custom-select" style="width: 100%; height: 36px"
-                                    v-model="datosReporte.sede" id="sedes" name="sedes">
+                                    v-model="datosReporte.sedeId" id="sedes" name="sedes">
                                     <option value="0">Seleccione la sede</option>
                                     <option v-for="ItemSede in sedes" v-bind:key="ItemSede" v-bind:value="ItemSede.id">
                                         {{ ItemSede.nom_sede }}
@@ -67,8 +67,8 @@
                                     <div class="form-group">
                                         <div class="example">
                                             <h5 class="box-title m-t-30">Desde</h5>
-                                            <input class="form-control input-daterange-datepicker" type="date" id="fechaIni"
-                                                name="fechaIni" v-model="datosReporte.fechaIni">
+                                            <input class="form-control input-daterange-datepicker" type="date"
+                                                id="fechaIni" name="fechaIni" v-model="datosReporte.fechaIni">
                                         </div>
                                     </div>
                                 </div>
@@ -76,8 +76,8 @@
                                     <div class="form-group">
                                         <div class="example">
                                             <h5 class="box-title m-t-30">Hasta</h5>
-                                            <input class="form-control input-daterange-datepicker" type="date" id="fechaFin"
-                                                name="fechaFin" v-model="datosReporte.fechaFin">
+                                            <input class="form-control input-daterange-datepicker" type="date"
+                                                id="fechaFin" name="fechaFin" v-model="datosReporte.fechaFin">
                                         </div>
                                     </div>
                                 </div>
@@ -108,7 +108,7 @@ export default {
     data() {
         return {
             sedes: [], //Listo las sedes
-            datosReporte: { sede: 0, fechaIni: null, fechaFin: null }
+            datosReporte: { sedeId: 0, fechaIni: null, fechaFin: null }
         }
     },
     methods: {

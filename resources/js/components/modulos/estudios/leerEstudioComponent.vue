@@ -76,6 +76,11 @@
                                             <i class="fa fa-pencil"></i>
                                         </button>
                                         <button type="button"
+                                            class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
+                                            @click="verImagen(item.pat_id, item.study_iuid)" title="Ver imagenes">
+                                            <i class="fa fa-file-photo-o"></i>
+                                        </button>
+                                        <button type="button"
                                             class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
                                             @click="actualizar = true; visto(item.id_producto_lectura);">
                                             <i class="fa fa-eye"></i>
@@ -551,6 +556,13 @@ export default {
         async listarAudios() {
             const res = await axios.get('/listar-audios-estudio/' + this.id);
             this.audiosDeEstudio = res.data;
+        },
+        verImagen(pat_id, study_iuid) {
+
+            let Url = sessionStorage.getItem('ST-urlsede') + '?patientID =' + pat_id + '&studyUID=' + study_iuid + '&serverName=' + sessionStorage.getItem('ST-servername')
+            console.log(Url);
+
+            window.open(Url, '_blank');
         },
         changeTrack(index) {
             this.audioActual = this.audiosDeEstudio[index].audio;
