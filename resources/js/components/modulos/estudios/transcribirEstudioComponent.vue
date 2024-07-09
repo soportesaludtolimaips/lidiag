@@ -478,9 +478,9 @@ export default {
                         stack: 6,
                     });
 
-                    this.listarPendientesTrascribir();
+                    /* this.listarPendientesTrascribir();
                     this.btnCerralModalForm();
-                    this.limpiar();
+                    this.limpiar(); */
                 } else {
                     $.toast({
                         heading: "Upss!!!",
@@ -551,7 +551,7 @@ export default {
             this.registro.tel = data.tel;
             this.registro.sexo = data.pat_sex;
             this.registro.fec_naci = data.pat_birthdate;
-            this.registro.cod_produc = data.cod_cups;
+            this.registro.cod_cups = data.cod_cups;
             this.registro.nom_produc = data.nom_produc;
             this.registro.num_docu_medi = data.num_docu_medi;
             this.registro.reg_med = data.reg_med;
