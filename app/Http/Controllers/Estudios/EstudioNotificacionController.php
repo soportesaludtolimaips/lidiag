@@ -29,6 +29,7 @@ class EstudioNotificacionController extends Controller
 
         $query->select(
             'estudios.id',
+            'estudios.atencion',
             'estudios.fec_estudio',
             'estudios_productos.fechor_lectura',
             'pacientes.num_docu',
