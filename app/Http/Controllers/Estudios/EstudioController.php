@@ -428,16 +428,16 @@ class EstudioController extends Controller
     public function descargarPdfLectura($nomArchivo)
     {
         $rutaArchivo = storage_path('app/reporte_lecturas/' . $nomArchivo);
-        $headers = array(
+        return response()->file($rutaArchivo);
+        /* $headers = array(
             'Content-Type: application/pdf',
         );
-        return response()->download($rutaArchivo, $nomArchivo, $headers);
+        return response()->download($rutaArchivo, $nomArchivo, $headers); */
     }
 
     public function notificarEmail(Request $request)
     {
         $genearPlantilla = (new PlantillaEstudioController())->editWord($request);
-
         if ($genearPlantilla->status() == 200) {
             $notificar = (new EstudioNotificacionController())->notificarEmail($request);
             return $notificar;
