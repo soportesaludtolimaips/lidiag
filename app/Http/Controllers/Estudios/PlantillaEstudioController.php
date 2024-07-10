@@ -6,10 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Configuracion\ConfigSede;
 use Illuminate\Http\Request;
 use PhpOffice\PhpWord\TemplateProcessor;
+use PhpOffice\PhpWord\Shared\Html;
 use Carbon\Carbon;
-use Dompdf\Dompdf;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Process;
+use PhpOffice\PhpWord\Element\TextRun;
+
 
 class PlantillaEstudioController extends Controller
 {
@@ -51,9 +51,31 @@ class PlantillaEstudioController extends Controller
         $templateProcessor->setValue('fechor_transcipcion', $fecTrascrito);
 
         $templateProcessor->setValue('atencion', $request->atencion);
-        $lectura = (mb_convert_encoding($request->lectura, 'ISO-8859-1'));
 
-        $templateProcessor->setValue('lectura', $lectura);
+
+
+        // Crear un TextRun para manejar el texto enriquecido
+        $textRun = new TextRun();
+
+
+        // Agregar el texto con el formato necesario
+        foreach (explode("\n", $request->lectura) as $line) {
+            if (
+                strpos($line, 'Atención:') !== false || strpos($line, 'Fecha y Hora:') !== false ||
+                strpos($line, 'HALLAZGOS:') !== false || strpos($line, 'IMPRESIÓN DIAGNÓSTICA:') !== false ||
+                strpos($line, 'CONCLUSIÓN:') !== false || strpos($line, $request->nom_produc) !== false
+            ) {
+                $textRun->addText($line, ['bold' => true]);
+            } else {
+                $textRun->addText($line);
+            }
+            $textRun->addTextBreak();
+        }
+
+        // Usar setComplexValue para insertar el TextRun en la plantilla
+        $templateProcessor->setComplexValue('lectura', $textRun);
+
+
         $templateProcessor->setValue('nom_sede', $request->nom_sede);
 
         $templateProcessor->setValue('cod_producto', $request->cod_cups);

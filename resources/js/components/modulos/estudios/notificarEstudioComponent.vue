@@ -120,8 +120,6 @@
                                         <td>{{ item.tel }}</td>
                                         <td>{{ item.email }}</td>
                                         <td>{{ item.nom_produc }}</td>
-                                        <!-- <td>{{ item.pat_sex }}</td>
-                                        <td>{{ item.pat_birthdate }}</td> -->
                                         <td class="text-nowrap">
                                             <button type="button"
                                                 v-if="permisos.includes('estudios.reporteLectura.index')"
@@ -279,6 +277,7 @@
     </div>
 </template>
 <script>
+
 const API_URL = 'http://10.35.47.3:8080/dcm4chee-web3';
 let axiosInstance = axios.create({
     withCredentials: true,  // Esto permite el uso de cookies
@@ -365,11 +364,17 @@ export default {
             try {
                 const res = await axios.post("/edit-word", estudio);
 
-                //window.open(`/descargar.pdf.lectura/${res.data.plantilla}`);
+                /* let descargaReporte = document.createElement("a");
+                descargaReporte.setAttribute('href', `/descargar.pdf.lectura/${res.data.plantilla}`);
+                descargaReporte.setAttribute('target', '_blank');
+                descargaReporte.click(); */
+
+
+                window.open(`/descargar.pdf.lectura/${res.data.plantilla}`, '_blank');
 
             } catch (error) {
-
-                if (error.response.status == 402) {
+                console.log(error)
+                /* if (error.response.status == 402) {
 
                     $.toast({
                         heading: "Ok!!!",
@@ -380,7 +385,7 @@ export default {
                         hideAfter: 3500,
                         stack: 6,
                     });
-                }
+                } */
 
                 this.errores = error.response.data;
             }
