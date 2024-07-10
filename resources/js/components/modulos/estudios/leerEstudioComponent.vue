@@ -77,7 +77,8 @@
                                         </button>
                                         <button type="button"
                                             class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
-                                            @click="verImagen(item.pat_id, item.study_iuid)" title="Ver imagenes">
+                                            @click="verImagen(item.url_oviyam, item.num_docu, item.study_iuid, item.tap_oviyam)"
+                                            title="Ver imagenes">
                                             <i class="fa fa-file-photo-o"></i>
                                         </button>
                                         <button type="button"
@@ -212,7 +213,6 @@
                                 <br />
                                 <h5 class="card-title text-info">
                                     <i class="fa fa-user"></i> Diagnosticos
-
                                 </h5>
                                 <hr>
 
@@ -235,7 +235,8 @@
                                     </div>
                                     <div class="col-3">
                                         <div class="col-md-7 align-self-center text-right d-none d-md-block">
-                                            <button type="button" class="btn btn-secondary btn-xs" @click="verImagen()">
+                                            <button type="button" class="btn btn-secondary btn-xs"
+                                                @click="verImagen(this.registro.urlOviyam, this.registro.patientId, this.registro.studyUID, this.registro.serverName)">
                                                 <i class="fa fa-file-image-o"></i>
                                             </button>
                                             <a class="" @click="startSpeechRecognition"
@@ -348,9 +349,11 @@ export default {
             diagnosticosEstudio: [],
             soportesHC: [],
             tituloModal: "Nuevo registro",
-            registro: { id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "", diagnosticosEstudio: [] },
+            registro: {
+                id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "",
+                diagnosticosEstudio: [], urlOviyam: '', patientId: '', studyUID: '', serverName: ''
+            },
             busqueda: { bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "" },
-            datosImagen: { urlOviyam: '', patientId: '', studyUID: '', serverName: '' },
             errores: {},
             tipoPrioridad: 0,
             /**
@@ -497,10 +500,6 @@ export default {
                 this.errores = error.response.data.errors;
             }
         },
-        verImagen() {
-            let Url = this.datosImagen.urlOviyam + '?patientID =' + this.datosImagen.patientId + '&studyUID=' + this.datosImagen.studyUID + '&serverName=' + this.datosImagen.serverName
-            window.open(Url, '_blank');
-        },
         async visto(id) {
             const res = await axios.post('/marcar-visto/' + id);
             this.listarMisPendientes();
@@ -518,10 +517,10 @@ export default {
             this.registro.sexo = data.pat_sex;
             this.registro.fec_naci = data.pat_birthdate;
 
-            this.datosImagen.urlOviyam = data.url_oviyam;
-            this.datosImagen.patientId = data.num_docu;
-            this.datosImagen.studyUID = data.study_iuid;
-            this.datosImagen.serverName = data.tap_oviyam;
+            this.registro.urlOviyam = data.url_oviyam;
+            this.registro.patientId = data.num_docu;
+            this.registro.studyUID = data.study_iuid;
+            this.registro.serverName = data.tap_oviyam;
 
             this.productoEstudio.cod_produc = data.cod_cups;
             this.productoEstudio.nom_produc = data.nom_produc;
@@ -557,11 +556,8 @@ export default {
             const res = await axios.get('/listar-audios-estudio/' + this.id);
             this.audiosDeEstudio = res.data;
         },
-        verImagen(pat_id, study_iuid) {
-
-            let Url = sessionStorage.getItem('ST-urlsede') + '?patientID =' + pat_id + '&studyUID=' + study_iuid + '&serverName=' + sessionStorage.getItem('ST-servername')
-            console.log(Url);
-
+        verImagen(url, pat_id, study_iuid, servername) {
+            let Url = url + '?patientID =' + pat_id + '&studyUID=' + study_iuid + '&serverName=' + servername
             window.open(Url, '_blank');
         },
         changeTrack(index) {

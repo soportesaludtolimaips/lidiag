@@ -851,10 +851,7 @@ export default {
             this.registro.diagnosticosEstudio.splice(indexEliminar, 1);
         },
         verImagen(pat_id, study_iuid) {
-
             let Url = sessionStorage.getItem('ST-urlsede') + '?patientID =' + pat_id + '&studyUID=' + study_iuid + '&serverName=' + sessionStorage.getItem('ST-servername')
-            console.log(Url);
-
             window.open(Url, '_blank');
         },
     },
