@@ -26,11 +26,11 @@ class UserController extends Controller
 
     public function listarUsuarios($tipo_user)
     {
-        $medicos = User::whereHas('roles', function ($query) {
-            $query->where('name', 'Medico');
+        $usurios = User::whereHas('roles', function ($query) use ($tipo_user) {
+            $query->where('name', $tipo_user);
         })->orderBy('name', 'asc')->get();
 
-        return $medicos;
+        return $usurios;
     }
 
     /**
