@@ -269,6 +269,7 @@ class EstudioController extends Controller
 
     public function listarPendientesTrascribir(Request $request)
     {
+
         $misPendiente = Estudio::select(
             'estudios.*',
             'pacien.num_docu',
@@ -305,6 +306,21 @@ class EstudioController extends Controller
             ->whereNotNull('estudios_productos.fechor_lectura')
             ->where('estudios_productos.activo', '=', 1)
             ->whereNull('estudios_productos.transcriptor_id')
+            ->when($request->bus_nom_num_docu, function ($query, $bus_nom_num_docu) {
+                return $query->where('pacien.num_docu', $bus_nom_num_docu);
+            })
+            ->when($request->bus_nom_num_docu, function ($query, $bus_nom_num_docu) {
+                return $query->where('pacien.nombres', 'LIKE', '%' . $bus_nom_num_docu . '%');
+            })
+            ->when($request->quien_asigno_id, function ($query, $quien_asigno_id) {
+                return $query->where('estudios.quien_registro_id', $quien_asigno_id);
+            })
+            ->when($request->medico_id, function ($query, $medico_id) {
+                return $query->where('estudios.medico_id', $medico_id);
+            })
+            ->when($request->sede_id, function ($query, $sede_id) {
+                return $query->where('estudios.sede_id', $sede_id);
+            })
             ->orderBy('estudios.created_at', 'ASC')
             ->get();
 

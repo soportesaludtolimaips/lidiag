@@ -24,7 +24,7 @@
         <!-- ============================================================== -->
         <!-- Start Page Content -->
         <!-- ============================================================== -->
-        <!-- <div class="row">
+        <div class="row">
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
@@ -33,9 +33,45 @@
                         <form action="#">
                             <div class="form-body">
                                 <div class="row p-t-2">
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <div class="form-group">
-                                            <label class="control-label">Nombres de paciente o # de documento</label>
+                                            <label>Quien asigno</label>
+                                            <select v-model="busqueda.quien_asigno_id" name="quien_asigno_id"
+                                                id="quien_asigno_id" class="form-control custom-select">
+                                                <option v-for="(ItemUsuario, index) in quienes_asignaron" :key="index"
+                                                    :value="ItemUsuario.id">
+                                                    {{ ItemUsuario.name }}
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label>Medico</label>
+                                            <select v-model="busqueda.medico_id" name="medico" id="medico"
+                                                class="form-control custom-select">
+                                                <option v-for="(ItemUsuario, index) in medicos" :key="index"
+                                                    :value="ItemUsuario.id">
+                                                    {{ ItemUsuario.name }}
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <!-- <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label>Sedes</label>
+                                            <select v-model="busqueda.sede_id" name="sede_id" id="sede_id"
+                                                class="form-control custom-select">
+                                                <option v-for="(ItemSede, index) in sedes" :key="index"
+                                                    :value="ItemSede.id">
+                                                    {{ ItemSede.nom_sede }}
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div> -->
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="control-label">Nombres o # documento</label>
                                             <input type="text" id="bus_nom_num_docu" name="bus_nom_num_docu"
                                                 v-model="busqueda.bus_nom_num_docu" class="form-control"
                                                 placeholder="Nombres de paciente o # de documento" />
@@ -58,8 +94,9 @@
                                 </div>
 
                                 <div class="form-actions mt-3">
-                                    <button type="button" class="btn btn-success m-r-5" @click="buscarStudy()"><i
-                                            class="fa fa-search"></i> Buscar</button>
+                                    <button type="button" class="btn btn-success m-r-5"
+                                        @click="listarPendientesTrascribir()"><i class="fa fa-search"></i>
+                                        Buscar</button>
                                     <button type="button" class="btn btn-inverse" @click="btnLimpiar()"><i
                                             class="fa fa-refresh"></i> Limpiar</button>
                                 </div>
@@ -68,7 +105,8 @@
                     </div>
                 </div>
             </div>
-        </div> -->
+        </div>
+
         <div class="row">
             <div class="col-12 table-responsive">
                 <div class="card">
@@ -83,8 +121,9 @@
                                 <thead>
                                     <tr>
                                         <th></th>
-                                        <th>Sucursal</th>
+                                        <th>Sede</th>
                                         <th>Fecha de la Toma</th>
+                                        <!-- <th>Fecha de Asignación</th> -->
                                         <th>Quien Asigno</th>
                                         <th>Medico</th>
                                         <th>Paciente</th>
@@ -107,6 +146,7 @@
                                         </td>
                                         <td>{{ item.nom_sede }}</td>
                                         <td>{{ item.fec_estudio }}</td>
+                                        <!-- <td>{{ item.created_at }}</td> -->
                                         <td>{{ item.quien_registro }}</td>
                                         <td>{{ item.medico }}</td>
                                         <td>
@@ -413,7 +453,8 @@ $(function () {
 export default {
     props: ['usuarioactual'],
     mounted() {
-        this.listarPendientesTrascribir();
+        this.listarUsuariosYSedes();
+        this.busqueda.quien_asigno_id = this.usuarioactual.id;
     },
     data() {
         return {
@@ -427,16 +468,18 @@ export default {
                 reg_med: '', medico: '', firma: '',
 
             },
-            busqueda: { bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
+            busqueda: { quien_asigno_id: "", medico_id: '', sede_id: "", bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
             datosImagen: { urlOviyam: '', patientId: '', studyUID: '', serverName: '' },
             audiosDeEstudio: [],
+            quienes_asignaron: [],
+            medicos: [],
             errores: {},
         };
     },
     methods: {
         async listarPendientesTrascribir() {
             try {
-                const res = await axios.get("/estudio-listarPendientesTrascribir");
+                const res = await axios.post("/estudio-listarPendientesTrascribir", this.busqueda);
                 $("#example23").DataTable().destroy();
 
                 this.registros = res.data;
@@ -507,6 +550,25 @@ export default {
                     });
                 }
             }
+        },
+        async listarUsuariosYSedes() {
+
+            /**
+             * Lisato los transcriptores
+             */
+            const res = await axios.get('/user.listarUsuarios/Transcriptor');
+            this.quienes_asignaron = res.data;
+
+            /**
+             * Listo los medicos
+             */
+            const resMedicos = await axios.get('/user.listarUsuarios/Medico');
+            this.medicos = resMedicos.data;
+
+            /**
+             * Listo las sedes
+             */
+            this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
         },
         descargaSoportte(nomArchivoEncriptado) {
             const url = `/descarga-soportes-hc/${nomArchivoEncriptado}`;
