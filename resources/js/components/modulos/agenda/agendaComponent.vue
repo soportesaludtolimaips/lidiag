@@ -188,5 +188,5 @@ export default {
 </script>
 
 <style>
-@import url('@/admin-wrap/assets/node_modules/calendar/dist/fullcalendar.css');
+/* @import url('@/admin-wrap/assets/node_modules/calendar/dist/fullcalendar.css'); */
 </style>

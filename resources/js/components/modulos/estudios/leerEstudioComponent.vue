@@ -371,6 +371,7 @@ export default {
             recorder: null,
             audiosDeEstudio: [],
             audioActual: null,
+            idRow: null
         };
     },
     methods: {
@@ -491,7 +492,12 @@ export default {
                         stack: 6,
                     });
 
-                    this.listarMisPendientes();
+                    var row = document.getElementById(this.idRow);
+                    if (row) {
+                        row.remove();
+                    }
+
+                    //this.listarMisPendientes();
                     this.btnCerralModalForm();
                     this.limpiar();
                 }
@@ -507,6 +513,7 @@ export default {
         async mostrarRegistro(data = {}) {
             this.tituloModal = "Lectura de paciente: " + data.nom_pacien + "Producto: \n" + data.nom_produc;
             this.id = data.id;
+            this.idRow = data.id;
             this.registro.id_producto_lectura = data.id_producto_lectura;
             this.registro.fec_estudio = data.fec_estudio;
             this.registro.accession_no = data.accession_no;
