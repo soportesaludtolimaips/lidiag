@@ -677,8 +677,6 @@ export default {
         async mostrarRegistro(data = {}) {
 
             this.limpiar();
-
-
             this.tituloModal = "Agendar al paciente: " + data.pat_name;
             this.id = data.id;
             this.registro.study_pk = data.study_pk;
@@ -769,14 +767,14 @@ export default {
             this.registro.diagnosticosEstudio.splice(0, this.registro.diagnosticosEstudio.length);
             this.registro.productosEstudio.splice(0, this.registro.productosEstudio.length);
 
-            this.registro.medico_id = 0;
-            this.registro.prioridad_id = 0;
+            /* this.registro.medico_id = 0;
+            this.registro.prioridad_id = 0; */
             this.productoSelecciondo = 0;
             this.diagnosticoSelecciondo = 0;
 
-            $('#exampleInputFile1').val('');
-            $('#exampleInputFile2').val('');
-            $('#exampleInputFile3').val('');
+            this.soportesHC.archivo1 = null;
+            this.soportesHC.archivo2 = null;
+            this.soportesHC.archivo3 = null;
 
             this.listarMedicos();
             this.listarPrioridades();

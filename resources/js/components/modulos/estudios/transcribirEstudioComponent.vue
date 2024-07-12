@@ -38,6 +38,7 @@
                                             <label>Quien asigno</label>
                                             <select v-model="busqueda.quien_asigno_id" name="quien_asigno_id"
                                                 id="quien_asigno_id" class="form-control custom-select">
+                                                <option value="">...::: Todos los usuarios :::...</option>
                                                 <option v-for="(ItemUsuario, index) in quienes_asignaron" :key="index"
                                                     :value="ItemUsuario.id">
                                                     {{ ItemUsuario.name }}
@@ -47,9 +48,10 @@
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label>Medico</label>
-                                            <select v-model="busqueda.medico_id" name="medico" id="medico"
+                                            <label>Medicos</label>
+                                            <select v-model="busqueda.medico_id" name="medico_id" id="medico_id"
                                                 class="form-control custom-select">
+                                                <option value="" selected>...::: Todos los medicos :::...</option>
                                                 <option v-for="(ItemUsuario, index) in medicos" :key="index"
                                                     :value="ItemUsuario.id">
                                                     {{ ItemUsuario.name }}
@@ -57,18 +59,6 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <!-- <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label>Sedes</label>
-                                            <select v-model="busqueda.sede_id" name="sede_id" id="sede_id"
-                                                class="form-control custom-select">
-                                                <option v-for="(ItemSede, index) in sedes" :key="index"
-                                                    :value="ItemSede.id">
-                                                    {{ ItemSede.nom_sede }}
-                                                </option>
-                                            </select>
-                                        </div>
-                                    </div> -->
                                     <div class="col-md-4">
                                         <div class="form-group">
                                             <label class="control-label">Nombres o # documento</label>
@@ -133,8 +123,9 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(item, index) in registros" :key="index">
+                                    <tr v-for="(item, index) in registros" :key="item.id" :id="item.id">
                                         <td>
+                                            {{ item.id }}
                                             <button type="button" v-if="item.priori_id == 1"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">A</button>
                                             <button type="button" v-else-if="item.priori_id == 2"
@@ -164,6 +155,11 @@
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
                                                 @click="actualizar = true; mostrarRegistro(item);">
                                                 <i class="fa fa-pencil"></i>
+                                            </button>
+                                            <button type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
+                                                @click="anularAsignacion(item.id, item.id_producto_lectura, item.nom_pacien, item.nom_produc);">
+                                                <i class="fa fa-eraser"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -454,7 +450,7 @@ export default {
     props: ['usuarioactual'],
     mounted() {
         this.listarUsuariosYSedes();
-        this.busqueda.quien_asigno_id = this.usuarioactual.id;
+        //this.busqueda.quien_asigno_id = this.usuarioactual.id;
     },
     data() {
         return {
@@ -468,28 +464,41 @@ export default {
                 reg_med: '', medico: '', firma: '',
 
             },
-            busqueda: { quien_asigno_id: "", medico_id: '', sede_id: "", bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
+            busqueda: { quien_asigno_id: "", medico_id: "", sede_id: sessionStorage.getItem('ST-sede'), bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
             datosImagen: { urlOviyam: '', patientId: '', studyUID: '', serverName: '' },
             audiosDeEstudio: [],
             quienes_asignaron: [],
             medicos: [],
             errores: {},
+            idRow: null,
         };
     },
     methods: {
         async listarPendientesTrascribir() {
             try {
-                const res = await axios.post("/estudio-listarPendientesTrascribir", this.busqueda);
-                $("#example23").DataTable().destroy();
-
-                this.registros = res.data;
-
-                this.$nextTick(() => {
-                    $("#example23").DataTable({
-                        dom: "Bfrtip",
-                        buttons: ["copy", "csv", "excel", "pdf", "print"],
+                if (sessionStorage.getItem('ST-sede') == null) {
+                    $.toast({
+                        heading: "Upsss!!!",
+                        text: 'Debes establece la sede en la cual vas a trabajar.',
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "warning",
+                        hideAfter: 3500,
+                        stack: 6,
                     });
-                });
+                } else {
+                    const res = await axios.post("/estudio-listarPendientesTrascribir", this.busqueda);
+                    $("#example23").DataTable().destroy();
+
+                    this.registros = res.data;
+
+                    this.$nextTick(() => {
+                        $("#example23").DataTable({
+                            dom: "Bfrtip",
+                            buttons: ["copy", "csv", "excel", "pdf", "print"],
+                        });
+                    });
+                }
             } catch (error) {
                 console.log(error);
             }
@@ -511,6 +520,12 @@ export default {
                 const res = await axios.post('/estudio-guardarTranscripcion', this.registro);
 
                 if (res.status == 200) {
+
+                    var row = document.getElementById(this.idRow);
+                    if (row) {
+                        row.remove();
+                    }
+
                     $.toast({
                         heading: "Ok!!!",
                         text: 'Lectura transferida correctamente',
@@ -521,7 +536,7 @@ export default {
                         stack: 6,
                     });
 
-                    this.listarPendientesTrascribir();
+                    //this.listarPendientesTrascribir();
                     this.btnCerralModalForm();
                     this.limpiar();
                 } else {
@@ -536,7 +551,6 @@ export default {
                     });
                 }
             } catch (error) {
-                console.log(error)
                 if (error.response.data.status = 402) {
 
                     $.toast({
@@ -552,7 +566,6 @@ export default {
             }
         },
         async listarUsuariosYSedes() {
-
             /**
              * Lisato los transcriptores
              */
@@ -586,6 +599,37 @@ export default {
                     console.error(error);
                 });
         },
+        async anularAsignacion(idAsignacion, idProductoEstudio, paciente, producto) {
+            swal({
+                title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
+                text: "No podrás recuperar este registro!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "si, anular!",
+                closeOnConfirm: false
+            }, function (isConfirm) {
+                if (isConfirm) {
+                    this.idRow = idAsignacion;
+
+                    axios.post('estudio-anular-asignacion', { 'id': idProductoEstudio })
+                        .then(res => {
+                            /**
+                             * Elimino la fila
+                             */
+                            var row = document.getElementById(this.idRow);
+                            if (row) {
+                                row.remove();
+                            }
+
+                            swal("Anulado!", "El producto se anulo correctamente.", "success");
+
+                        }).catch(error => {
+                            swal("Anulado!", "El producto se anulo correctamente.", "success");
+                        });
+                }
+            });
+        },
         verImagen() {
             let Url = this.datosImagen.urlOviyam + '?patientID =' + this.datosImagen.patientId + '&studyUID=' + this.datosImagen.studyUID + '&serverName=' + this.datosImagen.serverName
             window.open(Url, '_blank');
@@ -598,6 +642,7 @@ export default {
 
             this.tituloModal = "Transcribir la lectura del paciente: " + data.nom_pacien;
             this.id = data.id;
+            this.idRow = data.id;
             this.registro.id_producto_lectura = data.id_producto_lectura;
             this.registro.fec_estudio = data.fec_estudio;
             this.registro.fec_lectura = data.fechor_lectura;
@@ -656,14 +701,9 @@ export default {
     computed: {
         estiloPrioridad: function () {
             this.tipoPrioridad;
-            console.log("Estilo " + this.registro)
         }
     }
 };
-
-/* $(function () {
-$('.textarea_editor').wysihtml5();
-}); */
 </script>
 
 <style scoped>

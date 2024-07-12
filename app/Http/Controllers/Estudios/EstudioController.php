@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\Estudio\EstudioSoportesHC;
+use App\Models\Importar\AgendaProducto;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Str;
@@ -269,7 +270,6 @@ class EstudioController extends Controller
 
     public function listarPendientesTrascribir(Request $request)
     {
-
         $misPendiente = Estudio::select(
             'estudios.*',
             'pacien.num_docu',
@@ -306,20 +306,18 @@ class EstudioController extends Controller
             ->whereNotNull('estudios_productos.fechor_lectura')
             ->where('estudios_productos.activo', '=', 1)
             ->whereNull('estudios_productos.transcriptor_id')
+            ->where('estudios.sede_id', $request->sede_id)
             ->when($request->bus_nom_num_docu, function ($query, $bus_nom_num_docu) {
-                return $query->where('pacien.num_docu', $bus_nom_num_docu);
-            })
-            ->when($request->bus_nom_num_docu, function ($query, $bus_nom_num_docu) {
-                return $query->where('pacien.nombres', 'LIKE', '%' . $bus_nom_num_docu . '%');
+                return $query->where(function ($q) use ($bus_nom_num_docu) {
+                    $q->where('pacien.num_docu', $bus_nom_num_docu)
+                        ->orWhere('pacien.nombres', 'LIKE', '%' . $bus_nom_num_docu . '%');
+                });
             })
             ->when($request->quien_asigno_id, function ($query, $quien_asigno_id) {
                 return $query->where('estudios.quien_registro_id', $quien_asigno_id);
             })
             ->when($request->medico_id, function ($query, $medico_id) {
                 return $query->where('estudios.medico_id', $medico_id);
-            })
-            ->when($request->sede_id, function ($query, $sede_id) {
-                return $query->where('estudios.sede_id', $sede_id);
             })
             ->orderBy('estudios.created_at', 'ASC')
             ->get();
@@ -439,6 +437,15 @@ class EstudioController extends Controller
         } else {
             return response()->json(['message' => 'No', 200]);
         }
+    }
+
+    public function anularAsignacion(Request $request, EstudioProducto $estudioProducto)
+    {
+        $productoEstudio =  EstudioProducto::find($request->id);
+        $productoEstudio->activo = 0;
+        $productoEstudio->save();
+
+        return response()->json(['message' => 'El producto se anulo correctament'], 200);
     }
 
     public function descargarPdfLectura($nomArchivo)
