@@ -38,7 +38,6 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
         ])
             ->whereBetween('fec_estudio', [$this->fechaInicio, $this->fechaFin])
             ->where('sede_id', $this->sedeId)
-            ->limit(12)
             ->get();
     }
 

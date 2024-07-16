@@ -44,8 +44,9 @@
                             </thead>
                             <tbody>
                                 <tr v-for="(item, index) in registros " :key="index"
-                                    :class="{ 'text-info': item.visto === 1 }">
+                                    :class="{ 'text-info': item.visto === 1 }" :id="item.id">
                                     <td width="2%">
+                                        {{ item.id }}
                                         <button type="button" v-if="item.priori_id == 1"
                                             class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">A</button>
                                         <button type="button" v-else-if="item.priori_id == 2"
@@ -493,11 +494,23 @@ export default {
                     });
 
                     var row = document.getElementById(this.idRow);
+
                     if (row) {
+                        console.log(this.idRow)
                         row.remove();
+                        var estudioEliminar = this.registros.findIndex((x) => x.id == this.idRow);
+                        this.registros.splice(estudioEliminar, 1);
+
+                        $("#example23").DataTable().destroy();
+
+                        this.$nextTick(() => {
+                            $("#example23").DataTable({
+                                dom: "Bfrtip",
+                                buttons: ["copy", "csv", "excel", "pdf", "print"],
+                            });
+                        });
                     }
 
-                    //this.listarMisPendientes();
                     this.btnCerralModalForm();
                     this.limpiar();
                 }
