@@ -133,7 +133,9 @@ export default {
                         stack: 6,
                     });
                 } else { */
-                const res = await axios.post('/descarga-reportes-produccion', this.datosReporte);
+                //const res = await axios.post('/descarga-reportes-produccion', this.datosReporte);
+                window.open(`/descarga-reportes-produccion?sedeId=${this.datosReporte.sedeId}&fechaIni=${this.datosReporte.fechaIni}&fechaFin=${this.datosReporte.fechaFin}`);
+                //console.log(res)
                 //}
             } catch (error) {
                 console.log(error);

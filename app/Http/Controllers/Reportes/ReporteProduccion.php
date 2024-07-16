@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Reportes;
 
 use App\Exports\ProduccionDetalladaExport;
 use App\Http\Controllers\Controller;
+use App\Models\Estudio\Estudio;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -11,15 +12,36 @@ class ReporteProduccion extends Controller
 {
     public function reporteProduccionDetallado(Request $resquest)
     {
-        return $resquest;
-        $fechaInicio = $resquest->input('fecha_inicio');
-        $fechaFin = $resquest->input('fecha_fin');
-        $sedeId = $resquest->input('sede_id');
+        $fechaInicio = $resquest->fechaIni;
+        $fechaFin = $resquest->fechaFin;
+        $sedeId = $resquest->sedeId;
+
+        /* return Estudio::with([
+            'paciente',
+            'medico',
+            'quienRegistro',
+            'sede',
+            'prioridad',
+            'productos',
+            'productos.transcriptor',
+            'diagnosticos'
+        ])
+            ->whereBetween('fec_estudio', [$fechaInicio, $fechaFin])
+            ->where('sede_id', $sedeId)
+            ->limit(12)
+            ->get(); */
+
+
+
+
 
         // Define el nombre y la ruta del archivo
         $fileName = 'estudios_' . now()->format('Ymd_His') . '.xlsx';
-        $filePath = 'exports/' . $fileName;
+        $filePath = 'reporte_lecturas/' . $fileName;
 
-        return Excel::download(new ProduccionDetalladaExport($fechaInicio, $fechaFin, $sedeId), $filePath, 'plantillas_lecturas');
+        return Excel::download(new ProduccionDetalladaExport($fechaInicio, $fechaFin, $sedeId),  'produccion lecturas de imagenes diagnosticas.xlsx');
+
+        // Retorna la ruta del archivo almacenado
+        //return response()->json(['file_path' => $filePath]);
     }
 }

@@ -93,7 +93,7 @@ Route::resource('/agenda-gestionar', AgendaController::class)->names('agenda.ges
  * Reportes
  */
 Route::view('reportes-produccion', 'modulos.reportes.reportes-produccion')->name('reportes.produccion')->middleware('auth');
-Route::post('descarga-reportes-produccion', [ReporteProduccion::class, 'reporteProduccionDetallado'])->name('descarga.reportes.produccion')->middleware('auth');
+Route::get('descarga-reportes-produccion', [ReporteProduccion::class, 'reporteProduccionDetallado'])->name('descarga.reportes.produccion')->middleware('auth');
 
 /**
  * Configuración
