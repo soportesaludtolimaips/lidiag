@@ -363,15 +363,7 @@ export default {
         async imprimirReporte(estudio) {
             try {
                 const res = await axios.post("/edit-word", estudio);
-
-                /* let descargaReporte = document.createElement("a");
-                descargaReporte.setAttribute('href', `/descargar.pdf.lectura/${res.data.plantilla}`);
-                descargaReporte.setAttribute('target', '_blank');
-                descargaReporte.click(); */
-
-
                 window.open(`/descargar.pdf.lectura/${res.data.plantilla}`, '_blank');
-
             } catch (error) {
                 console.log(error)
                 /* if (error.response.status == 402) {

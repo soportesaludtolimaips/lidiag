@@ -776,8 +776,8 @@ export default {
             this.soportesHC.archivo2 = null;
             this.soportesHC.archivo3 = null;
 
-            this.listarMedicos();
-            this.listarPrioridades();
+            /* this.listarMedicos();
+            this.listarPrioridades(); */
         },
         async listarMedicos() {
             try {

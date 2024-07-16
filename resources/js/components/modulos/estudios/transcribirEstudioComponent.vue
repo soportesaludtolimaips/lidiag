@@ -464,7 +464,7 @@ export default {
                 reg_med: '', medico: '', firma: '',
 
             },
-            busqueda: { quien_asigno_id: "", medico_id: "", sede_id: sessionStorage.getItem('ST-sede'), bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
+            busqueda: { estudioParaTranscibir: 'si', quien_asigno_id: "", medico_id: "", sede_id: sessionStorage.getItem('ST-sede'), bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
             datosImagen: { urlOviyam: '', patientId: '', studyUID: '', serverName: '' },
             audiosDeEstudio: [],
             quienes_asignaron: [],
@@ -504,9 +504,7 @@ export default {
             }
         },
         async guardarRegistro() {
-
             try {
-
                 $.toast({
                     heading: "Ok!!!",
                     text: 'Enviando lectura, por favor espere',

@@ -270,6 +270,10 @@ class EstudioController extends Controller
 
     public function listarPendientesTrascribir(Request $request)
     {
+        /**
+         * @estudioParaTranscibir para saber si se van a listar los estudio que ya estan leidos o no, 
+         * para transcribir los estudios que se envian a trys o a teleradiologia
+         */
         $misPendiente = Estudio::select(
             'estudios.*',
             'pacien.num_docu',
@@ -303,7 +307,9 @@ class EstudioController extends Controller
             ->join('users as medi', 'estudios.medico_id', '=', 'medi.id')
             ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
             ->join('config_productos', 'estudios_productos.producto_id', '=', 'config_productos.id')
-            ->whereNotNull('estudios_productos.fechor_lectura')
+            ->when($request->estudioParaTranscibir, function ($query) {
+                return $query->whereNotNull('estudios_productos.fechor_lectura');
+            })
             ->where('estudios_productos.activo', '=', 1)
             ->whereNull('estudios_productos.transcriptor_id')
             ->where('estudios.sede_id', $request->sede_id)

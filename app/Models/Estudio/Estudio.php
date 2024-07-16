@@ -16,7 +16,7 @@ class Estudio extends Model
 
     protected $fillable = [
         'study_pk', 'study_iuid', 'study_id', 'fec_estudio', 'accession_no', 'accession_no', 'study_desc', 'mods_in_study', 'email_reporta', 'paciente_id', 'medico_id',
-        'quien_registro_id', 'sede_id', 'prioridad_id', 'observaciones', 'atencion', 'servicio', 'eps', 'contrato', 'plan', 'estado'
+        'quien_registro_id', 'sede_id', 'prioridad_id', 'observaciones', 'atencion', 'servicio', 'eps', 'contrato', 'plan', 'estado', 'created_at'
     ];
 
     public function paciente()
