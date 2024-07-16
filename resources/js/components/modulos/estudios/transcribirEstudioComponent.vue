@@ -522,6 +522,17 @@ export default {
                     var row = document.getElementById(this.idRow);
                     if (row) {
                         row.remove();
+                        var estudioEliminar = this.registros.findIndex((x) => x.id == this.idRow);
+                        this.registros.splice(estudioEliminar, 1);
+
+                        $("#example23").DataTable().destroy();
+
+                        this.$nextTick(() => {
+                            $("#example23").DataTable({
+                                dom: "Bfrtip",
+                                buttons: ["copy", "csv", "excel", "pdf", "print"],
+                            });
+                        });
                     }
 
                     $.toast({

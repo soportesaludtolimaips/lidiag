@@ -496,7 +496,6 @@ export default {
                     var row = document.getElementById(this.idRow);
 
                     if (row) {
-                        console.log(this.idRow)
                         row.remove();
                         var estudioEliminar = this.registros.findIndex((x) => x.id == this.idRow);
                         this.registros.splice(estudioEliminar, 1);
