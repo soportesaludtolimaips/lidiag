@@ -238,12 +238,12 @@ class EstudioController extends Controller
             ->where('estudios.medico_id', $request->id)
             ->where('estu_produc.activo', 1)
             ->whereNull('estu_produc.transcriptor_id')
-            ->where('config_produc.requi_lectura', 1)
+            ->where('config_produc.requi_lectura', "=", 1)
             ->whereNull('estu_produc.fechor_trascrito')
             ->whereNull('estu_produc.fechor_lectura')
             ->where('sesde.id', $request->sede_id)
             ->orderBy('priori.nom_priori')
-            ->toSql();
+            ->get();
 
         return response()->json($misPendiente, 200);
     }
@@ -418,6 +418,7 @@ class EstudioController extends Controller
         $transcribirEstudios->lectura = $request->lectura;
         $transcribirEstudios->transcriptor_id = auth()->user()->id;
         $transcribirEstudios->fechor_trascrito = Carbon::now()->format('Y-m-d H:i:s');
+        $transcribirEstudios->visto = 1;
         $transcribirEstudios->save();
 
         /**
