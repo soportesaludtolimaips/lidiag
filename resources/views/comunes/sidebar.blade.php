@@ -33,6 +33,9 @@
                                         <a href="{{ route('estudios.asignar.listar') }}">
                                             <i class="fa fa-upload text-info"></i> Asignar Estudios
                                         </a>
+                                        <a href="{{ route('estudios.asignados.listar') }}">
+                                            <i class="fa fa-check text-info"></i> Estudios Asignados
+                                        </a>
                                     </li>
                                 @endcan
                                 @can('estudio.transcribir')

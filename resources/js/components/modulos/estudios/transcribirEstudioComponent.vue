@@ -29,7 +29,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title text-themecolor"><i class="fa fa-filter"></i> Filtros para busqueda de mis
-                            pendientes</h4>
+                            pendientes por transcribir</h4>
                         <form action="#">
                             <div class="form-body">
                                 <div class="row p-t-2">

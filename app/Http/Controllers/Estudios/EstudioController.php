@@ -331,6 +331,66 @@ class EstudioController extends Controller
         return response()->json($misPendiente);
     }
 
+    public function listarEstudiosAsignados(Request $request)
+    {
+        $misPendiente = Estudio::select(
+            'estudios.*',
+            'pacien.num_docu',
+            'pacien.nombres as nom_pacien',
+            'pacien.fec_naci',
+            'pacien.direccion',
+            'pacien.email',
+            'pacien.tel',
+            'estudios_productos.id as id_producto_lectura',
+            'estudios_productos.cod_cups',
+            'estudios_productos.nom_produc',
+            'estudios_productos.fechor_lectura',
+            'estudios_productos.lectura',
+            'estudios_productos.transcriptor_id',
+            'estudios_productos.activo',
+            'users.name AS quien_registro',
+            'priori.id as priori_id',
+            'priori.nom_priori',
+            'priori.nivel AS priori_nivel',
+            'priori.tiempo AS priori_tiempo',
+            'medi.name as medico',
+            'medi.firma',
+            'medi.reg_med',
+            'medi.num_docu AS num_docu_medi',
+            'sede.nom_sede',
+            'sede.url_oviyam',
+            'sede.tap_oviyam'
+        )
+            ->join('estudios_productos', 'estudios_productos.estudio_id', '=', 'estudios.id')
+            ->join('pacientes AS pacien', 'estudios.paciente_id', '=', 'pacien.id')
+            ->join('config_sedes AS sede', 'estudios.sede_id', '=', 'sede.id')
+            ->join('users', 'estudios.quien_registro_id', '=', 'users.id')
+            ->join('users as medi', 'estudios.medico_id', '=', 'medi.id')
+            ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
+            ->join('config_productos', 'estudios_productos.producto_id', '=', 'config_productos.id')
+            ->where('estudios_productos.activo', '=', 1)
+            ->when($request->bus_fehc_ini && $request->bus_fecha_fin, function ($query) use ($request) {
+                return $query->whereBetween('estudios.fec_estudio', [$request->bus_fehc_ini, $request->bus_fecha_fin]);
+            })
+            ->where('estudios.sede_id', $request->sede_id)
+            ->when($request->bus_nom_num_docu, function ($query, $bus_nom_num_docu) {
+                return $query->where(function ($q) use ($bus_nom_num_docu) {
+                    $q->where('pacien.num_docu', $bus_nom_num_docu)
+                        ->orWhere('pacien.nombres', 'LIKE', '%' . $bus_nom_num_docu . '%');
+                });
+            })
+            ->when($request->quien_asigno_id, function ($query, $quien_asigno_id) {
+                return $query->where('estudios.quien_registro_id', $quien_asigno_id);
+            })
+            ->when($request->medico_id, function ($query, $medico_id) {
+                return $query->where('estudios.medico_id', $medico_id);
+            })
+            ->orderBy('estudios.created_at', 'ASC')
+            ->get();
+
+        return response()->json($misPendiente);
+    }
+
     public function guardarTranscripcion(Request $request)
     {
         /**
@@ -458,10 +518,6 @@ class EstudioController extends Controller
     {
         $rutaArchivo = storage_path('app/reporte_lecturas/' . $nomArchivo);
         return response()->file($rutaArchivo);
-        /* $headers = array(
-            'Content-Type: application/pdf',
-        );
-        return response()->download($rutaArchivo, $nomArchivo, $headers); */
     }
 
     public function notificarEmail(Request $request)
