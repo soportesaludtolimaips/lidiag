@@ -35,6 +35,7 @@
                                     <th></th>
                                     <th>Sede</th>
                                     <th>Fecha del Toma</th>
+                                    <th>Fecha del Asignación</th>
                                     <th>Quien Asigno</th>
                                     <th>Paciente</th>
                                     <th>Detalle</th>
@@ -58,6 +59,7 @@
                                     </td>
                                     <td>{{ item.nom_sede }}</td>
                                     <td>{{ item.fec_estudio }}</td>
+                                    <td>{{ item.created_at }}</td>
                                     <td>{{ item.quien_registro }}</td>
                                     <td>
                                         {{ item.num_docu }} <br />
@@ -77,7 +79,7 @@
                                             <i class="fa fa-pencil"></i>
                                         </button>
                                         <button type="button"
-                                            class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
+                                            class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm"
                                             @click="verImagen(item.url_oviyam, item.num_docu, item.study_iuid, item.tap_oviyam)"
                                             title="Ver imagenes">
                                             <i class="fa fa-file-photo-o"></i>
@@ -329,7 +331,8 @@
 export default {
     props: ['usuarioactual'],
     mounted() {
-
+        this.establecerSede();
+        this.sede_id = sessionStorage.getItem('ST-sede');
         this.listarMisPendientes();
 
         if ('webkitSpeechRecognition' in window) {
@@ -341,6 +344,13 @@ export default {
         } else {
             console.log('La API de reconocimiento de voz no es compatible con este navegador.');
         }
+
+        this.emitter.on("sedeSeleccionada", (data) => {
+            this.sede_id = data.idSede;
+            $("#example23").DataTable().destroy();
+            this.listarMisPendientes();
+        });
+
     },
     data() {
         return {
@@ -352,9 +362,8 @@ export default {
             tituloModal: "Nuevo registro",
             registro: {
                 id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "",
-                diagnosticosEstudio: [], urlOviyam: '', patientId: '', studyUID: '', serverName: ''
+                diagnosticosEstudio: [], urlOviyam: '', patientId: '', studyUID: '', serverName: '',
             },
-            busqueda: { bus_nom_num_docu: "", fehc_ini: "", fecha_fin: "" },
             errores: {},
             tipoPrioridad: 0,
             /**
@@ -372,7 +381,8 @@ export default {
             recorder: null,
             audiosDeEstudio: [],
             audioActual: null,
-            idRow: null
+            idRow: null,
+            sede_id: null,
         };
     },
     methods: {
@@ -462,20 +472,33 @@ export default {
             this.listarAudios();
         },
         async listarMisPendientes() {
-            try {
-                const res = await axios.get("/estudio-listarPendientesMedico?id=" + this.usuarioactual.id);
-                $("#example23").DataTable().destroy();
-
-                this.registros = res.data;
-
-                this.$nextTick(() => {
-                    $("#example23").DataTable({
-                        dom: "Bfrtip",
-                        buttons: ["copy", "csv", "excel", "pdf", "print"],
-                    });
+            if (sessionStorage.getItem('ST-sede') == null) {
+                $.toast({
+                    heading: "Upsss!!!",
+                    text: 'Debes establece la sede en la cual vas a trabajar.',
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "warning",
+                    hideAfter: 3500,
+                    stack: 6,
                 });
-            } catch (error) {
-                console.log(error);
+            } else {
+                try {
+                    console.log(`Sede: ${this.sede_id}`)
+                    const res = await axios.post('/estudio-listarPendientesMedico', { id: this.usuarioactual.id, sede_id: this.sede_id });
+                    $("#example23").DataTable().destroy();
+
+                    this.registros = res.data;
+
+                    this.$nextTick(() => {
+                        $("#example23").DataTable({
+                            dom: "Bfrtip",
+                            buttons: ["copy", "csv", "excel", "pdf", "print"],
+                        });
+                    });
+                } catch (error) {
+                    console.log(error);
+                }
             }
         },
         async guardarRegistro() {
@@ -556,7 +579,7 @@ export default {
             this.listarAudios();
         },
         descargaSoportte(nomArchivoEncriptado) {
-            const url = `/descarga-soportes-hc/${nomArchivoEncriptado}`;
+            const url = `/ descarga - soportes - hc / ${nomArchivoEncriptado}`;
 
             axios.get(url, { responseType: 'blob' })
                 .then(response => {
@@ -581,7 +604,16 @@ export default {
         },
         changeTrack(index) {
             this.audioActual = this.audiosDeEstudio[index].audio;
-            console.log(this.audioActual)
+        },
+        establecerSede() {
+            this.sede_id = sessionStorage.getItem('ST-sede');
+
+            if (this.sede_id == 1) {
+                this.sedeInterface = true;
+            } else {
+                this.sedeInterface = false;
+            }
+            this.registros = [];
         },
         limpiar() {
             this.tituloModal = "";
