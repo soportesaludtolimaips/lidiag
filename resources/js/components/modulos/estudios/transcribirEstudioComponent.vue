@@ -546,8 +546,8 @@ export default {
                     });
 
                     //this.listarPendientesTrascribir();
-                    this.btnCerralModalForm();
-                    this.limpiar();
+                    /* this.btnCerralModalForm();
+                    this.limpiar(); */
                 } else {
                     $.toast({
                         heading: "Upss!!!",
@@ -561,7 +561,6 @@ export default {
                 }
             } catch (error) {
                 if (error.response.data.status = 402) {
-
                     $.toast({
                         heading: "Upss!!!",
                         text: error.response.data.message,

@@ -241,7 +241,9 @@ class EstudioController extends Controller
             ->where('config_produc.requi_lectura', 1)
             ->whereNull('estu_produc.fechor_trascrito')
             ->whereNull('estu_produc.fechor_lectura')
-            ->orderBy('priori.nom_priori')->get();
+            ->where('sesde.id', $request->sede_id)
+            ->orderBy('priori.nom_priori')
+            ->toSql();
 
         return response()->json($misPendiente, 200);
     }
@@ -415,7 +417,7 @@ class EstudioController extends Controller
         $transcribirEstudios = EstudioProducto::findOrFail($request->id_producto_lectura);
         $transcribirEstudios->lectura = $request->lectura;
         $transcribirEstudios->transcriptor_id = auth()->user()->id;
-        $transcribirEstudios->fechor_trascrito = Carbon::now();
+        $transcribirEstudios->fechor_trascrito = Carbon::now()->format('Y-m-d H:i:s');
         $transcribirEstudios->save();
 
         /**

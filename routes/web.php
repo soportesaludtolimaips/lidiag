@@ -81,7 +81,7 @@ Route::post('/estudio-listarPendientesTrascribir', [EstudioController::class, 'l
 Route::post('/estudio-listarEstudiosAsignados', [EstudioController::class, 'listarEstudiosAsignados'])->name('estudio.listarEstudiosAsignados');
 Route::post('/estudio-guardarTranscripcion', [EstudioController::class, 'guardarTranscripcion'])->name('estudio.guardarTranscripcion');
 Route::post('/estudio-anular-asignacion', [EstudioController::class, 'anularAsignacion'])->name('estudio.anularAsignacion');
-Route::get('/estudio-listarPendientesMedico', [EstudioController::class, 'listarPendientesMedico'])->name('estudio.listarPendientesMedico');
+Route::post('/estudio-listarPendientesMedico', [EstudioController::class, 'listarPendientesMedico'])->name('estudio.listarPendientesMedico');
 Route::get('/estudio-listarPendientesPorLeerTranscribir', [EstudioController::class, 'penditesPorLeerTranscribir'])->name('estudio.listarPendientesPorLeerTranscribir');
 Route::get('/estudio-buscar-por-numdocu/{numDocu}', [EstudioController::class, 'buscarEstudioPorNumDocu'])->name('estudio.buscarEstudioPorNumDocu');
 
