@@ -53,6 +53,8 @@ import transcribirEstudioComponent from "./components/modulos/estudios/transcrib
 app.component("transcribir-estudio-component", transcribirEstudioComponent);
 import notificarEstudioComponent from "./components/modulos/estudios/notificarEstudioComponent.vue";
 app.component("notificar-estudio-component", notificarEstudioComponent);
+import estudioAsignadosComponent from "./components/modulos/estudios/estudioAsignadosComponent.vue";
+app.component("estudio-asignados-component", estudioAsignadosComponent);
 
 /**
  * Agenda

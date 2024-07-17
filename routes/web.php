@@ -51,6 +51,7 @@ Route::get('reportes.dashboard', [DashBoardController::class, 'Dashboard'])->nam
  * Estudios
  */
 Route::view('/estudios.asignar.listar', 'modulos.estudios.asignar-estudio')->name('estudios.asignar.listar');
+Route::view('/estudios.asignados.listar', 'modulos.estudios.estudio-asignados')->name('estudios.asignados.listar');
 Route::post('/study.listarEstudios', [StudyController::class, 'listarEstudios'])->name('study.listarEstudios');
 Route::view('/estudios.notificar.index', 'modulos.estudios.notificar-estudio')->name('estudios.notificar.index');
 
@@ -77,6 +78,7 @@ Route::get('/listar-audios-estudio/{estudio_id}', [EstudioAudioController::class
 Route::view('/estudios.transcribir.listar', 'modulos.estudios.transcribir-estudio')->name('estudios.transcribir.listar');
 Route::view('/estudios.transcribirYleer.listar', 'modulos.estudios.transcribirYleer-estudio')->name('estudios.leerytranscribir.listar');
 Route::post('/estudio-listarPendientesTrascribir', [EstudioController::class, 'listarPendientesTrascribir'])->name('estudio.listarPendientesTrascribir');
+Route::post('/estudio-listarEstudiosAsignados', [EstudioController::class, 'listarEstudiosAsignados'])->name('estudio.listarEstudiosAsignados');
 Route::post('/estudio-guardarTranscripcion', [EstudioController::class, 'guardarTranscripcion'])->name('estudio.guardarTranscripcion');
 Route::post('/estudio-anular-asignacion', [EstudioController::class, 'anularAsignacion'])->name('estudio.anularAsignacion');
 Route::get('/estudio-listarPendientesMedico', [EstudioController::class, 'listarPendientesMedico'])->name('estudio.listarPendientesMedico');
