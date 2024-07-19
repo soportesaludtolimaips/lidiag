@@ -123,9 +123,10 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(item, index) in registros" :key="item.id" :id="item.id">
+                                    <tr v-for="(item, index) in registros" :key="item.id"
+                                        :id="item.id_producto_lectura">
                                         <td>
-                                            {{ item.id }}
+                                            {{ item.id_producto_lectura }}
                                             <button type="button" v-if="item.priori_id == 1"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">A</button>
                                             <button type="button" v-else-if="item.priori_id == 2"
@@ -158,7 +159,7 @@
                                             </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
-                                                @click="anularAsignacion(item.id, item.id_producto_lectura, item.nom_pacien, item.nom_produc);">
+                                                @click="anularAsignacion(item.id_producto_lectura, item.nom_pacien, item.nom_produc);">
                                                 <i class="fa fa-eraser"></i>
                                             </button>
                                         </td>
@@ -323,20 +324,6 @@
                                         </div>
                                     </div>
                                     <br />
-
-                                    <!-- <h5 class="card-title text-info">
-                                        <i class="fa fa-user"></i> Diagnosticos
-                                    </h5>
-                                    <hr>
-
-                                    <div class="row table-responsive" style="height:150px; overflow-y: scroll;">
-                                        <div class="col-md-12">
-                                            <ul v-for="(item, index) in  diagnosticosEstudio " :key="index">
-                                                <li>{{ item.nom_diagnos }}</li>
-
-                                            </ul>
-                                        </div>
-                                    </div> -->
                                 </div>
                                 <div class="col-md-6">
                                     <div class="row">
@@ -363,21 +350,12 @@
                                                     class="textarea_editor form-control" rows="20" id="lectura"
                                                     style="height: 100%;"
                                                     placeholder="Ingrese aquí la lectura del estudio ..."></textarea>
-
-                                                <!-- <form method="post">
-                                                    <div class="form-group">
-                                                        <textarea class="textarea_editor form-control" rows="15"
-                                                            placeholder="Enter text ..."
-                                                            v-model="registro.lectura"></textarea>
-                                                    </div>
-                                                </form> -->
                                             </div>
                                         </div>
                                     </div>
 
                                     <div class="row">
                                         <div class="col-md-12">
-
                                             <!-- Nav tabs -->
                                             <ul class="nav nav-tabs" role="tablist">
                                                 <li class="nav-item">
@@ -449,8 +427,15 @@ $(function () {
 export default {
     props: ['usuarioactual'],
     mounted() {
+        this.establecerSede();
+        this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
         this.listarUsuariosYSedes();
-        //this.busqueda.quien_asigno_id = this.usuarioactual.id;
+
+        this.emitter.on("sedeSeleccionada", (data) => {
+            this.busqueda.sede_id = data.idSede;
+            $("#example23").DataTable().destroy();
+            this.listarMisPendientes();
+        });
     },
     data() {
         return {
@@ -464,7 +449,7 @@ export default {
                 reg_med: '', medico: '', firma: '',
 
             },
-            busqueda: { estudioParaTranscibir: 'si', quien_asigno_id: "", medico_id: "", sede_id: sessionStorage.getItem('ST-sede'), bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
+            busqueda: { estudioParaTranscibir: 'si', quien_asigno_id: "", medico_id: "", sede_id: '', bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
             datosImagen: { urlOviyam: '', patientId: '', studyUID: '', serverName: '' },
             audiosDeEstudio: [],
             quienes_asignaron: [],
@@ -593,7 +578,6 @@ export default {
         },
         descargaSoportte(nomArchivoEncriptado) {
             const url = `/descarga-soportes-hc/${nomArchivoEncriptado}`;
-
             axios.get(url, { responseType: 'blob' })
                 .then(response => {
                     const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -607,7 +591,7 @@ export default {
                     console.error(error);
                 });
         },
-        async anularAsignacion(idAsignacion, idProductoEstudio, paciente, producto) {
+        async anularAsignacion(idProductoEstudio, paciente, producto) {
             swal({
                 title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
                 text: "No podrás recuperar este registro!",
@@ -618,7 +602,6 @@ export default {
                 closeOnConfirm: false
             }, function (isConfirm) {
                 if (isConfirm) {
-                    this.idRow = idAsignacion;
 
                     axios.post('estudio-anular-asignacion', { 'id': idProductoEstudio })
                         .then(res => {
@@ -628,6 +611,9 @@ export default {
                             var row = document.getElementById(this.idRow);
                             if (row) {
                                 row.remove();
+
+                                let indexFilaEliminar = this.registros.findIndex((x) => x.id_producto_lectura == idProductoEstudio);
+                                this.registros.splice(indexFilaEliminar, 1);
                             }
 
                             swal("Anulado!", "El producto se anulo correctamente.", "success");
@@ -646,11 +632,20 @@ export default {
             const res = await axios.get('/listar-audios-estudio/' + this.id);
             this.audiosDeEstudio = res.data;
         },
-        async mostrarRegistro(data = {}) {
+        establecerSede() {
+            this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
 
+            if (this.sede_id == 1) {
+                this.sedeInterface = true;
+            } else {
+                this.sedeInterface = false;
+            }
+            this.registros = [];
+        },
+        async mostrarRegistro(data = {}) {
             this.tituloModal = "Transcribir la lectura del paciente: " + data.nom_pacien;
             this.id = data.id;
-            this.idRow = data.id;
+            this.idRow = data.id_producto_lectura;
             this.registro.id_producto_lectura = data.id_producto_lectura;
             this.registro.fec_estudio = data.fec_estudio;
             this.registro.fec_lectura = data.fechor_lectura;

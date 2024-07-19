@@ -230,7 +230,7 @@
                 <li>
                     <form action="{{ url('logout') }}" method="POST">
                         @csrf
-                        <button type="submit" class="btn btn-link"> <i class="fa fa-power-off"></i>
+                        <button type="submit" class="btn btn-link"> <i class="fa fa-power-off text-danger"></i>
                             &nbsp;&nbsp;Cerrar Sesion
                         </button>
                     </form>

@@ -124,7 +124,8 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(item, index) in registros" :key="item.id" :id="item.id">
+                                    <tr v-for="(item, index) in registros" :key="item.id"
+                                        :id="item.id_producto_lectura">
                                         <td>
                                             <button type="button" v-if="item.priori_id == 1"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">A</button>
@@ -163,7 +164,7 @@
                                         <td class="text-nowrap">
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
-                                                @click="anularAsignacion(item.id, item.id_producto_lectura, item.nom_pacien, item.nom_produc);">
+                                                @click="anularAsignacion(item.id_producto_lectura, item.nom_pacien, item.nom_produc);">
                                                 <i class="fa fa-eraser"></i>
                                             </button>
                                         </td>
@@ -528,7 +529,7 @@ export default {
              */
             this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
         },
-        async anularAsignacion(idAsignacion, idProductoEstudio, paciente, producto) {
+        async anularAsignacion(idProductoEstudio, paciente, producto) {
             swal({
                 title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
                 text: "No podrás recuperar este registro!",
@@ -539,7 +540,6 @@ export default {
                 closeOnConfirm: false
             }, function (isConfirm) {
                 if (isConfirm) {
-                    this.idRow = idAsignacion;
 
                     axios.post('estudio-anular-asignacion', { 'id': idProductoEstudio })
                         .then(res => {

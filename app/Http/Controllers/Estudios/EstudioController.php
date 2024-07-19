@@ -248,6 +248,16 @@ class EstudioController extends Controller
         return response()->json($misPendiente, 200);
     }
 
+    public function leerEstudio(estudioLeerRequest $request, EstudioProducto $estudioProducto)
+    {
+        $productoLectura = EstudioProducto::findOrFail($request->id_producto_lectura);
+        $productoLectura->lectura = $request->lectura;
+        $productoLectura->fechor_lectura = Carbon::now();
+        $productoLectura->save();
+
+        return response()->json(['message' => 'La lectura se realizó correctamente.']);
+    }
+
     public function marcarEstudioVisto($id)
     {
         $estudioProducto = EstudioProducto::FindOrFail($id);
@@ -258,16 +268,6 @@ class EstudioController extends Controller
     {
         $diagnosticos = EstudioDiagnostico::where('estudio_id', '=', $request->id)->get();
         return response()->json($diagnosticos);
-    }
-
-    public function leerEstudio(estudioLeerRequest $request, EstudioProducto $estudioProducto)
-    {
-        $productoLectura = EstudioProducto::findOrFail($request->id_producto_lectura);
-        $productoLectura->lectura = $request->lectura;
-        $productoLectura->fechor_lectura = Carbon::now();
-        $productoLectura->save();
-
-        return response()->json(['message' => 'La lectura se realizó correctamente.']);
     }
 
     public function listarPendientesTrascribir(Request $request)
