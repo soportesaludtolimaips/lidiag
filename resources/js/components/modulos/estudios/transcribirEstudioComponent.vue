@@ -507,7 +507,7 @@ export default {
                     var row = document.getElementById(this.idRow);
                     if (row) {
                         row.remove();
-                        var estudioEliminar = this.registros.findIndex((x) => x.id == this.idRow);
+                        var estudioEliminar = this.registros.findIndex((x) => x.id_producto_lectura == this.idRow);
                         this.registros.splice(estudioEliminar, 1);
 
                         $("#example23").DataTable().destroy();
