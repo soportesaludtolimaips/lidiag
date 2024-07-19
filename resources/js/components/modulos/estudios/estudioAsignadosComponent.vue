@@ -329,20 +329,6 @@
                                         </div>
                                     </div>
                                     <br />
-
-                                    <!-- <h5 class="card-title text-info">
-                                        <i class="fa fa-user"></i> Diagnosticos
-                                    </h5>
-                                    <hr>
-
-                                    <div class="row table-responsive" style="height:150px; overflow-y: scroll;">
-                                        <div class="col-md-12">
-                                            <ul v-for="(item, index) in  diagnosticosEstudio " :key="index">
-                                                <li>{{ item.nom_diagnos }}</li>
-
-                                            </ul>
-                                        </div>
-                                    </div> -->
                                 </div>
                                 <div class="col-md-6">
                                     <div class="row">
@@ -369,21 +355,12 @@
                                                     class="textarea_editor form-control" rows="20" id="lectura"
                                                     style="height: 100%;"
                                                     placeholder="Ingrese aquí la lectura del estudio ..."></textarea>
-
-                                                <!-- <form method="post">
-                                                    <div class="form-group">
-                                                        <textarea class="textarea_editor form-control" rows="15"
-                                                            placeholder="Enter text ..."
-                                                            v-model="registro.lectura"></textarea>
-                                                    </div>
-                                                </form> -->
                                             </div>
                                         </div>
                                     </div>
 
                                     <div class="row">
                                         <div class="col-md-12">
-
                                             <!-- Nav tabs -->
                                             <ul class="nav nav-tabs" role="tablist">
                                                 <li class="nav-item">
@@ -530,6 +507,8 @@ export default {
             this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
         },
         async anularAsignacion(idProductoEstudio, paciente, producto) {
+            var $this = this;
+
             swal({
                 title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
                 text: "No podrás recuperar este registro!",
@@ -540,21 +519,33 @@ export default {
                 closeOnConfirm: false
             }, function (isConfirm) {
                 if (isConfirm) {
-
                     axios.post('estudio-anular-asignacion', { 'id': idProductoEstudio })
                         .then(res => {
-                            /**
-                             * Elimino la fila
-                             */
-                            var row = document.getElementById(this.idRow);
-                            if (row) {
-                                row.remove();
+                            if (res.status === 200) {
+                                var row = document.getElementById(idProductoEstudio);
+                                console.log(idProductoEstudio)
+                                if (row) {
+                                    row.remove();
+
+                                    var estudioEliminar = $this.registros.findIndex((x) => x.id_producto_lectura == idProductoEstudio);
+                                    console.log(estudioEliminar)
+                                    $this.registros.splice(estudioEliminar, 1);
+
+                                    $("#example23").DataTable().destroy();
+
+                                    $this.$nextTick(() => {
+                                        $("#example23").DataTable({
+                                            dom: "Bfrtip",
+                                            buttons: ["copy", "csv", "excel", "pdf", "print"],
+                                        });
+                                    });
+                                }
+
+                                swal("Anulado!", "El producto se anulo correctamente.", "success");
                             }
-
-                            swal("Anulado!", "El producto se anulo correctamente.", "success");
-
-                        }).catch(error => {
-                            swal("Anulado!", "El producto se anulo correctamente.", "success");
+                        })
+                        .catch(err => {
+                            console.log(err);
                         });
                 }
             });
