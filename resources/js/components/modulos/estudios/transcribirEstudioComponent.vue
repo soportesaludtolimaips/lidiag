@@ -530,9 +530,8 @@ export default {
                         stack: 6,
                     });
 
-                    //this.listarPendientesTrascribir();
-                    /* this.btnCerralModalForm();
-                    this.limpiar(); */
+                    this.btnCerralModalForm();
+                    this.limpiar();
                 } else {
                     $.toast({
                         heading: "Upss!!!",
@@ -592,6 +591,8 @@ export default {
                 });
         },
         async anularAsignacion(idProductoEstudio, paciente, producto) {
+            var $this = this;
+
             swal({
                 title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
                 text: "No podrás recuperar este registro!",
@@ -602,24 +603,33 @@ export default {
                 closeOnConfirm: false
             }, function (isConfirm) {
                 if (isConfirm) {
-
                     axios.post('estudio-anular-asignacion', { 'id': idProductoEstudio })
                         .then(res => {
-                            /**
-                             * Elimino la fila
-                             */
-                            var row = document.getElementById(this.idRow);
-                            if (row) {
-                                row.remove();
+                            if (res.status === 200) {
+                                var row = document.getElementById(idProductoEstudio);
+                                console.log(idProductoEstudio)
+                                if (row) {
+                                    row.remove();
 
-                                let indexFilaEliminar = this.registros.findIndex((x) => x.id_producto_lectura == idProductoEstudio);
-                                this.registros.splice(indexFilaEliminar, 1);
+                                    var estudioEliminar = $this.registros.findIndex((x) => x.id_producto_lectura == idProductoEstudio);
+                                    console.log(estudioEliminar)
+                                    $this.registros.splice(estudioEliminar, 1);
+
+                                    $("#example23").DataTable().destroy();
+
+                                    $this.$nextTick(() => {
+                                        $("#example23").DataTable({
+                                            dom: "Bfrtip",
+                                            buttons: ["copy", "csv", "excel", "pdf", "print"],
+                                        });
+                                    });
+                                }
+
+                                swal("Anulado!", "El producto se anulo correctamente.", "success");
                             }
-
-                            swal("Anulado!", "El producto se anulo correctamente.", "success");
-
-                        }).catch(error => {
-                            swal("Anulado!", "El producto se anulo correctamente.", "success");
+                        })
+                        .catch(err => {
+                            console.log(err);
                         });
                 }
             });
