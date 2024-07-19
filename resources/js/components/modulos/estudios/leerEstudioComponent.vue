@@ -45,9 +45,9 @@
                             </thead>
                             <tbody>
                                 <tr v-for="(item, index) in registros " :key="index"
-                                    :class="{ 'text-info': item.visto === 1 }" :id="item.id">
+                                    :class="{ 'text-info': item.visto === 1 }" :id="item.id_producto_lectura">
                                     <td width="2%">
-                                        {{ item.id }}
+                                        {{ item.id_producto_lectura }}
                                         <button type="button" v-if="item.priori_id == 1"
                                             class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">A</button>
                                         <button type="button" v-else-if="item.priori_id == 2"
@@ -517,10 +517,10 @@ export default {
                     });
 
                     var row = document.getElementById(this.idRow);
-
                     if (row) {
                         row.remove();
-                        var estudioEliminar = this.registros.findIndex((x) => x.id == this.idRow);
+
+                        var estudioEliminar = this.registros.findIndex((x) => x.id_producto_lectura == this.idRow);
                         this.registros.splice(estudioEliminar, 1);
 
                         $("#example23").DataTable().destroy();
@@ -548,7 +548,7 @@ export default {
         async mostrarRegistro(data = {}) {
             this.tituloModal = "Lectura de paciente: " + data.nom_pacien + "Producto: \n" + data.nom_produc;
             this.id = data.id;
-            this.idRow = data.id;
+            this.idRow = data.id_producto_lectura;
             this.registro.id_producto_lectura = data.id_producto_lectura;
             this.registro.fec_estudio = data.fec_estudio;
             this.registro.accession_no = data.accession_no;

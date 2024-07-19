@@ -10,6 +10,7 @@ use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use Illuminate\Support\Facades\DB;
 
 class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithColumnWidths, WithCustomStartCell
 {
@@ -26,18 +27,34 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
 
     public function collection()
     {
-        return Estudio::with([
-            'paciente',
-            'medico',
-            'quienRegistro',
-            'sede',
-            'prioridad',
-            'productos',
-            'productos.transcriptor',
-            'diagnosticos'
-        ])
-            ->whereBetween('fec_estudio', [$this->fechaInicio, $this->fechaFin])
-            ->where('sede_id', $this->sedeId)
+        $estudios = DB::table('estudios_productos')
+            ->join('estudios', 'estudios_productos.estudio_id', '=', 'estudios.id')
+            ->join('config_sedes', 'estudios.sede_id', '=', 'config_sedes.id')
+            ->join('config_prioridades', 'estudios.prioridad_id', '=', 'config_prioridades.id')
+            ->join('users as registro', 'estudios.quien_registro_id', '=', 'registro.id')
+            ->join('users as medico', 'medico.id', '=', 'estudios.medico_id')
+            ->join('pacientes', 'estudios.paciente_id', '=', 'pacientes.id')
+            ->leftJoin('users as transcrip', 'transcrip.id', '=', 'estudios_productos.transcriptor_id')
+            ->whereBetween(DB::raw('DATE(estudios.created_at)'), [$this->fechaInicio, $this->fechaFin])
+            ->where('estudios.sede_id', $this->sedeId)
+            ->select(
+                'estudios.id',
+                'config_sedes.nom_sede',
+                'estudios.fec_estudio',
+                'estudios_productos.created_at',
+                'estudios_productos.fechor_lectura',
+                'estudios.atencion',
+                'config_prioridades.nom_priori as quien_registro',
+                'registro.name as medico',
+                'pacientes.num_docu',
+                'pacientes.nombres',
+                'estudios_productos.cod_cups',
+                'estudios_productos.nom_produc',
+                'transcrip.name as transcriptor',
+                'estudios.eps',
+                'estudios.contrato',
+                'estudios.plan'
+            )
             ->get();
     }
 
@@ -47,7 +64,7 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
             'ID',
             'Sede',
             'Fecha de Estudio',
-            'Fecha de Estudio',
+            'Fecha de Asignacion',
             'Fecha de Lectura',
             'Atención',
             'Prioridad',
@@ -65,22 +82,21 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
 
     public function map($estudio): array
     {
-        $producto = $estudio->productos->first();
         return [
             $estudio->id,
-            optional($estudio->sede)->nom_sede, // Sede
+            $estudio->nom_sede,
             $estudio->fec_estudio,
-            $estudio->fec_estudio,
-            optional($producto)->fechor_lectura,
+            $estudio->created_at,
+            $estudio->fechor_lectura,
             $estudio->atencion,
-            optional($estudio->prioridad)->nom_priori,
-            optional($estudio->quienRegistro)->name,
-            optional($estudio->medico)->name,
-            optional($estudio->paciente)->num_docu,
-            optional($estudio->paciente)->nombres,
-            optional($producto)->cod_cups,
-            optional($producto)->nom_produc,
-            optional(optional($producto)->transcriptor)->name,
+            $estudio->nom_priori,
+            $estudio->quien_registro,
+            $estudio->medico,
+            $estudio->num_docu,
+            $estudio->nombres,
+            $estudio->cod_cups,
+            $estudio->nom_produc,
+            $estudio->transcriptor,
             $estudio->eps,
             $estudio->contrato,
         ];
