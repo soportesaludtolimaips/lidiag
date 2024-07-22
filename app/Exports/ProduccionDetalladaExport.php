@@ -11,6 +11,7 @@ use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 
 class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithColumnWidths, WithCustomStartCell
 {
@@ -44,8 +45,9 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
                 'estudios_productos.created_at',
                 'estudios_productos.fechor_lectura',
                 'estudios.atencion',
-                'config_prioridades.nom_priori as quien_registro',
-                'registro.name as medico',
+                'config_prioridades.nom_priori',
+                'registro.name as quien_registro',
+                'medico.name as medico',
                 'pacientes.num_docu',
                 'pacientes.nombres',
                 'estudios_productos.cod_cups',
@@ -56,6 +58,8 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
                 'estudios.plan'
             )
             ->get();
+
+        return new Collection($estudios);
     }
 
     public function headings(): array
@@ -76,29 +80,32 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
             'Nombre Producto',
             'Transcriptor',
             'EPS',
-            'Contrato'
+            'Contrato',
+            'Plan'
         ];
     }
 
     public function map($estudio): array
     {
         return [
-            $estudio->id,
-            $estudio->nom_sede,
-            $estudio->fec_estudio,
-            $estudio->created_at,
-            $estudio->fechor_lectura,
-            $estudio->atencion,
-            $estudio->nom_priori,
-            $estudio->quien_registro,
-            $estudio->medico,
-            $estudio->num_docu,
-            $estudio->nombres,
-            $estudio->cod_cups,
-            $estudio->nom_produc,
-            $estudio->transcriptor,
-            $estudio->eps,
-            $estudio->contrato,
+            $estudio->id ?? 'N/A',
+            $estudio->nom_sede ?? 'N/A',
+            $estudio->fec_estudio ?? 'N/A',
+            $estudio->created_at ?? 'N/A',
+            $estudio->fechor_lectura ?? 'N/A',
+            $estudio->atencion ?? 'N/A',
+            $estudio->nom_priori ?? 'N/A',
+            $estudio->quien_registro ?? 'N/A',
+            $estudio->medico ?? 'N/A',
+            $estudio->num_docu ?? 'N/A',
+            $estudio->nombres ?? 'N/A',
+            $estudio->cod_cups ?? 'N/A',
+            $estudio->nom_produc ?? 'N/A',
+            $estudio->transcriptor ?? 'N/A',
+            $estudio->eps ?? 'N/A',
+            $estudio->contrato ?? 'N/A',
+            $estudio->plan ?? 'N/A',
+
         ];
     }
 
@@ -106,7 +113,7 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
     {
         // Agrega el encabezado personalizado
         $sheet->setCellValue('A1', 'Salud Tolima - Reporte de Producción');
-        $sheet->mergeCells('A1:P1'); // A1 to P1 to include the new column
+        $sheet->mergeCells('A1:Q1'); // A1 to P1 to include the new column
         $sheet->getStyle('A1')->applyFromArray([
             'font' => [
                 'bold' => true,
@@ -123,7 +130,7 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
         ]);
 
         // Establece el estilo para el encabezado de los datos
-        $sheet->getStyle('A3:P3')->applyFromArray([
+        $sheet->getStyle('A3:Q3')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'color' => ['rgb' => 'FFFFFF'],
@@ -172,6 +179,7 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
             'N' => 25,
             'O' => 35,
             'P' => 35,
+            'Q' => 35,
         ];
     }
 
