@@ -113,6 +113,7 @@
                                         <th></th>
                                         <th>Sede</th>
                                         <th>Fecha de la Toma</th>
+                                        <th>Fecha de lectura</th>
                                         <!-- <th>Fecha de Asignación</th> -->
                                         <th>Quien Asigno</th>
                                         <th>Medico</th>
@@ -138,7 +139,7 @@
                                         </td>
                                         <td>{{ item.nom_sede }}</td>
                                         <td>{{ item.fec_estudio }}</td>
-                                        <!-- <td>{{ item.created_at }}</td> -->
+                                        <td>{{ item.fechor_lectura }}</td>
                                         <td>{{ item.quien_registro }}</td>
                                         <td>{{ item.medico }}</td>
                                         <td>
