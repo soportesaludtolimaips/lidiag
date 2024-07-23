@@ -142,26 +142,26 @@ class EstudioController extends Controller
         foreach ($registro['productosEstudio'] as $Producto) {
             if ($Producto['checked'] == true) {
 
-                $productoDicom = ConfigProducto::firstOrCreate(
+                /* $productoDicom = ConfigProducto::firstOrCreate(
                     ['cod_cups' => $Producto['cod_cups']],
                     [
                         'cod_cups' => $Producto['cod_cups'],
                         'nom_produc' => $Producto['nom_produc'],
                         'requi_lectura' => 0,
                     ]
-                );
+                ); */
 
-                /* $productoDicom = ConfigProducto::where('cod_cups', '=', $Producto->cod_cups)
+                $productoDicom = ConfigProducto::where('cod_cups', '=', $Producto['cod_cups'])
                     ->where('requi_lectura', '=', 1)->get();
+                if ($productoDicom) {
 
-                if ($productoDicom) { */
-                EstudioProducto::create([
-                    'estudio_id' => $estudio->id,
-                    'producto_id' => $productoDicom->id,
-                    'cod_cups' => $productoDicom->cod_cups,
-                    'nom_produc' => $productoDicom->nom_produc,
-                ]);
-                //}
+                    EstudioProducto::create([
+                        'estudio_id' => $estudio->id,
+                        'producto_id' => $productoDicom[0]->id,
+                        'cod_cups' => $productoDicom[0]->cod_cups,
+                        'nom_produc' => $productoDicom[0]->nom_produc,
+                    ]);
+                }
             }
         }
         /**
