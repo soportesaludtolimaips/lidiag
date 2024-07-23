@@ -36,7 +36,7 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
             ->join('users as medico', 'medico.id', '=', 'estudios.medico_id')
             ->join('pacientes', 'estudios.paciente_id', '=', 'pacientes.id')
             ->leftJoin('users as transcrip', 'transcrip.id', '=', 'estudios_productos.transcriptor_id')
-            ->whereBetween(DB::raw('DATE(estudios.created_at)'), [$this->fechaInicio, $this->fechaFin])
+            ->whereBetween(DB::raw('DATE(estudios.fec_estudio)'), [$this->fechaInicio, $this->fechaFin])
             ->where('estudios.sede_id', $this->sedeId)
             ->select(
                 'estudios.id',
