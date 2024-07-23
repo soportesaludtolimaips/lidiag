@@ -34,8 +34,9 @@ class ReporteProduccion extends Controller
                 'estudios_productos.created_at',
                 'estudios_productos.fechor_lectura',
                 'estudios.atencion',
-                'config_prioridades.nom_priori as quien_registro',
-                'registro.name as medico',
+                'config_prioridades.nom_priori',
+                'registro.name as quien_registro',
+                'medico.name as medico',
                 'pacientes.num_docu',
                 'pacientes.nombres',
                 'estudios_productos.cod_cups',
@@ -46,8 +47,8 @@ class ReporteProduccion extends Controller
                 'estudios.plan'
             )
             ->toSql();
-
         return $estudios; */
+
         // Define el nombre y la ruta del archivo
         $fileName = 'estudios_' . now()->format('Ymd_His') . '.xlsx';
         $filePath = 'reporte_lecturas/' . $fileName;
