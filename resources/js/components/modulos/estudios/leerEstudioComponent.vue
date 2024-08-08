@@ -59,7 +59,7 @@
                                     </td>
                                     <td>{{ item.nom_sede }}</td>
                                     <td>{{ item.fec_estudio }}</td>
-                                    <td>{{ item.created_at }}</td>
+                                    <td>{{ formatDate(item.created_at) }}</td>
                                     <td>{{ item.quien_registro }}</td>
                                     <td>
                                         {{ item.num_docu }} <br />
@@ -327,6 +327,12 @@
 </template>
 
 <script>
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export default {
     props: ['usuarioactual'],
@@ -614,6 +620,10 @@ export default {
                 this.sedeInterface = false;
             }
             this.registros = [];
+        },
+        formatDate(timestamp) {
+            // Convertir el timestamp UTC a la zona horaria local y formatear
+            return dayjs.utc(timestamp).local().format('YYYY-MM-DD HH:mm:ss');
         },
         limpiar() {
             this.tituloModal = "";

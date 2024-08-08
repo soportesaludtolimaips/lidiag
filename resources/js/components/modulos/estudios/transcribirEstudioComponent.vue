@@ -114,7 +114,7 @@
                                         <th>Sede</th>
                                         <th>Fecha de la Toma</th>
                                         <th>Fecha de lectura</th>
-                                        <!-- <th>Fecha de Asignación</th> -->
+                                        <th>Fecha del Asignación</th>
                                         <th>Quien Asigno</th>
                                         <th>Medico</th>
                                         <th>Paciente</th>
@@ -425,6 +425,14 @@
 $(function () {
     $('#textarea_editor').wysihtml5();
 });
+
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 export default {
     props: ['usuarioactual'],
     mounted() {
@@ -652,6 +660,10 @@ export default {
                 this.sedeInterface = false;
             }
             this.registros = [];
+        },
+        formatDate(timestamp) {
+            // Convertir el timestamp UTC a la zona horaria local y formatear
+            return dayjs.utc(timestamp).local().format('YYYY-MM-DD HH:mm:ss');
         },
         async mostrarRegistro(data = {}) {
             this.tituloModal = "Transcribir la lectura del paciente: " + data.nom_pacien;

@@ -389,9 +389,8 @@
 
                                     <div class="row">
                                         <div class="col-md-12" v-if="sedeInterface === false">
-                                            <select class="form-control custom-select"
-                                                @change="guardarProductosEstudio(10)" style="width: 100%; height: 36px"
-                                                v-model="productoSelecciondo">
+                                            <select class="select form-control" style="width: 100%; height:36px;"
+                                                @change="guardarProductosEstudio(10)" v-model="productoSelecciondo">
                                                 <option v-for="ItemProducto in productos" v-bind:key="ItemProducto"
                                                     v-bind:value="ItemProducto.id">
                                                     {{ ItemProducto.nom_produc }}
@@ -532,6 +531,9 @@ export default {
             this.establecerSede();
             $("#example23").DataTable().destroy();
         });
+
+        this.listarProductos();  // Carga los productos cuando el componente se monta
+        this.initializeSelect2(); // Inicializa Select2 después de cargar los productos
     },
     data() {
         return {
@@ -633,8 +635,6 @@ export default {
             }
         },
         async guardarRegistro() {
-
-
             try {
                 const formData = new FormData();
                 formData.append('registro', JSON.stringify(this.registro));
@@ -802,7 +802,9 @@ export default {
             try {
                 const res = await axios.get("/config-productos");
                 this.productos = res.data;
-
+                this.$nextTick(() => {
+                    $(this.$refs.select).select2(); // Reinicializa Select2 después de actualizar la lista de productos
+                });
             } catch (error) {
                 console.log(error);
             }
@@ -814,6 +816,11 @@ export default {
             } catch (error) {
                 console.log(error);
             }
+        },
+        initializeSelect2() {
+            this.$nextTick(() => {
+                $(this.$refs.select).select2();
+            });
         },
         guardarProductosEstudio() {
             var indexProductoEstudio = this.productos.findIndex((x) => x.id == this.productoSelecciondo);
@@ -860,8 +867,17 @@ export default {
         registros() {
             // Reinicia el objeto selectedRows cada vez que se cargan los registros
             this.selectedRows = {};
+        },
+        productos() {
+            this.$nextTick(() => {
+                $(this.$refs.select).trigger('change');
+            });
         }
-    }
+    },
+    /* updated() {
+        console.log("Componente actualizado");
+        this.productoSelecciondo;
+    }, */
 };
 </script>
 
