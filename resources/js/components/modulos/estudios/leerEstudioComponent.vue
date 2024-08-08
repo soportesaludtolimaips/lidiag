@@ -289,7 +289,7 @@
                                                 <div class="col-md-8 col-lg-9"
                                                     v-for="(itemArchivo, index) in soportesHC" :key="index">
                                                     <a href="javascript:void(0)"
-                                                        @click="descargaSoportte(itemArchivo.archivo_encrip)">
+                                                        @click="descargaSoportte(itemArchivo.archivo_original, itemArchivo.archivo_encrip)">
                                                         {{ itemArchivo.archivo_original }}
                                                     </a>
                                                 </div>
@@ -584,7 +584,7 @@ export default {
 
             this.listarAudios();
         },
-        descargaSoportte(nomArchivoEncriptado) {
+        descargaSoportte(nomArchivoOriginal, nomArchivoEncriptado) {
             const url = `/descarga-soportes-hc/${nomArchivoEncriptado}`;
 
             axios.get(url, { responseType: 'blob' })
@@ -592,7 +592,7 @@ export default {
                     const url = window.URL.createObjectURL(new Blob([response.data]));
                     const link = document.createElement('a');
                     link.href = url;
-                    link.setAttribute('download', nomArchivoEncriptado);
+                    link.setAttribute('download', nomArchivoOriginal);
                     document.body.appendChild(link);
                     link.click();
                 })
