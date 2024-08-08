@@ -15,10 +15,10 @@ use Illuminate\Support\Carbon;
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\Estudio\EstudioSoportesHC;
-use App\Models\Importar\AgendaProducto;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Str;
+use Illuminate\Support\Facades\DB;
 
 class EstudioController extends Controller
 {
@@ -210,7 +210,28 @@ class EstudioController extends Controller
     public function listarPendientesMedico(Request $request, Estudio $estudio)
     {
         $misPendiente = Estudio::select(
-            'estudios.*',
+            'estudios.id',
+            'estudios.study_pk',
+            'estudios.study_iuid',
+            'estudios.study_id',
+            'estudios.fec_estudio',
+            'estudios.accession_no',
+            'estudios.study_desc',
+            'estudios.mods_in_study',
+            'estudios.email_reportar',
+            'estudios.paciente_id',
+            'estudios.medico_id',
+            'estudios.quien_registro_id',
+            'estudios.sede_id',
+            'estudios.prioridad_id',
+            'estudios.observaciones',
+            'estudios.atencion',
+            'estudios.servicio',
+            'estudios.eps',
+            'estudios.contrato',
+            'estudios.plan',
+            'estudios.estado',
+            DB::raw("DATE_FORMAT(estudios.created_at, '%Y-%m-%d %H:%i:%s') AS created_at"),
             'pacien.num_docu',
             'pacien.nombres as nom_pacien',
             'pacien.fec_naci',
@@ -278,7 +299,28 @@ class EstudioController extends Controller
          * para transcribir los estudios que se envian a trys o a teleradiologia
          */
         $misPendiente = Estudio::select(
-            'estudios.*',
+            'estudios.id',
+            'estudios.study_pk',
+            'estudios.study_iuid',
+            'estudios.study_id',
+            'estudios.fec_estudio',
+            'estudios.accession_no',
+            'estudios.study_desc',
+            'estudios.mods_in_study',
+            'estudios.email_reportar',
+            'estudios.paciente_id',
+            'estudios.medico_id',
+            'estudios.quien_registro_id',
+            'estudios.sede_id',
+            'estudios.prioridad_id',
+            'estudios.observaciones',
+            'estudios.atencion',
+            'estudios.servicio',
+            'estudios.eps',
+            'estudios.contrato',
+            'estudios.plan',
+            'estudios.estado',
+            DB::raw("DATE_FORMAT(estudios.created_at, '%Y-%m-%d %H:%i:%s') AS created_at"),
             'pacien.num_docu',
             'pacien.nombres as nom_pacien',
             'pacien.fec_naci',
