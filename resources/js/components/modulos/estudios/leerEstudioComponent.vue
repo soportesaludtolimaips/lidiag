@@ -585,7 +585,7 @@ export default {
             this.listarAudios();
         },
         descargaSoportte(nomArchivoEncriptado) {
-            const url = `/ descarga - soportes - hc / ${nomArchivoEncriptado}`;
+            const url = `/descarga-soportes-hc/${nomArchivoEncriptado}`;
 
             axios.get(url, { responseType: 'blob' })
                 .then(response => {
