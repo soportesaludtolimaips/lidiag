@@ -490,7 +490,6 @@ export default {
                 });
             } else {
                 try {
-                    console.log(`Sede: ${this.sede_id}`)
                     const res = await axios.post('/estudio-listarPendientesMedico', { id: this.usuarioactual.id, sede_id: this.sede_id });
                     $("#example23").DataTable().destroy();
 
