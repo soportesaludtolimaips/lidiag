@@ -243,6 +243,7 @@ class EstudioController extends Controller
             ->whereNull('estu_produc.fechor_lectura')
             ->where('sesde.id', $request->sede_id)
             ->orderBy('priori.nom_priori')
+            ->orderBy('priori.nivel', 'ASC')
             ->get();
 
         return response()->json($misPendiente, 200);
@@ -327,7 +328,7 @@ class EstudioController extends Controller
             ->when($request->medico_id, function ($query, $medico_id) {
                 return $query->where('estudios.medico_id', $medico_id);
             })
-            ->orderBy('estudios.created_at', 'ASC')
+            ->orderBy('priori.nivel', 'ASC')
             ->get();
 
         return response()->json($misPendiente);

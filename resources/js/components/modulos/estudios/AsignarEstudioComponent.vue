@@ -101,8 +101,8 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="item in registros" :key="item.id"
-                                        :class="{ 'text-info': item.agendado === 1 }">
+                                    <tr v-for="(item, index) in registros" :key="item.id" :id="item.study_pk"
+                                        :class="{ 'text-info': item.agendado >= 1, 'text-info': selectedRows[index] }">
                                         <td>{{ item.study_datetime }}</td>
                                         <td>{{ item.pat_id }}</td>
                                         <td>{{ item.pat_name }}</td>
@@ -112,7 +112,7 @@
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
                                                 @click="actualizar = true;
-                                                mostrarRegistro(item);" title="Asignar estudio">
+                                                mostrarRegistro(item, index);" title="Asignar estudio">
                                                 <i class=" fa fa-child"></i>
                                             </button>
                                             <button type="button"
@@ -558,7 +558,9 @@ export default {
             diagnosticoSelecciondo: "",
             sedeActual: sessionStorage.getItem('ST-sede'),
             productosAtencion: [],
-            sedeInterface: false
+            sedeInterface: false,
+            idRow: null,
+            selectedRows: {},
         };
     },
     methods: {
@@ -632,8 +634,8 @@ export default {
         },
         async guardarRegistro() {
 
-            try {
 
+            try {
                 const formData = new FormData();
                 formData.append('registro', JSON.stringify(this.registro));
                 formData.append('archivo1', this.soportesHC.archivo1);
@@ -654,9 +656,10 @@ export default {
                         hideAfter: 3500,
                         stack: 6,
                     });
+
+                    this.selectedRows[this.idRow] = !this.selectedRows[this.idRow];
                 }
 
-                this.buscarStudy();
                 this.btnCerralModalForm();
                 this.limpiar();
 
@@ -674,11 +677,10 @@ export default {
         obtenerArchivo3(e) {
             this.soportesHC.archivo3 = e.target.files[0];
         },
-        async mostrarRegistro(data = {}) {
-
+        async mostrarRegistro(data = {}, index) {
             this.limpiar();
             this.tituloModal = "Agendar al paciente: " + data.pat_name;
-            this.id = data.id;
+            this.id = data.study_pk;
             this.registro.study_pk = data.study_pk;
             this.registro.study_iuid = data.study_iuid;
             this.registro.study_id = data.study_id;
@@ -692,6 +694,7 @@ export default {
             this.registro.nombres = data.pat_name;
             this.registro.sexo = data.pat_sex;
             this.registro.fec_naci = data.pat_birthdate;
+            this.idRow = index;
 
             this.btnCerralModalForm();
 
@@ -853,6 +856,12 @@ export default {
             window.open(Url, '_blank');
         },
     },
+    watch: {
+        registros() {
+            // Reinicia el objeto selectedRows cada vez que se cargan los registros
+            this.selectedRows = {};
+        }
+    }
 };
 </script>
 
