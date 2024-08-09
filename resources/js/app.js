@@ -19,6 +19,16 @@ const emitter = mitt();
 
 const app = createApp({});
 app.config.globalProperties.emitter = emitter;
+
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+// Opcional: Si deseas hacer dayjs globalmente disponible
+window.dayjs = dayjs;
 /**
  * Principales
  */
