@@ -660,8 +660,8 @@ export default {
                     this.selectedRows[this.idRow] = !this.selectedRows[this.idRow];
                 }
 
-                this.btnCerralModalForm();
-                this.limpiar();
+                /* this.btnCerralModalForm();
+                this.limpiar(); */
 
             } catch (error) {
                 console.log(error)
