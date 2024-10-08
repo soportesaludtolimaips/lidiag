@@ -56,9 +56,29 @@
                             <div class="form-group">
                                 <select class="form-control custom-select" style="width: 100%; height: 36px"
                                     v-model="datosReporte.sedeId" id="sedes" name="sedes">
-                                    <option value="0">Seleccione la sede</option>
+                                    <option value="0">...::: Todas las sedes :::...</option>
                                     <option v-for="ItemSede in sedes" v-bind:key="ItemSede" v-bind:value="ItemSede.id">
                                         {{ ItemSede.nom_sede }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <select class="form-control custom-select" style="width: 100%; height: 36px"
+                                    v-model="datosReporte.quien_asigno" id="sedes" name="sedes">
+                                    <option value="0">...::: Todos quienes agendaron :::...</option>
+                                    <option v-for="(ItemUsuario, index) in quienes_asignaron" :key="index"
+                                        :value="ItemUsuario.id">
+                                        {{ ItemUsuario.name }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <select class="form-control custom-select" style="width: 100%; height: 36px"
+                                    v-model="datosReporte.medico" id="sedes" name="sedes">
+                                    <option value="" selected>...::: Todos los medicos :::...</option>
+                                    <option v-for="(ItemUsuario, index) in medicos" :key="index"
+                                        :value="ItemUsuario.id">
+                                        {{ ItemUsuario.name }}
                                     </option>
                                 </select>
                             </div>
@@ -108,12 +128,27 @@ export default {
     data() {
         return {
             sedes: [], //Listo las sedes
-            datosReporte: { sedeId: 0, fechaIni: null, fechaFin: null }
+            datosReporte: { sedeId: 0, quien_asigno: null, medico: null, fechaIni: null, fechaFin: null },
+            quienes_asignaron: [],
+            medicos: [],
         }
     },
     methods: {
         async listarSedes() {
             try {
+
+                /**
+             * Lisato los transcriptores
+             */
+                const resTrasncriptores = await axios.get('/user.listarUsuarios/Transcriptor');
+                this.quienes_asignaron = resTrasncriptores.data;
+
+                /**
+                 * Listo los medicos
+                 */
+                const resMedicos = await axios.get('/user.listarUsuarios/Medico');
+                this.medicos = resMedicos.data;
+
                 const res = await axios.get('/config-sedes/listar/sedes/activas');
                 this.sedes = res.data;
             } catch (error) {
@@ -134,7 +169,7 @@ export default {
                     });
                 } else { */
                 //const res = await axios.post('/descarga-reportes-produccion', this.datosReporte);
-                window.open(`/descarga-reportes-produccion?sedeId=${this.datosReporte.sedeId}&fechaIni=${this.datosReporte.fechaIni}&fechaFin=${this.datosReporte.fechaFin}`);
+                window.open(`/descarga-reportes-produccion?sedeId=${this.datosReporte.sedeId}&quien_asigno=${this.datosReporte.quien_asigno}&medico=${this.datosReporte.medico}&fechaIni=${this.datosReporte.fechaIni}&fechaFin=${this.datosReporte.fechaFin}`);
                 //console.log(res)
                 //}
             } catch (error) {

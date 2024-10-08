@@ -57,7 +57,7 @@
                                         <button type="button" v-else-if="item.priori_id == 4"
                                             class="btn waves-effect waves-light btn-rounded btn-sm">S</button>
                                     </td>
-                                    <td>{{ item.nom_sede }}</td>
+                                    <td>{{ item.id }} - {{ item.nom_sede }}</td>
                                     <td>{{ item.fec_estudio }}</td>
                                     <td>{{ formatDate(item.created_at) }}</td>
                                     <td>{{ item.quien_registro }}</td>
@@ -388,77 +388,77 @@ export default {
     },
     methods: {
         setupCommandRecognition() {
-        this.recognition.onresult = (event) => {
-            let interimTranscript = ''; // Transcripción provisional
-            let finalTranscript = ''; // Transcripción final
+            this.recognition.onresult = (event) => {
+                let interimTranscript = ''; // Transcripción provisional
+                let finalTranscript = ''; // Transcripción final
 
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-                if (event.results[i].isFinal) {
-                    finalTranscript += event.results[i][0].transcript;
-                } else {
-                    interimTranscript += event.results[i][0].transcript;
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
                 }
+
+                // Procesar el resultado final si existe
+                if (finalTranscript) {
+                    this.processCommand(finalTranscript.trim().toLowerCase());
+                }
+            };
+        },
+        processCommand(command) {
+            let isCommand = false;
+
+            // Reconocer comandos de voz para acciones y signos de puntuación
+            if (command.includes('iniciar grabación')) {
+                this.startRecording();
+                isCommand = true;
+            } else if (command.includes('detener grabación')) {
+                this.stopRecording();
+                isCommand = true;
+            } else if (command.includes('guardar lectura')) {
+                this.guardarRegistro();
+                isCommand = true;
+            } else if (command.includes('mayúscula sostenida')) {
+                this.mayusculaSostenida = true;
+                isCommand = true;
+            } else if (command.includes('terminar mayúscula sostenida')) {
+                this.mayusculaSostenida = false;
+                isCommand = true;
+            } else if (command.includes('dar espacio')) {
+                this.registro.lectura += ' ';
+                isCommand = true;
+            } else if (command.includes('doble espacio')) {
+                this.registro.lectura += '\n\n'; // Doble salto de línea para nuevo párrafo
+                isCommand = true;
+            } else if (command.includes('un espacio')) {
+                this.registro.lectura += '\n'; // Un salto de línea
+                isCommand = true;
+            } else if (command.includes('punto aparte')) {
+                this.registro.lectura += '.\n\n'; // Punto aparte (punto + dos saltos de línea)
+                isCommand = true;
+            } else if (command.includes('punto')) {
+                this.registro.lectura += '.'; // Punto
+                isCommand = true;
             }
 
-            // Procesar el resultado final si existe
-            if (finalTranscript) {
-                this.processCommand(finalTranscript.trim().toLowerCase());
+            // Si no es un comando, procesamos el texto
+            if (!isCommand) {
+                // Aplicar mayúscula sostenida si está activada
+                if (this.mayusculaSostenida) {
+                    command = command.toUpperCase();
+                }
+
+                // Procesar otros signos de puntuación
+                command = command
+                    .replace(/\bcoma\b/g, ',')
+                    .replace(/\bpunto y coma\b/g, ';')
+                    .replace(/\bdos puntos\b/g, ':');
+
+                // Añadir el texto al contenido existente sin agregar saltos de línea extra
+                this.registro.lectura += command;
             }
-        };
-    },
-    processCommand(command) {
-        let isCommand = false;
-
-        // Reconocer comandos de voz para acciones y signos de puntuación
-        if (command.includes('iniciar grabación')) {
-            this.startRecording();
-            isCommand = true;
-        } else if (command.includes('detener grabación')) {
-            this.stopRecording();
-            isCommand = true;
-        } else if (command.includes('guardar lectura')) {
-            this.guardarRegistro();
-            isCommand = true;
-        } else if (command.includes('mayúscula sostenida')) {
-            this.mayusculaSostenida = true;
-            isCommand = true;
-        } else if (command.includes('terminar mayúscula sostenida')) {
-            this.mayusculaSostenida = false;
-            isCommand = true;
-        } else if (command.includes('dar espacio')) {
-            this.registro.lectura += ' ';
-            isCommand = true;
-        } else if (command.includes('doble espacio')) {
-            this.registro.lectura += '\n\n'; // Doble salto de línea para nuevo párrafo
-            isCommand = true;
-        } else if (command.includes('un espacio')) {
-            this.registro.lectura += '\n'; // Un salto de línea
-            isCommand = true;
-        } else if (command.includes('punto aparte')) {
-            this.registro.lectura += '.\n\n'; // Punto aparte (punto + dos saltos de línea)
-            isCommand = true;
-        } else if (command.includes('punto')) {
-            this.registro.lectura += '.'; // Punto
-            isCommand = true;
-        }
-
-        // Si no es un comando, procesamos el texto
-        if (!isCommand) {
-            // Aplicar mayúscula sostenida si está activada
-            if (this.mayusculaSostenida) {
-                command = command.toUpperCase();
-            }
-
-            // Procesar otros signos de puntuación
-            command = command
-                .replace(/\bcoma\b/g, ',')
-                .replace(/\bpunto y coma\b/g, ';')
-                .replace(/\bdos puntos\b/g, ':');
-
-            // Añadir el texto al contenido existente sin agregar saltos de línea extra
-            this.registro.lectura += command;
-        }
-    },
+        },
         startSpeechRecognition() {
             if (!this.recognizing) {
                 this.recognition.start();

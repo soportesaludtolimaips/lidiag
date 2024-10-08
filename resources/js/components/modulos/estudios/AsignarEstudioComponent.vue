@@ -92,9 +92,9 @@
                                 width="100%">
                                 <thead>
                                     <tr>
-                                        <th>Fecha del Estudio</th>
-                                        <th># Documento</th>
-                                        <th>Paciente</th>
+                                        <th with='5%'>Fecha del Estudio</th>
+                                        <th with='5%'># Documento</th>
+                                        <th with='30%'>Paciente</th>
                                         <th>Accession</th>
                                         <th>Descripción</th>
                                         <th></th>
@@ -102,7 +102,7 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="(item, index) in registros" :key="item.id" :id="item.study_pk"
-                                        :class="{ 'text-info': item.agendado >= 1, 'text-info': selectedRows[index] }">
+                                        :class="{ 'text-info': item.agendado !== 0 }">
                                         <td>{{ item.study_datetime }}</td>
                                         <td>{{ item.pat_id }}</td>
                                         <td>{{ item.pat_name }}</td>

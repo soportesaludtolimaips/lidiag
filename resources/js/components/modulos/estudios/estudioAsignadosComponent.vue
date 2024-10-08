@@ -118,8 +118,9 @@
                                         <th>Paciente</th>
                                         <th>Detalle</th>
                                         <th>Producto</th>
-                                        <th>T</th>
-                                        <th>A</th>
+                                        <th>Leido</th>
+                                        <th>Transctito</th>
+                                        <th>Activo</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -153,13 +154,19 @@
                                         <td>{{ item.nom_produc }}</td>
                                         <td>
                                             <span class="label label-success"
+                                                v-if="item.fechor_lectura != null">Si</span>
+                                            <span class="label label-danger"
+                                                v-if="item.fechor_lectura === null">No</span>
+                                        </td>
+                                        <td>
+                                            <span class="label label-success"
                                                 v-if="item.transcriptor_id != null">Si</span>
                                             <span class="label label-danger"
                                                 v-if="item.transcriptor_id === null">No</span>
                                         </td>
                                         <td>
-                                            <span class="label label-success" v-if="item.activo === 1">No</span>
-                                            <span class="label label-danger" v-if="item.activo === 0">Si</span>
+                                            <span class="label label-success" v-if="item.activo === 1">Si</span>
+                                            <span class="label label-danger" v-if="item.activo === 0">No</span>
                                         </td>
                                         <td class="text-nowrap">
                                             <button type="button"

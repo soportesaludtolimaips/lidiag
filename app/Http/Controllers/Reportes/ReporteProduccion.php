@@ -16,6 +16,8 @@ class ReporteProduccion extends Controller
         $fechaInicio = $resquest->fechaIni;
         $fechaFin = $resquest->fechaFin;
         $sedeId = $resquest->sedeId;
+        $quienAsignoId = $resquest->quien_asigno;
+        $medicoId = $resquest->medico;
 
         /* $estudios = DB::table('estudios_productos')
             ->join('estudios', 'estudios_productos.estudio_id', '=', 'estudios.id')
@@ -53,7 +55,7 @@ class ReporteProduccion extends Controller
         $fileName = 'estudios_' . now()->format('Ymd_His') . '.xlsx';
         $filePath = 'reporte_lecturas/' . $fileName;
 
-        return Excel::download(new ProduccionDetalladaExport($fechaInicio, $fechaFin, $sedeId),  'produccion lecturas de imagenes diagnosticas.xlsx');
+        return Excel::download(new ProduccionDetalladaExport($fechaInicio, $fechaFin, $sedeId, $quienAsignoId, $medicoId),  'produccion lecturas de imagenes diagnosticas.xlsx');
 
         // Retorna la ruta del archivo almacenado
         //return response()->json(['file_path' => $filePath]);
