@@ -18,16 +18,23 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
     protected $fechaInicio;
     protected $fechaFin;
     protected $sedeId;
+    protected $quienAsignoId;
+    protected $medicoId;
 
-    public function __construct($fechaInicio, $fechaFin, $sedeId)
+    public function __construct($fechaInicio, $fechaFin, $sedeId, $quienAsignoId, $medicoId)
     {
         $this->fechaInicio = $fechaInicio;
         $this->fechaFin = $fechaFin;
         $this->sedeId = $sedeId;
+        $this->quienAsignoId = $quienAsignoId;
+        $this->medicoId = $medicoId;
     }
 
     public function collection()
     {
+        $quien_asigno_id = $this->quienAsignoId;
+        $medico_id = $this->medicoId;
+
         $estudios = DB::table('estudios_productos')
             ->join('estudios', 'estudios_productos.estudio_id', '=', 'estudios.id')
             ->join('config_sedes', 'estudios.sede_id', '=', 'config_sedes.id')
@@ -36,8 +43,17 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
             ->join('users as medico', 'medico.id', '=', 'estudios.medico_id')
             ->join('pacientes', 'estudios.paciente_id', '=', 'pacientes.id')
             ->leftJoin('users as transcrip', 'transcrip.id', '=', 'estudios_productos.transcriptor_id')
-            ->whereBetween(DB::raw('DATE(estudios.fec_estudio)'), [$this->fechaInicio, $this->fechaFin])
-            ->where('estudios.sede_id', $this->sedeId)
+            ->whereDate('estudios.fec_estudio', '>=', $this->fechaInicio)
+            ->whereDate('estudios.fec_estudio', '<=', $this->fechaFin)
+            ->when($this->sedeId, function ($query) {
+                return $query->where('estudios.sede_id', $this->sedeId);
+            })
+            ->when($this->quienAsignoId, function ($query) use ($quien_asigno_id) {
+                return $query->where('estudios.quien_registro_id', $quien_asigno_id);
+            })
+            ->when($this->medicoId, function ($query) use ($medico_id) {
+                return $query->where('estudios.medico_id', $medico_id);
+            })
             ->select(
                 'estudios.id',
                 'config_sedes.nom_sede',
@@ -58,6 +74,7 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
                 'estudios.plan'
             )
             ->get();
+
 
         return new Collection($estudios);
     }
