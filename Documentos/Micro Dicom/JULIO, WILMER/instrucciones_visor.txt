@@ -1,0 +1,13 @@
+
+Esta carpeta contiene el visor Microdicom para Windows, así como las imágenes de su estudio.
+Puede grabar el contenido de la carpeta microdicom en un CD, así como también en una memoria USB, para llevarlas a
+su médico tratante.
+Para visualizar sus imágenes, debe dar doble clic sobre el archivo "run" o "run.bat"
+
+
+El visor incluido funciona para sistema operativo de 32 y 64 Bits, sin embargo, si tiene algún inconveniente,
+Recomendamos para Windows descargar e instalar Microdicom Viewer
+https://www.microdicom.com/downloads.html
+
+Para usuarios Mac OS, recomendamos descargar e instalar Osirix Lite
+https://www.osirix-viewer.com/osirix/osirix-md/download-osirix-lite/

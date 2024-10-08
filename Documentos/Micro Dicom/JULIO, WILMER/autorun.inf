@@ -1,0 +1,9 @@
+[AutoRun.Amd64]
+LABEL=MicroDicom DICOM viewer 64-Bit
+OPEN=x64\mdicom.exe /scan .
+ICON=x64\mdicom.exe,0
+
+[AutoRun]
+LABEL=MicroDicom DICOM viewer 32-Bit
+OPEN=x64\mdicom.exe /scan .
+ICON=x64\mdicom.exe,0

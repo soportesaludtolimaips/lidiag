@@ -43,7 +43,6 @@ class EstudioController extends Controller
      */
     public function store(Request $request)
     {
-
         $registro = json_decode($request->input('registro'), true);
 
         $validator = Validator::make($registro, [
@@ -153,7 +152,10 @@ class EstudioController extends Controller
 
                 $productoDicom = ConfigProducto::where('cod_cups', '=', $Producto['cod_cups'])
                     ->where('requi_lectura', '=', 1)->get();
-                if ($productoDicom) {
+
+                if (!$productoDicom) {
+                    return response()->json(['message' => 'No se encontró el producto con código CPS ' . $Producto['cod_cups'] . 'en la base de datos.'], 400);
+                } else {
 
                     EstudioProducto::create([
                         'estudio_id' => $estudio->id,
