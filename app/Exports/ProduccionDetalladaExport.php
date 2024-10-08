@@ -75,7 +75,6 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
             )
             ->get();
 
-
         return new Collection($estudios);
     }
 
