@@ -472,7 +472,6 @@ class EstudioController extends Controller
         $sede = ConfigSede::findOrfail($request->sede_id);
         if ($sede->interface_software === 'SAHI') {
             $transcribir = (new SAHITranscibirController())->enviarEstudio($request->atencion, $request->medico_id, $request->lectura, $request->cod_cups, $request->fec_lectura);
-            return $transcribir;
             //$transcribir->status();
         }
 
