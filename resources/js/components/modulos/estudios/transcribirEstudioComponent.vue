@@ -112,20 +112,19 @@
                                     <tr>
                                         <th></th>
                                         <th>Sede</th>
-                                        <th>Fecha de la Toma</th>
-                                        <th>Fecha de lectura</th>
-                                        <th>Fecha del Asignación</th>
+                                        <th>Toma</th>
+                                        <th with="50%">Lectura</th>
+                                        <th>Asignación</th>
                                         <th>Quien Asigno</th>
-                                        <th>Medico</th>
-                                        <th>Paciente</th>
+                                        <th with="50%">Medico</th>
+                                        <th with="50%">Paciente</th>
                                         <th>Detalle</th>
                                         <th>Producto</th>
                                         <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(item, index) in registros" :key="item.id"
-                                        :id="item.id_producto_lectura">
+                                    <tr v-for="(item) in registros" :key="item.id" :id="item.id_producto_lectura">
                                         <td>
                                             <!-- {{ item.id_producto_lectura }} -->
                                             <button type="button" v-if="item.priori_id == 1"
@@ -140,6 +139,7 @@
                                         <td>{{ item.nom_sede }}</td>
                                         <td>{{ item.fec_estudio }}</td>
                                         <td>{{ item.fechor_lectura }}</td>
+                                        <td>{{ formatDate(item.created_at) }}</td>
                                         <td>{{ item.quien_registro }}</td>
                                         <td>{{ item.medico }}</td>
                                         <td>
@@ -455,7 +455,7 @@ export default {
             registro: {
                 id_estudio: 0, id_producto_lectura: 0, lectura: "", fec_lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", email_reportar: '', num_docu: "", nom_pacien: "", sexo: "",
                 fec_naci: "", email: "", diagnosticosEstudio: [], sede_id: "", atencion: null, servicio: null, eps: null, contrato: null, medico_id: null, cod_cups: '', nom_produc: '', num_docu_medi: '',
-                reg_med: '', medico: '', firma: '',
+                reg_med: '', medico: '', firma: '', url_oviyam: null, tap_oviyam: null, study_iuid: null, tap_oviyam: null,
 
             },
             busqueda: { estudioParaTranscibir: 'si', quien_asigno_id: "", medico_id: "", sede_id: '', bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
@@ -531,7 +531,7 @@ export default {
 
                     $.toast({
                         heading: "Ok!!!",
-                        text: 'Lectura transferida correctamente',
+                        text: res.data.message,
                         position: "top-right",
                         loaderBg: "#ff6849",
                         icon: "success",
@@ -539,8 +539,8 @@ export default {
                         stack: 6,
                     });
 
-                    this.btnCerralModalForm();
-                    this.limpiar();
+                    /* this.btnCerralModalForm();
+                    this.limpiar(); */
                 } else {
                     $.toast({
                         heading: "Upss!!!",
@@ -699,6 +699,10 @@ export default {
 
             this.registro.sede_id = data.sede_id;
             this.registro.nom_sede = data.nom_sede;
+
+            this.registro.url_oviyam = data.url_oviyam;
+            this.registro.study_iuid = data.study_iuid;
+            this.registro.tap_oviyam = data.tap_oviyam;
 
             const res = await axios.get('/study-listar-diagnostico-por-estudio?id=' + this.id);
             this.diagnosticosEstudio = res.data;
