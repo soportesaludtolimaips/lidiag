@@ -195,7 +195,7 @@ class EstudioNotificacionController extends Controller
                 // Definir el nombre del archivo
                 $filename = 'imagen_' . $study_iuid . '_' . $seriesUID . '_' . $objectUID . '.jpg';
 
-                // Guardar la imagen en el directorio 'public' del storage
+                // Guardar la imagen en el directorio 'img_dicom' del storage
                 Storage::put('img_dicom/' . $study_iuid . "/" . $filename, $imageContent);
             } else {
                 // Manejo de errores si alguna imagen no se pudo descargar
