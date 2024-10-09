@@ -91,6 +91,12 @@ return [
             'url' => env('APP_URL') . '/plantillas_lecturas',
             'visibility' => 'public',
         ],
+        'img_dicom' => [
+            'driver' => 'local',
+            'root' => storage_path('app/img_dicom'),
+            'url' => env('APP_URL') . '/img_dicom',
+            'visibility' => 'public',
+        ],
     ],
 
     /*
@@ -112,6 +118,7 @@ return [
         public_path('soportes_hc') => storage_path('app/soportes_hc'),
         public_path('audios') => storage_path('app/audios'),
         public_path('plantillas_lecturas') => storage_path('app/plantillas_lecturas'),
+        public_path('img_dicom') => storage_path('app/img_dicom'),
     ],
 
 ];

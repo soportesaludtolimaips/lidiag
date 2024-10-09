@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Configuracion\ConfigSede;
 use Illuminate\Http\Request;
 use PhpOffice\PhpWord\TemplateProcessor;
-use PhpOffice\PhpWord\Shared\Html;
 use Carbon\Carbon;
 use PhpOffice\PhpWord\Element\TextRun;
 
@@ -15,6 +14,7 @@ class PlantillaEstudioController extends Controller
 {
     public function editWord(Request $request)
     {
+
         /**
          * Buscarmos la sede para saber cual es la plantilla
          */
@@ -52,11 +52,8 @@ class PlantillaEstudioController extends Controller
 
         $templateProcessor->setValue('atencion', $request->atencion);
 
-
-
         // Crear un TextRun para manejar el texto enriquecido
         $textRun = new TextRun();
-
 
         // Agregar el texto con el formato necesario
         foreach (explode("\n", $request->lectura) as $line) {
@@ -97,7 +94,7 @@ class PlantillaEstudioController extends Controller
         }
 
         // Ruta para guardar el archivo editado
-        $nomArchivo = $request->id . "-" . $request->num_docu . "-" . $nombrePaciente;
+        $nomArchivo = $request->id_producto_lectura . "-" . $request->num_docu . "-" . $nombrePaciente;
         $outputPath = storage_path('app/reporte_lecturas/' . $nomArchivo . '.docx');
         $templateProcessor->saveAs($outputPath);
 
@@ -106,9 +103,12 @@ class PlantillaEstudioController extends Controller
 
             $urlApiReportes = config('app.URL_API_REPORTES') . "api/almacenarLectura";
 
+            unlink($outputPath);
+
             return response()->json(
                 [
-                    'messaje' => 'Plantilla creada correctament', 'plantilla' => $nomArchivo . ".pdf",
+                    'messaje' => 'Plantilla creada correctament',
+                    'plantilla' => $nomArchivo . ".pdf",
                     'urlApiReportes' => $urlApiReportes
                 ],
                 200

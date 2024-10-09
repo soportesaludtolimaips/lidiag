@@ -4,11 +4,16 @@ namespace App\Http\Controllers\Estudios;
 
 use App\Http\Controllers\Controller;
 use App\Mail\NotificacionDeLectura;
+use App\Models\Configuracion\ConfigSede;
+use App\Models\Dcm4chee\Instance;
 use App\Models\Estudio\Estudio;
 use App\Models\General\Paciente;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Config;
+use Twilio\Rest\Client;
 
 class EstudioNotificacionController extends Controller
 {
@@ -74,7 +79,7 @@ class EstudioNotificacionController extends Controller
         $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
         $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
 
-        $nomArchivoReporte = $estudio->id . "-" . $estudio->num_docu . "-" . $nombrePaciente . ".pdf";
+        $nomArchivoReporte = $estudio->id_producto_lectura . "-" . $estudio->num_docu . "-" . $nombrePaciente . ".pdf";
 
         /**
          * Envio la lectura a Lidiag-reportes para que este diponible para la descarga por parte del paciente
@@ -89,11 +94,11 @@ class EstudioNotificacionController extends Controller
             'num_docu' => $estudio->num_docu,
             'name' => $estudio->nom_pacien,
             'fec_naci' => $estudio->fec_naci,
-            'study_iuid' => $estudio->study_iuid,
             'nom_produc' => $estudio->nom_produc,
             'fechor_lectura' => $estudio->fechor_lectura,
             'nom_sede' => $estudio->nom_sede,
             'url_oviyam' => $estudio->url_oviyam,
+            'study_iuid' => $estudio->study_iuid,
             'tap_oviyam' => $estudio->tap_oviyam,
         ]);
 
@@ -112,7 +117,8 @@ class EstudioNotificacionController extends Controller
          * Envio de email con el adjunto del reporte de la lectura del estudio
          */
         if ($estudio->email != "") {
-            $mailable = new NotificacionDeLectura($estudio, $nomArchivoReporte);
+            $this->descargaImgDicom($estudio->sede_id, $estudio->study_iuid);
+            $mailable = new NotificacionDeLectura($estudio, $nomArchivoReporte, $estudio->study_iuid);
             Mail::to($estudio->email)->send($mailable);
         }
 
@@ -121,6 +127,114 @@ class EstudioNotificacionController extends Controller
             Mail::to($estudio->email_reportar)->send($mailable);
         } */
 
+        unlink(storage_path('app/reporte_lecturas/' . $nomArchivoReporte));
+
+        // Obtener las rutas de las imágenes que se enviaron
+        $imagenesAdjuntos = Storage::files('img_dicom/' . $estudio->study_iuid);
+
+        // Eliminar cada imagen
+        foreach ($imagenesAdjuntos as $imagen) {
+            Storage::delete($imagen);
+        }
+
+        // Eliminar la carpeta que contiene las imágenes
+        Storage::deleteDirectory('img_dicom/' . $estudio->study_iuid);
+
+        $this->enviarWhatsApp(573161754039);
+
         return response()->json(['message' => 'La notificación se generó correctamente.']);
+    }
+
+    public static function descargaImgDicom($sedeId, $study_iuid)
+    {
+        $sedeActual = ConfigSede::find($sedeId);
+
+        //Configuramos la segunda base de datos
+        config(['database.connections.mysql_sucursal' => [
+            'driver' => 'mysql',
+            'host' => env('DB_SUCURSAL_HOST', $sedeActual->ip_dcm),
+            'port' => env('DB_SUCURSAL_PUERTO', $sedeActual->puerto_dcm),
+            'database' => env('DB_SUCURSAL_DATABASE', $sedeActual->bd_dcm),
+            'username' => env('DB_SUCURSAL_USERNAME', $sedeActual->usuario_dcm),
+            'password' => env('DB_SUCURSAL_PASSWORD', $sedeActual->password_dcm),
+            'charset' => env('DB_SUCURSAL_charset', 'latin1'),
+            'collation' => env('DB_SUCURSAL_collation', 'latin1_swedish_ci'),
+        ]]);
+
+        //Aplicamos la nueva configuracion de bade datos
+        Config::set('database.default', 'mysql_sucursal');
+
+        // Obtener todas las series y las instancias (imágenes) del estudio
+        $imagenes = Instance::join('series', 'instance.series_fk', '=', 'series.pk')
+            ->join('study', 'series.study_fk', '=', 'study.pk')
+            ->where('study.study_iuid', $study_iuid)
+            ->select('series.series_iuid', 'instance.sop_iuid')
+            ->get();
+
+        // Verificar si se encontraron imágenes
+        if ($imagenes->isEmpty()) {
+            return response()->json(['error' => 'No se encontraron imágenes para el estudio especificado'], 404);
+        }
+
+        // Iterar sobre cada imagen, descargar y guardar en el storage
+        foreach ($imagenes as $imagen) {
+            $seriesUID = $imagen->series_iuid;
+            $objectUID = $imagen->sop_iuid;
+
+            // URL del servicio WADO para la imagen
+            $wadoUrl = "http://" . $sedeActual->ip_dcm . ":8080/wado?requestType=WADO&studyUID=$study_iuid&seriesUID=$seriesUID&objectUID=$objectUID&contentType=image/jpeg";
+
+            // Hacer la solicitud HTTP GET para obtener la imagen
+            $response = Http::get($wadoUrl);
+
+            // Verificar si la solicitud fue exitosa
+            if ($response->successful()) {
+                // Obtener el contenido de la imagen
+                $imageContent = $response->body();
+
+                // Definir el nombre del archivo
+                $filename = 'imagen_' . $study_iuid . '_' . $seriesUID . '_' . $objectUID . '.jpg';
+
+                // Guardar la imagen en el directorio 'public' del storage
+                Storage::put('img_dicom/' . $study_iuid . "/" . $filename, $imageContent);
+            } else {
+                // Manejo de errores si alguna imagen no se pudo descargar
+                return response()->json(['error' => 'Error al descargar una de las imágenes'], 500);
+            }
+        }
+
+        // Devolver un mensaje de éxito
+        return response()->json(['success' => 'Todas las imágenes se han descargado y guardado correctamente'], 200);
+    }
+
+    public function enviarMensajeWhatsApp($numeroTelefono, $mensaje)
+    {
+        $sid    = "ACcdc29948e05772a83ac3e0db74169c96";
+        $token  = "b92011d04a5d9d1b929a1b97d7dff9f7";
+        $twilio = new Client($sid, $token);
+
+        /* $message = $twilio->messages
+            ->create(
+                "whatsapp:+573161754039", // to
+                array(
+                    "from" => "whatsapp:+14155238886",
+                    "contentSid" => "HXb5b62575e6e4ff6129ad7c8efe1f983e",
+                    //"contentVariables" => {"1":"12/1","2":"3pm"},
+                    'body' => 'Hola {nombre}, tu reporte de imagen diagnóstica está listo. Puedes revisarlo aquí: {link}. Gracias por elegirnos.',
+                    'mediaUrl' => ['https://tureporte.com/reporte.pdf']
+                )
+            ); */
+
+        $message = $twilio->messages->create(
+            'whatsapp:+573223669021', // Número del destinatario
+            [
+                "from" => "whatsapp:+14155238886",
+                "contentSid" => "HXb5b62575e6e4ff6129ad7c8efe1f983e",
+                'body' => 'Hola {nombre}, tu reporte de imagen diagnóstica está listo. Puedes revisarlo aquí: {link}. Gracias por elegirnos.',
+                'mediaUrl' => ['https://tureporte.com/reporte.pdf']  // Enlace o URL que quieras compartir
+            ]
+        );
+
+        return response()->json(['success' => 'Mensaje enviado por WhatsApp', 'message' => $message->sid], 200);
     }
 }
