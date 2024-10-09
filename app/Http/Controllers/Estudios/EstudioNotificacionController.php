@@ -140,8 +140,6 @@ class EstudioNotificacionController extends Controller
         // Eliminar la carpeta que contiene las imágenes
         Storage::deleteDirectory('img_dicom/' . $estudio->study_iuid);
 
-        $this->enviarWhatsApp(573161754039);
-
         return response()->json(['message' => 'La notificación se generó correctamente.']);
     }
 
