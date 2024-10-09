@@ -539,8 +539,8 @@ export default {
                         stack: 6,
                     });
 
-                    /* this.btnCerralModalForm();
-                    this.limpiar(); */
+                    this.btnCerralModalForm();
+                    this.limpiar();
                 } else {
                     $.toast({
                         heading: "Upss!!!",
