@@ -103,7 +103,7 @@
                                 <tbody>
                                     <tr v-for="(item, index) in registros" :key="item.id" :id="item.study_pk"
                                         :class="{ 'text-info': item.agendado !== 0 }">
-                                        <td>{{ item.study_datetime }}</td>
+                                        <td>{{ index }} - {{ item.study_datetime }}</td>
                                         <td>{{ item.pat_id }}</td>
                                         <td>{{ item.pat_name }}</td>
                                         <td>{{ item.accession_no }}</td>
@@ -656,6 +656,8 @@ export default {
                         hideAfter: 3500,
                         stack: 6,
                     });
+                    // Actualiza el valor de `agendado` para que se refleje el cambio de clase
+                    this.registros[this.idRow].agendado = 1; // O el valor que necesites asignar
 
                     this.selectedRows[this.idRow] = !this.selectedRows[this.idRow];
                 }
@@ -664,8 +666,18 @@ export default {
                 this.limpiar();
 
             } catch (error) {
-                console.log(error)
                 this.errores = error.response.data;
+                if (error.response.status == 400) {
+                    $.toast({
+                        heading: "Upsss!!!",
+                        text: error.response.data.message,
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "warning",
+                        hideAfter: 5500,
+                        stack: 6,
+                    });
+                }
             }
         },
         obtenerArchivo1(e) {

@@ -97,7 +97,7 @@ class EstudioController extends Controller
 
             $buscarDatos = (new SAHIController)->buscarEpsPlanContrato($registro['atencion_id']);
 
-            if (!$buscarDatos) {
+            if (count($buscarDatos) > 0) {
                 $eps = $buscarDatos[0]->NomTercero;
                 $contrato = $buscarDatos[0]->DesContrato;
                 $plan = $buscarDatos[0]->DesPlan;
@@ -141,22 +141,14 @@ class EstudioController extends Controller
         foreach ($registro['productosEstudio'] as $Producto) {
             if ($Producto['checked'] == true) {
 
-                /* $productoDicom = ConfigProducto::firstOrCreate(
-                    ['cod_cups' => $Producto['cod_cups']],
-                    [
-                        'cod_cups' => $Producto['cod_cups'],
-                        'nom_produc' => $Producto['nom_produc'],
-                        'requi_lectura' => 0,
-                    ]
-                ); */
-
                 $productoDicom = ConfigProducto::where('cod_cups', '=', $Producto['cod_cups'])
-                    ->where('requi_lectura', '=', 1)->get();
+                    ->get();
 
                 if (!$productoDicom) {
                     return response()->json(['message' => 'No se encontró el producto con código CPS ' . $Producto['cod_cups'] . 'en la base de datos.'], 400);
+                } elseif ($productoDicom[0]->requi_lectura == 0) {
+                    return response()->json(['message' => 'El producto con código CPS ' . $Producto['nom_produc'] . ' no requiere lectura.'], 400);
                 } else {
-
                     EstudioProducto::create([
                         'estudio_id' => $estudio->id,
                         'producto_id' => $productoDicom[0]->id,
