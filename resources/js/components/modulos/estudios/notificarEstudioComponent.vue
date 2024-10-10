@@ -365,7 +365,7 @@ export default {
             try {
                 $.toast({
                     heading: "Ok!!!",
-                    text: '',
+                    text: 'Generando reportes, por favor espere',
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: "success",
@@ -377,7 +377,6 @@ export default {
 
                 window.open(`/descargar.pdf.lectura/${res.data.plantilla}`, '_blank');
             } catch (error) {
-
                 this.errores = error.response.data;
             }
         },
