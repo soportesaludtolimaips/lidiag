@@ -70,15 +70,15 @@
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Inicio</label>
-                                            <input type="date" id="nom_diagnos" name="nom_diagnos"
-                                                v-model="busqueda.fehc_ini" class="form-control" />
+                                            <input type="date" id="bus_fehc_ini" name="bus_fehc_ini"
+                                                v-model="busqueda.bus_fehc_ini" class="form-control" />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Fin</label>
-                                            <input type="date" id="fecha_fin" name="fecha_fin"
-                                                v-model="busqueda.fecha_fin" class="form-control" />
+                                            <input type="date" id="bus_fecha_fin" name="bus_fecha_fin"
+                                                v-model="busqueda.bus_fecha_fin" class="form-control" />
                                         </div>
                                     </div>
                                 </div>
@@ -419,6 +419,7 @@ export default {
                         stack: 6,
                     });
                 } else {
+
                     const res = await axios.post("/estudio-listarPendientesTrascribir", this.busqueda);
                     $("#example23").DataTable().destroy();
 
