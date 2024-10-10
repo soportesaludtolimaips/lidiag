@@ -566,15 +566,16 @@ export default {
                         const estudioEliminar = this.registros.findIndex(x => x.id_producto_lectura === this.idRow);
                         this.registros.splice(estudioEliminar, 1);
 
-                        this.$nextTick(() => {
+                        /*this.$nextTick(() => {
                             $("#example23").DataTable({
                                 dom: "Bfrtip",
                                 buttons: ["copy", "csv", "excel", "pdf", "print"],
                             });
-                        });
+                        });*/
                     }
 
                     this.btnCerralModalForm();
+                    this.limpiar();
                 }
             } catch (error) {
                 if (error.response && error.response.data && error.response.status === 422) {
