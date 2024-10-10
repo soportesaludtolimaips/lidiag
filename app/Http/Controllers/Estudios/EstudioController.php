@@ -288,6 +288,7 @@ class EstudioController extends Controller
 
     public function listarPendientesTrascribir(Request $request)
     {
+
         /**
          * @estudioParaTranscibir para saber si se van a listar los estudio que ya estan leidos o no, 
          * para transcribir los estudios que se envian a trys o a teleradiologia
@@ -348,6 +349,9 @@ class EstudioController extends Controller
             ->join('config_productos', 'estudios_productos.producto_id', '=', 'config_productos.id')
             ->when($request->estudioParaTranscibir, function ($query) {
                 return $query->whereNotNull('estudios_productos.fechor_lectura');
+            })
+            ->when($request->bus_fehc_ini && $request->bus_fecha_fin, function ($query) use ($request) {
+                return $query->whereBetween('estudios.fec_estudio', [$request->bus_fehc_ini, $request->bus_fecha_fin]);
             })
             ->where('estudios_productos.activo', '=', 1)
             ->whereNull('estudios_productos.transcriptor_id')
@@ -491,7 +495,6 @@ class EstudioController extends Controller
 
         return response()->json(['message' => 'La transcripción se guardo correctamente.']);
     }
-
     public function penditesPorLeerTranscribir(Request $request)
     {
         $pendiente = Estudio::select(
