@@ -72,7 +72,6 @@ class PlantillaEstudioController extends Controller
         // Usar setComplexValue para insertar el TextRun en la plantilla
         $templateProcessor->setComplexValue('lectura', $textRun);
 
-
         $templateProcessor->setValue('nom_sede', $request->nom_sede);
 
         $templateProcessor->setValue('cod_producto', $request->cod_cups);
@@ -83,6 +82,7 @@ class PlantillaEstudioController extends Controller
         $templateProcessor->setValue('num_docu_medico', $request->num_docu_medico);
 
         // Manejar la carga de la imagen
+
         if ($request->firma_medico) {
             // Insertar la imagen en el archivo de Word
             $templateProcessor->setImageValue('firma_medico', [
@@ -94,14 +94,14 @@ class PlantillaEstudioController extends Controller
         }
 
         // Ruta para guardar el archivo editado
-        $nomArchivo = $request->id_producto_lectura . "-" . $request->num_docu . "-" . $nombrePaciente;
+        $nomArchivo = $request->estudio_producto_id . "-" . $request->num_docu . "-" . $nombrePaciente;
         $outputPath = storage_path('app/reporte_lecturas/' . $nomArchivo . '.docx');
         $templateProcessor->saveAs($outputPath);
 
         $plantillaPdf = $this->convertDocxToPdf($nomArchivo);
         if ($plantillaPdf) {
 
-            $urlApiReportes = config('app.URL_API_REPORTES') . "api/almacenarLectura";
+            //$urlApiReportes = config('app.URL_API_REPORTES') . "api/almacenarLectura";
 
             unlink($outputPath);
 
@@ -109,7 +109,6 @@ class PlantillaEstudioController extends Controller
                 [
                     'messaje' => 'Plantilla creada correctament',
                     'plantilla' => $nomArchivo . ".pdf",
-                    'urlApiReportes' => $urlApiReportes
                 ],
                 200
             );

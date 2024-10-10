@@ -296,7 +296,7 @@ export default {
                 num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", telefono: "", nom_produc: "", id_producto_lectura: null
             },
             estudio: null,
-            busqueda: { bus_num_docu: "", bus_nom: '', fehc_ini: "", fecha_fin: "" },
+            busqueda: { bus_num_docu: "97612752", bus_nom: '', fehc_ini: "", fecha_fin: "" },
             errores: {},
             erroresBusqueda: {},
             imageUrl: '',
@@ -361,23 +361,22 @@ export default {
             }
         },
         async imprimirReporte(estudio) {
+
             try {
+                $.toast({
+                    heading: "Ok!!!",
+                    text: '',
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "success",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+
                 const res = await axios.post("/edit-word", estudio);
+
                 window.open(`/descargar.pdf.lectura/${res.data.plantilla}`, '_blank');
             } catch (error) {
-
-                /* if (error.response.status == 402) {
-
-                    $.toast({
-                        heading: "Ok!!!",
-                        text: error.response.data.message,
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "error",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                } */
 
                 this.errores = error.response.data;
             }
@@ -400,7 +399,7 @@ export default {
                 if (res.status == 200) {
                     $.toast({
                         heading: "Ok!!!",
-                        text: 'La notificacion se realizó correctamente, estamos enviando el correo electronico, por favor espere..',
+                        text: 'La notificación se realizó correctamente, estamos enviando el correo electronico, por favor espere..',
                         position: "top-right",
                         loaderBg: "#ff6849",
                         icon: "success",
