@@ -14,12 +14,10 @@ class PlantillaEstudioController extends Controller
 {
     public function editWord(Request $request)
     {
-
         /**
          * Buscarmos la sede para saber cual es la plantilla
          */
         $sede = ConfigSede::find($request->sede_id);
-
         if (!$sede->plantilla) {
             return response()->json(['message' => 'La plantilla para la sede ' . $sede->nom_sede . ' no está  configurada, por favor consulte con el administrador del sistema'], 402);
         }
@@ -29,7 +27,6 @@ class PlantillaEstudioController extends Controller
 
         // Cargar el archivo de plantilla
         $templateProcessor = new TemplateProcessor($filePath);
-
         // Obtener datos desde la solicitud
         $nombrePaciente = str_replace('^^^', '', $request->nom_pacien);
         $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
@@ -41,7 +38,6 @@ class PlantillaEstudioController extends Controller
         $templateProcessor->setValue('edad', $request->edad);
         $templateProcessor->setValue('eps', $request->eps);
         $templateProcessor->setValue('contrato', $request->contrato);
-
         $fecEstudio = Carbon::parse($request->fec_estudio)->format('d/m/Y');
         $fecLectura = Carbon::parse($request->fechor_lectura)->format('d/m/Y H:i');
         $fecTrascrito = Carbon::parse($request->fechor_trascrito)->format('d/m/Y H:i');
@@ -82,7 +78,6 @@ class PlantillaEstudioController extends Controller
         $templateProcessor->setValue('num_docu_medico', $request->num_docu_medico);
 
         // Manejar la carga de la imagen
-
         if ($request->firma_medico) {
             // Insertar la imagen en el archivo de Word
             $templateProcessor->setImageValue('firma_medico', [
@@ -101,8 +96,6 @@ class PlantillaEstudioController extends Controller
         $plantillaPdf = $this->convertDocxToPdf($nomArchivo);
         if ($plantillaPdf) {
 
-            //$urlApiReportes = config('app.URL_API_REPORTES') . "api/almacenarLectura";
-
             unlink($outputPath);
 
             return response()->json(
@@ -113,7 +106,7 @@ class PlantillaEstudioController extends Controller
                 200
             );
         } else {
-            return response()->json('No se pudo convertir la plantilla a PDF', 400);
+            return response()->json('No fue posible convertir la plantilla a PDF', 400);
         }
     }
 

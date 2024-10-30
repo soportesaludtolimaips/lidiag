@@ -124,9 +124,9 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(item) in registros" :key="item.id" :id="item.id_producto_lectura">
+                                    <tr v-for="(item) in registros" :key="item.id" :id="item.estudio_producto_id">
                                         <td>
-                                            <!-- {{ item.id_producto_lectura }} -->
+                                            <!-- {{ item.estudio_producto_id }} -->
                                             <button type="button" v-if="item.priori_id == 1"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">A</button>
                                             <button type="button" v-else-if="item.priori_id == 2"
@@ -160,7 +160,7 @@
                                             </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
-                                                @click="anularAsignacion(item.id_producto_lectura, item.nom_pacien, item.nom_produc);">
+                                                @click="anularAsignacion(item.estudio_producto_id, item.nom_pacien, item.nom_produc);">
                                                 <i class="fa fa-eraser"></i>
                                             </button>
                                         </td>
@@ -262,8 +262,8 @@
                                     </h5>
                                     <hr>
 
-                                    <input type="hidden" id="id_producto_lectura" name="id_producto_lectura"
-                                        v-model="registro.id_producto_lectura" />
+                                    <input type="hidden" id="estudio_producto_id" name="estudio_producto_id"
+                                        v-model="registro.estudio_producto_id" />
                                     <input type="hidden" id="email" name="email" v-model="registro.email" />
 
                                     <div class="row">
@@ -453,9 +453,9 @@ export default {
             registros: [],
             tituloModal: "Transcirbir estudio",
             registro: {
-                id_estudio: 0, id_producto_lectura: 0, lectura: "", fec_lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", email_reportar: '', num_docu: "", nom_pacien: "", sexo: "",
-                fec_naci: "", email: "", diagnosticosEstudio: [], sede_id: "", atencion: null, servicio: null, eps: null, contrato: null, medico_id: null, cod_cups: '', nom_produc: '', num_docu_medi: '',
-                reg_med: '', medico: '', firma: '', url_oviyam: null, tap_oviyam: null, study_iuid: null, tap_oviyam: null,
+                id_estudio: 0, estudio_producto_id: 0, lectura: "", fec_lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", email_reportar: '', num_docu: "", nom_pacien: "", sexo: "",
+                fec_naci: "", email: "", diagnosticosEstudio: [], sede_id: "", atencion: null, servicio: null, eps: null, contrato: null, medico_id: null, cod_cups: '', nom_produc: '', num_docu_medico: '',
+                reg_medico: '', nombres_medico: '', firma_medico: '', url_oviyam: null, tap_oviyam: null, study_iuid: null, tap_oviyam: null,
 
             },
             busqueda: { estudioParaTranscibir: 'si', quien_asigno_id: "", medico_id: "", sede_id: '', bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
@@ -516,7 +516,7 @@ export default {
                     var row = document.getElementById(this.idRow);
                     if (row) {
                         row.remove();
-                        var estudioEliminar = this.registros.findIndex((x) => x.id_producto_lectura == this.idRow);
+                        var estudioEliminar = this.registros.findIndex((x) => x.estudio_producto_id == this.idRow);
                         this.registros.splice(estudioEliminar, 1);
 
                         $("#example23").DataTable().destroy();
@@ -621,7 +621,7 @@ export default {
                                 if (row) {
                                     row.remove();
 
-                                    var estudioEliminar = $this.registros.findIndex((x) => x.id_producto_lectura == idProductoEstudio);
+                                    var estudioEliminar = $this.registros.findIndex((x) => x.estudio_producto_id == idProductoEstudio);
                                     console.log(estudioEliminar)
                                     $this.registros.splice(estudioEliminar, 1);
 
@@ -667,10 +667,11 @@ export default {
             return dayjs.utc(timestamp).local().format('YYYY-MM-DD HH:mm:ss');
         },
         async mostrarRegistro(data = {}) {
+            console.log(data)
             this.tituloModal = "Transcribir la lectura del paciente: " + data.nom_pacien;
             this.id = data.id;
-            this.idRow = data.id_producto_lectura;
-            this.registro.id_producto_lectura = data.id_producto_lectura;
+            this.idRow = data.estudio_producto_id;
+            this.registro.estudio_producto_id = data.estudio_producto_id;
             this.registro.fec_estudio = data.fec_estudio;
             this.registro.fec_lectura = data.fechor_lectura;
             this.registro.accession_no = data.accession_no;
@@ -687,10 +688,10 @@ export default {
             this.registro.fec_naci = data.pat_birthdate;
             this.registro.cod_cups = data.cod_cups;
             this.registro.nom_produc = data.nom_produc;
-            this.registro.num_docu_medi = data.num_docu_medi;
-            this.registro.reg_med = data.reg_med;
-            this.registro.medico = data.medico;
-            this.registro.firma = data.firma;
+            this.registro.num_docu_medico = data.num_docu_medico;
+            this.registro.reg_medico = data.reg_medico;
+            this.registro.nombres_medico = data.nombres_medico;
+            this.registro.firma_medico = data.firma_medico;
             this.registro.lectura = `Atención: ${data.atencion}\nFecha y Hora: ${data.fec_estudio}\n\n${data.nom_produc}\n\n${data.lectura}`;
 
             this.datosImagen.urlOviyam = data.url_oviyam;

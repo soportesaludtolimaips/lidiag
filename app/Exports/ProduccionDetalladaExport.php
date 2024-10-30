@@ -43,8 +43,7 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
             ->join('users as medico', 'medico.id', '=', 'estudios.medico_id')
             ->join('pacientes', 'estudios.paciente_id', '=', 'pacientes.id')
             ->leftJoin('users as transcrip', 'transcrip.id', '=', 'estudios_productos.transcriptor_id')
-            ->whereDate('estudios.fec_estudio', '>=', $this->fechaInicio)
-            ->whereDate('estudios.fec_estudio', '<=', $this->fechaFin)
+            ->whereBetween(DB::raw('DATE(estudios_productos.fechor_lectura)'), [$this->fechaInicio, $this->fechaFin])
             ->when($this->sedeId, function ($query) {
                 return $query->where('estudios.sede_id', $this->sedeId);
             })
@@ -54,6 +53,7 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
             ->when($this->medicoId, function ($query) use ($medico_id) {
                 return $query->where('estudios.medico_id', $medico_id);
             })
+            ->where('estudios_productos.activo', '=', 1)
             ->select(
                 'estudios.id',
                 'config_sedes.nom_sede',
@@ -74,8 +74,8 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
                 'estudios.plan'
             )
             ->get();
-
-        return new Collection($estudios);
+        return $estudios;
+        //return new Collection($estudios);
     }
 
     public function headings(): array

@@ -79,7 +79,7 @@ class EstudioNotificacionController extends Controller
         $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
         $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
 
-        $nomArchivoReporte = $estudio->id_producto_lectura . "-" . $estudio->num_docu . "-" . $nombrePaciente . ".pdf";
+        $nomArchivoReporte = $estudio->estudio_producto_id . "-" . $estudio->num_docu . "-" . $nombrePaciente . ".pdf";
 
         /**
          * Envio la lectura a Lidiag-reportes para que este diponible para la descarga por parte del paciente

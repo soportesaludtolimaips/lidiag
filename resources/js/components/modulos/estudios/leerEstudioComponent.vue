@@ -57,7 +57,7 @@
                                         <button type="button" v-else-if="item.priori_id == 4"
                                             class="btn waves-effect waves-light btn-rounded btn-sm">S</button>
                                     </td>
-                                    <td>{{ item.id }} - {{ item.nom_sede }}</td>
+                                    <td>{{ item.nom_sede }}</td>
                                     <td>{{ item.fec_estudio }}</td>
                                     <td>{{ formatDate(item.created_at) }}</td>
                                     <td>{{ item.quien_registro }}</td>
@@ -344,10 +344,9 @@ export default {
         if ('webkitSpeechRecognition' in window) {
             this.recognition = new webkitSpeechRecognition();
             this.recognizing = false;
-            this.recognition.lang = 'es-CO';
-            this.recognition.continuous = true;
-            this.recognition.interimResults = true;
-            this.setupCommandRecognition();
+            this.recognition.lang = 'es-CO'; // Establece el idioma de reconocimiento (puede ser diferente según tus necesidades)
+            this.recognition.continuous = true; // El reconocimiento nserá continuo, se detendrá después de un resultado
+            this.recognition.interimResults = true; // No se mostrarán resultados provisionales
         } else {
             console.log('La API de reconocimiento de voz no es compatible con este navegador.');
         }
@@ -357,6 +356,7 @@ export default {
             $("#example23").DataTable().destroy();
             this.listarMisPendientes();
         });
+
     },
     data() {
         return {
@@ -372,9 +372,15 @@ export default {
             },
             errores: {},
             tipoPrioridad: 0,
+            /**
+             * Variables para convertir de voz a texto
+             */
             microfono: 'admin-wrap/assets/images/mic.gif',
             recognizing: false,
             recognition: null,
+            /*
+            * Variables para grabar audio
+            */
             mediaRecorder: null,
             chunks: [],
             recording: false,
@@ -383,86 +389,14 @@ export default {
             audioActual: null,
             idRow: null,
             sede_id: null,
-            mayusculaSostenida: false, // Estado para mayúscula sostenida
         };
     },
     methods: {
-        setupCommandRecognition() {
-            this.recognition.onresult = (event) => {
-                let interimTranscript = ''; // Transcripción provisional
-                let finalTranscript = ''; // Transcripción final
-
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    if (event.results[i].isFinal) {
-                        finalTranscript += event.results[i][0].transcript;
-                    } else {
-                        interimTranscript += event.results[i][0].transcript;
-                    }
-                }
-
-                // Procesar el resultado final si existe
-                if (finalTranscript) {
-                    this.processCommand(finalTranscript.trim().toLowerCase());
-                }
-            };
-        },
-        processCommand(command) {
-            let isCommand = false;
-
-            // Reconocer comandos de voz para acciones y signos de puntuación
-            if (command.includes('iniciar grabación')) {
-                this.startRecording();
-                isCommand = true;
-            } else if (command.includes('detener grabación')) {
-                this.stopRecording();
-                isCommand = true;
-            } else if (command.includes('guardar lectura')) {
-                this.guardarRegistro();
-                isCommand = true;
-            } else if (command.includes('mayúscula sostenida')) {
-                this.mayusculaSostenida = true;
-                isCommand = true;
-            } else if (command.includes('terminar mayúscula sostenida')) {
-                this.mayusculaSostenida = false;
-                isCommand = true;
-            } else if (command.includes('dar espacio')) {
-                this.registro.lectura += ' ';
-                isCommand = true;
-            } else if (command.includes('doble espacio')) {
-                this.registro.lectura += '\n\n'; // Doble salto de línea para nuevo párrafo
-                isCommand = true;
-            } else if (command.includes('un espacio')) {
-                this.registro.lectura += '\n'; // Un salto de línea
-                isCommand = true;
-            } else if (command.includes('punto aparte')) {
-                this.registro.lectura += '.\n\n'; // Punto aparte (punto + dos saltos de línea)
-                isCommand = true;
-            } else if (command.includes('punto')) {
-                this.registro.lectura += '.'; // Punto
-                isCommand = true;
-            }
-
-            // Si no es un comando, procesamos el texto
-            if (!isCommand) {
-                // Aplicar mayúscula sostenida si está activada
-                if (this.mayusculaSostenida) {
-                    command = command.toUpperCase();
-                }
-
-                // Procesar otros signos de puntuación
-                command = command
-                    .replace(/\bcoma\b/g, ',')
-                    .replace(/\bpunto y coma\b/g, ';')
-                    .replace(/\bdos puntos\b/g, ':');
-
-                // Añadir el texto al contenido existente sin agregar saltos de línea extra
-                this.registro.lectura += command;
-            }
-        },
         startSpeechRecognition() {
-            if (!this.recognizing) {
+            if (this.recognizing == false) {
                 this.recognition.start();
                 this.recognizing = true;
+                this.convertirVozTexto();
                 this.microfono = 'admin-wrap/assets/images/mic-animate.gif';
             } else {
                 this.recognition.stop();
@@ -470,35 +404,60 @@ export default {
                 this.microfono = 'admin-wrap/assets/images/mic.gif';
             }
         },
-        async startRecording() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                this.mediaRecorder = new MediaRecorder(stream);
+        convertirVozTexto() {
 
-                this.mediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        this.chunks.push(event.data);
+            this.recognition.onstart = () => {
+                this.recognizing = true;
+                console.log("Empezo a escuchar");
+                this.startRecording();
+            };
+
+            this.recognition.onresult = (event) => {
+                for (var i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        const result = event.results[i][0].transcript;
+                        this.registro.lectura += result + '\n\n';
+                        console.log(this.registro.lectura);
                     }
-                };
+                }
+            };
+            this.recognition.onend = () => {
+                this.recognizing = false;
+                this.microfono = 'admin-wrap/assets/images/mic.gif';
+                console.log("Termino de escuchar, llegó a su fin");
+                this.stopRecording();
+            };
+        },
+        async startRecording() {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then((stream) => {
+                    this.mediaRecorder = new MediaRecorder(stream);
 
-                this.mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(this.chunks, { type: 'audio/wav' });
-                    this.chunks = [];
-                    this.saveRecording(audioBlob);
-                };
+                    this.mediaRecorder.ondataavailable = (event) => {
+                        if (event.data.size > 0) {
+                            this.chunks.push(event.data);
+                        }
+                    };
 
-                this.mediaRecorder.start();
-                this.recording = true;
-                console.log('Grabación iniciada');
-            } catch (error) {
-                console.error('Error al acceder al micrófono:', error);
-            }
+                    this.mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(this.chunks, { type: 'audio/wav' });
+                        this.chunks = [];
+                        // Puedes hacer algo con el archivo de audio, como enviarlo al backend
+                        // Aquí, estamos simulando el envío a través de una función `sendToBackend`
+                        this.saveRecording(audioBlob);
+                    };
+
+                    this.mediaRecorder.start();
+                    this.recording = true;
+                })
+                .catch((error) => {
+                    console.error('Error al acceder al micrófono:', error);
+                });
         },
         stopRecording() {
             if (this.mediaRecorder && this.recording) {
                 this.mediaRecorder.stop();
                 this.recording = false;
-                console.log('Grabación detenida');
             }
         },
         async saveRecording(audioBlob) {
@@ -507,49 +466,51 @@ export default {
             formData.append('estudio_id', this.id);
             formData.append('estudio_producto_id', this.registro.id_producto_lectura);
 
-            try {
-                const res = await axios.post('/upload-audio', formData);
-                console.log('Audio enviado con éxito:', res.data);
-                this.listarAudios();
-            } catch (error) {
-                console.error('Error al enviar audio:', error);
-            }
+            const res = await axios.post('/upload-audio', formData)
+                .then((response) => {
+                    console.log('Audio enviado con éxito:', response.data);
+                })
+                .catch((error) => {
+                    console.error('Error al enviar audio:', error);
+                });
+
+
+            this.listarAudios();
         },
         async listarMisPendientes() {
-            if (!this.sede_id) {
+            if (sessionStorage.getItem('ST-sede') == null) {
                 $.toast({
                     heading: "Upsss!!!",
-                    text: 'Debes establecer la sede en la cual vas a trabajar.',
+                    text: 'Debes establece la sede en la cual vas a trabajar.',
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: "warning",
                     hideAfter: 3500,
                     stack: 6,
                 });
-                return;
-            }
+            } else {
+                try {
+                    const res = await axios.post('/estudio-listarPendientesMedico', { id: this.usuarioactual.id, sede_id: this.sede_id });
+                    $("#example23").DataTable().destroy();
 
-            try {
-                const res = await axios.post('/estudio-listarPendientesMedico', { id: this.usuarioactual.id, sede_id: this.sede_id });
-                $("#example23").DataTable().destroy();
+                    this.registros = res.data;
 
-                this.registros = res.data;
-
-                this.$nextTick(() => {
-                    $("#example23").DataTable({
-                        dom: "Bfrtip",
-                        buttons: ["copy", "csv", "excel", "pdf", "print"],
+                    this.$nextTick(() => {
+                        $("#example23").DataTable({
+                            dom: "Bfrtip",
+                            buttons: ["copy", "csv", "excel", "pdf", "print"],
+                        });
                     });
-                });
-            } catch (error) {
-                console.log(error);
+                } catch (error) {
+                    console.log(error);
+                }
             }
         },
         async guardarRegistro() {
             try {
                 const res = await axios.post('/estudio-leerEstudio', this.registro);
 
-                if (res.status === 200) {
+                if (res.status == 200) {
                     $.toast({
                         heading: "Ok!!!",
                         text: res.data.message,
@@ -560,29 +521,29 @@ export default {
                         stack: 6,
                     });
 
-                    const row = document.getElementById(this.idRow);
+                    var row = document.getElementById(this.idRow);
                     if (row) {
                         row.remove();
-                        const estudioEliminar = this.registros.findIndex(x => x.id_producto_lectura === this.idRow);
+
+                        var estudioEliminar = this.registros.findIndex((x) => x.id_producto_lectura == this.idRow);
                         this.registros.splice(estudioEliminar, 1);
 
-                        /*this.$nextTick(() => {
+                        $("#example23").DataTable().destroy();
+
+                        this.$nextTick(() => {
                             $("#example23").DataTable({
                                 dom: "Bfrtip",
                                 buttons: ["copy", "csv", "excel", "pdf", "print"],
                             });
-                        });*/
+                        });
                     }
 
                     this.btnCerralModalForm();
                     this.limpiar();
                 }
             } catch (error) {
-                if (error.response && error.response.data && error.response.status === 422) {
-                    this.errores = error.response.data.errors;
-                } else {
-                    console.error('Error al guardar registro:', error);
-                }
+                console.log(error);
+                this.errores = error.response.data.errors;
             }
         },
         async visto(id) {
@@ -681,9 +642,10 @@ export default {
             $(".right-sidebar").slideDown(50);
             $(".right-sidebar").toggleClass("shw-rside");
         },
-    }
-};
+    },
+}
 </script>
+
 <style scoped>
 .right-sidebar {
     position: fixed;

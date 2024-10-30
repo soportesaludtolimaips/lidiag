@@ -27,8 +27,17 @@ class ReporteProduccion extends Controller
             ->join('users as medico', 'medico.id', '=', 'estudios.medico_id')
             ->join('pacientes', 'estudios.paciente_id', '=', 'pacientes.id')
             ->leftJoin('users as transcrip', 'transcrip.id', '=', 'estudios_productos.transcriptor_id')
-            ->whereBetween(DB::raw('DATE(estudios.created_at)'), [$fechaInicio, $fechaFin])
-            ->where('estudios.sede_id', $sedeId)
+            ->whereBetween(DB::raw('DATE(estudios_productos.fechor_lectura)'), [$fechaInicio, $fechaFin])
+            ->when($sedeId, function ($query) use ($sedeId) {
+                return $query->where('estudios.sede_id', $sedeId);
+            })
+            ->when($quienAsignoId, function ($query) use ($quienAsignoId) {
+                return $query->where('estudios.quien_registro_id', $quienAsignoId);
+            })
+            ->when($medicoId, function ($query) use ($medicoId) {
+                return $query->where('estudios.medico_id', $medicoId);
+            })
+            ->where('estudios_productos.activo', '=', 1)
             ->select(
                 'estudios.id',
                 'config_sedes.nom_sede',
