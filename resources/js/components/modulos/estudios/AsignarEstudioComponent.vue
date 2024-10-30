@@ -656,9 +656,9 @@ export default {
                         hideAfter: 3500,
                         stack: 6,
                     });
+
                     // Actualiza el valor de `agendado` para que se refleje el cambio de clase
                     this.registros[this.idRow].agendado = 1; // O el valor que necesites asignar
-
                     this.selectedRows[this.idRow] = !this.selectedRows[this.idRow];
                 }
 
