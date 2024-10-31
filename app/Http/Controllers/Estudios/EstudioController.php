@@ -455,21 +455,21 @@ class EstudioController extends Controller
         /**
          * Actualizo la lectura del estudio
          */
-        /* $transcribirEstudios = EstudioProducto::findOrFail($request->id_producto_lectura);
+        $transcribirEstudios = EstudioProducto::findOrFail($request->id_producto_lectura);
         $transcribirEstudios->lectura = $request->lectura;
         $transcribirEstudios->transcriptor_id = auth()->user()->id;
         $transcribirEstudios->fechor_trascrito = Carbon::now()->format('Y-m-d H:i:s');
         $transcribirEstudios->visto = 1;
-        $transcribirEstudios->save(); */
+        $transcribirEstudios->save();
 
         /**
          * Si la sede donde se realizó el estudio tiene interface hago el envio del reporte a la HC del hospital
          */
-        /* $sede = ConfigSede::findOrfail($request->sede_id);
+        $sede = ConfigSede::findOrfail($request->sede_id);
         if ($sede->interface_software === 'SAHI') {
             $transcribir = (new SAHITranscibirController())->enviarEstudio($request->atencion, $request->medico_id, $request->lectura, $request->cod_cups, $request->fec_lectura);
             //$transcribir->status();
-        } */
+        }
 
         /**
          * Genero el reporte de la lectura del estudio
