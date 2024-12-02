@@ -38,7 +38,7 @@
                                             <label class="control-label"># de documento </label>
                                             <input type="text" id="bus_nom_num_docu" name="bus_nom_num_docu"
                                                 v-model="busqueda.bus_num_docu" class="form-control"
-                                                placeholder="# de documento de paciente" />
+                                                placeholder="# de documento de paciente" @keyup.enter='buscarStudy()' />
                                         </div>
                                     </div>
                                     <div class="col-md-3">
@@ -46,7 +46,7 @@
                                             <label class="control-label">Nombres del paciente</label>
                                             <input type="text" id="bus_nom_num_docu" name="bus_nom_num_docu"
                                                 v-model="busqueda.bus_nom" class="form-control"
-                                                placeholder="Nombres del paciente" />
+                                                placeholder="Nombres del paciente" @keyup.enter='buscarStudy()' />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
@@ -296,7 +296,7 @@ export default {
                 num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", telefono: "", nom_produc: "", id_producto_lectura: null
             },
             estudio: null,
-            busqueda: { bus_num_docu: "97612752", bus_nom: '', fehc_ini: "", fecha_fin: "" },
+            busqueda: { bus_num_docu: "", bus_nom: '', fehc_ini: "", fecha_fin: "" },
             errores: {},
             erroresBusqueda: {},
             imageUrl: '',

@@ -59,7 +59,8 @@ class EstudioNotificacionController extends Controller
             ->join('pacientes', 'estudios.paciente_id', '=', 'pacientes.id')
             ->join('config_sedes', 'estudios.sede_id', '=', 'config_sedes.id')
             ->join('users', 'users.id', '=', 'estudios.medico_id')
-            ->whereNotNull('estudios_productos.transcriptor_id');
+            ->whereNotNull('estudios_productos.transcriptor_id')
+            ->where('estudios_productos.activo', '=', 1);
 
         if ($request->bus_num_docu != "") {
             $query->where('pacientes.num_docu', '=', $request->bus_num_docu);

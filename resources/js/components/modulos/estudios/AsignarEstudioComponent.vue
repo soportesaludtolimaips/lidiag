@@ -38,7 +38,8 @@
                                             <label class="control-label">Nombres de paciente o # de documento </label>
                                             <input type="text" id="bus_nom_num_docu" name="bus_nom_num_docu"
                                                 v-model="busqueda.bus_nom_num_docu" class="form-control"
-                                                placeholder="Nombres de paciente o # de documento" />
+                                                placeholder="Nombres de paciente o # de documento"
+                                                @keyup.enter="buscarStudy()" />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
@@ -103,7 +104,7 @@
                                 <tbody>
                                     <tr v-for="(item, index) in registros" :key="item.id" :id="item.study_pk"
                                         :class="{ 'text-info': item.agendado !== 0 }">
-                                        <td>{{ index }} - {{ item.study_datetime }}</td>
+                                        <td>{{ item.study_datetime }}</td>
                                         <td>{{ item.pat_id }}</td>
                                         <td>{{ item.pat_name }}</td>
                                         <td>{{ item.accession_no }}</td>
@@ -604,6 +605,7 @@ export default {
                                 buttons: ["copy", "csv", "excel", "pdf", "print"],
                             });
                         });
+
                     } else if (res.status == 500) {
 
                         $.toast({
