@@ -67,11 +67,12 @@ class StudyController extends Controller
         }
 
         $resultPrueba = $query->get();
+
         Config::set('database.default', 'mysql');
 
         $nuevosRegistro = [];
         foreach ($resultPrueba as $resul) {
-            $agendado = Estudio::select('study_pk')
+            $agendado = Estudio::select('study_pk')->where('sede_id', '=', $request->sede_id)
                 ->where('study_pk', '=', $resul->study_pk)
                 ->get();
 
