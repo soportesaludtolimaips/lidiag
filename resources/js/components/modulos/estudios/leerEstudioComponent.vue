@@ -356,7 +356,6 @@ export default {
             $("#example23").DataTable().destroy();
             this.listarMisPendientes();
         });
-
     },
     data() {
         return {
@@ -444,7 +443,7 @@ export default {
                         this.chunks = [];
                         // Puedes hacer algo con el archivo de audio, como enviarlo al backend
                         // Aquí, estamos simulando el envío a través de una función `sendToBackend`
-                        this.saveRecording(audioBlob);
+                        //this.saveRecording(audioBlob);
                     };
 
                     this.mediaRecorder.start();
