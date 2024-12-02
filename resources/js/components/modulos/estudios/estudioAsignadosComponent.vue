@@ -64,7 +64,8 @@
                                             <label class="control-label">Nombres o # documento</label>
                                             <input type="text" id="bus_nom_num_docu" name="bus_nom_num_docu"
                                                 v-model="busqueda.bus_nom_num_docu" class="form-control"
-                                                placeholder="Nombres de paciente o # de documento" />
+                                                placeholder="Nombres de paciente o # de documento"
+                                                @keyup.enter="listarEstudiosAsignados()" />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
