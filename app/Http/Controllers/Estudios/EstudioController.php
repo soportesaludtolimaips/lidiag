@@ -457,6 +457,7 @@ class EstudioController extends Controller
         /**
          * Actualizo la lectura del estudio
          */
+
         $transcribirEstudios = EstudioProducto::findOrFail($request->estudio_producto_id);
         $transcribirEstudios->lectura = $request->lectura;
         $transcribirEstudios->transcriptor_id = auth()->user()->id;
@@ -482,7 +483,7 @@ class EstudioController extends Controller
 
         $genearPlantilla = (new PlantillaEstudioController())->editWord($request);
         if ($genearPlantilla->status() === 402) {
-            //return response()->json(['message' => 'La plantilla para la sede ' . $sede->nom_sede . ', no está  configurada, por favor consulte con el administrador del sistema'], 402);
+            return response()->json(['message' => 'La plantilla para la sede ' . $sede->nom_sede . ', no está  configurada, por favor consulte con el administrador del sistema'], 402);
         } elseif ($genearPlantilla->status() == 200) {
 
             $notificar = (new EstudioNotificacionController())->notificarEmail($request);
@@ -496,6 +497,7 @@ class EstudioController extends Controller
 
         return response()->json(['message' => 'La transcripción se guardo correctamente.']);
     }
+
     public function penditesPorLeerTranscribir(Request $request)
     {
         $pendiente = Estudio::select(
