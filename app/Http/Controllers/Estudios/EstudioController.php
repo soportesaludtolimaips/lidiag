@@ -230,7 +230,7 @@ class EstudioController extends Controller
             'pacien.nombres as nom_pacien',
             'pacien.fec_naci',
             'pacien.sexo',
-            'estu_produc.id as id_producto_lectura',
+            'estu_produc.id as estudio_producto_id',
             'estu_produc.cod_cups',
             'estu_produc.nom_produc',
             'estu_produc.fechor_lectura',
@@ -266,7 +266,7 @@ class EstudioController extends Controller
 
     public function leerEstudio(estudioLeerRequest $request, EstudioProducto $estudioProducto)
     {
-        $productoLectura = EstudioProducto::findOrFail($request->id_producto_lectura);
+        $productoLectura = EstudioProducto::findOrFail($request->estudio_producto_id);
         $productoLectura->lectura = $request->lectura;
         $productoLectura->fechor_lectura = Carbon::now();
         $productoLectura->save();
@@ -384,7 +384,7 @@ class EstudioController extends Controller
             'pacien.direccion',
             'pacien.email',
             'pacien.tel',
-            'estudios_productos.id as id_producto_lectura',
+            'estudios_productos.id as estudio_producto_id',
             'estudios_productos.cod_cups',
             'estudios_productos.nom_produc',
             'estudios_productos.fechor_lectura',
@@ -458,7 +458,7 @@ class EstudioController extends Controller
         /**
          * Actualizo la lectura del estudio
          */
-        $transcribirEstudios = EstudioProducto::findOrFail($request->id_producto_lectura);
+        $transcribirEstudios = EstudioProducto::findOrFail($request->estudio_producto_id);
         $transcribirEstudios->lectura = $request->lectura;
         $transcribirEstudios->transcriptor_id = auth()->user()->id;
         $transcribirEstudios->fechor_trascrito = Carbon::now()->format('Y-m-d H:i:s');
@@ -505,7 +505,7 @@ class EstudioController extends Controller
             'pacien.nombres as nom_pacien',
             'pacien.fec_naci',
             'pacien.sexo',
-            'produc.id as id_producto_lectura',
+            'produc.id as estudio_producto_id',
             'produc.cod_cups',
             'produc.nom_produc',
             'produc.fechor_lectura',
