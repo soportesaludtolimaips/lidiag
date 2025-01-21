@@ -126,7 +126,6 @@
                                 <tbody>
                                     <tr v-for="(item) in registros" :key="item.id" :id="item.estudio_producto_id">
                                         <td>
-                                            <!-- {{ item.estudio_producto_id }} -->
                                             <button type="button" v-if="item.priori_id == 1"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">A</button>
                                             <button type="button" v-else-if="item.priori_id == 2"

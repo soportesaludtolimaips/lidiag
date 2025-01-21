@@ -45,9 +45,8 @@
                             </thead>
                             <tbody>
                                 <tr v-for="(item, index) in registros " :key="index"
-                                    :class="{ 'text-info': item.visto === 1 }" :id="item.id_producto_lectura">
+                                    :class="{ 'text-info': item.visto === 1 }" :id="item.estudio_producto_id">
                                     <td width="2%">
-                                        <!-- {{ item.id_producto_lectura }} -->
                                         <button type="button" v-if="item.priori_id == 1"
                                             class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">A</button>
                                         <button type="button" v-else-if="item.priori_id == 2"
@@ -86,7 +85,7 @@
                                         </button>
                                         <button type="button"
                                             class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
-                                            @click="actualizar = true; visto(item.id_producto_lectura);">
+                                            @click="actualizar = true; visto(item.estudio_producto_id);">
                                             <i class="fa fa-eye"></i>
                                         </button>
                                     </td>
@@ -158,8 +157,8 @@
                                 </h5>
                                 <hr>
 
-                                <input type="hidden" id="id_producto_lectura" name="id_producto_lectura"
-                                    v-model="registro.id_producto_lectura" />
+                                <input type="hidden" id="estudio_producto_id" name="estudio_producto_id"
+                                    v-model="registro.estudio_producto_id" />
                                 <input type="hidden" id="email" name="email" v-model="registro.email" />
 
                                 <div class="row">
@@ -366,7 +365,7 @@ export default {
             soportesHC: [],
             tituloModal: "Nuevo registro",
             registro: {
-                id_producto_lectura: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "",
+                estudio_producto_id: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "",
                 diagnosticosEstudio: [], urlOviyam: '', patientId: '', studyUID: '', serverName: '',
             },
             errores: {},
@@ -463,7 +462,7 @@ export default {
             const formData = new FormData();
             formData.append('audio', audioBlob, 'audio.wav');
             formData.append('estudio_id', this.id);
-            formData.append('estudio_producto_id', this.registro.id_producto_lectura);
+            formData.append('estudio_producto_id', this.registro.estudio_producto_id);
 
             const res = await axios.post('/upload-audio', formData)
                 .then((response) => {
@@ -493,6 +492,7 @@ export default {
                     $("#example23").DataTable().destroy();
 
                     this.registros = res.data;
+                    console.log(res.data)
 
                     this.$nextTick(() => {
                         $("#example23").DataTable({
@@ -524,7 +524,7 @@ export default {
                     if (row) {
                         row.remove();
 
-                        var estudioEliminar = this.registros.findIndex((x) => x.id_producto_lectura == this.idRow);
+                        var estudioEliminar = this.registros.findIndex((x) => x.estudio_producto_id == this.idRow);
                         this.registros.splice(estudioEliminar, 1);
 
                         $("#example23").DataTable().destroy();
@@ -552,8 +552,8 @@ export default {
         async mostrarRegistro(data = {}) {
             this.tituloModal = "Lectura de paciente: " + data.nom_pacien + "Producto: \n" + data.nom_produc;
             this.id = data.id;
-            this.idRow = data.id_producto_lectura;
-            this.registro.id_producto_lectura = data.id_producto_lectura;
+            this.idRow = data.estudio_producto_id;
+            this.registro.estudio_producto_id = data.estudio_producto_id;
             this.registro.fec_estudio = data.fec_estudio;
             this.registro.accession_no = data.accession_no;
             this.registro.study_desc = data.study_desc;
@@ -626,7 +626,7 @@ export default {
         limpiar() {
             this.tituloModal = "";
             this.id = 0;
-            this.registro.id_producto_lectura = "";
+            this.registro.estudio_producto_id = "";
             this.registro.fec_estudio = "";
             this.registro.accession_no = "";
             this.registro.study_desc = "";
