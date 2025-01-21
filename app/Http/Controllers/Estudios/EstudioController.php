@@ -413,7 +413,10 @@ class EstudioController extends Controller
             ->join('config_productos', 'estudios_productos.producto_id', '=', 'config_productos.id')
             ->where('estudios_productos.activo', '=', 1)
             ->when($request->bus_fehc_ini && $request->bus_fecha_fin, function ($query) use ($request) {
-                return $query->whereBetween('estudios.fec_estudio', [$request->bus_fehc_ini, $request->bus_fecha_fin]);
+                return $query->whereBetween(
+                    DB::raw('DATE(estudios.created_at)'),
+                    [$request->bus_fehc_ini, $request->bus_fecha_fin]
+                );
             })
             ->where('estudios.sede_id', $request->sede_id)
             ->when($request->bus_nom_num_docu, function ($query, $bus_nom_num_docu) {
