@@ -172,7 +172,7 @@
                                         <td class="text-nowrap">
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
-                                                @click="anularAsignacion(item.id_producto_lectura, item.nom_pacien, item.nom_produc);">
+                                                @click="anularAsignacion(item.estudio_producto_id, item.nom_pacien, item.nom_produc);">
                                                 <i class="fa fa-eraser"></i>
                                             </button>
                                         </td>
@@ -516,7 +516,7 @@ export default {
         },
         async anularAsignacion(idProductoEstudio, paciente, producto) {
             var $this = this;
-
+            console.log(idProductoEstudio)
             swal({
                 title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
                 text: "No podrás recuperar este registro!",
