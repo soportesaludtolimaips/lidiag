@@ -45,6 +45,7 @@ class EstudioNotificacionController extends Controller
             'estudios_productos.lectura',
             'estudios_productos.cod_cups',
             'estudios_productos.nom_produc',
+            'estudios_productos.fechor_trascrito',
             'users.num_docu as num_docu_medico',
             'users.name as nombres_medico',
             'users.reg_med as reg_medico',
