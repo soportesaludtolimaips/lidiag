@@ -388,7 +388,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="tab-pane  p-20" id="profile8" role="tabpanel">
-                                                    <template v-for="( item, index ) in audiosDeEstudio " :key="index">
+                                                    <template v-for="(item, index) in audiosDeEstudio" :key="index">
                                                         <audio :src="item.audio" controls
                                                             style="height: 15px; width: 100%;"></audio>
                                                     </template>
@@ -666,7 +666,14 @@ export default {
             return dayjs.utc(timestamp).local().format('YYYY-MM-DD HH:mm:ss');
         },
         async mostrarRegistro(data = {}) {
-            console.log(data)
+
+            const date = new Date();
+            const fechaActual = ("0" + date.getDate()).slice(-2) + "-" + ("0" + (date.getMonth() + 1)).slice(-2) + "-" +
+                date.getFullYear() + " " + ("0" + date.getHours()).slice(-2) + ":" + ("0" + date.getMinutes()).slice(-2) + ":"
+                + ("0" + date.getSeconds()).slice(-2);
+
+
+            console.log(fechaActual)
             this.tituloModal = "Transcribir la lectura del paciente: " + data.nom_pacien;
             this.id = data.id;
             this.idRow = data.estudio_producto_id;
@@ -691,7 +698,7 @@ export default {
             this.registro.reg_medico = data.reg_medico;
             this.registro.nombres_medico = data.nombres_medico;
             this.registro.firma_medico = data.firma_medico;
-            this.registro.lectura = `Atención: ${data.atencion}\nFecha y Hora: ${data.fec_estudio}\n\n${data.nom_produc}\n\n${data.lectura}`;
+            this.registro.lectura = `Atención: ${data.atencion}\nFecha y Hora del estudio: ${data.fec_estudio}\nFecha y Hora de transcipción: ${fechaActual}\n\n${data.nom_produc}\n\n${data.lectura}`;
 
             this.datosImagen.urlOviyam = data.url_oviyam;
             this.datosImagen.patientId = data.num_docu;
