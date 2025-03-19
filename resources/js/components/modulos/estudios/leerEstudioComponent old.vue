@@ -44,7 +44,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(item, index) in registros " :key="index"
+                                <tr v-for="(item, index) in registros" :key="index"
                                     :class="{ 'text-info': item.visto === 1 }" :id="item.id_producto_lectura">
                                     <td width="2%">
                                         <!-- {{ item.id_producto_lectura }} -->
@@ -221,7 +221,7 @@
 
                                 <div class="row table-responsive" style="height:150px; overflow-y: scroll;">
                                     <div class="col-md-12">
-                                        <ul v-for="(item, index) in diagnosticosEstudio " :key="index">
+                                        <ul v-for="(item, index) in diagnosticosEstudio" :key="index">
                                             <li>{{ item.nom_diagnos }}</li>
 
                                         </ul>
@@ -295,7 +295,7 @@
                                                 </div>
                                             </div>
                                             <div class="tab-pane  p-20" id="profile8" role="tabpanel">
-                                                <template v-for="( item, index ) in audiosDeEstudio " :key="index">
+                                                <template v-for="(item, index) in audiosDeEstudio" :key="index">
                                                     <audio :src="item.audio" controls
                                                         style="height: 15px; width: 100%;"></audio>
                                                 </template>

@@ -264,7 +264,7 @@ class EstudioController extends Controller
         return response()->json($misPendiente, 200);
     }
 
-    public function leerEstudio(estudioLeerRequest $request, EstudioProducto $estudioProducto)
+    public function leerEstudio(Request $request, EstudioProducto $estudioProducto)
     {
         $productoLectura = EstudioProducto::findOrFail($request->estudio_producto_id);
         $productoLectura->lectura = $request->lectura;

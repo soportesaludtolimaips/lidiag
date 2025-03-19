@@ -65,6 +65,26 @@
                             </ul>
                         </li>
                     @endif
+
+                    <li class="nav-small-cap">--- ECOGRAFIAS</li>
+                    <li>
+                        <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
+                            <i class="fa fa-etsy"></i>
+                            <span class="hide-menu">Asignación de estudios</span>
+                        </a>
+                        <ul aria-expanded="false" class="collapse">
+                            @can('estudio.asignar')
+                                <li>
+                                    <a href="{{ route('ecografias.admisiones') }}">
+                                        <i class="fa fa-address-book-o  text-info"></i> Admisionar para procedimientos
+                                    </a>
+                                    <a href="{{ route('estudios.asignados.listar') }}">
+                                        <i class="fa fa-pencil text-info"></i> Realizar procedimiento
+                                    </a>
+                                </li>
+                            @endcan
+                        </ul>
+                    </li>
                     @if (auth()->user()->hasAnyPermission(['agenda.index']))
                         <li class="nav-small-cap">--- Citas</li>
                         <li>

@@ -29,6 +29,7 @@ dayjs.extend(timezone);
 
 // Opcional: Si deseas hacer dayjs globalmente disponible
 window.dayjs = dayjs;
+
 /**
  * Principales
  */
@@ -57,6 +58,10 @@ import AsignarEstudioComponent from "./components/modulos/estudios/AsignarEstudi
 app.component("asignar-studio-component", AsignarEstudioComponent);
 import leerEstudioComponent from "./components/modulos/estudios/leerEstudioComponent.vue";
 app.component("leer-estudio-component", leerEstudioComponent);
+
+/* import leerEstudioComponent from "./components/modulos/estudios/audio-texto.vue";
+app.component("leer-estudio-component", leerEstudioComponent); */
+
 import leerYTrasncribirEstudioAdministrativoComponent from "./components/modulos/estudios/leerYTrasncribirEstudioAdministrativoComponent.vue";
 app.component("leer-y-transcribir-administrativo-component", leerYTrasncribirEstudioAdministrativoComponent);
 import transcribirEstudioComponent from "./components/modulos/estudios/transcribirEstudioComponent.vue";
@@ -65,6 +70,12 @@ import notificarEstudioComponent from "./components/modulos/estudios/notificarEs
 app.component("notificar-estudio-component", notificarEstudioComponent);
 import estudioAsignadosComponent from "./components/modulos/estudios/estudioAsignadosComponent.vue";
 app.component("estudio-asignados-component", estudioAsignadosComponent);
+
+/**
+ * Ecografias
+ */
+import ecogradifasAdmisionesComponent from "./components/modulos/ecografias/admisionarComponent.vue";
+app.component("ecografias-admisiones-component", ecogradifasAdmisionesComponent);
 
 /**
  * Agenda
