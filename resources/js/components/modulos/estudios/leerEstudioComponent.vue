@@ -497,13 +497,13 @@ export default {
 
                 this.recognition.onend = () => {
                     if (this.recognizing) {
-                        console.log("Reconocimiento finalizado, reiniciando...");
+
                         setTimeout(() => this.recognition.start(), 500);
                     }
                 };
 
                 this.recognition.onerror = (event) => {
-                    console.error('Error en reconocimiento:', event.error);
+
                     if (event.error === 'no-speech' || event.error === 'network') {
                         this.recognition.stop();
                     }
@@ -532,7 +532,18 @@ export default {
 
                 this.mediaRecorder.start();
                 this.recording = true;
-            }).catch(error => console.error('Error al acceder al micrófono:', error));
+            }).catch(error => {
+                $.toast({
+                    heading: "Upsss!!!",
+                    text: 'Error al acceder al micrófono:', error,
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "danger",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+                console.error('Error al acceder al micrófono:', error)
+            });
         },
         stopRecording() {
             return new Promise((resolve) => {
