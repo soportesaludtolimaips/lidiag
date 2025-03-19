@@ -85,6 +85,11 @@ Route::get('/estudio-listarPendientesPorLeerTranscribir', [EstudioController::cl
 Route::get('/estudio-buscar-por-numdocu/{numDocu}', [EstudioController::class, 'buscarEstudioPorNumDocu'])->name('estudio.buscarEstudioPorNumDocu');
 
 /**
+ * Ecografias
+ */
+Route::view('/ecografias.admisiones', 'modulos.ecografias.admisiones')->name('ecografias.admisiones');
+
+/**
  * citas
  */
 Route::view('/agenda', 'modulos.agenda.agenda-gestionar')->name('agenda');

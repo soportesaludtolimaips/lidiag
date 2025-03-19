@@ -44,7 +44,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(item, index) in registros " :key="index"
+                                <tr v-for="(item, index) in registros" :key="index"
                                     :class="{ 'text-info': item.visto === 1 }" :id="item.estudio_producto_id">
                                     <td width="2%">
                                         <button type="button" v-if="item.priori_id == 1"
@@ -220,7 +220,7 @@
 
                                 <div class="row table-responsive" style="height:150px; overflow-y: scroll;">
                                     <div class="col-md-12">
-                                        <ul v-for="(item, index) in diagnosticosEstudio " :key="index">
+                                        <ul v-for="(item, index) in diagnosticosEstudio" :key="index">
                                             <li>{{ item.nom_diagnos }}</li>
 
                                         </ul>
@@ -241,7 +241,7 @@
                                                 @click="verImagen(this.registro.urlOviyam, this.registro.patientId, this.registro.studyUID, this.registro.serverName)">
                                                 <i class="fa fa-file-image-o"></i>
                                             </button>
-                                            <a class="" @click="startSpeechRecognition"
+                                            <a class="" @click="toggleSpeechRecognition"
                                                 style="width: 30px; height: 30px;">
                                                 <img title="Grabadora" :src="microfono">
                                             </a>
@@ -281,6 +281,15 @@
                                                     </span>
                                                 </a>
                                             </li>
+                                            <!-- <li class="nav-item">
+                                                <a class="nav-link" data-toggle="tab" href="#profile8" role="tab">
+                                                    <span>
+                                                        <h5 class="card-title text-info">
+                                                            <i class="fa fa-file-audio-o"></i> Hisotial
+                                                        </h5>
+                                                    </span>
+                                                </a>
+                                            </li> -->
                                         </ul>
                                         <!-- Tab panes -->
                                         <div class="tab-content tabcontent-border">
@@ -293,14 +302,13 @@
                                                     </a>
                                                 </div>
                                             </div>
-                                            <div class="tab-pane  p-20" id="profile8" role="tabpanel">
-                                                <template v-for="( item, index ) in audiosDeEstudio " :key="index">
+                                            <!-- <div class="tab-pane  p-20" id="profile8" role="tabpanel">
+                                                <template v-for="(item, index) in audiosDeEstudio" :key="index">
                                                     <audio :src="item.audio" controls
                                                         style="height: 15px; width: 100%;"></audio>
                                                 </template>
-                                            </div>
+</div> -->
                                         </div>
-
                                     </div>
                                 </div>
                             </div>
@@ -340,16 +348,6 @@ export default {
         this.sede_id = sessionStorage.getItem('ST-sede');
         this.listarMisPendientes();
 
-        if ('webkitSpeechRecognition' in window) {
-            this.recognition = new webkitSpeechRecognition();
-            this.recognizing = false;
-            this.recognition.lang = 'es-CO'; // Establece el idioma de reconocimiento (puede ser diferente según tus necesidades)
-            this.recognition.continuous = true; // El reconocimiento nserá continuo, se detendrá después de un resultado
-            this.recognition.interimResults = true; // No se mostrarán resultados provisionales
-        } else {
-            console.log('La API de reconocimiento de voz no es compatible con este navegador.');
-        }
-
         this.emitter.on("sedeSeleccionada", (data) => {
             this.sede_id = data.idSede;
             $("#example23").DataTable().destroy();
@@ -366,114 +364,222 @@ export default {
             tituloModal: "Nuevo registro",
             registro: {
                 estudio_producto_id: 0, lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", num_docu: "", nom_pacien: "", sexo: "", fec_naci: "", email: "",
-                diagnosticosEstudio: [], urlOviyam: '', patientId: '', studyUID: '', serverName: '',
+                diagnosticosEstudio: [], urlOviyam: '', patientId: '', studyUID: '', serverName: ''
             },
             errores: {},
             tipoPrioridad: 0,
-            /**
-             * Variables para convertir de voz a texto
-             */
-            microfono: 'admin-wrap/assets/images/mic.gif',
-            recognizing: false,
-            recognition: null,
-            /*
-            * Variables para grabar audio
-            */
-            mediaRecorder: null,
-            chunks: [],
-            recording: false,
-            recorder: null,
-            audiosDeEstudio: [],
-            audioActual: null,
             idRow: null,
             sede_id: null,
+
+
+            /**
+             * Variables para convertir de voz a texto y grabacion de audio
+             */
+            recognizing: false,
+            recording: false,
+            microfono: 'admin-wrap/assets/images/mic.gif',
+            recognition: null,
+            mediaRecorder: null,
+            audioChunks: [],
+            audioUrl: null,
+            uppercase: false,
+            id: 1,
+            registro: {
+                estudio_producto_id: 456 // Asigna el ID real
+            },
+            commands: {
+                "iniciar mayúscula sostenida": () => { this.uppercase = true; return ""; },
+                "iniciar mayúsculas sostenida": () => { this.uppercase = true; return ""; },
+                "iniciar mayúsculas": () => { this.uppercase = true; return ""; },
+                "iniciar mayúscula": () => { this.uppercase = true; return ""; },
+                "mayúsculas sostenida": () => { this.uppercase = true; return ""; },
+                "mayúscula sostenida": () => { this.uppercase = true; return ""; },
+                "activar mayúsculas": () => { this.uppercase = true; return ""; },
+                "activar mayúscula": () => { this.uppercase = true; return ""; },
+                "habilitar mayúsculas": () => { this.uppercase = true; return ""; },
+                "habilitar mayúscula": () => { this.uppercase = true; return ""; },
+                "activare mayúsculas": () => { this.uppercase = true; return ""; },
+                "activare mayúscula": () => { this.uppercase = true; return ""; },
+                "desactivar mayúsculas": () => { this.uppercase = false; return ""; },
+                "desactivar mayúscula": () => { this.uppercase = false; return ""; },
+                "Deshabilitar mayúsculas": () => { this.uppercase = false; return ""; },
+                "Deshabilitar mayúscula": () => { this.uppercase = false; return ""; },
+                "terminar mayúsculas": () => { this.uppercase = false; return ""; },
+                "terminar mayúscula": () => { this.uppercase = false; return ""; },
+                "fin mayúsculas": () => { this.uppercase = false; return ""; },
+                "fin mayúscula": () => { this.uppercase = false; return ""; },
+                "finaliza mayúsculas": () => { this.uppercase = false; return ""; },
+                "finaliza mayúscula": () => { this.uppercase = false; return ""; },
+                "finalizar mayúsculas": () => { this.uppercase = false; return ""; },
+                "finalizar mayúscula": () => { this.uppercase = false; return ""; },
+                "punto aparte": () => ".\n\n",
+                "salto de línea": () => "\n",
+                "doble salto de línea": () => "\n\n",
+                "enter": () => "\n",
+                "doble enter": () => "\n\n",
+                "línea en blanco": () => "\n\n",
+                "dar espacio": () => " ",
+                "un espacio": () => " ",
+                "dos espacio": () => "  ",
+                "doble espacio": () => "  ",
+                "punto": () => ".",
+                "coma": () => ",",
+                "dos puntos": () => ":",
+                "punto y coma": () => ";",
+                "abrir paréntesis": () => "(",
+                "cerrar paréntesis": () => ")",
+                "abrir corchetes": () => "[",
+                "cerrar corchetes": () => "]",
+                "abrir llaves": () => "{",
+                "cerrar llaves": () => "}",
+                "abrir comillas": () => "\"",
+                "cerrar comillas": () => "\"",
+                "abrir comillas simples": () => "'",
+                "cerrar comillas simples": () => "'",
+                "guion": () => "-",
+                "guion bajo": () => "_",
+                "barra diagonal": () => "/",
+                "barra invertida": () => "\\",
+                "nueva oración": () => ". "
+            },
+
         };
     },
     methods: {
-        startSpeechRecognition() {
-            if (this.recognizing == false) {
-                this.recognition.start();
-                this.recognizing = true;
-                this.convertirVozTexto();
-                this.microfono = 'admin-wrap/assets/images/mic-animate.gif';
-            } else {
-                this.recognition.stop();
-                this.recognizing = false;
-                this.microfono = 'admin-wrap/assets/images/mic.gif';
+        toggleSpeechRecognition() {
+            if (!this.recognizing) {
+                this.startRecording();
+            } else if (this.mediaRecorder) {
+                console.log('antes mediaRecorder.state: ', this.mediaRecorder.state);
+                if (this.mediaRecorder.state === "recording") {
+                    console.log("⏸️ Pausando grabación...");
+                    this.mediaRecorder.pause();
+                    this.microfono = 'admin-wrap/assets/images/mic.gif';
+                } else if (this.mediaRecorder.state === "paused" || this.mediaRecorder.state === "inactive") {
+                    console.log("▶️ Reanudando grabación...");
+                    this.mediaRecorder.resume();
+                    this.microfono = 'admin-wrap/assets/images/mic-animate.gif';
+                }
+                console.log('despues mediaRecorder.state: ', this.mediaRecorder.state);
             }
         },
-        convertirVozTexto() {
+        startRecording() {
+            if (!this.recognition) {
+                this.recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                this.recognition.lang = 'es-ES';
+                this.recognition.continuous = true;
+                this.recognition.interimResults = true;
+                this.recognition.maxAlternatives = false; // Ofrece múltiples opciones de reconocimiento
 
-            this.recognition.onstart = () => {
-                this.recognizing = true;
-                console.log("Empezo a escuchar");
-                this.startRecording();
-            };
+                // Implementación de SpeechGrammarList para optimizar los comandos
+                const speechRecognitionList = new (window.SpeechGrammarList || window.webkitSpeechGrammarList)();
+                const commandsList = Object.keys(this.commands);
+                const grammar = `#JSGF V1.0; grammar commands; public <command> = ${commandsList.join(" | ")};`;
+                speechRecognitionList.addFromString(grammar, 1);
+                this.recognition.grammars = speechRecognitionList;
 
-            this.recognition.onresult = (event) => {
-                for (var i = event.resultIndex; i < event.results.length; i++) {
-                    if (event.results[i].isFinal) {
-                        const result = event.results[i][0].transcript;
-                        this.registro.lectura += result + '\n\n';
-                        console.log(this.registro.lectura);
-                    }
-                }
-            };
-            this.recognition.onend = () => {
-                this.recognizing = false;
-                this.microfono = 'admin-wrap/assets/images/mic.gif';
-                console.log("Termino de escuchar, llegó a su fin");
-                this.stopRecording();
-            };
-        },
-        async startRecording() {
-            navigator.mediaDevices.getUserMedia({ audio: true })
-                .then((stream) => {
-                    this.mediaRecorder = new MediaRecorder(stream);
+                this.recognition.onresult = (event) => {
+                    let finalText = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        if (event.results[i].isFinal) {
+                            let text = event.results[i][0].transcript.trim();
+                            console.log("Texto reconocido antes de procesar:", text); // Verifica lo que se reconoce antes
 
-                    this.mediaRecorder.ondataavailable = (event) => {
-                        if (event.data.size > 0) {
-                            this.chunks.push(event.data);
+                            text = this.processCommands(text); // Aplica los comandos correctamente
+
+                            console.log("Texto después de procesar comandos:", text); // Verifica después de aplicar comandos
+
+                            finalText += text + ' ';
                         }
-                    };
+                    }
+                    this.registro.lectura += finalText;
+                };
 
-                    this.mediaRecorder.onstop = () => {
-                        const audioBlob = new Blob(this.chunks, { type: 'audio/wav' });
-                        this.chunks = [];
-                        // Puedes hacer algo con el archivo de audio, como enviarlo al backend
-                        // Aquí, estamos simulando el envío a través de una función `sendToBackend`
-                        //this.saveRecording(audioBlob);
-                    };
+                this.recognition.onend = () => {
+                    if (this.recognizing) {
+                        console.log("Reconocimiento finalizado, reiniciando...");
+                        setTimeout(() => this.recognition.start(), 500);
+                    }
+                };
 
-                    this.mediaRecorder.start();
-                    this.recording = true;
-                })
-                .catch((error) => {
-                    console.error('Error al acceder al micrófono:', error);
+                this.recognition.onerror = (event) => {
+                    console.error('Error en reconocimiento:', event.error);
+                    if (event.error === 'no-speech' || event.error === 'network') {
+                        this.recognition.stop();
+                    }
+                };
+            }
+
+            this.recognition.start();
+            this.recognizing = true;
+            this.microfono = 'admin-wrap/assets/images/mic-animate.gif';
+
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+                this.mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: "audio/webm;codecs=opus",
+                    audioBitsPerSecond: 64000, // Reduce la calidad (valores entre 16kbps y 128kbps)
                 });
+                this.audioChunks = [];
+
+                this.mediaRecorder.ondataavailable = (event) => {
+                    this.audioChunks.push(event.data);
+                };
+
+                this.mediaRecorder.onstop = () => {
+                    this.audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+                    this.audioUrl = URL.createObjectURL(this.audioBlob);
+                };
+
+                this.mediaRecorder.start();
+                this.recording = true;
+            }).catch(error => console.error('Error al acceder al micrófono:', error));
         },
         stopRecording() {
-            if (this.mediaRecorder && this.recording) {
-                this.mediaRecorder.stop();
-                this.recording = false;
-            }
+            return new Promise((resolve) => {
+                if (this.mediaRecorder && this.recording) {
+                    this.mediaRecorder.onstop = () => {
+                        this.audioBlob = new Blob(this.audioChunks, { type: "audio/webm" });
+                        this.audioUrl = URL.createObjectURL(this.audioBlob);
+                        resolve(); // Resuelve la promesa después de generar el Blob
+                    };
+                    this.mediaRecorder.stop();
+                    this.recording = false;
+                    this.microfono = 'admin-wrap/assets/images/mic.gif';
+                } else {
+                    resolve(); // Si ya está detenida, simplemente resuelve la promesa
+                }
+            });
         },
-        async saveRecording(audioBlob) {
+        processCommands(text) {
+            if (typeof this.uppercase === "undefined") {
+                this.uppercase = false;
+            }
+
+            Object.keys(this.commands).forEach(command => {
+                text = text.replace(new RegExp(`\\b${command}\\b`, "gi"), this.commands[command]);
+            });
+
+            return this.uppercase ? text.toUpperCase() : text;
+        },
+        async sendToBackend() {
+            await this.stopRecording(); // Esperar a que el blob esté listo
+
+            if (!this.audioBlob || !(this.audioBlob instanceof Blob)) {
+                console.error("Error: this.audioBlob no es un Blob válido.");
+                return;
+            }
+
             const formData = new FormData();
-            formData.append('audio', audioBlob, 'audio.wav');
+            formData.append('audio', this.audioBlob, 'audio.webm');
             formData.append('estudio_id', this.id);
             formData.append('estudio_producto_id', this.registro.estudio_producto_id);
 
-            const res = await axios.post('/upload-audio', formData)
-                .then((response) => {
-                    console.log('Audio enviado con éxito:', response.data);
-                })
-                .catch((error) => {
-                    console.error('Error al enviar audio:', error);
-                });
-
-
-            this.listarAudios();
+            try {
+                const res = await axios.post('/upload-audio', formData);
+                console.log('Audio enviado con éxito:', res.data);
+            } catch (error) {
+                console.error('Error al enviar audio:', error);
+            }
         },
         async listarMisPendientes() {
             if (sessionStorage.getItem('ST-sede') == null) {
@@ -492,7 +598,6 @@ export default {
                     $("#example23").DataTable().destroy();
 
                     this.registros = res.data;
-                    console.log(res.data)
 
                     this.$nextTick(() => {
                         $("#example23").DataTable({
@@ -510,6 +615,12 @@ export default {
                 const res = await axios.post('/estudio-leerEstudio', this.registro);
 
                 if (res.status == 200) {
+
+                    /**
+                     * Envio el audio al backend
+                     */
+                    this.sendToBackend();
+
                     $.toast({
                         heading: "Ok!!!",
                         text: res.data.message,
@@ -579,8 +690,6 @@ export default {
 
             this.btnCerralModalForm();
             this.errores = [];
-
-            this.listarAudios();
         },
         descargaSoportte(nomArchivoOriginal, nomArchivoEncriptado) {
             const url = `/descarga-soportes-hc/${nomArchivoEncriptado}`;
@@ -598,16 +707,9 @@ export default {
                     console.error(error);
                 });
         },
-        async listarAudios() {
-            const res = await axios.get('/listar-audios-estudio/' + this.id);
-            this.audiosDeEstudio = res.data;
-        },
         verImagen(url, pat_id, study_iuid, servername) {
             let Url = url + '?patientID =' + pat_id + '&studyUID=' + study_iuid + '&serverName=' + servername
             window.open(Url, '_blank');
-        },
-        changeTrack(index) {
-            this.audioActual = this.audiosDeEstudio[index].audio;
         },
         establecerSede() {
             this.sede_id = sessionStorage.getItem('ST-sede');

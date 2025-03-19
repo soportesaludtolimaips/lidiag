@@ -27,6 +27,9 @@ export default defineConfig({
             },
         }),
     ],
+    optimizeDeps: {
+        include: ["@ffmpeg/ffmpeg"],
+    },
     resolve: {
         alias: {
             vue: "vue/dist/vue.esm-bundler.js",
