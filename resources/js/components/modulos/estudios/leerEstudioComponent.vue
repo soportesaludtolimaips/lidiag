@@ -15,6 +15,96 @@
                 <li class="breadcrumb-item active">Leer Estudios</li>
             </ol>
         </div>
+        <div class="col-md-7 align-self-center text-right d-none d-md-block">
+            <i class=" fa fa-life-ring model_img img-responsive" data-toggle="modal"
+                data-target=".bs-example-modal-lg"></i>
+        </div>
+
+        <!-- sample modal content -->
+        <div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel"
+            aria-hidden="true" style="display: none;">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="myLargeModalLabel">Comando de voz</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul>
+                                    <li>iniciar mayúscula sostenida</li>
+                                    <li>iniciar mayúsculas sostenida</li>
+                                    <li>iniciar mayúsculas</li>
+                                    <li>iniciar mayúscula</li>
+                                    <li>mayúsculas sostenida</li>
+                                    <li>mayúscula sostenida</li>
+                                    <li>activar mayúsculas</li>
+                                    <li>activar mayúscula</li>
+                                    <li>habilitar mayúsculas</li>
+                                    <li>habilitar mayúscula</li>
+                                    <li>activare mayúsculas</li>
+                                    <li>activare mayúscula</li>
+                                    <li>desactivar mayúsculas</li>
+                                    <li>desactivar mayúscula</li>
+                                    <li>Deshabilitar mayúsculas</li>
+                                    <li>Deshabilitar mayúscula</li>
+                                    <li>terminar mayúsculas</li>
+                                    <li>terminar mayúscula</li>
+                                    <li>fin mayúsculas</li>
+                                    <li>fin mayúscula</li>
+                                    <li>finaliza mayúsculas</li>
+                                    <li>finaliza mayúscula</li>
+                                    <li>finalizar mayúsculas</li>
+                                    <li>finalizar mayúscula</li>
+                                    <li>punto aparte</li>
+                                    <li>salto de línea</li>
+                                    <li>doble salto de línea</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul>
+                                    <li>enter</li>
+                                    <li>doble enter</li>
+                                    <li>línea en blanco</li>
+                                    <li>dar espacio</li>
+                                    <li>un espacio</li>
+                                    <li>dos espacio</li>
+                                    <li>doble espacio</li>
+                                    <li>punto</li>
+                                    <li>coma</li>
+                                    <li>dos puntos</li>
+                                    <li>punto y coma</li>
+                                    <li>abrir paréntesis</li>
+                                    <li>cerrar paréntesis</li>
+                                    <li>abrir corchetes</li>
+                                    <li>cerrar corchetes</li>
+                                    <li>abrir llaves</li>
+                                    <li>cerrar llaves</li>
+                                    <li>abrir comillas</li>
+                                    <li>cerrar comillas</li>
+                                    <li>abrir comillas simples</li>
+                                    <li>cerrar comillas simples</li>
+                                    <li>guion</li>
+                                    <li>guion bajo</li>
+                                    <li>barra diagonal</li>
+                                    <li>barra invertida</li>
+                                    <li>nueva oración</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger waves-effect text-left"
+                            data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+        <!-- /.modal -->
+
     </div>
     <!-- ============================================================== -->
     <!-- End Bread crumb and right sidebar toggle -->
