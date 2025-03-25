@@ -474,10 +474,10 @@ export default {
             audioUrl: null,
             uppercase: false,
             id: 1,
-            registro: {
-                estudio_producto_id: 456 // Asigna el ID real
-            },
-            commands: {
+            uppercase: false,
+            capitalizeNext: false,
+            // Comandos de mayúsculas
+            uppercaseCommands: {
                 "iniciar mayúscula sostenida": () => { this.uppercase = true; return ""; },
                 "iniciar mayúsculas sostenida": () => { this.uppercase = true; return ""; },
                 "iniciar mayúsculas": () => { this.uppercase = true; return ""; },
@@ -502,20 +502,29 @@ export default {
                 "finaliza mayúscula": () => { this.uppercase = false; return ""; },
                 "finalizar mayúsculas": () => { this.uppercase = false; return ""; },
                 "finalizar mayúscula": () => { this.uppercase = false; return ""; },
+            },
+
+            // Comandos de saltos de línea y puntuación
+            lineBreakCommands: {
                 "punto aparte": () => ".\n\n",
                 "salto de línea": () => "\n",
                 "doble salto de línea": () => "\n\n",
                 "enter": () => "\n",
                 "doble enter": () => "\n\n",
                 "línea en blanco": () => "\n\n",
-                "dar espacio": () => " ",
-                "un espacio": () => " ",
-                "dos espacio": () => "  ",
-                "doble espacio": () => "  ",
+                "doble línea en blanco": () => "\n\n\n\n",
+            },
+
+            // Otros comandos
+            punctuationCommands: {
                 "punto": () => ".",
                 "coma": () => ",",
                 "dos puntos": () => ":",
                 "punto y coma": () => ";",
+                "dar espacio": () => " ",
+                "un espacio": () => " ",
+                "dos espacio": () => "  ",
+                "doble espacio": () => "  ",
                 "abrir paréntesis": () => "(",
                 "cerrar paréntesis": () => ")",
                 "abrir corchetes": () => "[",
@@ -532,7 +541,6 @@ export default {
                 "barra invertida": () => "\\",
                 "nueva oración": () => ". "
             },
-
         };
     },
     methods: {
@@ -561,9 +569,16 @@ export default {
                 this.recognition.interimResults = true;
                 this.recognition.maxAlternatives = false; // Ofrece múltiples opciones de reconocimiento
 
+                // Combinar todos los comandos en un solo objeto
+                const allCommands = {
+                    ...this.uppercaseCommands,
+                    ...this.lineBreakCommands,
+                    ...this.punctuationCommands
+                };
+
                 // Implementación de SpeechGrammarList para optimizar los comandos
                 const speechRecognitionList = new (window.SpeechGrammarList || window.webkitSpeechGrammarList)();
-                const commandsList = Object.keys(this.commands);
+                const commandsList = Object.keys(allCommands);
                 const grammar = `#JSGF V1.0; grammar commands; public <command> = ${commandsList.join(" | ")};`;
                 speechRecognitionList.addFromString(grammar, 1);
                 this.recognition.grammars = speechRecognitionList;
@@ -656,11 +671,34 @@ export default {
                 this.uppercase = false;
             }
 
-            Object.keys(this.commands).forEach(command => {
-                text = text.replace(new RegExp(`\\b${command}\\b`, "gi"), this.commands[command]);
+            // Procesar comandos de mayúsculas
+            Object.keys(this.uppercaseCommands).forEach(command => {
+                text = text.replace(new RegExp(`\\b${command}\\b`, "gi"), this.uppercaseCommands[command]);
             });
 
-            return this.uppercase ? text.toUpperCase() : text;
+            // Procesar comandos de saltos de línea
+            Object.keys(this.lineBreakCommands).forEach(command => {
+                text = text.replace(new RegExp(`\\b${command}\\b`, "gi"), (match) => {
+                    this.capitalizeNext = true; // Activa mayúscula para la siguiente palabra
+                    return this.lineBreakCommands[command]();
+                });
+            });
+
+            // Procesar comandos de puntuación y espacios
+            Object.keys(this.punctuationCommands).forEach(command => {
+                text = text.replace(new RegExp(`\\b${command}\\b`, "gi"), this.punctuationCommands[command]);
+            });
+
+            // Convertir texto a mayúsculas si está activado
+            text = this.uppercase ? text.toUpperCase() : text;
+
+            // Aplicar mayúscula en primera palabra si `capitalizeNext` está activo
+            text = text.replace(/(?:^|\n)([a-záéíóúüñ])/g, (match, firstLetter) => {
+                this.capitalizeNext = false; // Resetear capitalización
+                return match.replace(firstLetter, firstLetter.toUpperCase());
+            });
+
+            return text;
         },
         async sendToBackend() {
             await this.stopRecording(); // Esperar a que el blob esté listo

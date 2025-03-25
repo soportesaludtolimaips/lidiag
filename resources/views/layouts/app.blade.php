@@ -19,7 +19,6 @@
     <!-- Page plugins css -->
     <link href="{{ asset('admin-wrap/assets/node_modules/clockpicker/dist/jquery-clockpicker.min.css') }}" rel="stylesheet">
     <!--alerts CSS -->
-    <link href="{{ asset('admin-wrap/assets/node_modules/select2/dist/css/select2.min.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('admin-wrap/assets/node_modules/bootstrap-datepicker/bootstrap-datepicker.min.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('admin-wrap/assets/node_modules/select2/dist/css/select2.min.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('admin-wrap/assets/node_modules/switchery/dist/switchery.min.css') }}" rel="stylesheet" />
