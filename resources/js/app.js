@@ -50,6 +50,8 @@ import configProductoComponent from "./components/modulos/configuracion/configPr
 app.component("config-producto-component", configProductoComponent);
 import configSedeComponent from "./components/modulos/configuracion/configSedeComponent.vue";
 app.component("config-sede-component", configSedeComponent);
+import configTipoPlantilla from "./components/modulos/configuracion/configTipoPlantilla.vue";
+app.component("config-tipo-plantilla-component", configTipoPlantilla);
 
 /**
  * Estudios

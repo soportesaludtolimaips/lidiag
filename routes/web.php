@@ -10,10 +10,12 @@ use App\Http\Controllers\Seguridad\RolController;
 use App\Http\Controllers\Configuracion\ConfigAdminSaludController;
 use App\Http\Controllers\Configuracion\ConfigProductoController;
 use App\Http\Controllers\Configuracion\ConfigDiagnosticoController;
+use App\Http\Controllers\Configuracion\ConfigPlantillaTipoController;
 use App\Http\Controllers\Configuracion\ConfigPrioridadController;
 use App\Http\Controllers\Configuracion\ConfigSedeController;
 use App\Http\Controllers\Dashboard\DashBoardController;
 use App\Http\Controllers\Dcm4chee\StudyController;
+use App\Http\Controllers\EcografiaController;
 use App\Http\Controllers\Estudios\EstudioAudioController;
 use App\Http\Controllers\Estudios\EstudioController;
 use App\Http\Controllers\Estudios\EstudioProductoController;
@@ -88,6 +90,7 @@ Route::get('/estudio-buscar-por-numdocu/{numDocu}', [EstudioController::class, '
  * Ecografias
  */
 Route::view('/ecografias.admisiones', 'modulos.ecografias.admisiones')->name('ecografias.admisiones');
+Route::resource('ecografias', EcografiaController::class)->names('ecografias');
 
 /**
  * citas
@@ -122,6 +125,8 @@ Route::resource('/config-sedes', ConfigSedeController::class)->names('config.sed
 Route::get('/config-sedes/{configsede}/buscarPorId', [ConfigSedeController::class, 'buscarPorId'])->name('config.sedes.buscarPorId');
 Route::get('/config-sedes/listar/sedes/activas', [ConfigSedeController::class, 'listarSedesActivas'])->name('config.sedes.listarSedesActivas');
 
+Route::view('/config.tipos.plantillas.listar', 'modulos.configuracion.config-tipos-plantillas')->name('config.tipos.plantillas.listar');
+Route::resource('/config-tipos-plantillas', ConfigPlantillaTipoController::class)->names('config.tipos.plantillas')->except(['create']);
 
 /**
  * Seguridad
@@ -145,6 +150,7 @@ Route::get('/seguridad-listarPermisosUsuario/{id}', [UserController::class, 'lis
  */
 Route::get('/interface-sahi-listar-atenciones/{numDocu}', [SAHIController::class, 'listarAtenciones'])->name('sahi.listar.atenciones');
 Route::get('/interface-sahi-listar-listarProductosDiagnosticos/{idAtencion}', [SAHIController::class, 'listarProductosDiagnosticos'])->name('sahi.listar.listarProductosDiagnosticos');
+Route::post('/interface-sahi/listar/productos/atencion', [SAHIController::class, 'listarProductosAtencion'])->name('sahi.listar.productos.atencion');
 
 /**
  * Interface SAHI
