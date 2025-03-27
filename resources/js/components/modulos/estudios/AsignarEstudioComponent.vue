@@ -770,10 +770,10 @@ export default {
             }
             this.registros = [];
         },
-        /* btnCerralModalForm() {
+        btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);
             $(".right-sidebar").toggleClass("shw-rside");
-        }, */
+        },
         inicializarSelect2() {
             this.$nextTick(() => {
                 $(".select2").select2();

@@ -22,11 +22,6 @@
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
-            <!-- <div class="">
-                <button class="right-side-toggle btn-info btn btn-circle btn-sm">
-                    <i class="fa fa-plus-circle m-r-5"></i>
-                </button>
-            </div> -->
         </div>
         <!-- ============================================================== -->
         <!-- End Bread crumb and right sidebar toggle -->
@@ -129,8 +124,9 @@
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label class="control-label">Producto</label>
-                                        <input type="text" id="nom_produc" name="nom_produc" v-model="registro.nom_produc"
-                                            class="form-control" placeholder="Ingrese aquí el nombre del producto">
+                                        <input type="text" id="nom_produc" name="nom_produc"
+                                            v-model="registro.nom_produc" class="form-control"
+                                            placeholder="Ingrese aquí el nombre del producto">
                                         <span class="text-danger" v-if="errores.nom_produc">{{ errores.nom_produc[0]
                                         }}</span>
                                     </div>
@@ -149,8 +145,9 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="control-label">Precio</label>
-                                        <input type="text" id="val_produc" name="val_produc" v-model="registro.val_produc"
-                                            class="form-control" placeholder="Ingrese aquí el precio del producto">
+                                        <input type="text" id="val_produc" name="val_produc"
+                                            v-model="registro.val_produc" class="form-control"
+                                            placeholder="Ingrese aquí el precio del producto">
                                     </div>
                                 </div>
                             </div>
@@ -171,12 +168,13 @@
                                         </div>
                                         <div class="checkbox checkbox-success">
                                             <input type="checkbox" id="tipo_venoso" name="tipo_venoso"
-                                                v-model="registro.tipo_venoso" :checked="registro.tipo_venoso" value="1">
+                                                v-model="registro.tipo_venoso" :checked="registro.tipo_venoso"
+                                                value="1">
                                             <label for="tipo_venoso"> Tipo Venoso </label>
                                         </div>
                                         <div class="checkbox checkbox-success">
-                                            <input type="checkbox" id="factura" name="factura" v-model="registro.factura"
-                                                :checked="registro.factura" value="1">
+                                            <input type="checkbox" id="factura" name="factura"
+                                                v-model="registro.factura" :checked="registro.factura" value="1">
                                             <label for="factura"> Genera
                                                 factura </label>
                                         </div>
@@ -201,7 +199,8 @@
                                     <i class="fa fa-pencil"></i> Actualizar
                                 </button>
 
-                                <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">Cancel</button>
+                                <button type="button" class="btn btn-inverse"
+                                    @click="btnCerralModalForm()">Cancel</button>
                             </div>
                         </div>
                     </form>
@@ -343,6 +342,8 @@ export default {
                 this.registro.factura = "";
 
             }
+
+            this.btnCerralModalForm();
         },
         limpiar() {
             this.actualizar = false;

@@ -39,9 +39,9 @@
                                             <label class="control-label">
                                                 # de atención, # de documento ó Nombres de paciente
                                             </label>
-                                            <input type="text" id="atencion_id" name="atencion_id"
-                                                v-model="busqueda.atencion_id" class="form-control"
-                                                placeholder="Nombres de paciente o # de documento"
+                                            <input type="text" id="bus_nom_num_docu" name="bus_nom_num_docu"
+                                                v-model="busqueda.bus_nom_num_docu" class="form-control"
+                                                placeholder=" Atención, Nombres de paciente o # de documento"
                                                 @keyup.enter="buscarStudy()" />
                                         </div>
                                     </div>
@@ -68,7 +68,7 @@
                                 </div>
 
                                 <div class="form-actions mt-3">
-                                    <button type="button" class="btn btn-success m-r-5" @click="buscarStudy()">
+                                    <button type="button" class="btn btn-success m-r-5" @click="listarAtenciones()">
                                         <i class="fa fa-search"></i> Buscar
                                     </button>
 
@@ -96,33 +96,28 @@
                                 width="100%">
                                 <thead>
                                     <tr>
-                                        <th with='5%'>Fecha del Estudio</th>
+                                        <th with='5%'>Fecha</th>
                                         <th with='5%'># Documento</th>
                                         <th with='30%'>Paciente</th>
-                                        <th>Accession</th>
-                                        <th>Descripción</th>
+                                        <th>Examen</th>
+                                        <th>Val. Examen</th>
                                         <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(item, index) in registros" :key="item.id" :id="item.study_pk"
-                                        :class="{ 'text-info': item.agendado !== 0 }">
-                                        <td>{{ item.study_datetime }}</td>
-                                        <td>{{ item.pat_id }}</td>
-                                        <td>{{ item.pat_name }}</td>
-                                        <td>{{ item.accession_no }}</td>
-                                        <td>{{ item.study_desc }}</td>
+                                    <tr v-for="(item, index) in registros" :key="index">
+                                        <td>{{ item.FecIngreso }}</td>
+                                        <td>{{ item.NumDocumento }}</td>
+                                        <td>{{ item.PrimerNombre }} {{ item.SegundoNombre }} {{ item.PrimerApellido }}
+                                            {{ item.SegundoApellido }}</td>
+                                        <td>{{ item.NomProducto }}</td>
+                                        <td>{{ item.ValProduc }}</td>
                                         <td class="text-nowrap">
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
                                                 @click="actualizar = true;
-                                                mostrarRegistro(item, index);" title="Asignar estudio">
-                                                <i class=" fa fa-child"></i>
-                                            </button>
-                                            <button type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
-                                                @click="verImagen(item.pat_id, item.study_iuid)" title="Ver imagenes">
-                                                <i class="fa fa-file-photo-o"></i>
+                                                mostrarRegistro(item, index);" title="Agendar producto">
+                                                <i class=" fa fa-check"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -173,10 +168,11 @@
                                                 </span> -->
                                             </div>
                                         </div>
-
-                                        <div class="col-md-5">
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
                                             <div class="form-group">
-                                                <label class="control-label">Nombres</label>
+                                                <label class="control-label">Primer Nombre</label>
                                                 <input type="text" id="nombres" name="nombres"
                                                     v-model="registro.nombres" class="form-control"
                                                     placeholder="Nombres" />
@@ -186,6 +182,44 @@
                                             </div>
                                         </div>
 
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label">Segundo Nombre</label>
+                                                <input type="text" id="seg_nom" name="seg_nom"
+                                                    v-model="registro.seg_nom" class="form-control"
+                                                    placeholder="seg_nom" />
+                                                <!-- <span class="text-danger" v-if="errores.seg_nom">
+                                                    {{ errores.seg_nom[0] }}
+                                                </span> -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label">Primer Apellido</label>
+                                                <input type="text" id="pri_ape" name="pri_ape"
+                                                    v-model="registro.pri_ape" class="form-control"
+                                                    placeholder="pri_ape" />
+                                                <!-- <span class="text-danger" v-if="errores.pri_ape">
+                                                    {{ errores.pri_ape[0] }}
+                                                </span> -->
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label">Segundo Apellido</label>
+                                                <input type="text" id="seg_ape" name="seg_ape"
+                                                    v-model="registro.seg_ape" class="form-control"
+                                                    placeholder="seg_ape" />
+                                                <!-- <span class="text-danger" v-if="errores.seg_ape">
+                                                    {{ errores.seg_ape[0] }}
+                                                </span> -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
                                         <div class="col-md-2">
                                             <div class="form-group">
                                                 <label class="control-label">Sexo</label>
@@ -194,7 +228,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-md-2">
+                                        <div class="col-md-4">
                                             <div class="form-group">
                                                 <label class="control-label">Fec. Nacimi</label>
                                                 <input type="date" id="fec_naci" name="fec_naci"
@@ -203,7 +237,7 @@
                                         </div>
                                     </div>
                                     <div class="row">
-                                        <div class="col-md-4">
+                                        <div class="col-md-7">
                                             <div class="form-group">
                                                 <label class="control-label">Dirección</label>
                                                 <input type="text" id="direccion" name="direccion"
@@ -213,7 +247,7 @@
                                                 </span> -->
                                             </div>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-5">
                                             <div class="form-group">
                                                 <label class="control-label">Télefono</label>
                                                 <input type="number" id="telefono" name="telefono"
@@ -223,7 +257,9 @@
                                                 </span> -->
                                             </div>
                                         </div>
-                                        <div class="col-md-5">
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-7">
                                             <div class="form-group">
                                                 <label class="control-label">E - Mail</label>
                                                 <input type="email" id="email" name="email" v-model="registro.email"
@@ -233,91 +269,6 @@
                                             </div>
                                         </div>
                                     </div>
-
-                                    <h5 class="card-title text-info">
-                                        <i class="fa fa-edit"></i> Datos del Estudio
-                                    </h5>
-                                    <hr>
-
-                                    <input type="hidden" id="study_pk" name="study_pk" v-model="registro.study_pk" />
-                                    <input type="hidden" id="study_iuid" name="study_iuid"
-                                        v-model="registro.study_iuid" />
-                                    <input type="hidden" id="study_id" name="study_id" v-model="registro.study_id" />
-
-                                    <div class="row">
-                                        <div class="col-md-5">
-                                            <div class="form-group">
-                                                <label class="control-label">Descripción</label>
-                                                <input type="text" id="study_desc" name="study_desc"
-                                                    v-model="registro.study_desc" class="form-control" />
-                                                <!-- <span class="text-danger" v-if="errores.study_desc">
-                                                    {{ errores.study_desc[0] }}
-                                                </span> -->
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label class="control-label">Detalle</label>
-                                                <input type="text" id="accession_no" name="accession_no"
-                                                    v-model="registro.accession_no" class="form-control" />
-                                                <!-- <span class="text-danger" v-if="errores.accession_no">
-                                                    {{ errores.accession_no[0] }}
-                                                </span> -->
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label class="control-label">Fecha</label>
-                                                <input type="text" id="study_datetime" name="study_datetime"
-                                                    v-model="registro.study_datetime" class="form-control" />
-                                                <!-- <span class="text-danger" v-if="errores.study_datetime">
-                                                    {{ errores.study_datetime[0] }}
-                                                </span> -->
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <div class="form-group">
-                                                <label class="control-label">Reportar al Email</label>
-                                                <input type="email" id="email_reportar" name="email_reportar"
-                                                    v-model="registro.email_reportar" class="form-control" />
-                                            </div>
-                                        </div>
-                                        <div class="col-md-12">
-                                            <div class="form-group">
-                                                <label class="control-label">Observaciones</label>
-                                                <input type="text" id="observaciones" name="observaciones"
-                                                    v-model="registro.observaciones" class="form-control"
-                                                    placeholder="Ingrese aqi las observaciones del estudio" />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <h5 class="card-title text-info">
-                                        <i class="fa fa-edit"></i> Adjunto
-                                    </h5>
-                                    <hr>
-
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <div class="form-group">
-                                                <input type="file" class="form-control" id="exampleInputFile1"
-                                                    aria-describedby="fileHelp" @change='obtenerArchivo1' />
-                                            </div>
-                                            <div class="form-group">
-                                                <input type="file" class="form-control" id="exampleInputFile2"
-                                                    aria-describedby="fileHelp" @change='obtenerArchivo2' />
-                                            </div>
-                                            <div class="form-group">
-                                                <input type="file" class="form-control" id="exampleInputFile3"
-                                                    aria-describedby="fileHelp" @change='obtenerArchivo3' />
-                                            </div>
-                                        </div>
-                                    </div>
-
                                 </div>
                                 <div class="col-md-6">
 
@@ -341,154 +292,30 @@
                                                 </span>
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label class="control-label">Prioridad</label>
-                                                <select v-model="registro.prioridad_id" name="prioridad_id"
-                                                    id="prioridad_id" class="form-control custom-select">
-                                                    <option v-for="(ItemPrioridad, index) in prioridades" :key="index"
-                                                        :value="ItemPrioridad.id">
-                                                        {{ ItemPrioridad.nom_priori }} - {{ ItemPrioridad.tiempo }} {{
-                                                            ItemPrioridad.tipo_tiempo }} {{ ItemPrioridad.observacion }}
-                                                    </option>
-                                                </select>
-                                                <span class="text-danger" v-if="errores.prioridad_id">
-                                                    {{ errores.prioridad_id[0] }}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-4" v-if="sedeInterface === true">
-                                            <div class="form-group">
-                                                <label class="control-label">Atención</label>
-                                                <select v-model="interfaceAtencionSeleccionada"
-                                                    name="interfaceAtencionSeleccionada"
-                                                    id="interfaceAtencionSeleccionada"
-                                                    class="form-control custom-select"
-                                                    @change="interfaceListarProductosDiagnosticos()">
-                                                    <option v-for="(ItemAtencion, index) in interfaceAtenciones"
-                                                        :key="index" :value="ItemAtencion.IdAtencion">
-                                                        {{ ItemAtencion.IdAtencion }} - {{ ItemAtencion.FecIngreso }}
-                                                    </option>
-                                                </select>
-                                                <!-- <span class="text-danger" v-if="errores.prioridad_id">
-                                                    {{ errores.prioridad_id[0] }}
-                                                </span> -->
-                                            </div>
-                                        </div>
                                     </div>
 
                                     <h5 class="card-title text-info">
-                                        <i class="fa fa-user"></i> PRODUCTOS
-                                        <hr>
+                                        <i class="fa fa-product-hunt"></i> Productos
                                     </h5>
-
-                                    <span class="text-danger" v-if="errores.productosEstudio">
-                                        {{ errores.productosEstudio[0] }}
-                                    </span>
-                                    <!-- <button type="button" class="btn waves-effect waves-light btn-xs btn-info float-right"
-                                        data-toggle="modal" data-target="#exampleModal">
-                                        <i class="fa fa-search"></i>
-                                    </button> -->
-
+                                    <hr>
                                     <div class="row">
-                                        <div class="col-md-12" v-if="sedeInterface === false">
-                                            <select class="select form-control" style="width: 100%; height:36px;"
-                                                @change="guardarProductosEstudio(10)" v-model="productoSelecciondo">
-                                                <option v-for="ItemProducto in productos" v-bind:key="ItemProducto"
-                                                    v-bind:value="ItemProducto.id">
-                                                    {{ ItemProducto.nom_produc }}
-                                                </option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-12 table-responsive"
-                                            style="overflow-y: scroll; height: 250px;">
+                                        <div class="col-md-12 table-responsive">
                                             <table id="myTable" class="table table-bordered table-striped">
                                                 <thead>
                                                     <tr>
-                                                        <th></th>
                                                         <th>Código</th>
                                                         <th>Producto</th>
                                                         <th></th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <tr v-for="(item, index) in registro.productosEstudio"
-                                                        :key="item.id">
-                                                        <td>
-                                                            <input type="checkbox" class="iCheck-helper"
-                                                                id="flat-checkbox-2" data-checkbox="icheckbox_flat-red"
-                                                                v-model="item.checked">
-                                                            <label for="flat-checkbox-2"></label>
-                                                            <!-- <div class="icheckbox_flat-blue checked"
-                                                                style="position: relative;">
-                                                                <input type="checkbox"
-                                                                    class="check" id="flat-checkbox-2" checked=""
-                                                                    data-checkbox="icheckbox_flat-red"
-                                                                    style="position: absolute; opacity: 0;"><ins
-                                                                    class="iCheck-helper"
-                                                                    style="position: absolute; top: 0%; left: 0%; display: block; width: 100%; height: 100%; margin: 0px; padding: 0px; background: rgb(255, 255, 255); border: 0px; opacity: 0;"></ins>
-                                                            </div>
-                                                            <label for="flat-checkbox-2" class="">Checkbox 2</label> -->
-
-                                                        </td>
-                                                        <td>{{ item.cod_cups }}</td>
-                                                        <td>{{ item.nom_produc }}</td>
+                                                    <tr v-for="item in registro.productosAgenda" :key="item.id">
+                                                        <td>{{ item.CodLegal }}</td>
+                                                        <td>{{ item.NomProducto }}</td>
                                                         <td class="text-nowrap">
                                                             <button type="button"
                                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                                @click="quitarProductoEstudio(index)">
-                                                                <i class="fa fa-trash"></i>
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-
-                                    <h5 class="card-title text-info m-t-40">
-                                        <i class="fa fa-user "></i> DIAGNOSTICOS
-                                    </h5>
-
-                                    <hr>
-
-                                    <span class="text-danger" v-if="errores.diagnosticosEstudio">
-                                        {{ errores.diagnosticosEstudio[0] }}
-                                    </span>
-                                    <!-- <button type="button" class="btn waves-effect waves-light btn-xs btn-info float-right">
-                                        <i class="fa fa-search"></i>
-                                    </button> -->
-
-                                    <div class="row">
-                                        <div class="col-md-12" v-if="sedeInterface === false">
-                                            <select class="form-control custom-select"
-                                                @change="guardarDiagnosticosEstudio(10)"
-                                                style="width: 100%; height: 36px" v-model="diagnosticoSelecciondo">
-                                                <option v-for="ItemDiagnostico in diagnosticos"
-                                                    v-bind:key="ItemDiagnostico" v-bind:value="ItemDiagnostico.id">
-                                                    {{ ItemDiagnostico.nom_diagnos }}
-                                                </option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-12 table-responsive"
-                                            style="overflow-y: scroll; height: 250px;">
-                                            <table id="myTable" class="table table-bordered table-striped">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Código</th>
-                                                        <th>Diagnostico</th>
-                                                        <th></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr v-for="item in registro.diagnosticosEstudio" :key="item.id">
-                                                        <td>{{ item.cod_diagnos }}</td>
-                                                        <td>{{ item.nom_diagnos }}</td>
-                                                        <td class="text-nowrap">
-                                                            <button type="button"
-                                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                                @click="quitarDiagnosticoEstudio(index)">
+                                                                @click="quitarProductoAgenda(item.CodLegal)">
                                                                 <i class="fa fa-trash"></i>
                                                             </button>
                                                         </td>
@@ -520,13 +347,139 @@
 </template>
 <script>
 export default {
+    props: ['usuarioactual'],
     mounted() {
+        this.listarMedicos();
+        this.establecerSede();
     },
     data() {
         return {
+            tituloModal: 'Nueva adminsión',
+            busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "6341296", bus_fehc_ini: "", bus_fecha_fin: "" },
+            registros: [],
+            registro: {
+                paciente_id: "", num_docu: "", nombres: "", seg_nom: "", pri_ape: "", seg_ape: "", sexo: "", fec_naci: "", direccion: "", tel: "",
+                sede_id: this.sedeActual, quien_registro_id: this.usuarioactual.id, cel: "", atencion_id: null, productosAgenda: []
+            },
+            errores: {},
+            erroresBusqueda: {},
+            medicos: [],
+            sedeActual: sessionStorage.getItem('ST-sede'),
+            productosAgenda: [],
         }
     },
     methods: {
+        async listarAtenciones() {
+
+            const res = await axios.post('/interface-sahi/listar/productos/atencion', this.busqueda);
+
+            if (res.status == 200) {
+                $("#example23").DataTable().destroy();
+
+                this.registros = res.data;
+                console.log(this.registros)
+                this.$nextTick(() => {
+                    $("#example23").DataTable({
+                        dom: "Bfrtip",
+                        buttons: ["copy", "csv", "excel", "pdf", "print"],
+                    });
+                });
+            }
+        },
+        async guardarAgenda() {
+            const res = await axios.post('');
+
+            if (res.status == 200) {
+
+                $.toast({
+                    heading: 'Ok!!!',
+                    text: res.data.message,
+                    position: 'top-right',
+                    loaderBg: '#ff6849',
+                    icon: 'success',
+                    hideAfter: 3500,
+                    stack: 6
+                });
+
+                this.ListarDatos();
+                this.limpiarFormulario();
+                this.btnCerralModalForm();
+            }
+        },
+        establecerSede() {
+            this.registro.sede_id = sessionStorage.getItem('ST-sede');
+            this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
+            this.sedeActual = sessionStorage.getItem('ST-sede');
+
+            if (this.registro.sede_id == 1) {
+                this.sedeInterface = true;
+            } else {
+                this.sedeInterface = false;
+            }
+            this.registros = [];
+        },
+        async listarMedicos() {
+            try {
+                const res = await axios.get("/user.listarUsuarios/Medico");
+                this.medicos = res.data;
+            } catch (error) {
+                console.log(error);
+            }
+        },
+        btnCerralModalForm() {
+            $(".right-sidebar").slideDown(50);
+            $(".right-sidebar").toggleClass("shw-rside");
+        },
+        mostrarRegistro(data = {}) {
+            console.log(data)
+            this.registro.paciente_id = data.paciente_id;
+            this.registro.num_docu = data.NumDocumento;
+            this.registro.nombres = data.PrimerNombre;
+            this.registro.seg_nom = data.SegundoNombre;
+            this.registro.pri_ape = data.PrimerApellido;
+            this.registro.seg_ape = data.SegundoApellido;
+            this.registro.sexo = data.IdSexo;
+            this.registro.fec_naci = data.FecNacimiento;
+            this.registro.direccion = data.DirCasa;
+            this.registro.tel = data.TelCasa;
+            this.registro.cel = data.TelCasa;
+            this.registro.atencion_id = data.IdAtencion;
+
+            this.registro.productosAgenda = this.registros
+
+            this.btnCerralModalForm();
+        },
+        quitarProductoAgenda(codProduc) {
+            this.registro.productosAgenda = this.registro.productosAgenda.filter(x => x.CodLegal !== codProduc);
+        },
+        btnCerralModalForm() {
+            $(".right-sidebar").slideDown(50);
+            $(".right-sidebar").toggleClass("shw-rside");
+        },
     }
 }
 </script>
+<style scoped>
+.right-sidebar {
+    position: fixed;
+    right: -80%;
+    width: 80%;
+    display: none;
+    z-index: 1100;
+    background: #ffffff;
+    top: 0px;
+    padding-bottom: 20px;
+    height: 100%;
+    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
+    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
+    -webkit-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+}
+
+.shw-rside {
+    right: 0px;
+    width: 80%;
+    display: block;
+}
+</style>

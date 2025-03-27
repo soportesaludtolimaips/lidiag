@@ -34,7 +34,6 @@
                             <li><router-link to="/notificarEstudios">Notificar estudio</router-link></li>
                         </ul>
                     </li>
-
                     <li class="nav-small-cap">--- PARAMETRIZACIÓN</li>
                     <li>
                         <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
@@ -42,11 +41,12 @@
                             <span class="hide-menu">Configuraciones</span>
                         </a>
                         <ul aria-expanded="false" class="collapse">
-                            <li><router-link to="/configAdminSalud">Admin. De Salud</router-link></li>
+                            <li><router-link to="/configAdminSalud">Admin. De Salud uuuuuuuuuuuuu</router-link></li>
                             <li><router-link to="/configDiagnosticos">Díagnosticos</router-link></li>
                             <li><router-link to="/configPrioridades">Prioridades</router-link></li>
                             <li><router-link to="/configProductos">Productos</router-link></li>
                             <li><router-link to="/configSedes">Sedes</router-link></li>
+                            <li><router-link to="/config.tipos.plantillas.listar">Tipos de Plantillas</router-link></li>
                         </ul>
                     </li>
                     <li>
