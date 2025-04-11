@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Configuracion;
 
 use App\Http\Controllers\Controller;
-use App\Models\Configuracion\PlantillaTipo;
+use App\Models\Configuracion\ConfigPlantillaTipo;
 use Illuminate\Http\Request;
 
 class ConfigPlantillaTipoController extends Controller
@@ -13,7 +13,7 @@ class ConfigPlantillaTipoController extends Controller
      */
     public function index()
     {
-        return response()->json(PlantillaTipo::all());
+        return response()->json(ConfigPlantillaTipo::all());
     }
 
     /**
@@ -42,7 +42,7 @@ class ConfigPlantillaTipoController extends Controller
             'estado.boolean' => 'El estado debe ser verdadero o falso.',
         ]);
 
-        $plantilla = PlantillaTipo::create($request->all());
+        $plantilla = ConfigPlantillaTipo::create($request->all());
 
         return response()->json($plantilla, 201);
     }
@@ -52,13 +52,13 @@ class ConfigPlantillaTipoController extends Controller
      */
     public function show($id)
     {
-        return response()->json(PlantillaTipo::findOrFail($id));
+        return response()->json(ConfigPlantillaTipo::findOrFail($id));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(PlantillaTipo $plantillaTipo)
+    public function edit(ConfigPlantillaTipo $plantillaTipo)
     {
         //
     }
@@ -79,7 +79,7 @@ class ConfigPlantillaTipoController extends Controller
             'estado.boolean' => 'El estado debe ser verdadero o falso.',
         ]);
 
-        $plantilla = PlantillaTipo::findOrFail($id);
+        $plantilla = ConfigPlantillaTipo::findOrFail($id);
         $plantilla->update($request->all());
 
         return response()->json($plantilla);
@@ -90,7 +90,7 @@ class ConfigPlantillaTipoController extends Controller
      */
     public function destroy($id)
     {
-        $plantilla = PlantillaTipo::findOrFail($id);
+        $plantilla = ConfigPlantillaTipo::findOrFail($id);
         $plantilla->delete();
 
         return response()->json(null, 204);

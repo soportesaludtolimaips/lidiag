@@ -387,9 +387,9 @@
                                                         </a>
                                                     </div>
                                                 </div>
-                                                <div class="tab-pane  p-20" id="profile8" role="tabpanel">
+                                                <div class="tab-pane p-20" id="profile8" role="tabpanel">
                                                     <template v-for="(item, index) in audiosDeEstudio" :key="index">
-                                                        <audio :src="item.audio" controls
+                                                        <audio :src="`audios/${item.audio}`" controls
                                                             style="height: 15px; width: 100%;"></audio>
                                                     </template>
                                                 </div>
@@ -457,7 +457,7 @@ export default {
                 reg_medico: '', nombres_medico: '', firma_medico: '', url_oviyam: null, tap_oviyam: null, study_iuid: null, tap_oviyam: null,
 
             },
-            busqueda: { estudioParaTranscibir: 'si', quien_asigno_id: "", medico_id: "", sede_id: '', bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
+            busqueda: { estudioParaTranscibir: 'si', quien_asigno_id: "", medico_id: "", sede_id: '', bus_nom_num_docu: "1188973863", bus_fehc_ini: "", bus_fecha_fin: "" },
             datosImagen: { urlOviyam: '', patientId: '', studyUID: '', serverName: '' },
             audiosDeEstudio: [],
             quienes_asignaron: [],
@@ -649,6 +649,7 @@ export default {
         },
         async listarAudios() {
             const res = await axios.get('/listar-audios-estudio/' + this.id);
+            console.log("Audios ", `audios/${res.data}`)
             this.audiosDeEstudio = res.data;
         },
         establecerSede() {
@@ -666,14 +667,11 @@ export default {
             return dayjs.utc(timestamp).local().format('YYYY-MM-DD HH:mm:ss');
         },
         async mostrarRegistro(data = {}) {
-
             const date = new Date();
             const fechaActual = ("0" + date.getDate()).slice(-2) + "-" + ("0" + (date.getMonth() + 1)).slice(-2) + "-" +
                 date.getFullYear() + " " + ("0" + date.getHours()).slice(-2) + ":" + ("0" + date.getMinutes()).slice(-2) + ":"
                 + ("0" + date.getSeconds()).slice(-2);
 
-
-            console.log(fechaActual)
             this.tituloModal = "Transcribir la lectura del paciente: " + data.nom_pacien;
             this.id = data.id;
             this.idRow = data.estudio_producto_id;

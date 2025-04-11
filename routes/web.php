@@ -10,6 +10,7 @@ use App\Http\Controllers\Seguridad\RolController;
 use App\Http\Controllers\Configuracion\ConfigAdminSaludController;
 use App\Http\Controllers\Configuracion\ConfigProductoController;
 use App\Http\Controllers\Configuracion\ConfigDiagnosticoController;
+use App\Http\Controllers\Configuracion\ConfigModulosController;
 use App\Http\Controllers\Configuracion\ConfigPlantillaTipoController;
 use App\Http\Controllers\Configuracion\ConfigPrioridadController;
 use App\Http\Controllers\Configuracion\ConfigSedeController;
@@ -128,6 +129,8 @@ Route::get('/config-sedes/listar/sedes/activas', [ConfigSedeController::class, '
 Route::view('/config.tipos.plantillas.listar', 'modulos.configuracion.config-tipos-plantillas')->name('config.tipos.plantillas.listar');
 Route::resource('/config-tipos-plantillas', ConfigPlantillaTipoController::class)->names('config.tipos.plantillas')->except(['create']);
 
+Route::get('confing-modulos-listar', [ConfigModulosController::class, 'listarModulos'])->name('confing.modulos.listar');
+
 /**
  * Seguridad
  */
@@ -140,6 +143,8 @@ Route::get('/user.listarUsuarios/{tipo_user}', [UserController::class, 'listarUs
 
 Route::view('/seguridad.roles.listar', 'modulos.seguridad.roles')->name('seguridad.roles.listar');
 Route::resource('/seguridad-roles', RolController::class)->names('seguridad.roles');
+
+Route::get('/usuario-por-modulo/{modulo_id}', [UserController::class, 'usuariosPorModulo'])->name('usuarios.por.modulo');
 
 
 Route::view('/seguridad.perfil', 'modulos.seguridad.perfil')->name('seguridad.perfil');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Seguridad;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Seguridad\UserAgregarRequest;
+use App\Models\Configuracion\ConfigModulo;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Str;
@@ -20,7 +21,7 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $users = User::all();
+        $users = User::with('modulos')->get();
         return response()->json($users);
     }
 
@@ -168,6 +169,24 @@ class UserController extends Controller
 
         $seguridad_usuario->assignRole($rolesInsertar);
 
+        /**
+         * Establezco los modulos del usuario
+         */
+        $modulosDeUsuario = $registro['modulos'];
+        $modulosInsertar = array();
+        foreach ($modulosDeUsuario as $modulo) {
+            if ($modulo['checked'] === true) {
+                $modulosInsertar[] = $modulo['id'];
+            }
+        }
+
+        // Insertar módulos si el usuario no tiene asociados previamente
+        if (!empty($modulosInsertar)) {
+            $seguridad_usuario->modulos()->sync($modulosInsertar);
+        } else {
+            $seguridad_usuario->modulos()->detach();
+        }
+
         return response()->json(['message' => 'El usuario se creo correctamente.']);
     }
     /**
@@ -179,6 +198,7 @@ class UserController extends Controller
      */
     public function update(Request $request)
     {
+
         $registro = json_decode($request->input('registro'), true);
 
         $validator = Validator::make($registro, [
@@ -264,6 +284,9 @@ class UserController extends Controller
 
         $seguridad_usuario->save();
 
+        /**
+         * Establezco los roles del usuario
+         */
         $rolesDeUsuario = $registro['rolesUsuario'];
         $rolesInsertar = array();
         foreach ($rolesDeUsuario as $rol) {
@@ -273,6 +296,25 @@ class UserController extends Controller
         }
 
         $seguridad_usuario->roles()->sync($rolesInsertar);
+
+        /**
+         * Establezco los modulos del usuario
+         */
+
+        $modulosDeUsuario = $registro['modulos'];
+        $modulosInsertar = array();
+        foreach ($modulosDeUsuario as $modulo) {
+            if (isset($modulo['checked']) and $modulo['checked'] === true) {
+                $modulosInsertar[] = $modulo['id'];
+            }
+        }
+
+        // Insertar módulos si el usuario no tiene asociados previamente
+        if (!empty($modulosInsertar)) {
+            $seguridad_usuario->modulos()->sync($modulosInsertar);
+        } else {
+            $seguridad_usuario->modulos()->detach();
+        }
 
         return response()->json(['message' => 'Registro actualizado correctamente.']);
     }
@@ -286,5 +328,16 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         //
+    }
+
+    public function usuariosPorModulo($moduloId)
+    {
+        $modulo = ConfigModulo::with('usuarios')->find($moduloId);
+
+        if (!$modulo) {
+            return response()->json(['message' => 'Módulo no encontrado'], 404);
+        }
+
+        return response()->json($modulo->usuarios);
     }
 }

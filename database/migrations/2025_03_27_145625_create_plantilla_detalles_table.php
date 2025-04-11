@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('plantillas_detalles', function (Blueprint $table) {
+        Schema::create('config_plantillas_detalles', function (Blueprint $table) {
             $table->id();
 
             $table->unsignedBigInteger('plantilla_tipo_id');
-            $table->foreign('plantilla_tipo_id')->references('id')->on('plantillas_tipos');
+            $table->foreign('plantilla_tipo_id')->references('id')->on('config_plantillas_tipos');
 
             $table->unsignedBigInteger('medico_id');
             $table->foreign('medico_id')->references('id')->on('users');
@@ -34,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('plantillas_detalles');
+        Schema::dropIfExists('config_plantillas_detalles');
     }
 };

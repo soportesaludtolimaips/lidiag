@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
+use App\Models\Configuracion\ConfigModulo;
 use App\Models\Estudio\Estudio;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -26,7 +27,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'imagen_perfil'
+        'imagen_perfil',
+        'interface_id',
     ];
 
     /**
@@ -66,5 +68,10 @@ class User extends Authenticatable
     public function estudios()
     {
         return $this->hasMany(Estudio::class, 'medico_id');
+    }
+
+    public function modulos()
+    {
+        return $this->belongsToMany(ConfigModulo::class, 'users_modulos', 'user_id', 'modulo_id');
     }
 }

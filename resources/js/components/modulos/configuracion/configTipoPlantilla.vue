@@ -99,36 +99,26 @@
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label class="control-label">Código</label>
-                                        <input type="text" id="cod_admin_salud" name="cod_admin_salud"
-                                            v-model="registro.cod_admin_salud" class="form-control" placeholder="Código">
-                                        <span class="text-danger" v-if="errores.cod_admin_salud">{{
-                                            errores.cod_admin_salud[0]
+                                        <input type="text" id="nom_tipo" name="nom_tipo" v-model="registro.nom_tipo"
+                                            class="form-control" placeholder="Código">
+                                        <span class="text-danger" v-if="errores.nom_tipo">{{
+                                            errores.nom_tipo[0]
                                         }}</span>
                                     </div>
                                 </div>
 
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label class="control-label">Nit</label>
-                                        <input type="text" id="nit_admin_salud" name="nit_admin_salud"
-                                            v-model="registro.nit_admin_salud" class="form-control" placeholder="Nit">
-                                        <span class="text-danger" v-if="errores.nit_admin_salud">{{
-                                            errores.nit_admin_salud[0]
-                                        }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="control-label">Razón Social</label>
-                                        <input type="text" id="nom_admin_salud" name="nom_admin_salud"
-                                            v-model="registro.nom_admin_salud" class="form-control"
-                                            placeholder="Ingrese aquí el la razón sicual de la administradora de salud">
-                                        <span class="text-danger" v-if="errores.nom_admin_salud">{{
-                                            errores.nom_admin_salud[0]
-                                        }}</span>
+                                        <label class="control-label">Producto</label>
+                                        <select v-model="registro.producto_id" name="producto_id" id="producto_id"
+                                            class="form-control custom-select">
+                                            <option v-for="(Producto, index) in prioridades" :key="index"
+                                                :value="Producto.id"> {{ Producto.nom_produc }}
+                                            </option>
+                                        </select>
+                                        <span class="text-danger" v-if="errores.producto_id">
+                                            {{ errores.producto_id[0] }}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -156,7 +146,8 @@
                                     <i class="fa fa-pencil"></i> Actualizar
                                 </button>
 
-                                <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">Cancel</button>
+                                <button type="button" class="btn btn-inverse"
+                                    @click="btnCerralModalForm()">Cancel</button>
                             </div>
                         </div>
                     </form>
@@ -173,20 +164,22 @@
 export default {
     mounted() {
         this.ListarDatos();
+        this.listarProductos();
     },
     data() {
         return {
             id: 0,
             registros: [],
-            registro: { cod_admin_salud: '', nit_admin_salud: '', nom_admin_salud: '', estado: 0 },
+            registro: { nom_tipo: '', producto_id: '' },
             tituloModal: 'Nuevo registro',
             actualizar: false,
             errores: {},
+            productos: []
         };
     },
     methods: {
         async ListarDatos() {
-            const res = await axios.get("/config-admin-salud")
+            const res = await axios.get("/config-tipos-plantillas")
 
             $('#example23').DataTable().destroy();
             this.registros = res.data;
@@ -202,7 +195,7 @@ export default {
         async guardarRegistro() {
             try {
                 if (this.actualizar === false) {
-                    const res = await axios.post('/config-admin-salud', this.registro);
+                    const res = await axios.post('/config-tipos-plantillas', this.registro);
 
                     if (res.status == 200) {
 
@@ -219,7 +212,7 @@ export default {
                         });
                     }
                 } else {
-                    const res = await axios.put('/config-admin-salud/' + this.id, this.registro);
+                    const res = await axios.put('/config-tipos-plantillas/' + this.id, this.registro);
                     if (res.status == 200) {
 
                         this.ListarDatos()
@@ -252,7 +245,7 @@ export default {
                 closeOnConfirm: false
             }, function (isConfirm) {
                 if (isConfirm) {
-                    axios.delete('/config-admin-salud/' + id).then(response => {
+                    axios.delete('/config-tipos-plantillas/' + id).then(response => {
                         swal("Ok!!!!", response.data.message, "success");
                         $this.ListarDatos()
                     }).catch(error => {
@@ -261,21 +254,30 @@ export default {
                 }
             });
         },
+        async listarProductos() {
+            try {
+                const res = await axios.get("/config-productos");
+                this.productos = res.data;
+                this.$nextTick(() => {
+                    $(this.$refs.select).select2();
+                });
+            } catch (error) {
+                console.log(error);
+            }
+        },
         mostrarRegistro(data = {}) {
             if (this.actualizar == true) {
-                this.tituloModal = "Actualizar el registro: " + data.nom_admin_salud;
+                this.tituloModal = "Actualizar el registro: " + data.nom_tipo;
                 this.id = data.id;
-                this.registro.cod_admin_salud = data.cod_admin_salud;
-                this.registro.nit_admin_salud = data.nit_admin_salud;
-                this.registro.nom_admin_salud = data.nom_admin_salud;
+                this.registro.producto_id = data.producti_id;
+                this.registro.nom_tipo = data.nom_tipo;
                 this.registro.estado = data.estado;
             } else {
                 this.actualizar = false;
                 this.tituloModal = "Nuevo registro";
                 this.id = 0;
-                this.registro.cod_admin_salud = "";
-                this.registro.nit_admin_salud = "";
-                this.registro.nom_admin_salud = "";
+                this.registro.producto_id = "";
+                this.registro.nom_tipo = "";
                 this.registro.estado = 1;
             }
 

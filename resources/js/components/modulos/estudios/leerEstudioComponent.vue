@@ -461,7 +461,6 @@ export default {
             idRow: null,
             sede_id: null,
 
-
             /**
              * Variables para convertir de voz a texto y grabacion de audio
              */
@@ -476,6 +475,7 @@ export default {
             id: 1,
             uppercase: false,
             capitalizeNext: false,
+
             // Comandos de mayúsculas
             uppercaseCommands: {
                 "iniciar mayúscula sostenida": () => { this.uppercase = true; return ""; },
@@ -707,6 +707,8 @@ export default {
                 console.error("Error: this.audioBlob no es un Blob válido.");
                 return;
             }
+            console.log('id: ', this.id)
+            console.log('estudio_producto_id: ', this.registro.estudio_producto_id)
 
             const formData = new FormData();
             formData.append('audio', this.audioBlob, 'audio.webm');
@@ -715,7 +717,19 @@ export default {
 
             try {
                 const res = await axios.post('/upload-audio', formData);
-                console.log('Audio enviado con éxito:', res.data);
+
+                if (res.status != 200) {
+                    $.toast({
+                        heading: "Upsss!!!",
+                        text: res.data.message,
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "success",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                }
+
             } catch (error) {
                 console.error('Error al enviar audio:', error);
             }
@@ -791,7 +805,6 @@ export default {
                     this.limpiar();
                 }
             } catch (error) {
-                console.log(error);
                 this.errores = error.response.data.errors;
             }
         },
@@ -800,6 +813,7 @@ export default {
             this.listarMisPendientes();
         },
         async mostrarRegistro(data = {}) {
+
             this.tituloModal = "Lectura de paciente: " + data.nom_pacien + "Producto: \n" + data.nom_produc;
             this.id = data.id;
             this.idRow = data.estudio_producto_id;
@@ -829,6 +843,7 @@ export default {
 
             this.btnCerralModalForm();
             this.errores = [];
+            console.log('data: ', data)
         },
         descargaSoportte(nomArchivoOriginal, nomArchivoEncriptado) {
             const url = `/descarga-soportes-hc/${nomArchivoEncriptado}`;

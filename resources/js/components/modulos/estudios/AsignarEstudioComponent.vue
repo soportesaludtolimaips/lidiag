@@ -540,8 +540,6 @@ export default {
             this.establecerSede();
             $("#example23").DataTable().destroy();
         });
-
-        this.listarProductos();
         this.inicializarSelect2();
     },
     data() {

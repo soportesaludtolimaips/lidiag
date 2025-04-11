@@ -6,11 +6,11 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class PlantillaDetalle extends Model
+class ConfigPlantillaDetalle extends Model
 {
     use HasFactory;
 
-    protected $table = 'plantillas_detalles';
+    protected $table = 'config_plantillas_detalles';
 
     protected $fillable = [
         'plantilla_tipo_id',
@@ -23,7 +23,7 @@ class PlantillaDetalle extends Model
 
     public function plantillaTipo()
     {
-        return $this->belongsTo(PlantillaTipo::class, 'plantilla_tipo_id');
+        return $this->belongsTo(ConfigPlantillaTipo::class, 'plantilla_tipo_id');
     }
 
     public function medico()
