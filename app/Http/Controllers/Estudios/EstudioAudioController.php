@@ -37,11 +37,14 @@ class EstudioAudioController extends Controller
                     // Configurar formato MP3
                     $format = new Mp3();
                     $format->setAudioCodec('libmp3lame');
-                    $format->setAudioKiloBitrate(128);
+                    $format->setAudioKiloBitrate(64); // Reducir el bitrate a 64 kbps para disminuir el tamaño
 
                     // Convertir el archivo
                     $audio = $ffmpeg->open(Storage::disk('audios')->path($nombreArchivo));
                     $audio->save($format, $outputPath);
+
+                    // Eliminar el archivo original .webm
+                    Storage::disk('audios')->delete($nombreArchivo);
 
                     // Guardar en la base de datos
                     $estudioAudio = new EstudioAudio();
