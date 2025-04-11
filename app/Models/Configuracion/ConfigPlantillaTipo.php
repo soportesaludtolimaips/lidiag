@@ -5,11 +5,11 @@ namespace App\Models\Configuracion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class PlantillaTipo extends Model
+class ConfigPlantillaTipo extends Model
 {
     use HasFactory;
 
-    protected $table = 'plantillas_tipos'; // Nombre de la tabla
+    protected $table = 'config_plantillas_tipos'; // Nombre de la tabla
 
     protected $fillable = [
         'producto_id',

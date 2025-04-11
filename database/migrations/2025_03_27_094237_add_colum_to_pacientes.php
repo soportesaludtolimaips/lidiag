@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('pacientes', function (Blueprint $table) {
             $table->string('seg_nom', 70)->nullable()->after('nombres');
             $table->string('pri_ape', 30)->nullable()->after('seg_nom');
-            $table->string('seg_ape', 30)->nullable()->after('ape1');
+            $table->string('seg_ape', 30)->nullable()->after('pri_ape');
             $table->string('cel', 20)->nullable()->after('tel');
         });
     }

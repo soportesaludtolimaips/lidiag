@@ -132,24 +132,34 @@
                     <form action="#">
                         <div class="form-body">
                             <div class="row p-t-5">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label class="control-label"># Documento</label>
                                         <input type="text" id="num_docu" v-model="registro.num_docu"
                                             class="form-control" placeholder="Número de documeto del usuario">
                                         <span class="text-danger" v-if="errores.num_docu">{{
                                             errores.num_docu[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="form-group">
-                                        <label class="control-label">Registro meduci</label>
+                                        <label class="control-label">Registro medidco</label>
                                         <input type="text" id="reg_med" v-model="registro.reg_med" class="form-control"
                                             placeholder="Registro medico">
                                         <span class="text-danger" v-if="errores.reg_med">{{
                                             errores.reg_med[0]
-                                        }}</span>
+                                            }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="control-label">Id Usuario SAHI</label>
+                                        <input type="text" id="interface_id" v-model="registro.interface_id"
+                                            class="form-control" placeholder="Id del usuario de SAHI">
+                                        <span class="text-danger" v-if="errores.interface_id">{{
+                                            errores.interface_id[0]
+                                            }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -162,7 +172,7 @@
                                             placeholder="Ingrese aquí el los nombres del usaurio">
                                         <span class="text-danger" v-if="errores.name">{{
                                             errores.name[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -183,13 +193,13 @@
 
                                         <span class="text-danger" v-if="errores.email">{{
                                             errores.email[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="row">
-                                <div class="col-md-12">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="control-label">Contraseña</label>
                                         <div class="input-group">
@@ -205,13 +215,11 @@
 
                                         <span class="text-danger" v-if="errores.password">{{
                                             errores.password[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col-md-12">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="control-label">Confirmar contraseña</label>
 
@@ -227,7 +235,7 @@
 
                                         <span class="text-danger" v-if="errores.confirmarPassword">{{
                                             errores.confirmarPassword[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -245,6 +253,27 @@
                                                                 :id="itemRol.name" v-model="itemRol.checked">
                                                             <label class="custom-control-label" :for="itemRol.name">
                                                                 {{ itemRol.name }}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="text-info"><i class="fa fa-unlock"></i> Modulos</p>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <div class="controls">
+                                                    <div v-for="itemModulo in registro.modulos" :key="itemModulo.id">
+                                                        <div class="custom-control custom-checkbox">
+                                                            <input type="checkbox" class="custom-control-input"
+                                                                :id="itemModulo.modulo" v-model="itemModulo.checked">
+                                                            <label class="custom-control-label"
+                                                                :for="itemModulo.modulo">
+                                                                {{ itemModulo.modulo }}
                                                             </label>
                                                         </div>
                                                     </div>
@@ -312,19 +341,21 @@ export default {
     props: ['usuarioactual'],
     mounted() {
         this.ListarDatos();
+        this.ListarModulos();
     },
     data() {
         return {
             registros: [],
             roles: [],
             id: null,
-            registro: { num_docu: '', reg_med: '', name: '', email: '', password: '', estado: 0, imagen_perfil: '', rolesUsuario: [] },
+            registro: { num_docu: '', reg_med: '', name: '', email: '', password: '', estado: 0, imagen_perfil: '', rolesUsuario: [], modulos: [], interface_id: null },
             tituloModal: 'Nuevo registro',
             actualizar: false,
             avatar: null,
             firma: null,
             errores: {},
             dependencias: [], //Listo las dependencias
+            modulos: []
         };
     },
     methods: {
@@ -445,6 +476,10 @@ export default {
                 }
             });
         },
+        async ListarModulos() {
+            const res = await axios.get("/confing-modulos-listar");
+            this.registro.modulos = res.data;
+        },
         obtenerFirma(event) {
             this.firma = event.target.files[0];
         },
@@ -459,6 +494,19 @@ export default {
                 this.registro.reg_med = data.reg_med;
                 this.registro.name = data.name;
                 this.registro.email = data.email;
+                this.registro.interface_id = data.interface_id;
+
+
+                // Inactavar los modulos
+                this.registro.modulos.forEach(modulo => {
+                    modulo.checked = false;
+                });
+
+                // Asigna el valor de `checked` a cada módulo
+                data.modulos.forEach(modulo => {
+                    let moduloActivo = this.registro.modulos.findIndex((x) => x.id == modulo.id);
+                    this.registro.modulos[moduloActivo].checked = true;
+                });
 
                 /**
                  * Listo los los datos del usuario con sus respectivos roles
@@ -489,6 +537,7 @@ export default {
                 this.registro.email = "";
                 this.registro.password = "";
                 this.registro.estado = 1;
+                his.resgistro.interface_id = '';
             }
 
             this.btnCerralModalForm();
@@ -515,8 +564,8 @@ export default {
 <style scoped>
 .right-sidebar {
     position: fixed;
-    right: -25%;
-    width: 25%;
+    right: -55%;
+    width: 55%;
     display: none;
     z-index: 1100;
     background: #ffffff;
@@ -532,7 +581,7 @@ export default {
 
 .shw-rside {
     right: 0px;
-    width: 25%;
+    width: 55%;
     display: block;
 }
 </style>

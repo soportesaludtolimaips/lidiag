@@ -66,7 +66,7 @@
                         </li>
                     @endif
 
-                    {{-- <li class="nav-small-cap">--- ECOGRAFIAS</li>
+                    <li class="nav-small-cap">--- ECOGRAFIAS</li>
                     <li>
                         <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
                             <i class="fa fa-etsy"></i>
@@ -84,7 +84,7 @@
                                 </li>
                             @endcan
                         </ul>
-                    </li> --}}
+                    </li>
                     @if (auth()->user()->hasAnyPermission(['agenda.index']))
                         <li class="nav-small-cap">--- Citas</li>
                         <li>
