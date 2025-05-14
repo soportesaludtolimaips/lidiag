@@ -46,6 +46,7 @@
                                         <th>Nombres</th>
                                         <th>E-Mail</th>
                                         <th>Firma</th>
+                                        <th>Permisos</th>
                                         <th>Estado</th>
                                         <th></th>
                                     </tr>
@@ -72,6 +73,11 @@
                                         <td>
                                             <span class="label label-success" v-if="item.estado == 1">Activo</span>
                                             <span class="label label-danger" v-if="item.estado == 0">Inactivo</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-info m-1" v-for="mod in item.modulos"
+                                                :key="mod.id">{{ mod.modulo }}
+                                            </span>
                                         </td>
                                         <td class="text-nowrap">
                                             <!-- <router-link
