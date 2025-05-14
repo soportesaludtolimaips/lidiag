@@ -46,6 +46,7 @@
                                         <th>Nombres</th>
                                         <th>E-Mail</th>
                                         <th>Firma</th>
+                                        <th>Modulos</th>
                                         <th>Permisos</th>
                                         <th>Estado</th>
                                         <th></th>
@@ -73,6 +74,11 @@
                                         <td>
                                             <span class="badge badge-info m-1" v-for="mod in item.modulos"
                                                 :key="mod.id">{{ mod.modulo }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-info m-1" v-for="rol in item.roles"
+                                                :key="rol.id">{{ rol.name }}
                                             </span>
                                         </td>
                                         <td>
@@ -145,7 +151,7 @@
                                             class="form-control" placeholder="Número de documeto del usuario">
                                         <span class="text-danger" v-if="errores.num_docu">{{
                                             errores.num_docu[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -155,7 +161,7 @@
                                             placeholder="Registro medico">
                                         <span class="text-danger" v-if="errores.reg_med">{{
                                             errores.reg_med[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -165,7 +171,7 @@
                                             class="form-control" placeholder="Id del usuario de SAHI">
                                         <span class="text-danger" v-if="errores.interface_id">{{
                                             errores.interface_id[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -178,7 +184,7 @@
                                             placeholder="Ingrese aquí el los nombres del usaurio">
                                         <span class="text-danger" v-if="errores.name">{{
                                             errores.name[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -199,7 +205,7 @@
 
                                         <span class="text-danger" v-if="errores.email">{{
                                             errores.email[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -221,7 +227,7 @@
 
                                         <span class="text-danger" v-if="errores.password">{{
                                             errores.password[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
 
@@ -241,7 +247,7 @@
 
                                         <span class="text-danger" v-if="errores.confirmarPassword">{{
                                             errores.confirmarPassword[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                             </div>
