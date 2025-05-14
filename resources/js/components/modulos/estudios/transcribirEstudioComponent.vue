@@ -425,6 +425,8 @@ $(function () {
     $('#textarea_editor').wysihtml5();
 });
 
+import { listarUsuariosYSedes } from '../../../helpers/usuarios';
+
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -434,10 +436,12 @@ dayjs.extend(timezone);
 
 export default {
     props: ['usuarioactual'],
-    mounted() {
+    async mounted() {
         this.establecerSede();
         this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
-        this.listarUsuariosYSedes();
+        //this.listarUsuariosYSedes();
+
+        await listarUsuariosYSedes(this);
 
         this.emitter.on("sedeSeleccionada", (data) => {
             this.busqueda.sede_id = data.idSede;
@@ -570,7 +574,7 @@ export default {
             /**
              * Lisato los transcriptores
              */
-            const res = await axios.get('/user.listarUsuarios/Administrativo/1');
+            const res = await axios.get('/user.listarUsuarios/Transcriptor/1');
             this.quienes_asignaron = res.data;
 
             /**
