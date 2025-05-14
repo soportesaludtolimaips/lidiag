@@ -570,7 +570,7 @@ export default {
             /**
              * Lisato los transcriptores
              */
-            const res = await axios.get('/user.listarUsuarios/Transcriptor');
+            const res = await axios.get('/user.listarUsuarios/Administrativo/1');
             this.quienes_asignaron = res.data;
 
             /**

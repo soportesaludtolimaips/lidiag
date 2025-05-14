@@ -21,12 +21,14 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $users = User::with('modulos')->get();
+        $users = User::with(['modulos', 'roles'])->get();
         return response()->json($users);
     }
 
     public function listarUsuarios($tipo_user, $modulo)
     {
+
+
         $usuarios = User::select('users.id', 'users.name')
             ->whereHas('roles', function ($query) use ($tipo_user) {
                 $query->where('name', $tipo_user); // Filtrar por el rol (por ejemplo, "Médico")
@@ -36,6 +38,7 @@ class UserController extends Controller
             })
             ->orderBy('users.name', 'asc') // Calificar la columna 'name' con el nombre de la tabla
             ->get();
+
 
         return $usuarios;
     }
