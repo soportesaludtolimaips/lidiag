@@ -25,13 +25,19 @@ class UserController extends Controller
         return response()->json($users);
     }
 
-    public function listarUsuarios($tipo_user)
+    public function listarUsuarios($tipo_user, $modulo)
     {
-        $usurios = User::whereHas('roles', function ($query) use ($tipo_user) {
-            $query->where('name', $tipo_user);
-        })->orderBy('name', 'asc')->get();
+        $usuarios = User::select('users.id', 'users.name')
+            ->whereHas('roles', function ($query) use ($tipo_user) {
+                $query->where('name', $tipo_user); // Filtrar por el rol (por ejemplo, "Médico")
+            })
+            ->whereHas('modulos', function ($query) use ($modulo) {
+                $query->where('config_modulos.id', $modulo); // Calificar la columna 'id' con el nombre de la tabla
+            })
+            ->orderBy('users.name', 'asc') // Calificar la columna 'name' con el nombre de la tabla
+            ->get();
 
-        return $usurios;
+        return $usuarios;
     }
 
     /**

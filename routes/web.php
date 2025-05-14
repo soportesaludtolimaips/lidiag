@@ -16,7 +16,8 @@ use App\Http\Controllers\Configuracion\ConfigPrioridadController;
 use App\Http\Controllers\Configuracion\ConfigSedeController;
 use App\Http\Controllers\Dashboard\DashBoardController;
 use App\Http\Controllers\Dcm4chee\StudyController;
-use App\Http\Controllers\EcografiaController;
+use App\Http\Controllers\Ecografias\EcografiaController;
+use App\Http\Controllers\Ecografias\EcografiaProductoController;
 use App\Http\Controllers\Estudios\EstudioAudioController;
 use App\Http\Controllers\Estudios\EstudioController;
 use App\Http\Controllers\Estudios\EstudioProductoController;
@@ -92,6 +93,7 @@ Route::get('/estudio-buscar-por-numdocu/{numDocu}', [EstudioController::class, '
  */
 Route::view('/ecografias.admisiones', 'modulos.ecografias.admisiones')->name('ecografias.admisiones');
 Route::resource('ecografias', EcografiaController::class)->names('ecografias');
+Route::resource('ecografias-productos', EcografiaProductoController::class)->names('ecografias.productos');
 
 /**
  * citas
@@ -139,7 +141,7 @@ Route::resource('/seguridad-usuarios', UserController::class)->names('seguridad.
 Route::post('/seguridad/usuarios/update', [UserController::class, 'update'])->name('seguridad.update');
 Route::put('/seguridad-actualizar-perfil/{idUsua}', [UserController::class, 'actualizarPerfil'])->name('seguridad.actualizar.perfil');
 Route::put('/seguridad-usuarios/estado/{idUsua}', [UserController::class, 'estadoUsuario'])->name('seguridad.usuario.estado');
-Route::get('/user.listarUsuarios/{tipo_user}', [UserController::class, 'listarUsuarios'])->name('user.listarUsuarios');
+Route::get('/user.listarUsuarios/{tipo_user}/{modulo}', [UserController::class, 'listarUsuarios'])->name('user.listarUsuarios');
 
 Route::view('/seguridad.roles.listar', 'modulos.seguridad.roles')->name('seguridad.roles.listar');
 Route::resource('/seguridad-roles', RolController::class)->names('seguridad.roles');

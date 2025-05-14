@@ -96,12 +96,26 @@ class SAHIController extends Controller
             'proProducto.CodProducto',
             'proProducto.CodLegal',
             'admCliente.IdTipoDoc',
-            DB::raw("facFacturaDet.ValTotal AS 'ValProduc'")
+            DB::raw("facFacturaDet.ValTotal AS 'ValProduc'"),
+            'conContrato.CodCon',
+            'conContrato.DesContrato',
+            'conPlan.DesPlan',
+            'genTercero.NomTercero',
+            DB::raw("(SELECT TOP(1) QuinOrdenoOrden.NomResponsable
+                    FROM hceProceOrden QuinOrdenoOrden
+                        INNER JOIN hceProceDetalle ON QuinOrdenoOrden.IdOrdenPro = hceProceDetalle.IdOrdenPro
+                        INNER JOIN proProducto PoducOrden ON hceProceDetalle.IdProducto = PoducOrden.IdProducto
+                    WHERE QuinOrdenoOrden.IdAtencion = admAtencion.IdAtencion AND PoducOrden.CodProducto = proProducto.CodProducto
+                ) as quien_ordeno")
         ])
             ->join('facFactura', 'facFacturaDet.IdFactura', '=', 'facFactura.IdFactura')
             ->join('proProducto', 'facFacturaDet.IdProducto', '=', 'proProducto.IdProducto')
             ->join('admAtencion', 'facFactura.IdDestino', '=', 'admAtencion.IdAtencion')
             ->join('admCliente', 'admAtencion.IdCliente', '=', 'admCliente.IdCliente')
+            ->join('AdmAtencionContrato', 'admAtencion.IdAtencion', '=', 'AdmAtencionContrato.IdAtencion')
+            ->join('conContrato', 'AdmAtencionContrato.IdContrato', '=', 'conContrato.IdContrato')
+            ->join('conPlan', 'AdmAtencionContrato.IdPlan', '=', 'conPlan.IdPlan')
+            ->join('genTercero', 'conContrato.IdTercero', '=', 'genTercero.IdTercero')
             ->where('admAtencion.IdAtencion', $atencionId)
             ->whereIn('proProducto.IdGrupo', $gruposPermitidos);
 
@@ -122,12 +136,27 @@ class SAHIController extends Controller
             'proProducto.CodProducto',
             'proProducto.CodLegal',
             'admCliente.IdTipoDoc',
-            DB::raw("facMovimientoDet.ValVenta AS 'ValProduc'")
+            DB::raw("facMovimientoDet.ValVenta AS 'ValProduc'"),
+            'conContrato.CodCon',
+            'conContrato.DesContrato',
+            'conPlan.DesPlan',
+            'genTercero.NomTercero',
+            'genTercero.NomTercero',
+            DB::raw("(SELECT TOP(1) QuinOrdenoOrden.NomResponsable
+                    FROM hceProceOrden QuinOrdenoOrden
+                        INNER JOIN hceProceDetalle ON QuinOrdenoOrden.IdOrdenPro = hceProceDetalle.IdOrdenPro
+                        INNER JOIN proProducto PoducOrden ON hceProceDetalle.IdProducto = PoducOrden.IdProducto
+                    WHERE QuinOrdenoOrden.IdAtencion = admAtencion.IdAtencion AND PoducOrden.CodProducto = proProducto.CodProducto
+                ) as quien_ordeno")
         ])
             ->join('facMovimiento', 'facMovimientoDet.IdMovimiento', '=', 'facMovimiento.IdMovimiento')
             ->join('proProducto', 'facMovimientoDet.IdProducto', '=', 'proProducto.IdProducto')
             ->join('admAtencion', 'facMovimiento.IdDestino', '=', 'admAtencion.IdAtencion')
             ->join('admCliente', 'admAtencion.IdCliente', '=', 'admCliente.IdCliente')
+            ->join('AdmAtencionContrato', 'admAtencion.IdAtencion', '=', 'AdmAtencionContrato.IdAtencion')
+            ->join('conContrato', 'AdmAtencionContrato.IdContrato', '=', 'conContrato.IdContrato')
+            ->join('conPlan', 'AdmAtencionContrato.IdPlan', '=', 'conPlan.IdPlan')
+            ->join('genTercero', 'conContrato.IdTercero', '=', 'genTercero.IdTercero')
             ->where('admAtencion.IdAtencion', $atencionId)
             ->whereIn('proProducto.IdGrupo', $gruposPermitidos);
 

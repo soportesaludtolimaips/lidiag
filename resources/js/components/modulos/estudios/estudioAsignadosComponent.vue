@@ -401,7 +401,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="tab-pane  p-20" id="profile8" role="tabpanel">
-                                                    <template v-for="( item, index ) in audiosDeEstudio " :key="index">
+                                                    <template v-for="(item, index) in audiosDeEstudio" :key="index">
                                                         <audio :src="item.audio" controls
                                                             style="height: 15px; width: 100%;"></audio>
                                                     </template>
@@ -506,7 +506,7 @@ export default {
             /**
              * Listo los medicos
              */
-            const resMedicos = await axios.get('/user.listarUsuarios/Medico');
+            const resMedicos = await axios.get('/user.listarUsuarios/Medico/1');
             this.medicos = resMedicos.data;
 
             /**
@@ -516,7 +516,7 @@ export default {
         },
         async anularAsignacion(idProductoEstudio, paciente, producto) {
             var $this = this;
-            console.log(idProductoEstudio)
+
             swal({
                 title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
                 text: "No podrás recuperar este registro!",
@@ -531,7 +531,7 @@ export default {
                         .then(res => {
                             if (res.status === 200) {
                                 var row = document.getElementById(idProductoEstudio);
-                                console.log(idProductoEstudio)
+
                                 if (row) {
                                     row.remove();
 
