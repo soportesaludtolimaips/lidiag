@@ -437,10 +437,16 @@
 $(function () {
     $('#textarea_editor').wysihtml5();
 });
+
+import { listarUsuariosYSedes } from '../../../helpers/usuarios';
+
 export default {
     props: ['usuarioactual'],
-    mounted() {
-        this.listarUsuariosYSedes();
+    async mounted() {
+        //this.listarUsuariosYSedes();
+
+        await listarUsuariosYSedes(this);
+
         //this.busqueda.quien_asigno_id = this.usuarioactual.id;
     },
     data() {

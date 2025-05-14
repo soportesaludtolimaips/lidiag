@@ -73,12 +73,13 @@
                                         </td>
                                         <td>
                                             <span class="badge badge-info m-1" v-for="mod in item.modulos"
-                                                :key="mod.id">{{ mod.modulo }}
+                                                :key="mod.id">
+                                                {{ mod.modulo }}
                                             </span>
                                         </td>
                                         <td>
-                                            <span class="badge badge-info m-1" v-for="rol in item.roles"
-                                                :key="rol.id">{{ rol.name }}
+                                            <span class="badge badge-info m-1" v-for="rol in item.roles" :key="rol.id">
+                                                {{ rol.name }}
                                             </span>
                                         </td>
                                         <td>
