@@ -114,7 +114,7 @@
                                         <input type="text" id="nom_sede" name="nom_sede" v-model="registro.nom_sede"
                                             class="form-control" placeholder="Ingrese el nombre de la sede">
                                         <span class="text-danger" v-if="errores.nom_sede">{{ errores.nom_sede[0]
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -124,7 +124,7 @@
                                             v-model="registro.email_repor" class="form-control"
                                             placeholder="Ingrese el email para reportar las lecturas">
                                         <span class="text-danger" v-if="errores.email_repor">{{ errores.email_repor[0]
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -160,7 +160,7 @@
                                             v-model="registro.usuario_dcm" class="form-control"
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.usuario_dcm">{{ errores.usuario_dcm[0]
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </div>
 
@@ -171,7 +171,7 @@
                                             v-model="registro.password_dcm" class="form-control"
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.password_dcm">{{ errores.password_dcm[0]
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </div>
 
@@ -182,7 +182,7 @@
                                             v-model="registro.puerto_dcm" class="form-control"
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.puerto_dcm">{{ errores.puerto_dcm[0]
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -201,7 +201,7 @@
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.usuario_oviyam">{{
                                             errores.usuario_oviyam[0]
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </div>
 
@@ -213,7 +213,7 @@
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.password_oviyam">{{
                                             errores.password_oviyam[0]
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </div>
 
@@ -225,7 +225,7 @@
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.url_oviyam">{{
                                             errores.url_oviyam[0]
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </div>
                                 <div class="col-md-2">
@@ -236,7 +236,7 @@
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.tap_oviyam">{{
                                             errores.tap_oviyam[0]
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -275,7 +275,9 @@
                                                         <code>${edad}</code> Edad del paciente,
                                                         <code>${eps}</code> Eps del paciente,
                                                         <code>${contrato}</code> Contrato de vinculación con la
-                                                        Eps.<br /><br />
+                                                        Eps.
+                                                        <code>${nom_sede}</code> Nombre de la sede
+                                                        <br /><br />
 
                                                         <label class="text-info">Estudio</label>:
                                                         <code>${fechor_estudio}</code> Fecha y Hora del estudio,
@@ -284,8 +286,8 @@
                                                         transcripción,
                                                         <code>${atencion}</code> Atención o número de
                                                         folio,
-                                                        <code>${cod_produc}</code> Código del producto,
-                                                        <code>${nom_produc}</code> Nombre del producto,
+                                                        <code>${cod_producto}</code> Código del producto,
+                                                        <code>${nom_producto}</code> Nombre del producto,
                                                         <code>${lectura}</code>,
                                                         <code>${nom_sede} Sede de la tóma</code>.
                                                         <br /><br />
