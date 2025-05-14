@@ -101,6 +101,10 @@
                                         <th with='30%'>Paciente</th>
                                         <th>Examen</th>
                                         <th>Val. Examen</th>
+                                        <th>Administradora</th>
+                                        <th>Contrato</th>
+                                        <th>Plan</th>
+                                        <th>Quien Ordeno</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -112,6 +116,10 @@
                                             {{ item.SegundoApellido }}</td>
                                         <td>{{ item.NomProducto }}</td>
                                         <td>{{ item.ValProduc }}</td>
+                                        <td>{{ item.NomTercero }}</td>
+                                        <td>{{ item.DesContrato }}</td>
+                                        <td>{{ item.DesPlan }}</td>
+                                        <td>{{ item.quien_ordeno }}</td>
                                         <td class="text-nowrap">
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
@@ -359,7 +367,8 @@ export default {
             registros: [],
             registro: {
                 paciente_id: "", num_docu: "", nombres: "", seg_nom: "", pri_ape: "", seg_ape: "", sexo: "", fec_naci: "", direccion: "", tel: "",
-                sede_id: this.sedeActual, quien_registro_id: this.usuarioactual.id, cel: "", atencion_id: null, productosAgenda: []
+                sede_id: this.sedeActual, quien_registro_id: this.usuarioactual.id, cel: "", atencion_id: null, productosAgenda: [], contrato: null, plan: null,
+                admin_salud: null, quien_ordeno: null
             },
             errores: {},
             erroresBusqueda: {},
@@ -386,24 +395,58 @@ export default {
                 });
             }
         },
-        async guardarAgenda() {
-            const res = await axios.post('');
+        async guardarRegistro() {
+            try {
+                // Enviar solicitud para guardar la ecografía
+                const ecografiaRes = await axios.post('/ecografias', this.registro);
 
-            if (res.status == 200) {
+                if (ecografiaRes.status === 201) {
+
+                    // Mostrar notificación de éxito
+                    $.toast({
+                        heading: '¡Éxito!',
+                        text: 'Agenda guardada correctamente.',
+                        position: 'top-right',
+                        loaderBg: '#ff6849',
+                        icon: 'success',
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+
+                    // Actualizar la lista de datos y limpiar el formulario
+                    this.listarAtenciones();
+                    this.limpiarFormulario();
+                    this.btnCerralModalForm();
+
+                } else {
+                    $.toast({
+                        heading: "Upss!!!",
+                        text: res.data.message,
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "danger",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                }
+            } catch (error) {
+                // Manejar errores y mostrar notificación
+                console.error('Error al guardar la agenda:', error);
 
                 $.toast({
-                    heading: 'Ok!!!',
-                    text: res.data.message,
+                    heading: 'Error',
+                    text: error.response?.data?.message || 'Ocurrió un error al guardar la agenda.',
                     position: 'top-right',
                     loaderBg: '#ff6849',
-                    icon: 'success',
+                    icon: 'error',
                     hideAfter: 3500,
-                    stack: 6
+                    stack: 6,
                 });
 
-                this.ListarDatos();
-                this.limpiarFormulario();
-                this.btnCerralModalForm();
+                // Mostrar errores específicos en el formulario
+                if (error.response?.data?.errors) {
+                    this.errores = error.response.data.errors;
+                }
             }
         },
         establecerSede() {
@@ -420,7 +463,7 @@ export default {
         },
         async listarMedicos() {
             try {
-                const res = await axios.get("/user.listarUsuarios/Medico");
+                const res = await axios.get("/user.listarUsuarios/Medico/2");
                 this.medicos = res.data;
             } catch (error) {
                 console.log(error);
@@ -431,7 +474,8 @@ export default {
             $(".right-sidebar").toggleClass("shw-rside");
         },
         mostrarRegistro(data = {}) {
-            console.log(data)
+            this.tituloModal = `Admisionar al paciente: ${data.PrimerNombre} ${data.SegundoNombre}`
+
             this.registro.paciente_id = data.paciente_id;
             this.registro.num_docu = data.NumDocumento;
             this.registro.nombres = data.PrimerNombre;
@@ -444,10 +488,36 @@ export default {
             this.registro.tel = data.TelCasa;
             this.registro.cel = data.TelCasa;
             this.registro.atencion_id = data.IdAtencion;
+            this.registro.contrato = data.DesContrato
+            this.registro.plan = data.DesPlan
+            this.registro.admin_salud = data.NomTercero
+            this.registro.quien_ordeno = data.quien_ordeno
 
             this.registro.productosAgenda = this.registros
 
             this.btnCerralModalForm();
+        },
+        limpiarFormulario() {
+            this.tituloModal = '';
+
+            this.registro.paciente_id = '';
+            this.registro.num_docu = '';
+            this.registro.nombres = '';
+            this.registro.seg_nom = '';
+            this.registro.pri_ape = '';
+            this.registro.seg_ape = '';
+            this.registro.sexo = '';
+            this.registro.fec_naci = '';
+            this.registro.direccion = '';
+            this.registro.tel = '';
+            this.registro.cel = '';
+            this.registro.atencion_id = '';
+            this.registro.contrato = '';
+            this.registro.plan = '';
+            this.registro.admin_salud = '';
+            this.registro.quien_ordeno = '';
+
+            this.registro.productosAgenda = []
         },
         quitarProductoAgenda(codProduc) {
             this.registro.productosAgenda = this.registro.productosAgenda.filter(x => x.CodLegal !== codProduc);

@@ -825,7 +825,7 @@ export default {
         },
         async listarMedicos() {
             try {
-                const res = await axios.get("/user.listarUsuarios/Medico");
+                const res = await axios.get("/user.listarUsuarios/Medico/1");
                 this.medicos = res.data;
 
                 /* console.log("Médicos antes:", this.medicos);

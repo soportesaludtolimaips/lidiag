@@ -506,7 +506,7 @@ export default {
             /**
              * Listo los medicos
              */
-            const resMedicos = await axios.get('/user.listarUsuarios/Medico');
+            const resMedicos = await axios.get('/user.listarUsuarios/Medico/1');
             this.medicos = resMedicos.data;
         },
         verImagen() {
