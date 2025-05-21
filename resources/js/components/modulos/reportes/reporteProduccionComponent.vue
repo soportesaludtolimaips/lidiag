@@ -120,6 +120,7 @@
 </template>
 
 <script>
+import { listarUsuariosYSedes } from '../../../helpers/usuarios';
 
 export default {
     mounted() {
@@ -137,17 +138,7 @@ export default {
         async listarSedes() {
             try {
 
-                /**
-             * Lisato los transcriptores
-             */
-                const resTrasncriptores = await axios.get('/user.listarUsuarios/Transcriptor');
-                this.quienes_asignaron = resTrasncriptores.data;
-
-                /**
-                 * Listo los medicos
-                 */
-                const resMedicos = await axios.get('/user.listarUsuarios/Medico');
-                this.medicos = resMedicos.data;
+                await listarUsuariosYSedes(this);
 
                 const res = await axios.get('/config-sedes/listar/sedes/activas');
                 this.sedes = res.data;
