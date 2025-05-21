@@ -6,6 +6,4 @@ export async function listarUsuariosYSedes(context) {
 
     const resMedicos = await axios.get("/user.listarUsuarios/Medico/1");
     context.medicos = resMedicos.data;
-
-    context.busqueda.sede_id = sessionStorage.getItem("ST-sede");
 }
