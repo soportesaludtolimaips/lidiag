@@ -324,18 +324,15 @@
                                     </h5>
                                     <hr>
                                     <div class="row">
-                                        <div class="col-md-4">
+                                        <div class="col-md-8">
 
-                                            <div class="form-group">
+                                            <div class="form-group" id="medicos-parent">
                                                 <label>Médico</label>
-                                                <select v-model="registro.medico_id" class="form-control custom-select"
-                                                    style="width: 100%; height:36px;">
-                                                    <option v-for="medico in medicos" :key="medico.id"
-                                                        :value="medico.id">
-                                                        {{ medico.name }}
-                                                    </option>
+                                                <Select2 :value="registro.medico_id" :options="medicoOptions"
+                                                    width="100%" :allow-clear="true" :label-fields="['name']"
+                                                    :dropdown-parent-selector="'#medicos-parent'"
+                                                    @input="onMedicoSelect" />
 
-                                                </select>
                                                 <span class="text-danger" v-if="errores.medico_id">
                                                     {{ errores.medico_id[0] }}
                                                 </span>
@@ -380,29 +377,19 @@
 
                                     <h5 class="card-title text-info m-t-40">
                                         <i class="fa fa-user"></i> PRODUCTOS
-
                                     </h5>
-                                    <!-- <div class="col-md-7 align-self-center text-right d-none d-md-block">
-                                            <button type="button"
-                                                class="btn waves-effect waves-light btn-xs btn-info float-right"
-                                                data-toggle="modal" data-target=".bs-example-modal-lg">
-                                                <i class="fa fa-search"></i>
-                                            </button>
-                                        </div> -->
+
                                     <hr>
 
                                     <span class="text-danger" v-if="errores.productosEstudio">
                                         {{ errores.productosEstudio[0] }}
                                     </span>
                                     <div class="row">
-                                        <div class="col-md-12" v-if="sedeInterface === false">
-                                            <select class="select form-control" style="width: 100%; height:36px;"
-                                                @change="guardarProductosEstudio(10)" v-model="productoSelecciondo">
-                                                <option v-for="ItemProducto in productos" v-bind:key="ItemProducto"
-                                                    v-bind:value="ItemProducto.id">
-                                                    {{ ItemProducto.nom_produc }}
-                                                </option>
-                                            </select>
+                                        <div class="col-md-12" v-if="sedeInterface === false" id="productos-parent">
+                                            <Select2 :value="productoSelecciondo" :options="productoOptions"
+                                                width="100%" :allow-clear="true"
+                                                :dropdown-parent-selector="'#productos-parent'"
+                                                @input="onProductoSelect" />
                                         </div>
                                         <div class="col-md-12 table-responsive"
                                             style="overflow-y: scroll; height: 250px;">
@@ -423,17 +410,6 @@
                                                                 id="flat-checkbox-2" data-checkbox="icheckbox_flat-red"
                                                                 v-model="item.checked">
                                                             <label for="flat-checkbox-2"></label>
-                                                            <!-- <div class="icheckbox_flat-blue checked"
-                                                                style="position: relative;">
-                                                                <input type="checkbox"
-                                                                    class="check" id="flat-checkbox-2" checked=""
-                                                                    data-checkbox="icheckbox_flat-red"
-                                                                    style="position: absolute; opacity: 0;"><ins
-                                                                    class="iCheck-helper"
-                                                                    style="position: absolute; top: 0%; left: 0%; display: block; width: 100%; height: 100%; margin: 0px; padding: 0px; background: rgb(255, 255, 255); border: 0px; opacity: 0;"></ins>
-                                                            </div>
-                                                            <label for="flat-checkbox-2" class="">Checkbox 2</label> -->
-
                                                         </td>
                                                         <td>{{ item.cod_cups }}</td>
                                                         <td>{{ item.nom_produc }}</td>
@@ -464,15 +440,11 @@
                                     </button> -->
 
                                     <div class="row">
-                                        <div class="col-md-12" v-if="sedeInterface === false">
-                                            <select class="form-control custom-select"
-                                                @change="guardarDiagnosticosEstudio(10)"
-                                                style="width: 100%; height: 36px" v-model="diagnosticoSelecciondo">
-                                                <option v-for="ItemDiagnostico in diagnosticos"
-                                                    v-bind:key="ItemDiagnostico" v-bind:value="ItemDiagnostico.id">
-                                                    {{ ItemDiagnostico.nom_diagnos }}
-                                                </option>
-                                            </select>
+                                        <div class="col-md-12" v-if="sedeInterface === false" id="diagnosticos-parent">
+                                            <Select2 :value="diagnosticoSelecciondo" :options="diagnosticoOptions"
+                                                width="100%" :allow-clear="true" :label-fields="['nom_diagnos']"
+                                                :dropdown-parent-selector="'#diagnosticos-parent'"
+                                                @input="onDiagnosticoSelect" />
                                         </div>
                                         <div class="col-md-12 table-responsive"
                                             style="overflow-y: scroll; height: 250px;">
@@ -485,7 +457,8 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <tr v-for="item in registro.diagnosticosEstudio" :key="item.id">
+                                                    <tr v-for="(item, index) in registro.diagnosticosEstudio"
+                                                        :key="item.id">
                                                         <td>{{ item.cod_diagnos }}</td>
                                                         <td>{{ item.nom_diagnos }}</td>
                                                         <td class="text-nowrap">
@@ -522,9 +495,6 @@
 </template>
 
 <script>
-$(document).ready(function () {
-    $('.select2').select2();
-});
 export default {
     props: ['usuarioactual'],
     mounted() {
@@ -540,7 +510,6 @@ export default {
             this.establecerSede();
             $("#example23").DataTable().destroy();
         });
-        this.inicializarSelect2();
     },
     data() {
         return {
@@ -571,6 +540,20 @@ export default {
             idRow: null,
             selectedRows: {},
         };
+    },
+    computed: {
+        diagnosticoOptions() {
+            // Adaptar opciones al Select2 local: usa optionValue='id' y labelFields.
+            return (this.diagnosticos || []).map(d => ({ id: String(d.id), nom_diagnos: d.nom_diagnos }));
+        },
+        productoOptions() {
+            // Opciones para el Select2 local de productos.
+            return (this.productos || []).map(p => ({ id: String(p.id), cod_cups: p.cod_cups, nom_produc: p.nom_produc }));
+        },
+        medicoOptions() {
+            // Opciones para el Select2 local de medicos.
+            return (this.medicos || []).map(p => ({ id: String(p.id), name: p.name }));
+        },
     },
     methods: {
         async buscarStudy() {
@@ -772,22 +755,9 @@ export default {
             $(".right-sidebar").slideDown(50);
             $(".right-sidebar").toggleClass("shw-rside");
         },
-        inicializarSelect2() {
-            this.$nextTick(() => {
-                $(".select2").select2();
-            });
-        },
+        // initProductosSelect2 ya no es necesario con el wrapper Select2 local.
         abrirModal() {
             $(".right-sidebar").addClass("shw-rside");
-
-            this.$nextTick(() => {
-                $(".select2").each(function () {
-                    if ($.fn.select2 && $(this).data("select2")) {
-                        $(this).select2("destroy");
-                    }
-                    $(this).select2();
-                });
-            });
         },
         cerrarModal() {
             $(".right-sidebar").removeClass("shw-rside");
@@ -827,28 +797,6 @@ export default {
             try {
                 const res = await axios.get("/user.listarUsuarios/Medico/1");
                 this.medicos = res.data;
-
-                /* console.log("Médicos antes:", this.medicos);
-                this.$nextTick(() => {
-                    console.log("Médicos despues:", this.medicos);
-
-                    const selectElement = $(".select2");
-
-                    this.$nextTick(() => {
-                        console.log("Médicos después:", this.medicos);
-
-                        setTimeout(() => {
-                            const selectElement = $(".select2");
-
-                            if (selectElement.length && $.fn.select2) {
-                                selectElement.select2("destroy"); // Destruir antes de inicializar
-                                selectElement.select2(); // Inicializar Select2
-                            } else {
-                                console.error("No se encontró el elemento select2 o Select2 no está disponible");
-                            }
-                        }, 200); // Espera para que el DOM termine de actualizarse
-                    });
-                }); */
             } catch (error) {
                 console.log(error);
             }
@@ -865,10 +813,6 @@ export default {
             try {
                 const res = await axios.get("/config-productos");
                 this.productos = res.data;
-                this.$nextTick(() => {
-                    // Reinicializa Select2 después de actualizar la lista de productos
-                    $(this.$refs.select).select2();
-                });
             } catch (error) {
                 console.log(error);
             }
@@ -881,37 +825,87 @@ export default {
                 console.log(error);
             }
         },
+        onMedicoSelect(value) {
+            let selectedId = null;
+            if (Array.isArray(value) && value.length > 0) {
+                const v = value[0];
+                selectedId = String(typeof v === 'object' && v && v.id != null ? v.id : v);
+            } else if (value && typeof value === 'object' && value.id != null) {
+                selectedId = String(value.id);
+            } else if (value != null) {
+                selectedId = String(value);
+            }
+            this.registro.medico_id = selectedId || "";
+        },
+        onProductoSelect(value) {
+            let selectedId = null;
+            if (Array.isArray(value) && value.length > 0) {
+                const v = value[0];
+                selectedId = String(typeof v === 'object' && v && v.id != null ? v.id : v);
+            } else if (value && typeof value === 'object' && value.id != null) {
+                selectedId = String(value.id);
+            } else if (value != null) {
+                selectedId = String(value);
+            }
+            if (selectedId != null) {
+                this.productoSelecciondo = selectedId;
+                this.guardarProductosEstudio();
+            }
+        },
+        onDiagnosticoSelect(value) {
+            let selectedId = null;
+            if (Array.isArray(value) && value.length > 0) {
+                const v = value[0];
+                selectedId = String(typeof v === 'object' && v && v.id != null ? v.id : v);
+            } else if (value && typeof value === 'object' && value.id != null) {
+                selectedId = String(value.id);
+            } else if (value != null) {
+                selectedId = String(value);
+            }
+            if (selectedId != null) {
+                this.diagnosticoSelecciondo = selectedId;
+                this.guardarDiagnosticosEstudio();
+            }
+        },
         guardarProductosEstudio() {
-            var indexProductoEstudio = this.productos.findIndex((x) => x.id == this.productoSelecciondo);
+            const indexProductoEstudio = this.productos.findIndex((x) => x.id == this.productoSelecciondo);
 
-            if (indexProductoEstudio > 0) {
-                var productoEstudioId = this.productos[indexProductoEstudio].id;
-                var productoEstudioCod_Cubs = this.productos[indexProductoEstudio].cod_cups;
-                var productoEstudioNomProduc = this.productos[indexProductoEstudio].nom_produc;
+            if (indexProductoEstudio >= 0) {
+                const productoEstudioId = this.productos[indexProductoEstudio].id;
+                const productoEstudioCod_Cubs = this.productos[indexProductoEstudio].cod_cups;
+                const productoEstudioNomProduc = this.productos[indexProductoEstudio].nom_produc;
 
-                this.registro.productosEstudio.push({
-                    id: productoEstudioId,
-                    cod_cups: productoEstudioCod_Cubs,
-                    nom_produc: productoEstudioNomProduc,
-                    checked: false,
-                });
+                const yaExiste = this.registro.productosEstudio.some(p => p.id == productoEstudioId);
+                if (!yaExiste) {
+                    this.registro.productosEstudio.push({
+                        id: productoEstudioId,
+                        cod_cups: productoEstudioCod_Cubs,
+                        nom_produc: productoEstudioNomProduc,
+                        checked: false,
+                    });
+                }
+
+                // Limpiar selección
+                this.productoSelecciondo = "";
             }
         },
         quitarProductoEstudio(indexEliminar) {
             this.registro.productosEstudio.splice(indexEliminar, 1);
         },
         guardarDiagnosticosEstudio() {
-            var indexDiagnosticoSeleccionado = this.diagnosticos.findIndex((x) => x.id == this.diagnosticoSelecciondo);
-            if (indexDiagnosticoSeleccionado > 0) {
-                var diagnosticoEstudioId = this.diagnosticos[indexDiagnosticoSeleccionado].id;
-                var diagnosticoEstudioCod = this.diagnosticos[indexDiagnosticoSeleccionado].cod_diagnos;
-                var diagnosticoEstudioDiagnos = this.diagnosticos[indexDiagnosticoSeleccionado].nom_diagnos;
-
-                this.registro.diagnosticosEstudio.push({
-                    id: diagnosticoEstudioId,
-                    cod_diagnos: diagnosticoEstudioCod,
-                    nom_diagnos: diagnosticoEstudioDiagnos,
-                });
+            const idx = this.diagnosticos.findIndex((x) => String(x.id) === String(this.diagnosticoSelecciondo));
+            if (idx >= 0) {
+                const diag = this.diagnosticos[idx];
+                const yaExiste = this.registro.diagnosticosEstudio.some(d => String(d.id) === String(diag.id));
+                if (!yaExiste) {
+                    this.registro.diagnosticosEstudio.push({
+                        id: diag.id,
+                        cod_diagnos: diag.cod_diagnos,
+                        nom_diagnos: diag.nom_diagnos,
+                    });
+                }
+                // Limpiar selección
+                this.diagnosticoSelecciondo = "";
             }
         },
         quitarDiagnosticoEstudio(indexEliminar) {
@@ -925,8 +919,6 @@ export default {
     },
 };
 
-$('.select2').select2(); // Inicializa Select2
-$('.select2').select2('open'); // Luego intenta abrirlo
 </script>
 <style scoped>
 .right-sidebar {
@@ -934,11 +926,11 @@ $('.select2').select2('open'); // Luego intenta abrirlo
     right: -80%;
     width: 80%;
     display: none;
-    z-index: 1100;
+    z-index: 180;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
-    height: 100%;
+    height: 80%;
     -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
     box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
     -webkit-transition: all 0.3s ease;
@@ -952,651 +944,8 @@ $('.select2').select2('open'); // Luego intenta abrirlo
     display: block;
 }
 
-
-.fila-verde {
-    background-color: lightgreen;
-}
-
-.fila-roja {
-    background-color: salmon;
-}
-
-.select2-container {
-    box-sizing: border-box;
-    display: inline-block;
-    margin: 0;
-    position: relative;
-    vertical-align: middle
-}
-
-.select2-container .select2-selection--single {
-    box-sizing: border-box;
-    cursor: pointer;
-    display: block;
-    height: 28px;
-    user-select: none;
-    -webkit-user-select: none
-}
-
-.select2-container .select2-selection--single .select2-selection__rendered {
-    display: block;
-    padding-left: 8px;
-    padding-right: 20px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap
-}
-
-.select2-container .select2-selection--single .select2-selection__clear {
-    position: relative
-}
-
-.select2-container[dir="rtl"] .select2-selection--single .select2-selection__rendered {
-    padding-right: 8px;
-    padding-left: 20px
-}
-
-.select2-container .select2-selection--multiple {
-    box-sizing: border-box;
-    cursor: pointer;
-    display: block;
-    min-height: 32px;
-    user-select: none;
-    -webkit-user-select: none
-}
-
-.select2-container .select2-selection--multiple .select2-selection__rendered {
-    display: inline-block;
-    overflow: hidden;
-    padding-left: 8px;
-    text-overflow: ellipsis;
-    white-space: nowrap
-}
-
-.select2-container .select2-search--inline {
-    float: left
-}
-
-.select2-container .select2-search--inline .select2-search__field {
-    box-sizing: border-box;
-    border: none;
-    font-size: 100%;
-    margin-top: 5px;
-    padding: 0
-}
-
-.select2-container .select2-search--inline .select2-search__field::-webkit-search-cancel-button {
-    -webkit-appearance: none
-}
-
-.select2-dropdown {
-    background-color: white;
-    border: 1px solid #aaa;
-    border-radius: 4px;
-    box-sizing: border-box;
-    display: block;
-    position: absolute;
-    left: -100000px;
-    width: 100%;
-    z-index: 1051
-}
-
-.select2-results {
-    display: block
-}
-
-.select2-results__options {
-    list-style: none;
-    margin: 0;
-    padding: 0
-}
-
-.select2-results__option {
-    padding: 6px;
-    user-select: none;
-    -webkit-user-select: none
-}
-
-.select2-results__option[aria-selected] {
-    cursor: pointer
-}
-
-.select2-container--open .select2-dropdown {
-    left: 0
-}
-
-.select2-container--open .select2-dropdown--above {
-    border-bottom: none;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0
-}
-
-.select2-container--open .select2-dropdown--below {
-    border-top: none;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0
-}
-
-.select2-search--dropdown {
-    display: block;
-    padding: 4px
-}
-
-.select2-search--dropdown .select2-search__field {
-    padding: 4px;
-    width: 100%;
-    box-sizing: border-box
-}
-
-.select2-search--dropdown .select2-search__field::-webkit-search-cancel-button {
-    -webkit-appearance: none
-}
-
-.select2-search--dropdown.select2-search--hide {
-    display: none
-}
-
-.select2-close-mask {
-    border: 0;
-    margin: 0;
-    padding: 0;
-    display: block;
-    position: fixed;
-    left: 0;
-    top: 0;
-    min-height: 100%;
-    min-width: 100%;
-    height: auto;
-    width: auto;
-    opacity: 0;
-    z-index: 99;
-    background-color: #fff;
-    filter: alpha(opacity=0)
-}
-
-.select2-hidden-accessible {
-    border: 0 !important;
-    clip: rect(0 0 0 0) !important;
-    height: 1px !important;
-    margin: -1px !important;
-    overflow: hidden !important;
-    padding: 0 !important;
-    position: absolute !important;
-    width: 1px !important
-}
-
-.select2-container--default .select2-selection--single {
-    background-color: #fff;
-    border: 1px solid #aaa;
-    border-radius: 4px
-}
-
-.select2-container--default .select2-selection--single .select2-selection__rendered {
-    color: #444;
-    line-height: 28px
-}
-
-.select2-container--default .select2-selection--single .select2-selection__clear {
-    cursor: pointer;
-    float: right;
-    font-weight: bold
-}
-
-.select2-container--default .select2-selection--single .select2-selection__placeholder {
-    color: #999
-}
-
-.select2-container--default .select2-selection--single .select2-selection__arrow {
-    height: 26px;
-    position: absolute;
-    top: 1px;
-    right: 1px;
-    width: 20px
-}
-
-.select2-container--default .select2-selection--single .select2-selection__arrow b {
-    border-color: #888 transparent transparent transparent;
-    border-style: solid;
-    border-width: 5px 4px 0 4px;
-    height: 0;
-    left: 50%;
-    margin-left: -4px;
-    margin-top: -2px;
-    position: absolute;
-    top: 50%;
-    width: 0
-}
-
-.select2-container--default[dir="rtl"] .select2-selection--single .select2-selection__clear {
-    float: left
-}
-
-.select2-container--default[dir="rtl"] .select2-selection--single .select2-selection__arrow {
-    left: 1px;
-    right: auto
-}
-
-.select2-container--default.select2-container--disabled .select2-selection--single {
-    background-color: #eee;
-    cursor: default
-}
-
-.select2-container--default.select2-container--disabled .select2-selection--single .select2-selection__clear {
-    display: none
-}
-
-.select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
-    border-color: transparent transparent #888 transparent;
-    border-width: 0 4px 5px 4px
-}
-
-.select2-container--default .select2-selection--multiple {
-    background-color: white;
-    border: 1px solid #aaa;
-    border-radius: 4px;
-    cursor: text
-}
-
-.select2-container--default .select2-selection--multiple .select2-selection__rendered {
-    box-sizing: border-box;
-    list-style: none;
-    margin: 0;
-    padding: 0 5px;
-    width: 100%
-}
-
-.select2-container--default .select2-selection--multiple .select2-selection__rendered li {
-    list-style: none
-}
-
-.select2-container--default .select2-selection--multiple .select2-selection__placeholder {
-    color: #999;
-    margin-top: 5px;
-    float: left
-}
-
-.select2-container--default .select2-selection--multiple .select2-selection__clear {
-    cursor: pointer;
-    float: right;
-    font-weight: bold;
-    margin-top: 5px;
-    margin-right: 10px
-}
-
-.select2-container--default .select2-selection--multiple .select2-selection__choice {
-    background-color: #e4e4e4;
-    border: 1px solid #aaa;
-    border-radius: 4px;
-    cursor: default;
-    float: left;
-    margin-right: 5px;
-    margin-top: 5px;
-    padding: 0 5px
-}
-
-.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
-    color: #999;
-    cursor: pointer;
-    display: inline-block;
-    font-weight: bold;
-    margin-right: 2px
-}
-
-.select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
-    color: #333
-}
-
-.select2-container--default[dir="rtl"] .select2-selection--multiple .select2-selection__choice,
-.select2-container--default[dir="rtl"] .select2-selection--multiple .select2-selection__placeholder,
-.select2-container--default[dir="rtl"] .select2-selection--multiple .select2-search--inline {
-    float: right
-}
-
-.select2-container--default[dir="rtl"] .select2-selection--multiple .select2-selection__choice {
-    margin-left: 5px;
-    margin-right: auto
-}
-
-.select2-container--default[dir="rtl"] .select2-selection--multiple .select2-selection__choice__remove {
-    margin-left: 2px;
-    margin-right: auto
-}
-
-.select2-container--default.select2-container--focus .select2-selection--multiple {
-    border: solid black 1px;
-    outline: 0
-}
-
-.select2-container--default.select2-container--disabled .select2-selection--multiple {
-    background-color: #eee;
-    cursor: default
-}
-
-.select2-container--default.select2-container--disabled .select2-selection__choice__remove {
-    display: none
-}
-
-.select2-container--default.select2-container--open.select2-container--above .select2-selection--single,
-.select2-container--default.select2-container--open.select2-container--above .select2-selection--multiple {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0
-}
-
-.select2-container--default.select2-container--open.select2-container--below .select2-selection--single,
-.select2-container--default.select2-container--open.select2-container--below .select2-selection--multiple {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0
-}
-
-.select2-container--default .select2-search--dropdown .select2-search__field {
-    border: 1px solid #aaa
-}
-
-.select2-container--default .select2-search--inline .select2-search__field {
-    background: transparent;
-    border: none;
-    outline: 0;
-    box-shadow: none;
-    -webkit-appearance: textfield
-}
-
-.select2-container--default .select2-results>.select2-results__options {
-    max-height: 200px;
-    overflow-y: auto
-}
-
-.select2-container--default .select2-results__option[role=group] {
-    padding: 0
-}
-
-.select2-container--default .select2-results__option[aria-disabled=true] {
-    color: #999
-}
-
-.select2-container--default .select2-results__option[aria-selected=true] {
-    background-color: #ddd
-}
-
-.select2-container--default .select2-results__option .select2-results__option {
-    padding-left: 1em
-}
-
-.select2-container--default .select2-results__option .select2-results__option .select2-results__group {
-    padding-left: 0
-}
-
-.select2-container--default .select2-results__option .select2-results__option .select2-results__option {
-    margin-left: -1em;
-    padding-left: 2em
-}
-
-.select2-container--default .select2-results__option .select2-results__option .select2-results__option .select2-results__option {
-    margin-left: -2em;
-    padding-left: 3em
-}
-
-.select2-container--default .select2-results__option .select2-results__option .select2-results__option .select2-results__option .select2-results__option {
-    margin-left: -3em;
-    padding-left: 4em
-}
-
-.select2-container--default .select2-results__option .select2-results__option .select2-results__option .select2-results__option .select2-results__option .select2-results__option {
-    margin-left: -4em;
-    padding-left: 5em
-}
-
-.select2-container--default .select2-results__option .select2-results__option .select2-results__option .select2-results__option .select2-results__option .select2-results__option .select2-results__option {
-    margin-left: -5em;
-    padding-left: 6em
-}
-
-.select2-container--default .select2-results__option--highlighted[aria-selected] {
-    background-color: #5897fb;
-    color: white
-}
-
-.select2-container--default .select2-results__group {
-    cursor: default;
-    display: block;
-    padding: 6px
-}
-
-.select2-container--classic .select2-selection--single {
-    background-color: #f7f7f7;
-    border: 1px solid #aaa;
-    border-radius: 4px;
-    outline: 0;
-    background-image: -webkit-linear-gradient(top, #fff 50%, #eee 100%);
-    background-image: -o-linear-gradient(top, #fff 50%, #eee 100%);
-    background-image: linear-gradient(to bottom, #fff 50%, #eee 100%);
-    background-repeat: repeat-x;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FFFFFFFF', endColorstr='#FFEEEEEE', GradientType=0)
-}
-
-.select2-container--classic .select2-selection--single:focus {
-    border: 1px solid #5897fb
-}
-
-.select2-container--classic .select2-selection--single .select2-selection__rendered {
-    color: #444;
-    line-height: 28px
-}
-
-.select2-container--classic .select2-selection--single .select2-selection__clear {
-    cursor: pointer;
-    float: right;
-    font-weight: bold;
-    margin-right: 10px
-}
-
-.select2-container--classic .select2-selection--single .select2-selection__placeholder {
-    color: #999
-}
-
-.select2-container--classic .select2-selection--single .select2-selection__arrow {
-    background-color: #ddd;
-    border: none;
-    border-left: 1px solid #aaa;
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
-    height: 26px;
-    position: absolute;
-    top: 1px;
-    right: 1px;
-    width: 20px;
-    background-image: -webkit-linear-gradient(top, #eee 50%, #ccc 100%);
-    background-image: -o-linear-gradient(top, #eee 50%, #ccc 100%);
-    background-image: linear-gradient(to bottom, #eee 50%, #ccc 100%);
-    background-repeat: repeat-x;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FFEEEEEE', endColorstr='#FFCCCCCC', GradientType=0)
-}
-
-.select2-container--classic .select2-selection--single .select2-selection__arrow b {
-    border-color: #888 transparent transparent transparent;
-    border-style: solid;
-    border-width: 5px 4px 0 4px;
-    height: 0;
-    left: 50%;
-    margin-left: -4px;
-    margin-top: -2px;
-    position: absolute;
-    top: 50%;
-    width: 0
-}
-
-.select2-container--classic[dir="rtl"] .select2-selection--single .select2-selection__clear {
-    float: left
-}
-
-.select2-container--classic[dir="rtl"] .select2-selection--single .select2-selection__arrow {
-    border: none;
-    border-right: 1px solid #aaa;
-    border-radius: 0;
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
-    left: 1px;
-    right: auto
-}
-
-.select2-container--classic.select2-container--open .select2-selection--single {
-    border: 1px solid #5897fb
-}
-
-.select2-container--classic.select2-container--open .select2-selection--single .select2-selection__arrow {
-    background: transparent;
-    border: none
-}
-
-.select2-container--classic.select2-container--open .select2-selection--single .select2-selection__arrow b {
-    border-color: transparent transparent #888 transparent;
-    border-width: 0 4px 5px 4px
-}
-
-.select2-container--classic.select2-container--open.select2-container--above .select2-selection--single {
-    border-top: none;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    background-image: -webkit-linear-gradient(top, #fff 0%, #eee 50%);
-    background-image: -o-linear-gradient(top, #fff 0%, #eee 50%);
-    background-image: linear-gradient(to bottom, #fff 0%, #eee 50%);
-    background-repeat: repeat-x;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FFFFFFFF', endColorstr='#FFEEEEEE', GradientType=0)
-}
-
-.select2-container--classic.select2-container--open.select2-container--below .select2-selection--single {
-    border-bottom: none;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    background-image: -webkit-linear-gradient(top, #eee 50%, #fff 100%);
-    background-image: -o-linear-gradient(top, #eee 50%, #fff 100%);
-    background-image: linear-gradient(to bottom, #eee 50%, #fff 100%);
-    background-repeat: repeat-x;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FFEEEEEE', endColorstr='#FFFFFFFF', GradientType=0)
-}
-
-.select2-container--classic .select2-selection--multiple {
-    background-color: white;
-    border: 1px solid #aaa;
-    border-radius: 4px;
-    cursor: text;
-    outline: 0
-}
-
-.select2-container--classic .select2-selection--multiple:focus {
-    border: 1px solid #5897fb
-}
-
-.select2-container--classic .select2-selection--multiple .select2-selection__rendered {
-    list-style: none;
-    margin: 0;
-    padding: 0 5px
-}
-
-.select2-container--classic .select2-selection--multiple .select2-selection__clear {
-    display: none
-}
-
-.select2-container--classic .select2-selection--multiple .select2-selection__choice {
-    background-color: #e4e4e4;
-    border: 1px solid #aaa;
-    border-radius: 4px;
-    cursor: default;
-    float: left;
-    margin-right: 5px;
-    margin-top: 5px;
-    padding: 0 5px
-}
-
-.select2-container--classic .select2-selection--multiple .select2-selection__choice__remove {
-    color: #888;
-    cursor: pointer;
-    display: inline-block;
-    font-weight: bold;
-    margin-right: 2px
-}
-
-.select2-container--classic .select2-selection--multiple .select2-selection__choice__remove:hover {
-    color: #555
-}
-
-.select2-container--classic[dir="rtl"] .select2-selection--multiple .select2-selection__choice {
-    float: right
-}
-
-.select2-container--classic[dir="rtl"] .select2-selection--multiple .select2-selection__choice {
-    margin-left: 5px;
-    margin-right: auto
-}
-
-.select2-container--classic[dir="rtl"] .select2-selection--multiple .select2-selection__choice__remove {
-    margin-left: 2px;
-    margin-right: auto
-}
-
-.select2-container--classic.select2-container--open .select2-selection--multiple {
-    border: 1px solid #5897fb
-}
-
-.select2-container--classic.select2-container--open.select2-container--above .select2-selection--multiple {
-    border-top: none;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0
-}
-
-.select2-container--classic.select2-container--open.select2-container--below .select2-selection--multiple {
-    border-bottom: none;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0
-}
-
-.select2-container--classic .select2-search--dropdown .select2-search__field {
-    border: 1px solid #aaa;
-    outline: 0
-}
-
-.select2-container--classic .select2-search--inline .select2-search__field {
-    outline: 0;
-    box-shadow: none
-}
-
-.select2-container--classic .select2-dropdown {
-    background-color: #fff;
-    border: 1px solid transparent
-}
-
-.select2-container--classic .select2-dropdown--above {
-    border-bottom: none
-}
-
-.select2-container--classic .select2-dropdown--below {
-    border-top: none
-}
-
-.select2-container--classic .select2-results>.select2-results__options {
-    max-height: 200px;
-    overflow-y: auto
-}
-
-.select2-container--classic .select2-results__option[role=group] {
-    padding: 0
-}
-
-.select2-container--classic .select2-results__option[aria-disabled=true] {
-    color: grey
-}
-
-.select2-container--classic .select2-results__option--highlighted[aria-selected] {
-    background-color: #3875d7;
-    color: #fff
-}
-
-.select2-container--classic .select2-results__group {
-    cursor: default;
-    display: block;
-    padding: 6px
-}
-
-.select2-container--classic.select2-container--open .select2-dropdown {
-    border-color: #5897fb
+.audio {
+    width: 50px;
+    height: 5px;
 }
 </style>

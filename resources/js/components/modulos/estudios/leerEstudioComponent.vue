@@ -331,10 +331,10 @@
                                                 @click="verImagen(this.registro.urlOviyam, this.registro.patientId, this.registro.studyUID, this.registro.serverName)">
                                                 <i class="fa fa-file-image-o"></i>
                                             </button>
-                                            <a class="" @click="toggleSpeechRecognition"
-                                                style="width: 30px; height: 30px;">
-                                                <img title="Grabadora" :src="microfono">
-                                            </a>
+                                             <a class="" @click="toggleSpeechRecognition"
+                                                 style="width: 30px; height: 30px;">
+                                                 <img title="Grabadora" :src="microfono">
+                                             </a>
                                         </div>
                                     </div>
                                 </div>
@@ -392,12 +392,6 @@
                                                     </a>
                                                 </div>
                                             </div>
-                                            <!-- <div class="tab-pane  p-20" id="profile8" role="tabpanel">
-                                                <template v-for="(item, index) in audiosDeEstudio" :key="index">
-                                                    <audio :src="item.audio" controls
-                                                        style="height: 15px; width: 100%;"></audio>
-                                                </template>
-</div> -->
                                         </div>
                                     </div>
                                 </div>
@@ -440,7 +434,7 @@ export default {
 
         this.emitter.on("sedeSeleccionada", (data) => {
             this.sede_id = data.idSede;
-            $("#example23").DataTable().destroy();
+            this.destroyDataTable();
             this.listarMisPendientes();
         });
     },
@@ -472,8 +466,7 @@ export default {
             audioChunks: [],
             audioUrl: null,
             uppercase: false,
-            id: 1,
-            uppercase: false,
+            mediaStream: null,
             capitalizeNext: false,
 
             // Comandos de mayúsculas
@@ -517,7 +510,9 @@ export default {
 
             // Otros comandos
             punctuationCommands: {
-                "punto": () => ".",
+                "punto": () => { this.capitalizeNext = true; return "."; },
+                "punto y seguido": () => { this.capitalizeNext = true; return ". "; },
+                "punto seguido": () => { this.capitalizeNext = true; return ". "; },
                 "coma": () => ",",
                 "dos puntos": () => ":",
                 "punto y coma": () => ";",
@@ -544,6 +539,24 @@ export default {
         };
     },
     methods: {
+        initDataTable() {
+            if ($ && $.fn && $.fn.DataTable) {
+                $("#example23").DataTable({
+                    dom: "Bfrtip",
+                    buttons: ["copy", "csv", "excel", "pdf", "print"],
+                    retrieve: true,
+                });
+            }
+        },
+        destroyDataTable() {
+            try {
+                if ($ && $.fn && $.fn.DataTable && $.fn.dataTable.isDataTable('#example23')) {
+                    $("#example23").DataTable().destroy();
+                }
+            } catch (e) {
+                // No-op
+            }
+        },
         toggleSpeechRecognition() {
             if (!this.recognizing) {
                 this.startRecording();
@@ -553,12 +566,95 @@ export default {
                     console.log("⏸️ Pausando grabación...");
                     this.mediaRecorder.pause();
                     this.microfono = 'admin-wrap/assets/images/mic.gif';
-                } else if (this.mediaRecorder.state === "paused" || this.mediaRecorder.state === "inactive") {
+                } else if (this.mediaRecorder.state === "paused") {
                     console.log("▶️ Reanudando grabación...");
                     this.mediaRecorder.resume();
                     this.microfono = 'admin-wrap/assets/images/mic-animate.gif';
+                } else if (this.mediaRecorder.state === "inactive") {
+                    console.log("⏺️ Iniciando nueva grabación para la siguiente lectura...");
+                    this.startAudioOnly();
+                    this.microfono = 'admin-wrap/assets/images/mic-animate.gif';
                 }
                 console.log('despues mediaRecorder.state: ', this.mediaRecorder.state);
+            }
+        },
+        // Inicia una nueva grabación de audio sin tocar el reconocimiento de voz
+        startAudioOnly() {
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+                this.mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: "audio/webm;codecs=opus",
+                    audioBitsPerSecond: 64000,
+                });
+                this.mediaStream = stream;
+                this.audioChunks = [];
+
+                this.mediaRecorder.ondataavailable = (event) => {
+                    this.audioChunks.push(event.data);
+                };
+
+                this.mediaRecorder.onstop = () => {
+                    this.audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+                    this.audioUrl = URL.createObjectURL(this.audioBlob);
+                };
+
+                this.mediaRecorder.start();
+                this.recording = true;
+                this.microfono = 'admin-wrap/assets/images/mic-animate.gif';
+            }).catch(error => {
+                $.toast({
+                    heading: "Upsss!!!",
+                    text: 'Error al acceder al micrófono: ' + (error && error.message ? error.message : String(error)),
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "danger",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+                console.error('Error al acceder al micrófono:', error);
+            });
+        },
+        // Permite detener explícitamente el reconocimiento de voz
+        stopRecognition() {
+            try {
+                if (this.recognition) {
+                    // Evita reinicios automáticos mientras se detiene
+                    this.recognition.onend = null;
+                    this.recognition.onerror = null;
+                    // Si se detiene el reconocimiento, pausar también la grabación de audio
+                    if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+                        try { this.mediaRecorder.pause(); } catch (e) { console.warn('No se pudo pausar la grabación al detener reconocimiento:', e); }
+                        this.microfono = 'admin-wrap/assets/images/mic.gif';
+                    }
+                    this.recognition.stop();
+                }
+                this.recognizing = false;
+                this.microfono = 'admin-wrap/assets/images/mic.gif';
+            } catch (e) {
+                console.error('Error al detener reconocimiento:', e);
+            }
+        },
+        // Detiene todo: reconocimiento y grabación, y limpia recursos
+        async stopAll() {
+            try {
+                // Detener grabación y generar blob si corresponde
+                await this.stopRecording();
+                // Detener reconocimiento de voz
+                this.stopRecognition();
+                // Liberar media stream
+                if (this.mediaStream && this.mediaStream.getTracks) {
+                    try { this.mediaStream.getTracks().forEach(t => t.stop()); } catch (e) { }
+                    this.mediaStream = null;
+                }
+                // Revocar URL de audio si existe
+                if (this.audioUrl) {
+                    try { URL.revokeObjectURL(this.audioUrl); } catch (e) { }
+                    this.audioUrl = null;
+                }
+                // Indicadores de estado
+                this.recording = false;
+                this.microfono = 'admin-wrap/assets/images/mic.gif';
+            } catch (e) {
+                console.error('Error en stopAll:', e);
             }
         },
         startRecording() {
@@ -567,7 +663,7 @@ export default {
                 this.recognition.lang = 'es-ES';
                 this.recognition.continuous = true;
                 this.recognition.interimResults = true;
-                this.recognition.maxAlternatives = false; // Ofrece múltiples opciones de reconocimiento
+                this.recognition.maxAlternatives = 1; // número de alternativas
 
                 // Combinar todos los comandos en un solo objeto
                 const allCommands = {
@@ -602,15 +698,26 @@ export default {
 
                 this.recognition.onend = () => {
                     if (this.recognizing) {
-
                         setTimeout(() => this.recognition.start(), 500);
+                    } else {
+                        // Reconocimiento fue detenido/pausado: pausar también la grabación de audio
+                        if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+                            try { this.mediaRecorder.pause(); } catch (e) { console.warn('No se pudo pausar la grabación en onend:', e); }
+                            this.microfono = 'admin-wrap/assets/images/mic.gif';
+                        }
                     }
                 };
 
                 this.recognition.onerror = (event) => {
-
+                    console.warn('Error en reconocimiento:', event && event.error ? event.error : event);
+                    // En errores comunes (silencio o red), reiniciar automáticamente para mantener fluidez
                     if (event.error === 'no-speech' || event.error === 'network') {
-                        this.recognition.stop();
+                        try { this.recognition.stop(); } catch (e) { }
+                        if (this.recognizing) {
+                            setTimeout(() => {
+                                try { this.recognition.start(); } catch (e) { console.warn('Fallo reintento de reconocimiento:', e); }
+                            }, 500);
+                        }
                     }
                 };
             }
@@ -624,6 +731,7 @@ export default {
                     mimeType: "audio/webm;codecs=opus",
                     audioBitsPerSecond: 64000, // Reduce la calidad (valores entre 16kbps y 128kbps)
                 });
+                this.mediaStream = stream;
                 this.audioChunks = [];
 
                 this.mediaRecorder.ondataavailable = (event) => {
@@ -640,14 +748,14 @@ export default {
             }).catch(error => {
                 $.toast({
                     heading: "Upsss!!!",
-                    text: 'Error al acceder al micrófono:', error,
+                    text: 'Error al acceder al micrófono: ' + (error && error.message ? error.message : String(error)),
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: "danger",
                     hideAfter: 3500,
                     stack: 6,
                 });
-                console.error('Error al acceder al micrófono:', error)
+                console.error('Error al acceder al micrófono:', error);
             });
         },
         stopRecording() {
@@ -692,11 +800,14 @@ export default {
             // Convertir texto a mayúsculas si está activado
             text = this.uppercase ? text.toUpperCase() : text;
 
-            // Aplicar mayúscula en primera palabra si `capitalizeNext` está activo
-            text = text.replace(/(?:^|\n)([a-záéíóúüñ])/g, (match, firstLetter) => {
-                this.capitalizeNext = false; // Resetear capitalización
-                return match.replace(firstLetter, firstLetter.toUpperCase());
-            });
+            // Aplicar mayúscula en la primera letra del nuevo párrafo
+            // solo cuando un comando de salto de línea haya sido reconocido
+            if (this.capitalizeNext) {
+                text = text.replace(/(^|\n)(\s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
+                    this.capitalizeNext = false; // Resetear capitalización tras usarla
+                    return `${start}${spaces}${first.toUpperCase()}`;
+                });
+            }
 
             return text;
         },
@@ -704,12 +815,18 @@ export default {
             await this.stopRecording(); // Esperar a que el blob esté listo
 
             if (!this.audioBlob || !(this.audioBlob instanceof Blob)) {
+                $.toast({
+                    heading: "Upsss!!!",
+                    text: 'No hay audio para enviar',
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "error",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
                 console.error("Error: this.audioBlob no es un Blob válido.");
                 return;
             }
-            console.log('id: ', this.id)
-            console.log('estudio_producto_id: ', this.registro.estudio_producto_id)
-
             const formData = new FormData();
             formData.append('audio', this.audioBlob, 'audio.webm');
             formData.append('estudio_id', this.id);
@@ -718,13 +835,27 @@ export default {
             try {
                 const res = await axios.post('/upload-audio', formData);
 
-                if (res.status != 200) {
+                if (res && res.status === 200) {
                     $.toast({
-                        heading: "Upsss!!!",
-                        text: res.data.message,
+                        heading: "Ok!!!",
+                        text: 'Audio enviado correctamente',
                         position: "top-right",
                         loaderBg: "#ff6849",
                         icon: "success",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                    // Limpieza de estado de audio tras envío exitoso
+                    this.audioChunks = [];
+                    this.audioBlob = null;
+                    this.audioUrl = null;
+                } else {
+                    $.toast({
+                        heading: "Upsss!!!",
+                        text: (res && res.data && res.data.message) ? res.data.message : 'Error al enviar audio',
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "error",
                         hideAfter: 3500,
                         stack: 6,
                     });
@@ -732,6 +863,15 @@ export default {
 
             } catch (error) {
                 console.error('Error al enviar audio:', error);
+                $.toast({
+                    heading: "Upsss!!!",
+                    text: 'Fallo al enviar audio',
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "error",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
             }
         },
         async listarMisPendientes() {
@@ -748,15 +888,12 @@ export default {
             } else {
                 try {
                     const res = await axios.post('/estudio-listarPendientesMedico', { id: this.usuarioactual.id, sede_id: this.sede_id });
-                    $("#example23").DataTable().destroy();
+                    this.destroyDataTable();
 
                     this.registros = res.data;
 
                     this.$nextTick(() => {
-                        $("#example23").DataTable({
-                            dom: "Bfrtip",
-                            buttons: ["copy", "csv", "excel", "pdf", "print"],
-                        });
+                        this.initDataTable();
                     });
                 } catch (error) {
                     console.log(error);
@@ -772,7 +909,7 @@ export default {
                     /**
                      * Envio el audio al backend
                      */
-                    this.sendToBackend();
+                    await this.sendToBackend();
 
                     $.toast({
                         heading: "Ok!!!",
@@ -784,20 +921,12 @@ export default {
                         stack: 6,
                     });
 
-                    var row = document.getElementById(this.idRow);
-                    if (row) {
-                        row.remove();
-
-                        var estudioEliminar = this.registros.findIndex((x) => x.estudio_producto_id == this.idRow);
+                    const estudioEliminar = this.registros.findIndex((x) => x.estudio_producto_id == this.idRow);
+                    if (estudioEliminar >= 0) {
                         this.registros.splice(estudioEliminar, 1);
-
-                        $("#example23").DataTable().destroy();
-
+                        this.destroyDataTable();
                         this.$nextTick(() => {
-                            $("#example23").DataTable({
-                                dom: "Bfrtip",
-                                buttons: ["copy", "csv", "excel", "pdf", "print"],
-                            });
+                            this.initDataTable();
                         });
                     }
 
@@ -805,7 +934,7 @@ export default {
                     this.limpiar();
                 }
             } catch (error) {
-                this.errores = error.response.data.errors;
+                this.errores = error.response && error.response.data ? error.response.data.errors : {};
             }
         },
         async visto(id) {
@@ -862,8 +991,8 @@ export default {
                 });
         },
         verImagen(url, pat_id, study_iuid, servername) {
-            let Url = url + '?patientID =' + pat_id + '&studyUID=' + study_iuid + '&serverName=' + servername
-            window.open(Url, '_blank');
+            const Url = `${url}?patientID=${encodeURIComponent(pat_id)}&studyUID=${encodeURIComponent(study_iuid)}&serverName=${encodeURIComponent(servername)}`;
+            window.open(Url, '_blank', 'noopener,noreferrer');
         },
         establecerSede() {
             this.sede_id = sessionStorage.getItem('ST-sede');
@@ -898,6 +1027,37 @@ export default {
             $(".right-sidebar").toggleClass("shw-rside");
         },
     },
+    beforeDestroy() {
+        try {
+            if (this.recognition) {
+                this.recognizing = false;
+                this.recognition.onresult = null;
+                this.recognition.onend = null;
+                this.recognition.onerror = null;
+                this.recognition.stop();
+                this.recognition = null;
+            }
+            if (this.mediaRecorder) {
+                if (this.mediaRecorder.state && this.mediaRecorder.state !== 'inactive') {
+                    try { this.mediaRecorder.stop(); } catch (e) { }
+                }
+                this.mediaRecorder = null;
+            }
+            if (this.mediaStream && this.mediaStream.getTracks) {
+                this.mediaStream.getTracks().forEach(t => t.stop());
+                this.mediaStream = null;
+            }
+            if (this.audioUrl) {
+                try { URL.revokeObjectURL(this.audioUrl); } catch (e) { }
+                this.audioUrl = null;
+            }
+            if (this.emitter && this.emitter.off) {
+                try { this.emitter.off('sedeSeleccionada'); } catch (e) { }
+            }
+        } catch (e) {
+            // best-effort cleanup
+        }
+    }
 }
 </script>
 

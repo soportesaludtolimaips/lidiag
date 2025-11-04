@@ -221,8 +221,7 @@
             $('.js-switch').each(function() {
                 new Switchery($(this)[0], $(this).data());
             });
-            // For select 2
-            $(".select2").select2();
+
             $('.selectpicker').selectpicker();
             //Bootstrap-TouchSpin
             $(".vertical-spin").TouchSpin({
