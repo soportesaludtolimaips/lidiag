@@ -110,6 +110,10 @@ app.component("user-profile-and-search-component", userProfileAndSearchComponent
 import footerComponent from "./components/comunes/footerComponent.vue";
 app.component("footer-component", footerComponent);
 
+// Registro global de Select2 (v-select2-component)
+import Select2 from "./components/shared/Select2.vue";
+app.component("Select2", Select2);
+
 /**
  * The following block of code may be used to automatically register your
  * Vue components. It will recursively scan this directory for the Vue
