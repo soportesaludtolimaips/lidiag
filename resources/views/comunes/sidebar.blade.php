@@ -43,8 +43,8 @@
                                         <a href="{{ route('estudios.transcribir.listar') }}">
                                             <i class="fa fa-search text-info"></i> Pendientes por transcribir
                                         </a>
-                                        <a href="{{ route('estudios.leerytranscribir.listar') }}">
-                                            <i class="fa fa-search text-info"></i> Pendientes por leer y transcribir
+                                        <a href="{{ route('estudios.otrasPlataformas.listar') }}">
+                                            <i class="fa fa-search text-info"></i> Estudios en otras plataforma
                                         </a>
                                     </li>
                                 @endcan

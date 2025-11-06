@@ -13,7 +13,7 @@
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Estudios</a>
                     </li>
-                    <li class="breadcrumb-item active">Trascribir Estudios</li>
+                    <li class="breadcrumb-item active">Estudios en otras plataformas</li>
                 </ol>
             </div>
         </div>
@@ -500,7 +500,7 @@ export default {
             /**
              * Lisato los transcriptores
              */
-            const res = await axios.get('/user.listarUsuarios/Transcriptor');
+            const res = await axios.get('/user.listarUsuarios/Transcriptor/1');
             this.quienes_asignaron = res.data;
 
             /**
