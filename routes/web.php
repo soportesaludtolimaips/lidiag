@@ -79,7 +79,7 @@ Route::post('/upload-audio', [EstudioAudioController::class, 'uploadAudio']);
 Route::get('/listar-audios-estudio/{estudio_id}', [EstudioAudioController::class, 'listarAudiosPorEstudio'])->name('listarAudiosPorEstudio');
 
 Route::view('/estudios.transcribir.listar', 'modulos.estudios.transcribir-estudio')->name('estudios.transcribir.listar');
-Route::view('/estudios.transcribirYleer.listar', 'modulos.estudios.transcribirYleer-estudio')->name('estudios.leerytranscribir.listar');
+Route::view('/estudios.otras-plataformas', 'modulos.estudios.otras-plataformas')->name('estudios.otrasPlataformas.listar');
 Route::post('/estudio-listarPendientesTrascribir', [EstudioController::class, 'listarPendientesTrascribir'])->name('estudio.listarPendientesTrascribir');
 Route::post('/estudio-listarEstudiosAsignados', [EstudioController::class, 'listarEstudiosAsignados'])->name('estudio.listarEstudiosAsignados');
 Route::post('/estudio-guardarTranscripcion', [EstudioController::class, 'guardarTranscripcion'])->name('estudio.guardarTranscripcion');

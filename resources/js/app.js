@@ -64,8 +64,8 @@ app.component("leer-estudio-component", leerEstudioComponent);
 /* import leerEstudioComponent from "./components/modulos/estudios/audio-texto.vue";
 app.component("leer-estudio-component", leerEstudioComponent); */
 
-import leerYTrasncribirEstudioAdministrativoComponent from "./components/modulos/estudios/leerYTrasncribirEstudioAdministrativoComponent.vue";
-app.component("leer-y-transcribir-administrativo-component", leerYTrasncribirEstudioAdministrativoComponent);
+import otrasPlataformasComponent from "./components/modulos/estudios/otrasPlataformasComponent.vue";
+app.component("otras-plataformas-component", otrasPlataformasComponent);
 import transcribirEstudioComponent from "./components/modulos/estudios/transcribirEstudioComponent.vue";
 app.component("transcribir-estudio-component", transcribirEstudioComponent);
 import notificarEstudioComponent from "./components/modulos/estudios/notificarEstudioComponent.vue";
