@@ -15,7 +15,7 @@ class EcografiaProducto extends Model
 
     protected $fillable = [
         'ecografia_id',
-        'medico_id',
+        'usua_regis_id',
         'producto_id',
         'lectura',
         'opinion',
@@ -31,12 +31,7 @@ class EcografiaProducto extends Model
         return $this->belongsTo(Ecografia::class, 'ecografia_id');
     }
 
-    public function medico()
-    {
-        return $this->belongsTo(User::class, 'medico_id');
-    }
-
-    public function producto()
+    public function productos()
     {
         return $this->belongsTo(ConfigProducto::class, 'producto_id');
     }

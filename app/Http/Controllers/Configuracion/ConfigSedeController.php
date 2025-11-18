@@ -68,33 +68,50 @@ class ConfigSedeController extends Controller
         }
 
         $configSede = new ConfigSede();
-        $configsede->nom_sede = $registro['nom_sede'];
-        $configsede->email_repor = $registro['email_repor'];
-        $configsede->ip_dcm = $registro['ip_dcm'];
-        $configsede->bd_dcm = $registro['bd_dcm'];
-        $configsede->puerto_dcm = $registro['puerto_dcm'];
-        $configsede->usuario_dcm = $registro['usuario_dcm'];
-        $configsede->password_dcm = $registro['password_dcm'];
-        $configsede->usuario_oviyam = $registro['usuario_oviyam'];
-        $configsede->password_oviyam = $registro['password_oviyam'];
-        $configsede->url_oviyam = $registro['url_oviyam'];
-        $configsede->tap_oviyam = $registro['tap_oviyam'];
-        $configsede->estado = $registro['estado'];
+        $configSede->nom_sede = $registro['nom_sede'];
+        $configSede->email_repor = $registro['email_repor'];
+        $configSede->ip_dcm = $registro['ip_dcm'];
+        $configSede->bd_dcm = $registro['bd_dcm'];
+        $configSede->puerto_dcm = $registro['puerto_dcm'];
+        $configSede->usuario_dcm = $registro['usuario_dcm'];
+        $configSede->password_dcm = $registro['password_dcm'];
+        $configSede->usuario_oviyam = $registro['usuario_oviyam'];
+        $configSede->password_oviyam = $registro['password_oviyam'];
+        $configSede->url_oviyam = $registro['url_oviyam'];
+        $configSede->tap_oviyam = $registro['tap_oviyam'];
+        $configSede->estado = $registro['estado'];
 
         /**
-         * Almacenos los logos de la sede
+         * Almacenos lla plantilla para RX
          */
-        if ($request->hasFile('plantilla')) {
-            $archivo = $request->plantilla;
+        if ($request->hasFile('plantilla_rx')) {
+            $archivo = $request->plantilla_rx;
 
-            if (!is_null($configSede->plantilla) && Storage::disk('plantillas_lecturas')->exists($configsede->plantilla)) {
-                Storage::disk('plantillas_lecturas')->delete($configsede->plantilla);
+            if (!is_null($configSede->plantilla_rx) && Storage::disk('plantillas_lecturas')->exists($configSede->plantilla_rx)) {
+                Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_rx);
             }
 
             $nombreEncrip = Str::random(50) . "." . $archivo->extension();
 
             $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
-            $configsede->plantilla = $nombreEncrip;
+            $configSede->plantilla_rx = $nombreEncrip;
+        }
+
+        /**
+         * Almacenos lla plantilla para EcografiasX
+         */
+        if ($request->hasFile('plantilla_ecografia')) {
+
+            $archivo = $request->plantilla_ecografia;
+
+            if (!is_null($configSede->plantilla_ecografia) && Storage::disk('plantillas_lecturas')->exists($configSede->plantilla_ecografia)) {
+                Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_ecografia);
+            }
+
+            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+
+            $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
+            $configSede->plantilla_ecografia = $nombreEncrip;
         }
 
         $configSede->save();
@@ -159,37 +176,54 @@ class ConfigSedeController extends Controller
             return response()->json($validator->errors(), 400);
         }
 
-        $configsede = ConfigSede::findOrFail($registro['id']);
-        $configsede->nom_sede = $registro['nom_sede'];
-        $configsede->email_repor = $registro['email_repor'];
-        $configsede->ip_dcm = $registro['ip_dcm'];
-        $configsede->bd_dcm = $registro['bd_dcm'];
-        $configsede->puerto_dcm = $registro['puerto_dcm'];
-        $configsede->usuario_dcm = $registro['usuario_dcm'];
-        $configsede->password_dcm = $registro['password_dcm'];
-        $configsede->usuario_oviyam = $registro['usuario_oviyam'];
-        $configsede->password_oviyam = $registro['password_oviyam'];
-        $configsede->url_oviyam = $registro['url_oviyam'];
-        $configsede->tap_oviyam = $registro['tap_oviyam'];
-        $configsede->estado = $registro['estado'];
+        $configSede = ConfigSede::findOrFail($registro['id']);
+        $configSede->nom_sede = $registro['nom_sede'];
+        $configSede->email_repor = $registro['email_repor'];
+        $configSede->ip_dcm = $registro['ip_dcm'];
+        $configSede->bd_dcm = $registro['bd_dcm'];
+        $configSede->puerto_dcm = $registro['puerto_dcm'];
+        $configSede->usuario_dcm = $registro['usuario_dcm'];
+        $configSede->password_dcm = $registro['password_dcm'];
+        $configSede->usuario_oviyam = $registro['usuario_oviyam'];
+        $configSede->password_oviyam = $registro['password_oviyam'];
+        $configSede->url_oviyam = $registro['url_oviyam'];
+        $configSede->tap_oviyam = $registro['tap_oviyam'];
+        $configSede->estado = $registro['estado'];
 
         /**
-         * Almacenos los logos de la sede
+         * Almacenos lla plantilla para RX
          */
-        if ($request->hasFile('plantilla')) {
-            $archivo = $request->plantilla;
+        if ($request->hasFile('plantilla_rx')) {
+            $archivo = $request->plantilla_rx;
 
-            if (!is_null($configsede->plantilla) && Storage::disk('plantillas_lecturas')->exists($configsede->plantilla)) {
-                Storage::disk('plantillas_lecturas')->delete($configsede->plantilla);
+            if (!is_null($configSede->plantilla_rx) && Storage::disk('plantillas_lecturas')->exists($configSede->plantilla_rx)) {
+                Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_rx);
             }
 
             $nombreEncrip = Str::random(50) . "." . $archivo->extension();
 
             $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
-            $configsede->plantilla = $nombreEncrip;
+            $configSede->plantilla_rx = $nombreEncrip;
         }
 
-        $configsede->update();
+        /**
+         * Almacenos lla plantilla para EcografiasX
+         */
+        if ($request->hasFile('plantilla_ecografia')) {
+
+            $archivo = $request->plantilla_ecografia;
+
+            if (!is_null($configSede->plantilla_ecografia) && Storage::disk('plantillas_lecturas')->exists($configSede->plantilla_ecografia)) {
+                Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_ecografia);
+            }
+
+            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+
+            $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
+            $configSede->plantilla_ecografia = $nombreEncrip;
+        }
+
+        $configSede->update();
 
         return response()->json(['message' => 'El registro se actualizo correctamente.'], 200);
     }

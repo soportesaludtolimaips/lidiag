@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('config_plantillas_tipos', function (Blueprint $table) {
             $table->id();
 
-            $table->unsignedBigInteger('producto_id');
-            $table->foreign('producto_id')->references('id')->on('config_productos');
+            /* $table->unsignedBigInteger('producto_id');
+            $table->foreign('producto_id')->references('id')->on('config_productos'); */
 
             $table->string('nom_tipo', 70);
             $table->boolean('estado')->default(true);

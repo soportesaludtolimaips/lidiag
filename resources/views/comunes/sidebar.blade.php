@@ -78,8 +78,11 @@
                                     <a href="{{ route('ecografias.admisiones') }}">
                                         <i class="fa fa-address-book-o  text-info"></i> Admisionar para procedimientos
                                     </a>
-                                    <a href="{{ route('estudios.asignados.listar') }}">
-                                        <i class="fa fa-pencil text-info"></i> Realizar procedimiento
+                                    <a href="{{ route('ecografias.adminisionadas') }}">
+                                        <i class="fa fa-address-book-o  text-info"></i> Ecoghrafías admisionadas
+                                    </a>
+                                    <a href="{{ route('ecografias.pendientes.lecturas') }}">
+                                        <i class="fa fa-pencil text-info"></i> Realizar lectura
                                     </a>
                                 </li>
                             @endcan
@@ -147,8 +150,13 @@
                                     <li>
                                         <a href="{{ route('config.sedes.listar') }}">Sedes</a>
                                     </li>
+                                @endcan
+                                @can('config.plantillas.index')
                                     <li>
                                         <a href="{{ route('config.tipos.plantillas.listar') }}">Tipos de Plantillas</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('config.plantillas.listar') }}">Plantillas</a>
                                     </li>
                                 @endcan
                             </ul>

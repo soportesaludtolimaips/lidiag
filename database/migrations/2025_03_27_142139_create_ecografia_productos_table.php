@@ -17,16 +17,16 @@ return new class extends Migration
             $table->unsignedBigInteger('ecografia_id');
             $table->foreign('ecografia_id')->references('id')->on('ecografias');
 
-            $table->unsignedBigInteger('medico_id');
-            $table->foreign('medico_id')->references('id')->on('users');
+            $table->unsignedBigInteger('usua_regis_id')->comment('Usuario que registra la lectura de la ecografia');
+            $table->foreign('usua_regis_id')->references('id')->on('users');
 
             $table->unsignedBigInteger('producto_id');
             $table->foreign('producto_id')->references('id')->on('config_productos');
 
-            $table->string('lectura')->nullable();
-            $table->string('opinion')->nullable();
+            $table->text('lectura')->nullable();
+            $table->text('opinion')->nullable();
             $table->datetime('fechor_lectura')->nullable();
-            $table->boolean('estado')->default(true);
+            $table->enum('estado', ['EN PROCESO', 'ANULADO', 'LEIDO'])->default('EN PROCESO');
 
             $table->timestamps();
         });

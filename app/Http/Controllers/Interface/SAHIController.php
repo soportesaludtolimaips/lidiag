@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Interface;
 
 use App\Http\Controllers\Controller;
+use App\Models\Ecografias\Ecografia;
 use App\Models\Interface\Sahi\Atencion;
 use App\Models\Interface\Sahi\FacFactura;
 use App\Models\Interface\Sahi\facFacturaDet;
@@ -141,7 +142,6 @@ class SAHIController extends Controller
             'conContrato.DesContrato',
             'conPlan.DesPlan',
             'genTercero.NomTercero',
-            'genTercero.NomTercero',
             DB::raw("(SELECT TOP(1) QuinOrdenoOrden.NomResponsable
                     FROM hceProceOrden QuinOrdenoOrden
                         INNER JOIN hceProceDetalle ON QuinOrdenoOrden.IdOrdenPro = hceProceDetalle.IdOrdenPro
@@ -160,8 +160,35 @@ class SAHIController extends Controller
             ->where('admAtencion.IdAtencion', $atencionId)
             ->whereIn('proProducto.IdGrupo', $gruposPermitidos);
 
-        $atencion = $consulta1->union($consulta2)->get();
+        $atencionesSahi = $consulta1->union($consulta2)->get();
 
-        return response()->json($atencion, 200);
+        $atencionesLidiag = $this->obtenerDatosLidiag($atencionId);
+
+        // Arreglo para almacenar las atenciones combinadas de SAHi y Lidiag
+        $combinarAtenciones[] = [];
+        foreach ($atencionesSahi as $atencionLidiag) {
+
+            $matchAtencion = $atencionesLidiag->firstWhere('atencion_id', true);
+            if ($matchAtencion) {
+                $atencionLidiag->estado_ecografia = $matchAtencion->estado;
+            } else {
+                $atencionLidiag->estado_ecografia = null;
+            }
+
+            $combinarAtenciones[] = $atencionLidiag;
+        }
+
+        return response()->json($combinarAtenciones, 200);
+    }
+
+    /**
+     * Obtener las ecografias de un paciente por atencion
+     */
+    private function obtenerDatosLidiag($atencionId)
+    {
+        $atenciones = Ecografia::select('estado')
+            ->where('atencion_id', $atencionId)->get();
+
+        return $atenciones;
     }
 }

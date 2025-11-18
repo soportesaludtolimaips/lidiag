@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
         $this->call(ConfigPrioridadeSeeder::class);
         $this->call(ConfigProductoSeeder::class);
         $this->call(ConfigSedeSeeder::class);
+        $this->call(PlantillaSeeder::class);
 
         $this->call(RoleSeeder::class);
         $this->call(UserSeeder::class);
