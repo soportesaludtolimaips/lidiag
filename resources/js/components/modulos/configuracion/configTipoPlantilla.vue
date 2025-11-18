@@ -48,7 +48,7 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="item in registros" :key="item.id">
-                                        <td>{{ item.nom_admin_salud }}</td>
+                                        <td>{{ item.nom_tipo }}</td>
                                         <td>
                                             <span class="label label-success" v-if="item.estado">Activo</span>
                                             <span class="label label-danger" v-if="!item.estado">Inactivo</span>
@@ -61,7 +61,7 @@
                                             </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="elimnarRegistro(item.id, item.nom_admin_salud)">
+                                                @click="elimnarRegistro(item.id, item.nom_tipo)">
                                                 <i class="fa fa-trash"></i>
                                             </button>
                                         </td>
@@ -96,29 +96,14 @@
                     <form action="#">
                         <div class="form-body">
                             <div class="row p-t-20">
-                                <div class="col-md-3">
+                                <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Código</label>
+                                        <label class="control-label">Tipo de plantillas</label>
                                         <input type="text" id="nom_tipo" name="nom_tipo" v-model="registro.nom_tipo"
-                                            class="form-control" placeholder="Código">
+                                            class="form-control" placeholder="Nombre del tipo de plantilla">
                                         <span class="text-danger" v-if="errores.nom_tipo">{{
                                             errores.nom_tipo[0]
                                         }}</span>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label class="control-label">Producto</label>
-                                        <select v-model="registro.producto_id" name="producto_id" id="producto_id"
-                                            class="form-control custom-select">
-                                            <option v-for="(Producto, index) in prioridades" :key="index"
-                                                :value="Producto.id"> {{ Producto.nom_produc }}
-                                            </option>
-                                        </select>
-                                        <span class="text-danger" v-if="errores.producto_id">
-                                            {{ errores.producto_id[0] }}
-                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -164,13 +149,13 @@
 export default {
     mounted() {
         this.ListarDatos();
-        this.listarProductos();
+        //this.listarProductos();
     },
     data() {
         return {
             id: 0,
             registros: [],
-            registro: { nom_tipo: '', producto_id: '' },
+            registro: { nom_tipo: '', estado: '' },
             tituloModal: 'Nuevo registro',
             actualizar: false,
             errores: {},
@@ -236,7 +221,7 @@ export default {
         elimnarRegistro(id, nom) {
             var $this = this;
             swal({
-                title: "Estas seguro de eliminar la admninistradora de salud " + nom + "?",
+                title: "Estas seguro de eliminar el tipo de plantillas " + nom + "?",
                 text: "No podrás recuperar este registro!",
                 type: "warning",
                 showCancelButton: true,
@@ -253,17 +238,6 @@ export default {
                     })
                 }
             });
-        },
-        async listarProductos() {
-            try {
-                const res = await axios.get("/config-productos");
-                this.productos = res.data;
-                this.$nextTick(() => {
-                    $(this.$refs.select).select2();
-                });
-            } catch (error) {
-                console.log(error);
-            }
         },
         mostrarRegistro(data = {}) {
             if (this.actualizar == true) {

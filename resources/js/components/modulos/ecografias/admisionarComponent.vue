@@ -87,9 +87,8 @@
             <div class="col-12 table-responsive">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Listado de estudios disponibles</h4>
-                        <h6 class="card-subtitle text-info">Asigne los estudios a los médicos para su respectiva
-                            lectura.
+                        <h4 class="card-title">Listado de atenciones disponibles.</h4>
+                        <h6 class="card-subtitle text-info">Asigne los médicos para su respectiva lectura.
                         </h6>
                         <div class="table-responsive">
                             <table id="example23" class="table table-bordered table-striped" cellspacing="0"
@@ -105,6 +104,7 @@
                                         <th>Contrato</th>
                                         <th>Plan</th>
                                         <th>Quien Ordeno</th>
+                                        <th>Estado</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -120,11 +120,31 @@
                                         <td>{{ item.DesContrato }}</td>
                                         <td>{{ item.DesPlan }}</td>
                                         <td>{{ item.quien_ordeno }}</td>
+                                        <td>
+                                            <span class="label label-info"
+                                                v-if="item.estado_ecografia === 'EN PROCESO'">{{ item.estado_ecografia
+                                                }}</span>
+                                            <span class="label label-success"
+                                                v-if="item.estado_ecografia === 'LEIDO'">{{ item.estado_ecografia
+                                                }}</span>
+                                            <span class="label label-danger"
+                                                v-if="item.estado_ecografia === 'ANULADO'">{{ item.estado_ecografia
+                                                }}</span>
+                                        </td>
                                         <td class="text-nowrap">
+                                            <button type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
+                                                @click="actualizar = false; registroParaAnular(item);"
+                                                title="Anular agenda" alt="default" data-toggle="modal"
+                                                data-target="#responsive-modal"
+                                                v-if="item.estado_ecografia === 'EN PROCESO'">
+                                                <i class=" fa fa-trash"></i>
+                                            </button>
+
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
                                                 @click="actualizar = true;
-                                                mostrarRegistro(item, index);" title="Agendar producto">
+                                                mostrarRegistro(item, index);" title="Agendar ecografia">
                                                 <i class=" fa fa-check"></i>
                                             </button>
                                         </td>
@@ -148,8 +168,8 @@
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span>
-                        <i class="ti-close right-side-toggle" id="btnCerralModalForm" @click="btnCerralModalForm()"></i>
+                    <span @click="btnCerralModalForm()">
+                        <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
@@ -288,13 +308,11 @@
                                         <div class="col-md-8">
                                             <div class="form-group">
                                                 <label>Médico</label>
-                                                <select v-model="registro.medico_id" name="medico_id" id="medico_id"
-                                                    class="form-control custom-select">
-                                                    <option v-for="(ItemMedico, index) in medicos" :key="index"
-                                                        :value="ItemMedico.id">
-                                                        {{ ItemMedico.name }}
-                                                    </option>
-                                                </select>
+                                                <Select2 :value="registro.medico_id" :options="medicoOptions"
+                                                    width="100%" :allow-clear="true" :label-fields="['name']"
+                                                    :dropdown-parent-selector="'#medicos-parent'"
+                                                    @input="onMedicoSelect" />
+
                                                 <span class="text-danger" v-if="errores.medico_id">
                                                     {{ errores.medico_id[0] }}
                                                 </span>
@@ -352,6 +370,33 @@
         <!-- End Right sidebar -->
         <!-- ============================================================== -->
     </div>
+
+    <div id="responsive-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+        aria-hidden="true" style="display: none;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Anular Agenda</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="message-text" class="control-label">Motivo de anulación:</label>
+                            <textarea class="form-control" id="message-text"
+                                v-model="registroAnular.motivo_anula"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default waves-effect" data-dismiss="modal"
+                        id="btnCerrarModalAunular">Close</button>
+                    <button type="button" class="btn btn-danger waves-effect waves-light"
+                        @click="anularEcografia()">Anular</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </template>
 <script>
 export default {
@@ -359,34 +404,48 @@ export default {
     mounted() {
         this.listarMedicos();
         this.establecerSede();
+
+        this.emitter.on("sedeSeleccionada", (data) => {
+            this.registro.sede_id = data.idSede;
+            this.establecerSede();
+            this.establecerMedico();
+        });
     },
     data() {
         return {
             tituloModal: 'Nueva adminsión',
-            busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "6341296", bus_fehc_ini: "", bus_fecha_fin: "" },
+            busqueda: { sede_id: this.sedeActual, medico_id: this.medicoActual, bus_nom_num_docu: "6341296", bus_fehc_ini: "", bus_fecha_fin: "" },
             registros: [],
             registro: {
                 paciente_id: "", num_docu: "", nombres: "", seg_nom: "", pri_ape: "", seg_ape: "", sexo: "", fec_naci: "", direccion: "", tel: "",
-                sede_id: this.sedeActual, quien_registro_id: this.usuarioactual.id, cel: "", atencion_id: null, productosAgenda: [], contrato: null, plan: null,
+                sede_id: this.sedeActual, medico_id: this.medicoActual, quien_registro_id: this.usuarioactual.id, cel: "", atencion_id: null, productosAgenda: [], contrato: null, plan: null,
                 admin_salud: null, quien_ordeno: null
             },
+            registroAnular: { ecografia_id: "", atencion_id: "", quien_anulo_id: this.usuarioactual.id, motivo_anula: '' },
             errores: {},
             erroresBusqueda: {},
             medicos: [],
             sedeActual: sessionStorage.getItem('ST-sede'),
+            medicoActual: sessionStorage.getItem('ST-medico'),
             productosAgenda: [],
         }
+    },
+    computed: {
+        medicoOptions() {
+            // Opciones para el Select2 local de medicos.
+            return (this.medicos || []).map(p => ({ id: String(p.id), name: p.name }));
+        },
     },
     methods: {
         async listarAtenciones() {
 
-            const res = await axios.post('/interface-sahi/listar/productos/atencion', this.busqueda);
+            const res = await axios.post('/interface-sahi-ecografias/listar/productos/atencion', this.busqueda);
 
             if (res.status == 200) {
                 $("#example23").DataTable().destroy();
 
                 this.registros = res.data;
-                console.log(this.registros)
+
                 this.$nextTick(() => {
                     $("#example23").DataTable({
                         dom: "Bfrtip",
@@ -397,7 +456,7 @@ export default {
         },
         async guardarRegistro() {
             try {
-                // Enviar solicitud para guardar la ecografía
+
                 const ecografiaRes = await axios.post('/ecografias', this.registro);
 
                 if (ecografiaRes.status === 201) {
@@ -414,9 +473,9 @@ export default {
                     });
 
                     // Actualizar la lista de datos y limpiar el formulario
-                    this.listarAtenciones();
+                    /* this.listarAtenciones();
                     this.limpiarFormulario();
-                    this.btnCerralModalForm();
+                    this.btnCerralModalForm(); */
 
                 } else {
                     $.toast({
@@ -449,10 +508,69 @@ export default {
                 }
             }
         },
+        registroParaAnular(data) {
+            this.registroAnular.ecografia_id = data.id;
+            this.registroAnular.atencion_id = data.IdAtencion;
+        },
+        anularEcografia() {
+            try {
+                if (this.registroAnular.motivo_anula === "") {
+                    $.toast({
+                        heading: '¡Atención!',
+                        text: 'Debe ingresar el motivo de anulación.',
+                        position: 'top-right',
+                        loaderBg: '#ff6849',
+                        icon: 'warning',
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                    return;
+                }
+
+                var $this = this;
+                swal({
+                    title: "Estas seguro de anular la ecografia?",
+                    text: "No podrás recuperar este registro!",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "si, eliminarlo!",
+                    closeOnConfirm: false
+                }, function (isConfirm) {
+                    if (isConfirm) {
+
+                        axios.post(`/ecografia-anular/${$this.registroAnular.ecografia_id}`, $this.registroAnular).then(response => {
+
+                            swal("Ok!!!!", response.data.message, "success");
+                            const cerrarModal = document.getElementById('btnCerrarModalAunular');
+                            cerrarModal.click();
+                            this.listarAtenciones();
+
+                        }).catch(error => {
+                            console.log(error)
+                        })
+                    }
+                });
+            } catch (error) {
+                console.log(error);
+            }
+        },
         establecerSede() {
             this.registro.sede_id = sessionStorage.getItem('ST-sede');
             this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
             this.sedeActual = sessionStorage.getItem('ST-sede');
+
+            if (this.registro.sede_id == 1) {
+                this.sedeInterface = true;
+            } else {
+                this.sedeInterface = false;
+            }
+            this.registros = [];
+        },
+        establecerMedico() {
+            this.registro.sede_id = sessionStorage.getItem('ST-sede');
+            this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
+            this.medicoActual = sessionStorage.getItem('ST-medico');
 
             if (this.registro.sede_id == 1) {
                 this.sedeInterface = true;
@@ -468,6 +586,18 @@ export default {
             } catch (error) {
                 console.log(error);
             }
+        },
+        onMedicoSelect(value) {
+            let selectedId = null;
+            if (Array.isArray(value) && value.length > 0) {
+                const v = value[0];
+                selectedId = String(typeof v === 'object' && v && v.id != null ? v.id : v);
+            } else if (value && typeof value === 'object' && value.id != null) {
+                selectedId = String(value.id);
+            } else if (value != null) {
+                selectedId = String(value);
+            }
+            this.registro.medico_id = selectedId || "";
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);
@@ -535,11 +665,11 @@ export default {
     right: -80%;
     width: 80%;
     display: none;
-    z-index: 1100;
+    z-index: 180;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
-    height: 100%;
+    height: 80%;
     -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
     box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
     -webkit-transition: all 0.3s ease;
@@ -551,5 +681,10 @@ export default {
     right: 0px;
     width: 80%;
     display: block;
+}
+
+.audio {
+    width: 50px;
+    height: 5px;
 }
 </style>

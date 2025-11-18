@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Ecografias;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Estudios\PlantillaEstudioController;
 use App\Http\Requests\Ecografias\EcografiaRequest;
 use App\Models\Configuracion\ConfigAdminSalud;
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Ecografias\Ecografia;
 use App\Models\Ecografias\EcografiaProducto;
 use App\Models\General\Paciente;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class EcografiaController extends Controller
@@ -16,19 +18,67 @@ class EcografiaController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $ecografias = Ecografia::with(['paciente', 'usuarioRegistrador', 'adminSalud'])->get();
+        return $request;
+        $ecografias = Ecografia::with(['paciente', 'usuarioRegistrador', 'adminSalud', 'medico'])
+            ->when($request->bus_nom_num_docu, function ($query) use ($request) {
+                if ($request->bus_nom_num_docu && $request->bus_nom_num_docu != '') {
+                    $query->whereHas('paciente', function ($q) use ($request) {
+                        $q->where('num_docu', 'like', '%' . $request->bus_nom_num_docu . '%')
+                            ->orWhere('nombres', 'like', '%' . $request->bus_nom_num_docu . '%')
+                            ->orWhere('pri_ape', 'like', '%' . $request->bus_nom_num_docu . '%');
+                    });
+                }
+            })->when($request->bus_fehc_ini, function ($query) use ($request) {
+                if ($request->bus_fehc_ini && $request->bus_fehc_fin) {
+                    $query->whereBetween('created_at', [$request->bus_fehc_ini . ' 00:00:00', $request->bus_fehc_fin . ' 23:59:59']);
+                }
+            })
+            ->get();
+
         return response()->json($ecografias);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Filtar ecografías según criterios de búsqueda.
      */
-    public function create()
+    public function filtarEcografias(Request $request)
     {
-        //
+        $ecografias = Ecografia::select(
+            'ecografias.*',
+            'ep.id as ecografia_producto_id',
+            'ep.lectura',
+            'ep.fechor_lectura',
+            'p.nom_produc'
+        )->with(['paciente', 'usuarioRegistrador', 'adminSalud', 'medico'])
+            ->join('ecografias_productos as ep', 'ep.ecografia_id', '=', 'ecografias.id')
+            ->join('config_productos as p', 'p.id', '=', 'ep.producto_id');
+
+        $query = $ecografias->newQuery();
+
+        if ($request->filled('bus_nom_num_docu')) {
+            $valor = $request->bus_nom_num_docu;
+            $query->whereHas('paciente', function ($q) use ($valor) {
+                $q->where('atencion_id', 'like', "%{$valor}%")
+                    ->orWhere('num_docu', 'like', "%{$valor}%")
+                    ->orWhere('nombres', 'like', "%{$valor}%")
+                    ->orWhere('pri_ape', 'like', "%{$valor}%");
+            });
+        }
+
+        if ($request->filled('bus_fehc_ini') && $request->filled('bus_fehc_fin')) {
+            $query->whereBetween('created_at', [
+                "{$request->bus_fehc_ini} 00:00:00",
+                "{$request->bus_fehc_fin} 23:59:59"
+            ]);
+        }
+
+        $filterEcografias = $ecografias->get();
+
+        return response()->json($filterEcografias);
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -36,11 +86,32 @@ class EcografiaController extends Controller
     public function store(Request $request)
     {
         try {
-            // Verificar si el paciente existe
-            $paciente = Paciente::where('num_docu', $request->num_docu)->first();
-            if (!$paciente) {
-                // Crear el paciente si no existe
-                $paciente = Paciente::create([
+
+            $validateData = $request->validate(
+                [
+                    'num_docu' => 'required|string',
+                    'nombres' => 'required|string',
+                    'pri_ape' => 'nullable|string',
+                    'sede_id' => 'required|integer',
+                    'atencion_id' => 'required|integer',
+                    'medico_id' => 'required|integer',
+                    'productosAgenda' => 'required|array',
+                ],
+                [
+                    'num_docu.required' => 'El número de documento es obligatorio.',
+                    'nombres.required' => 'El nombre es obligatorio.',
+                    'pri_ape.required' => 'El primer apellido es obligatorio.',
+                    'sede_id.required' => 'La sede es obligatoria.',
+                    'atencion_id.required' => 'La atención es obligatoria.',
+                    'medico_id.required' => 'El médico es obligatorio.',
+                    'productosAgenda.required' => 'Debe agregar al menos un producto a la ecografía.',
+                ]
+            );
+
+            // Crear el paciente si no existe
+            $paciente = Paciente::updateOrCreate(
+                ['num_docu' => $request->num_docu],
+                [
                     'num_docu' => $request->num_docu,
                     'nombres' => $request->nombres,
                     'seg_nom' => $request->seg_nom,
@@ -51,10 +122,9 @@ class EcografiaController extends Controller
                     'direccion' => $request->direccion,
                     'tel' => $request->tel,
                     'cel' => $request->cel,
-                    'sede_id' => $request->sede_id,
-                    'quien_registro_id' => $request->quien_registro_id,
-                ]);
-            }
+                    'email' => $request->email,
+                ]
+            );
 
             // Verificar si la administradora de salud existe
             $adminSalud = ConfigAdminSalud::where('nom_admin_salud', $request->admin_salud)->first();
@@ -69,6 +139,7 @@ class EcografiaController extends Controller
             // Crear la ecografía
             $ecografia = Ecografia::create([
                 'atencion_id' => $request->atencion_id,
+                'medico_id' => $request->medico_id,
                 'paciente_id' => $paciente->id,
                 'usua_regis_id' => $request->quien_registro_id,
                 'admin_salud_id' => $adminSalud->id ?? null,
@@ -98,7 +169,6 @@ class EcografiaController extends Controller
                 // Asociar el producto a la ecografía
                 EcografiaProducto::create([
                     'ecografia_id' => $ecografia->id,
-                    'medico_id' => $request->medico_id ?? null,
                     'producto_id' => $productoExistente->id,
                     'lectura' => $producto['lectura'] ?? null,
                     'opinion' => $producto['opinion'] ?? null,
@@ -127,15 +197,11 @@ class EcografiaController extends Controller
     public function show($id)
     {
         $ecografia = Ecografia::with(['paciente', 'usuarioRegistrador', 'adminSalud'])->findOrFail($id);
-        return response()->json($ecografia);
-    }
+        if (!$ecografia) {
+            return response()->json(['message' => 'Ecografía no encontrada'], 404);
+        }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Ecografia $ecografia)
-    {
-        //
+        return response()->json($ecografia);
     }
 
     /**
@@ -144,6 +210,10 @@ class EcografiaController extends Controller
     public function update(EcografiaRequest $request, $id)
     {
         $ecografia = Ecografia::findOrFail($id);
+        if (!$ecografia) {
+            return response()->json(['message' => 'Ecografía no encontrada'], 404);
+        }
+
         $ecografia->update($request->validated());
         return response()->json(['success' => true, 'data' => $ecografia]);
     }
@@ -154,7 +224,38 @@ class EcografiaController extends Controller
     public function destroy($id)
     {
         $ecografia = Ecografia::findOrFail($id);
+        if (!$ecografia) {
+            return response()->json(['message' => 'Ecografía no encontrada'], 404);
+        }
+
         $ecografia->delete();
         return response()->json(['success' => true, 'message' => 'Ecografía eliminada correctamente']);
+    }
+
+    public function anularEcografia($id)
+    {
+        $ecografia = Ecografia::findOrFail($id);
+        if (!$ecografia) {
+            return response()->json(['message' => 'Ecografía no encontrada'], 404);
+        }
+
+        $ecografia->estado = 'ANULADO';
+        $ecografia->motivo_anula = request()->input('motivo_anula');
+        $ecografia->usua_anula_id = Auth()->id();
+        $ecografia->fechor_anula = now();
+        $ecografia->save();
+
+        return response()->json(['success' => true, 'message' => 'Ecografía anulada correctamente']);
+    }
+
+    public function generarReporte(Request $request, Ecografia $ecografia)
+    {
+        return $request;
+
+        $request->merge(['TIPO_REPORTE' => 'ECOGRAFIA']);
+        $request->merge(['sede_id' => $request->sede_id]);
+
+        $genearPlantilla = (new PlantillaEstudioController())->editWord($request);
+        return $genearPlantilla;
     }
 }

@@ -11,6 +11,7 @@ use App\Http\Controllers\Configuracion\ConfigAdminSaludController;
 use App\Http\Controllers\Configuracion\ConfigProductoController;
 use App\Http\Controllers\Configuracion\ConfigDiagnosticoController;
 use App\Http\Controllers\Configuracion\ConfigModulosController;
+use App\Http\Controllers\Configuracion\ConfigPlantillaController;
 use App\Http\Controllers\Configuracion\ConfigPlantillaTipoController;
 use App\Http\Controllers\Configuracion\ConfigPrioridadController;
 use App\Http\Controllers\Configuracion\ConfigSedeController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\Dashboard\DashBoardController;
 use App\Http\Controllers\Dcm4chee\StudyController;
 use App\Http\Controllers\Ecografias\EcografiaController;
 use App\Http\Controllers\Ecografias\EcografiaProductoController;
+use App\Http\Controllers\Ecografias\ecografiaLecturaController;
 use App\Http\Controllers\Estudios\EstudioAudioController;
 use App\Http\Controllers\Estudios\EstudioController;
 use App\Http\Controllers\Estudios\EstudioProductoController;
@@ -27,6 +29,7 @@ use App\Http\Controllers\Estudios\EstudioSoporteHCController;
 use App\Http\Controllers\Estudios\PlantillaEstudioController;
 use App\Http\Controllers\Importar\ImportarDicom;
 use App\Http\Controllers\Interface\SAHIController;
+use App\Http\Controllers\Interface\SAHIEcografiasController;
 use App\Http\Controllers\Reportes\ReporteProduccion;
 
 /*
@@ -52,7 +55,7 @@ Route::view('dashboard', 'modulos.dashboard.dashboard')->name('dashboard')->midd
 Route::get('reportes.dashboard', [DashBoardController::class, 'Dashboard'])->name('reportes.dashboard')->middleware('auth');
 
 /**
- * Estudios
+ * Estudios rdiologicos
  */
 Route::view('/estudios.asignar.listar', 'modulos.estudios.asignar-estudio')->name('estudios.asignar.listar');
 Route::view('/estudios.asignados.listar', 'modulos.estudios.estudio-asignados')->name('estudios.asignados.listar');
@@ -92,8 +95,22 @@ Route::get('/estudio-buscar-por-numdocu/{numDocu}', [EstudioController::class, '
  * Ecografias
  */
 Route::view('/ecografias.admisiones', 'modulos.ecografias.admisiones')->name('ecografias.admisiones');
-Route::resource('ecografias', EcografiaController::class)->names('ecografias');
-Route::resource('ecografias-productos', EcografiaProductoController::class)->names('ecografias.productos');
+Route::view('/ecografias.admisionadas', 'modulos.ecografias.adminisionadas')->name('ecografias.adminisionadas');
+Route::view('/ecografias-pendientes-lecturas', 'modulos.ecografias.lectura')->name('ecografias.pendientes.lecturas');
+
+Route::resource('ecografias', EcografiaController::class)->names('ecografias')->except(['create', 'edit']);
+Route::post('ecografias-filtar', [EcografiaController::class, 'filtarEcografias'])->name('ecografias.filtar');
+Route::post('ecografia-anular/{id}', [EcografiaController::class, 'anularEcografia'])->name('ecografias.anular');
+
+Route::put('ecografia-lectura/{ecografia_id}', [ecografiaLecturaController::class, 'leer'])->name('ecografias.lectura');
+Route::post('ecografia-generar-reporte/{ecografia_id}', [EcografiaController::class, 'generarReporte'])->name('ecografias.generar.reporte');
+
+Route::post('/ecografia-listarPendientesPorLectura/{idMedico}', [ecografiaLecturaController::class, 'listarPendientesPorLectura'])->name('ecografia.listarPendientesPorLectura');
+
+Route::resource('ecografias-productos', EcografiaProductoController::class)->names('ecografias.productos')->except(['create', 'edit']);
+Route::post('/ecografia-guardarLectura', [ecografiaLecturaController::class, 'guardarLectura'])->name('ecografia.guardarLectura');
+
+Route::post('/interface-sahi-ecografias/listar/productos/atencion', [SAHIEcografiasController::class, 'listarProductosAtencion'])->name('sahi.listar.productos.atencion');
 
 /**
  * citas
@@ -110,26 +127,31 @@ Route::get('descarga-reportes-produccion', [ReporteProduccion::class, 'reportePr
 /**
  * Configuración
  */
-Route::view('/config.adminsalud.listar', 'modulos.configuracion.config-admin-salud')->name('config.adminsalud.listar');
+Route::view('/config-adminsalud-listar', 'modulos.configuracion.config-admin-salud')->name('config.adminsalud.listar');
 Route::resource('/config-admin-salud', ConfigAdminSaludController::class)->names('config.admin.salud')->except(['create', 'show']);
 
-Route::view('/config.diagnosticos.listar', 'modulos.configuracion.config-diagnosticos')->name('config.diagnosticos.listar');
+Route::view('/config-diagnosticos-listar', 'modulos.configuracion.config-diagnosticos')->name('config.diagnosticos.listar');
 Route::resource('/config-diagnosticos', ConfigDiagnosticoController::class)->names('config.diagnosticos')->except(['create', 'show']);
 
-Route::view('/config.prioridades.listar', 'modulos.configuracion.config-prioridades')->name('config.prioridades.listar');
+Route::view('/config-prioridades-listar', 'modulos.configuracion.config-prioridades')->name('config.prioridades.listar');
 Route::resource('/config-prioridades', ConfigPrioridadController::class)->names('config.prioridades')->except(['create', 'show']);
 
-Route::view('/config.productos.listar', 'modulos.configuracion.config-productos')->name('config.productos.listar');
+Route::view('/config-productos-listar', 'modulos.configuracion.config-productos')->name('config.productos.listar');
 Route::resource('/config-productos', ConfigProductoController::class)->names('config.productos')->except(['create']);
 
-Route::view('/config.sedes.listar', 'modulos.configuracion.config-sedes')->name('config.sedes.listar');
+Route::view('/config-sedes-listar', 'modulos.configuracion.config-sedes')->name('config.sedes.listar');
 Route::post('/config/sedes/updateWitchPlantillas', [ConfigSedeController::class, 'update'])->name('config.sedes.update');
 Route::resource('/config-sedes', ConfigSedeController::class)->names('config.sedes')->except(['create', 'show', 'update']);
 Route::get('/config-sedes/{configsede}/buscarPorId', [ConfigSedeController::class, 'buscarPorId'])->name('config.sedes.buscarPorId');
 Route::get('/config-sedes/listar/sedes/activas', [ConfigSedeController::class, 'listarSedesActivas'])->name('config.sedes.listarSedesActivas');
 
-Route::view('/config.tipos.plantillas.listar', 'modulos.configuracion.config-tipos-plantillas')->name('config.tipos.plantillas.listar');
-Route::resource('/config-tipos-plantillas', ConfigPlantillaTipoController::class)->names('config.tipos.plantillas')->except(['create']);
+Route::view('/config-plantillas-listar', 'modulos.configuracion.config-plantillas')->name('config.plantillas.listar');
+Route::resource('/config-plantillas', ConfigPlantillaController::class)->names('config.plantillas')->except(['create', 'edit']);
+Route::get('/config-plantillas/listar/activos/{tipo_id}', [ConfigPlantillaController::class, 'listarActivos'])->name('config.plantillas.listar.activos');
+
+Route::view('/config-tipos-plantillas.listar', 'modulos.configuracion.config-tipos-plantillas')->name('config.tipos.plantillas.listar');
+Route::resource('/config-tipos-plantillas', ConfigPlantillaTipoController::class)->names('config.tipos.plantillas')->except(['create', 'edit']);
+Route::get('/config-tipos-plantillas/listar/activos', [ConfigPlantillaTipoController::class, 'listarActivos'])->name('config.tipos.plantillas.listar.activos');
 
 Route::get('confing-modulos-listar', [ConfigModulosController::class, 'listarModulos'])->name('confing.modulos.listar');
 
@@ -147,7 +169,6 @@ Route::view('/seguridad.roles.listar', 'modulos.seguridad.roles')->name('segurid
 Route::resource('/seguridad-roles', RolController::class)->names('seguridad.roles');
 
 Route::get('/usuario-por-modulo/{modulo_id}', [UserController::class, 'usuariosPorModulo'])->name('usuarios.por.modulo');
-
 
 Route::view('/seguridad.perfil', 'modulos.seguridad.perfil')->name('seguridad.perfil');
 Route::get('/seguridad-listarPermisosUsuario/{id}', [UserController::class, 'listarPermisosUsuario'])->name('seguridad.listarPermisosUsuario');

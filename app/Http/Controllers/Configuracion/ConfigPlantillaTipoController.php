@@ -17,28 +17,20 @@ class ConfigPlantillaTipoController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
         $request->validate([
-            'producto_id' => 'required|exists:config_productos,id',
-            'nom_plantilla' => 'required|string|max:70',
+            //'producto_id' => 'required|exists:config_productos,id',
+            'nom_tipo' => 'required|string|max:70',
             'estado' => 'boolean',
         ], [
-            'producto_id.required' => 'El campo producto es obligatorio.',
-            'producto_id.exists' => 'El producto seleccionado no es válido.',
-            'nom_plantilla.required' => 'El nombre de la plantilla es obligatorio.',
-            'nom_plantilla.string' => 'El nombre de la plantilla debe ser un texto.',
-            'nom_plantilla.max' => 'El nombre de la plantilla no puede superar los 70 caracteres.',
+            /* 'producto_id.required' => 'El campo producto es obligatorio.',
+            'producto_id.exists' => 'El producto seleccionado no es válido.', */
+            'nom_tipo.required' => 'El nombre de la plantilla es obligatorio.',
+            'nom_tipo.string' => 'El nombre de la plantilla debe ser un texto.',
+            'nom_tipo.max' => 'El nombre de la plantilla no puede superar los 70 caracteres.',
             'estado.boolean' => 'El estado debe ser verdadero o falso.',
         ]);
 
@@ -53,14 +45,6 @@ class ConfigPlantillaTipoController extends Controller
     public function show($id)
     {
         return response()->json(ConfigPlantillaTipo::findOrFail($id));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(ConfigPlantillaTipo $plantillaTipo)
-    {
-        //
     }
 
     /**
@@ -94,5 +78,14 @@ class ConfigPlantillaTipoController extends Controller
         $plantilla->delete();
 
         return response()->json(null, 204);
+    }
+
+    /**
+     * Listar los tipos de plantillas activos.
+     */
+    public function listarActivos()
+    {
+        $plantillas = ConfigPlantillaTipo::where('estado', true)->get();
+        return response()->json($plantillas);
     }
 }

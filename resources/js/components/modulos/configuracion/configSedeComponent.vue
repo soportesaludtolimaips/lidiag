@@ -114,7 +114,7 @@
                                         <input type="text" id="nom_sede" name="nom_sede" v-model="registro.nom_sede"
                                             class="form-control" placeholder="Ingrese el nombre de la sede">
                                         <span class="text-danger" v-if="errores.nom_sede">{{ errores.nom_sede[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -124,7 +124,7 @@
                                             v-model="registro.email_repor" class="form-control"
                                             placeholder="Ingrese el email para reportar las lecturas">
                                         <span class="text-danger" v-if="errores.email_repor">{{ errores.email_repor[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -160,7 +160,7 @@
                                             v-model="registro.usuario_dcm" class="form-control"
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.usuario_dcm">{{ errores.usuario_dcm[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
 
@@ -171,7 +171,7 @@
                                             v-model="registro.password_dcm" class="form-control"
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.password_dcm">{{ errores.password_dcm[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
 
@@ -182,7 +182,7 @@
                                             v-model="registro.puerto_dcm" class="form-control"
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.puerto_dcm">{{ errores.puerto_dcm[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -201,7 +201,7 @@
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.usuario_oviyam">{{
                                             errores.usuario_oviyam[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
 
@@ -213,7 +213,7 @@
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.password_oviyam">{{
                                             errores.password_oviyam[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
 
@@ -225,7 +225,7 @@
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.url_oviyam">{{
                                             errores.url_oviyam[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                                 <div class="col-md-2">
@@ -236,7 +236,7 @@
                                             placeholder="Ingrese aquí la URL del Ovyam de la sede">
                                         <span class="text-danger" v-if="errores.tap_oviyam">{{
                                             errores.tap_oviyam[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -249,9 +249,16 @@
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
-                                                <label class="control-label">Plantilla</label>
-                                                <input type="file" class="form-control" id="exampleInputFile"
-                                                    aria-describedby="fileHelp" @change='obtenerPlantilla'
+                                                <label class="control-label">Plantilla para Rx, Tomografía y
+                                                    resonancia</label>
+                                                <input type="file" class="form-control" id="exampleInputFileRx"
+                                                    aria-describedby="fileHelp" @change='obtenerPlantillaRx'
+                                                    accept=".doc, .docx">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label">Plantilla para ecografias</label>
+                                                <input type="file" class="form-control" id="exampleInputFileEcografia"
+                                                    aria-describedby="fileHelp" @change='obtenerPlantillaEcografia'
                                                     accept=".doc, .docx">
                                             </div>
                                         </div>
@@ -271,12 +278,12 @@
                                                         <label class="text-info">Paciente</label>:
                                                         <code>${nombre_paciente}</code> Nombres del paciente,
                                                         <code>${num_docu}</code> Número de documento del paciente,
+                                                        <code>${fec_naci}</code> Fecha de nacimiento del paciente,
                                                         <code>${sexo}</code> Sexo del paciente,
                                                         <code>${edad}</code> Edad del paciente,
-                                                        <code>${eps}</code> Eps del paciente,
-                                                        <code>${contrato}</code> Contrato de vinculación con la
-                                                        Eps.
-                                                        <code>${nom_sede}</code> Nombre de la sede
+                                                        <code>${dir}</code> Dirección de recidencia,
+                                                        <code>${tel}</code> Télefono de contacto,
+                                                        <code>${cel}</code> Celular de contacto,
                                                         <br /><br />
 
                                                         <label class="text-info">Estudio</label>:
@@ -284,12 +291,23 @@
                                                         <code>${fechor_lectura}</code> Fecha y Hora de lectura,
                                                         <code>${fechor_transcipcion}</code> Fecha y Hora de
                                                         transcripción,
-                                                        <code>${atencion}</code> Atención o número de
-                                                        folio,
+                                                        <code>${atencion}</code> Atención o número de folio,
                                                         <code>${cod_producto}</code> Código del producto,
                                                         <code>${nom_producto}</code> Nombre del producto,
                                                         <code>${lectura}</code>,
                                                         <code>${nom_sede} Sede de la tóma</code>.
+                                                        <br /><br />
+
+                                                        <label class="text-info">Ecografias</label>:
+                                                        <code>${tipo_estudio}</code> Tipo de estudio,
+                                                        <code>${opinion}</code> Opinión des estudio,
+                                                        <code>${productos}</code> Productos de la lectura,
+                                                        <br /><br />
+
+                                                        <label class="text-info">Administradora de salud</label>:
+                                                        <code>${eps}</code> Eps del paciente,
+                                                        <code>${contrato}</code> Contrato de vinculación con la Eps.
+                                                        <code>${nom_sede}</code> Nombre de la sede
                                                         <br /><br />
 
                                                         <label class="text-info">Medico</label>:
@@ -354,7 +372,8 @@ export default {
             },
             tituloModal: 'Nuevo registro',
             actualizar: false,
-            plantilla: null,
+            plantillaRx: null,
+            plantillaEcografia: null,
             errores: {},
         };
     },
@@ -380,7 +399,8 @@ export default {
             try {
                 const formData = new FormData();
                 formData.append('registro', JSON.stringify(this.registro));
-                formData.append('plantilla', this.plantilla);
+                formData.append('plantilla_rx', this.plantillaRx);
+                formData.append('plantilla_ecografia', this.plantillaEcografia);
 
                 if (this.actualizar === false) {
 
@@ -418,9 +438,9 @@ export default {
                             stack: 6
                         });
 
-                        this.ListarDatos();
+                        /* this.ListarDatos();
                         this.btnCerralModalForm();
-                        this.limpiar();
+                        this.limpiar(); */
                     }
                 }
             } catch (error) {
@@ -461,8 +481,11 @@ export default {
                 }
             });
         },
-        obtenerPlantilla(e) {
-            this.plantilla = e.target.files[0];
+        obtenerPlantillaRx(e) {
+            this.plantillaRx = e.target.files[0];
+        },
+        obtenerPlantillaEcografia(e) {
+            this.plantillaEcografia = e.target.files[0];
         },
         mostrarRegistro(data = {}) {
 

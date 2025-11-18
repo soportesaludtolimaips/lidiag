@@ -14,6 +14,7 @@ class Ecografia extends Model
 
     protected $fillable = [
         'atencion_id',
+        'medico_id',
         'paciente_id',
         'usua_regis_id',
         'admin_salud_id',
@@ -41,5 +42,15 @@ class Ecografia extends Model
     public function adminSalud()
     {
         return $this->belongsTo(ConfigAdminSalud::class, 'admin_salud_id');
+    }
+
+    public function medico()
+    {
+        return $this->belongsTo(User::class, 'medico_id');
+    }
+
+    public function productosEcografias()
+    {
+        return $this->hasMany(EcografiaProducto::class, 'ecografia_id');
     }
 }

@@ -174,10 +174,10 @@
 
 
                     <li class="col-lg-3  m-b-30">
-                        <h4 class="m-b-20">Sedes</h4>
                         <!-- Contact -->
                         <form>
                             <div class="form-group">
+                                <h4 class="m-b-20">Sedes</h4>
                                 <select class="form-control custom-select" @change="estableserSede()"
                                     style="width: 100%; height: 36px" v-model="sedeSeleccionada" name="sedes">
                                     <option>Seleccione la sede</option>
@@ -186,13 +186,17 @@
                                     </option>
                                 </select>
                             </div>
-                            <!-- <div class="form-group">
-                                <input type="email" class="form-control" placeholder="Enter email">
-                            </div>
                             <div class="form-group">
-                                <textarea class="form-control" id="exampleTextarea" rows="3"
-                                    placeholder="Message"></textarea>
-                            </div> -->
+                                <h4 class="m-b-20">Médico</h4>
+                                <select class="form-control custom-select" @change="estableserMedico()"
+                                    style="width: 100%; height: 36px" v-model="idMedico" name="medicos">
+                                    <option>Seleccione el médico</option>
+                                    <option v-for="ItemMedico in medicos" v-bind:key="ItemMedico"
+                                        v-bind:value="ItemMedico.id">
+                                        {{ ItemMedico.name }}
+                                    </option>
+                                </select>
+                            </div>
                         </form>
                     </li>
                 </ul>
@@ -280,12 +284,23 @@ export default {
     props: ['usuarioactual'],
     mounted() {
         this.listarSedes();
+        this.listarMedicos();
     },
     data() {
         return {
             sedes: [], //Listo las sedes
             sedeSeleccionada: sessionStorage.getItem('ST-sede'),
+            medicoSeleccionado: sessionStorage.getItem('ST-medico'),
+            medicos: [],
+            idMedico: null,
+            nomMedicoSeleccionado: null
         }
+    },
+    computed: {
+        medicoOptions() {
+            // Opciones para el Select2 local de medicos.
+            return (this.medicos || []).map(p => ({ id: String(p.id), name: p.name }));
+        },
     },
     methods: {
         Logout() {
@@ -310,6 +325,14 @@ export default {
                 console.log(error);
             }
         },
+        async listarMedicos() {
+            try {
+                const res = await axios.get("/user.listarUsuarios/Medico/2");
+                this.medicos = res.data;
+            } catch (error) {
+                console.log(error);
+            }
+        },
         async estableserSede() {
 
             const res = await axios.get('/config-sedes/' + this.sedeSeleccionada + '/buscarPorId');
@@ -323,6 +346,16 @@ export default {
             sessionStorage.setItem('ST-email_repor', res.data.email_repor);
 
             this.emitter.emit("sedeSeleccionada", { idSede: this.sedeSeleccionada, nomSede: this.nomSedeSeleccionada, url: this.urlSedeSeleccionada, serverName: this.serverNameSeleccionada, email_repor: res.data.email_repor });
+        },
+        async estableserMedico() {
+
+            this.nomMedicoSeleccionado = $('select[name="medicos"] option:selected').text();
+            console.log('this.nomMedicoSeleccionado', this.nomMedicoSeleccionado)
+
+            sessionStorage.setItem('ST-medico', this.idMedico);
+            sessionStorage.setItem('ST-nomMedico', this.nomMedicoSeleccionado);
+
+            this.emitter.emit("medicoSeleccionado", { idMedico: this.idMedico, nomMedico: this.nomMedicoSeleccionado });
         }
     }
 }

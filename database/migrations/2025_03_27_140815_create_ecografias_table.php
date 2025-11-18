@@ -15,6 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('atencion_id', 20);
 
+            $table->unsignedBigInteger('medico_id');
+            $table->foreign('medico_id')->references('id')->on('users');
+
             $table->unsignedBigInteger('paciente_id');
             $table->foreign('paciente_id')->references('id')->on('pacientes');
 
@@ -30,7 +33,12 @@ return new class extends Migration
             $table->string('contrato', 100)->nullable();
             $table->string('plan', 100)->nullable();
             $table->string('quien_ordena', 100)->nullable();
-            $table->boolean('estado')->dafault(true);
+            $table->enum('estado', ['EN PROCESO', 'ANULADO', 'LEIDO'])->default('EN PROCESO');
+
+            $table->unsignedBigInteger('usua_anula_id')->nullable();
+            $table->foreign('usua_anula_id')->references('id')->on('users');
+            $table->dateTime('fechor_anula')->nullable();
+            $table->string('motivo_anula', 255)->nullable();
 
             $table->timestamps();
         });

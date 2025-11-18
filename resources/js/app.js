@@ -52,6 +52,8 @@ import configSedeComponent from "./components/modulos/configuracion/configSedeCo
 app.component("config-sede-component", configSedeComponent);
 import configTipoPlantilla from "./components/modulos/configuracion/configTipoPlantilla.vue";
 app.component("config-tipo-plantilla-component", configTipoPlantilla);
+import configPlantilla from "./components/modulos/configuracion/configPlantilla.vue";
+app.component("config-plantilla-component", configPlantilla);
 
 /**
  * Estudios
@@ -78,6 +80,10 @@ app.component("estudio-asignados-component", estudioAsignadosComponent);
  */
 import ecogradifasAdmisionesComponent from "./components/modulos/ecografias/admisionarComponent.vue";
 app.component("ecografias-admisiones-component", ecogradifasAdmisionesComponent);
+import lecturaComponent from "./components/modulos/ecografias/lecturaComponent.vue";
+app.component("ecografias-lectura-component", lecturaComponent);
+import ecografiasAdmisionarComponent from "./components/modulos/ecografias/ecografiasAdmisionarComponent.vue";
+app.component("ecografias-admisionadas-component", ecografiasAdmisionarComponent);
 
 /**
  * Agenda
