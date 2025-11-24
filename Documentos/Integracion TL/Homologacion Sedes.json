@@ -1,0 +1,27 @@
+[
+  {
+    "id": 1,
+    "nom_sede": "Espinal - Hospital San Rafael",
+    "ris": "San Rafael Espinal"
+   },
+  {
+    "id": 3,
+    "nom_sede": "Chaparral - Hospital San Jua Bautista",
+    "ris": "Chaparral"
+   },
+ {
+    "id": 4,
+    "nom_sede": "Ibague - Hospital Federico lleras",
+    "ris": "Salud Tolima Ibague"
+   },
+  {
+    "id": 5,
+    "nom_sede": "Libano - Hospital Regional Alfonso Jaramillo Salazar",
+    "ris": "Libano Salud Tolima"
+   },
+  {
+    "id": 6,
+    "nom_sede": "Honda - Hospital San Juan de Dios de Honda",
+    "ris": "San Juan Honda"
+   }
+]

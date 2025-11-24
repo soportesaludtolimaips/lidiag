@@ -369,11 +369,15 @@
     <!-- /.modal -->
 </template>
 <script>
+import { establecerMedico } from "@/helpers/establecerMedico";
+import { establecerSede } from "@/helpers/establecerSede";
+
 export default {
     props: ['usuarioactual'],
     mounted() {
         this.establecerSede();
         this.listarTiposPlantillas();
+        this.establecerMedico();
 
         this.emitter.on("sedeSeleccionada", (data) => {
             this.registro.sede_id = data.idSede;
@@ -381,7 +385,6 @@ export default {
         });
 
         this.emitter.on("medicoSeleccionado", (data) => {
-            console.log(data)
             this.registro.medico_id = data.idMedico;
             this.establecerMedico();
             this.listarPendiestePorLectura();
@@ -395,15 +398,13 @@ export default {
             busqueda: { sede_id: this.sedeActual, medico_id: this.medicoActual, bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
             registros: [],
             registro: {
-                ecografia_id: "", producto_id: "", sede_id: this.sedeActual, medico_id: this.medicoActual, quien_registro_id: this.usuarioactual.id, atencion_id: null,
+                ecografia_id: "", ecografia_producto_id: "", producto_id: "", sede_id: this.sedeActual, medico_id: this.medicoActual, quien_registro_id: this.usuarioactual.id, atencion_id: null,
                 lectura: null, opinion: null, tipo_estudio: null, nom_pacien: null
             },
             errores: {},
             erroresBusqueda: {},
             medicos: [],
             accion: null,
-            sedeActual: sessionStorage.getItem('ST-sede'),
-            medicoActual: sessionStorage.getItem('ST-medico'),
             productosAgenda: [],
             tiposPlantillas: [],
             plantillas: [],
@@ -425,7 +426,7 @@ export default {
     methods: {
         async listarPendiestePorLectura() {
 
-            const res = await axios.post('/ecografia-listarPendientesPorLectura/' + this.medicoActual);
+            const res = await axios.post('/ecografia-listarPendientesPorLectura/' + this.registro.medico_id);
 
             if (res.status == 200) {
                 $("#example23").DataTable().destroy();
@@ -443,7 +444,7 @@ export default {
         async generarLectura() {
             try {
                 // Enviar solicitud para guardar la ecografía
-                const res = await axios.put('/ecografia-lectura/' + this.registro.ecografia_id, { accion: this.accion, registro: this.registro });
+                const res = await axios.put('/ecografia-lectura/' + this.registro.ecografia_producto_id, { accion: this.accion, registro: this.registro });
 
                 if (res.status === 201) {
 
@@ -457,10 +458,6 @@ export default {
                         hideAfter: 3500,
                         stack: 6,
                     });
-
-                    // Actualizar la lista de datos y limpiar el formulario
-                    this.limpiarFormulario();
-                    this.btnCerralModalForm();
 
                 } else {
                     $.toast({
@@ -498,6 +495,8 @@ export default {
             this.generarLectura();
             this.listarPendiestePorLectura();
             this.accion = null;
+            this.limpiarFormulario();
+            this.btnCerralModalForm();
         },
         async generarReporte() {
             this.accion = 'IMPRIMIR_LECTURA';
@@ -508,8 +507,8 @@ export default {
             iframe.src = '';
 
             const res = await axios.post('/ecografia-generar-reporte/' + this.registro.ecografia_id, this.registro);
-
-            const pathReporte = res.data.url;
+            console.log(res.data.plantilla);
+            const pathReporte = res.data.plantilla;
 
             // Mostrar el reporte en el iframe
             iframe.src = pathReporte;
@@ -527,16 +526,10 @@ export default {
             this.registros = [];
         },
         establecerMedico() {
-            this.registro.sede_id = sessionStorage.getItem('ST-sede');
-            this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
-            this.medicoActual = sessionStorage.getItem('ST-medico');
-
-            if (this.registro.sede_id == 1) {
-                this.sedeInterface = true;
-            } else {
-                this.sedeInterface = false;
+            if(sessionStorage.getItem('ST-medico')){
+                this.registro.medico_id = sessionStorage.getItem('ST-medico');
+                this.listarPendiestePorLectura();
             }
-            this.registros = [];
         },
         async listarTiposPlantillas() {
             try {
@@ -586,6 +579,8 @@ export default {
             this.subTituloModal = `Examen: ${data.nom_produc} - Valor: ${data.ValProduc}`;
 
             this.registro.ecografia_id = data.id;
+            this.registro.ecografia_producto_id = data.ecografia_producto_id;
+            this.registro.producto_id = data.producto_id;
             this.registro.atencion_id = data.atencion_id;
             this.registro.paciente_id = data.paciente_id;
             this.registro.num_docu = data.paciente.num_docu;
@@ -602,8 +597,6 @@ export default {
             this.registro.contrato = data.contrato;
             this.registro.plan = data.plan;
             this.registro.admin_salud = data.admin_salud.nom_admin_salud;
-
-            this.registro.producto_id = data.ecografia_producto_id;
 
             this.btnCerralModalForm();
         },

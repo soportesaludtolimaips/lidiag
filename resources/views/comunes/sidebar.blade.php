@@ -46,6 +46,9 @@
                                         <a href="{{ route('estudios.otrasPlataformas.listar') }}">
                                             <i class="fa fa-search text-info"></i> Estudios en otras plataforma
                                         </a>
+                                        <a href="{{ route('estudios.teleradiologis.listar') }}">
+                                            <i class="fa fa-search text-info"></i> Tele Radiologia
+                                        </a>
                                     </li>
                                 @endcan
                                 @can('estudio.leerEstudio')
@@ -79,7 +82,7 @@
                                         <i class="fa fa-address-book-o  text-info"></i> Admisionar para procedimientos
                                     </a>
                                     <a href="{{ route('ecografias.adminisionadas') }}">
-                                        <i class="fa fa-address-book-o  text-info"></i> Ecoghrafías admisionadas
+                                        <i class="fa fa-address-book-o  text-info"></i> Ecografías admisionadas
                                     </a>
                                     <a href="{{ route('ecografias.pendientes.lecturas') }}">
                                         <i class="fa fa-pencil text-info"></i> Realizar lectura
@@ -157,6 +160,9 @@
                                     </li>
                                     <li>
                                         <a href="{{ route('config.plantillas.listar') }}">Plantillas</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('config.tipos.documentos.listar') }}">Tipos de Documentos</a>
                                     </li>
                                 @endcan
                             </ul>

@@ -54,6 +54,8 @@ import configTipoPlantilla from "./components/modulos/configuracion/configTipoPl
 app.component("config-tipo-plantilla-component", configTipoPlantilla);
 import configPlantilla from "./components/modulos/configuracion/configPlantilla.vue";
 app.component("config-plantilla-component", configPlantilla);
+import configTipoDocumento from "./components/modulos/configuracion/configTipoDocumentoComponent.vue";
+app.component("config-tipo-documento-component", configTipoDocumento);
 
 /**
  * Estudios
@@ -63,11 +65,14 @@ app.component("asignar-studio-component", AsignarEstudioComponent);
 import leerEstudioComponent from "./components/modulos/estudios/leerEstudioComponent.vue";
 app.component("leer-estudio-component", leerEstudioComponent);
 
+
 /* import leerEstudioComponent from "./components/modulos/estudios/audio-texto.vue";
 app.component("leer-estudio-component", leerEstudioComponent); */
 
 import otrasPlataformasComponent from "./components/modulos/estudios/otrasPlataformasComponent.vue";
 app.component("otras-plataformas-component", otrasPlataformasComponent);
+import teleRadiologiaComponent from "./components/modulos/estudios/teleRadiologiaComponent.vue";
+app.component("tele-radiologia-component", teleRadiologiaComponent);
 import transcribirEstudioComponent from "./components/modulos/estudios/transcribirEstudioComponent.vue";
 app.component("transcribir-estudio-component", transcribirEstudioComponent);
 import notificarEstudioComponent from "./components/modulos/estudios/notificarEstudioComponent.vue";

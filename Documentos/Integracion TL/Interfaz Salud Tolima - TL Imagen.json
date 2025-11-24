@@ -1,0 +1,102 @@
+/* Para Envio de ordenes de Lectura (SaludTolima->TLImagen) */
+URL: https://ris.tlimagen.com/RISServices/integracion/salud_tolima/ordenes
+Metodo: POST
+Encabezados: 
+  X-API-Key=HASH256 BASE64 UTF8 (SaludTolima-TLImagen-StuyFK)
+     eg. para SaludTolima-TLImagen-10200 
+  X-API-Key=a7d447f111ab0151df687fddd98c1a07f386d2ef49729d6df728fd18d575e6af
+
+/*Cuerpo del Request*/
+{
+	"study_pk": 208331,
+	"study_iuid": "1.2.392.200036.9116.2.6.1.3268.2051117318.1760616948.766943",
+	"fec_estudio": "yyyy-mm-dd hh(24):mm:ss",
+	"accession_no": "74281",
+  	"study_desc": "TC CRANEO SIMPLE/URG/WSA/6595425",
+	"mods_in_study": "CT",
+	
+  	"paciente": {
+	    "num_docu": "5919726",
+	    "nom_pacien": "RAMIREZ RODRIGUEZ SALOMON",
+	    "fec_naci": "yyyy-mm-dd",
+		"sexo": "M",
+	},
+	"priori": {
+	    "id": 1,
+	    "nom_priori": "Alta",
+	},
+	"sede": {
+		"id": 1,
+    	"nom_sede": "Espinal - Hospital San Rafael"
+	},
+	"producto": [{
+    	    "cod_cups": "879111",
+	    "nom_produc": "TOMOGRAFIA AXIAL COMPUTADA DE CRANEO SIMPLE",
+		},{
+	    "cod_cups": "879111",
+    	    "nom_produc": "TOMOGRAFIA AXIAL COMPUTADA DE CRANEO SIMPLE",
+		},{
+	   "cod_cups": "879111",
+   	   "nom_produc": "TOMOGRAFIA AXIAL COMPUTADA DE CRANEO SIMPLE",
+	}],
+	"adjuntos":[{
+    	"file": "base64",
+	    "file_exten": "",
+	    }
+	],
+	"observaciones": "texto",
+}
+
+/*Codigos de Respuestas*/
+201 -> Orden Aceptada
+Cuerpo de Respuesta: Codigo de confirmacion
+Expectativa Salud Tolima: Nada mas por hacer
+
+400 -> Error en la Orden
+Cuerpo de Respuesta: descripcion del errror
+Espectativa Salud Tolima:  reenviar order con correccion 
+
+401 -> Autenticacion fallida
+Cuerpo de Respuestada: Nada
+Espectativa Salud Tolima:  verificar encabezado
+
+409 -> No se puede procesar
+Cuerpo de Respuesta: razon por la que no se puede procesar la order
+Espectativa Salud Tolima: no reenviar, contactar TLIMAGEN
+
+500 -> Error Inesperado en TLIMAGE
+Cuerpo de Respuestada: Descripcion del Error
+Espectativa Salud Tolima: Intentar reenvios (1min,5min, etc). Si el reenvio falla, contactar TLIMAGEN
+
+
+/* Para Envio de Resultados (TLIMAGEN -> SaludTolima) */
+Lectura
+{
+	"study_pk": 208331,
+	"study_iuid": "1.2.392.200036.9116.2.6.1.3268.2051117318.1760616948.766943",
+	"fec_estudio": "2025-10-16 21:15:49",
+	"accession_no": "74281",
+  	"study_desc": "TC CRANEO SIMPLE/URG/WSA/6595425",
+	"mods_in_study": "CT",
+	"sexo": "M",
+  	"paciente": {
+	    "num_docu": "5919726",
+	    "nom_pacien": "RAMIREZ RODRIGUEZ SALOMON",
+	    "fec_naci": null,
+	},
+	"priori": {
+	    "id": 1,
+	    "nom_priori": "Alta",
+	},
+	"cod_cups": "879111",	
+	"nom_produc": "TOMOGRAFIA AXIAL COMPUTADA DE CRANEO SIMPLE",
+	"fechor_lectura": "2025-10-16 23:10:50",
+	"lectura": "lectura",
+	"medico": {
+   		"reg_medico": "",
+    		"num_docu": "93284421",
+    		"name": "JOSE FABIO MARIN CASTAÑO",
+	    	"firma_medico": "base64",
+	},
+	tipo_resultado: '1 Norma, 2 Patologico, 3 Critico'
+}

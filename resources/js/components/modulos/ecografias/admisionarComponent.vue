@@ -144,7 +144,7 @@
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
                                                 @click="actualizar = true;
-                                                mostrarRegistro(item, index);" title="Agendar ecografia">
+                                                mostrarRegistro(item);" title="Agendar ecografia">
                                                 <i class=" fa fa-check"></i>
                                             </button>
                                         </td>
@@ -185,6 +185,20 @@
                                     </h5>
                                     <hr>
                                     <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>Tipo de documento</label>
+                                                <Select2 :value="registro.tipo_documento_id"
+                                                    :options="tipoDocumentoOptions" width="100%" :allow-clear="true"
+                                                    :label-fields="['codigo', 'tipo_documento']"
+                                                    :dropdown-parent-selector="'#tipoDocumentos-parent'"
+                                                    @input="onTipoDocumentoSelect" />
+
+                                                <span class="text-danger" v-if="errores.tipo_documento_id">
+                                                    {{ errores.tipo_documento_id[0] }}
+                                                </span>
+                                            </div>
+                                        </div>
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label class="control-label"># Documento</label>
@@ -404,6 +418,7 @@ export default {
     mounted() {
         this.listarMedicos();
         this.establecerSede();
+        this.listarTipoDocumentos();
 
         this.emitter.on("sedeSeleccionada", (data) => {
             this.registro.sede_id = data.idSede;
@@ -417,7 +432,7 @@ export default {
             busqueda: { sede_id: this.sedeActual, medico_id: this.medicoActual, bus_nom_num_docu: "6341296", bus_fehc_ini: "", bus_fecha_fin: "" },
             registros: [],
             registro: {
-                paciente_id: "", num_docu: "", nombres: "", seg_nom: "", pri_ape: "", seg_ape: "", sexo: "", fec_naci: "", direccion: "", tel: "",
+                paciente_id: "", tipo_documento_id: "", num_docu: "", nombres: "", seg_nom: "", pri_ape: "", seg_ape: "", sexo: "", fec_naci: "", direccion: "", tel: "",
                 sede_id: this.sedeActual, medico_id: this.medicoActual, quien_registro_id: this.usuarioactual.id, cel: "", atencion_id: null, productosAgenda: [], contrato: null, plan: null,
                 admin_salud: null, quien_ordeno: null
             },
@@ -425,6 +440,7 @@ export default {
             errores: {},
             erroresBusqueda: {},
             medicos: [],
+            tipoDocumentos: [],
             sedeActual: sessionStorage.getItem('ST-sede'),
             medicoActual: sessionStorage.getItem('ST-medico'),
             productosAgenda: [],
@@ -435,12 +451,16 @@ export default {
             // Opciones para el Select2 local de medicos.
             return (this.medicos || []).map(p => ({ id: String(p.id), name: p.name }));
         },
+        tipoDocumentoOptions() {
+            // Opciones para el Select2 local de medicos.
+            return (this.tipoDocumentos || []).map(p => ({ id: String(p.id), codigo: p.codigo, tipo_documento: p.tipo_documento }));
+        },
     },
     methods: {
         async listarAtenciones() {
 
             const res = await axios.post('/interface-sahi-ecografias/listar/productos/atencion', this.busqueda);
-
+            console.log(res.data);
             if (res.status == 200) {
                 $("#example23").DataTable().destroy();
 
@@ -473,9 +493,9 @@ export default {
                     });
 
                     // Actualizar la lista de datos y limpiar el formulario
-                    /* this.listarAtenciones();
+                    this.listarAtenciones();
                     this.limpiarFormulario();
-                    this.btnCerralModalForm(); */
+                    this.btnCerralModalForm();
 
                 } else {
                     $.toast({
@@ -494,7 +514,7 @@ export default {
 
                 $.toast({
                     heading: 'Error',
-                    text: error.response?.data?.message || 'Ocurrió un error al guardar la agenda.',
+                    text: error.response?.data?.error || 'Ocurrió un error al guardar la agenda.',
                     position: 'top-right',
                     loaderBg: '#ff6849',
                     icon: 'error',
@@ -587,6 +607,14 @@ export default {
                 console.log(error);
             }
         },
+        async listarTipoDocumentos() {
+            try {
+                const res = await axios.get("/config-tipos-documentos/listar/activos");
+                this.tipoDocumentos = res.data;
+            } catch (error) {
+                console.log(error);
+            }
+        },
         onMedicoSelect(value) {
             let selectedId = null;
             if (Array.isArray(value) && value.length > 0) {
@@ -598,6 +626,18 @@ export default {
                 selectedId = String(value);
             }
             this.registro.medico_id = selectedId || "";
+        },
+        onTipoDocumentoSelect(value) {
+            let selectedId = null;
+            if (Array.isArray(value) && value.length > 0) {
+                const v = value[0];
+                selectedId = String(typeof v === 'object' && v && v.id != null ? v.id : v);
+            } else if (value && typeof value === 'object' && value.id != null) {
+                selectedId = String(value.id);
+            } else if (value != null) {
+                selectedId = String(value);
+            }
+            this.registro.tipo_documento_id = selectedId || "";
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);
@@ -624,6 +664,16 @@ export default {
             this.registro.quien_ordeno = data.quien_ordeno
 
             this.registro.productosAgenda = this.registros
+            console.log(data);
+            // Homologar tipo de documento
+            const codigo = data.CodTipoDoc;
+            const tipoHomologado = this.tipoDocumentoOptions.find(
+                t => t.codigo === codigo
+            );
+
+            if (tipoHomologado) {
+                this.registro.tipo_documento_id = tipoHomologado.id;
+            }
 
             this.btnCerralModalForm();
         },
