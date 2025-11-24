@@ -18,7 +18,7 @@ class ecografiaLecturaController extends Controller
     {
         $ecografiaProducto = EcografiaProducto::find($id);
         if (!$ecografiaProducto) {
-            return response()->json(['message' => 'Le producto de la ecografía no encontrada'], 404);
+            return response()->json(['message' => 'El producto de la ecografía no se encontro'], 404);
         }
 
         if ($request->accion === "IMPRIMIR_LECTURA") {
@@ -46,6 +46,7 @@ class ecografiaLecturaController extends Controller
             'ep.id as ecografia_producto_id',
             'ep.lectura',
             'ep.fechor_lectura',
+            'p.id as producto_id',
             'p.nom_produc'
         )
             ->join('ecografias_productos as ep', 'ep.ecografia_id', '=', 'ecografias.id')

@@ -171,8 +171,6 @@
                 <i class="icon-Box-Close"></i></a>
             <div class="dropdown-menu animated bounceInDown">
                 <ul class="mega-dropdown-menu row">
-
-
                     <li class="col-lg-3  m-b-30">
                         <!-- Contact -->
                         <form>
@@ -189,7 +187,7 @@
                             <div class="form-group">
                                 <h4 class="m-b-20">Médico</h4>
                                 <select class="form-control custom-select" @change="estableserMedico()"
-                                    style="width: 100%; height: 36px" v-model="idMedico" name="medicos">
+                                    style="width: 100%; height: 36px" v-model="medicoSeleccionado" name="medicos">
                                     <option>Seleccione el médico</option>
                                     <option v-for="ItemMedico in medicos" v-bind:key="ItemMedico"
                                         v-bind:value="ItemMedico.id">
@@ -285,12 +283,23 @@ export default {
     mounted() {
         this.listarSedes();
         this.listarMedicos();
+
+        const medicoId = sessionStorage.getItem('ST-medico');
+        const sedeId = sessionStorage.getItem('ST-sede');
+
+        if (medicoId) {
+            this.medicoSeleccionado = medicoId;
+        }
+
+        if (sedeId) {
+            this.sedeSeleccionada = sedeId;
+        }
     },
     data() {
         return {
             sedes: [], //Listo las sedes
-            sedeSeleccionada: sessionStorage.getItem('ST-sede'),
-            medicoSeleccionado: sessionStorage.getItem('ST-medico'),
+            sedeSeleccionada: this.medicoId ? this.medicoId :    sessionStorage.getItem('ST-sede'),
+            medicoSeleccionado: this.medicoId ? this.medicoId : sessionStorage.getItem('ST-medico'),
             medicos: [],
             idMedico: null,
             nomMedicoSeleccionado: null
@@ -315,12 +324,6 @@ export default {
             try {
                 const res = await axios.get('/config-sedes/listar/sedes/activas');
                 this.sedes = res.data;
-
-                /* this.sedeSeleccionada = sessionStorage.getItem('ST-sede');
-                this.nomSedeSeleccionada = sessionStorage.getItem('ST-nomsede');
-                this.urlSedeSeleccionada = sessionStorage.getItem('ST-urlsede');
-                this.serverNameSeleccionada = sessionStorage.getItem('ST-servername');
-                this.email_repor = sessionStorage.getItem('ST-email_repor'); */
             } catch (error) {
                 console.log(error);
             }
@@ -350,7 +353,6 @@ export default {
         async estableserMedico() {
 
             this.nomMedicoSeleccionado = $('select[name="medicos"] option:selected').text();
-            console.log('this.nomMedicoSeleccionado', this.nomMedicoSeleccionado)
 
             sessionStorage.setItem('ST-medico', this.idMedico);
             sessionStorage.setItem('ST-nomMedico', this.nomMedicoSeleccionado);

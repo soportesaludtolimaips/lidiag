@@ -11,7 +11,14 @@ class Paciente extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['num_docu', 'nombres', 'seg_nom', 'pri_ape', 'seg_ape', 'direccion', 'sexo', 'fec_naci', 'tel', 'cel', 'email'];
+    protected $table = 'pacientes';
+
+    protected $fillable = ['tipo_documento_id', 'num_docu', 'nombres', 'seg_nom', 'pri_ape', 'seg_ape', 'direccion', 'sexo', 'fec_naci', 'tel', 'cel', 'email'];
+
+    public function tipoDocumento()
+    {
+        return $this->belongsTo(TipoDocumento::class);
+    }
 
     public function estudios()
     {

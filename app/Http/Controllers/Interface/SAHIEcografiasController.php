@@ -27,6 +27,9 @@ class SAHIEcografiasController extends Controller
         $consulta1 = facFacturaDet::select([
             'admAtencion.IdAtencion',
             DB::raw("CONVERT(char(10), admAtencion.FecIngreso, 120) AS FecIngreso"),
+            'genTipoDoc.IdTipoDoc',
+            'genTipoDoc.CodTipoDoc',
+            'genTipoDoc.NomTipoDoc',
             'admCliente.NumDocumento',
             'admCliente.PrimerNombre',
             'admCliente.SegundoNombre',
@@ -40,7 +43,6 @@ class SAHIEcografiasController extends Controller
             'proProducto.IdProducto',
             'proProducto.CodProducto',
             'proProducto.CodLegal',
-            'admCliente.IdTipoDoc',
             DB::raw("facFacturaDet.ValTotal AS 'ValProduc'"),
             'conContrato.CodCon',
             'conContrato.DesContrato',
@@ -61,12 +63,16 @@ class SAHIEcografiasController extends Controller
             ->join('conContrato', 'AdmAtencionContrato.IdContrato', '=', 'conContrato.IdContrato')
             ->join('conPlan', 'AdmAtencionContrato.IdPlan', '=', 'conPlan.IdPlan')
             ->join('genTercero', 'conContrato.IdTercero', '=', 'genTercero.IdTercero')
+            ->join('genTipoDoc', 'admCliente.IdTipoDoc', '=', 'genTipoDoc.IdTipoDoc')
             ->where('admAtencion.IdAtencion', $atencionId)
             ->whereIn('proProducto.IdGrupo', $gruposPermitidos);
 
         $consulta2 = FacMovimientoDet::select([
             'admAtencion.IdAtencion',
             DB::raw("CONVERT(char(10), admAtencion.FecIngreso, 120) AS FecIngreso"),
+            'genTipoDoc.IdTipoDoc',
+            'genTipoDoc.CodTipoDoc',
+            'genTipoDoc.NomTipoDoc',
             'admCliente.NumDocumento',
             'admCliente.PrimerNombre',
             'admCliente.SegundoNombre',
@@ -80,7 +86,6 @@ class SAHIEcografiasController extends Controller
             'proProducto.IdProducto',
             'proProducto.CodProducto',
             'proProducto.CodLegal',
-            'admCliente.IdTipoDoc',
             DB::raw("facMovimientoDet.ValVenta AS 'ValProduc'"),
             'conContrato.CodCon',
             'conContrato.DesContrato',
@@ -101,6 +106,7 @@ class SAHIEcografiasController extends Controller
             ->join('conContrato', 'AdmAtencionContrato.IdContrato', '=', 'conContrato.IdContrato')
             ->join('conPlan', 'AdmAtencionContrato.IdPlan', '=', 'conPlan.IdPlan')
             ->join('genTercero', 'conContrato.IdTercero', '=', 'genTercero.IdTercero')
+            ->join('genTipoDoc', 'admCliente.IdTipoDoc', '=', 'genTipoDoc.IdTipoDoc')
             ->where('admAtencion.IdAtencion', $atencionId)
             ->whereIn('proProducto.IdGrupo', $gruposPermitidos);
 

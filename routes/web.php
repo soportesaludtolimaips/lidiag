@@ -15,6 +15,7 @@ use App\Http\Controllers\Configuracion\ConfigPlantillaController;
 use App\Http\Controllers\Configuracion\ConfigPlantillaTipoController;
 use App\Http\Controllers\Configuracion\ConfigPrioridadController;
 use App\Http\Controllers\Configuracion\ConfigSedeController;
+use App\Http\Controllers\Configuracion\ConfigTipoDocumentoController;
 use App\Http\Controllers\Dashboard\DashBoardController;
 use App\Http\Controllers\Dcm4chee\StudyController;
 use App\Http\Controllers\Ecografias\EcografiaController;
@@ -30,6 +31,7 @@ use App\Http\Controllers\Estudios\PlantillaEstudioController;
 use App\Http\Controllers\Importar\ImportarDicom;
 use App\Http\Controllers\Interface\SAHIController;
 use App\Http\Controllers\Interface\SAHIEcografiasController;
+use App\Http\Controllers\Interface\TeleRadiologiaController;
 use App\Http\Controllers\Reportes\ReporteProduccion;
 
 /*
@@ -83,6 +85,8 @@ Route::get('/listar-audios-estudio/{estudio_id}', [EstudioAudioController::class
 
 Route::view('/estudios.transcribir.listar', 'modulos.estudios.transcribir-estudio')->name('estudios.transcribir.listar');
 Route::view('/estudios.otras-plataformas', 'modulos.estudios.otras-plataformas')->name('estudios.otrasPlataformas.listar');
+Route::view('/estudios.tele-radiologia', 'modulos.estudios.tele-radiologia')->name('estudios.teleradiologis.listar');
+
 Route::post('/estudio-listarPendientesTrascribir', [EstudioController::class, 'listarPendientesTrascribir'])->name('estudio.listarPendientesTrascribir');
 Route::post('/estudio-listarEstudiosAsignados', [EstudioController::class, 'listarEstudiosAsignados'])->name('estudio.listarEstudiosAsignados');
 Route::post('/estudio-guardarTranscripcion', [EstudioController::class, 'guardarTranscripcion'])->name('estudio.guardarTranscripcion');
@@ -155,6 +159,10 @@ Route::get('/config-tipos-plantillas/listar/activos', [ConfigPlantillaTipoContro
 
 Route::get('confing-modulos-listar', [ConfigModulosController::class, 'listarModulos'])->name('confing.modulos.listar');
 
+Route::view('/config-tipos-documentos-listar', 'modulos.configuracion.config-tipos-documentos')->name('config.tipos.documentos.listar');
+Route::resource('/config-tipos-documentos', ConfigTipoDocumentoController::class)->names('config.tipos.documentos')->except(['create', 'edit']);
+Route::get('/config-tipos-documentos/listar/activos', [ConfigTipoDocumentoController::class, 'listarActivos'])->name('config.tipos.documentos.listar.activos');
+
 /**
  * Seguridad
  */
@@ -184,6 +192,11 @@ Route::post('/interface-sahi/listar/productos/atencion', [SAHIController::class,
  * Interface SAHI
  */
 Route::get('/importar-dicom', [ImportarDicom::class, 'importarDicom']);
+
+/**
+ * Interface Tele Radiologia
+ */
+Route::post('/estudios/enviar-orden-teleradiologia', [TeleRadiologiaController::class, 'enviarOrdenTeleRadiologia'])->name('estudios.enviarOrdenTeleRadiologia');
 
 /* Route::get('/{optional?}', function () {
     return view('layouts.app');

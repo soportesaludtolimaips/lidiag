@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Ecografias;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\Estudios\PlantillaEstudioController;
+use App\Http\Controllers\Ecografias\PlantillaEcografiaController;
 use App\Http\Requests\Ecografias\EcografiaRequest;
 use App\Models\Configuracion\ConfigAdminSalud;
 use App\Models\Configuracion\ConfigProducto;
@@ -86,7 +86,6 @@ class EcografiaController extends Controller
     public function store(Request $request)
     {
         try {
-
             $validateData = $request->validate(
                 [
                     'num_docu' => 'required|string',
@@ -112,6 +111,7 @@ class EcografiaController extends Controller
             $paciente = Paciente::updateOrCreate(
                 ['num_docu' => $request->num_docu],
                 [
+                    'tipo_documento_id' => $request->tipo_documento_id,
                     'num_docu' => $request->num_docu,
                     'nombres' => $request->nombres,
                     'seg_nom' => $request->seg_nom,
@@ -191,6 +191,8 @@ class EcografiaController extends Controller
         }
     }
 
+    
+
     /**
      * Display the specified resource.
      */
@@ -250,12 +252,7 @@ class EcografiaController extends Controller
 
     public function generarReporte(Request $request, Ecografia $ecografia)
     {
-        return $request;
-
-        $request->merge(['TIPO_REPORTE' => 'ECOGRAFIA']);
-        $request->merge(['sede_id' => $request->sede_id]);
-
-        $genearPlantilla = (new PlantillaEstudioController())->editWord($request);
+        $genearPlantilla = (new PlantillaEcografiaController())->editWord($request);
         return $genearPlantilla;
     }
 }
