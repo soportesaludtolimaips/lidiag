@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 class AgendaController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Muestra el listado de agendas.
      *
      * @return \Illuminate\Http\Response
      */
@@ -19,7 +19,7 @@ class AgendaController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Almacena una nueva agenda.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -30,7 +30,7 @@ class AgendaController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Muestra una agenda específica.
      *
      * @param  \App\Models\Agenda\Agenda  $agenda
      * @return \Illuminate\Http\Response
@@ -41,7 +41,7 @@ class AgendaController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Muestra el formulario de edición.
      *
      * @param  \App\Models\Agenda\Agenda  $agenda
      * @return \Illuminate\Http\Response
@@ -52,7 +52,7 @@ class AgendaController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualiza una agenda.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\Agenda\Agenda  $agenda
@@ -64,7 +64,7 @@ class AgendaController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina una agenda.
      *
      * @param  \App\Models\Agenda\Agenda  $agenda
      * @return \Illuminate\Http\Response

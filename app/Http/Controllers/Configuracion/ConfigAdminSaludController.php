@@ -9,9 +9,9 @@ use App\Http\Requests\Configuracion\ConfigAdminSaludRequest;
 class ConfigAdminSaludController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Lista todas las Administradoras de Salud (EPS).
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse Lista de administradoras de salud.
      */
     public function index()
     {
@@ -20,10 +20,11 @@ class ConfigAdminSaludController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Crea una nueva Administradora de Salud.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param  ConfigAdminSaludRequest  $request Datos de la administradora.
+     * @param  ConfigAdminSalud  $configAdminSalud Instancia del modelo (inyección de dependencia vacía).
+     * @return \Illuminate\Http\JsonResponse Confirmación de creación.
      */
     public function store(ConfigAdminSaludRequest $request, ConfigAdminSalud $configAdminSalud)
     {
@@ -32,11 +33,11 @@ class ConfigAdminSaludController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualiza una Administradora de Salud.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Configuracion\ConfigAdminSalud  $configAdminSalud
-     * @return \Illuminate\Http\Response
+     * @param  ConfigAdminSaludRequest  $request Datos actualizados.
+     * @param  ConfigAdminSalud  $configAdminSalud Instancia a actualizar.
+     * @return \Illuminate\Http\JsonResponse Confirmación de actualización.
      */
     public function update(ConfigAdminSaludRequest $request, ConfigAdminSalud $configAdminSalud)
     {
@@ -45,10 +46,10 @@ class ConfigAdminSaludController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina una Administradora de Salud.
      *
-     * @param  \App\Models\Configuracion\ConfigAdminSalud  $configAdminSalud
-     * @return \Illuminate\Http\Response
+     * @param  ConfigAdminSalud  $configAdminSalud Instancia a eliminar.
+     * @return \Illuminate\Http\JsonResponse Confirmación de eliminación.
      */
     public function destroy(ConfigAdminSalud $configAdminSalud)
     {

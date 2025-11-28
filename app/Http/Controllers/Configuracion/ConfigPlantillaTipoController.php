@@ -9,7 +9,9 @@ use Illuminate\Http\Request;
 class ConfigPlantillaTipoController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Lista todos los tipos de plantillas.
+     *
+     * @return \Illuminate\Http\JsonResponse Lista de tipos de plantillas.
      */
     public function index()
     {
@@ -17,7 +19,15 @@ class ConfigPlantillaTipoController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Crea un nuevo tipo de plantilla.
+     *
+     * Flujo del proceso:
+     * 1. Valida los datos de entrada (nombre, estado).
+     * 2. Crea el registro.
+     * 3. Retorna el tipo creado.
+     *
+     * @param Request $request Datos del tipo de plantilla.
+     * @return \Illuminate\Http\JsonResponse Datos del tipo creado.
      */
     public function store(Request $request)
     {
@@ -40,7 +50,10 @@ class ConfigPlantillaTipoController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Muestra un tipo de plantilla específico.
+     *
+     * @param int $id ID del tipo de plantilla.
+     * @return \Illuminate\Http\JsonResponse Datos del tipo de plantilla.
      */
     public function show($id)
     {
@@ -48,7 +61,17 @@ class ConfigPlantillaTipoController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualiza un tipo de plantilla.
+     *
+     * Flujo del proceso:
+     * 1. Valida los datos de entrada.
+     * 2. Busca el tipo por ID.
+     * 3. Actualiza el registro.
+     * 4. Retorna el tipo actualizado.
+     *
+     * @param Request $request Datos a actualizar.
+     * @param int $id ID del tipo de plantilla.
+     * @return \Illuminate\Http\JsonResponse Datos actualizados.
      */
     public function update(Request $request, $id)
     {
@@ -70,7 +93,10 @@ class ConfigPlantillaTipoController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina un tipo de plantilla.
+     *
+     * @param int $id ID del tipo de plantilla.
+     * @return \Illuminate\Http\JsonResponse Respuesta vacía (204).
      */
     public function destroy($id)
     {
@@ -81,7 +107,9 @@ class ConfigPlantillaTipoController extends Controller
     }
 
     /**
-     * Listar los tipos de plantillas activos.
+     * Lista los tipos de plantillas activos.
+     *
+     * @return \Illuminate\Http\JsonResponse Lista de tipos activos.
      */
     public function listarActivos()
     {

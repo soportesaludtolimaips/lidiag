@@ -12,6 +12,22 @@ use PhpOffice\PhpWord\Element\TextRun;
 
 class PlantillaEstudioController extends Controller
 {
+    /**
+     * Genera un documento Word con la lectura del estudio y lo convierte a PDF.
+     *
+     * Flujo del proceso:
+     * 1. Busca la plantilla asociada a la sede.
+     * 2. Carga la plantilla Word con `TemplateProcessor`.
+     * 3. Reemplaza variables simples (paciente, fechas, médico, producto).
+     * 4. Procesa el texto de la lectura (negritas para títulos clave).
+     * 5. Inserta la firma del médico si existe.
+     * 6. Guarda el archivo .docx temporal.
+     * 7. Convierte el .docx a PDF usando `convertDocxToPdf`.
+     * 8. Elimina el .docx temporal.
+     *
+     * @param Request $request Datos del estudio y lectura.
+     * @return \Illuminate\Http\JsonResponse Confirmación con nombre del PDF o error.
+     */
     public function editWord(Request $request)
     {
         /**
@@ -114,6 +130,12 @@ class PlantillaEstudioController extends Controller
         }
     }
 
+    /**
+     * Convierte un archivo Word (.docx) a PDF usando unoconv.
+     *
+     * @param string $nomPlantilla Nombre base del archivo (sin extensión).
+     * @return string|null Ruta del archivo PDF generado o null si falla.
+     */
     function convertDocxToPdf($nomPlantilla)
     {
         // Rutas de los archivos de entrada y salida

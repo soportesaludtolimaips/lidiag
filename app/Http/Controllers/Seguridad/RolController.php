@@ -12,9 +12,9 @@ use DB;
 class RolController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Lista todos los roles y permisos del sistema.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse Array con roles y permisos.
      */
     public function index()
     {
@@ -25,10 +25,10 @@ class RolController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Crea un nuevo rol y le asigna los permisos seleccionados.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param RolAgregarRequest $request Datos del rol y permisos.
+     * @return \Illuminate\Http\JsonResponse Confirmación.
      */
     public function store(RolAgregarRequest $request)
     {
@@ -49,10 +49,10 @@ class RolController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Muestra un rol específico junto con sus permisos asignados y la lista total de permisos.
      *
-     * @param  \App\Models\Seguridad\Rol  $rol
-     * @return \Illuminate\Http\Response
+     * @param int $id ID del rol.
+     * @return \Illuminate\Http\JsonResponse Datos del rol, permisos y permisos asignados.
      */
     public function show($id)
     {
@@ -72,11 +72,11 @@ class RolController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualiza el nombre del rol y sincroniza sus permisos.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Seguridad\Rol  $rol
-     * @return \Illuminate\Http\Response
+     * @param Request $request Datos actualizados del rol.
+     * @param int $id ID del rol.
+     * @return \Illuminate\Http\JsonResponse Confirmación.
      */
     public function update(Request $request, $id)
     {
@@ -105,10 +105,10 @@ class RolController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina un rol.
      *
-     * @param  \App\Models\Seguridad\Rol  $rol
-     * @return \Illuminate\Http\Response
+     * @param Rol $rol Instancia del rol a eliminar.
+     * @return \Illuminate\Http\JsonResponse Confirmación.
      */
     public function destroy(Rol $rol)
     {

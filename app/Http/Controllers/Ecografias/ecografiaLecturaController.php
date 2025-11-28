@@ -12,7 +12,17 @@ use Illuminate\Http\Request;
 class ecografiaLecturaController extends Controller
 {
     /**
-     * Store a newly created resource in storage.
+     * Registra o actualiza la lectura y opinión de una ecografía.
+     *
+     * Flujo del proceso:
+     * 1. Verifica si existen productos asociados a la ecografía.
+     * 2. Si la acción es 'IMPRIMIR_LECTURA', actualiza la lectura y opinión del primer producto (guardado parcial).
+     * 3. Si la acción es 'TERMINAR_LECTURA', actualiza todos los productos, establece fecha de lectura y cambia el estado a 'LEIDO'.
+     * 4. Retorna mensaje de éxito.
+     *
+     * @param Request $request Datos de la lectura (texto, opinion, accion).
+     * @param int $id ID de la ecografía.
+     * @return \Illuminate\Http\JsonResponse Confirmación de guardado.
      */
     public function leer(Request $request, $id)
     {
@@ -51,6 +61,18 @@ class ecografiaLecturaController extends Controller
 
 
 
+    /**
+     * Lista las ecografías asignadas a un médico que están pendientes de lectura.
+     *
+     * Flujo del proceso:
+     * 1. Verifica la existencia del médico.
+     * 2. Consulta ecografías uniendo con productos y configuración.
+     * 3. Filtra por ID del médico y estado del producto 'EN PROCESO'.
+     * 4. Retorna la lista de ecografías pendientes.
+     *
+     * @param int $idMedico ID del médico.
+     * @return \Illuminate\Http\JsonResponse Lista de ecografías pendientes.
+     */
     public function listarPendientesPorLectura($idMedico)
     {
         $medico = User::find($idMedico);

@@ -17,7 +17,13 @@ use Symfony\Contracts\Service\Attribute\Required;
 class SAHIEcografiasController extends Controller
 {
     /**
-     * Listar los productos de una atencion junto con el estado de ecografia en Lidiag
+     * Lista los productos de ecografía de una atención, combinando fuentes de facturación y movimientos.
+     *
+     * Similar a `SAHIController@listarProductosAtencion`, pero filtra específicamente por grupos
+     * de productos relacionados con ecografías y devuelve la lista unificada.
+     *
+     * @param Request $request ID de la atención (`bus_nom_num_docu`).
+     * @return \Illuminate\Http\JsonResponse Lista de productos de ecografía.
      */
     public function listarProductosAtencion(Request $request)
     {

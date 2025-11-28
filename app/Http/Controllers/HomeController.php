@@ -21,6 +21,11 @@ class HomeController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
+    /**
+     * Renderiza la vista principal del dashboard.
+     *
+     * @return \Illuminate\View\View Vista home.
+     */
     public function index()
     {
         return view('home');

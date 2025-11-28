@@ -23,10 +23,10 @@ class EstudioNotificacionController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Lista los estudios que ya tienen transcripción y están activos, listos para notificar.
      *
-     * @param  \App\Models\Estudios\Estudio  $estudio
-     * @return \Illuminate\Http\Response
+     * @param Request $request Filtros por número de documento (`bus_num_docu`) o nombre (`bus_nom`).
+     * @return \Illuminate\Http\JsonResponse Lista de estudios.
      */
     public function listarEstudios(Request $request)
     {
@@ -75,6 +75,20 @@ class EstudioNotificacionController extends Controller
         return response()->json($registros);
     }
 
+    /**
+     * Notifica el resultado del estudio por email y actualiza datos del paciente.
+     *
+     * Flujo del proceso:
+     * 1. Envía el reporte a la API externa de Lidiag-reportes.
+     * 2. Actualiza el email del paciente en la base de datos local.
+     * 3. Si el paciente tiene email:
+     *    - Descarga imágenes DICOM (temporalmente).
+     *    - Envía email con el PDF adjunto usando `NotificacionDeLectura`.
+     * 4. Limpia archivos temporales (PDF e imágenes).
+     *
+     * @param object $estudio Objeto con datos del estudio y paciente.
+     * @return \Illuminate\Http\JsonResponse Confirmación.
+     */
     public function notificarEmail($estudio)
     {
         $nombrePaciente = str_replace('^^^', '', $estudio->nom_pacien);
@@ -145,6 +159,13 @@ class EstudioNotificacionController extends Controller
         return response()->json(['message' => 'La notificación se generó correctamente.']);
     }
 
+    /**
+     * Descarga imágenes DICOM (convertidas a JPEG) desde el servidor WADO de la sede.
+     *
+     * @param int $sedeId ID de la sede.
+     * @param string $study_iuid UID del estudio.
+     * @return \Illuminate\Http\JsonResponse Resultado de la descarga.
+     */
     public static function descargaImgDicom($sedeId, $study_iuid)
     {
         $sedeActual = ConfigSede::find($sedeId);
@@ -207,6 +228,13 @@ class EstudioNotificacionController extends Controller
         return response()->json(['success' => 'Todas las imágenes se han descargado y guardado correctamente'], 200);
     }
 
+    /**
+     * Envía una notificación por WhatsApp usando Twilio.
+     *
+     * @param string $numeroTelefono Número de destino.
+     * @param string $mensaje Cuerpo del mensaje.
+     * @return \Illuminate\Http\JsonResponse Resultado del envío.
+     */
     public function enviarMensajeWhatsApp($numeroTelefono, $mensaje)
     {
         $sid    = "ACcdc29948e05772a83ac3e0db74169c96";

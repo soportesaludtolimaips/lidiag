@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 class EstudioDiagnosticoController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Controlador scaffold sin implementación actual.
      *
      * @return \Illuminate\Http\Response
      */

@@ -9,9 +9,9 @@ use App\Models\Configuracion\ConfigDiagnostico;
 class ConfigDiagnosticoController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Lista todos los diagnósticos (CIE-10) ordenados alfabéticamente.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse Lista de diagnósticos.
      */
     public function index()
     {
@@ -20,10 +20,11 @@ class ConfigDiagnosticoController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Crea un nuevo diagnóstico.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param  ConfigDiagnosticoRequest  $request Datos del diagnóstico.
+     * @param  ConfigDiagnostico  $configDiagnostico Instancia del modelo.
+     * @return \Illuminate\Http\JsonResponse Confirmación de creación.
      */
     public function store(ConfigDiagnosticoRequest $request, ConfigDiagnostico $configDiagnostico)
     {
@@ -32,11 +33,11 @@ class ConfigDiagnosticoController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualiza un diagnóstico existente.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Configuracion\ConfigDiagnostico  $configDiagnostico
-     * @return \Illuminate\Http\Response
+     * @param  ConfigDiagnosticoRequest  $request Datos actualizados.
+     * @param  ConfigDiagnostico  $configDiagnostico Instancia a actualizar.
+     * @return \Illuminate\Http\JsonResponse Confirmación de actualización.
      */
     public function update(ConfigDiagnosticoRequest $request, ConfigDiagnostico $configDiagnostico)
     {
@@ -45,10 +46,10 @@ class ConfigDiagnosticoController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina un diagnóstico.
      *
-     * @param  \App\Models\Configuracion\ConfigDiagnostico  $configDiagnostico
-     * @return \Illuminate\Http\Response
+     * @param  ConfigDiagnostico  $configDiagnostico Instancia a eliminar.
+     * @return \Illuminate\Http\JsonResponse Confirmación de eliminación.
      */
     public function destroy(ConfigDiagnostico $configDiagnostico)
     {

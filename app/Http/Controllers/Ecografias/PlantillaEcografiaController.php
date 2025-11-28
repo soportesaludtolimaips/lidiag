@@ -17,6 +17,21 @@ use Illuminate\Support\Facades\Response;
 
 class PlantillaEcografiaController extends Controller
 {
+    /**
+     * Genera el reporte final de ecografía reemplazando marcadores en una plantilla de Word y convirtiéndolo a PDF.
+     *
+     * Flujo del proceso:
+     * 1. Busca la plantilla asociada a la Sede (ConfigSede).
+     * 2. Carga datos del médico (nombre, registro, firma) y del paciente.
+     * 3. Usa TemplateProcessor para reemplazar variables en el .docx (paciente, estudio, lectura, opinión, lista de productos).
+     * 4. Inserta la firma del médico como imagen.
+     * 5. Guarda el .docx temporalmente.
+     * 6. Llama a convertDocxToPdf para generar el PDF.
+     * 7. Elimina el .docx temporal y retorna la URL del PDF.
+     *
+     * @param Request $request Datos del estudio, paciente, médico y contenido del reporte.
+     * @return \Illuminate\Http\JsonResponse Retorna la URL del PDF generado o un mensaje de error.
+     */
     public function editWord(Request $request)
     {
         /**
@@ -131,6 +146,15 @@ class PlantillaEcografiaController extends Controller
         }
     }
 
+    /**
+     * Convierte un archivo Word (.docx) a PDF utilizando la herramienta del sistema unoconv.
+     *
+     * Verifica la existencia del archivo de entrada y de la herramienta unoconv.
+     * Ejecuta el comando de sistema para la conversión.
+     *
+     * @param string $nomPlantilla Nombre base del archivo (sin extensión) ubicado en storage/app/reporte_lecturas/
+     * @return string|\Illuminate\Http\JsonResponse Retorna un JSON con la URL pública del PDF o un error.
+     */
     function convertDocxToPdf(string $nomPlantilla): string|\Illuminate\Http\JsonResponse
     {
         // Rutas de entrada y salida

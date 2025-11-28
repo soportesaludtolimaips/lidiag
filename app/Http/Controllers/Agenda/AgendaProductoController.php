@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 class AgendaProductoController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Muestra el listado de productos de agenda.
      *
      * @return \Illuminate\Http\Response
      */
@@ -18,7 +18,7 @@ class AgendaProductoController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Muestra el formulario de creación.
      *
      * @return \Illuminate\Http\Response
      */
@@ -28,7 +28,7 @@ class AgendaProductoController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Almacena un nuevo producto de agenda.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -39,7 +39,7 @@ class AgendaProductoController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Muestra un producto de agenda específico.
      *
      * @param  \App\Models\Agenda\AgendaProducto  $agendaProducto
      * @return \Illuminate\Http\Response
@@ -50,7 +50,7 @@ class AgendaProductoController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Muestra el formulario de edición.
      *
      * @param  \App\Models\Agenda\AgendaProducto  $agendaProducto
      * @return \Illuminate\Http\Response
@@ -61,7 +61,7 @@ class AgendaProductoController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualiza un producto de agenda.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\Agenda\AgendaProducto  $agendaProducto
@@ -73,7 +73,7 @@ class AgendaProductoController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina un producto de agenda.
      *
      * @param  \App\Models\Agenda\AgendaProducto  $agendaProducto
      * @return \Illuminate\Http\Response

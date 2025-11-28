@@ -9,9 +9,10 @@ use Illuminate\Http\Request;
 class EstudioProductoController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Lista los productos asociados a un estudio.
      *
-     * @return \Illuminate\Http\Response
+     * @param Request $request ID del estudio (`id`).
+     * @return \Illuminate\Http\JsonResponse Lista de productos.
      */
     public function index(Request $request)
     {
@@ -21,10 +22,11 @@ class EstudioProductoController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Crea un nuevo producto asociado a un estudio.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param Request $request Datos del producto.
+     * @param EstudioProducto $estudioProducto Instancia del modelo.
+     * @return \Illuminate\Http\JsonResponse Confirmación.
      */
     public function store(Request $request, EstudioProducto $estudioProducto)
     {

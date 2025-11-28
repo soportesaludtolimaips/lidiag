@@ -10,6 +10,23 @@ use Illuminate\Support\Facades\DB;
 
 class DashBoardController extends Controller
 {
+    /**
+     * Obtiene estadísticas del dashboard según el perfil del usuario.
+     *
+     * Para Administrador:
+     * - Total de estudios asignados
+     * - Estudios leídos (transcritos)
+     * - Estudios pendientes de transcribir
+     * - Estudios más solicitados por modalidad
+     *
+     * Para Médico:
+     * - Estudios asignados al médico
+     * - Estudios leídos por el médico
+     * - Estudios más solicitados del médico por modalidad
+     *
+     * @param Request $request Parámetros de filtrado (no utilizados actualmente).
+     * @return \Illuminate\Http\JsonResponse Estadísticas del dashboard.
+     */
     public function dashboard(Request $request)
     {
         $perfil = auth()->user()->roles()->first()->name;
