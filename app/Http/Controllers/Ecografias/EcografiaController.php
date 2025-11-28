@@ -20,8 +20,7 @@ class EcografiaController extends Controller
      */
     public function index(Request $request)
     {
-        return $request;
-        $ecografias = Ecografia::with(['paciente', 'usuarioRegistrador', 'adminSalud', 'medico'])
+    $ecografias = Ecografia::with(['paciente', 'usuarioRegistrador', 'adminSalud', 'medico'])
             ->when($request->bus_nom_num_docu, function ($query) use ($request) {
                 if ($request->bus_nom_num_docu && $request->bus_nom_num_docu != '') {
                     $query->whereHas('paciente', function ($q) use ($request) {
@@ -79,12 +78,12 @@ class EcografiaController extends Controller
         return response()->json($filterEcografias);
     }
 
-
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
+        
         try {
             $validateData = $request->validate(
                 [
@@ -138,7 +137,6 @@ class EcografiaController extends Controller
 
             // Crear la ecografía
             $ecografia = Ecografia::create([
-                'atencion_id' => $request->atencion_id,
                 'medico_id' => $request->medico_id,
                 'paciente_id' => $paciente->id,
                 'usua_regis_id' => $request->quien_registro_id,
@@ -168,6 +166,7 @@ class EcografiaController extends Controller
 
                 // Asociar el producto a la ecografía
                 EcografiaProducto::create([
+                    'atencion_id' => $producto['IdAtencion'],
                     'ecografia_id' => $ecografia->id,
                     'producto_id' => $productoExistente->id,
                     'lectura' => $producto['lectura'] ?? null,

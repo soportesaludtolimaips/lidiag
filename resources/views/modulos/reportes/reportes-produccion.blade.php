@@ -1,9 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
-    <reportes-produccion-component :usuarioactual="{{ Auth::user() }}" />
+    @php
+        $user = auth()->user()->load('roles', 'permissions');
+        $permisos = auth()->user()->getAllPermissions()->pluck('name');
+    @endphp
+    <reportes-produccion-component :usuarioactual="{{ $user }}" :permisos="{{ $permisos }}" />
 @endsection
-
 
 @section('javascript')
     <!-- ============================================================== -->

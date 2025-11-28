@@ -87,8 +87,8 @@ import ecogradifasAdmisionesComponent from "./components/modulos/ecografias/admi
 app.component("ecografias-admisiones-component", ecogradifasAdmisionesComponent);
 import lecturaComponent from "./components/modulos/ecografias/lecturaComponent.vue";
 app.component("ecografias-lectura-component", lecturaComponent);
-import ecografiasAdmisionarComponent from "./components/modulos/ecografias/ecografiasAdmisionarComponent.vue";
-app.component("ecografias-admisionadas-component", ecografiasAdmisionarComponent);
+import ecografiasAdmisionadasComponent from "./components/modulos/ecografias/ecografiasAdmisionadasComponent.vue";
+app.component("ecografias-admisionadas-component", ecografiasAdmisionadasComponent);
 
 /**
  * Agenda

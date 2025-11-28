@@ -74,6 +74,7 @@ class PlantillaEcografiaController extends Controller
 
         // Actualizar los datos de la ecografia
         $templateProcessor->setValue('tipo_estudio', $request->tipo_estudio);
+        $templateProcessor->setValue('lectura', $request->lectura);
         $templateProcessor->setValue('opinion', $request->opinion);
 
         $productosEcografia = EcografiaProducto::where('ecografia_id', $request->ecografia_id)
@@ -87,7 +88,7 @@ class PlantillaEcografiaController extends Controller
         $templateProcessor->setValue('productos', $productosLista);
 
         // Actualizar los datos de la administradora de salud
-        $templateProcessor->setValue('eps', $request->eps);
+        $templateProcessor->setValue('eps', $request->admin_salud);
         $templateProcessor->setValue('contrato', $request->contrato);
 
         // Actualizar los datos del médico

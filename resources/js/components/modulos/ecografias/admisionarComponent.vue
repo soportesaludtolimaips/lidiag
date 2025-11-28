@@ -99,6 +99,7 @@
                                         <th with='5%'># Documento</th>
                                         <th with='30%'>Paciente</th>
                                         <th>Examen</th>
+                                        <th>Cantidad</th>
                                         <th>Val. Examen</th>
                                         <th>Administradora</th>
                                         <th>Contrato</th>
@@ -115,21 +116,22 @@
                                         <td>{{ item.PrimerNombre }} {{ item.SegundoNombre }} {{ item.PrimerApellido }}
                                             {{ item.SegundoApellido }}</td>
                                         <td>{{ item.NomProducto }}</td>
-                                        <td>{{ item.ValProduc }}</td>
+                                        <td align="right">{{ item.Cantidad }}</td>
+                                        <td align="right">{{ formatoMoneda(item.ValProduc) }}</td>
                                         <td>{{ item.NomTercero }}</td>
                                         <td>{{ item.DesContrato }}</td>
                                         <td>{{ item.DesPlan }}</td>
                                         <td>{{ item.quien_ordeno }}</td>
                                         <td>
                                             <span class="label label-info"
-                                                v-if="item.estado_ecografia === 'EN PROCESO'">{{ item.estado_ecografia
-                                                }}</span>
+                                                v-if="item.estado_ecografia === 'EN PROCESO'">{{
+                                                    item.estado_ecografia }}</span>
                                             <span class="label label-success"
-                                                v-if="item.estado_ecografia === 'LEIDO'">{{ item.estado_ecografia
-                                                }}</span>
+                                                v-if="item.estado_ecografia === 'LEIDO'">{{
+                                                    item.estado_ecografia }}</span>
                                             <span class="label label-danger"
-                                                v-if="item.estado_ecografia === 'ANULADO'">{{ item.estado_ecografia
-                                                }}</span>
+                                                v-if="item.estado_ecografia === 'ANULADO'">{{
+                                                    item.estado_ecografia }}</span>
                                         </td>
                                         <td class="text-nowrap">
                                             <button type="button"
@@ -345,13 +347,16 @@
                                                     <tr>
                                                         <th>Código</th>
                                                         <th>Producto</th>
-                                                        <th></th>
+                                                        <th>Cantidad</th>
+                                                        <th>Valor</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     <tr v-for="item in registro.productosAgenda" :key="item.id">
                                                         <td>{{ item.CodLegal }}</td>
                                                         <td>{{ item.NomProducto }}</td>
+                                                        <td align="right">{{ item.Cantidad }}</td>
+                                                        <td align="right">{{ formatoMoneda(item.ValProduc) }}</td>
                                                         <td class="text-nowrap">
                                                             <button type="button"
                                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
@@ -413,8 +418,16 @@
     </div>
 </template>
 <script>
+import usePermissions from "@/helpers/permissions.js"
+import { formatoMoneda } from "@/helpers/funciones.js";
+
 export default {
-    props: ['usuarioactual'],
+    props: ['usuarioactual', 'permisos'],
+    setup(props) {
+        const { can } = usePermissions(props.permisos);
+
+        return { can, formatoMoneda };
+    },
     mounted() {
         this.listarMedicos();
         this.establecerSede();
@@ -460,7 +473,7 @@ export default {
         async listarAtenciones() {
 
             const res = await axios.post('/interface-sahi-ecografias/listar/productos/atencion', this.busqueda);
-            console.log(res.data);
+
             if (res.status == 200) {
                 $("#example23").DataTable().destroy();
 
@@ -510,8 +523,6 @@ export default {
                 }
             } catch (error) {
                 // Manejar errores y mostrar notificación
-                console.error('Error al guardar la agenda:', error);
-
                 $.toast({
                     heading: 'Error',
                     text: error.response?.data?.error || 'Ocurrió un error al guardar la agenda.',

@@ -4,7 +4,7 @@
 
         <div class="float-right">
             <h4 class="text-info">Usted esta en la sede: {{ nomSede }}</h4>
-            <h4 class="text-info">
+            <h4 class="text-info" v-if="mostrarMedico">
                 {{ nomMedico ? 'Usted esta en el médico: ' + nomMedico : 'No ha seleccionado médico' }}
             </h4>
         </div>
@@ -26,13 +26,18 @@ export default {
             sessionStorage.setItem('ST-medico', data.idMedico)
             sessionStorage.setItem('ST-nomMedico', data.nomMedico)
             this.nomMedico = data.nomMedico;
-
         });
+
+        const url = window.location.pathname;
+        if (url != '/ecografias-pendientes-lecturas' && url != '/estudios.leer.estudio.listar') {
+            this.mostrarMedico = false;
+        }
     },
     data() {
         return {
             nomSede: sessionStorage.getItem('ST-nomsede'),
             nomMedico: sessionStorage.getItem('ST-nomMedico'),
+            mostrarMedico: '',
         }
     },
     methods: {

@@ -22,7 +22,7 @@ class SAHIEcografiasController extends Controller
     public function listarProductosAtencion(Request $request)
     {
         $atencionId = $request->bus_nom_num_docu;
-        $gruposPermitidos = [44, 195, 156, 190, 204];
+        $gruposPermitidos = [44, 195, 156, 190, 204, 191];
 
         $consulta1 = facFacturaDet::select([
             'admAtencion.IdAtencion',
@@ -44,6 +44,7 @@ class SAHIEcografiasController extends Controller
             'proProducto.CodProducto',
             'proProducto.CodLegal',
             DB::raw("facFacturaDet.ValTotal AS 'ValProduc'"),
+            'facFacturaDet.Cantidad',
             'conContrato.CodCon',
             'conContrato.DesContrato',
             'conPlan.DesPlan',
@@ -65,6 +66,7 @@ class SAHIEcografiasController extends Controller
             ->join('genTercero', 'conContrato.IdTercero', '=', 'genTercero.IdTercero')
             ->join('genTipoDoc', 'admCliente.IdTipoDoc', '=', 'genTipoDoc.IdTipoDoc')
             ->where('admAtencion.IdAtencion', $atencionId)
+            ->where('facFacturaDet.Cantidad', '>', 0)
             ->whereIn('proProducto.IdGrupo', $gruposPermitidos);
 
         $consulta2 = FacMovimientoDet::select([
@@ -87,6 +89,7 @@ class SAHIEcografiasController extends Controller
             'proProducto.CodProducto',
             'proProducto.CodLegal',
             DB::raw("facMovimientoDet.ValVenta AS 'ValProduc'"),
+            'facMovimientoDet.Cantidad',
             'conContrato.CodCon',
             'conContrato.DesContrato',
             'conPlan.DesPlan',
@@ -108,6 +111,7 @@ class SAHIEcografiasController extends Controller
             ->join('genTercero', 'conContrato.IdTercero', '=', 'genTercero.IdTercero')
             ->join('genTipoDoc', 'admCliente.IdTipoDoc', '=', 'genTipoDoc.IdTipoDoc')
             ->where('admAtencion.IdAtencion', $atencionId)
+            ->where('facMovimientoDet.Cantidad', '>', 0)
             ->whereIn('proProducto.IdGrupo', $gruposPermitidos);
 
         $atencionesSahi = $consulta1->union($consulta2)->get();

@@ -31,8 +31,23 @@
                         <h4 class="card-title text-themecolor">
                             <i class="fa fa-filter"></i> Producción
                         </h4>
-                        <a href="javascript:void(0)" data-toggle="modal" data-target="#responsive-modal"><i
-                                class="fa fa-check text-info"></i> Producción detallada</a>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <a href="javascript:void(0)" data-toggle="modal" data-target="#responsive-modal"
+                                    @click="tipoReporte = 'Rx'">
+                                    <i class="fa fa-check text-info"></i>
+                                    Producción detallada (RX, Tomografía, Mamografía, Resonancia)
+                                </a>
+                            </div>
+                            <div class="col-12" v-if="can('ecografias.reporte')">
+                                <a href="javascript:void(0)" data-toggle="modal" data-target="#responsive-modal"
+                                    @click="tipoReporte = 'Ecografia'">
+                                    <i class="fa fa-check text-info"></i>
+                                    Producción detallada (Ecografias)
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -106,8 +121,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-info waves-effect waves-light"
-                            @click="descargarReporteProduccionDetallada()">
+                        <button type="button" class="btn btn-info waves-effect waves-light" @click="descargarReporte()">
                             <i class="fa fa-download"></i>
                             Descargar reportes
                         </button>
@@ -121,17 +135,25 @@
 
 <script>
 import { listarUsuariosYSedes } from '../../../helpers/usuarios';
+import usePermissions from "@/helpers/permissions.js"
 
 export default {
+    props: ['usuarioactual', 'permisos'],
+    setup(props) {
+        const { can } = usePermissions(props.permisos);
+
+        return { can };
+    },
     mounted() {
         this.listarSedes();
     },
     data() {
         return {
             sedes: [], //Listo las sedes
-            datosReporte: { sedeId: 0, quien_asigno: null, medico: null, fechaIni: null, fechaFin: null },
+            datosReporte: { sedeId: 0, quien_asigno: '', medico: '', fechaIni: '', fechaFin: '' },
             quienes_asignaron: [],
             medicos: [],
+            tipoReporte: 'Rx'
         }
     },
     methods: {
@@ -146,27 +168,20 @@ export default {
                 console.log(error);
             }
         },
-        async descargarReporteProduccionDetallada() {
+        async descargarReporte() {
             try {
-                /* if (this.fechaIni == null || this.fechaFin == null) {
-                    $.toast({
-                        heading: "Upsss!!!",
-                        text: 'Debes establece la fecha de inicio y fin del reporte.',
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "warning",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                } else { */
-                //const res = await axios.post('/descarga-reportes-produccion', this.datosReporte);
-                window.open(`/descarga-reportes-produccion?sedeId=${this.datosReporte.sedeId}&quien_asigno=${this.datosReporte.quien_asigno}&medico=${this.datosReporte.medico}&fechaIni=${this.datosReporte.fechaIni}&fechaFin=${this.datosReporte.fechaFin}`);
-                //console.log(res)
-                //}
+                if (this.tipoReporte === 'Rx') {
+                    window.open(`/descarga-reportes-produccion?tipo=${this.tipoReporte}&sedeId=${this.datosReporte.sedeId}&quien_asigno=${this.datosReporte.quien_asigno}&medico=${this.datosReporte.medico}&fechaIni=${this.datosReporte.fechaIni}&fechaFin=${this.datosReporte.fechaFin}`);
+                }
+                if (this.tipoReporte === 'Ecografia') {
+                    window.open(`/descarga-reportes-produccion?tipo=${this.tipoReporte}&sedeId=${this.datosReporte.sedeId}&quien_asigno=${this.datosReporte.quien_asigno}&medico=${this.datosReporte.medico}&fechaIni=${this.datosReporte.fechaIni}&fechaFin=${this.datosReporte.fechaFin}`);
+                }
+
             } catch (error) {
                 console.log(error);
             }
-        }
+        },
+
     },
 }
 </script>

@@ -14,6 +14,7 @@ class EcografiaProducto extends Model
     protected $table = 'ecografias_productos';
 
     protected $fillable = [
+        'atencion_id',
         'ecografia_id',
         'usua_regis_id',
         'producto_id',

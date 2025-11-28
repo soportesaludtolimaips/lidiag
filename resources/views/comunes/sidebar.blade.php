@@ -69,28 +69,34 @@
                         </li>
                     @endif
 
-                    <li class="nav-small-cap">--- ECOGRAFIAS</li>
-                    <li>
-                        <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
-                            <i class="fa fa-etsy"></i>
-                            <span class="hide-menu">Asignación de estudios</span>
-                        </a>
-                        <ul aria-expanded="false" class="collapse">
-                            @can('estudio.asignar')
+                    @if (auth()->user()->hasAnyPermission(['ecografias.index', 'ecografias.admision', 'ecografias.anular', 'ecografias.leer', 'ecografias.reporte']))
+                        <li class="nav-small-cap">--- ECOGRAFIAS</li>
+                        <li>
+                            <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
+                                <i class="fa fa-etsy"></i>
+                                <span class="hide-menu">Asignación de estudios</span>
+                            </a>
+                            <ul aria-expanded="false" class="collapse">
                                 <li>
+                                    @can('ecografias.admision')
                                     <a href="{{ route('ecografias.admisiones') }}">
                                         <i class="fa fa-address-book-o  text-info"></i> Admisionar para procedimientos
                                     </a>
+                                    @endcan
+                                    @can('ecografias.index')
                                     <a href="{{ route('ecografias.adminisionadas') }}">
                                         <i class="fa fa-address-book-o  text-info"></i> Ecografías admisionadas
                                     </a>
+                                    @endcan
+                                    @can('ecografias.leer')
                                     <a href="{{ route('ecografias.pendientes.lecturas') }}">
                                         <i class="fa fa-pencil text-info"></i> Realizar lectura
                                     </a>
+                                    @endcan
                                 </li>
-                            @endcan
-                        </ul>
-                    </li>
+                            </ul>
+                        </li>
+                    @endif
                     @if (auth()->user()->hasAnyPermission(['agenda.index']))
                         <li class="nav-small-cap">--- Citas</li>
                         <li>
