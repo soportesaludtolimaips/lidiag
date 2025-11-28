@@ -1,5 +1,10 @@
 @extends('layouts.app')
 
-@section('content')
-    <ecografias-admisiones-component :usuarioactual="{{ Auth::user() }}" />
+@section('content') 
+    @php
+        $user = auth()->user()->load('roles', 'permissions');
+        $permisos = auth()->user()->getAllPermissions()->pluck('name');
+    @endphp
+
+    <ecografias-admisiones-component :usuarioactual="{{ Auth::user() }}" :permisos="{{ $permisos }}" />
 @endsection

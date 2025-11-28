@@ -13,7 +13,6 @@ class Ecografia extends Model
     use HasFactory;
 
     protected $fillable = [
-        'atencion_id',
         'medico_id',
         'paciente_id',
         'usua_regis_id',

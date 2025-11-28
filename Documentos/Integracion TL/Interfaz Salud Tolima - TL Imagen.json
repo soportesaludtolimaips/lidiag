@@ -16,6 +16,7 @@ Encabezados:
 	"mods_in_study": "CT",
 	
   	"paciente": {
+	    "tipo_docu": 
 	    "num_docu": "5919726",
 	    "nom_pacien": "RAMIREZ RODRIGUEZ SALOMON",
 	    "fec_naci": "yyyy-mm-dd",
@@ -44,6 +45,7 @@ Encabezados:
 	    "file_exten": "",
 	    }
 	],
+        "motivo_examen": "texto"
 	"observaciones": "texto",
 }
 

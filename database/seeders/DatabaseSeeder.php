@@ -12,6 +12,7 @@ use Database\Seeders\Configuracion\ConfigSedeSeeder;
 use Database\Seeders\Seguridad\RoleSeeder;
 use Database\Seeders\RoleSeederReporteLectura;
 use Database\Seeders\Seguridad\UserSeeder;
+use Database\Seeders\PermisionEcografiasSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -43,5 +44,6 @@ class DatabaseSeeder extends Seeder
         $this->call(RoleSeederReporteLectura::class);
         $this->call(RoleSeederAgenda::class);
         $this->call(ModulosSeeder::class);
+        $this->call(PermisionEcografiasSeeder::class);
     }
 }

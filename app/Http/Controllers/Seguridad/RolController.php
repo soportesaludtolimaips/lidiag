@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Seguridad;
 use App\Http\Controllers\Controller;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
-use App\Http\Requests\Segudiada\RolAgregarRequest;
+use App\Http\Requests\Seguridad\RolAgregarRequest;
 use Illuminate\Http\Request;
 use DB;
 
@@ -57,8 +57,14 @@ class RolController extends Controller
     public function show($id)
     {
         $seguridad_role = Role::find($id);
+
+        if (!$seguridad_role) {
+            return response()->json(['message' => 'El rol no se encontro'], 404);
+        }
+        
         $permisos = Permission::orderby('name')->get();
-        $permisosRol = DB::table("role_has_permissions")->where("role_has_permissions.role_id", $id)
+        $permisosRol = DB::table("role_has_permissions")
+            ->where("role_has_permissions.role_id", $id)
             ->pluck('role_has_permissions.permission_id', 'role_has_permissions.permission_id')
             ->all();
 
@@ -76,6 +82,11 @@ class RolController extends Controller
     {
 
         $role = Role::find($id);
+
+        if (!$role) {
+            return response()->json(['message' => 'El rol no se encontro'], 404);
+        }
+
         $role->name = $request->registro['name'];
         $role->save();
 
@@ -101,6 +112,12 @@ class RolController extends Controller
      */
     public function destroy(Rol $rol)
     {
-        //
+        if (!$rol) {
+            return response()->json(['message' => 'El rol no se encontro'], 404);
+        }
+
+        $rol->delete();
+
+        return response()->json(['message' => 'Registro eliminado satisfactoriamente.']);
     }
 }

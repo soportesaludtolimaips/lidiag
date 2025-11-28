@@ -184,7 +184,7 @@
                                     </option>
                                 </select>
                             </div>
-                            <div class="form-group">
+                            <div class="form-group" v-if="mostrarMedico">
                                 <h4 class="m-b-20">Médico</h4>
                                 <select class="form-control custom-select" @change="estableserMedico()"
                                     style="width: 100%; height: 36px" v-model="medicoSeleccionado" name="medicos">
@@ -284,25 +284,22 @@ export default {
         this.listarSedes();
         this.listarMedicos();
 
-        const medicoId = sessionStorage.getItem('ST-medico');
-        const sedeId = sessionStorage.getItem('ST-sede');
+        const medicoSeleccionado = sessionStorage.getItem('ST-medico');
+        const sedeSeleccionada = sessionStorage.getItem('ST-sede');
 
-        if (medicoId) {
-            this.medicoSeleccionado = medicoId;
-        }
-
-        if (sedeId) {
-            this.sedeSeleccionada = sedeId;
+        const url = window.location.pathname;
+        if (url === '/ecografias.admisiones' || url === '/ecografias-pendientes-lecturas' || url === '/estudios.leer.estudio.listar') {
+            this.mostrarMedico = true;
         }
     },
     data() {
         return {
             sedes: [], //Listo las sedes
-            sedeSeleccionada: this.medicoId ? this.medicoId :    sessionStorage.getItem('ST-sede'),
-            medicoSeleccionado: this.medicoId ? this.medicoId : sessionStorage.getItem('ST-medico'),
+            sedeSeleccionada: this.sedeSeleccionada ? this.sedeSeleccionada : sessionStorage.getItem('ST-sede'),
+            medicoSeleccionado: this.medicoSeleccionado ? this.medicoSeleccionado : sessionStorage.getItem('ST-medico'),
             medicos: [],
-            idMedico: null,
-            nomMedicoSeleccionado: null
+            nomMedicoSeleccionado: null,
+            mostrarMedico: true,
         }
     },
     computed: {
@@ -354,10 +351,10 @@ export default {
 
             this.nomMedicoSeleccionado = $('select[name="medicos"] option:selected').text();
 
-            sessionStorage.setItem('ST-medico', this.idMedico);
+            sessionStorage.setItem('ST-medico', this.medicoSeleccionado);
             sessionStorage.setItem('ST-nomMedico', this.nomMedicoSeleccionado);
 
-            this.emitter.emit("medicoSeleccionado", { idMedico: this.idMedico, nomMedico: this.nomMedicoSeleccionado });
+            this.emitter.emit("medicoSeleccionado", { idMedico: this.medicoSeleccionado, nomMedico: this.nomMedicoSeleccionado });
         }
     }
 }

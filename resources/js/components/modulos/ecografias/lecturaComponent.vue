@@ -188,7 +188,6 @@
                                         <th with='5%'># Documento</th>
                                         <th with='30%'>Paciente</th>
                                         <th>Examen</th>
-                                        <th>Val. Examen</th>
                                         <th>Administradora</th>
                                         <th>Contrato</th>
                                         <th>Plan</th>
@@ -201,7 +200,6 @@
                                         <td>{{ item.paciente.num_docu }}</td>
                                         <td>{{ item.paciente.nombres }}</td>
                                         <td>{{ item.nom_produc }}</td>
-                                        <td>{{ item.ValProduc }}</td>
                                         <td>{{ item.admin_salud.nom_admin_salud }}</td>
                                         <td>{{ item.contrato }}</td>
                                         <td>{{ item.plan }}</td>
@@ -238,7 +236,7 @@
                     <br />
                     {{ subTituloModal }}
                     <span @click="btnCerralModalForm()">
-                        <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
+                        <i class="ti-close right-side-toggle" id="btnCerralModalForm" @click="btnCerralModalForm()"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
@@ -250,21 +248,25 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="row">
-                                        <div class="col-md-10">
+                                        <div class="col-md-8">
                                             <h5 class="card-title text-info">
                                                 <i class="fa fa-edit"></i> Lectura
                                             </h5>
                                         </div>
-                                        <div class="col-md-2">
-
-                                            <a class="" @click="toggleSpeechRecognition"
-                                                style="width: 30px; height: 30px;">
-                                                <img title="Grabadora" :src="microfono">
-                                            </a>
-
-                                            <i class="fa fa-file-pdf-o text-danger fa-2x model_img img-responsive"
-                                                @click="generarReporte" data-toggle="modal"
-                                                data-target=".bs-example-modal-lg-impri-repor" />
+                                        <div class="ml-auto">
+                                            <ul class="list-inline text-center">
+                                                <li>
+                                                    <a class="" @click="toggleSpeechRecognition"
+                                                        style="width: 30px; height: 30px;">
+                                                        <img title="Grabadora" :src="microfono">
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <i class="fa fa-file-pdf-o text-danger fa-2x model_img img-responsive"
+                                                        @click="generarReporte" data-toggle="modal"
+                                                        data-target=".bs-example-modal-lg-impri-repor" />
+                                                </li>
+                                            </ul>
                                         </div>
                                     </div>
                                 </div>
@@ -307,7 +309,7 @@
                                 <div class="form-group">
                                     <textarea id="plantilla" name="plantilla" v-model="registro.lectura"
                                         class="form-control" placeholder="Ingrese aquí la lectura del procedimiento"
-                                        rows="20"></textarea>
+                                        rows="17"></textarea>
                                     <span class="text-danger" v-if="errores.plantilla">{{
                                         errores.plantilla[0]
                                     }}</span>
@@ -320,7 +322,7 @@
                                     </h5>
                                     <textarea id="opinion" name="opinion" v-model="registro.opinion"
                                         class="form-control" placeholder="Ingrese aquí la opinión del procedimiento"
-                                        rows="20"></textarea>
+                                        rows="17"></textarea>
                                     <span class="text-danger" v-if="errores.opinion">{{
                                         errores.opinion[0]
                                     }}</span>
@@ -371,9 +373,15 @@
 <script>
 import { establecerMedico } from "@/helpers/establecerMedico";
 import { establecerSede } from "@/helpers/establecerSede";
+import usePermissions from "@/helpers/permissions.js"
 
 export default {
-    props: ['usuarioactual'],
+    props: ['usuarioactual', 'permisos'],
+    setup(props) {
+        const { can } = usePermissions(props.permisos);
+
+        return { can };
+    },
     mounted() {
         this.establecerSede();
         this.listarTiposPlantillas();
@@ -389,16 +397,19 @@ export default {
             this.establecerMedico();
             this.listarPendiestePorLectura();
         });
+
+        this.url = window.location.pathname;
+        this.establecerMedico();
     },
     data() {
         return {
             tituloModal: 'Nueva adminsión',
             subTituloModal: '',
             tituloAtencion: '',
-            busqueda: { sede_id: this.sedeActual, medico_id: this.medicoActual, bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
+            busqueda: { sede_id: this.sedeActual, medico_id: '', bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
             registros: [],
             registro: {
-                ecografia_id: "", ecografia_producto_id: "", producto_id: "", sede_id: this.sedeActual, medico_id: this.medicoActual, quien_registro_id: this.usuarioactual.id, atencion_id: null,
+                ecografia_id: "", ecografia_producto_id: "", producto_id: "", sede_id: this.sedeActual, medico_id: '', quien_registro_id: this.usuarioactual.id, atencion_id: null,
                 lectura: null, opinion: null, tipo_estudio: null, nom_pacien: null
             },
             errores: {},
@@ -409,6 +420,7 @@ export default {
             tiposPlantillas: [],
             plantillas: [],
             sedeInterface: false,
+            url: '',
 
             microfono: 'admin-wrap/assets/images/mic.gif',
         }
@@ -426,8 +438,8 @@ export default {
     methods: {
         async listarPendiestePorLectura() {
 
-            const res = await axios.post('/ecografia-listarPendientesPorLectura/' + this.registro.medico_id);
-
+            const res = await axios.post('/ecografia-listarPendientesPorLectura/' + this.busqueda.medico_id);
+            console.log(res.data);
             if (res.status == 200) {
                 $("#example23").DataTable().destroy();
 
@@ -444,21 +456,20 @@ export default {
         async generarLectura() {
             try {
                 // Enviar solicitud para guardar la ecografía
-                const res = await axios.put('/ecografia-lectura/' + this.registro.ecografia_producto_id, { accion: this.accion, registro: this.registro });
+                const res = await axios.put('/ecografia-lectura/' + this.registro.ecografia_id, { accion: this.accion, registro: this.registro });
 
                 if (res.status === 201) {
 
                     // Mostrar notificación de éxito
                     $.toast({
                         heading: '¡Éxito!',
-                        text: 'Agenda guardada correctamente.',
+                        text: 'Lectura guardada correctamente.',
                         position: 'top-right',
                         loaderBg: '#ff6849',
                         icon: 'success',
                         hideAfter: 3500,
                         stack: 6,
                     });
-
                 } else {
                     $.toast({
                         heading: "Upss!!!",
@@ -507,11 +518,12 @@ export default {
             iframe.src = '';
 
             const res = await axios.post('/ecografia-generar-reporte/' + this.registro.ecografia_id, this.registro);
-            console.log(res.data.plantilla);
             const pathReporte = res.data.plantilla;
 
             // Mostrar el reporte en el iframe
             iframe.src = pathReporte;
+
+            this.listarPendiestePorLectura();
         },
         establecerSede() {
             this.registro.sede_id = sessionStorage.getItem('ST-sede');
@@ -526,10 +538,15 @@ export default {
             this.registros = [];
         },
         establecerMedico() {
-            if(sessionStorage.getItem('ST-medico')){
-                this.registro.medico_id = sessionStorage.getItem('ST-medico');
-                this.listarPendiestePorLectura();
-            }
+            //if (this.url === '/ecografias-pendientes-lecturas') {
+            this.busqueda.medico_id = sessionStorage.getItem('ST-medico');
+            this.registro.medico_id = sessionStorage.getItem('ST-medico');
+            console.log(this.busqueda.medico_id);
+
+            //sessionStorage.setItem('ST-medico', this.usuarioactual.id);
+
+            this.listarPendiestePorLectura();
+            //}
         },
         async listarTiposPlantillas() {
             try {
@@ -597,6 +614,9 @@ export default {
             this.registro.contrato = data.contrato;
             this.registro.plan = data.plan;
             this.registro.admin_salud = data.admin_salud.nom_admin_salud;
+
+            this.registro.lectura = data.lectura;
+            this.registro.opinion = data.opinion;
 
             this.btnCerralModalForm();
         },

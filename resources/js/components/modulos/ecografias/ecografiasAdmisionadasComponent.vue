@@ -179,15 +179,22 @@
                     <button type="button" class="btn btn-default waves-effect" data-dismiss="modal"
                         id="btnCerrarModalAunular">Close</button>
                     <button type="button" class="btn btn-danger waves-effect waves-light"
-                        @click="anularEcografia()">Anular</button>
+                        v-if="can('ecografias.anular')" @click="anularEcografia()">Anular</button>
                 </div>
             </div>
         </div>
     </div>
 </template>
 <script>
+import usePermissions from "@/helpers/permissions.js"
+
 export default {
-    props: ['usuarioactual'],
+    props: ['usuarioactual', 'permisos'],
+    setup(props) {
+        const { can } = usePermissions(props.permisos);
+
+        return { can };
+    },
     data() {
         return {
             busqueda: { sede_id: this.sedeActual, medico_id: this.medicoActual, bus_nom_num_docu: "6341296", bus_fehc_ini: "", bus_fecha_fin: "" },
