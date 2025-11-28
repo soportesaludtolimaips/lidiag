@@ -16,6 +16,11 @@ class ResporteLecturaController extends Controller
         $this->nomArchivoReporte = $nomArchivoReporte;
     }
 
+    /**
+     * Genera un reporte PDF de lectura usando Dompdf.
+     *
+     * @return void Guarda el archivo PDF en `storage/app/reporte_lecturas/`.
+     */
     public function generar_reporte()
     {
         $data = [

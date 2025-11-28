@@ -154,9 +154,43 @@ A continuación, una guía rápida de las ubicaciones clave en el código fuente
 -   **Controladores**:
 
     -   `app/Http/Controllers/Reportes`: Contiene la lógica para la generación y descarga de reportes en Excel y PDF.
+    -   **Documentación completa disponible en:** [`docs/CONTROLLERS.md`](docs/CONTROLLERS.md)
+        -   Todos los controladores están documentados con PHPDoc detallado
+        -   Incluye 30 controladores organizados en 10 módulos
+        -   Más de 95 métodos documentados con parámetros, retornos y descripciones
 
 -   **Frontend (Vue.js)**:
     -   `resources/js/components/modulos`: Componentes Vue organizados por módulo funcional (ej. `agendamiento`, `ecografias`).
+
+---
+
+## Documentación del Código
+
+El proyecto cuenta con documentación detallada para facilitar el mantenimiento y comprensión del código:
+
+### Estándares de Codificación
+
+-   **[`docs/CODING_STANDARDS.md`](docs/CODING_STANDARDS.md)**: Define los estándares de documentación y convenciones de código del proyecto.
+    -   Reglas para comentarios PHPDoc
+    -   Convenciones de nomenclatura
+    -   Estructura de archivos y carpetas
+
+### Documentación de Controladores
+
+-   **[`docs/CONTROLLERS.md`](docs/CONTROLLERS.md)**: Índice completo de todos los controladores del sistema.
+    -   Organizado por módulos (Ecografías, Estudios, Interface, Seguridad, etc.)
+    -   Descripción de cada método con sus responsabilidades
+    -   Identificación de controladores scaffold y controladores activos
+
+### Controladores Principales
+
+Los controladores más importantes del sistema incluyen:
+
+-   **`EstudioController`**: Gestión completa del ciclo de vida de estudios radiológicos
+-   **`SAHIController`** y **`SAHITranscibirController`**: Integración bidireccional con HIS
+-   **`StudyController` (Dcm4chee)**: Consulta dinámica de estudios desde PACS
+-   **`UserController`** y **`RolController`**: Gestión de seguridad y permisos
+-   **`DashBoardController`**: Estadísticas y métricas del sistema
 
 ---
 

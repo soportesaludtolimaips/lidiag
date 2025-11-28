@@ -12,6 +12,15 @@ use Illuminate\Support\Facades\DB;
 
 class ReporteProduccion extends Controller
 {
+    /**
+     * Genera y descarga un reporte detallado de producción en Excel.
+     *
+     * Permite generar reportes para 'Rx' o 'Ecografia', filtrando por fechas,
+     * sede, usuario que asignó y médico.
+     *
+     * @param Request $resquest Filtros: `fechaIni`, `fechaFin`, `sedeId`, `quien_asigno`, `medico`, `tipo`.
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse Archivo Excel descargable.
+     */
     public function reporteProduccionDetallado(Request $resquest)
     {
         $fechaInicio = $resquest->fechaIni;

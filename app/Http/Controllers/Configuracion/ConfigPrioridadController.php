@@ -10,9 +10,9 @@ use Illuminate\Http\Request;
 class ConfigPrioridadController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Lista todas las prioridades configuradas.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse Lista de prioridades.
      */
     public function index()
     {
@@ -21,10 +21,11 @@ class ConfigPrioridadController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Crea una nueva prioridad.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param  ConfigPrioridadRequest  $request Datos de la prioridad.
+     * @param  ConfigPrioridad  $configPrioridad Instancia del modelo.
+     * @return \Illuminate\Http\JsonResponse Confirmación de creación.
      */
     public function store(ConfigPrioridadRequest $request, ConfigPrioridad $configPrioridad)
     {
@@ -33,11 +34,11 @@ class ConfigPrioridadController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualiza una prioridad existente.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Configuracion\ConfigPrioridad  $configPrioridad
-     * @return \Illuminate\Http\Response
+     * @param  Request  $request Datos actualizados.
+     * @param  ConfigPrioridad  $configPrioridad Instancia a actualizar.
+     * @return \Illuminate\Http\JsonResponse Confirmación de actualización.
      */
     public function update(Request $request, ConfigPrioridad $configPrioridad)
     {
@@ -46,10 +47,10 @@ class ConfigPrioridadController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina una prioridad.
      *
-     * @param  \App\Models\Configuracion\ConfigPrioridad  $configPrioridad
-     * @return \Illuminate\Http\Response
+     * @param  ConfigPrioridad  $configPrioridad Instancia a eliminar.
+     * @return \Illuminate\Http\JsonResponse Confirmación de eliminación.
      */
     public function destroy(ConfigPrioridad $configPrioridad)
     {

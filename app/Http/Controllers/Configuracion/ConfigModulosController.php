@@ -9,7 +9,9 @@ use Illuminate\Http\Request;
 class ConfigModulosController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Lista todos los módulos configurados en el sistema.
+     *
+     * @return \Illuminate\Http\JsonResponse Lista de módulos.
      */
     public function index()
     {
@@ -18,7 +20,9 @@ class ConfigModulosController extends Controller
     }
 
     /**
-     * Listo todos los modulos
+     * Lista todos los módulos (Alias de index).
+     *
+     * @return \Illuminate\Http\JsonResponse Lista de módulos.
      */
     public function listarModulos()
     {

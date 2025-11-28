@@ -16,11 +16,20 @@ use Illuminate\Http\Request;
 class EcografiaController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Listar ecografías con filtros básicos.
+     *
+     * Flujo del proceso:
+     * 1. Consulta el modelo Ecografia con sus relaciones (paciente, usuario, adminSalud, medico).
+     * 2. Aplica filtro por número de documento o nombre del paciente si se proporciona.
+     * 3. Aplica filtro por rango de fechas de creación si se proporcionan.
+     * 4. Retorna la colección de ecografías en formato JSON.
+     *
+     * @param Request $request Filtros de búsqueda (bus_nom_num_docu, bus_fehc_ini, bus_fehc_fin).
+     * @return \Illuminate\Http\JsonResponse Lista de ecografías.
      */
     public function index(Request $request)
     {
-    $ecografias = Ecografia::with(['paciente', 'usuarioRegistrador', 'adminSalud', 'medico'])
+        $ecografias = Ecografia::with(['paciente', 'usuarioRegistrador', 'adminSalud', 'medico'])
             ->when($request->bus_nom_num_docu, function ($query) use ($request) {
                 if ($request->bus_nom_num_docu && $request->bus_nom_num_docu != '') {
                     $query->whereHas('paciente', function ($q) use ($request) {
@@ -40,7 +49,16 @@ class EcografiaController extends Controller
     }
 
     /**
-     * Filtar ecografías según criterios de búsqueda.
+     * Búsqueda avanzada de ecografías uniendo con productos.
+     *
+     * Flujo del proceso:
+     * 1. Selecciona campos específicos de Ecografia, EcografiaProducto y ConfigProducto.
+     * 2. Realiza JOINs con las tablas de productos y configuración.
+     * 3. Aplica filtros de búsqueda por paciente (nombre/documento) y fechas.
+     * 4. Retorna los resultados filtrados.
+     *
+     * @param Request $request Criterios de búsqueda (bus_nom_num_docu, bus_fehc_ini, bus_fehc_fin).
+     * @return \Illuminate\Http\JsonResponse Lista detallada de ecografías con productos.
      */
     public function filtarEcografias(Request $request)
     {
@@ -79,7 +97,20 @@ class EcografiaController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Crea una nueva ecografía, paciente (si no existe) y productos asociados.
+     *
+     * Flujo del proceso:
+     * 1. Valida los datos de entrada (paciente, sede, médico, productos).
+     * 2. Crea o actualiza el registro del Paciente.
+     * 3. Busca o crea la Administradora de Salud (EPS).
+     * 4. Crea el registro principal de Ecografia.
+     * 5. Itera sobre los productos de la agenda:
+     *    a. Busca o crea el ConfigProducto.
+     *    b. Crea la relación EcografiaProducto.
+     * 6. Retorna respuesta exitosa con los datos creados.
+     *
+     * @param Request $request Datos completos de la admisión (paciente, cita, productos).
+     * @return \Illuminate\Http\JsonResponse Confirmación de creación o error.
      */
     public function store(Request $request)
     {
@@ -193,7 +224,14 @@ class EcografiaController extends Controller
     
 
     /**
-     * Display the specified resource.
+     * Muestra una ecografía específica.
+     *
+     * Flujo del proceso:
+     * 1. Busca la ecografía por ID incluyendo relaciones.
+     * 2. Retorna el objeto ecografía o error 404.
+     *
+     * @param int $id ID de la ecografía.
+     * @return \Illuminate\Http\JsonResponse Datos de la ecografía.
      */
     public function show($id)
     {
@@ -206,7 +244,16 @@ class EcografiaController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualiza datos de una ecografía.
+     *
+     * Flujo del proceso:
+     * 1. Busca la ecografía por ID.
+     * 2. Actualiza con los datos validados del request.
+     * 3. Retorna confirmación.
+     *
+     * @param EcografiaRequest $request Datos a actualizar.
+     * @param int $id ID de la ecografía.
+     * @return \Illuminate\Http\JsonResponse Datos actualizados.
      */
     public function update(EcografiaRequest $request, $id)
     {
@@ -220,7 +267,15 @@ class EcografiaController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina una ecografía.
+     *
+     * Flujo del proceso:
+     * 1. Busca la ecografía por ID.
+     * 2. Elimina el registro.
+     * 3. Retorna mensaje de éxito.
+     *
+     * @param int $id ID de la ecografía.
+     * @return \Illuminate\Http\JsonResponse Confirmación.
      */
     public function destroy($id)
     {
@@ -233,6 +288,18 @@ class EcografiaController extends Controller
         return response()->json(['success' => true, 'message' => 'Ecografía eliminada correctamente']);
     }
 
+    /**
+     * Anula una ecografía lógicamente.
+     *
+     * Flujo del proceso:
+     * 1. Busca la ecografía por ID.
+     * 2. Cambia el estado a 'ANULADO'.
+     * 3. Registra motivo, usuario y fecha de anulación.
+     * 4. Guarda los cambios.
+     *
+     * @param int $id ID de la ecografía.
+     * @return \Illuminate\Http\JsonResponse Confirmación.
+     */
     public function anularEcografia($id)
     {
         $ecografia = Ecografia::findOrFail($id);
@@ -249,6 +316,17 @@ class EcografiaController extends Controller
         return response()->json(['success' => true, 'message' => 'Ecografía anulada correctamente']);
     }
 
+    /**
+     * Genera el reporte PDF de la ecografía.
+     *
+     * Flujo del proceso:
+     * 1. Invoca al PlantillaEcografiaController para procesar la plantilla Word y generar el PDF.
+     * 2. Retorna la respuesta del controlador de plantillas (URL del PDF).
+     *
+     * @param Request $request Datos para el reporte.
+     * @param Ecografia $ecografia Instancia de la ecografía (no usada directamente en el método, pero inyectada).
+     * @return mixed Respuesta de PlantillaEcografiaController::editWord.
+     */
     public function generarReporte(Request $request, Ecografia $ecografia)
     {
         $genearPlantilla = (new PlantillaEcografiaController())->editWord($request);

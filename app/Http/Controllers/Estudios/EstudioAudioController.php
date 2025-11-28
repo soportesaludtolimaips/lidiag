@@ -12,6 +12,19 @@ use Illuminate\Support\Facades\Storage;
 class EstudioAudioController extends Controller
 {
 
+    /**
+     * Sube y convierte un archivo de audio a MP3 usando FFmpeg.
+     *
+     * Flujo del proceso:
+     * 1. Valida que el archivo tenga contenido (> 20KB).
+     * 2. Guarda el archivo original temporalmente.
+     * 3. Convierte el audio a MP3 con bitrate reducido (64 kbps) usando FFmpeg.
+     * 4. Elimina el archivo original.
+     * 5. Guarda la referencia en la base de datos.
+     *
+     * @param Request $request Archivo de audio, `estudio_id`, `estudio_producto_id`.
+     * @return \Illuminate\Http\JsonResponse Confirmación o error.
+     */
     public function uploadAudio(Request $request)
     {
 
@@ -69,6 +82,12 @@ class EstudioAudioController extends Controller
         return response()->json(['success' => false, 'message' => 'No se proporcionó un archivo de audio'], 400);
     }
 
+    /**
+     * Lista los archivos de audio asociados a un estudio.
+     *
+     * @param Request $request ID del estudio (`estudio_id`).
+     * @return \Illuminate\Http\JsonResponse Lista de audios.
+     */
     public function listarAudiosPorEstudio(Request $request)
     {
         $estudioId = $request->estudio_id;

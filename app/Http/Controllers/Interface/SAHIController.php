@@ -17,7 +17,10 @@ use Symfony\Contracts\Service\Attribute\Required;
 class SAHIController extends Controller
 {
     /**
-     * Listas las atenciones de un paciente
+     * Lista las atenciones (ingresos) de un paciente.
+     *
+     * @param Request $request Número de documento del paciente (`numDocu`).
+     * @return \Illuminate\Http\JsonResponse Lista de atenciones.
      */
     public function listarAtenciones(Request $request)
     {
@@ -31,6 +34,12 @@ class SAHIController extends Controller
         return response()->json($atenciones);
     }
 
+    /**
+     * Lista productos facturados y diagnósticos asociados a una atención.
+     *
+     * @param Request $request ID de la atención (`idAtencion`).
+     * @return \Illuminate\Http\JsonResponse Objeto con listas de `productos` y `diagnosticos`.
+     */
     public function listarProductosDiagnosticos(Request $request)
     {
         $productos = FacMovimiento::select('proProducto.IdProducto', 'proProducto.CodProducto as cod_cups', 'proProducto.NomProducto as nom_produc', 'facMovimientoDet.Cantidad')
@@ -50,6 +59,12 @@ class SAHIController extends Controller
         return response()->json(['productos' => $productos, 'diagnosticos' => $diagnosticos]);
     }
 
+    /**
+     * Busca los datos de la EPS, Plan y Contrato de una atención.
+     *
+     * @param int $idAtencion ID de la atención.
+     * @return \Illuminate\Support\Collection Datos de facturación y contrato.
+     */
     public function buscarEpsPlanContrato($idAtencion)
     {
         $datos = FacFactura::select(
@@ -75,6 +90,16 @@ class SAHIController extends Controller
         return $datos;
     }
 
+    /**
+     * Lista detallada de productos de una atención, combinando fuentes de facturación y movimientos.
+     *
+     * Combina resultados de `facFacturaDet` y `FacMovimientoDet` para obtener todos los productos
+     * cargados a la cuenta del paciente. Luego cruza esta información con la base de datos local
+     * de Lidiag para determinar el estado de la ecografía si existe.
+     *
+     * @param Request $request ID de la atención (`bus_nom_num_docu`).
+     * @return \Illuminate\Http\JsonResponse Lista combinada de productos con estado.
+     */
     public function listarProductosAtencion(Request $request)
     {
         $atencionId = $request->bus_nom_num_docu;
@@ -182,7 +207,10 @@ class SAHIController extends Controller
     }
 
     /**
-     * Obtener las ecografias de un paciente por atencion
+     * Obtiene el estado de las ecografías en Lidiag para una atención.
+     *
+     * @param int $atencionId ID de la atención.
+     * @return \Illuminate\Support\Collection Colección de estados.
      */
     private function obtenerDatosLidiag($atencionId)
     {

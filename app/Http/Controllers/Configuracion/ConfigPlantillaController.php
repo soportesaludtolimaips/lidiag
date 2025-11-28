@@ -9,7 +9,9 @@ use Illuminate\Http\Request;
 class ConfigPlantillaController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Lista todas las plantillas de lectura.
+     *
+     * @return \Illuminate\Http\JsonResponse Lista de plantillas con relaciones (tipo, médico).
      */
     public function index()
     {
@@ -18,7 +20,15 @@ class ConfigPlantillaController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Crea una nueva plantilla de lectura.
+     *
+     * Flujo del proceso:
+     * 1. Valida los datos de entrada (tipo, médico, nombre, contenido, opinión, estado).
+     * 2. Crea el registro en la base de datos.
+     * 3. Retorna la plantilla creada.
+     *
+     * @param Request $request Datos de la plantilla.
+     * @return \Illuminate\Http\JsonResponse Datos de la plantilla creada.
      */
     public function store(Request $request)
     {
@@ -50,7 +60,10 @@ class ConfigPlantillaController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Muestra una plantilla específica.
+     *
+     * @param int $id ID de la plantilla.
+     * @return \Illuminate\Http\JsonResponse Datos de la plantilla.
      */
     public function show($id)
     {
@@ -58,7 +71,17 @@ class ConfigPlantillaController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualiza una plantilla existente.
+     *
+     * Flujo del proceso:
+     * 1. Valida los datos de entrada.
+     * 2. Busca la plantilla por ID.
+     * 3. Actualiza el registro.
+     * 4. Retorna la plantilla actualizada.
+     *
+     * @param Request $request Datos a actualizar.
+     * @param int $id ID de la plantilla.
+     * @return \Illuminate\Http\JsonResponse Datos actualizados.
      */
     public function update(Request $request, $id)
     {
@@ -86,7 +109,10 @@ class ConfigPlantillaController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina una plantilla.
+     *
+     * @param int $id ID de la plantilla.
+     * @return \Illuminate\Http\JsonResponse Respuesta vacía (204).
      */
     public function destroy($id)
     {
@@ -96,6 +122,11 @@ class ConfigPlantillaController extends Controller
         return response()->json(null, 204);
     }
 
+    /**
+     * Lista las plantillas activas.
+     *
+     * @return \Illuminate\Http\JsonResponse Lista de plantillas activas.
+     */
     public function listarActivos()
     {
         $plantillas = ConfigPlantilla::with(['plantillaTipo', 'medico'])

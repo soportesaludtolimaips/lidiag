@@ -29,6 +29,11 @@ class EstudioController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    /**
+     * Lista todos los estudios.
+     *
+     * @return \Illuminate\Http\JsonResponse Lista de estudios.
+     */
     public function index()
     {
         $estudios = Estudio::all();
@@ -40,6 +45,22 @@ class EstudioController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
+     */
+    /**
+     * Almacena un nuevo estudio, incluyendo paciente, productos, diagnósticos y soportes.
+     *
+     * Flujo del proceso:
+     * 1. Valida los datos de entrada (médico, prioridad, paciente, productos).
+     * 2. Crea o actualiza el Paciente.
+     * 3. Si la sede usa SAHI, consulta EPS, Contrato y Plan.
+     * 4. Crea el registro del Estudio.
+     * 5. Asocia los productos (EstudioProducto), validando existencia y requerimiento de lectura.
+     * 6. Asocia los diagnósticos (EstudioDiagnostico).
+     * 7. Procesa y guarda los archivos de soporte (HC) si existen.
+     * 8. Retorna confirmación.
+     *
+     * @param Request $request Datos del estudio y archivos.
+     * @return \Illuminate\Http\JsonResponse Confirmación de creación o errores.
      */
     public function store(Request $request)
     {
@@ -187,6 +208,13 @@ class EstudioController extends Controller
         return response()->json(['message' => 'La asignación de la lectura se realizó correctamente.']);
     }
 
+    /**
+     * Procesa y almacena un archivo de soporte de Historia Clínica.
+     *
+     * @param \Illuminate\Http\UploadedFile $archivo Archivo a procesar.
+     * @param int $estudioId ID del estudio asociado.
+     * @return void
+     */
     function procesarArchivo($archivo, $estudioId)
     {
         $nombreEncrip = Str::random(50) . "." . $archivo->extension();
@@ -201,6 +229,19 @@ class EstudioController extends Controller
         Storage::putFileAs('soportes_hc', $archivo, $nombreEncrip);
     }
 
+    /**
+     * Lista los estudios pendientes asignados a un médico.
+     *
+     * Flujo del proceso:
+     * 1. Consulta estudios con relaciones (paciente, sede, productos, usuario, prioridad).
+     * 2. Filtra por médico, estado activo, sin transcriptor y sin fecha de lectura.
+     * 3. Ordena por prioridad (nivel).
+     * 4. Retorna la lista de pendientes.
+     *
+     * @param Request $request Filtros (id médico, sede_id).
+     * @param Estudio $estudio Instancia vacía (no usada).
+     * @return \Illuminate\Http\JsonResponse Lista de estudios pendientes.
+     */
     public function listarPendientesMedico(Request $request, Estudio $estudio)
     {
         $misPendiente = Estudio::select(
@@ -264,6 +305,13 @@ class EstudioController extends Controller
         return response()->json($misPendiente, 200);
     }
 
+    /**
+     * Guarda la lectura realizada por el médico.
+     *
+     * @param Request $request Datos de la lectura.
+     * @param EstudioProducto $estudioProducto Instancia vacía (no usada).
+     * @return \Illuminate\Http\JsonResponse Confirmación.
+     */
     public function leerEstudio(Request $request, EstudioProducto $estudioProducto)
     {
         $productoLectura = EstudioProducto::findOrFail($request->estudio_producto_id);
@@ -274,18 +322,44 @@ class EstudioController extends Controller
         return response()->json(['message' => 'La lectura se realizó correctamente.']);
     }
 
+    /**
+     * Marca un estudio como visto.
+     *
+     * @param int $id ID del producto de estudio.
+     * @return void
+     */
     public function marcarEstudioVisto($id)
     {
         $estudioProducto = EstudioProducto::FindOrFail($id);
         $estudioProducto->visto = 1;
         $estudioProducto->save();
     }
+    /**
+     * Lista los diagnósticos asociados a un estudio.
+     *
+     * @param Request $request ID del estudio.
+     * @return \Illuminate\Http\JsonResponse Lista de diagnósticos.
+     */
     public function listarDiagnosticoPorEstudio(Request $request)
     {
         $diagnosticos = EstudioDiagnostico::where('estudio_id', '=', $request->id)->get();
         return response()->json($diagnosticos);
     }
 
+    /**
+     * Lista los estudios pendientes de transcribir.
+     *
+     * Flujo del proceso:
+     * 1. Consulta estudios con información detallada.
+     * 2. Filtra por estado activo, sin transcriptor.
+     * 3. Aplica filtros opcionales:
+     *    - `estudioParaTranscibir`: Solo estudios ya leídos.
+     *    - Fechas, nombre/documento, usuario asignador, médico.
+     * 4. Ordena por prioridad.
+     *
+     * @param Request $request Filtros de búsqueda.
+     * @return \Illuminate\Http\JsonResponse Lista de estudios pendientes.
+     */
     public function listarPendientesTrascribir(Request $request)
     {
         /**
@@ -373,6 +447,17 @@ class EstudioController extends Controller
         return response()->json($misPendiente);
     }
 
+    /**
+     * Lista todos los estudios asignados con filtros avanzados.
+     *
+     * Flujo del proceso:
+     * 1. Consulta estudios con todas las relaciones necesarias.
+     * 2. Aplica filtros por fechas, sede, paciente, usuario asignador y médico.
+     * 3. Ordena por fecha de creación.
+     *
+     * @param Request $request Filtros de búsqueda.
+     * @return \Illuminate\Http\JsonResponse Lista de estudios asignados.
+     */
     public function listarEstudiosAsignados(Request $request)
     {
         $misPendiente = Estudio::select(
@@ -436,6 +521,21 @@ class EstudioController extends Controller
         return response()->json($misPendiente);
     }
 
+    /**
+     * Guarda la transcripción de un estudio, genera el reporte y notifica.
+     *
+     * Flujo del proceso:
+     * 1. Actualiza datos del paciente.
+     * 2. Actualiza la lectura del estudio (transcriptor, fecha, estado visto).
+     * 3. Si la sede usa SAHI, envía el estudio a la interface.
+     * 4. Genera el reporte:
+     *    - Crea plantilla .docx con `PlantillaEstudioController`.
+     *    - Convierte a PDF.
+     *    - Notifica por email con `EstudioNotificacionController`.
+     *
+     * @param Request $request Datos de transcripción y paciente.
+     * @return \Illuminate\Http\JsonResponse Confirmación o error.
+     */
     public function guardarTranscripcion(Request $request)
     {
         /**
@@ -498,6 +598,12 @@ class EstudioController extends Controller
         return response()->json(['message' => 'La transcripción se guardo correctamente.']);
     }
 
+    /**
+     * Lista estudios pendientes por leer o transcribir.
+     *
+     * @param Request $request Filtros (no usados explícitamente en la consulta actual).
+     * @return \Illuminate\Http\JsonResponse Lista de pendientes.
+     */
     public function penditesPorLeerTranscribir(Request $request)
     {
         $pendiente = Estudio::select(
@@ -534,6 +640,12 @@ class EstudioController extends Controller
         return response()->json($pendiente, 200);
     }
 
+    /**
+     * Busca si un paciente tiene estudios por su número de documento.
+     *
+     * @param Request $request Número de documento.
+     * @return \Illuminate\Http\JsonResponse 'Si' o 'No'.
+     */
     public function buscarEstudioPorNumDocu(Request $request)
     {
         $estudios = Paciente::where('num_docu', '=', $request->numDocu)->first()->lecturas;
@@ -550,6 +662,13 @@ class EstudioController extends Controller
         }
     }
 
+    /**
+     * Anula la asignación de un producto de estudio (lo desactiva).
+     *
+     * @param Request $request ID del producto.
+     * @param EstudioProducto $estudioProducto Instancia vacía (no usada).
+     * @return \Illuminate\Http\JsonResponse Confirmación.
+     */
     public function anularAsignacion(Request $request, EstudioProducto $estudioProducto)
     {
         $productoEstudio =  EstudioProducto::find($request->id);
@@ -559,12 +678,24 @@ class EstudioController extends Controller
         return response()->json(['message' => 'El producto se anulo correctament'], 200);
     }
 
+    /**
+     * Descarga el archivo PDF de una lectura.
+     *
+     * @param string $nomArchivo Nombre del archivo.
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse Archivo PDF.
+     */
     public function descargarPdfLectura($nomArchivo)
     {
         $rutaArchivo = storage_path('app/reporte_lecturas/' . $nomArchivo);
         return response()->file($rutaArchivo);
     }
 
+    /**
+     * Reenvía la notificación por email de un estudio.
+     *
+     * @param Request $request Datos para generar reporte y notificar.
+     * @return mixed Respuesta del notificador.
+     */
     public function notificarEmail(Request $request)
     {
         $genearPlantilla = (new PlantillaEstudioController())->editWord($request);

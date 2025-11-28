@@ -9,6 +9,12 @@ use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
+    /**
+     * Procesa el inicio de sesión del usuario.
+     *
+     * @param loginRequest $request Email y contraseña del usuario.
+     * @return \Illuminate\Http\RedirectResponse Redirección al dashboard o al login con errores.
+     */
     public function login(loginRequest $request)
     {
         $email = $request->email;
@@ -23,6 +29,12 @@ class LoginController extends Controller
         }
     }
 
+    /**
+     * Cierra la sesión del usuario autenticado.
+     *
+     * @param Request $request Solicitud HTTP.
+     * @return \Illuminate\Http\JsonResponse Código de respuesta.
+     */
     public function logout(Request $request)
     {
         Auth::logout();
@@ -30,6 +42,11 @@ class LoginController extends Controller
         return response()->json(['code' => 204]);
     }
 
+    /**
+     * Muestra el formulario de inicio de sesión.
+     *
+     * @return \Illuminate\View\View Vista del login.
+     */
     public function showLoginForm()
     {
         return view('auth/login');

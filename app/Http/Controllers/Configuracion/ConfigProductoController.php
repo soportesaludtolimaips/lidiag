@@ -11,9 +11,9 @@ use Illuminate\Validation\Rule;
 class ConfigProductoController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Lista todos los productos (CUPS) ordenados alfabéticamente.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse Lista de productos.
      */
     public function index()
     {
@@ -21,15 +21,23 @@ class ConfigProductoController extends Controller
         return response()->json($producto);
     }
 
+    /**
+     * Muestra un producto específico.
+     *
+     * @param  ConfigProducto  $configProducto Instancia del producto.
+     * @return \Illuminate\Http\JsonResponse Datos del producto.
+     */
     public function show(ConfigProducto $configProducto)
     {
         return response()->json($configProducto);
     }
+
     /**
-     * Store a newly created resource in storage.
+     * Crea un nuevo producto.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param  ConfigProductoRequest  $request Datos del producto.
+     * @param  ConfigProducto  $configProducto Instancia del modelo.
+     * @return \Illuminate\Http\JsonResponse Confirmación de creación.
      */
     public function store(ConfigProductoRequest $request, ConfigProducto $configProducto)
     {
@@ -38,11 +46,11 @@ class ConfigProductoController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualiza un producto existente.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Configuracion\ConfigProducto  $configProducto
-     * @return \Illuminate\Http\Response
+     * @param  ConfigProductoRequest  $request Datos actualizados.
+     * @param  ConfigProducto  $configProducto Instancia a actualizar.
+     * @return \Illuminate\Http\JsonResponse Confirmación de actualización.
      */
     public function update(ConfigProductoRequest $request, ConfigProducto $configProducto)
     {
@@ -51,10 +59,10 @@ class ConfigProductoController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina un producto.
      *
-     * @param  \App\Models\Configuracion\ConfigProducto  $configProducto
-     * @return \Illuminate\Http\Response
+     * @param  ConfigProducto  $configProducto Instancia a eliminar.
+     * @return \Illuminate\Http\JsonResponse Confirmación de eliminación.
      */
     public function destroy(ConfigProducto $configProducto)
     {

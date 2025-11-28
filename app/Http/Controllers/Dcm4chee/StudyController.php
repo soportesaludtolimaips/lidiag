@@ -19,6 +19,20 @@ class StudyController extends Controller
         $this->middleware('auth');
     }
 
+    /**
+     * Lista estudios desde la base de datos DCM4CHEE (PACS) de una sede específica.
+     *
+     * Flujo del proceso:
+     * 1. Configura conexión dinámica a la base de datos DCM4CHEE de la sede.
+     * 2. Consulta estudios con filtros por documento/nombre y rango de fechas.
+     * 3. Restaura conexión a base de datos principal.
+     * 4. Cruza resultados con Lidiag para marcar estudios ya agendados.
+     * 5. Limpia caracteres inválidos UTF-8 antes de retornar JSON.
+     *
+     * @param Request $request Filtros: `sede_id`, `bus_nom_num_docu`, `bus_fehc_ini`, `bus_fecha_fin`.
+     * @param Study $study Modelo de estudio DCM4CHEE.
+     * @return \Illuminate\Http\Response Lista de estudios en formato JSON.
+     */
     public function listarEstudios(Request $request, Study $study)
     {
         $sedeActual = ConfigSede::find($request->sede_id);

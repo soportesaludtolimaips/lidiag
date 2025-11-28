@@ -13,9 +13,9 @@ use Str;
 class ConfigSedeController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Lista todas las sedes ordenadas alfabéticamente.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse Lista de sedes.
      */
     public function index()
     {
@@ -24,10 +24,19 @@ class ConfigSedeController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Crea una nueva sede con configuración de PACS y plantillas.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * Flujo del proceso:
+     * 1. Decodifica el JSON 'registro' del request.
+     * 2. Valida los datos de configuración (DCM, OVIYAM, etc.).
+     * 3. Crea la instancia de ConfigSede.
+     * 4. Procesa y guarda la plantilla RX si se adjunta (encripta nombre).
+     * 5. Procesa y guarda la plantilla Ecografía si se adjunta (encripta nombre).
+     * 6. Guarda el registro en la base de datos.
+     *
+     * @param Request $request Datos de la sede y archivos.
+     * @param ConfigSede $configsede Instancia vacía (no usada).
+     * @return \Illuminate\Http\JsonResponse Confirmación de creación o errores de validación.
      */
     public function store(Request $request, ConfigSede $configsede)
     {
@@ -118,12 +127,23 @@ class ConfigSedeController extends Controller
         return response()->json(['message' => 'El registro se creo correctamente']);
     }
 
+    /**
+     * Retorna la sede buscada por ID.
+     *
+     * @param ConfigSede $configsede Instancia de la sede.
+     * @return ConfigSede Datos de la sede.
+     */
     public function buscarPorId(ConfigSede $configsede)
     {
         //return 'ok';
         return $configsede;
     }
 
+    /**
+     * Lista solo las sedes activas.
+     *
+     * @return \Illuminate\Http\JsonResponse Lista de sedes activas.
+     */
     public function listarSedesActivas()
     {
         $sedes = ConfigSede::where('estado', '=', 1)->get();
@@ -131,11 +151,18 @@ class ConfigSedeController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualiza una sede existente y sus plantillas.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Configuracion\ConfigSede  $configSede
-     * @return \Illuminate\Http\Response
+     * Flujo del proceso:
+     * 1. Decodifica el JSON 'registro'.
+     * 2. Valida los datos.
+     * 3. Busca la sede por ID.
+     * 4. Actualiza campos de configuración.
+     * 5. Reemplaza plantillas (RX/Ecografía) si se envían nuevas, eliminando las anteriores.
+     * 6. Guarda los cambios.
+     *
+     * @param Request $request Datos actualizados y archivos.
+     * @return \Illuminate\Http\JsonResponse Confirmación de actualización o errores.
      */
     public function update(Request $request)
     {
@@ -228,6 +255,12 @@ class ConfigSedeController extends Controller
         return response()->json(['message' => 'El registro se actualizo correctamente.'], 200);
     }
 
+    /**
+     * Método auxiliar para depuración de carga de archivos (No usado en producción).
+     *
+     * @param Request $request
+     * @return mixed Nombre del archivo o null.
+     */
     public function updateWitchPlantillas(Request $request)
     {
         if ($request->hasFile('plantilla')) {
@@ -239,10 +272,10 @@ class ConfigSedeController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina una sede.
      *
-     * @param  \App\Models\Configuracion\ConfigSede  $configsede
-     * @return \Illuminate\Http\Response
+     * @param ConfigSede $configSede Instancia a eliminar.
+     * @return \Illuminate\Http\JsonResponse Confirmación de eliminación.
      */
     public function destroy(ConfigSede $configSede)
     {

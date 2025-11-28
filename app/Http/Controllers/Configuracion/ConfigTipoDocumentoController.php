@@ -9,7 +9,9 @@ use Illuminate\Http\Request;
 class ConfigTipoDocumentoController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Lista todos los tipos de documento.
+     *
+     * @return \Illuminate\Http\JsonResponse Lista de tipos de documento.
      */
     public function index()
     {
@@ -18,7 +20,10 @@ class ConfigTipoDocumentoController extends Controller
     }
     
     /**
-     * Store a newly created resource in storage.
+     * Crea un nuevo tipo de documento.
+     *
+     * @param  Request  $request Datos del tipo de documento.
+     * @return \Illuminate\Http\JsonResponse Datos del registro creado.
      */
     public function store(Request $request)
     {
@@ -27,7 +32,10 @@ class ConfigTipoDocumentoController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Muestra un tipo de documento específico.
+     *
+     * @param  int  $id ID del tipo de documento.
+     * @return \Illuminate\Http\JsonResponse Datos del tipo de documento o error 404.
      */
     public function show($id)
     {
@@ -41,7 +49,11 @@ class ConfigTipoDocumentoController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualiza un tipo de documento.
+     *
+     * @param  Request  $request Datos a actualizar.
+     * @param  int  $id ID del tipo de documento.
+     * @return \Illuminate\Http\JsonResponse Datos actualizados o error 404.
      */
     public function update(Request $request, $id)
     {
@@ -57,7 +69,10 @@ class ConfigTipoDocumentoController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina un tipo de documento.
+     *
+     * @param  int  $id ID del tipo de documento.
+     * @return \Illuminate\Http\JsonResponse Confirmación de eliminación o error 404.
      */
     public function destroy($id)
     {
@@ -75,6 +90,11 @@ class ConfigTipoDocumentoController extends Controller
         ]);
     }
 
+    /**
+     * Lista los tipos de documento activos.
+     *
+     * @return \Illuminate\Http\JsonResponse Lista de tipos de documento activos.
+     */
     public function listarActivos()
     {
         $tiposDocumento = ConfigTipoDocumento::where('estado', 1)->get();

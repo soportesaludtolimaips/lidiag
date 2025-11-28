@@ -91,6 +91,26 @@ class SAHITranscibirController extends Controller
         $this->fecHorLectura = $fecHorLectura;
     }
 
+    /**
+     * Envía y transcribe un estudio en el sistema SAHI.
+     *
+     * Flujo del proceso:
+     * 1. Valida la existencia del médico en SAHI.
+     * 2. Obtiene la ubicación actual de la atención.
+     * 3. Genera consecutivos para encabezados de esquema.
+     * 4. Inserta registros en tablas de SAHI:
+     *    - `hceEsquemaEncabeza`: Encabezado del esquema.
+     *    - `hceEsquemasdeAte`: Relación con la atención.
+     *    - `hceEsquemaDetMemo`: Detalle del reporte (texto).
+     *    - `hceEsquemaDetProc`: Detalle del médico y producto.
+     *
+     * @param int|null $idAtencion ID de la atención.
+     * @param int|null $idMedico ID del médico.
+     * @param string|null $reporteEstudio Texto del reporte.
+     * @param string|null $codCups Código CUPS del producto.
+     * @param string|null $fecHorLectura Fecha y hora de lectura.
+     * @return \Illuminate\Http\JsonResponse Resultado de la transacción.
+     */
     public function enviarEstudio($idAtencion = null, $idMedico = null, $reporteEstudio = null, $codCups = null, $fecHorLectura = null)
     {
         $this->idAtencion = $idAtencion;

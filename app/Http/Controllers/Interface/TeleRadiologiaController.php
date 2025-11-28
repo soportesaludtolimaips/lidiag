@@ -8,6 +8,12 @@ use Illuminate\Support\Facades\Http;
 
 class TeleRadiologiaController extends Controller
 {
+    /**
+     * Envía una orden a la API externa de Teleradiología.
+     *
+     * @param Request $request Datos de la orden.
+     * @return \Illuminate\Http\JsonResponse Respuesta de la API externa o error.
+     */
     public function enviarOrdenTeleRadiologia(Request $request)
     {
         try {
