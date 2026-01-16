@@ -56,6 +56,8 @@ import configPlantilla from "./components/modulos/configuracion/configPlantilla.
 app.component("config-plantilla-component", configPlantilla);
 import configTipoDocumento from "./components/modulos/configuracion/configTipoDocumentoComponent.vue";
 app.component("config-tipo-documento-component", configTipoDocumento);
+import configConsentimientoInformadoComponent from "./components/modulos/configuracion/configConsentimientoInformadoComponent.vue";
+app.component("config-ConsentimientoIn-formadoComponent", configConsentimientoInformadoComponent);
 
 /**
  * Estudios
@@ -64,7 +66,6 @@ import AsignarEstudioComponent from "./components/modulos/estudios/AsignarEstudi
 app.component("asignar-studio-component", AsignarEstudioComponent);
 import leerEstudioComponent from "./components/modulos/estudios/leerEstudioComponent.vue";
 app.component("leer-estudio-component", leerEstudioComponent);
-
 
 /* import leerEstudioComponent from "./components/modulos/estudios/audio-texto.vue";
 app.component("leer-estudio-component", leerEstudioComponent); */

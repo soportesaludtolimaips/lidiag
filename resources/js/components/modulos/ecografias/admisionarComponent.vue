@@ -321,7 +321,7 @@
                                     </h5>
                                     <hr>
                                     <div class="row">
-                                        <div class="col-md-8">
+                                        <div class="col-md-5">
                                             <div class="form-group">
                                                 <label>Médico</label>
                                                 <Select2 :value="registro.medico_id" :options="medicoOptions"
@@ -332,6 +332,15 @@
                                                 <span class="text-danger" v-if="errores.medico_id">
                                                     {{ errores.medico_id[0] }}
                                                 </span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <div class="form-group">
+                                                <label>Producto</label>
+                                                <Select2 :value="productoSelecciondo" :options="productoOptions"
+                                                    width="100%" :allow-clear="true"
+                                                    :dropdown-parent-selector="'#productos-parent'"
+                                                    @input="onProductoSelect" />
                                             </div>
                                         </div>
                                     </div>
@@ -432,6 +441,7 @@ export default {
         this.listarMedicos();
         this.establecerSede();
         this.listarTipoDocumentos();
+        this.listarProductos();
 
         this.emitter.on("sedeSeleccionada", (data) => {
             this.registro.sede_id = data.idSede;
@@ -457,6 +467,8 @@ export default {
             sedeActual: sessionStorage.getItem('ST-sede'),
             medicoActual: sessionStorage.getItem('ST-medico'),
             productosAgenda: [],
+            productoSelecciondo: null,
+            productos: [],
         }
     },
     computed: {
@@ -467,6 +479,10 @@ export default {
         tipoDocumentoOptions() {
             // Opciones para el Select2 local de medicos.
             return (this.tipoDocumentos || []).map(p => ({ id: String(p.id), codigo: p.codigo, tipo_documento: p.tipo_documento }));
+        },
+        productoOptions() {
+            // Opciones para el Select2 local de productos.
+            return (this.productos || []).map(p => ({ id: String(p.id), cod_cups: p.cod_cups, nom_produc: p.nom_produc }));
         },
     },
     methods: {
@@ -626,6 +642,15 @@ export default {
                 console.log(error);
             }
         },
+        async listarProductos() {
+            try {
+                const res = await axios.get("/config-productos");
+                console.log(res.data);
+                this.productos = res.data;
+            } catch (error) {
+                console.log(error);
+            }
+        },
         onMedicoSelect(value) {
             let selectedId = null;
             if (Array.isArray(value) && value.length > 0) {
@@ -649,6 +674,42 @@ export default {
                 selectedId = String(value);
             }
             this.registro.tipo_documento_id = selectedId || "";
+        },
+        onProductoSelect(value) {
+            let selectedId = null;
+            if (Array.isArray(value) && value.length > 0) {
+                const v = value[0];
+                selectedId = String(typeof v === 'object' && v && v.id != null ? v.id : v);
+            } else if (value && typeof value === 'object' && value.id != null) {
+                selectedId = String(value.id);
+            } else if (value != null) {
+                selectedId = String(value);
+            }
+            if (selectedId != null) {
+
+                const indexProductoEstudio = this.productos.findIndex((x) => x.cod_cups == value[0].cod_cups);
+
+                if (indexProductoEstudio >= 0) {
+                    const productoEstudioId = this.productos[indexProductoEstudio].id;
+                    const productoEstudioCod_cups = this.productos[indexProductoEstudio].cod_cups;
+                    const productoEstudioNomProduc = this.productos[indexProductoEstudio].nom_produc;
+                    const productoEstudioValProduc = this.productos[indexProductoEstudio].val_produc;
+
+                    const yaExiste = this.registro.productosAgenda.some(p => p.id == productoEstudioId);
+                    if (!yaExiste) {
+                        this.registro.productosAgenda.push({
+                            IdProducto: productoEstudioId,
+                            CodLegal: productoEstudioCod_cups,
+                            NomProducto: productoEstudioNomProduc,
+                            Cantidad: 1,
+                            ValProduc: productoEstudioValProduc,
+                        });
+                    }
+
+                    // Limpiar selección
+                    this.productoSelecciondo = "";
+                }
+            }
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);

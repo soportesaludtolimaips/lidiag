@@ -57,7 +57,7 @@ Route::view('dashboard', 'modulos.dashboard.dashboard')->name('dashboard')->midd
 Route::get('reportes.dashboard', [DashBoardController::class, 'Dashboard'])->name('reportes.dashboard')->middleware('auth');
 
 /**
- * Estudios rdiologicos
+ * Estudios radiologicos
  */
 Route::view('/estudios.asignar.listar', 'modulos.estudios.asignar-estudio')->name('estudios.asignar.listar');
 Route::view('/estudios.asignados.listar', 'modulos.estudios.estudio-asignados')->name('estudios.asignados.listar');
@@ -163,6 +163,8 @@ Route::view('/config-tipos-documentos-listar', 'modulos.configuracion.config-tip
 Route::resource('/config-tipos-documentos', ConfigTipoDocumentoController::class)->names('config.tipos.documentos')->except(['create', 'edit']);
 Route::get('/config-tipos-documentos/listar/activos', [ConfigTipoDocumentoController::class, 'listarActivos'])->name('config.tipos.documentos.listar.activos');
 
+Route::view('/config-consentimiento-informado-listar', 'modulos.configuracion.config-consentimiento-informado')->name('config.consentimiento.informado.listar');
+
 /**
  * Seguridad
  */
@@ -196,7 +198,7 @@ Route::get('/importar-dicom', [ImportarDicom::class, 'importarDicom']);
 /**
  * Interface Tele Radiologia
  */
-Route::post('/estudios/enviar-orden-teleradiologia', [TeleRadiologiaController::class, 'enviarOrdenTeleRadiologia'])->name('estudios.enviarOrdenTeleRadiologia');
+
 
 /* Route::get('/{optional?}', function () {
     return view('layouts.app');

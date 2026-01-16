@@ -9,6 +9,8 @@ use Database\Seeders\Configuracion\ConfigDiagnosticoSeeder;
 use Database\Seeders\configuracion\ConfigPrioridadeSeeder;
 use Database\Seeders\Configuracion\ConfigProductoSeeder;
 use Database\Seeders\Configuracion\ConfigSedeSeeder;
+use Database\Seeders\PermisionConsentimientoInformadoSeeder;
+use Database\Seeders\PermisionConfigTipoDocumentoSeeder;
 use Database\Seeders\Seguridad\RoleSeeder;
 use Database\Seeders\RoleSeederReporteLectura;
 use Database\Seeders\Seguridad\UserSeeder;
@@ -36,6 +38,8 @@ class DatabaseSeeder extends Seeder
         $this->call(ConfigPrioridadeSeeder::class);
         $this->call(ConfigProductoSeeder::class);
         $this->call(ConfigSedeSeeder::class);
+        $this->call(PermisionConsentimientoInformadoSeeder::class);
+        $this->call(PermisionConfigTipoDocumentoSeeder::class);
         $this->call(TipoDocumentoSeeder::class);
         $this->call(PlantillaSeeder::class);
 

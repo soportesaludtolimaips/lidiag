@@ -23,6 +23,7 @@ class ReporteProduccion extends Controller
      */
     public function reporteProduccionDetallado(Request $resquest)
     {
+        
         $fechaInicio = $resquest->fechaIni;
         $fechaFin    = $resquest->fechaFin;
 
@@ -30,16 +31,46 @@ class ReporteProduccion extends Controller
         $quienAsignoId = $resquest->quien_asigno !== 'null' ? $resquest->quien_asigno : null;
         $medicoId = $resquest->medico !== 'null' ? $resquest->medico : null;
 
-        /* $ecografias = DB::table('view_reporte_ecografias')
-            ->when($fechaInicio, fn ($q) => $q->whereBetween(DB::raw('DATE(fechor_lectura)'), [$fechaInicio, $fechaFin]))
-            //->when($sedeId, fn ($q) => $q->where('sede_id', $sedeId))
-            ->when($quienAsignoId, fn ($q) => $q->where('usua_regis_id', $quienAsignoId))
-            ->when($medicoId, fn ($q) => $q->where('medico_id', $medicoId))
-            ->select('id', 'fec_cita_sahi', 'fec_regis_cita_sahi', 'fechor_lectura', 'atencion_id', 'quien_registro', 'medico', 'documento_paciente', 
-                    'nombre_paciente', 'cod_cups', 'nom_produc', 'eps', 'contrato', 'plan', 'quien_ordena', 'lectura', 'opinion')
-            ->get();
-
-        return $ecografias; */
+        /* $estudios = DB::table('estudios_productos')
+            ->join('estudios', 'estudios_productos.estudio_id', '=', 'estudios.id')
+            ->join('config_sedes', 'estudios.sede_id', '=', 'config_sedes.id')
+            ->join('config_prioridades', 'estudios.prioridad_id', '=', 'config_prioridades.id')
+            ->join('users as registro', 'estudios.quien_registro_id', '=', 'registro.id')
+            ->join('users as medico', 'medico.id', '=', 'estudios.medico_id')
+            ->join('pacientes', 'estudios.paciente_id', '=', 'pacientes.id')
+            ->leftJoin('users as transcrip', 'transcrip.id', '=', 'estudios_productos.transcriptor_id')
+            ->whereBetween(DB::raw('DATE(estudios_productos.fechor_lectura)'), [$fechaInicio, $fechaFin])
+            ->when($sedeId, function ($query) use ($sedeId) {
+                return $query->where('estudios.sede_id', $sedeId);
+            })
+            ->when($quienAsignoId, function ($query) use ($quienAsignoId) {
+                return $query->where('estudios.quien_registro_id', $quienAsignoId);
+            })
+            ->when($medicoId, function ($query) use ($medicoId) {
+                return $query->where('estudios.medico_id', $medicoId);
+            })
+            ->where('estudios_productos.activo', '=', 1)
+            ->select(
+                'estudios.id',
+                'config_sedes.nom_sede',
+                'estudios.fec_estudio',
+                'estudios_productos.created_at',
+                'estudios_productos.fechor_lectura',
+                'estudios.atencion',
+                'config_prioridades.nom_priori',
+                'registro.name as quien_registro',
+                'medico.name as medico',
+                'pacientes.num_docu',
+                'pacientes.nombres',
+                'estudios_productos.cod_cups',
+                'estudios_productos.nom_produc',
+                'transcrip.name as transcriptor',
+                'estudios.eps',
+                'estudios.contrato',
+                'estudios.plan'
+            )
+            ->toSql();
+        return $estudios;  */
 
         // Define el nombre y la ruta del archivo
         $fileName = 'estudios_' . now()->format('Ymd_His') . '.xlsx';

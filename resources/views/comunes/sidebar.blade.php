@@ -167,8 +167,15 @@
                                     <li>
                                         <a href="{{ route('config.plantillas.listar') }}">Plantillas</a>
                                     </li>
+                                @endcan
+                                @can('config.tipo.documento.index')
                                     <li>
                                         <a href="{{ route('config.tipos.documentos.listar') }}">Tipos de Documentos</a>
+                                    </li>
+                                @endcan
+                                @can('config.consentimiento_informado.index')
+                                    <li>
+                                        <a href="{{ route('config.consentimiento.informado.listar') }}">Consentimiento Informado</a>
                                     </li>
                                 @endcan
                             </ul>
