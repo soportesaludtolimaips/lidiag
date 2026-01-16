@@ -137,6 +137,7 @@
                                 <tr v-for="(item, index) in registros" :key="index"
                                     :class="{ 'text-info': item.visto === 1 }" :id="item.estudio_producto_id">
                                     <td width="2%">
+                                        {{ item.id }}
                                         <button type="button" v-if="item.priori_id == 1"
                                             class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">A</button>
                                         <button type="button" v-else-if="item.priori_id == 2"
@@ -331,10 +332,10 @@
                                                 @click="verImagen(this.registro.urlOviyam, this.registro.patientId, this.registro.studyUID, this.registro.serverName)">
                                                 <i class="fa fa-file-image-o"></i>
                                             </button>
-                                             <a class="" @click="toggleSpeechRecognition"
-                                                 style="width: 30px; height: 30px;">
-                                                 <img title="Grabadora" :src="microfono">
-                                             </a>
+                                            <a class="" @click="toggleSpeechRecognition"
+                                                style="width: 30px; height: 30px;">
+                                                <img title="Grabadora" :src="microfono">
+                                            </a>
                                         </div>
                                     </div>
                                 </div>

@@ -362,6 +362,7 @@ class EstudioController extends Controller
      */
     public function listarPendientesTrascribir(Request $request)
     {
+        //return $request;
         /**
          * @estudioParaTranscibir para saber si se van a listar los estudio que ya estan leidos o no, 
          * para transcribir los estudios que se envian a trys o a teleradiologia

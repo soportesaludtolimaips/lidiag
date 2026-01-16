@@ -10,4 +10,9 @@ class ConfigProducto extends Model
     use HasFactory;
 
     protected $fillable = ['cod_cups',  'nom_produc', 'porcen', 'val_produc', 'requi_lectura', 'tipo_oral', 'tipo_venoso', 'factura', 'estado'];
+
+    public function consentimientoInformado()
+    {
+        return $this->hasMany(ConsentimientoInformado::class);
+    }
 }

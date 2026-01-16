@@ -27,19 +27,18 @@ class EstudioAudioController extends Controller
      */
     public function uploadAudio(Request $request)
     {
-
         if ($request->hasFile('audio')) {
-
             $audioFile = $request->file('audio');
-            $nombreArchivo = 'audio_' . time() . '.' . $audioFile->getClientOriginalExtension();
-            $outputPath = Storage::disk('audios')->path('audio_' . time() . '.mp3'); // Ruta del archivo convertido
+            $timestamp = time();
+            $nombreArchivoOriginal = 'audio_' . $timestamp . '.' . $audioFile->getClientOriginalExtension();
+            $nombreArchivoMp3 = 'audio_' . $timestamp . '.mp3'; // ← Nombre del MP3
+            $outputPath = Storage::disk('audios')->path($nombreArchivoMp3);
 
             if ($audioFile->getSize() > 20000) {
-
-                $audioFilePath = $audioFile->storeAs('', $nombreArchivo, 'audios');
+                // Guardar temporal
+                $audioFile->storeAs('', $nombreArchivoOriginal, 'audios');
 
                 try {
-                    // Configurar FFmpeg
                     $ffmpeg = FFMpeg\FFMpeg::create([
                         'ffmpeg.binaries'  => 'C:/ffmpeg/bin/ffmpeg.exe',
                         'ffprobe.binaries' => 'C:/ffmpeg/bin/ffprobe.exe',
@@ -47,23 +46,20 @@ class EstudioAudioController extends Controller
                         'ffmpeg.threads'   => 12,
                     ]);
 
-                    // Configurar formato MP3
                     $format = new Mp3();
                     $format->setAudioCodec('libmp3lame');
-                    $format->setAudioKiloBitrate(64); // Reducir el bitrate a 64 kbps para disminuir el tamaño
+                    $format->setAudioKiloBitrate(64);
 
-                    // Convertir el archivo
-                    $audio = $ffmpeg->open(Storage::disk('audios')->path($nombreArchivo));
+                    $audio = $ffmpeg->open(Storage::disk('audios')->path($nombreArchivoOriginal));
                     $audio->save($format, $outputPath);
 
-                    // Eliminar el archivo original .webm
-                    Storage::disk('audios')->delete($nombreArchivo);
+                    Storage::disk('audios')->delete($nombreArchivoOriginal);
 
-                    // Guardar en la base de datos
+                    // Guardar en BD con nombre .mp3 ← FIX AQUÍ
                     $estudioAudio = new EstudioAudio();
                     $estudioAudio->estudio_id = $request->estudio_id;
                     $estudioAudio->estudio_producto_id = $request->estudio_producto_id;
-                    $estudioAudio->audio = $audioFilePath;
+                    $estudioAudio->audio = $nombreArchivoMp3; // ← Cambio importante
                     $estudioAudio->save();
 
                     return response()->json(['success' => true, 'message' => 'Audio subido con éxito'], 200);
@@ -86,14 +82,13 @@ class EstudioAudioController extends Controller
      * Lista los archivos de audio asociados a un estudio.
      *
      * @param Request $request ID del estudio (`estudio_id`).
-     * @return \Illuminate\Http\JsonResponse Lista de audios.
+     * @return \Illuminate\Http\JsonResponse Lista de audios con URL incluida.
      */
     public function listarAudiosPorEstudio(Request $request)
     {
         $estudioId = $request->estudio_id;
 
-        $audios = EstudioAudio::where('estudio_id', '=', $estudioId)
-            ->get();
+        $audios = EstudioAudio::where('estudio_id', $estudioId)->get();
 
         return response()->json($audios);
     }

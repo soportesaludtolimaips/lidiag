@@ -45,7 +45,7 @@ class CreateViewReporteEcografias extends Migration
             JOIN ecografias e ON ep.ecografia_id = e.id
             JOIN pacientes p ON e.paciente_id = p.id
             JOIN users u_reg ON e.usua_regis_id = u_reg.id
-            LEFT JOIN users u_med ON e.medico_id = u_med.id
+            LEFT JOIN users u_med ON ep.medico_id = u_med.id
             JOIN config_admin_salud cas ON e.admin_salud_id = cas.id
             JOIN config_productos cp ON ep.producto_id = cp.id
         ");

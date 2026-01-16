@@ -183,7 +183,7 @@
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span>
+                    <span @click="btnCerralModalForm()">
                         <i class="ti-close right-side-toggle" id="btnCerralModalForm" @click="btnCerralModalForm()"></i>
                     </span>
                 </div>
@@ -389,7 +389,7 @@
                                                 </div>
                                                 <div class="tab-pane p-20" id="profile8" role="tabpanel">
                                                     <template v-for="(item, index) in audiosDeEstudio" :key="index">
-                                                        <audio :src="`audios/${item.audio}`" controls
+                                                        <audio :src="item.url" controls
                                                             style="height: 15px; width: 100%;"></audio>
                                                     </template>
                                                 </div>
@@ -461,7 +461,7 @@ export default {
                 reg_medico: '', nombres_medico: '', firma_medico: '', url_oviyam: null, tap_oviyam: null, study_iuid: null, tap_oviyam: null,
 
             },
-            busqueda: { estudioParaTranscibir: 'si', quien_asigno_id: "", medico_id: "", sede_id: '', bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
+            busqueda: { estudioParaTranscibir: 'si', quien_asigno_id: "", medico_id: "", sede_id: '', bus_nom_num_docu: "1105694271", bus_fehc_ini: "", bus_fecha_fin: "" },
             datosImagen: { urlOviyam: '', patientId: '', studyUID: '', serverName: '' },
             audiosDeEstudio: [],
             quienes_asignaron: [],
@@ -541,7 +541,7 @@ export default {
                         hideAfter: 3500,
                         stack: 6,
                     });
-
+                    console.log("ok")
                     this.btnCerralModalForm();
                     this.limpiar();
                 } else {
@@ -557,7 +557,7 @@ export default {
                     });
                 }
             } catch (error) {
-                if (error.response.data.status = 402) {
+                if (error.response.data.status == 402) {
                     $.toast({
                         heading: "Upss!!!",
                         text: error.response.data.message,
@@ -653,7 +653,7 @@ export default {
         },
         async listarAudios() {
             const res = await axios.get('/listar-audios-estudio/' + this.id);
-            console.log("Audios ", `audios/${res.data}`)
+            console.log("Audios ", res.data);
             this.audiosDeEstudio = res.data;
         },
         establecerSede() {
@@ -700,7 +700,7 @@ export default {
             this.registro.reg_medico = data.reg_medico;
             this.registro.nombres_medico = data.nombres_medico;
             this.registro.firma_medico = data.firma_medico;
-            this.registro.lectura = `Atención: ${data.atencion}\nFecha y Hora del estudio: ${data.fec_estudio}\nFecha y Hora de transcipción: ${fechaActual}\n\n${data.nom_produc}\n\n${data.lectura}`;
+            this.registro.lectura = `Atención: ${data.atencion}\nFecha y Hora del estudio: ${data.fec_estudio}\nFecha y Hora de transcripción: ${fechaActual}\n\n${data.nom_produc}\n\n${data.lectura}`;
 
             this.datosImagen.urlOviyam = data.url_oviyam;
             this.datosImagen.patientId = data.num_docu;
@@ -720,6 +720,7 @@ export default {
             const resSoportesHC = await axios.get('/listar-soportes-hc-estudio?id=' + this.id);
             this.soportesHC = resSoportesHC.data;
 
+            this.audiosDeEstudio = [];
             this.listarAudios()
             this.btnCerralModalForm();
             this.errores = [];
@@ -736,6 +737,8 @@ export default {
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);
             $(".right-sidebar").toggleClass("shw-rside");
+
+            this.audiosDeEstudio = [];
         }
     },
     computed: {
