@@ -541,7 +541,7 @@ export default {
                         hideAfter: 3500,
                         stack: 6,
                     });
-                    console.log("ok")
+
                     this.btnCerralModalForm();
                     this.limpiar();
                 } else {
