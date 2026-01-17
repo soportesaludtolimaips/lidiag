@@ -461,7 +461,7 @@ export default {
                 reg_medico: '', nombres_medico: '', firma_medico: '', url_oviyam: null, tap_oviyam: null, study_iuid: null, tap_oviyam: null,
 
             },
-            busqueda: { estudioParaTranscibir: 'si', quien_asigno_id: "", medico_id: "", sede_id: '', bus_nom_num_docu: "1105694271", bus_fehc_ini: "", bus_fecha_fin: "" },
+            busqueda: { estudioParaTranscibir: 'si', quien_asigno_id: "", medico_id: "", sede_id: '', bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
             datosImagen: { urlOviyam: '', patientId: '', studyUID: '', serverName: '' },
             audiosDeEstudio: [],
             quienes_asignaron: [],
