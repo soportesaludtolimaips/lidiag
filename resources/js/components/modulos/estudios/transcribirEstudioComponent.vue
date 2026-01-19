@@ -405,7 +405,8 @@
                                     <i class="fa fa-check"></i> Guardar
                                 </button>
 
-                                <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">
+                                <button type="button" class="btn btn-inverse" ref="btnCerrarForm"
+                                    @click="btnCerralModalForm()">
                                     Cancel
                                 </button>
                             </div>
@@ -484,8 +485,9 @@ export default {
                         stack: 6,
                     });
                 } else {
-                    const res = await axios.post("/estudio-listarPendientesTrascribir", this.busqueda);
                     $("#example23").DataTable().destroy();
+
+                    const res = await axios.post("/estudio-listarPendientesTrascribir", this.busqueda);
 
                     this.registros = res.data;
 
@@ -541,7 +543,8 @@ export default {
                         hideAfter: 3500,
                         stack: 6,
                     });
-
+                    this.$refs.btnCerrarForm.click();
+                    console.log("Cerrando modal en btnCerralModalForm");
                     this.btnCerralModalForm();
                     this.limpiar();
                 } else {
@@ -735,6 +738,7 @@ export default {
             this.errores = [];
         },
         btnCerralModalForm() {
+            console.log("Cerrando modal");
             $(".right-sidebar").slideDown(50);
             $(".right-sidebar").toggleClass("shw-rside");
 
