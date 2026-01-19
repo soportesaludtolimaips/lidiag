@@ -298,7 +298,6 @@ class EstudioController extends Controller
             ->whereNull('estu_produc.fechor_trascrito')
             ->whereNull('estu_produc.fechor_lectura')
             ->where('sesde.id', $request->sede_id)
-            ->orderBy('priori.nom_priori')
             ->orderBy('priori.nivel', 'ASC')
             ->get();
 

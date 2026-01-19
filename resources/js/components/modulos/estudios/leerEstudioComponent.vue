@@ -828,6 +828,7 @@ export default {
                 console.error("Error: this.audioBlob no es un Blob válido.");
                 return;
             }
+
             const formData = new FormData();
             formData.append('audio', this.audioBlob, 'audio.webm');
             formData.append('estudio_id', this.id);
