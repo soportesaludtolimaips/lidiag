@@ -586,11 +586,11 @@ class EstudioController extends Controller
             return response()->json(['message' => 'La plantilla para la sede ' . $sede->nom_sede . ', no está  configurada, por favor consulte con el administrador del sistema'], 402);
         } elseif ($genearPlantilla->status() == 200) {
 
-            $notificar = (new EstudioNotificacionController())->notificarEmail($request);
+            //$notificar = (new EstudioNotificacionController())->notificarEmail($request);
 
-            if ($notificar->status() == 200) {
-                return response()->json(['message' => 'Lectura transferida correctamente'], 200);
-            }
+            //if ($notificar->status() == 200) {
+            return response()->json(['message' => 'Lectura transferida correctamente'], 200);
+            //}
         } else {
             return response()->json(['message' => 'Error en la trnaferencia de la lectura'], 400);
         }
