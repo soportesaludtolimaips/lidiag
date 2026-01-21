@@ -569,7 +569,7 @@ class EstudioController extends Controller
      */
     public function guardarTranscripcion(Request $request)
     {
-        return $request;
+        //return $request;
         /**
          * Actualizo los datos del paciente
          */
@@ -596,9 +596,9 @@ class EstudioController extends Controller
         $transcribirEstudios->visto = 1;
         $transcribirEstudios->save();
 
-        if ($registro['destino_estudio'] === 'Tele Radiologia') {
+        if ($request->destino_estudio === 'Tele Radiologia') {
             $estudio = Estudio::findOrFail($request->id_estudio);
-            $estudio->medico_id =  $registro['medico_id'];
+            $estudio->medico_id =  $request['medico_id'];
             $estudio->save();
         }
 
