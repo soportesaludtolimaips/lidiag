@@ -67,19 +67,31 @@ app.component("asignar-studio-component", AsignarEstudioComponent);
 import leerEstudioComponent from "./components/modulos/estudios/leerEstudioComponent.vue";
 app.component("leer-estudio-component", leerEstudioComponent);
 
+/**
+ * Otras plataformas
+ */
+import OtrasPlataformasAsignarEstudioComponent from "./components/modulos/otras-plataformas/OtrasPlataformasAsignarEstudioComponent.vue";
+app.component("otras-plataformas-asignar-estudio-component", OtrasPlataformasAsignarEstudioComponent);
+
 /* import leerEstudioComponent from "./components/modulos/estudios/audio-texto.vue";
 app.component("leer-estudio-component", leerEstudioComponent); */
 
 import otrasPlataformasComponent from "./components/modulos/estudios/otrasPlataformasComponent.vue";
 app.component("otras-plataformas-component", otrasPlataformasComponent);
-import teleRadiologiaComponent from "./components/modulos/estudios/teleRadiologiaComponent.vue";
-app.component("tele-radiologia-component", teleRadiologiaComponent);
 import transcribirEstudioComponent from "./components/modulos/estudios/transcribirEstudioComponent.vue";
 app.component("transcribir-estudio-component", transcribirEstudioComponent);
 import notificarEstudioComponent from "./components/modulos/estudios/notificarEstudioComponent.vue";
 app.component("notificar-estudio-component", notificarEstudioComponent);
 import estudioAsignadosComponent from "./components/modulos/estudios/estudioAsignadosComponent.vue";
 app.component("estudio-asignados-component", estudioAsignadosComponent);
+
+/**
+ * Tele Radiologia
+ */
+import teleRadiologiaComponent from "./components/modulos/tele-radiologia/teleRadiologiaComponent.vue";
+app.component("tele-radiologia-component", teleRadiologiaComponent);
+import teleRadiologiaTranscibirComponent from "./components/modulos/tele-radiologia/teleRadiologiaTranscibirComponent.vue";
+app.component("tele-radiologia-transcribir-component", teleRadiologiaTranscibirComponent);
 
 /**
  * Ecografias
@@ -94,8 +106,8 @@ app.component("ecografias-admisionadas-component", ecografiasAdmisionadasCompone
 /**
  * Agenda
  */
-import agendaComponent from "./components/modulos/agenda/agendaComponent.vue";
-app.component("agenda-component", agendaComponent);
+import agendaDisponibilidadComponent from "./components/modulos/agenda/agendaDisponibilidadComponent.vue";
+app.component("agenda-disponibilidad-component", agendaDisponibilidadComponent);
 
 /**
  * Seguridad

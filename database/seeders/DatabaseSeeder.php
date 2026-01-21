@@ -49,5 +49,9 @@ class DatabaseSeeder extends Seeder
         $this->call(RoleSeederAgenda::class);
         $this->call(ModulosSeeder::class);
         $this->call(PermisionEcografiasSeeder::class);
+
+        $this->call(OtrasInterfacesSeeder::class);
+        $this->call(InterfaceTeleRadiologiaSeeder::class);
+        $this->call(PermisosAgendamientoSeeder::class);
     }
 }

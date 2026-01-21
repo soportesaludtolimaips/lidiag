@@ -325,7 +325,6 @@
                                     <hr>
                                     <div class="row">
                                         <div class="col-md-8">
-
                                             <div class="form-group" id="medicos-parent">
                                                 <label>Médico</label>
                                                 <Select2 :value="registro.medico_id" :options="medicoOptions"
@@ -520,7 +519,7 @@ export default {
             registro: {
                 study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", mods_in_study: "", observaciones: "", medico_id: "", prioridad_id: "",
                 sede_id: this.sedeActual, quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", telefono: "",
-                productosEstudio: [], diagnosticosEstudio: [], atencion_id: null
+                productosEstudio: [], diagnosticosEstudio: [], atencion_id: null, destino_estudio: 'Salud Tolima'
             },
             soportesHC: { archivo1: null, archivo2: null, archivo3: null }, //Soporte de historia clinica
             busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },

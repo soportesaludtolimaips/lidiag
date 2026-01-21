@@ -1,6 +1,7 @@
 <?php
 
-use App\Http\Controllers\Agenda\AgendaController;
+use App\Http\Controllers\Agenda\AgendaDisponibilidaController;
+use App\Http\Controllers\Agenda\AgendaDisponibilidaDetalleController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Auth\LoginController;
@@ -84,7 +85,6 @@ Route::post('/upload-audio', [EstudioAudioController::class, 'uploadAudio']);
 Route::get('/listar-audios-estudio/{estudio_id}', [EstudioAudioController::class, 'listarAudiosPorEstudio'])->name('listarAudiosPorEstudio');
 
 Route::view('/estudios.transcribir.listar', 'modulos.estudios.transcribir-estudio')->name('estudios.transcribir.listar');
-Route::view('/estudios.otras-plataformas', 'modulos.estudios.otras-plataformas')->name('estudios.otrasPlataformas.listar');
 Route::view('/estudios.tele-radiologia', 'modulos.estudios.tele-radiologia')->name('estudios.teleradiologis.listar');
 
 Route::post('/estudio-listarPendientesTrascribir', [EstudioController::class, 'listarPendientesTrascribir'])->name('estudio.listarPendientesTrascribir');
@@ -96,6 +96,20 @@ Route::get('/estudio-listarPendientesPorLeerTranscribir', [EstudioController::cl
 Route::get('/estudio-buscar-por-numdocu/{numDocu}', [EstudioController::class, 'buscarEstudioPorNumDocu'])->name('estudio.buscarEstudioPorNumDocu');
 
 /**
+ * Otras Plataformas
+ */
+Route::view('/otras-plataformas.listar-estudio-enviar', 'modulos.otras-plataformas.listar-estudio-enviar')->name('otras.plataformas.listar.estudio.enviar');
+
+/**
+ * Tele Radiologia
+ */
+Route::view('/tele-radiologia', 'modulos.tele-radiologia.tele-radiologia')->name('teleradiologia.index');
+Route::view('/tele-radiologia-transcribir', 'modulos.tele-radiologia.tele-radiologia-trasncribir')->name('teleradiologia.transcribir');
+Route::post('/tele-radiologia-enviar-estudio', [TeleRadiologiaController::class, 'enviarEstudio'])->name('tele.radiologia.enviar.estudio');
+Route::post('/tele-radiologia-listar-estudios', [TeleRadiologiaController::class, 'listarEstudios'])->name('tele.radiologia.listar.estudios');
+Route::post('/tele-radiologia-enviar-orden', [TeleRadiologiaController::class, 'enviarOrdenTeleRadiologia'])->name('tele.radiologia.enviar.orden');
+
+/*
  * Ecografias
  */
 Route::view('/ecografias.admisiones', 'modulos.ecografias.admisiones')->name('ecografias.admisiones');
@@ -115,12 +129,6 @@ Route::resource('ecografias-productos', EcografiaProductoController::class)->nam
 Route::post('/ecografia-guardarLectura', [ecografiaLecturaController::class, 'guardarLectura'])->name('ecografia.guardarLectura');
 
 Route::post('/interface-sahi-ecografias/listar/productos/atencion', [SAHIEcografiasController::class, 'listarProductosAtencion'])->name('sahi.listar.productos.atencion');
-
-/**
- * citas
- */
-Route::view('/agenda', 'modulos.agenda.agenda-gestionar')->name('agenda');
-Route::resource('/agenda-gestionar', AgendaController::class)->names('agenda.gestionar');
 
 /**
  * Reportes
@@ -196,8 +204,13 @@ Route::post('/interface-sahi/listar/productos/atencion', [SAHIController::class,
 Route::get('/importar-dicom', [ImportarDicom::class, 'importarDicom']);
 
 /**
- * Interface Tele Radiologia
+ * Agendamiento
  */
+Route::view('/agenda', 'modulos.agenda.index')->name('agendamiento.index');
+Route::view('/agenda-disponibilidad', 'modulos.agenda.disponibilidad')->name('agenda.disponibilidad.index');
+Route::resource('agenda-disponibilidad', AgendaDisponibilidaController::class)->names('agenda.disponibilidad')->except(['create', 'edit', '']);
+Route::resource('agenda-detalle', AgendaDisponibilidaDetalleController::class)->names('agenda.detalle')->except(['create', 'edit', 'update']);
+
 
 
 /* Route::get('/{optional?}', function () {

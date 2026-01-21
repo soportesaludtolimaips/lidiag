@@ -22,7 +22,6 @@ use Illuminate\Support\Facades\DB;
 
 class EstudioController extends Controller
 {
-
     protected $nomArchivoReporte;
     /**
      * Display a listing of the resource.
@@ -66,22 +65,38 @@ class EstudioController extends Controller
     {
         $registro = json_decode($request->input('registro'), true);
 
-        $validator = Validator::make($registro, [
-            'medico_id' => 'required|integer|not_in:0',  // Validación para que no sea 0
-            'prioridad_id' => 'required|integer|not_in:0',  // Validación para que no sea 0
-            'num_docu' => 'required',
-            'nombres' => 'required',
-            'productosEstudio' => 'required|array|min:1',  // Debe ser un array con al menos un elemento
-        ], [
-            'medico_id.required' => 'Te hizo falta el medico.',
-            'medico_id.not_in' => 'Te hizo falta el medico.',
-            'prioridad_id.required' => 'Te hizo falta la prioridad del estudio.',
-            'prioridad_id.not_in' => 'Te hizo falta la prioridad del estudio.',
-            'num_docu.required' => 'Te hizo falta el número de documento del paciente.',
-            'nombres.required' => 'Te hizo falta los nombres del paciente.',
-            'productosEstudio.required' => 'Debe elegir al menos un producto.',
-            'productosEstudio.min' => 'Debe elegir al menos un producto.',
-        ]);
+        if ($registro['destino_estudio'] === 'Tele Radiologia') {
+            $validator = Validator::make($registro, [
+                'prioridad_id' => 'required|integer|not_in:0',  // Validación para que no sea 0
+                'num_docu' => 'required',
+                'nombres' => 'required',
+                'productosEstudio' => 'required|array|min:1',  // Debe ser un array con al menos un elemento
+            ], [
+                'prioridad_id.required' => 'Te hizo falta la prioridad del estudio.',
+                'prioridad_id.not_in' => 'Te hizo falta la prioridad del estudio.',
+                'num_docu.required' => 'Te hizo falta el número de documento del paciente.',
+                'nombres.required' => 'Te hizo falta los nombres del paciente.',
+                'productosEstudio.required' => 'Debe elegir al menos un producto.',
+                'productosEstudio.min' => 'Debe elegir al menos un producto.',
+            ]);
+        } else {
+            $validator = Validator::make($registro, [
+                'medico_id' => 'required|integer|not_in:0',  // Validación para que no sea 0
+                'prioridad_id' => 'required|integer|not_in:0',  // Validación para que no sea 0
+                'num_docu' => 'required',
+                'nombres' => 'required',
+                'productosEstudio' => 'required|array|min:1',  // Debe ser un array con al menos un elemento
+            ], [
+                'medico_id.required' => 'Te hizo falta el medico.',
+                'medico_id.not_in' => 'Te hizo falta el medico.',
+                'prioridad_id.required' => 'Te hizo falta la prioridad del estudio.',
+                'prioridad_id.not_in' => 'Te hizo falta la prioridad del estudio.',
+                'num_docu.required' => 'Te hizo falta el número de documento del paciente.',
+                'nombres.required' => 'Te hizo falta los nombres del paciente.',
+                'productosEstudio.required' => 'Debe elegir al menos un producto.',
+                'productosEstudio.min' => 'Debe elegir al menos un producto.',
+            ]);
+        }
 
         // Si la validación falla, devuelve los errores
         if ($validator->fails()) {
@@ -141,7 +156,7 @@ class EstudioController extends Controller
                 'mods_in_study' => $registro['mods_in_study'],
                 'email_reportar' => $registro['email_reportar'],
                 'paciente_id' => $paciente->id,
-                'medico_id' => $registro['medico_id'],
+                //'medico_id' => ($registro['destino_estudio'] === 'Tele Radiologia') ? null : $registro['medico_id'],
                 'quien_registro_id' => auth()->user()->id,
                 'sede_id' => $registro['sede_id'],
                 'prioridad_id' => $registro['prioridad_id'],
@@ -151,8 +166,14 @@ class EstudioController extends Controller
                 'eps' => $eps,
                 'contrato' => $contrato,
                 'plan' => $plan,
+                'destino_estudio' => $registro['destino_estudio']
             ]
         );
+
+        if ($registro['destino_estudio'] === 'Salud Tolima') {
+            $estudio->medico_id =  $registro['medico_id'];
+            $estudio->save();
+        }
 
         /**
          * Elimino los productos existentes para almacenar los nuevos
@@ -333,6 +354,7 @@ class EstudioController extends Controller
         $estudioProducto->visto = 1;
         $estudioProducto->save();
     }
+
     /**
      * Lista los diagnósticos asociados a un estudio.
      *
@@ -361,7 +383,6 @@ class EstudioController extends Controller
      */
     public function listarPendientesTrascribir(Request $request)
     {
-        //return $request;
         /**
          * @estudioParaTranscibir para saber si se van a listar los estudio que ya estan leidos o no, 
          * para transcribir los estudios que se envian a trys o a teleradiologia
@@ -417,11 +438,17 @@ class EstudioController extends Controller
             ->join('pacientes AS pacien', 'estudios.paciente_id', '=', 'pacien.id')
             ->join('config_sedes AS sede', 'estudios.sede_id', '=', 'sede.id')
             ->join('users', 'estudios.quien_registro_id', '=', 'users.id')
-            ->join('users as medi', 'estudios.medico_id', '=', 'medi.id')
+            ->leftJoin('users as medi', 'estudios.medico_id', '=', 'medi.id')
             ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
             ->join('config_productos', 'estudios_productos.producto_id', '=', 'config_productos.id')
-            ->when($request->estudioParaTranscibir, function ($query) {
-                return $query->whereNotNull('estudios_productos.fechor_lectura');
+            ->when($request->estudioParaTranscibir, function ($query) use ($request) {
+                $query->where(function ($q) use ($request) {
+                    if ((int) $request->destino_estudio === 'Salud Tolima') {
+                        $q->whereNotNull('estudios_productos.fechor_lectura');
+                    } else {
+                        $q->whereNull('estudios_productos.fechor_lectura');
+                    }
+                });
             })
             ->when($request->bus_fehc_ini && $request->bus_fecha_fin, function ($query) use ($request) {
                 return $query->whereBetween('estudios.fec_estudio', [$request->bus_fehc_ini, $request->bus_fecha_fin]);
@@ -429,6 +456,10 @@ class EstudioController extends Controller
             ->where('estudios_productos.activo', '=', 1)
             ->whereNull('estudios_productos.transcriptor_id')
             ->where('estudios.sede_id', $request->sede_id)
+            ->where(function ($q) use ($request) {
+                $q->where('estudios.destino_estudio', $request->destino_estudio)
+                    ->orWhereNull('estudios.destino_estudio');
+            })
             ->when($request->bus_nom_num_docu, function ($query, $bus_nom_num_docu) {
                 return $query->where(function ($q) use ($bus_nom_num_docu) {
                     $q->where('pacien.num_docu', $bus_nom_num_docu)
@@ -538,6 +569,7 @@ class EstudioController extends Controller
      */
     public function guardarTranscripcion(Request $request)
     {
+        return $request;
         /**
          * Actualizo los datos del paciente
          */
@@ -557,13 +589,18 @@ class EstudioController extends Controller
         /**
          * Actualizo la lectura del estudio
          */
-
         $transcribirEstudios = EstudioProducto::findOrFail($request->estudio_producto_id);
         $transcribirEstudios->lectura = $request->lectura;
         $transcribirEstudios->transcriptor_id = auth()->user()->id;
         $transcribirEstudios->fechor_trascrito = Carbon::now()->format('Y-m-d H:i:s');
         $transcribirEstudios->visto = 1;
         $transcribirEstudios->save();
+
+        if ($registro['destino_estudio'] === 'Tele Radiologia') {
+            $estudio = Estudio::findOrFail($request->id_estudio);
+            $estudio->medico_id =  $registro['medico_id'];
+            $estudio->save();
+        }
 
         /**
          * Si la sede donde se realizó el estudio tiene interface hago el envio del reporte a la HC del hospital

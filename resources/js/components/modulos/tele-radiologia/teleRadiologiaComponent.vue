@@ -355,7 +355,7 @@
                                                         <td>
                                                             <input type="checkbox" class="iCheck-helper"
                                                                 id="flat-checkbox-2" data-checkbox="icheckbox_flat-red"
-                                                                @change="guardarProductosEstudio(item.cod_cups, item.nom_produc)">
+                                                                @change="guardarProductosEstudio(item.id, item.cod_cups, item.nom_produc)">
                                                             <label for="flat-checkbox-2"></label>
                                                         </td>
                                                         <td>{{ item.cod_cups }}</td>
@@ -431,6 +431,11 @@ export default {
             id: 0,
             registros: [],
             tituloModal: "Nuevo registro",
+            registro: {
+                study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", mods_in_study: "", observaciones: "", medico_id: "", prioridad_id: "",
+                sede_id: this.sedeActual, quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", telefono: "",
+                productosEstudio: [], diagnosticosEstudio: [], atencion_id: null, destino_estudio: 'Tele Radiologia'
+            },
             orden: {
                 study_pk: "", study_iuid: "", fec_estudio: "", accession_no: "", study_desc: "", mods_in_study: "", observaciones: "",
                 paciente: {
@@ -454,7 +459,7 @@ export default {
                 observaciones: null
             },
             soportesHC: { archivo1: null, archivo2: null, archivo3: null },
-            busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "1105678010", bus_fehc_ini: "2025-11-21", bus_fecha_fin: "2025-11-21" },
+            busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "5896542", bus_fehc_ini: "2025-11-21", bus_fecha_fin: "2025-11-21" },
             interfaceAtenciones: [],
             interfaceAtencionSeleccionada: null,
             errores: {},
@@ -581,18 +586,41 @@ export default {
                     return;
                 }
 
-                const res = await axios.post('/estudios/enviar-orden-teleradiologia', { orden: this.orden });
+                const resOrden = await axios.post('/tele-radiologia-enviar-orden', { orden: this.orden });
 
-                if (res.status == 200) {
+                if (resOrden.status == 200) {
+
                     $.toast({
                         heading: "Ok!!!",
-                        text: res.data.message,
+                        text: resOrden.data.message,
                         position: "top-right",
                         loaderBg: "#ff6849",
                         icon: "success",
                         hideAfter: 3500,
                         stack: 6,
                     });
+
+                    const formData = new FormData();
+                    formData.append('registro', JSON.stringify(this.registro));
+                    formData.append('archivo1', this.soportesHC.archivo1);
+                    formData.append('archivo2', this.soportesHC.archivo2);
+                    formData.append('archivo3', this.soportesHC.archivo3);
+
+                    const resEstudio = await axios.post('/estudios', formData, {
+                        headers: { "Content-Type": "multipart/form-data" }
+                    });
+                    console.log('resEstudio', resEstudio)
+                    if (resEstudio.status == 200) {
+                        $.toast({
+                            heading: "Ok!!!",
+                            text: resEstudio.data.message,
+                            position: "top-right",
+                            loaderBg: "#ff6849",
+                            icon: "success",
+                            hideAfter: 3500,
+                            stack: 6,
+                        });
+                    }
                 }
 
                 /* this.btnCerralModalForm();
@@ -640,18 +668,21 @@ export default {
             const fileBase64 = await this.toBase64(file);
             const extension = this.extensionDesdeBase64(fileBase64);
             this.agregarArchivoOrden(fileBase64, extension);
+            this.soportesHC.archivo1 = e.target.files[0];
         },
         async obtenerArchivo2(e) {
             const file = e.target.files[0];
             const fileBase64 = await this.toBase64(file);
             const extension = this.extensionDesdeBase64(fileBase64);
             this.agregarArchivoOrden(fileBase64, extension);
+            this.soportesHC.archivo2 = e.target.files[0];
         },
         async obtenerArchivo3(e) {
             const file = e.target.files[0];
             const fileBase64 = await this.toBase64(file);
             const extension = this.extensionDesdeBase64(fileBase64);
             this.agregarArchivoOrden(fileBase64, extension);
+            this.soportesHC.archivo3 = e.target.files[0];
         },
         async agregarArchivoOrden(file, file_exten) {
             this.orden.adjuntos.push({
@@ -662,18 +693,30 @@ export default {
         async mostrarRegistro(data = {}, index) {
             //this.limpiar();
             this.tituloModal = "Generar orden: " + data.pat_name;
-            console.log('data', data)
             this.orden.study_pk = data.study_pk;
             this.orden.study_iuid = data.study_iuid;
             this.orden.fec_estudio = data.study_datetime;
             this.orden.accession_no = data.accession_no;
             this.orden.study_desc = data.study_desc;
             this.orden.mods_in_study = data.mods_in_study;
-            console.log(data.pat_birthdate)
             this.orden.paciente.num_docu = data.pat_id;
             this.orden.paciente.nom_pacien = data.pat_name;
             this.orden.paciente.sexo = data.pat_sex;
             this.orden.paciente.fec_naci = data.pat_birthdate;
+
+            this.registro.study_pk = data.study_pk;
+            this.registro.study_iuid = data.study_iuid;
+            this.registro.study_id = data.study_id;
+            this.registro.study_datetime = data.study_datetime;
+            this.registro.accession_no = data.accession_no;
+            this.registro.study_desc = data.study_desc;
+            this.registro.mods_in_study = data.mods_in_study;
+            this.registro.email = '';
+            this.registro.email_reportar = sessionStorage.getItem('ST-email_repor');
+            this.registro.num_docu = data.pat_id;
+            this.registro.nombres = data.pat_name;
+            this.registro.sexo = data.pat_sex;
+            this.registro.fec_naci = data.pat_birthdate;
 
             this.abrirModal();
 
@@ -698,6 +741,13 @@ export default {
 
                 });
             }
+
+            this.registro.diagnosticosEstudio = [];
+            if (resProuctos.data.diagnosticos.length > 0) {
+                this.registro.diagnosticosEstudio = resProuctos.data.diagnosticos;
+            }
+
+            this.registro.atencion_id = this.interfaceAtencionSeleccionada;
         },
         establecerPrioridad(e) {
             const seleccion = this.prioridades.find(
@@ -705,6 +755,7 @@ export default {
             );
 
             this.orden.priori.id = seleccion.id
+            this.registro.prioridad_id = seleccion.id
             this.orden.priori.nom_priori = seleccion.nom_priori
         },
         establecerSede() {
@@ -712,6 +763,7 @@ export default {
             this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
             this.idSedeActual = sessionStorage.getItem('ST-sede');
             this.nomSedeActual = sessionStorage.getItem('ST-nomsede');
+            this.registro.sede_id = sessionStorage.getItem('ST-sede');
 
             if (this.orden.sede.id == 1) {
                 this.sedeInterface = true;
@@ -814,7 +866,8 @@ export default {
                 this.guardarDiagnosticosEstudio();
             }
         },
-        guardarProductosEstudio(cod_cups, nom_produc) {
+        guardarProductosEstudio(id, cod_cups, nom_produc) {
+            const productoEstudioId = id;
             const productoEstudioCod_Cubs = cod_cups;
             const productoEstudioNomProduc = nom_produc;
 
@@ -825,6 +878,15 @@ export default {
                     cod_cups: productoEstudioCod_Cubs,
                     nom_produc: productoEstudioNomProduc,
                 });
+
+                this.registro.productosEstudio.push(
+                    {
+                        checked: true,
+                        id: productoEstudioId,
+                        cod_cups: productoEstudioCod_Cubs,
+                        nom_produc: productoEstudioNomProduc
+                    }
+                );
             }
 
             this.productoSelecciondo = "";
