@@ -20,6 +20,31 @@
                         <li><a href="index4.html">Modern</a></li>
                     </ul> --}}
                     </li>
+                    @if (auth()->user()->hasAnyPermission(['gestion.pacientes.index', 'gestion.pacientes.create', 'gestion.pacientes.delete']))
+                        <li class="nav-small-cap">--- PACIENTES</li>
+                        <li>
+                            <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
+                                <i class="icon-User"></i>
+                                <span class="hide-menu">Pacientes</span>
+                            </a>
+                            <ul aria-expanded="false" class="collapse">
+
+                                <li>
+                                    <a href="">
+                                        <i class="fa fa-user-plus text-info"></i> Admisionar Paciente
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a href="">
+                                        <i class="fa fa-users text-info"></i> Listar Pacientes
+                                    </a>
+                                </li>
+
+                            </ul>
+                        </li>
+                    @endif
+
                     @if (auth()->user()->hasAnyPermission(['estudio.asignar', 'estudio.transcribir', 'estudio.leerEstudio', 'estudios.notificar.index', 'estudios.reporteLectura.index']))
                         <li class="nav-small-cap">--- ESTUDIOS</li>
                         <li>
@@ -43,9 +68,9 @@
                                         <a href="{{ route('estudios.transcribir.listar') }}">
                                             <i class="fa fa-search text-info"></i> Pendientes por transcribir
                                         </a>
-                                        <a href="{{ route('estudios.otrasPlataformas.listar') }}">
+                                        {{-- <a href="{{ route('estudios.otrasPlataformas.listar') }}">
                                             <i class="fa fa-search text-info"></i> Estudios en otras plataforma
-                                        </a>
+                                        </a> --}}
                                         <a href="{{ route('estudios.teleradiologis.listar') }}">
                                             <i class="fa fa-search text-info"></i> Tele Radiologia
                                         </a>
@@ -69,6 +94,79 @@
                         </li>
                     @endif
 
+                    @if (auth()->user()->hasAnyPermission(['otrasPlataformas.index', 'otrasPlataformas.enviar', 'otrasPlataformas.trasbcribir']))
+                        <li class="nav-small-cap">--- Otras Plataformas</li>
+                        <li>
+                            <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
+                                <i class="fa fa-exchange"></i>
+                                <span class="hide-menu">Otras Plataformas</span>
+                            </a>
+                            <ul aria-expanded="false" class="collapse">
+                                @can('otrasPlataformas.index')
+                                    <li>
+                                        <a href="{{ route('otras.plataformas.listar.estudio.enviar') }}">
+                                            <i class="fa fa-upload text-info"></i> Enviar Estudios
+                                        </a>
+                                    </li>
+                                @endcan
+                                {{-- @can('otrasPlataformas.index')
+                                    <li>
+                                        <a href="{{ route('otrasPlataformas.enviar') }}">
+                                            <i class="fa fa-check text-info"></i> Estudios Enviados
+                                        </a>
+                                    </li>
+                                @endcan
+                                @can('otrasPlataformas.trasbcribir')
+                                    <li>
+                                        <a href="{{ route('otrasPlataformas.transcribir') }}">
+                                            <i class="fa fa-search text-info"></i> Pendientes por transcribir
+                                        </a>
+                                    </li>
+                                @endcan --}}
+                            </ul>
+                        </li>
+                    @endif
+
+                    @if (auth()->user()->hasAnyPermission(['tele.ragiologia.index', 'tele.ragiologia.enviar', 'tele.ragiologia.transcribir']))
+                        <li class="nav-small-cap">--- Tele Radiología</li>
+                        <li>
+                            <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
+                                <i class="fa fa-cloud-upload"></i>
+                                <span class="hide-menu">Tele Radiología</span>
+                            </a>
+                            <ul aria-expanded="false" class="collapse">
+                                @can('tele.ragiologia.index')
+                                    <li>
+                                        <a href="{{ route('teleradiologia.index') }}">
+                                            <i class="fa fa-upload text-info"></i> Enviar estudios
+                                        </a>
+                                    </li>
+                                @endcan
+                                @can('tele.ragiologia.transcribir')
+                                    <li>
+                                        <a href="{{ route('teleradiologia.transcribir') }}">
+                                            <i class="fa fa-upload text-info"></i> Transcribir estudios
+                                        </a>
+                                    </li>
+                                @endcan
+                                {{-- @can('tele.ragiologia.index')
+                                    <li>
+                                        <a href="{{ route('tele.ragiologia.enviar') }}">
+                                            <i class="fa fa-check text-info"></i> Estudios Enviados
+                                        </a>
+                                    </li>
+                                @endcan --}}
+                                {{-- @can('tele.ragiologia.transcribir')
+                                    <li>
+                                        <a href="{{ route('teleradiologia.listar.estudio.transcribir') }}">
+                                            <i class="fa fa-search text-info"></i> Pendientes por transcribir
+                                        </a>
+                                    </li>
+                                @endcan --}}
+                            </ul>
+                        </li>
+                    @endif
+
                     @if (auth()->user()->hasAnyPermission(['ecografias.index', 'ecografias.admision', 'ecografias.anular', 'ecografias.leer', 'ecografias.reporte']))
                         <li class="nav-small-cap">--- ECOGRAFIAS</li>
                         <li>
@@ -79,40 +177,45 @@
                             <ul aria-expanded="false" class="collapse">
                                 <li>
                                     @can('ecografias.admision')
-                                    <a href="{{ route('ecografias.admisiones') }}">
-                                        <i class="fa fa-address-book-o  text-info"></i> Admisionar para procedimientos
-                                    </a>
+                                        <a href="{{ route('ecografias.admisiones') }}">
+                                            <i class="fa fa-address-book-o  text-info"></i> Admisionar para procedimientos
+                                        </a>
                                     @endcan
                                     @can('ecografias.index')
-                                    <a href="{{ route('ecografias.adminisionadas') }}">
-                                        <i class="fa fa-address-book-o  text-info"></i> Ecografías admisionadas
-                                    </a>
+                                        <a href="{{ route('ecografias.adminisionadas') }}">
+                                            <i class="fa fa-address-book-o  text-info"></i> Ecografías admisionadas
+                                        </a>
                                     @endcan
                                     @can('ecografias.leer')
-                                    <a href="{{ route('ecografias.pendientes.lecturas') }}">
-                                        <i class="fa fa-pencil text-info"></i> Realizar lectura
-                                    </a>
+                                        <a href="{{ route('ecografias.pendientes.lecturas') }}">
+                                            <i class="fa fa-pencil text-info"></i> Realizar lectura
+                                        </a>
                                     @endcan
                                 </li>
                             </ul>
                         </li>
                     @endif
-                    @if (auth()->user()->hasAnyPermission(['agenda.index']))
-                        <li class="nav-small-cap">--- Citas</li>
+                    @if (auth()->user()->hasAnyPermission(['agendamiento.agendamiento.index', 'agendamiento.agendamiento.create', 'agendamiento.agendamiento.delete', 'agendamiento.agendamiento.update', 'agendamiento.agendamiento.interectuar']))
+                        <li class="nav-small-cap">--- Agendamiento</li>
                         <li>
                             <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
                                 <i class="icon-Address-Book"></i>
                                 <span class="hide-menu">Agenda</span>
                             </a>
                             <ul aria-expanded="false" class="collapse">
-                                @can('agenda.index')
+                                @can('agendamiento.agendamiento.index')
                                     <li>
-                                        <a href="{{ route('agenda') }}">
-                                            <i class="fa fa-calendar"></i> Citas
+                                        <a href="">
+                                            <i class="fa fa-calendar"></i> Asignacion
                                         </a>
                                     </li>
                                 @endcan
                             </ul>
+                        </li>
+                        <li>
+                            <a href="{{ route('agenda.disponibilidad.index') }}">
+                                <i class="fa fa-calendar"></i> Disponibilidad
+                            </a>
                         </li>
                     @endif
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Interface;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Estudios\EstudioController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -16,7 +17,11 @@ class TeleRadiologiaController extends Controller
      */
     public function enviarOrdenTeleRadiologia(Request $request)
     {
+
+
         try {
+            return response()->json(['message' => 'Orden enviada correctamente'], 200);
+
             $orden = $request->input('orden');
 
             // Validar que la orden exista
@@ -36,7 +41,6 @@ class TeleRadiologiaController extends Controller
                     'details' => $response->body()
                 ], $response->status());
             }
-
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error interno en el servidor proxy',
