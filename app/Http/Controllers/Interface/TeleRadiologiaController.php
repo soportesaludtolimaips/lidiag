@@ -20,7 +20,7 @@ class TeleRadiologiaController extends Controller
 
 
         try {
-            return response()->json(['message' => 'Orden enviada correctamente'], 200);
+            //return response()->json(['message' => 'Orden enviada correctamente'], 200);
 
             $orden = $request->input('orden');
 
