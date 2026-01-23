@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Estudios;
 
 use App\Http\Controllers\Controller;
 use App\Mail\NotificacionDeLectura;
+use App\Mail\ReportarLectura;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\Dcm4chee\Instance;
 use App\Models\Estudio\Estudio;
@@ -34,6 +35,7 @@ class EstudioNotificacionController extends Controller
 
         $query->select(
             'estudios.id',
+            'estudios.study_iuid',
             'estudios.atencion',
             'estudios.fec_estudio',
             'estudios_productos.fechor_lectura',
@@ -129,19 +131,21 @@ class EstudioNotificacionController extends Controller
             ]
         );
 
+
         /**
          * Envio de email con el adjunto del reporte de la lectura del estudio
          */
         if ($estudio->email != "") {
-            $this->descargaImgDicom($estudio->sede_id, $estudio->study_iuid);
+            //$imagenes = $this->descargaImgDicom($estudio->sede_id, $estudio->study_iuid);
+            //return $imagenes;
             $mailable = new NotificacionDeLectura($estudio, $nomArchivoReporte, $estudio->study_iuid);
             Mail::to($estudio->email)->send($mailable);
         }
 
-        /* if ($estudio->email_reportar != "") {
+        if ($estudio->email_reportar != "") {
             $mailable = new ReportarLectura($estudio, $nomArchivoReporte);
             Mail::to($estudio->email_reportar)->send($mailable);
-        } */
+        }
 
         unlink(storage_path('app/reporte_lecturas/' . $nomArchivoReporte));
 
@@ -190,6 +194,7 @@ class EstudioNotificacionController extends Controller
             ->join('study', 'series.study_fk', '=', 'study.pk')
             ->where('study.study_iuid', $study_iuid)
             ->select('series.series_iuid', 'instance.sop_iuid')
+            ->limit(10)
             ->get();
 
         // Verificar si se encontraron imágenes
@@ -204,6 +209,7 @@ class EstudioNotificacionController extends Controller
 
             // URL del servicio WADO para la imagen
             $wadoUrl = "http://" . $sedeActual->ip_dcm . ":8080/wado?requestType=WADO&studyUID=$study_iuid&seriesUID=$seriesUID&objectUID=$objectUID&contentType=image/jpeg";
+            return $wadoUrl;
 
             // Hacer la solicitud HTTP GET para obtener la imagen
             $response = Http::get($wadoUrl);

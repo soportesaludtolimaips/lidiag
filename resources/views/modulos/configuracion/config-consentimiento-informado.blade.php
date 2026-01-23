@@ -1,11 +1,5 @@
 @extends('layouts.app')
 
 @section('content')
-    @php
-        $user = auth()->user()->load('roles', 'permissions');
-        $permisos = auth()->user()->getAllPermissions()->pluck('name');
-    @endphp
-
-    
-    <config-ConsentimientoIn-formadoComponent :usuarioactual="{{ Auth::user() }}" :permisos="{{ $permisos }}"/>
+    <config-Consentimiento-Informados-Component :usuarioactual="{{ Auth::user() }}" :permisos="{{ Auth::user()->getAllPermissions()->pluck('name') }}" />
 @endsection

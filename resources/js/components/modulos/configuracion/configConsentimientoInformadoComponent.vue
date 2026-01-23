@@ -114,7 +114,7 @@
                                             @input="onProductoSelect" />
                                         <span class="text-danger" v-if="errores.producto_id">{{
                                             errores.producto_id[0]
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </div>
                                 <div class="col-md-4">

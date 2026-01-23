@@ -17,11 +17,9 @@ class TeleRadiologiaController extends Controller
      */
     public function enviarOrdenTeleRadiologia(Request $request)
     {
-
+        return $request;
 
         try {
-            //return response()->json(['message' => 'Orden enviada correctamente'], 200);
-
             $orden = $request->input('orden');
 
             // Validar que la orden exista
