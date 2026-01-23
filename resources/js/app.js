@@ -57,7 +57,7 @@ app.component("config-plantilla-component", configPlantilla);
 import configTipoDocumento from "./components/modulos/configuracion/configTipoDocumentoComponent.vue";
 app.component("config-tipo-documento-component", configTipoDocumento);
 import configConsentimientoInformadoComponent from "./components/modulos/configuracion/configConsentimientoInformadoComponent.vue";
-app.component("config-ConsentimientoIn-formadoComponent", configConsentimientoInformadoComponent);
+app.component("config-Consentimiento-Informados-Component", configConsentimientoInformadoComponent);
 
 /**
  * Estudios
@@ -88,8 +88,8 @@ app.component("estudio-asignados-component", estudioAsignadosComponent);
 /**
  * Tele Radiologia
  */
-import teleRadiologiaComponent from "./components/modulos/tele-radiologia/teleRadiologiaComponent.vue";
-app.component("tele-radiologia-component", teleRadiologiaComponent);
+import teleRadiologiaEnviarEstudioComponent from "./components/modulos/tele-radiologia/teleRadiologiaEnviarEstudioComponent.vue";
+app.component("tele-radiologia-enviar-estudio-component", teleRadiologiaEnviarEstudioComponent);
 import teleRadiologiaTranscibirComponent from "./components/modulos/tele-radiologia/teleRadiologiaTranscibirComponent.vue";
 app.component("tele-radiologia-transcribir-component", teleRadiologiaTranscibirComponent);
 

@@ -1,3 +1,8 @@
+/**
+* se va a agregar la enfermedad actual a los diagnosticos para el envio de la orde
+**/
+
+
 /* Para Envio de ordenes de Lectura (SaludTolima->TLImagen) */
 URL: https://ris.tlimagen.com/RISServices/integracion/salud_tolima/ordenes
 Metodo: POST
@@ -28,7 +33,7 @@ Encabezados:
 	},
 	"sede": {
 		"id": 1,
-    	"nom_sede": "Espinal - Hospital San Rafael"
+    		"nom_sede": "Espinal - Hospital San Rafael"
 	},
 	"producto": [{
     	    "cod_cups": "879111",

@@ -56,7 +56,9 @@ class SAHIController extends Controller
             ->where('hceConsulta.IdAtencion', $request->idAtencion)
             ->get();
 
-        return response()->json(['productos' => $productos, 'diagnosticos' => $diagnosticos]);
+        $consultas = HceConsulta::where('IdAtencion', $request->idAtencion)->limit(2)->get();
+
+        return response()->json(['productos' => $productos, 'diagnosticos' => $diagnosticos, 'consultas' => $consultas]);
     }
 
     /**

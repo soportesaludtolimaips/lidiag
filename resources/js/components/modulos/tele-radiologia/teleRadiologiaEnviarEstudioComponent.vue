@@ -323,7 +323,7 @@
                                         </div>
                                     </div>
 
-                                    <h5 class="card-title text-info m-t-40">
+                                    <h5 class="card-title text-info">
                                         <i class="fa fa-user"></i> PRODUCTOS
                                     </h5>
 
@@ -373,7 +373,7 @@
                                         </div>
                                     </div>
 
-                                    <h5 class="card-title text-info m-t-40">
+                                    <h5 class="card-title text-info">
                                         <i class="fa fa-pencil "></i> MOTIVO DEL EXAMEN
                                     </h5>
 
@@ -385,7 +385,7 @@
                                                 <textarea id="motivo_examen" name="motivo_examen"
                                                     v-model="orden.motivo_examen" class="form-control"
                                                     placeholder="Ingrese aqi las observaciones del estudio"
-                                                    rows="6"></textarea>
+                                                    rows="11"></textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -432,12 +432,12 @@ export default {
             registros: [],
             tituloModal: "Nuevo registro",
             registro: {
-                study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", mods_in_study: "", observaciones: "", medico_id: "", prioridad_id: "",
+                study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", mods_in_study: "", observaciones: "PRUEBA", medico_id: "", prioridad_id: "",
                 sede_id: this.sedeActual, quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", telefono: "",
-                productosEstudio: [], diagnosticosEstudio: [], atencion_id: null, destino_estudio: 'Tele Radiologia'
+                productosEstudio: [], diagnosticosEstudio: [], atencion_id: null, destino_estudio: 'Tele Radiologia', destino_estudio_id: null
             },
             orden: {
-                study_pk: "", study_iuid: "", fec_estudio: "", accession_no: "", study_desc: "", mods_in_study: "", observaciones: "",
+                study_pk: "", study_iuid: "", fec_estudio: "", accession_no: "", study_desc: "", mods_in_study: "", observaciones: "PRUEBA",
                 paciente: {
                     tipo_docu: 'CC',
                     num_docu: "",
@@ -459,7 +459,7 @@ export default {
                 observaciones: null
             },
             soportesHC: { archivo1: null, archivo2: null, archivo3: null },
-            busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "5896542", bus_fehc_ini: "2025-11-21", bus_fecha_fin: "2025-11-21" },
+            busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "5897469", bus_fehc_ini: "", bus_fecha_fin: "" },
             interfaceAtenciones: [],
             interfaceAtencionSeleccionada: null,
             errores: {},
@@ -586,13 +586,17 @@ export default {
                     return;
                 }
 
-                const resOrden = await axios.post('/tele-radiologia-enviar-orden', { orden: this.orden });
+                const resOrdenTele = await axios.post('/tele-radiologia-enviar-orden', { orden: this.orden });
+                console.log('resOrdenTele', resOrdenTele)
+                console.log('this.registro', resOrdenTele.data.confirmation)
+                if (resOrdenTele.status == 201) {
 
-                if (resOrden.status == 200) {
+                    //Asigno el id de la orden de tele radiologia al estudio
+                    this.registro.destino_estudio_id = resOrdenTele.data.confirmation;
 
                     $.toast({
                         heading: "Ok!!!",
-                        text: resOrden.data.message,
+                        text: resOrdenTele.data.message,
                         position: "top-right",
                         loaderBg: "#ff6849",
                         icon: "success",
@@ -628,17 +632,15 @@ export default {
             } catch (error) {
                 if (error.response) {
                     this.errores = error.response.data;
-                    if (error.response.status == 400) {
-                        $.toast({
-                            heading: "Upsss!!!",
-                            text: error.response.data.message,
-                            position: "top-right",
-                            loaderBg: "#ff6849",
-                            icon: "warning",
-                            hideAfter: 5500,
-                            stack: 6,
-                        });
-                    }
+                    $.toast({
+                        heading: "Upsss!!!",
+                        text: error.response.data.message,
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "warning",
+                        hideAfter: 5500,
+                        stack: 6,
+                    });
                 }
             }
         },
@@ -733,14 +735,32 @@ export default {
             const resProuctos = await axios.get('/interface-sahi-listar-listarProductosDiagnosticos/' + this.interfaceAtencionSeleccionada);
             this.productosInterface = resProuctos.data.productos
 
+            let EnfermedadActualDiagnosticos = '';
+
+            /** 
+             * Enfermedad actula
+             */
+            const consultas = resProuctos.data.consultas;
+            EnfermedadActualDiagnosticos = 'Enfermedad Actual: ';
+            if (consultas.length > 0) {
+                consultas.map(consultas => {
+                    EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos}\n ${consultas.DesEnfermedadActual} \n`;
+                });
+            }
+
+            /**
+             * Diagnosticos
+             */
             const diagnosticos = resProuctos.data.diagnosticos;
-            this.orden.motivo_examen = 'Diagnosticos: ';
+            EnfermedadActualDiagnosticos += `\nDiagnosticos:`;
             if (diagnosticos.length > 0) {
                 diagnosticos.map(diagnosticos => {
-                    this.orden.motivo_examen = `${this.orden.motivo_examen} \n ${diagnosticos.cod_diagnos} - ${diagnosticos.nom_diagnos}`;
+                    EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos} \n ${diagnosticos.cod_diagnos} - ${diagnosticos.nom_diagnos}`;
 
                 });
             }
+
+            this.orden.motivo_examen = EnfermedadActualDiagnosticos
 
             this.registro.diagnosticosEstudio = [];
             if (resProuctos.data.diagnosticos.length > 0) {
@@ -797,12 +817,12 @@ export default {
             this.orden.paciente.sexo = '';
             this.orden.paciente.fec_naci = '';
 
-            /* this.orden.producto = [];
-            this.orden.adjuntos = []; */
-
             this.orden.priori.id = "";
 
             this.productoSelecciondo = 0;
+
+            this.ordenproducto = []
+            this.orden.adjuntos = []
 
             this.soportesHC.archivo1 = null;
             this.soportesHC.archivo2 = null;

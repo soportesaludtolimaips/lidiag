@@ -140,7 +140,7 @@ class EstudioController extends Controller
                 $servicio = $buscarDatos[0]->NomUbicacion;
             }
         }
-
+        //return $registro['destino_estudio'];
         /**
          * Inserto el estudio en Lidiag
          */
@@ -170,8 +170,12 @@ class EstudioController extends Controller
             ]
         );
 
+
         if ($registro['destino_estudio'] === 'Salud Tolima') {
             $estudio->medico_id =  $registro['medico_id'];
+            $estudio->save();
+        } else {
+            $estudio->destino_estudio_id = $registro['destino_estudio_id'];
             $estudio->save();
         }
 
@@ -442,8 +446,12 @@ class EstudioController extends Controller
             ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
             ->join('config_productos', 'estudios_productos.producto_id', '=', 'config_productos.id')
             ->when($request->estudioParaTranscibir, function ($query) use ($request) {
+                /**
+                 * Si el destino es = Salud Tolima se debe filtrar por los estudios que ya tienen lectura porque para transcribir los medicos ya realizaron la lectura
+                 * Si el destino es diferente a Salud Tolima se deben filtrar los estudios que no tienen lectura porque son los estudios que se van a leer porque vienen de Teleradiologia
+                 */
                 $query->where(function ($q) use ($request) {
-                    if ((int) $request->destino_estudio === 'Salud Tolima') {
+                    if ($request->destino_estudio === 'Salud Tolima') {
                         $q->whereNotNull('estudios_productos.fechor_lectura');
                     } else {
                         $q->whereNull('estudios_productos.fechor_lectura');
@@ -735,6 +743,7 @@ class EstudioController extends Controller
      */
     public function notificarEmail(Request $request)
     {
+
         $genearPlantilla = (new PlantillaEstudioController())->editWord($request);
         if ($genearPlantilla->status() == 200) {
             $notificar = (new EstudioNotificacionController())->notificarEmail($request);

@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('agenda_disponibilida_detalles', function (Blueprint $table) {
+        Schema::create('agenda_disponibilidas_detalle', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('agenda_disponibilida_id');
             $table->foreign('agenda_disponibilida_id')->references('id')->on('agenda_disponibilida');
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('agenda_disponibilida_detalles');
+        Schema::dropIfExists('agenda_disponibilidas_detalle');
     }
 };
