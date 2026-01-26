@@ -296,7 +296,7 @@ export default {
                 num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", telefono: "", nom_produc: "", id_producto_lectura: null
             },
             estudio: null,
-            busqueda: { bus_num_docu: "", bus_nom: '', fehc_ini: "", fecha_fin: "" },
+            busqueda: { bus_num_docu: "298374", bus_nom: '', fehc_ini: "", fecha_fin: "" },
             errores: {},
             erroresBusqueda: {},
             imageUrl: '',
@@ -394,6 +394,7 @@ export default {
 
                 this.estudio.email = this.registro.email;
                 const res = await axios.post('/notificar.email', this.estudio);
+                console.log('res', res)
 
                 if (res.status == 200) {
                     $.toast({

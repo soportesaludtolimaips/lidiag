@@ -543,8 +543,8 @@ export default {
                         hideAfter: 3500,
                         stack: 6,
                     });
+
                     this.$refs.btnCerrarForm.click();
-                    console.log("Cerrando modal en btnCerralModalForm");
                     this.btnCerralModalForm();
                     this.limpiar();
                 } else {
@@ -738,7 +738,6 @@ export default {
             this.errores = [];
         },
         btnCerralModalForm() {
-            console.log("Cerrando modal");
             $(".right-sidebar").slideDown(50);
             $(".right-sidebar").toggleClass("shw-rside");
 

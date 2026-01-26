@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit60c3209ab172ae5da9d9396ed9084e51
+class ComposerStaticInitf47a4b296c9c0422c43b2c0a31e49464
 {
     public static $files = array (
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
@@ -749,9 +749,8 @@ class ComposerStaticInit60c3209ab172ae5da9d9396ed9084e51
         'App\\Exceptions\\Handler' => __DIR__ . '/../..' . '/app/Exceptions/Handler.php',
         'App\\Exports\\ProduccionDetalladaEcografiasExport' => __DIR__ . '/../..' . '/app/Exports/ProduccionDetalladaEcografiasExport.php',
         'App\\Exports\\ProduccionDetalladaExport' => __DIR__ . '/../..' . '/app/Exports/ProduccionDetalladaExport.php',
-        'App\\Http\\Controllers\\Agenda\\AgendaController' => __DIR__ . '/../..' . '/app/Http/Controllers/Agenda/AgendaController.php',
-        'App\\Http\\Controllers\\Agenda\\AgendaProductoController' => __DIR__ . '/../..' . '/app/Http/Controllers/Agenda/AgendaProductoController.php',
-        'App\\Http\\Controllers\\AgendamientoCitaController' => __DIR__ . '/../..' . '/app/Http/Controllers/AgendamientoCitaController.php',
+        'App\\Http\\Controllers\\Agenda\\AgendaDisponibilidaController' => __DIR__ . '/../..' . '/app/Http/Controllers/Agenda/AgendaDisponibilidaController.php',
+        'App\\Http\\Controllers\\Agenda\\AgendaDisponibilidaDetalleController' => __DIR__ . '/../..' . '/app/Http/Controllers/Agenda/AgendaDisponibilidaDetalleController.php',
         'App\\Http\\Controllers\\Auth\\ConfirmPasswordController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/ConfirmPasswordController.php',
         'App\\Http\\Controllers\\Auth\\ForgotPasswordController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/ForgotPasswordController.php',
         'App\\Http\\Controllers\\Auth\\LoginController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/LoginController.php',
@@ -820,6 +819,8 @@ class ComposerStaticInit60c3209ab172ae5da9d9396ed9084e51
         'App\\Mail\\NotificacionAsignacionDeLectura' => __DIR__ . '/../..' . '/app/Mail/NotificacionAsignacionDeLectura.php',
         'App\\Mail\\NotificacionDeLectura' => __DIR__ . '/../..' . '/app/Mail/NotificacionDeLectura.php',
         'App\\Mail\\ReportarLectura' => __DIR__ . '/../..' . '/app/Mail/ReportarLectura.php',
+        'App\\Models\\Agenda\\AgendaDisponibilida' => __DIR__ . '/../..' . '/app/Models/Agenda/AgendaDisponibilida.php',
+        'App\\Models\\Agenda\\AgendaDisponibilidaDetalle' => __DIR__ . '/../..' . '/app/Models/Agenda/AgendaDisponibilidaDetalle.php',
         'App\\Models\\Agendamiento\\AgendamientoCita' => __DIR__ . '/../..' . '/app/Models/Agendamiento/AgendamientoCita.php',
         'App\\Models\\Citas\\Cita' => __DIR__ . '/../..' . '/app/Models/Citas/Cita.php',
         'App\\Models\\Configuracion\\ConfigAdminSalud' => __DIR__ . '/../..' . '/app/Models/Configuracion/ConfigAdminSalud.php',
@@ -1032,11 +1033,14 @@ class ComposerStaticInit60c3209ab172ae5da9d9396ed9084e51
         'Cron\\MonthField' => __DIR__ . '/..' . '/dragonmantank/cron-expression/src/Cron/MonthField.php',
         'Database\\Factories\\UserFactory' => __DIR__ . '/../..' . '/database/factories/UserFactory.php',
         'Database\\Seeders\\DatabaseSeeder' => __DIR__ . '/../..' . '/database/seeders/DatabaseSeeder.php',
+        'Database\\Seeders\\InterfaceTeleRadiologiaSeeder' => __DIR__ . '/../..' . '/database/seeders/InterfaceTeleRadiologiaSeeder.php',
         'Database\\Seeders\\LecturaSeeder' => __DIR__ . '/../..' . '/database/seeders/LecturaSeeder.php',
         'Database\\Seeders\\ModulosSeeder' => __DIR__ . '/../..' . '/database/seeders/ModulosSeeder.php',
+        'Database\\Seeders\\OtrasInterfacesSeeder' => __DIR__ . '/../..' . '/database/seeders/OtrasInterfacesSeeder.php',
         'Database\\Seeders\\PermisionConfigTipoDocumentoSeeder' => __DIR__ . '/../..' . '/database/seeders/PermisionConfigTipoDocumentoSeeder.php',
         'Database\\Seeders\\PermisionConsentimientoInformadoSeeder' => __DIR__ . '/../..' . '/database/seeders/PermisionConsentimientoInformadoSeeder.php',
         'Database\\Seeders\\PermisionEcografiasSeeder' => __DIR__ . '/../..' . '/database/seeders/PermisionEcografiasSeeder.php',
+        'Database\\Seeders\\PermisosAgendamientoSeeder' => __DIR__ . '/../..' . '/database/seeders/PermisosAgendamientoSeeder.php',
         'Database\\Seeders\\PlantillaSeeder' => __DIR__ . '/../..' . '/database/seeders/PlantillaSeeder.php',
         'Database\\Seeders\\PlantillaTipoSeeder' => __DIR__ . '/../..' . '/database/seeders/PlantillaTipoSeeder.php',
         'Database\\Seeders\\RoleSeederAgenda' => __DIR__ . '/../..' . '/database/seeders/RoleSeederAgenda.php',
@@ -1084,7 +1088,12 @@ class ComposerStaticInit60c3209ab172ae5da9d9396ed9084e51
         'DeepCopy\\TypeFilter\\Spl\\SplDoublyLinkedListFilter' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/TypeFilter/Spl/SplDoublyLinkedListFilter.php',
         'DeepCopy\\TypeFilter\\TypeFilter' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/TypeFilter/TypeFilter.php',
         'DeepCopy\\TypeMatcher\\TypeMatcher' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/TypeMatcher/TypeMatcher.php',
+        'Dflydev\\DotAccessData\\Data' => __DIR__ . '/..' . '/dflydev/dot-access-data/src/Data.php',
+        'Dflydev\\DotAccessData\\DataInterface' => __DIR__ . '/..' . '/dflydev/dot-access-data/src/DataInterface.php',
+        'Dflydev\\DotAccessData\\Exception\\DataException' => __DIR__ . '/..' . '/dflydev/dot-access-data/src/Exception/DataException.php',
+        'Dflydev\\DotAccessData\\Exception\\InvalidPathException' => __DIR__ . '/..' . '/dflydev/dot-access-data/src/Exception/InvalidPathException.php',
         'Dflydev\\DotAccessData\\Exception\\MissingPathException' => __DIR__ . '/..' . '/dflydev/dot-access-data/src/Exception/MissingPathException.php',
+        'Dflydev\\DotAccessData\\Util' => __DIR__ . '/..' . '/dflydev/dot-access-data/src/Util.php',
         'Doctrine\\Common\\Lexer\\AbstractLexer' => __DIR__ . '/..' . '/doctrine/lexer/src/AbstractLexer.php',
         'Doctrine\\Common\\Lexer\\Token' => __DIR__ . '/..' . '/doctrine/lexer/src/Token.php',
         'Doctrine\\Inflector\\CachedWordInflector' => __DIR__ . '/..' . '/doctrine/inflector/src/CachedWordInflector.php',
@@ -11242,10 +11251,10 @@ class ComposerStaticInit60c3209ab172ae5da9d9396ed9084e51
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit60c3209ab172ae5da9d9396ed9084e51::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit60c3209ab172ae5da9d9396ed9084e51::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit60c3209ab172ae5da9d9396ed9084e51::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInit60c3209ab172ae5da9d9396ed9084e51::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitf47a4b296c9c0422c43b2c0a31e49464::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitf47a4b296c9c0422c43b2c0a31e49464::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInitf47a4b296c9c0422c43b2c0a31e49464::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInitf47a4b296c9c0422c43b2c0a31e49464::$classMap;
 
         }, null, ClassLoader::class);
     }

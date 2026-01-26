@@ -1,0 +1,8 @@
+// Buscas al usuario por su email
+$user = App\Models\User::where('email', 'usuario_api@ejemplo.com')->first();
+
+// Creas el token (puedes ponerle el nombre que quieras)
+$token = $user->createToken('TokenParaClienteExterno')->plainTextToken;
+
+// El resultado será algo como: 1|zXy123... (Copia todo ese string)
+echo $token;
