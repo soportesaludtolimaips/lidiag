@@ -134,7 +134,37 @@ El sistema utiliza varios servicios de terceros configurados en el archivo `.env
 -   **FFmpeg (`php-ffmpeg/php-ffmpeg`)**:
 
     -   Herramienta para el procesamiento de archivos multimedia.
-    -   Se utiliza para manipular videos o cine-loops provenientes de estudios ecográficos o radiológicos si es necesario.
+    -   Se utiliza para **procesar y comprimir audios** (subidos desde el módulo de estudios) convirtiéndolos a **MP3** antes de guardarlos en `storage`.
+
+    #### Configuración de FFmpeg/FFprobe (Producción - Windows + Apache + PHP)
+
+    -   **Recomendado**: instalar FFmpeg a nivel del servidor en una ruta fija (ej. `C:\Tools\ffmpeg\bin\ffmpeg.exe` y `C:\Tools\ffmpeg\bin\ffprobe.exe`).  
+        Evitar guardar binarios dentro de `storage/` (es escribible y no es buen lugar para ejecutables).
+
+    -   Variables en `.env` (usar `/` en Windows para evitar escapes):
+
+        ```ini
+        FFMPEG_BINARIES=C:/Tools/ffmpeg/bin/ffmpeg.exe
+        FFPROBE_BINARIES=C:/Tools/ffmpeg/bin/ffprobe.exe
+        FFMPEG_TIMEOUT=3600
+        FFMPEG_THREADS=12
+
+        # Compresión de salida
+        AUDIO_MP3_KBPS=64
+
+        # Opcional: mínimo de duración para considerar "con contenido" (segundos).
+        # 0 = deshabilitado
+        AUDIO_MIN_SECONDS=0
+        ```
+
+    -   **Permisos**:
+        -   Dar **Lectura y ejecución** sobre la carpeta de FFmpeg al **usuario del servicio Apache** (revisar “Servicios” → Apache → “Iniciar sesión”).
+        -   Dar **Modificar** (crear/escribir/borrar) sobre el disk de audios (carpeta configurada en `filesystems.php`), en especial el subdirectorio `tmp/`.
+
+    #### Almacenamiento de audios (disk `audios`)
+
+    -   El endpoint de subida convierte cualquier formato válido a MP3 y guarda el archivo final en el disk `audios`.
+    -   Asegúrese de que exista el subdirectorio `tmp/` dentro del disk `audios` (se usa para temporales durante la conversión).
 
 -   **AWS S3 (Opcional)**:
     -   Configurado para el almacenamiento escalable de documentos adjuntos o respaldos de informes, si se habilita en el entorno.
@@ -307,3 +337,11 @@ La aplicación estará disponible en `http://localhost:8000` (o el puerto config
 **3. Problemas al generar PDFs**
 
 -   DomPDF requiere que las fuentes y estilos sean compatibles. Si el PDF sale en blanco o desordenado, verifique que no esté usando estilos CSS3 avanzados no soportados.
+
+**4. Error al convertir audios (FFmpeg)**
+
+-   Verifique que `FFMPEG_BINARIES` y `FFPROBE_BINARIES` apunten a rutas válidas (en Windows use `/`).
+-   Revise permisos del **usuario que ejecuta Apache**:
+    -   Lectura/ejecución sobre la carpeta de FFmpeg.
+    -   Escritura sobre el disk `audios` y su subcarpeta `tmp/`.
+-   Revise el log en `storage/logs/laravel.log` para ver el detalle del error devuelto por FFmpeg/FFprobe.

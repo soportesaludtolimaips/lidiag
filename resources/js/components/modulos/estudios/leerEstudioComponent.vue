@@ -433,6 +433,9 @@ export default {
         this.sede_id = sessionStorage.getItem('ST-sede');
         this.listarMisPendientes();
 
+        // Prepara sinónimos (sin tildes) para comandos de voz
+        this.prepareVoiceCommands();
+
         this.emitter.on("sedeSeleccionada", (data) => {
             this.sede_id = data.idSede;
             this.destroyDataTable();
@@ -465,6 +468,7 @@ export default {
             recognition: null,
             mediaRecorder: null,
             audioChunks: [],
+            audioBlob: null,
             audioUrl: null,
             uppercase: false,
             mediaStream: null,
@@ -540,6 +544,68 @@ export default {
         };
     },
     methods: {
+        stripDiacritics(text) {
+            // Elimina tildes/diacríticos para comparar comandos (no modifica el texto final)
+            try {
+                return String(text).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            } catch (e) {
+                return String(text);
+            }
+        },
+        escapeRegExp(text) {
+            return String(text).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        },
+        prepareVoiceCommands() {
+            // Agrega claves sin tildes a los diccionarios de comandos (ej: "mayuscula" -> "mayúscula")
+            const addNormalizedKeys = (obj) => {
+                if (!obj) return;
+                const keys = Object.keys(obj);
+                keys.forEach((k) => {
+                    const normalized = this.stripDiacritics(k).toLowerCase();
+                    if (!Object.prototype.hasOwnProperty.call(obj, normalized)) {
+                        obj[normalized] = obj[k];
+                    }
+                });
+            };
+
+            addNormalizedKeys(this.uppercaseCommands);
+            addNormalizedKeys(this.lineBreakCommands);
+            addNormalizedKeys(this.punctuationCommands);
+        },
+        clearAudioBuffer() {
+            // Limpia buffers/urls sin intentar detener nada (para cambios de estudio / reset UI)
+            try {
+                if (this.audioUrl) {
+                    try { URL.revokeObjectURL(this.audioUrl); } catch (e) { }
+                }
+            } catch (e) { }
+            this.audioChunks = [];
+            this.audioBlob = null;
+            this.audioUrl = null;
+        },
+        applyCommandMap(text, commandMap, { onEachMatch } = {}) {
+            // Reemplaza comandos respetando letras Unicode (á/é/í/ó/ú/ñ) y priorizando frases largas
+            if (!commandMap) return text;
+
+            // Importante: primero comandos más largos para evitar colisiones (ej: "punto y coma" vs "punto")
+            const keys = Object.keys(commandMap).sort((a, b) => b.length - a.length);
+            keys.forEach((command) => {
+                const escaped = this.escapeRegExp(command);
+                // "Bordes" con Unicode: evita el problema de \b con caracteres acentuados
+                const re = new RegExp(`(^|[^\\p{L}\\p{N}_])(${escaped})(?=$|[^\\p{L}\\p{N}_])`, 'giu');
+
+                text = text.replace(re, (match, prefix) => {
+                    if (typeof onEachMatch === 'function') {
+                        try { onEachMatch(command); } catch (e) { }
+                    }
+                    const fn = commandMap[command];
+                    const replacement = (typeof fn === 'function') ? fn() : String(fn);
+                    return `${prefix}${replacement}`;
+                });
+            });
+
+            return text;
+        },
         initDataTable() {
             if ($ && $.fn && $.fn.DataTable) {
                 $("#example23").DataTable({
@@ -558,29 +624,61 @@ export default {
                 // No-op
             }
         },
-        toggleSpeechRecognition() {
-            if (!this.recognizing) {
-                this.startRecording();
-            } else if (this.mediaRecorder) {
-                console.log('antes mediaRecorder.state: ', this.mediaRecorder.state);
-                if (this.mediaRecorder.state === "recording") {
-                    console.log("⏸️ Pausando grabación...");
-                    this.mediaRecorder.pause();
-                    this.microfono = 'admin-wrap/assets/images/mic.gif';
-                } else if (this.mediaRecorder.state === "paused") {
-                    console.log("▶️ Reanudando grabación...");
-                    this.mediaRecorder.resume();
-                    this.microfono = 'admin-wrap/assets/images/mic-animate.gif';
-                } else if (this.mediaRecorder.state === "inactive") {
-                    console.log("⏺️ Iniciando nueva grabación para la siguiente lectura...");
-                    this.startAudioOnly();
-                    this.microfono = 'admin-wrap/assets/images/mic-animate.gif';
+        pauseRecognition() {
+            // SpeechRecognition no tiene "pause": se simula con stop() y una bandera
+            if (this.recognition && this.recognizing) {
+                try {
+                    this.recognizing = false; // evita auto-restart en onend
+                    this.recognition.stop();
+                } catch (e) {
+                    // best-effort
+                    this.recognizing = false;
                 }
-                console.log('despues mediaRecorder.state: ', this.mediaRecorder.state);
+            } else {
+                this.recognizing = false;
+            }
+        },
+        resumeRecognition() {
+            if (this.recognition && !this.recognizing) {
+                try {
+                    this.recognizing = true;
+                    this.recognition.start();
+                } catch (e) {
+                    // Algunos navegadores lanzan InvalidStateError si ya está arrancado
+                    // best-effort: mantener bandera consistente
+                    this.recognizing = false;
+                }
+            }
+        },
+        toggleSpeechRecognition() {
+            // Comportamiento acordado:
+            // - Primer clic: inicia dictado + grabación
+            // - Siguientes clics: pausa/reanuda AMBOS (audio + dictado)
+            if (!this.mediaRecorder || !this.recognition) {
+                this.startRecording();
+                return;
+            }
+
+            const state = this.mediaRecorder.state;
+            if (state === "recording") {
+                try { this.mediaRecorder.pause(); } catch (e) { }
+                this.pauseRecognition();
+                this.microfono = 'admin-wrap/assets/images/mic.gif';
+            } else if (state === "paused") {
+                try { this.mediaRecorder.resume(); } catch (e) { }
+                this.resumeRecognition();
+                this.microfono = 'admin-wrap/assets/images/mic-animate.gif';
+            } else if (state === "inactive") {
+                this.startRecording();
             }
         },
         // Inicia una nueva grabación de audio sin tocar el reconocimiento de voz
         startAudioOnly() {
+            // Asegura que no queden streams previos abiertos
+            if (this.mediaStream && this.mediaStream.getTracks) {
+                try { this.mediaStream.getTracks().forEach(t => t.stop()); } catch (e) { }
+                this.mediaStream = null;
+            }
             navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
                 this.mediaRecorder = new MediaRecorder(stream, {
                     mimeType: "audio/webm;codecs=opus",
@@ -588,6 +686,7 @@ export default {
                 });
                 this.mediaStream = stream;
                 this.audioChunks = [];
+                this.audioBlob = null;
 
                 this.mediaRecorder.ondataavailable = (event) => {
                     this.audioChunks.push(event.data);
@@ -660,6 +759,9 @@ export default {
         },
         startRecording() {
             if (!this.recognition) {
+                // Asegura que existan sinónimos antes de crear gramática
+                this.prepareVoiceCommands();
+
                 this.recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
                 this.recognition.lang = 'es-ES';
                 this.recognition.continuous = true;
@@ -723,10 +825,19 @@ export default {
                 };
             }
 
-            this.recognition.start();
-            this.recognizing = true;
+            try {
+                this.recognizing = true;
+                this.recognition.start();
+            } catch (e) {
+                this.recognizing = false;
+            }
             this.microfono = 'admin-wrap/assets/images/mic-animate.gif';
 
+            // Asegura que no queden streams previos abiertos
+            if (this.mediaStream && this.mediaStream.getTracks) {
+                try { this.mediaStream.getTracks().forEach(t => t.stop()); } catch (e) { }
+                this.mediaStream = null;
+            }
             navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
                 this.mediaRecorder = new MediaRecorder(stream, {
                     mimeType: "audio/webm;codecs=opus",
@@ -734,6 +845,7 @@ export default {
                 });
                 this.mediaStream = stream;
                 this.audioChunks = [];
+                this.audioBlob = null;
 
                 this.mediaRecorder.ondataavailable = (event) => {
                     this.audioChunks.push(event.data);
@@ -780,23 +892,19 @@ export default {
                 this.uppercase = false;
             }
 
+            // Asegura sinónimos sin tildes por si el dictado viene sin acentos
+            this.prepareVoiceCommands();
+
             // Procesar comandos de mayúsculas
-            Object.keys(this.uppercaseCommands).forEach(command => {
-                text = text.replace(new RegExp(`\\b${command}\\b`, "gi"), this.uppercaseCommands[command]);
-            });
+            text = this.applyCommandMap(text, this.uppercaseCommands);
 
             // Procesar comandos de saltos de línea
-            Object.keys(this.lineBreakCommands).forEach(command => {
-                text = text.replace(new RegExp(`\\b${command}\\b`, "gi"), (match) => {
-                    this.capitalizeNext = true; // Activa mayúscula para la siguiente palabra
-                    return this.lineBreakCommands[command]();
-                });
+            text = this.applyCommandMap(text, this.lineBreakCommands, {
+                onEachMatch: () => { this.capitalizeNext = true; }
             });
 
             // Procesar comandos de puntuación y espacios
-            Object.keys(this.punctuationCommands).forEach(command => {
-                text = text.replace(new RegExp(`\\b${command}\\b`, "gi"), this.punctuationCommands[command]);
-            });
+            text = this.applyCommandMap(text, this.punctuationCommands);
 
             // Convertir texto a mayúsculas si está activado
             text = this.uppercase ? text.toUpperCase() : text;
@@ -815,19 +923,8 @@ export default {
         async sendToBackend() {
             await this.stopRecording(); // Esperar a que el blob esté listo
 
-            if (!this.audioBlob || !(this.audioBlob instanceof Blob)) {
-                $.toast({
-                    heading: "Upsss!!!",
-                    text: 'No hay audio para enviar',
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "error",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
-                console.error("Error: this.audioBlob no es un Blob válido.");
-                return;
-            }
+            // Acordado: si no hay audio, no hacer nada (sin toasts)
+            if (!this.audioBlob || !(this.audioBlob instanceof Blob)) return;
 
             const formData = new FormData();
             formData.append('audio', this.audioBlob, 'audio.webm');
@@ -848,10 +945,14 @@ export default {
                         stack: 6,
                     });
                     // Limpieza de estado de audio tras envío exitoso
-                    this.audioChunks = [];
-                    this.audioBlob = null;
-                    this.audioUrl = null;
+                    this.clearAudioBuffer();
                 } else {
+                    // Acordado: si el backend dice "sin contenido", no hacer nada (sin toasts)
+                    const msg = (res && res.data && res.data.message) ? String(res.data.message) : '';
+                    if (msg.includes('El audio debe tener contenido') || msg.includes('No se proporcionó un archivo de audio')) {
+                        this.clearAudioBuffer();
+                        return;
+                    }
                     $.toast({
                         heading: "Upsss!!!",
                         text: (res && res.data && res.data.message) ? res.data.message : 'Error al enviar audio',
@@ -864,6 +965,17 @@ export default {
                 }
 
             } catch (error) {
+                const status = error && error.response ? error.response.status : null;
+                const msg = error && error.response && error.response.data && error.response.data.message
+                    ? String(error.response.data.message)
+                    : '';
+
+                // Acordado: si es "audio sin contenido", no hacer nada (sin toasts)
+                if (status === 400 && (msg.includes('El audio debe tener contenido') || msg.includes('No se proporcionó un archivo de audio'))) {
+                    this.clearAudioBuffer();
+                    return;
+                }
+
                 console.error('Error al enviar audio:', error);
                 $.toast({
                     heading: "Upsss!!!",
@@ -904,6 +1016,9 @@ export default {
         },
         async guardarRegistro() {
             try {
+                // Acordado: al Guardar, detener automáticamente dictado+grabación
+                await this.stopAll();
+
                 const res = await axios.post('/estudio-leerEstudio', this.registro);
 
                 if (res.status == 200) {
@@ -944,6 +1059,12 @@ export default {
             this.listarMisPendientes();
         },
         async mostrarRegistro(data = {}) {
+
+            // Acordado: al abrir un nuevo estudio, limpiar cualquier audio/dictado previo
+            await this.stopAll();
+            this.clearAudioBuffer();
+            this.uppercase = false;
+            this.capitalizeNext = false;
 
             this.tituloModal = "Lectura de paciente: " + data.nom_pacien + "Producto: \n" + data.nom_produc;
             this.id = data.id;
@@ -1023,6 +1144,11 @@ export default {
             this.registro.sexo = "";
             this.registro.fec_naci = "";
             this.registro.lectura = "";
+
+            // Limpieza de audio/dictado para evitar envíos cruzados
+            this.clearAudioBuffer();
+            this.uppercase = false;
+            this.capitalizeNext = false;
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);

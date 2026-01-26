@@ -102,13 +102,12 @@ class EstudioNotificacionController extends Controller
         /**
          * Envio la lectura a Lidiag-reportes para que este diponible para la descarga por parte del paciente
          */
-        $urlApiReportes = config('app.URL_API_REPORTES') . "api/almacenarLectura";
+        $urlApiReportes = rtrim(config('app.URL_API_REPORTES'), '/') . '/api/almacenarLectura';
 
-        $response = Http::timeout(60)->attach(
-            'file_reporte',
-            file_get_contents(storage_path('app/reporte_lecturas/' . $nomArchivoReporte)),
-            $nomArchivoReporte
-        )->post($urlApiReportes, [
+        $secret = env('API_HMAC_SECRET'); // mismo secreto que en lidiag-reportes
+        $ts = time();
+
+        $payload = [
             'num_docu' => $estudio->num_docu,
             'name' => $estudio->nom_pacien,
             'fec_naci' => $estudio->fec_naci,
@@ -118,7 +117,36 @@ class EstudioNotificacionController extends Controller
             'url_oviyam' => $estudio->url_oviyam,
             'study_iuid' => $estudio->study_iuid,
             'tap_oviyam' => $estudio->tap_oviyam,
-        ]);
+        ];
+
+        $fileBytes = file_get_contents(storage_path('app/reporte_lecturas/' . $nomArchivoReporte));
+
+        $method = 'POST';
+        $path = parse_url($urlApiReportes, PHP_URL_PATH) ?: '/api/almacenarLectura';
+
+        ksort($payload);
+        $payloadCanonical = http_build_query($payload, '', '&', PHP_QUERY_RFC3986);
+        $payloadSha = hash('sha256', $payloadCanonical);
+        $fileSha = hash('sha256', $fileBytes ?: '');
+
+        $stringToSign = implode("\n", [$method, $path, (string)$ts, $payloadSha, $fileSha]);
+        $signature = base64_encode(hash_hmac('sha256', $stringToSign, $secret, true));
+
+        $response = Http::withoutVerifying()
+            ->acceptJson()
+            ->withHeaders([
+                'X-Timestamp' => (string) $ts,
+                'X-Signature' => $signature,
+            ])
+            ->timeout(60)
+            ->attach('file_reporte', $fileBytes, $nomArchivoReporte)
+            ->post($urlApiReportes, $payload);
+
+        //return $response;
+
+        if ($response->successful()) {
+            // El reporte se subió bien
+        }
 
         /**
          * Actualizo el nombre y correo electronico del paciente
@@ -130,7 +158,6 @@ class EstudioNotificacionController extends Controller
                 'email' => $estudio->email
             ]
         );
-
 
         /**
          * Envio de email con el adjunto del reporte de la lectura del estudio
