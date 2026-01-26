@@ -133,6 +133,13 @@
                                                 mostrarRegistro(item);" title="Notificar por correo electronico">
                                                 <i class="fa fa-envelope-o"></i>
                                             </button>
+                                            <button type="button" v-if="permisos.includes('estudios.notificar.index')"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
+                                                @click="actualizar = true;
+                                                setarDatosPortalPacientes(item); enviarPortalPacientes()"
+                                                title="Enviar al portal de pacientes">
+                                                <i class="fa fa-send"></i>
+                                            </button>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -394,7 +401,6 @@ export default {
 
                 this.estudio.email = this.registro.email;
                 const res = await axios.post('/notificar.email', this.estudio);
-                console.log('res', res)
 
                 if (res.status == 200) {
                     $.toast({
@@ -409,6 +415,48 @@ export default {
                 }
 
                 this.btnCerralModalForm();
+                this.limpiar();
+
+            } catch (e) {
+                if (e.response.status == 402) {
+                    $.toast({
+                        heading: "Ok!!!",
+                        text: e.response.data.message,
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "error",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                }
+            }
+        },
+        async enviarPortalPacientes() {
+            try {
+                $.toast({
+                    heading: "Ok!!!",
+                    text: 'Enviando al portal de pacientes, por favor espere.',
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "info",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+
+                const res = await axios.post('/enviar-portal-pacientes', this.estudio);
+
+                if (res.status == 200) {
+                    $.toast({
+                        heading: "Ok!!!",
+                        text: 'El estudio se ha enviado al portal de pacientes correctamente.',
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "success",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                }
+
                 this.limpiar();
 
             } catch (e) {
@@ -482,6 +530,20 @@ export default {
             this.registro.id_producto_lectura = data.id;
 
             this.btnCerralModalForm();
+        },
+        setarDatosPortalPacientes(data = {}) {
+            this.estudio = data;
+            this.tituloModal = "Notificar al paciente: " + data.pat_name;
+
+            this.registro.num_docu = data.num_docu;
+            this.registro.nombres = data.nom_pacien;
+            this.registro.sexo = data.sexo;
+            this.registro.fec_naci = data.fec_naci;
+            this.registro.telefono = data.tel;
+            this.registro.nom_produc = data.nom_produc;
+            this.registro.id_producto_lectura = data.id;
+
+
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);
