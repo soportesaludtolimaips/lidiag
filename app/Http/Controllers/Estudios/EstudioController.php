@@ -743,10 +743,20 @@ class EstudioController extends Controller
      */
     public function notificarEmail(Request $request)
     {
-
         $genearPlantilla = (new PlantillaEstudioController())->editWord($request);
         if ($genearPlantilla->status() == 200) {
             $notificar = (new EstudioNotificacionController())->notificarEmail($request);
+            return $notificar;
+        } else {
+            return $genearPlantilla;
+        }
+    }
+
+    public function enviarPortalPacientes(Request $request)
+    {
+        $genearPlantilla = (new PlantillaEstudioController())->editWord($request);
+        if ($genearPlantilla->status() == 200) {
+            $notificar = (new EstudioNotificacionController())->enviarPortalPacientes($request);
             return $notificar;
         } else {
             return $genearPlantilla;

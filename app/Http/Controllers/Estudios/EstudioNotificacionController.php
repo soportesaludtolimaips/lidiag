@@ -190,6 +190,63 @@ class EstudioNotificacionController extends Controller
         return response()->json(['message' => 'La notificación se generó correctamente.']);
     }
 
+    public function enviarPortalPacientes($estudio)
+    {
+        $nombrePaciente = str_replace('^^^', '', $estudio->nom_pacien);
+        $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
+        $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
+
+        $nomArchivoReporte = $estudio->estudio_producto_id . "-" . $estudio->num_docu . "-" . $nombrePaciente . ".pdf";
+
+        /**
+         * Envio la lectura a Lidiag-reportes para que este diponible para la descarga por parte del paciente
+         */
+        $urlApiReportes = rtrim(config('app.URL_API_REPORTES'), '/') . '/api/almacenarLectura';
+
+        $secret = env('API_HMAC_SECRET'); // mismo secreto que en lidiag-reportes
+        $ts = time();
+
+        $payload = [
+            'num_docu' => $estudio->num_docu,
+            'name' => $estudio->nom_pacien,
+            'fec_naci' => $estudio->fec_naci,
+            'nom_produc' => $estudio->nom_produc,
+            'fechor_lectura' => $estudio->fechor_lectura,
+            'nom_sede' => $estudio->nom_sede,
+            'url_oviyam' => $estudio->url_oviyam,
+            'study_iuid' => $estudio->study_iuid,
+            'tap_oviyam' => $estudio->tap_oviyam,
+        ];
+
+        $fileBytes = file_get_contents(storage_path('app/reporte_lecturas/' . $nomArchivoReporte));
+
+        $method = 'POST';
+        $path = parse_url($urlApiReportes, PHP_URL_PATH) ?: '/api/almacenarLectura';
+
+        ksort($payload);
+        $payloadCanonical = http_build_query($payload, '', '&', PHP_QUERY_RFC3986);
+        $payloadSha = hash('sha256', $payloadCanonical);
+        $fileSha = hash('sha256', $fileBytes ?: '');
+
+        $stringToSign = implode("\n", [$method, $path, (string)$ts, $payloadSha, $fileSha]);
+        $signature = base64_encode(hash_hmac('sha256', $stringToSign, $secret, true));
+
+        $response = Http::withoutVerifying()
+            ->acceptJson()
+            ->withHeaders([
+                'X-Timestamp' => (string) $ts,
+                'X-Signature' => $signature,
+            ])
+            ->timeout(60)
+            ->attach('file_reporte', $fileBytes, $nomArchivoReporte)
+            ->post($urlApiReportes, $payload);
+
+
+        unlink(storage_path('app/reporte_lecturas/' . $nomArchivoReporte));
+
+        return response()->json(['message' => 'La notificación se generó correctamente.']);
+    }
+
     /**
      * Descarga imágenes DICOM (convertidas a JPEG) desde el servidor WADO de la sede.
      *

@@ -73,7 +73,9 @@ Route::get('/listar-soportes-hc-estudio', [EstudioSoporteHCController::class, 'l
 Route::get('/descarga-soportes-hc/{nomArchivoEncriptadote}', [EstudioSoporteHCController::class, 'descargarSoporte'])->name('study.descarga.soporte.hc');
 Route::post('/listar.estudios.notificaciones', [EstudioNotificacionController::class, 'listarEstudios'])->name('listar.estudios.notificaciones');
 Route::get('/descargar.pdf.lectura/{nomArchivo}', [EstudioController::class, 'descargarPdfLectura'])->name('descargar.pdf.lectura');
+
 Route::post('/notificar.email', [EstudioController::class, 'notificarEmail'])->name('notificar.email');
+Route::post('/enviar-portal-pacientes', [EstudioController::class, 'enviarPortalPacientes'])->name('enviar.portal.pacientes');
 Route::post('/marcar-visto/{id}', [EstudioController::class, 'marcarEstudioVisto'])->name('estudios.marcarEstudioVisto');
 
 Route::post('/edit-word', [PlantillaEstudioController::class, 'editWord']);
