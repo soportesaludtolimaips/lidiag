@@ -203,6 +203,7 @@ class EstudioNotificacionController extends Controller
          */
         $urlApiReportes = rtrim(config('app.URL_API_REPORTES'), '/') . '/api/almacenarLectura';
 
+
         $secret = env('API_HMAC_SECRET'); // mismo secreto que en lidiag-reportes
         $ts = time();
 
@@ -235,15 +236,14 @@ class EstudioNotificacionController extends Controller
             $response = Http::withoutVerifying()
                 ->acceptJson()
                 ->withHeaders([
+                    'Host' => 'lidiag-reportes.com',
                     'X-Timestamp' => (string) $ts,
                     'X-Signature' => $signature,
                 ])
                 ->timeout(60)
                 ->attach('file_reporte', $fileBytes, $nomArchivoReporte)
-                ->post($urlApiReportes, $payload);
-
+                ->post('https://lidiag-reportes.com/api/almacenarLectura', $payload);
             return $response;
-
             if ($response->successful()) {
                 return response()->json(['message' => 'El estudio se ha enviado al portal de pacientes correctamente.']);
             }
