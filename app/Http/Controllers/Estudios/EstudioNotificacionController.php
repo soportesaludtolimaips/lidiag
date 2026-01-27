@@ -234,15 +234,13 @@ class EstudioNotificacionController extends Controller
 
         try {
             $response = Http::withoutVerifying()
-                ->acceptJson()
                 ->withHeaders([
-                    'Host' => 'lidiag-reportes.com',
-                    'X-Timestamp' => (string) $ts,
-                    'X-Signature' => $signature,
+                    'Host' => 'lidiag-reportes.com', // Esto le dice a Apache exactamente a dónde ir
+                    'Accept' => 'application/json',
                 ])
-                ->timeout(60)
                 ->attach('file_reporte', $fileBytes, $nomArchivoReporte)
                 ->post('https://lidiag-reportes.com/api/almacenarLectura', $payload);
+
             return $response;
             if ($response->successful()) {
                 return response()->json(['message' => 'El estudio se ha enviado al portal de pacientes correctamente.']);
