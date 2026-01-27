@@ -235,7 +235,6 @@ class EstudioNotificacionController extends Controller
         try {
             $response = Http::withoutVerifying()
                 ->withHeaders([
-                    'Host' => 'lidiag-reportes.com', // Esto le dice a Apache exactamente a dónde ir
                     'Accept' => 'application/json',
                 ])
                 ->attach('file_reporte', $fileBytes, $nomArchivoReporte)
