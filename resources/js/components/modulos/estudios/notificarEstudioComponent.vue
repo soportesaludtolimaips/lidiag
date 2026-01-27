@@ -285,11 +285,6 @@
 </template>
 <script>
 
-const API_URL = 'http://10.35.47.3:8080/dcm4chee-web3';
-let axiosInstance = axios.create({
-    withCredentials: true,  // Esto permite el uso de cookies
-});
-
 export default {
     props: ['usuarioactual', 'permisos'],
     mounted() {
@@ -303,7 +298,7 @@ export default {
                 num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", telefono: "", nom_produc: "", id_producto_lectura: null
             },
             estudio: null,
-            busqueda: { bus_num_docu: "298374", bus_nom: '', fehc_ini: "", fecha_fin: "" },
+            busqueda: { bus_num_docu: "", bus_nom: '', fehc_ini: "", fecha_fin: "" },
             errores: {},
             erroresBusqueda: {},
             imageUrl: '',
