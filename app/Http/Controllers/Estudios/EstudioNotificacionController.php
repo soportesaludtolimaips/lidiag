@@ -235,7 +235,9 @@ class EstudioNotificacionController extends Controller
         try {
             $response = Http::withoutVerifying()
                 ->withHeaders([
-                    'Accept' => 'application/json',
+                    'Accept'        => 'application/json',
+                    'X-Timestamp'   => $ts,
+                    'X-Signature'   => $signature,
                 ])
                 ->attach('file_reporte', $fileBytes, $nomArchivoReporte)
                 ->post('https://lidiag-reportes.com/api/almacenarLectura', $payload);
