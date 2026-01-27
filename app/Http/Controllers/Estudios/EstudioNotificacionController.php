@@ -241,7 +241,9 @@ class EstudioNotificacionController extends Controller
                 ->timeout(60)
                 ->attach('file_reporte', $fileBytes, $nomArchivoReporte)
                 ->post($urlApiReportes, $payload);
+
             return $response;
+
             if ($response->successful()) {
                 return response()->json(['message' => 'El estudio se ha enviado al portal de pacientes correctamente.']);
             }
