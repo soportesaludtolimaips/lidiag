@@ -223,6 +223,7 @@ class EstudioNotificacionController extends Controller
         $method = 'POST';
         $path = parse_url($urlApiReportes, PHP_URL_PATH) ?: '/api/almacenarLectura';
 
+
         ksort($payload);
         $payloadCanonical = http_build_query($payload, '', '&', PHP_QUERY_RFC3986);
         $payloadSha = hash('sha256', $payloadCanonical);
@@ -231,20 +232,36 @@ class EstudioNotificacionController extends Controller
         $stringToSign = implode("\n", [$method, $path, (string)$ts, $payloadSha, $fileSha]);
         $signature = base64_encode(hash_hmac('sha256', $stringToSign, $secret, true));
 
-        $response = Http::withoutVerifying()
-            ->acceptJson()
-            ->withHeaders([
-                'X-Timestamp' => (string) $ts,
-                'X-Signature' => $signature,
-            ])
-            ->timeout(60)
-            ->attach('file_reporte', $fileBytes, $nomArchivoReporte)
-            ->post($urlApiReportes, $payload);
+        try {
+            $response = Http::withoutVerifying()
+                ->acceptJson()
+                ->withHeaders([
+                    'X-Timestamp' => (string) $ts,
+                    'X-Signature' => $signature,
+                ])
+                ->timeout(60)
+                ->attach('file_reporte', $fileBytes, $nomArchivoReporte)
+                ->post($urlApiReportes, $payload);
 
+            if ($response->successful()) {
+                return response()->json(['message' => 'El estudio se ha enviado al portal de pacientes correctamente.']);
+            }
 
-        unlink(storage_path('app/reporte_lecturas/' . $nomArchivoReporte));
-
-        return response()->json(['message' => 'La notificación se generó correctamente.']);
+            return response()->json([
+                'message' => 'Error al enviar el reporte al portal de pacientes.',
+                'status' => $response->status(),
+                'error' => $response->body(),
+            ], 400);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error al enviar el reporte al portal de pacientes.', 'error' => $e->getMessage()], 400);
+        } finally {
+            // Limpieza best-effort del archivo temporal del reporte
+            try {
+                @unlink(storage_path('app/reporte_lecturas/' . $nomArchivoReporte));
+            } catch (\Exception $e) {
+                // no-op
+            }
+        }
     }
 
     /**
