@@ -223,7 +223,6 @@ class EstudioNotificacionController extends Controller
         $method = 'POST';
         $path = parse_url($urlApiReportes, PHP_URL_PATH) ?: '/api/almacenarLectura';
 
-
         ksort($payload);
         $payloadCanonical = http_build_query($payload, '', '&', PHP_QUERY_RFC3986);
         $payloadSha = hash('sha256', $payloadCanonical);
@@ -242,7 +241,7 @@ class EstudioNotificacionController extends Controller
                 ->timeout(60)
                 ->attach('file_reporte', $fileBytes, $nomArchivoReporte)
                 ->post($urlApiReportes, $payload);
-
+            return $response;
             if ($response->successful()) {
                 return response()->json(['message' => 'El estudio se ha enviado al portal de pacientes correctamente.']);
             }
