@@ -199,7 +199,8 @@ class EstudioNotificacionController extends Controller
             . '-' . $nombrePaciente
             . '.pdf';
 
-        $urlApiReportes = rtrim(config('app.URL_API_REPORTES'), '/') . '/api/almacenarLectura';
+        //$urlApiReportes = rtrim(config('app.URL_API_REPORTES'), '/') . '/api/almacenarLectura';
+        $urlApiReportes = 'https://127.0.0.1/api/almacenarLectura';
 
         $secret = env('API_HMAC_SECRET');
         $ts = time();
