@@ -632,8 +632,7 @@ class EstudioController extends Controller
         } elseif ($genearPlantilla->status() == 200) {
 
             $notificar = (new EstudioNotificacionController())->enviarPortalPacientes($request);
-
-            if ($notificar->successful()) {
+            if ($notificar->status() == 200) {
                 return response()->json(['message' => 'Lectura transferida correctamente'], 200);
             } else {
                 return response()->json(['message' => 'Error en la trnaferencia de la lectura'], 400);
