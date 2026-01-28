@@ -10,8 +10,8 @@ use App\Models\Configuracion\ConfigProducto;
 use App\Models\Ecografias\Ecografia;
 use App\Models\Ecografias\EcografiaProducto;
 use App\Models\General\Paciente;
-use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class EcografiaController extends Controller
 {
@@ -114,28 +114,34 @@ class EcografiaController extends Controller
      */
     public function store(Request $request)
     {
-        
         try {
-            $validateData = $request->validate(
-                [
-                    'num_docu' => 'required|string',
-                    'nombres' => 'required|string',
-                    'pri_ape' => 'nullable|string',
-                    'sede_id' => 'required|integer',
-                    'atencion_id' => 'required|integer',
-                    'medico_id' => 'required|integer',
-                    'productosAgenda' => 'required|array',
-                ],
-                [
-                    'num_docu.required' => 'El número de documento es obligatorio.',
-                    'nombres.required' => 'El nombre es obligatorio.',
-                    'pri_ape.required' => 'El primer apellido es obligatorio.',
-                    'sede_id.required' => 'La sede es obligatoria.',
-                    'atencion_id.required' => 'La atención es obligatoria.',
-                    'medico_id.required' => 'El médico es obligatorio.',
-                    'productosAgenda.required' => 'Debe agregar al menos un producto a la ecografía.',
-                ]
-            );
+            $validator = Validator::make($request->all(), [
+                'num_docu' => 'required|string',
+                'nombres' => 'required|string',
+                'pri_ape' => 'nullable|string',
+                'sede_id' => 'required|integer',
+                'atencion_id' => 'required|integer',
+                'medico_id' => 'required|integer',
+                'atencion_id' => 'required|integer',
+                'productosAgenda' => 'required|array',
+            ], [
+                'num_docu.required' => 'El número de documento es obligatorio.',
+                'nombres.required' => 'El nombre es obligatorio.',
+                'pri_ape.required' => 'El primer apellido es obligatorio.',
+                'sede_id.required' => 'La sede es obligatoria.',
+                'atencion_id.required' => 'La atención es obligatoria.',
+                'medico_id.required' => 'El médico es obligatorio.',
+                'atencion_id.required' => 'La atención es obligatoria.',
+                'productosAgenda.required' => 'Debe agregar al menos un producto a la ecografía.',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error de validación.',
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
 
             // Crear el paciente si no existe
             $paciente = Paciente::updateOrCreate(
@@ -172,6 +178,7 @@ class EcografiaController extends Controller
                 'paciente_id' => $paciente->id,
                 'usua_regis_id' => $request->quien_registro_id,
                 'admin_salud_id' => $adminSalud->id ?? null,
+                'atencion_id' => $request->atencion_id,
                 'fec_cita_sahi' => $request->fec_cita_sahi ?? null,
                 'fec_regis_cita_sahi' => $request->fec_regis_cita_sahi ?? null,
                 'contrato' => $request->contrato ?? null,
@@ -197,7 +204,7 @@ class EcografiaController extends Controller
 
                 // Asociar el producto a la ecografía
                 EcografiaProducto::create([
-                    'atencion_id' => $producto['IdAtencion'],
+                    'usua_regis_id' => $request->quien_registro_id,
                     'ecografia_id' => $ecografia->id,
                     'producto_id' => $productoExistente->id,
                     'lectura' => $producto['lectura'] ?? null,
@@ -221,7 +228,7 @@ class EcografiaController extends Controller
         }
     }
 
-    
+
 
     /**
      * Muestra una ecografía específica.

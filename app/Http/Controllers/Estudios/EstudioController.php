@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Estudios;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Interface\SAHIController;
 use App\Http\Controllers\Interface\SAHITranscibirController;
-use App\Http\Requests\Estudio\estudioLeerRequest;
 use App\Models\General\Paciente;
 use App\Models\Estudio\Estudio;
 use App\Models\Estudio\EstudioDiagnostico;

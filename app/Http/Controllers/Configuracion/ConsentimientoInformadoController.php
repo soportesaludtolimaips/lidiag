@@ -13,11 +13,10 @@ class ConsentimientoInformadoController extends Controller
      */
     public function index()
     {
-        return "okk";
         $consentimientoInformados = ConsentimientoInformado::all();
         return response()->json([
-            'status' => 'success', 
-            'message' => 'Consentimiento Informado listado correctamente', 
+            'status' => 'success',
+            'message' => 'Consentimiento Informado listado correctamente',
             'data' => $consentimientoInformados
         ]);
     }
@@ -29,8 +28,8 @@ class ConsentimientoInformadoController extends Controller
     {
         $consentimientoInformado = ConsentimientoInformado::create($request->all());
         return response()->json([
-            'status' => 'success', 
-            'message' => 'Consentimiento Informado creado correctamente', 
+            'status' => 'success',
+            'message' => 'Consentimiento Informado creado correctamente',
             'data' => $consentimientoInformado
         ]);
     }
@@ -44,14 +43,14 @@ class ConsentimientoInformadoController extends Controller
 
         if (!$consentimientoInformado) {
             return response()->json([
-                'status' => 'error', 
-                'message' => 'Consentimiento Informado no encontrado', 
+                'status' => 'error',
+                'message' => 'Consentimiento Informado no encontrado',
             ], 404);
         }
 
         return response()->json([
-            'status' => 'success', 
-            'message' => 'Consentimiento Informado obtenido correctamente', 
+            'status' => 'success',
+            'message' => 'Consentimiento Informado obtenido correctamente',
             'data' => $consentimientoInformado
         ]);
     }
@@ -65,16 +64,16 @@ class ConsentimientoInformadoController extends Controller
 
         if (!$consentimientoInformado) {
             return response()->json([
-                'status' => 'error', 
-                'message' => 'Consentimiento Informado no encontrado', 
+                'status' => 'error',
+                'message' => 'Consentimiento Informado no encontrado',
             ], 404);
         }
 
         $consentimientoInformado->update($request->all());
 
         return response()->json([
-            'status' => 'success', 
-            'message' => 'Consentimiento Informado actualizado correctamente', 
+            'status' => 'success',
+            'message' => 'Consentimiento Informado actualizado correctamente',
             'data' => $consentimientoInformado
         ]);
     }
@@ -88,16 +87,16 @@ class ConsentimientoInformadoController extends Controller
 
         if (!$consentimientoInformado) {
             return response()->json([
-                'status' => 'error', 
-                'message' => 'Consentimiento Informado no encontrado', 
+                'status' => 'error',
+                'message' => 'Consentimiento Informado no encontrado',
             ], 404);
         }
 
         $consentimientoInformado->delete();
 
         return response()->json([
-            'status' => 'success', 
-            'message' => 'Consentimiento Informado eliminado correctamente', 
+            'status' => 'success',
+            'message' => 'Consentimiento Informado eliminado correctamente',
         ]);
     }
 
@@ -105,8 +104,8 @@ class ConsentimientoInformadoController extends Controller
     {
         $consentimientoInformados = ConsentimientoInformado::where('estado', true)->get();
         return response()->json([
-            'status' => 'success', 
-            'message' => 'Consentimiento Informado listado correctamente', 
+            'status' => 'success',
+            'message' => 'Consentimiento Informado listado correctamente',
             'data' => $consentimientoInformados
         ]);
     }
