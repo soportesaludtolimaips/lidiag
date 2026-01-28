@@ -17,6 +17,7 @@ class Ecografia extends Model
         'paciente_id',
         'usua_regis_id',
         'admin_salud_id',
+        'atencion_id',
         'fec_cita_sahi',
         'fec_regis_cita_sahi',
         'contrato',
