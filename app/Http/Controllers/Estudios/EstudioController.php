@@ -22,6 +22,11 @@ use Illuminate\Support\Facades\DB;
 class EstudioController extends Controller
 {
     protected $nomArchivoReporte;
+
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
     /**
      * Display a listing of the resource.
      *
@@ -102,6 +107,39 @@ class EstudioController extends Controller
             return response()->json($validator->errors(), 400);
         }
 
+        // Validación de adjuntos (soportes HC): solo PDF/JPG/JPEG/PNG y máximo 5MB por archivo
+        $valArchivos = Validator::make(
+            $request->all(),
+            [
+                'archivo1' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+                'archivo2' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+                'archivo3' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            ],
+            [
+                'archivo1.file' => 'El soporte 1 debe ser un archivo válido.',
+                'archivo1.mimes' => 'El soporte 1 debe ser PDF/JPG/JPEG/PNG.',
+                'archivo1.max' => 'El soporte 1 no debe exceder 5MB.',
+                'archivo2.file' => 'El soporte 2 debe ser un archivo válido.',
+                'archivo2.mimes' => 'El soporte 2 debe ser PDF/JPG/JPEG/PNG.',
+                'archivo2.max' => 'El soporte 2 no debe exceder 5MB.',
+                'archivo3.file' => 'El soporte 3 debe ser un archivo válido.',
+                'archivo3.mimes' => 'El soporte 3 debe ser PDF/JPG/JPEG/PNG.',
+                'archivo3.max' => 'El soporte 3 no debe exceder 5MB.',
+            ]
+        );
+        if ($valArchivos->fails()) {
+            return response()->json($valArchivos->errors(), 400);
+        }
+
+        // Asegurar que venga al menos un producto marcado (checked=true)
+        $productosMarcados = array_values(array_filter(
+            $registro['productosEstudio'] ?? [],
+            fn($p) => isset($p['checked']) && $p['checked'] == true
+        ));
+        if (count($productosMarcados) === 0) {
+            return response()->json(['productosEstudio' => ['Debe seleccionar al menos un producto (marcar el check).']], 400);
+        }
+
         $nombrePaciente = str_replace('^^^', '', $registro['nombres']);
         $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
         $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
@@ -143,93 +181,86 @@ class EstudioController extends Controller
         /**
          * Inserto el estudio en Lidiag
          */
-        $estudio = Estudio::firstOrCreate(
-            ['study_id' => $registro['study_pk']],
-            [
-                'study_pk' => $registro['study_pk'],
-                'study_iuid' => $registro['study_iuid'],
-                'study_id' => $registro['study_id'],
-                'fec_estudio' => $registro['study_datetime'],
-                'accession_no' => $registro['accession_no'],
-                'study_desc' => $registro['study_desc'],
-                'mods_in_study' => $registro['mods_in_study'],
-                'email_reportar' => $registro['email_reportar'],
-                'paciente_id' => $paciente->id,
-                //'medico_id' => ($registro['destino_estudio'] === 'Tele Radiologia') ? null : $registro['medico_id'],
-                'quien_registro_id' => auth()->user()->id,
-                'sede_id' => $registro['sede_id'],
-                'prioridad_id' => $registro['prioridad_id'],
-                'observaciones' => $registro['observaciones'],
-                'atencion' => $registro['atencion_id'],
-                'servicio' => $servicio,
-                'eps' => $eps,
-                'contrato' => $contrato,
-                'plan' => $plan,
-                'destino_estudio' => $registro['destino_estudio']
-            ]
-        );
+        return DB::transaction(function () use ($registro, $paciente, $eps, $contrato, $plan, $servicio, $request, $productosMarcados) {
+            $estudio = Estudio::updateOrCreate(
+                [
+                    'sede_id' => $registro['sede_id'],
+                    'study_pk' => $registro['study_pk'],
+                ],
+                [
+                    'study_iuid' => $registro['study_iuid'],
+                    'study_id' => $registro['study_id'],
+                    'fec_estudio' => $registro['study_datetime'],
+                    'accession_no' => $registro['accession_no'],
+                    'study_desc' => $registro['study_desc'],
+                    'mods_in_study' => $registro['mods_in_study'],
+                    'email_reportar' => $registro['email_reportar'],
+                    'paciente_id' => $paciente->id,
+                    'quien_registro_id' => auth()->user()->id,
+                    'prioridad_id' => $registro['prioridad_id'],
+                    'observaciones' => $registro['observaciones'],
+                    'atencion' => $registro['atencion_id'],
+                    'servicio' => $servicio,
+                    'eps' => $eps,
+                    'contrato' => $contrato,
+                    'plan' => $plan,
+                    'destino_estudio' => $registro['destino_estudio'],
+                ]
+            );
 
-
-        if ($registro['destino_estudio'] === 'Salud Tolima') {
-            $estudio->medico_id =  $registro['medico_id'];
+            if ($registro['destino_estudio'] === 'Salud Tolima') {
+                $estudio->medico_id =  $registro['medico_id'];
+            } else {
+                $estudio->destino_estudio_id = $registro['destino_estudio_id'] ?? null;
+            }
             $estudio->save();
-        } else {
-            $estudio->destino_estudio_id = $registro['destino_estudio_id'];
-            $estudio->save();
-        }
 
-        /**
-         * Elimino los productos existentes para almacenar los nuevos
-         */
-        $productos = EstudioProducto::where('estudio_id', '=', $estudio->id);
-        $productos->delete();
-        foreach ($registro['productosEstudio'] as $Producto) {
-            if ($Producto['checked'] == true) {
-
-                $productoDicom = ConfigProducto::where('cod_cups', '=', $Producto['cod_cups'])
-                    ->get();
+            // Reemplazar productos
+            EstudioProducto::where('estudio_id', $estudio->id)->delete();
+            foreach ($productosMarcados as $Producto) {
+                $productoDicom = ConfigProducto::where('cod_cups', $Producto['cod_cups'])->first();
 
                 if (!$productoDicom) {
-                    return response()->json(['message' => 'No se encontró el producto con código CPS ' . $Producto['cod_cups'] . 'en la base de datos.'], 400);
-                } elseif ($productoDicom[0]->requi_lectura == 0) {
-                    return response()->json(['message' => 'El producto con código CPS ' . $Producto['nom_produc'] . ' no requiere lectura.'], 400);
-                } else {
-                    EstudioProducto::create([
-                        'estudio_id' => $estudio->id,
-                        'producto_id' => $productoDicom[0]->id,
-                        'cod_cups' => $productoDicom[0]->cod_cups,
-                        'nom_produc' => $productoDicom[0]->nom_produc,
-                    ]);
+                    return response()->json(['message' => 'No se encontró el producto con código CUPS ' . $Producto['cod_cups'] . ' en la base de datos.'], 400);
                 }
+                if ((int)$productoDicom->requi_lectura === 0) {
+                    return response()->json(['message' => 'El producto ' . $productoDicom->nom_produc . ' no requiere lectura.'], 400);
+                }
+
+                EstudioProducto::create([
+                    'estudio_id' => $estudio->id,
+                    'producto_id' => $productoDicom->id,
+                    'cod_cups' => $productoDicom->cod_cups,
+                    'nom_produc' => $productoDicom->nom_produc,
+                ]);
             }
-        }
-        /**
-         * Elimino los diagnosticos existentes para almacenar los nuevos
-         */
-        $diagnosticos = EstudioDiagnostico::where('estudio_id', '=', $estudio->id);
-        $diagnosticos->delete();
-        foreach ($registro['diagnosticosEstudio'] as $Diagnostico) {
-            EstudioDiagnostico::create([
-                'estudio_id' => $estudio->id,
-                'cod_diagnos' => $Diagnostico['cod_diagnos'],
-                'nom_diagnos' => $Diagnostico['nom_diagnos'],
-            ]);
-        }
 
-        /**
-         * Almacenos los soportes de la HC
-         */
-        if ($request->hasFile('archivo1')) {
-            $this->procesarArchivo($request->archivo1, $estudio->id);
-        }
-        if ($request->hasFile('archivo2')) {
-            $this->procesarArchivo($request->archivo2, $estudio->id);
-        }
-        if ($request->hasFile('archivo3')) {
-            $this->procesarArchivo($request->archivo3, $estudio->id);
-        }
+            // Reemplazar diagnósticos (si llegan)
+            EstudioDiagnostico::where('estudio_id', $estudio->id)->delete();
+            foreach (($registro['diagnosticosEstudio'] ?? []) as $Diagnostico) {
+                if (!isset($Diagnostico['cod_diagnos']) || !isset($Diagnostico['nom_diagnos'])) {
+                    continue;
+                }
+                EstudioDiagnostico::create([
+                    'estudio_id' => $estudio->id,
+                    'cod_diagnos' => $Diagnostico['cod_diagnos'],
+                    'nom_diagnos' => $Diagnostico['nom_diagnos'],
+                ]);
+            }
 
-        return response()->json(['message' => 'La asignación de la lectura se realizó correctamente.']);
+            // Almacenar soportes HC
+            if ($request->hasFile('archivo1')) {
+                $this->procesarArchivo($request->archivo1, $estudio->id);
+            }
+            if ($request->hasFile('archivo2')) {
+                $this->procesarArchivo($request->archivo2, $estudio->id);
+            }
+            if ($request->hasFile('archivo3')) {
+                $this->procesarArchivo($request->archivo3, $estudio->id);
+            }
+
+            return response()->json(['message' => 'La asignación de la lectura se realizó correctamente.']);
+        });
     }
 
     /**
@@ -268,6 +299,14 @@ class EstudioController extends Controller
      */
     public function listarPendientesMedico(Request $request, Estudio $estudio)
     {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer|exists:users,id',
+            'sede_id' => 'required|integer|exists:config_sedes,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
         $misPendiente = Estudio::select(
             'estudios.id',
             'estudios.study_pk',
@@ -337,6 +376,16 @@ class EstudioController extends Controller
      */
     public function leerEstudio(Request $request, EstudioProducto $estudioProducto)
     {
+        $validator = Validator::make($request->all(), [
+            'estudio_producto_id' => 'required|integer|exists:estudios_productos,id',
+            'lectura' => 'required|string|min:3',
+        ], [
+            'lectura.required' => 'Debe ingresar la lectura.',
+        ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
         $productoLectura = EstudioProducto::findOrFail($request->estudio_producto_id);
         $productoLectura->lectura = $request->lectura;
         $productoLectura->fechor_lectura = Carbon::now();
@@ -458,7 +507,10 @@ class EstudioController extends Controller
                 });
             })
             ->when($request->bus_fehc_ini && $request->bus_fecha_fin, function ($query) use ($request) {
-                return $query->whereBetween('estudios.fec_estudio', [$request->bus_fehc_ini, $request->bus_fecha_fin]);
+                // Si vienen solo fechas (YYYY-MM-DD), incluir el día completo para no excluir por hora
+                $inicio = Carbon::parse($request->bus_fehc_ini)->startOfDay()->format('Y-m-d H:i:s');
+                $fin = Carbon::parse($request->bus_fecha_fin)->endOfDay()->format('Y-m-d H:i:s');
+                return $query->whereBetween('estudios.fec_estudio', [$inicio, $fin]);
             })
             ->where('estudios_productos.activo', '=', 1)
             ->whereNull('estudios_productos.transcriptor_id')
@@ -498,11 +550,24 @@ class EstudioController extends Controller
      */
     public function listarEstudiosAsignados(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'sede_id' => 'required|integer|exists:config_sedes,id',
+            'bus_nom_num_docu' => 'nullable|string|max:255',
+            'quien_asigno_id' => 'nullable|integer|exists:users,id',
+            'medico_id' => 'nullable|integer|exists:users,id',
+            'bus_fehc_ini' => 'nullable|date',
+            'bus_fecha_fin' => 'nullable|date|after_or_equal:bus_fehc_ini',
+        ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
         $misPendiente = Estudio::select(
             'estudios.*',
             'pacien.num_docu',
             'pacien.nombres as nom_pacien',
             'pacien.fec_naci',
+            'pacien.sexo',
             'pacien.direccion',
             'pacien.email',
             'pacien.tel',
@@ -536,7 +601,7 @@ class EstudioController extends Controller
             //->where('estudios_productos.activo', '=', 1)
             ->when($request->bus_fehc_ini && $request->bus_fecha_fin, function ($query) use ($request) {
                 return $query->whereBetween(
-                    DB::raw('DATE(estudios.created_at)'),
+                    DB::raw('DATE(estudios.fec_estudio)'),
                     [$request->bus_fehc_ini, $request->bus_fecha_fin]
                 );
             })
@@ -553,7 +618,9 @@ class EstudioController extends Controller
             ->when($request->medico_id, function ($query, $medico_id) {
                 return $query->where('estudios.medico_id', $medico_id);
             })
-            ->orderBy('estudios.created_at', 'ASC')
+            ->orderByDesc('estudios.fec_estudio')
+            ->orderByDesc('estudios.created_at')
+            ->limit(1000)
             ->get();
 
         return response()->json($misPendiente);
@@ -576,6 +643,31 @@ class EstudioController extends Controller
      */
     public function guardarTranscripcion(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'estudio_producto_id' => 'required|integer|exists:estudios_productos,id',
+            'id_estudio' => 'nullable|integer|exists:estudios,id',
+            'lectura' => 'required|string|min:3',
+            'num_docu' => 'required|string|max:50',
+            'nom_pacien' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'tel' => 'nullable|string|max:50',
+            'sede_id' => 'required|integer|exists:config_sedes,id',
+            'cod_cups' => 'required|string|max:50',
+            'nom_produc' => 'required|string|max:255',
+            'medico_id' => 'nullable|integer',
+        ], [
+            'lectura.required' => 'Debe ingresar la lectura.',
+        ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
+        // Completar campos esperados por plantilla/notificación
+        $request->merge([
+            'fechor_lectura' => $request->input('fechor_lectura', $request->input('fec_lectura')),
+            'fechor_trascrito' => $request->input('fechor_trascrito', Carbon::now()->format('Y-m-d H:i:s')),
+        ]);
+
         //return $request;
         /**
          * Actualizo los datos del paciente
@@ -717,7 +809,7 @@ class EstudioController extends Controller
      */
     public function anularAsignacion(Request $request, EstudioProducto $estudioProducto)
     {
-        $productoEstudio =  EstudioProducto::find($request->id);
+        $productoEstudio = EstudioProducto::findOrFail($request->id);
         $productoEstudio->activo = 0;
         $productoEstudio->save();
 

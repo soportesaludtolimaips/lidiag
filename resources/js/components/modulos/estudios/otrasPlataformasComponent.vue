@@ -84,9 +84,12 @@
                                 </div>
 
                                 <div class="form-actions mt-3">
-                                    <button type="button" class="btn btn-success m-r-5"
-                                        @click="listarPendientesTrascribir()"><i class="fa fa-search"></i>
-                                        Buscar</button>
+                                    <button type="button" class="btn btn-success m-r-5" :disabled="loadingBuscar"
+                                        @click="listarPendientesTrascribir()">
+                                        <i v-if="loadingBuscar" class="fa fa-spinner fa-spin"></i>
+                                        <i v-else class="fa fa-search"></i>
+                                        Buscar
+                                    </button>
                                     <button type="button" class="btn btn-inverse" @click="btnLimpiar()"><i
                                             class="fa fa-refresh"></i> Limpiar</button>
                                 </div>
@@ -123,9 +126,9 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(item, index) in registros" :key="item.id" :id="item.id">
+                                    <tr v-for="item in registros" :key="item.estudio_producto_id"
+                                        :id="item.estudio_producto_id">
                                         <td>
-                                            {{ item.id }}
                                             <button type="button" v-if="item.priori_id == 1"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">A</button>
                                             <button type="button" v-else-if="item.priori_id == 2"
@@ -153,13 +156,19 @@
                                         <td class="text-nowrap">
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
+                                                :disabled="loadingAbrirId === item.estudio_producto_id"
                                                 @click="actualizar = true; mostrarRegistro(item);">
-                                                <i class="fa fa-pencil"></i>
+                                                <i v-if="loadingAbrirId === item.estudio_producto_id"
+                                                    class="fa fa-spinner fa-spin"></i>
+                                                <i v-else class="fa fa-pencil"></i>
                                             </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
-                                                @click="anularAsignacion(item.id, item.id_producto_lectura, item.nom_pacien, item.nom_produc);">
-                                                <i class="fa fa-eraser"></i>
+                                                :disabled="loadingAnularId === item.estudio_producto_id"
+                                                @click="anularAsignacion(item.estudio_producto_id, item.nom_pacien, item.nom_produc);">
+                                                <i v-if="loadingAnularId === item.estudio_producto_id"
+                                                    class="fa fa-spinner fa-spin"></i>
+                                                <i v-else class="fa fa-eraser"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -238,9 +247,9 @@
                                             <div class="form-group">
                                                 <label class="control-label">Télefono</label>
                                                 <input type="number" id="telefono" name="telefono"
-                                                    v-model="registro.telefono" class="form-control" />
-                                                <span class="text-danger" v-if="errores.telefono">
-                                                    {{ errores.telefono[0] }}
+                                                    v-model="registro.tel" class="form-control" />
+                                                <span class="text-danger" v-if="errores.tel">
+                                                    {{ errores.tel[0] }}
                                                 </span>
                                             </div>
                                         </div>
@@ -261,7 +270,7 @@
                                     <hr>
 
                                     <input type="hidden" id="id_producto_lectura" name="id_producto_lectura"
-                                        v-model="registro.id_producto_lectura" />
+                                        v-model="registro.estudio_producto_id" />
                                     <input type="hidden" id="email" name="email" v-model="registro.email" />
 
                                     <div class="row">
@@ -335,8 +344,9 @@
                                         <div class="col-3">
                                             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                                                 <button type="button" class="btn btn-secondary btn-xs"
-                                                    @click="verImagen()">
-                                                    <i class="fa fa-file-image-o"></i>
+                                                    :disabled="loadingVerImagen" @click="verImagen()">
+                                                    <i v-if="loadingVerImagen" class="fa fa-spinner fa-spin"></i>
+                                                    <i v-else class="fa fa-file-image-o"></i>
                                                 </button>
                                             </div>
                                         </div>
@@ -356,8 +366,10 @@
                             </div>
 
                             <div class="form-actions mt-3">
-                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()">
-                                    <i class="fa fa-check"></i> Guardar
+                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
+                                    :disabled="loadingGuardar">
+                                    <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
+                                    <i v-else class="fa fa-check"></i> Guardar
                                 </button>
 
                                 <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">
@@ -377,7 +389,7 @@
 
 <script>
 $(function () {
-    $('#textarea_editor').wysihtml5();
+    try { $('.textarea_editor').wysihtml5(); } catch (e) { }
 });
 export default {
     props: ['usuarioactual'],
@@ -391,9 +403,11 @@ export default {
             soportesHC: [],
             registros: [],
             tituloModal: "Transcirbir estudio",
+            id: 0,
+            actualizar: false,
             registro: {
-                id_estudio: 0, id_producto_lectura: 0, lectura: "", fec_lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", email_reportar: '', num_docu: "", nom_pacien: "", sexo: "",
-                fec_naci: "", email: "", diagnosticosEstudio: [], sede_id: "", atencion: null, servicio: null, eps: null, contrato: null, medico_id: null, cod_cups: '', nom_produc: '', num_docu_medi: '',
+                id_estudio: 0, estudio_producto_id: 0, lectura: "", fec_lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", email_reportar: '', num_docu: "", nom_pacien: "", sexo: "",
+                fec_naci: "", email: "", tel: "", direccion: "", diagnosticosEstudio: [], sede_id: "", atencion: null, servicio: null, eps: null, contrato: null, medico_id: null, cod_cups: '', nom_produc: '', num_docu_medi: '',
                 reg_med: '', medico: '', firma: '',
 
             },
@@ -403,10 +417,45 @@ export default {
             medicos: [],
             errores: {},
             idRow: null,
+            loadingBuscar: false,
+            loadingGuardar: false,
+            loadingAbrirId: null,
+            loadingAnularId: null,
+            loadingVerImagen: false,
         };
     },
     methods: {
+        initDataTable() {
+            try {
+                if ($ && $.fn && $.fn.DataTable) {
+                    $("#example23").DataTable({
+                        dom: "Bfrtip",
+                        buttons: ["copy", "csv", "excel", "pdf", "print"],
+                        retrieve: true,
+                    });
+                }
+            } catch (e) { }
+        },
+        destroyDataTable() {
+            try {
+                if ($ && $.fn && $.fn.DataTable && $.fn.dataTable.isDataTable('#example23')) {
+                    $("#example23").DataTable().destroy();
+                }
+            } catch (e) { }
+        },
+        btnLimpiar() {
+            this.busqueda.quien_asigno_id = "";
+            this.busqueda.medico_id = "";
+            this.busqueda.bus_nom_num_docu = "";
+            this.busqueda.bus_fehc_ini = "";
+            this.busqueda.bus_fecha_fin = "";
+            this.errores = {};
+            this.destroyDataTable();
+            this.registros = [];
+        },
         async listarPendientesTrascribir() {
+            if (this.loadingBuscar) return;
+            this.loadingBuscar = true;
             try {
                 if (sessionStorage.getItem('ST-sede') == null) {
                     $.toast({
@@ -421,22 +470,32 @@ export default {
                 } else {
 
                     const res = await axios.post("/estudio-listarPendientesTrascribir", this.busqueda);
-                    $("#example23").DataTable().destroy();
+                    this.destroyDataTable();
 
                     this.registros = res.data;
 
                     this.$nextTick(() => {
-                        $("#example23").DataTable({
-                            dom: "Bfrtip",
-                            buttons: ["copy", "csv", "excel", "pdf", "print"],
-                        });
+                        this.initDataTable();
                     });
                 }
             } catch (error) {
                 console.log(error);
+                $.toast({
+                    heading: "Upss!!!",
+                    text: error?.response?.data?.message || "No fue posible listar los estudios.",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "error",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+            } finally {
+                this.loadingBuscar = false;
             }
         },
         async guardarRegistro() {
+            if (this.loadingGuardar) return;
+            this.loadingGuardar = true;
             try {
                 $.toast({
                     heading: "Ok!!!",
@@ -452,9 +511,11 @@ export default {
 
                 if (res.status == 200) {
 
-                    var row = document.getElementById(this.idRow);
-                    if (row) {
-                        row.remove();
+                    const idx = this.registros.findIndex(x => x.estudio_producto_id == this.idRow);
+                    if (idx >= 0) {
+                        this.registros.splice(idx, 1);
+                        this.destroyDataTable();
+                        this.$nextTick(() => this.initDataTable());
                     }
 
                     $.toast({
@@ -482,11 +543,25 @@ export default {
                     });
                 }
             } catch (error) {
-                if (error.response.data.status = 402) {
-
+                const status = error?.response?.status;
+                const message = error?.response?.data?.message;
+                if (status === 400 && error?.response?.data && typeof error.response.data === 'object') {
+                    this.errores = error.response.data;
+                }
+                if (status === 402) {
                     $.toast({
                         heading: "Upss!!!",
-                        text: error.response.data.message,
+                        text: message || "La plantilla no está configurada para esta sede.",
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "error",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                } else {
+                    $.toast({
+                        heading: "Upss!!!",
+                        text: message || "No fue posible guardar la transcripción.",
                         position: "top-right",
                         loaderBg: "#ff6849",
                         icon: "error",
@@ -494,7 +569,54 @@ export default {
                         stack: 6,
                     });
                 }
+            } finally {
+                this.loadingGuardar = false;
             }
+        },
+        async anularAsignacion(idProductoEstudio, paciente, producto) {
+            const $this = this;
+            swal({
+                title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
+                text: "No podrás recuperar este registro!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "si, anular!",
+                closeOnConfirm: false
+            }, function (isConfirm) {
+                if (isConfirm) {
+                    if ($this.loadingAnularId) return;
+                    $this.loadingAnularId = idProductoEstudio;
+                    swal({
+                        title: "Anulando...",
+                        text: "Procesando, por favor espere.",
+                        type: "info",
+                        showConfirmButton: false,
+                        allowOutsideClick: false
+                    });
+                    axios.post('estudio-anular-asignacion', { 'id': idProductoEstudio })
+                        .then(res => {
+                            if (res.status === 200) {
+                                const idx = $this.registros.findIndex(x => x.estudio_producto_id == idProductoEstudio);
+                                if (idx >= 0) {
+                                    $this.registros.splice(idx, 1);
+                                    $this.destroyDataTable();
+                                    $this.$nextTick(() => $this.initDataTable());
+                                }
+                                swal("Anulado!", "El producto se anulo correctamente.", "success");
+                            } else {
+                                swal("Ups!", "No fue posible anular el producto.", "error");
+                            }
+                        })
+                        .catch(err => {
+                            console.log(err);
+                            swal("Error", "No fue posible anular el producto.", "error");
+                        })
+                        .finally(() => {
+                            $this.loadingAnularId = null;
+                        });
+                }
+            });
         },
         async listarUsuariosYSedes() {
             /**
@@ -510,15 +632,27 @@ export default {
             this.medicos = resMedicos.data;
         },
         verImagen() {
-            let Url = this.datosImagen.urlOviyam + '?patientID =' + this.datosImagen.patientId + '&studyUID=' + this.datosImagen.studyUID + '&serverName=' + this.datosImagen.serverName
-            window.open(Url, '_blank');
+            if (this.loadingVerImagen) return;
+            this.loadingVerImagen = true;
+            const base = this.datosImagen.urlOviyam || '';
+            const params = new URLSearchParams({
+                patientID: String(this.datosImagen.patientId ?? ''),
+                studyUID: String(this.datosImagen.studyUID ?? ''),
+                serverName: String(this.datosImagen.serverName ?? ''),
+            });
+            try {
+                window.open(`${base}?${params.toString()}`, '_blank');
+            } finally {
+                setTimeout(() => { this.loadingVerImagen = false; }, 500);
+            }
         },
         async mostrarRegistro(data = {}) {
 
             this.tituloModal = "Transcribir la lectura del paciente: " + data.nom_pacien;
             this.id = data.id;
-            this.idRow = data.id;
-            this.registro.id_producto_lectura = data.id_producto_lectura;
+            this.idRow = data.estudio_producto_id;
+            this.registro.id_estudio = data.id;
+            this.registro.estudio_producto_id = data.estudio_producto_id;
             this.registro.fec_estudio = data.fec_estudio;
             this.registro.fec_lectura = data.fechor_lectura;
             this.registro.accession_no = data.accession_no;
@@ -531,8 +665,8 @@ export default {
             this.registro.direccion = data.direccion;
             this.registro.email = data.email;
             this.registro.tel = data.tel;
-            this.registro.sexo = data.pat_sex;
-            this.registro.fec_naci = data.pat_birthdate;
+            this.registro.sexo = data.sexo ?? data.pat_sex;
+            this.registro.fec_naci = data.fec_naci ?? data.pat_birthdate;
             this.registro.cod_cups = data.cod_cups;
             this.registro.nom_produc = data.nom_produc;
             this.registro.num_docu_medi = data.num_docu_medi;
@@ -550,7 +684,7 @@ export default {
             this.registro.nom_sede = data.nom_sede;
 
             this.btnCerralModalForm();
-            this.errores = [];
+            this.errores = {};
         },
         limpiar() {
             this.actualizar = false;
@@ -559,7 +693,7 @@ export default {
             this.registro.email = "";
 
             $('#btnCerralModalForm').click();
-            this.errores = [];
+            this.errores = {};
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);

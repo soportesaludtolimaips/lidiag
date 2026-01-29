@@ -8,6 +8,7 @@ use App\Models\Ecografias\Ecografia;
 use App\Models\Ecografias\EcografiaProducto;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ecografiaLecturaController extends Controller
 {
@@ -26,37 +27,52 @@ class ecografiaLecturaController extends Controller
      */
     public function leer(Request $request, $id)
     {
-        // Verificar si existen productos para la ecografía
-        $query = EcografiaProducto::where('ecografia_id', $id);
+        $accion = (string) ($request->accion ?? '');
 
-        if (!$query->exists()) {
-            return response()->json(['message' => 'El producto de la ecografía no se encontró'], 404);
-        }
+        return DB::transaction(function () use ($request, $id, $accion) {
+            // Verificar si existen productos para la ecografía
+            $query = EcografiaProducto::where('ecografia_id', $id);
 
-        // Acción: IMPRIMIR_LECTURA (solo primer producto)
-        if ($request->accion === "IMPRIMIR_LECTURA") {
-            $producto = $query->first();
+            if (!$query->exists()) {
+                return response()->json(['message' => 'El producto de la ecografía no se encontró'], 404);
+            }
 
-            $producto->update([
-                'lectura' => $request->registro['lectura'],
-                'opinion' => $request->registro['opinion'],
-                'usua_regis_id' => auth()->id(),
-                'fechor_lectura' => now(),
-            ]);
-        }
+            // Acción: IMPRIMIR_LECTURA (solo primer producto)
+            if ($accion === "IMPRIMIR_LECTURA") {
+                $producto = $query->first();
 
-        // Acción: TERMINAR_LECTURA (todos los productos)
-        if ($request->accion === "TERMINAR_LECTURA") {
-            $query->update([
-                'lectura' => $request->registro['lectura'],
-                'opinion' => $request->registro['opinion'],
-                'usua_regis_id' => auth()->id(),
-                'fechor_lectura' => now(),
-                'estado' => 'LEIDO'
-            ]);
-        }
+                $producto->update([
+                    'lectura' => $request->registro['lectura'] ?? null,
+                    'opinion' => $request->registro['opinion'] ?? null,
+                    'usua_regis_id' => auth()->id(),
+                    'fechor_lectura' => now(),
+                ]);
 
-        return response()->json(['message' => 'Lectura guardada exitosamente'], 201);
+                // No cambia estado del padre ni de todos los productos
+                return response()->json(['message' => 'Lectura guardada exitosamente'], 201);
+            }
+
+            // Acción: TERMINAR_LECTURA (todos los productos) + sincronizar estado del padre
+            if ($accion === "TERMINAR_LECTURA") {
+                $query->update([
+                    'lectura' => $request->registro['lectura'] ?? null,
+                    'opinion' => $request->registro['opinion'] ?? null,
+                    'usua_regis_id' => auth()->id(),
+                    'fechor_lectura' => now(),
+                    'estado' => 'LEIDO',
+                ]);
+
+                Ecografia::where('id', $id)->update([
+                    'estado' => 'LEIDO',
+                ]);
+
+                return response()->json(['message' => 'Lectura guardada exitosamente'], 201);
+            }
+
+            return response()->json([
+                'message' => 'Acción no soportada.',
+            ], 422);
+        });
     }
 
 
@@ -76,15 +92,21 @@ class ecografiaLecturaController extends Controller
     public function listarPendientesPorLectura($idMedico)
     {
         $medico = User::find($idMedico);
-        if(!$medico){
+        if (!$medico) {
             return response()->json(['message' => 'El medico no se encontro'], 404);
         }
+
         $ecografiasPendientes = Ecografia::select(
             'ecografias.*',
             'ep.id as ecografia_producto_id',
             'ep.lectura',
             'ep.opinion',
             'ep.fechor_lectura',
+            'ep.estado_envio_sahi',
+            'ep.fechor_envio_sahi',
+            'ep.sahi_esquema_149',
+            'ep.sahi_esquema_150',
+            'ep.error_envio_sahi',
             'p.id as producto_id',
             'p.nom_produc'
         )

@@ -12,6 +12,11 @@ use Illuminate\Support\Str;
 
 class EstudioAudioController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:estudio.transcribir|estudio.leerEstudio');
+    }
 
     /**
      * Sube y convierte un archivo de audio a MP3 usando FFmpeg.

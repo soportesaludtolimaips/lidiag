@@ -134,7 +134,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(item, index) in registros" :key="index"
+                                <tr v-for="item in registros" :key="item.estudio_producto_id"
                                     :class="{ 'text-info': item.visto === 1 }" :id="item.estudio_producto_id">
                                     <td width="2%">
                                         <button type="button" v-if="item.priori_id == 1"
@@ -164,19 +164,28 @@
                                     <td class="text-nowrap">
                                         <button type="button"
                                             class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
+                                            :disabled="loadingAbrirId === item.estudio_producto_id"
                                             @click="actualizar = true; mostrarRegistro(item);">
-                                            <i class="fa fa-pencil"></i>
+                                            <i v-if="loadingAbrirId === item.estudio_producto_id"
+                                                class="fa fa-spinner fa-spin"></i>
+                                            <i v-else class="fa fa-pencil"></i>
                                         </button>
                                         <button type="button"
                                             class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm"
-                                            @click="verImagen(item.url_oviyam, item.num_docu, item.study_iuid, item.tap_oviyam)"
+                                            :disabled="loadingImagenId === item.estudio_producto_id"
+                                            @click="verImagen(item.url_oviyam, item.num_docu, item.study_iuid, item.tap_oviyam, item.estudio_producto_id)"
                                             title="Ver imagenes">
-                                            <i class="fa fa-file-photo-o"></i>
+                                            <i v-if="loadingImagenId === item.estudio_producto_id"
+                                                class="fa fa-spinner fa-spin"></i>
+                                            <i v-else class="fa fa-file-photo-o"></i>
                                         </button>
                                         <button type="button"
                                             class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                            :disabled="loadingVistoId === item.estudio_producto_id"
                                             @click="actualizar = true; visto(item.estudio_producto_id);">
-                                            <i class="fa fa-eye"></i>
+                                            <i v-if="loadingVistoId === item.estudio_producto_id"
+                                                class="fa fa-spinner fa-spin"></i>
+                                            <i v-else class="fa fa-eye"></i>
                                         </button>
                                     </td>
                                 </tr>
@@ -328,8 +337,10 @@
                                     <div class="col-3">
                                         <div class="col-md-7 align-self-center text-right d-none d-md-block">
                                             <button type="button" class="btn btn-secondary btn-xs"
+                                                :disabled="loadingImagenSidebar"
                                                 @click="verImagen(this.registro.urlOviyam, this.registro.patientId, this.registro.studyUID, this.registro.serverName)">
-                                                <i class="fa fa-file-image-o"></i>
+                                                <i v-if="loadingImagenSidebar" class="fa fa-spinner fa-spin"></i>
+                                                <i v-else class="fa fa-file-image-o"></i>
                                             </button>
                                             <a class="" @click="toggleSpeechRecognition"
                                                 style="width: 30px; height: 30px;">
@@ -387,7 +398,10 @@
                                                 <div class="col-md-8 col-lg-9"
                                                     v-for="(itemArchivo, index) in soportesHC" :key="index">
                                                     <a href="javascript:void(0)"
+                                                        :style="{ pointerEvents: (loadingDescargaSoporte === itemArchivo.archivo_encrip) ? 'none' : 'auto' }"
                                                         @click="descargaSoportte(itemArchivo.archivo_original, itemArchivo.archivo_encrip)">
+                                                        <i v-if="loadingDescargaSoporte === itemArchivo.archivo_encrip"
+                                                            class="fa fa-spinner fa-spin"></i>
                                                         {{ itemArchivo.archivo_original }}
                                                     </a>
                                                 </div>
@@ -399,8 +413,11 @@
                         </div>
 
                         <div class="form-actions mt-3">
-                            <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()">
-                                <i class="fa fa-check"></i> Guardar
+                            <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
+                                :disabled="loadingGuardar">
+                                <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
+                                <i v-else class="fa fa-check"></i>
+                                Guardar
                             </button>
 
                             <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">
@@ -457,6 +474,13 @@ export default {
             tipoPrioridad: 0,
             idRow: null,
             sede_id: null,
+            loadingListar: false,
+            loadingGuardar: false,
+            loadingAbrirId: null,
+            loadingVistoId: null,
+            loadingDescargaSoporte: null,
+            loadingImagenId: null,
+            loadingImagenSidebar: false,
 
             /**
              * Variables para convertir de voz a texto y grabacion de audio
@@ -999,6 +1023,8 @@ export default {
                     stack: 6,
                 });
             } else {
+                if (this.loadingListar) return;
+                this.loadingListar = true;
                 try {
                     const res = await axios.post('/estudio-listarPendientesMedico', { id: this.usuarioactual.id, sede_id: this.sede_id });
                     this.destroyDataTable();
@@ -1010,10 +1036,23 @@ export default {
                     });
                 } catch (error) {
                     console.log(error);
+                    $.toast({
+                        heading: "Upss!!!",
+                        text: error?.response?.data?.message || "No fue posible listar los pendientes.",
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "error",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                } finally {
+                    this.loadingListar = false;
                 }
             }
         },
         async guardarRegistro() {
+            if (this.loadingGuardar) return;
+            this.loadingGuardar = true;
             try {
                 // Acordado: al Guardar, detener automáticamente dictado+grabación
                 await this.stopAll();
@@ -1051,13 +1090,34 @@ export default {
                 }
             } catch (error) {
                 this.errores = error.response && error.response.data ? error.response.data.errors : {};
+            } finally {
+                this.loadingGuardar = false;
             }
         },
         async visto(id) {
-            const res = await axios.post('/marcar-visto/' + id);
-            this.listarMisPendientes();
+            if (this.loadingVistoId) return;
+            this.loadingVistoId = id;
+            try {
+                await axios.post('/marcar-visto/' + id);
+                await this.listarMisPendientes();
+            } catch (error) {
+                console.log(error);
+                $.toast({
+                    heading: "Upss!!!",
+                    text: error?.response?.data?.message || "No fue posible marcar como visto.",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "error",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+            } finally {
+                this.loadingVistoId = null;
+            }
         },
         async mostrarRegistro(data = {}) {
+            if (this.loadingAbrirId !== null) return;
+            this.loadingAbrirId = data.estudio_producto_id;
 
             // Acordado: al abrir un nuevo estudio, limpiar cualquier audio/dictado previo
             await this.stopAll();
@@ -1086,44 +1146,74 @@ export default {
             this.productoEstudio.cod_produc = data.cod_cups;
             this.productoEstudio.nom_produc = data.nom_produc;
 
-            const res = await axios.get('/study-listar-diagnostico-por-estudio?id=' + this.id);
-            this.diagnosticosEstudio = res.data;
+            try {
+                const res = await axios.get('/study-listar-diagnostico-por-estudio?id=' + this.id);
+                this.diagnosticosEstudio = res.data;
 
-            const resSoportesHC = await axios.get('/listar-soportes-hc-estudio?id=' + this.id);
-            this.soportesHC = resSoportesHC.data;
+                const resSoportesHC = await axios.get('/listar-soportes-hc-estudio?id=' + this.id);
+                this.soportesHC = resSoportesHC.data;
 
-            this.btnCerralModalForm();
-            this.errores = [];
-            console.log('data: ', data)
+                this.btnCerralModalForm();
+                this.errores = {};
+            } catch (error) {
+                console.log(error);
+                $.toast({
+                    heading: "Upss!!!",
+                    text: error?.response?.data?.message || "No fue posible cargar el estudio seleccionado.",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "error",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+            } finally {
+                this.loadingAbrirId = null;
+            }
         },
         descargaSoportte(nomArchivoOriginal, nomArchivoEncriptado) {
+            if (this.loadingDescargaSoporte) return;
+            this.loadingDescargaSoporte = nomArchivoEncriptado;
             const url = `/descarga-soportes-hc/${nomArchivoEncriptado}`;
 
             axios.get(url, { responseType: 'blob' })
                 .then(response => {
-                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                    const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
                     const link = document.createElement('a');
-                    link.href = url;
+                    link.href = blobUrl;
                     link.setAttribute('download', nomArchivoOriginal);
                     document.body.appendChild(link);
                     link.click();
+                    setTimeout(() => window.URL.revokeObjectURL(blobUrl), 2000);
                 })
                 .catch(error => {
                     console.error(error);
+                })
+                .finally(() => {
+                    this.loadingDescargaSoporte = null;
                 });
         },
-        verImagen(url, pat_id, study_iuid, servername) {
-            const Url = `${url}?patientID=${encodeURIComponent(pat_id)}&studyUID=${encodeURIComponent(study_iuid)}&serverName=${encodeURIComponent(servername)}`;
-            window.open(Url, '_blank', 'noopener,noreferrer');
+        verImagen(url, pat_id, study_iuid, servername, estudio_producto_id = null) {
+            // No hace axios, pero evitamos doble click y mostramos spinner breve
+            if (estudio_producto_id !== null) {
+                if (this.loadingImagenId) return;
+                this.loadingImagenId = estudio_producto_id;
+            } else {
+                if (this.loadingImagenSidebar) return;
+                this.loadingImagenSidebar = true;
+            }
+
+            try {
+                const Url = `${url}?patientID=${encodeURIComponent(pat_id)}&studyUID=${encodeURIComponent(study_iuid)}&serverName=${encodeURIComponent(servername)}`;
+                window.open(Url, '_blank', 'noopener,noreferrer');
+            } finally {
+                setTimeout(() => {
+                    this.loadingImagenId = null;
+                    this.loadingImagenSidebar = false;
+                }, 500);
+            }
         },
         establecerSede() {
             this.sede_id = sessionStorage.getItem('ST-sede');
-
-            if (this.sede_id == 1) {
-                this.sedeInterface = true;
-            } else {
-                this.sedeInterface = false;
-            }
             this.registros = [];
         },
         formatDate(timestamp) {

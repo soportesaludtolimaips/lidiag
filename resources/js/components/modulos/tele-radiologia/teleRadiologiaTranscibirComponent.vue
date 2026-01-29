@@ -58,22 +58,25 @@
                                         <div class="form-group">
                                             <label class="control-label">Fecha Inicio</label>
                                             <input type="date" id="nom_diagnos" name="nom_diagnos"
-                                                v-model="busqueda.fehc_ini" class="form-control" />
+                                                v-model="busqueda.bus_fehc_ini" class="form-control" />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Fin</label>
                                             <input type="date" id="fecha_fin" name="fecha_fin"
-                                                v-model="busqueda.fecha_fin" class="form-control" />
+                                                v-model="busqueda.bus_fecha_fin" class="form-control" />
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="form-actions mt-3">
-                                    <button type="button" class="btn btn-success m-r-5"
-                                        @click="listarPendientesTrascribir()"><i class="fa fa-search"></i>
-                                        Buscar</button>
+                                    <button type="button" class="btn btn-success m-r-5" :disabled="loadingBuscar"
+                                        @click="listarPendientesTrascribir()">
+                                        <i v-if="loadingBuscar" class="fa fa-spinner fa-spin"></i>
+                                        <i v-else class="fa fa-search"></i>
+                                        Buscar
+                                    </button>
                                     <button type="button" class="btn btn-inverse" @click="btnLimpiar()"><i
                                             class="fa fa-refresh"></i> Limpiar</button>
                                 </div>
@@ -111,7 +114,8 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(item) in registros" :key="item.id" :id="item.estudio_producto_id">
+                                    <tr v-for="item in registros" :key="item.estudio_producto_id"
+                                        :id="item.estudio_producto_id">
                                         <td>
                                             <button type="button" v-if="item.priori_id == 1"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">A</button>
@@ -141,13 +145,19 @@
                                         <td class="text-nowrap">
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
+                                                :disabled="loadingAbrirId === item.estudio_producto_id"
                                                 @click="actualizar = true; mostrarRegistro(item);">
-                                                <i class="fa fa-pencil"></i>
+                                                <i v-if="loadingAbrirId === item.estudio_producto_id"
+                                                    class="fa fa-spinner fa-spin"></i>
+                                                <i v-else class="fa fa-pencil"></i>
                                             </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
+                                                :disabled="loadingAnularId === item.estudio_producto_id"
                                                 @click="anularAsignacion(item.estudio_producto_id, item.nom_pacien, item.nom_produc);">
-                                                <i class="fa fa-eraser"></i>
+                                                <i v-if="loadingAnularId === item.estudio_producto_id"
+                                                    class="fa fa-spinner fa-spin"></i>
+                                                <i v-else class="fa fa-eraser"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -226,9 +236,9 @@
                                             <div class="form-group">
                                                 <label class="control-label">Télefono</label>
                                                 <input type="number" id="telefono" name="telefono"
-                                                    v-model="registro.telefono" class="form-control" />
-                                                <span class="text-danger" v-if="errores.telefono">
-                                                    {{ errores.telefono[0] }}
+                                                    v-model="registro.tel" class="form-control" />
+                                                <span class="text-danger" v-if="errores.tel">
+                                                    {{ errores.tel[0] }}
                                                 </span>
                                             </div>
                                         </div>
@@ -323,8 +333,9 @@
                                         <div class="col-3">
                                             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                                                 <button type="button" class="btn btn-secondary btn-xs"
-                                                    @click="verImagen()">
-                                                    <i class="fa fa-file-image-o"></i>
+                                                    :disabled="loadingVerImagen" @click="verImagen()">
+                                                    <i v-if="loadingVerImagen" class="fa fa-spinner fa-spin"></i>
+                                                    <i v-else class="fa fa-file-image-o"></i>
                                                 </button>
                                             </div>
                                         </div>
@@ -382,7 +393,10 @@
                                                     <div class="col-md-8 col-lg-9"
                                                         v-for="(itemArchivo, index) in soportesHC" :key="index">
                                                         <a href="javascript:void(0)"
-                                                            @click="descargaSoportte(itemArchivo.archivo_encrip)">
+                                                            :style="{ pointerEvents: (loadingDescargaSoporte === itemArchivo.archivo_encrip) ? 'none' : 'auto' }"
+                                                            @click="descargaSoportte(itemArchivo.archivo_original, itemArchivo.archivo_encrip)">
+                                                            <i v-if="loadingDescargaSoporte === itemArchivo.archivo_encrip"
+                                                                class="fa fa-spinner fa-spin"></i>
                                                             {{ itemArchivo.archivo_original }}
                                                         </a>
                                                     </div>
@@ -400,8 +414,10 @@
                             </div>
 
                             <div class="form-actions mt-3">
-                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()">
-                                    <i class="fa fa-check"></i> Guardar
+                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
+                                    :disabled="loadingGuardar">
+                                    <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
+                                    <i v-else class="fa fa-check"></i> Guardar
                                 </button>
 
                                 <button type="button" class="btn btn-inverse" ref="btnCerrarForm"
@@ -442,7 +458,7 @@ export default {
 
         this.emitter.on("sedeSeleccionada", (data) => {
             this.busqueda.sede_id = data.idSede;
-            $("#example23").DataTable().destroy();
+            this.destroyDataTable();
             this.listarPendientesTrascribir();
         });
     },
@@ -454,7 +470,7 @@ export default {
             tituloModal: "Transcirbir estudio",
             registro: {
                 id_estudio: 0, estudio_producto_id: 0, lectura: "", fec_lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", email_reportar: '', num_docu: "", nom_pacien: "", sexo: "",
-                fec_naci: "", email: "", diagnosticosEstudio: [], sede_id: "", atencion: null, servicio: null, eps: null, contrato: null, medico_id: null, cod_cups: '', nom_produc: '', num_docu_medico: '',
+                fec_naci: "", email: "", tel: "", direccion: "", diagnosticosEstudio: [], sede_id: "", atencion: null, servicio: null, eps: null, contrato: null, medico_id: null, cod_cups: '', nom_produc: '', num_docu_medico: '',
                 reg_medico: '', nombres_medico: '', firma_medico: '', url_oviyam: null, tap_oviyam: null, study_iuid: null, tap_oviyam: null, destino_estudio: 'Tele Radiologia'
             },
             busqueda: { estudioParaTranscibir: 'si', quien_asigno_id: "", medico_id: "", sede_id: '', bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "", destino_estudio: 'Tele Radiologia' },
@@ -464,6 +480,13 @@ export default {
             medicos: [],
             errores: {},
             idRow: null,
+            loadingBuscar: false,
+            loadingGuardar: false,
+            loadingAbrirId: null,
+            loadingAnularId: null,
+            loadingDescargaSoporte: null,
+            loadingAudios: false,
+            loadingVerImagen: false,
         };
     },
     computed: {
@@ -473,7 +496,37 @@ export default {
         },
     },
     methods: {
+        initDataTable() {
+            try {
+                if ($ && $.fn && $.fn.DataTable) {
+                    $("#example23").DataTable({
+                        dom: "Bfrtip",
+                        buttons: ["copy", "csv", "excel", "pdf", "print"],
+                        retrieve: true,
+                    });
+                }
+            } catch (e) { }
+        },
+        destroyDataTable() {
+            try {
+                if ($ && $.fn && $.fn.DataTable && $.fn.dataTable.isDataTable('#example23')) {
+                    $("#example23").DataTable().destroy();
+                }
+            } catch (e) { }
+        },
+        btnLimpiar() {
+            this.busqueda.quien_asigno_id = "";
+            this.busqueda.medico_id = "";
+            this.busqueda.bus_nom_num_docu = "";
+            this.busqueda.bus_fehc_ini = "";
+            this.busqueda.bus_fecha_fin = "";
+            this.errores = {};
+            this.destroyDataTable();
+            this.registros = [];
+        },
         async listarPendientesTrascribir() {
+            if (this.loadingBuscar) return;
+            this.loadingBuscar = true;
             try {
                 if (sessionStorage.getItem('ST-sede') == null) {
                     $.toast({
@@ -486,24 +539,34 @@ export default {
                         stack: 6,
                     });
                 } else {
-                    $("#example23").DataTable().destroy();
+                    this.destroyDataTable();
 
                     const res = await axios.post("/estudio-listarPendientesTrascribir", this.busqueda);
 
                     this.registros = res.data;
 
                     this.$nextTick(() => {
-                        $("#example23").DataTable({
-                            dom: "Bfrtip",
-                            buttons: ["copy", "csv", "excel", "pdf", "print"],
-                        });
+                        this.initDataTable();
                     });
                 }
             } catch (error) {
                 console.log(error);
+                $.toast({
+                    heading: "Upss!!!",
+                    text: error?.response?.data?.message || "No fue posible listar los pendientes.",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "error",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+            } finally {
+                this.loadingBuscar = false;
             }
         },
         async guardarRegistro() {
+            if (this.loadingGuardar) return;
+            this.loadingGuardar = true;
             try {
                 $.toast({
                     heading: "Ok!!!",
@@ -525,14 +588,8 @@ export default {
                         var estudioEliminar = this.registros.findIndex((x) => x.estudio_producto_id == this.idRow);
                         this.registros.splice(estudioEliminar, 1);
 
-                        $("#example23").DataTable().destroy();
-
-                        this.$nextTick(() => {
-                            $("#example23").DataTable({
-                                dom: "Bfrtip",
-                                buttons: ["copy", "csv", "excel", "pdf", "print"],
-                            });
-                        });
+                        this.destroyDataTable();
+                        this.$nextTick(() => this.initDataTable());
                     }
 
                     $.toast({
@@ -561,10 +618,24 @@ export default {
                     });
                 }
             } catch (error) {
-                if (error.response.data.status == 402) {
+                const status = error?.response?.status;
+                if (status == 400 && error?.response?.data && typeof error.response.data === 'object') {
+                    this.errores = error.response.data;
+                }
+                if (status == 402) {
                     $.toast({
                         heading: "Upss!!!",
-                        text: error.response.data.message,
+                        text: error?.response?.data?.message || "La plantilla no está configurada para esta sede.",
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "error",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                } else {
+                    $.toast({
+                        heading: "Upss!!!",
+                        text: error?.response?.data?.message || "No fue posible guardar la transcripción.",
                         position: "top-right",
                         loaderBg: "#ff6849",
                         icon: "error",
@@ -572,6 +643,8 @@ export default {
                         stack: 6,
                     });
                 }
+            } finally {
+                this.loadingGuardar = false;
             }
         },
         async listarUsuariosYSedes() {
@@ -592,19 +665,25 @@ export default {
              */
             this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
         },
-        descargaSoportte(nomArchivoEncriptado) {
+        descargaSoportte(nomArchivoOriginal, nomArchivoEncriptado) {
+            if (this.loadingDescargaSoporte) return;
+            this.loadingDescargaSoporte = nomArchivoEncriptado;
             const url = `/descarga-soportes-hc/${nomArchivoEncriptado}`;
             axios.get(url, { responseType: 'blob' })
                 .then(response => {
-                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                    const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
                     const link = document.createElement('a');
-                    link.href = url;
-                    link.setAttribute('download', nomArchivoEncriptado);
+                    link.href = blobUrl;
+                    link.setAttribute('download', nomArchivoOriginal || nomArchivoEncriptado);
                     document.body.appendChild(link);
                     link.click();
+                    setTimeout(() => window.URL.revokeObjectURL(blobUrl), 2000);
                 })
                 .catch(error => {
                     console.error(error);
+                })
+                .finally(() => {
+                    this.loadingDescargaSoporte = null;
                 });
         },
         async anularAsignacion(idProductoEstudio, paciente, producto) {
@@ -620,26 +699,16 @@ export default {
                 closeOnConfirm: false
             }, function (isConfirm) {
                 if (isConfirm) {
+                    if ($this.loadingAnularId) return;
+                    $this.loadingAnularId = idProductoEstudio;
                     axios.post('estudio-anular-asignacion', { 'id': idProductoEstudio })
                         .then(res => {
                             if (res.status === 200) {
-                                var row = document.getElementById(idProductoEstudio);
-                                console.log(idProductoEstudio)
-                                if (row) {
-                                    row.remove();
-
-                                    var estudioEliminar = $this.registros.findIndex((x) => x.estudio_producto_id == idProductoEstudio);
-                                    console.log(estudioEliminar)
+                                var estudioEliminar = $this.registros.findIndex((x) => x.estudio_producto_id == idProductoEstudio);
+                                if (estudioEliminar >= 0) {
                                     $this.registros.splice(estudioEliminar, 1);
-
-                                    $("#example23").DataTable().destroy();
-
-                                    $this.$nextTick(() => {
-                                        $("#example23").DataTable({
-                                            dom: "Bfrtip",
-                                            buttons: ["copy", "csv", "excel", "pdf", "print"],
-                                        });
-                                    });
+                                    $this.destroyDataTable();
+                                    $this.$nextTick(() => $this.initDataTable());
                                 }
 
                                 swal("Anulado!", "El producto se anulo correctamente.", "success");
@@ -647,17 +716,39 @@ export default {
                         })
                         .catch(err => {
                             console.log(err);
+                        })
+                        .finally(() => {
+                            $this.loadingAnularId = null;
                         });
                 }
             });
         },
         verImagen() {
-            let Url = this.datosImagen.urlOviyam + '?patientID =' + this.datosImagen.patientId + '&studyUID=' + this.datosImagen.studyUID + '&serverName=' + this.datosImagen.serverName
-            window.open(Url, '_blank');
+            if (this.loadingVerImagen) return;
+            this.loadingVerImagen = true;
+            const base = this.datosImagen.urlOviyam || '';
+            const params = new URLSearchParams({
+                patientID: String(this.datosImagen.patientId ?? ''),
+                studyUID: String(this.datosImagen.studyUID ?? ''),
+                serverName: String(this.datosImagen.serverName ?? ''),
+            });
+            try {
+                window.open(`${base}?${params.toString()}`, '_blank');
+            } finally {
+                setTimeout(() => { this.loadingVerImagen = false; }, 500);
+            }
         },
         async listarAudios() {
-            const res = await axios.get('/listar-audios-estudio/' + this.id);
-            this.audiosDeEstudio = res.data;
+            this.loadingAudios = true;
+            try {
+                const res = await axios.get('/listar-audios-estudio/' + this.id);
+                this.audiosDeEstudio = res.data;
+            } catch (e) {
+                console.log(e);
+                this.audiosDeEstudio = [];
+            } finally {
+                this.loadingAudios = false;
+            }
         },
         async listarMedicos() {
             try {
@@ -672,12 +763,6 @@ export default {
         },
         establecerSede() {
             this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
-
-            if (this.sede_id == 1) {
-                this.sedeInterface = true;
-            } else {
-                this.sedeInterface = false;
-            }
             this.registros = [];
         },
         formatDate(timestamp) {
@@ -685,6 +770,8 @@ export default {
             return dayjs.utc(timestamp).local().format('YYYY-MM-DD HH:mm:ss');
         },
         async mostrarRegistro(data = {}) {
+            if (this.loadingAbrirId !== null) return;
+            this.loadingAbrirId = data.estudio_producto_id;
             const date = new Date();
             const fechaActual = ("0" + date.getDate()).slice(-2) + "-" + ("0" + (date.getMonth() + 1)).slice(-2) + "-" +
                 date.getFullYear() + " " + ("0" + date.getHours()).slice(-2) + ":" + ("0" + date.getMinutes()).slice(-2) + ":"
@@ -706,8 +793,8 @@ export default {
             this.registro.direccion = data.direccion;
             this.registro.email = data.email;
             this.registro.tel = data.tel;
-            this.registro.sexo = data.pat_sex;
-            this.registro.fec_naci = data.pat_birthdate;
+            this.registro.sexo = data.sexo ?? data.pat_sex;
+            this.registro.fec_naci = data.fec_naci ?? data.pat_birthdate;
             this.registro.cod_cups = data.cod_cups;
             this.registro.nom_produc = data.nom_produc;
             this.registro.num_docu_medico = data.num_docu_medico;
@@ -737,7 +824,8 @@ export default {
             this.audiosDeEstudio = [];
             this.listarAudios()
             this.btnCerralModalForm();
-            this.errores = [];
+            this.errores = {};
+            this.loadingAbrirId = null;
         },
         limpiar() {
             this.actualizar = false;
@@ -746,7 +834,7 @@ export default {
             this.registro.email = "";
 
             $('#btnCerralModalForm').click();
-            this.errores = [];
+            this.errores = {};
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);

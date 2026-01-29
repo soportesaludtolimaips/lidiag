@@ -23,9 +23,15 @@ class LoginController extends Controller
         $res = Auth::attempt(['email' => $email, 'password' => $password, 'estado' => 1]);
 
         if ($res) {
-            return redirect()->route('dashboard');
+            // Evita session fixation: regenerar el ID de sesión tras login
+            $request->session()->regenerate();
+
+            return redirect()->intended(route('dashboard'));
         } else {
-            return redirect()->route('login')->withErrors(['Invalid credentials']);
+            return redirect()
+                ->route('login')
+                ->withErrors(['email' => 'Credenciales inválidas'])
+                ->withInput($request->only('email'));
         }
     }
 
@@ -39,7 +45,11 @@ class LoginController extends Controller
     {
         Auth::logout();
 
-        return response()->json(['code' => 204]);
+        // Invalida la sesión y regenera el token CSRF
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return response()->json(null, 204);
     }
 
     /**

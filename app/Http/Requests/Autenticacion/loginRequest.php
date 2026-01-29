@@ -24,8 +24,8 @@ class loginRequest extends FormRequest
     public function rules()
     {
         return [
-            'email' => 'required',
-            'password' => 'required',
+            'email' => 'required|string|email|max:255',
+            'password' => 'required|string|max:255',
         ];
     }
 
@@ -33,7 +33,10 @@ class loginRequest extends FormRequest
     {
         return [
             'email.required' => 'Te hizo falta el E-Mail',
+            'email.email' => 'El E-Mail no tiene un formato válido.',
+            'email.max' => 'El E-Mail no debe exceder 255 caracteres.',
             'password.required' => 'Te hizo falta el password',
+            'password.max' => 'El password no debe exceder 255 caracteres.',
         ];
     }
 }

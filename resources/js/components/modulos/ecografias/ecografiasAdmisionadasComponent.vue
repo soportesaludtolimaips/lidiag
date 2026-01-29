@@ -68,8 +68,11 @@
                                 </div>
 
                                 <div class="form-actions mt-3">
-                                    <button type="button" class="btn btn-success m-r-5" @click="listarAtenciones()">
-                                        <i class="fa fa-search"></i> Buscar
+                                    <button type="button" class="btn btn-success m-r-5" @click="listarAtenciones()"
+                                        :disabled="isBuscandoAdmisionadas">
+                                        <i class="fa"
+                                            :class="isBuscandoAdmisionadas ? 'fa-spinner fa-spin' : 'fa-search'"></i>
+                                        {{ isBuscandoAdmisionadas ? 'Buscando...' : 'Buscar' }}
                                     </button>
 
                                     <button type="button" class="btn btn-inverse" @click="btnLimpiar()">
@@ -104,6 +107,7 @@
                                         <th>Contrato</th>
                                         <th>Plan</th>
                                         <th>Estado</th>
+                                        <th>SAHI</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -122,13 +126,51 @@
                                         <td>
                                             <span class="label label-info" v-if="item.estado === 'EN PROCESO'">{{
                                                 item.estado
-                                                }}</span>
+                                            }}</span>
                                             <span class="label label-success" v-if="item.estado === 'LEIDO'">{{
                                                 item.estado
-                                                }}</span>
+                                            }}</span>
                                             <span class="label label-danger" v-if="item.estado === 'ANULADO'">{{
                                                 item.estado
-                                                }}</span>
+                                            }}</span>
+                                        </td>
+                                        <td>
+                                            <template v-if="sedeInterface">
+                                                <span v-if="item.estado_envio_sahi" class="label" :class="{
+                                                    'label-success': item.estado_envio_sahi === 'ENVIADO',
+                                                    'label-warning': item.estado_envio_sahi === 'ENVIANDO' || item.estado_envio_sahi === 'PENDIENTE',
+                                                    'label-danger': item.estado_envio_sahi === 'ERROR',
+                                                    'label-default': !item.estado_envio_sahi
+                                                }">
+                                                    {{ item.estado_envio_sahi }}
+                                                </span>
+                                                <span v-else class="text-muted">—</span>
+
+                                                <div class="m-t-5">
+                                                    <button type="button" class="btn btn-info btn-xs m-r-5"
+                                                        @click="consultarEstadoSahi(item)"
+                                                        :disabled="isConsultandoSahi[item.ecografia_producto_id]">
+                                                        <i class="fa"
+                                                            :class="isConsultandoSahi[item.ecografia_producto_id] ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                                                    </button>
+
+                                                    <button v-if="item.estado_envio_sahi === 'ERROR'" type="button"
+                                                        class="btn btn-warning btn-xs" @click="reenviarASahi(item)"
+                                                        :disabled="isEnviandoSahi[item.ecografia_producto_id] || item.estado_envio_sahi === 'ENVIANDO'">
+                                                        <i class="fa"
+                                                            :class="isEnviandoSahi[item.ecografia_producto_id] ? 'fa-spinner fa-spin' : 'fa-repeat'"></i>
+                                                    </button>
+                                                </div>
+
+                                                <small
+                                                    v-if="item.estado_envio_sahi === 'ERROR' && item.error_envio_sahi"
+                                                    class="text-danger d-block">
+                                                    {{ item.error_envio_sahi }}
+                                                </small>
+                                            </template>
+                                            <template v-else>
+                                                <span class="text-muted">—</span>
+                                            </template>
                                         </td>
                                         <td class="text-nowrap">
                                             <button type="button"
@@ -141,8 +183,10 @@
 
                                             <button type="button"
                                                 class="btn waves-effect waves-info btn-rounded btn-outline-primary btn-sm m-r-5"
-                                                @click="imprimirReporte(item.id);" title="Imprimir reporte">
-                                                <i class=" fa fa-print"></i>
+                                                @click="imprimirReporte(item.id);" title="Imprimir reporte"
+                                                :disabled="isImprimiendoReporte">
+                                                <i class="fa"
+                                                    :class="isImprimiendoReporte ? 'fa-spinner fa-spin' : 'fa-print'"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -179,7 +223,10 @@
                     <button type="button" class="btn btn-default waves-effect" data-dismiss="modal"
                         id="btnCerrarModalAunular">Close</button>
                     <button type="button" class="btn btn-danger waves-effect waves-light"
-                        v-if="can('ecografias.anular')" @click="anularEcografia()">Anular</button>
+                        v-if="can('ecografias.anular')" @click="anularEcografia()" :disabled="isAnulandoAdmisionada">
+                        <i class="fa" :class="isAnulandoAdmisionada ? 'fa-spinner fa-spin' : 'fa-trash'"></i>
+                        {{ isAnulandoAdmisionada ? 'Anulando...' : 'Anular' }}
+                    </button>
                 </div>
             </div>
         </div>
@@ -195,6 +242,9 @@ export default {
 
         return { can };
     },
+    mounted() {
+        this.establecerSede();
+    },
     data() {
         return {
             busqueda: { sede_id: this.sedeActual, medico_id: this.medicoActual, bus_nom_num_docu: "6341296", bus_fehc_ini: "", bus_fecha_fin: "" },
@@ -202,9 +252,52 @@ export default {
             registroAnular: { ecografia_id: "", atencion_id: "", quien_anulo_id: this.usuarioactual.id, motivo_anula: '' },
             errores: {},
             erroresBusqueda: {},
+            isBuscandoAdmisionadas: false,
+            isImprimiendoReporte: false,
+            isAnulandoAdmisionada: false,
+
+            sedeInterface: false,
+            isConsultandoSahi: {},
+            isEnviandoSahi: {},
         }
     },
     methods: {
+        setMapValue(mapName, key, value) {
+            if (!key) return;
+            if (typeof this.$set === 'function') {
+                this.$set(this[mapName], key, value);
+            } else {
+                this[mapName][key] = value;
+            }
+        },
+        establecerSede() {
+            const sede = sessionStorage.getItem('ST-sede');
+            if (sede != null) {
+                this.busqueda.sede_id = sede;
+            }
+            // misma regla usada en los otros componentes
+            this.sedeInterface = String(this.busqueda.sede_id) === '1';
+        },
+        safeDestroyDataTable(selector = "#example23") {
+            if (typeof window === 'undefined' || !window.$ || !window.$.fn || !window.$.fn.DataTable) return;
+            const $t = window.$(selector);
+            if (!$t.length) return;
+            if (window.$.fn.DataTable.isDataTable($t)) {
+                $t.DataTable().clear().destroy();
+            }
+        },
+        safeInitDataTable(selector = "#example23") {
+            if (typeof window === 'undefined' || !window.$ || !window.$.fn || !window.$.fn.DataTable) return;
+            this.$nextTick(() => {
+                const $t = window.$(selector);
+                if (!$t.length) return;
+                if (window.$.fn.DataTable.isDataTable($t)) return;
+                $t.DataTable({
+                    dom: "Bfrtip",
+                    buttons: ["copy", "csv", "excel", "pdf", "print"],
+                });
+            });
+        },
         async listarAtenciones() {
 
             if (this.registroAnular.bus_nom_num_docu == "" && this.busqueda.bus_fehc_ini == "" && this.busqueda.bus_fecha_fin == "") {
@@ -220,24 +313,26 @@ export default {
                 return;
             }
 
-            const res = await axios.post('/ecografias-filtar', this.busqueda);
+            try {
+                this.isBuscandoAdmisionadas = true;
 
-            if (res.status == 200) {
-                $("#example23").DataTable().destroy();
+                const res = await axios.post('/ecografias-filtar', this.busqueda);
 
-                this.registros = res.data;
-                console.log(this.registros)
+                if (res.status == 200) {
+                    this.safeDestroyDataTable("#example23");
 
-                this.$nextTick(() => {
-                    $("#example23").DataTable({
-                        dom: "Bfrtip",
-                        buttons: ["copy", "csv", "excel", "pdf", "print"],
-                    });
-                });
+                    this.registros = res.data;
+                    console.log(this.registros)
+
+                    this.safeInitDataTable("#example23");
+                }
+            } finally {
+                this.isBuscandoAdmisionadas = false;
             }
         },
         async imprimirReporte(id) {
             try {
+                this.isImprimiendoReporte = true;
                 const res = await axios.post(`/ecografia-generar-reporte/${id}`);
                 console.log(res)
                 /* const res = await axios.post(`/ecografia-generar-reporte/${id}`, {
@@ -249,6 +344,8 @@ export default {
                 window.open(fileURL); */
             } catch (error) {
                 console.log(error);
+            } finally {
+                this.isImprimiendoReporte = false;
             }
         },
         registroParaAnular(data) {
@@ -283,7 +380,7 @@ export default {
                     closeOnConfirm: false
                 }, function (isConfirm) {
                     if (isConfirm) {
-
+                        $this.isAnulandoAdmisionada = true;
                         axios.post(`/ecografia-anular/${$this.registroAnular.ecografia_id}`, $this.registroAnular).then(response => {
 
                             swal("Ok!!!!", response.data.message, "success");
@@ -293,11 +390,87 @@ export default {
 
                         }).catch(error => {
                             console.log(error)
+                        }).finally(() => {
+                            $this.isAnulandoAdmisionada = false;
                         })
                     }
                 });
             } catch (error) {
                 console.log(error);
+            }
+        },
+        async consultarEstadoSahi(item) {
+            if (!this.sedeInterface) return;
+            if (!item?.ecografia_producto_id) return;
+
+            const id = item.ecografia_producto_id;
+            try {
+                this.setMapValue('isConsultandoSahi', id, true);
+                const res = await axios.get(`/interface-sahi-ecografias/estado/ecografia-producto/${id}`);
+                const d = res.data?.data || {};
+
+                item.estado_envio_sahi = d.estado_envio_sahi ?? item.estado_envio_sahi;
+                item.fechor_envio_sahi = d.fechor_envio_sahi ?? item.fechor_envio_sahi;
+                item.error_envio_sahi = d.error_envio_sahi ?? null;
+                item.sahi_esquema_149 = d.sahi_esquema_149 ?? item.sahi_esquema_149;
+                item.sahi_esquema_150 = d.sahi_esquema_150 ?? item.sahi_esquema_150;
+
+                this.safeDestroyDataTable("#example23");
+                this.safeInitDataTable("#example23");
+            } catch (error) {
+                $.toast({
+                    heading: 'SAHI',
+                    text: error.response?.data?.message || 'No se pudo consultar el estado SAHI.',
+                    position: 'top-right',
+                    loaderBg: '#ff6849',
+                    icon: 'warning',
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+            } finally {
+                this.setMapValue('isConsultandoSahi', id, false);
+            }
+        },
+        async reenviarASahi(item) {
+            if (!this.sedeInterface) return;
+            if (!item?.ecografia_producto_id) return;
+
+            const id = item.ecografia_producto_id;
+            try {
+                this.setMapValue('isEnviandoSahi', id, true);
+                item.estado_envio_sahi = 'ENVIANDO';
+                item.error_envio_sahi = null;
+
+                const res = await axios.post('/interface-sahi-ecografias/enviar/ecografia-producto', {
+                    ecografia_producto_id: id,
+                });
+
+                $.toast({
+                    heading: 'SAHI',
+                    text: res.data?.message || 'Envío a SAHI encolado.',
+                    position: 'top-right',
+                    loaderBg: '#ff6849',
+                    icon: 'info',
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+
+                this.safeDestroyDataTable("#example23");
+                this.safeInitDataTable("#example23");
+            } catch (error) {
+                item.estado_envio_sahi = 'ERROR';
+                item.error_envio_sahi = error.response?.data?.message || 'No se pudo reenviar a SAHI.';
+                $.toast({
+                    heading: 'SAHI',
+                    text: item.error_envio_sahi,
+                    position: 'top-right',
+                    loaderBg: '#ff6849',
+                    icon: 'warning',
+                    hideAfter: 4500,
+                    stack: 6,
+                });
+            } finally {
+                this.setMapValue('isEnviandoSahi', id, false);
             }
         },
     }

@@ -16,6 +16,12 @@ use Symfony\Contracts\Service\Attribute\Required;
 
 class SAHIController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:estudio.asignar')->only(['listarAtenciones', 'listarProductosDiagnosticos']);
+    }
+
     /**
      * Lista las atenciones (ingresos) de un paciente.
      *

@@ -38,12 +38,12 @@ class PlantillaEcografiaController extends Controller
          * Buscamos la sede para saber cual es la plantilla
          */
         $filePath = '';
-        
+
         $sede = ConfigSede::find($request->sede_id);
 
         if (!$sede->plantilla_ecografia) {
             return response()->json(['message' => 'La plantilla para ecografias de la sede ' . $sede->nom_sede . ' no está  configurada, por favor consulte con el administrador del sistema'], 402);
-        }elseif ($sede->plantilla_ecografia) {
+        } elseif ($sede->plantilla_ecografia) {
             $medico = User::find($request->medico_id);
             $request->merge(['nombres_medico' => $medico->name]);
             $request->merge(['reg_medico' => $medico->reg_med]);
@@ -124,12 +124,12 @@ class PlantillaEcografiaController extends Controller
 
         // Ruta para guardar el archivo editado
         $nomArchivo = 'ECOGRAFIA-' . $request->tipo_estudio . '-' . $request->num_docu . "-" . $nombrePaciente;
-        
+
         $outputPath = storage_path('app/reporte_lecturas/' . $nomArchivo . '.docx');
         $templateProcessor->saveAs($outputPath);
 
         $plantillaPdf = $this->convertDocxToPdf($nomArchivo);
-        
+
         if ($plantillaPdf) {
 
             unlink($outputPath);

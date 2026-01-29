@@ -67,33 +67,37 @@ class EcografiaController extends Controller
             'ep.id as ecografia_producto_id',
             'ep.lectura',
             'ep.fechor_lectura',
+            'ep.estado_envio_sahi',
+            'ep.fechor_envio_sahi',
+            'ep.sahi_esquema_149',
+            'ep.sahi_esquema_150',
+            'ep.error_envio_sahi',
             'p.nom_produc'
         )->with(['paciente', 'usuarioRegistrador', 'adminSalud', 'medico'])
             ->join('ecografias_productos as ep', 'ep.ecografia_id', '=', 'ecografias.id')
             ->join('config_productos as p', 'p.id', '=', 'ep.producto_id');
 
-        $query = $ecografias->newQuery();
-
         if ($request->filled('bus_nom_num_docu')) {
             $valor = $request->bus_nom_num_docu;
-            $query->whereHas('paciente', function ($q) use ($valor) {
-                $q->where('atencion_id', 'like', "%{$valor}%")
-                    ->orWhere('num_docu', 'like', "%{$valor}%")
-                    ->orWhere('nombres', 'like', "%{$valor}%")
-                    ->orWhere('pri_ape', 'like', "%{$valor}%");
+            $ecografias->where(function ($q) use ($valor) {
+                $q->where('ecografias.atencion_id', 'like', "%{$valor}%")
+                    ->orWhereHas('paciente', function ($p) use ($valor) {
+                        $p->where('num_docu', 'like', "%{$valor}%")
+                            ->orWhere('nombres', 'like', "%{$valor}%")
+                            ->orWhere('pri_ape', 'like', "%{$valor}%")
+                            ->orWhere('seg_ape', 'like', "%{$valor}%");
+                    });
             });
         }
 
         if ($request->filled('bus_fehc_ini') && $request->filled('bus_fehc_fin')) {
-            $query->whereBetween('created_at', [
+            $ecografias->whereBetween('ecografias.created_at', [
                 "{$request->bus_fehc_ini} 00:00:00",
                 "{$request->bus_fehc_fin} 23:59:59"
             ]);
         }
 
-        $filterEcografias = $ecografias->get();
-
-        return response()->json($filterEcografias);
+        return response()->json($ecografias->get());
     }
 
     /**
@@ -120,9 +124,8 @@ class EcografiaController extends Controller
                 'nombres' => 'required|string',
                 'pri_ape' => 'nullable|string',
                 'sede_id' => 'required|integer',
-                'atencion_id' => 'required|integer',
+                'atencion_id' => 'required|string|max:20',
                 'medico_id' => 'required|integer',
-                'atencion_id' => 'required|integer',
                 'productosAgenda' => 'required|array',
             ], [
                 'num_docu.required' => 'El número de documento es obligatorio.',
@@ -131,7 +134,6 @@ class EcografiaController extends Controller
                 'sede_id.required' => 'La sede es obligatoria.',
                 'atencion_id.required' => 'La atención es obligatoria.',
                 'medico_id.required' => 'El médico es obligatorio.',
-                'atencion_id.required' => 'La atención es obligatoria.',
                 'productosAgenda.required' => 'Debe agregar al menos un producto a la ecografía.',
             ]);
 
@@ -184,7 +186,7 @@ class EcografiaController extends Controller
                 'contrato' => $request->contrato ?? null,
                 'plan' => $request->plan ?? null,
                 'quien_ordena' => $request->quien_ordena ?? null,
-                'estado' => true,
+                'estado' => 'EN PROCESO',
             ]);
 
             // Procesar los productos asociados

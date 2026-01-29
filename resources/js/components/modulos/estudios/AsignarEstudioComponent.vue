@@ -65,8 +65,11 @@
                                 </div>
 
                                 <div class="form-actions mt-3">
-                                    <button type="button" class="btn btn-success m-r-5" @click="buscarStudy()">
-                                        <i class="fa fa-search"></i> Buscar
+                                    <button type="button" class="btn btn-success m-r-5" @click="buscarStudy()"
+                                        :disabled="loadingBuscar">
+                                        <i v-if="loadingBuscar" class="fa fa-spinner fa-spin"></i>
+                                        <i v-else class="fa fa-search"></i>
+                                        Buscar
                                     </button>
 
                                     <button type="button" class="btn btn-inverse" @click="btnLimpiar()">
@@ -102,7 +105,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(item, index) in registros" :key="item.id" :id="item.study_pk"
+                                    <tr v-for="(item, index) in registros" :key="item.study_pk" :id="item.study_pk"
                                         :class="{ 'text-info': item.agendado !== 0 }">
                                         <td>{{ item.study_datetime }}</td>
                                         <td>{{ item.pat_id }}</td>
@@ -112,9 +115,11 @@
                                         <td class="text-nowrap">
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
-                                                @click="actualizar = true;
+                                                :disabled="loadingAbrirRegistroIndex === index" @click="actualizar = true;
                                                 mostrarRegistro(item, index);" title="Asignar estudio">
-                                                <i class=" fa fa-child"></i>
+                                                <i v-if="loadingAbrirRegistroIndex === index"
+                                                    class="fa fa-spinner fa-spin"></i>
+                                                <i v-else class="fa fa-child"></i>
                                             </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
@@ -215,7 +220,7 @@
                                             <div class="form-group">
                                                 <label class="control-label">Télefono</label>
                                                 <input type="number" id="telefono" name="telefono"
-                                                    v-model="registro.telefono" class="form-control" />
+                                                    v-model="registro.tel" class="form-control" />
                                                 <!-- <span class="text-danger" v-if="errores.telefono">
                                                     {{ errores.telefono[0] }}
                                                 </span> -->
@@ -406,9 +411,10 @@
                                                         :key="item.id">
                                                         <td>
                                                             <input type="checkbox" class="iCheck-helper"
-                                                                id="flat-checkbox-2" data-checkbox="icheckbox_flat-red"
+                                                                :id="`flat-checkbox-producto-${index}`"
+                                                                data-checkbox="icheckbox_flat-red"
                                                                 v-model="item.checked">
-                                                            <label for="flat-checkbox-2"></label>
+                                                            <label :for="`flat-checkbox-producto-${index}`"></label>
                                                         </td>
                                                         <td>{{ item.cod_cups }}</td>
                                                         <td>{{ item.nom_produc }}</td>
@@ -476,8 +482,11 @@
                             </div>
 
                             <div class="form-actions mt-3">
-                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()">
-                                    <i class="fa fa-check"></i> Guardar
+                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
+                                    :disabled="loadingGuardar">
+                                    <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
+                                    <i v-else class="fa fa-check"></i>
+                                    Guardar
                                 </button>
 
                                 <button type="button" class="btn btn-inverse" @click="cerrarModal()">Cancel</button>
@@ -507,7 +516,7 @@ export default {
         this.emitter.on("sedeSeleccionada", (data) => {
             this.registro.sede_id = data.idSede;
             this.establecerSede();
-            $("#example23").DataTable().destroy();
+            this.destroyDataTable();
         });
     },
     data() {
@@ -518,7 +527,7 @@ export default {
             tituloModal: "Nuevo registro",
             registro: {
                 study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", mods_in_study: "", observaciones: "", medico_id: "", prioridad_id: "",
-                sede_id: this.sedeActual, quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", telefono: "",
+                sede_id: this.sedeActual, quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", tel: "",
                 productosEstudio: [], diagnosticosEstudio: [], atencion_id: null, destino_estudio: 'Salud Tolima'
             },
             soportesHC: { archivo1: null, archivo2: null, archivo3: null }, //Soporte de historia clinica
@@ -538,6 +547,9 @@ export default {
             sedeInterface: false,
             idRow: null,
             selectedRows: {},
+            loadingBuscar: false,
+            loadingGuardar: false,
+            loadingAbrirRegistroIndex: null,
         };
     },
     computed: {
@@ -555,9 +567,19 @@ export default {
         },
     },
     methods: {
+        destroyDataTable() {
+            try {
+                if ($.fn.DataTable && $.fn.DataTable.isDataTable("#example23")) {
+                    $("#example23").DataTable().destroy();
+                }
+            } catch (e) {
+                // No romper el flujo por un destroy fallido
+                console.warn(e);
+            }
+        },
         async buscarStudy() {
 
-            $("#example23").DataTable().destroy();
+            this.destroyDataTable();
 
             try {
                 if (sessionStorage.getItem('ST-sede') == null) {
@@ -581,12 +603,16 @@ export default {
                         stack: 6,
                     });
                 } else {
+                    if (this.loadingBuscar) return;
+                    this.loadingBuscar = true;
                     const res = await axios.post("/study.listarEstudios", this.busqueda);
 
                     if (res.status == 200) {
-                        $("#example23").DataTable().destroy();
+                        this.destroyDataTable();
 
-                        this.registros = res.data;
+                        // Asegurar que siempre sea un array (por si llega string JSON)
+                        const data = (typeof res.data === "string") ? JSON.parse(res.data) : res.data;
+                        this.registros = Array.isArray(data) ? data : [];
                         this.$nextTick(() => {
                             $("#example23").DataTable({
                                 dom: "Bfrtip",
@@ -609,7 +635,8 @@ export default {
                 }
             } catch (error) {
                 console.log(error)
-                if (error.response.status == 500) {
+                const status = error?.response?.status;
+                if (status == 500) {
                     $.toast({
                         heading: "Upss!!!",
                         text: error.response.data.message,
@@ -621,10 +648,14 @@ export default {
                     });
                 }
 
-                this.erroresBusqueda = error.response.data.errors;
+                this.erroresBusqueda = error?.response?.data?.errors || {};
+            } finally {
+                this.loadingBuscar = false;
             }
         },
         async guardarRegistro() {
+            if (this.loadingGuardar) return;
+            this.loadingGuardar = true;
             try {
                 const formData = new FormData();
                 formData.append('registro', JSON.stringify(this.registro));
@@ -656,8 +687,9 @@ export default {
                 this.limpiar();
 
             } catch (error) {
-                this.errores = error.response.data;
-                if (error.response.status == 400) {
+                this.errores = error?.response?.data || {};
+                const status = error?.response?.status;
+                if (status == 400) {
                     $.toast({
                         heading: "Upsss!!!",
                         text: error.response.data.message,
@@ -668,6 +700,8 @@ export default {
                         stack: 6,
                     });
                 }
+            } finally {
+                this.loadingGuardar = false;
             }
         },
         obtenerArchivo1(e) {
@@ -680,6 +714,8 @@ export default {
             this.soportesHC.archivo3 = e.target.files[0];
         },
         async mostrarRegistro(data = {}, index) {
+            if (this.loadingAbrirRegistroIndex !== null) return;
+            this.loadingAbrirRegistroIndex = index;
             this.limpiar();
             this.tituloModal = "Agendar al paciente: " + data.pat_name;
             this.id = data.study_pk;
@@ -704,10 +740,16 @@ export default {
             /**
              * Verificar si la sede tiene interface, traigo la informacion de las producto y diagnosticos
              */
-            const res = await axios.get('/config-sedes/' + this.sedeActual + '/buscarPorId');
-            if (res.data.interface_software != null) {
-                const resAtenciones = await axios.get('/interface-sahi-listar-atenciones/' + this.registro.num_docu);
-                this.interfaceAtenciones = resAtenciones.data
+            try {
+                const res = await axios.get('/config-sedes/' + this.sedeActual + '/buscarPorId');
+                // La UI debe depender de la configuración real de la sede, no de un ID hardcodeado
+                this.sedeInterface = (res.data && res.data.interface_software === 'SAHI');
+                if (this.sedeInterface) {
+                    const resAtenciones = await axios.get('/interface-sahi-listar-atenciones/' + this.registro.num_docu);
+                    this.interfaceAtenciones = resAtenciones.data
+                }
+            } finally {
+                this.loadingAbrirRegistroIndex = null;
             }
         },
         async interfaceListarProductosDiagnosticos() {
@@ -722,7 +764,7 @@ export default {
 
                     this.registro.productosEstudio.push(
                         {
-                            checked: false,
+                            checked: true,
                             id: element.IdProducto,
                             cod_cups: element.cod_cups,
                             nom_produc: element.nom_produc
@@ -733,7 +775,12 @@ export default {
 
             this.registro.diagnosticosEstudio = [];
             if (resProuctos.data.diagnosticos.length > 0) {
-                this.registro.diagnosticosEstudio = resProuctos.data.diagnosticos;
+                // Normalizar llaves para el backend (usa cod_diagnos/nom_diagnos)
+                this.registro.diagnosticosEstudio = resProuctos.data.diagnosticos.map(d => ({
+                    id: d.IdDiagnostico ?? d.id ?? null,
+                    cod_diagnos: d.cod_diagnos,
+                    nom_diagnos: d.nom_diagnos,
+                }));
             }
 
             this.registro.atencion_id = this.interfaceAtencionSeleccionada;
@@ -743,11 +790,8 @@ export default {
             this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
             this.sedeActual = sessionStorage.getItem('ST-sede');
 
-            if (this.registro.sede_id == 1) {
-                this.sedeInterface = true;
-            } else {
-                this.sedeInterface = false;
-            }
+            // Por defecto false; se actualizará según configuración real al abrir un estudio
+            this.sedeInterface = false;
             this.registros = [];
         },
         btnCerralModalForm() {
@@ -880,7 +924,7 @@ export default {
                         id: productoEstudioId,
                         cod_cups: productoEstudioCod_Cubs,
                         nom_produc: productoEstudioNomProduc,
-                        checked: false,
+                        checked: true,
                     });
                 }
 
@@ -911,8 +955,13 @@ export default {
             this.registro.diagnosticosEstudio.splice(indexEliminar, 1);
         },
         verImagen(pat_id, study_iuid) {
-            let Url = sessionStorage.getItem('ST-urlsede') + '?patientID =' + pat_id + '&studyUID=' + study_iuid + '&serverName=' + sessionStorage.getItem('ST-servername')
-            window.open(Url, '_blank');
+            const base = sessionStorage.getItem('ST-urlsede') || '';
+            const params = new URLSearchParams({
+                patientID: String(pat_id ?? ''),
+                studyUID: String(study_iuid ?? ''),
+                serverName: String(sessionStorage.getItem('ST-servername') || ''),
+            });
+            window.open(`${base}?${params.toString()}`, '_blank');
         },
 
     },

@@ -13,14 +13,20 @@
         </div>
         <audio v-if="audioUrl" :src="audioUrl" controls></audio>
 
-        <button type="button" class="btn btn-success m-r-5" @click="sendToBackend()">
-            <i class="fa fa-check"></i> Guardar
+        <button type="button" class="btn btn-success m-r-5" @click="sendToBackend()" :disabled="loadingEnviar">
+            <i v-if="loadingEnviar" class="fa fa-spinner fa-spin"></i>
+            <i v-else class="fa fa-check"></i>
+            Guardar
         </button>
     </div>
 </template>
 
 <script>
 export default {
+    props: {
+        estudioId: { type: [Number, String], default: null },
+        estudioProductoId: { type: [Number, String], default: null },
+    },
     data() {
         return {
             recognizing: false,
@@ -31,10 +37,12 @@ export default {
             audioChunks: [],
             audioUrl: null,
             uppercase: false,
-            id: 1,
+            id: this.estudioId ? Number(this.estudioId) : 0,
             registro: {
-                lectura: "", estudio_producto_id: 456 // Asigna el ID real
+                lectura: "",
+                estudio_producto_id: this.estudioProductoId ? Number(this.estudioProductoId) : 0,
             },
+            loadingEnviar: false,
             commands: {
                 "iniciar mayúscula sostenida": () => { this.uppercase = true; return ""; },
                 "iniciar mayúsculas sostenida": () => { this.uppercase = true; return ""; },
@@ -120,7 +128,7 @@ export default {
                 this.recognition.lang = 'es-ES';
                 this.recognition.continuous = true;
                 this.recognition.interimResults = true;
-                this.recognition.maxAlternatives = false; // Ofrece múltiples opciones de reconocimiento
+                this.recognition.maxAlternatives = 1;
 
                 // Implementación de SpeechGrammarList para optimizar los comandos
                 const speechRecognitionList = new (window.SpeechGrammarList || window.webkitSpeechGrammarList)();
@@ -213,10 +221,23 @@ export default {
             return this.uppercase ? text.toUpperCase() : text;
         },
         async sendToBackend() {
+            if (this.loadingEnviar) return;
+            this.loadingEnviar = true;
             await this.stopRecording(); // Esperar a que el blob esté listo
 
             if (!this.audioBlob || !(this.audioBlob instanceof Blob)) {
-                console.error("Error: this.audioBlob no es un Blob válido.");
+                try {
+                    $.toast({
+                        heading: "Upss!!!",
+                        text: "No hay audio para enviar.",
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "warning",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                } catch (e) { }
+                this.loadingEnviar = false;
                 return;
             }
 
@@ -227,10 +248,47 @@ export default {
             formData.append('estudio_producto_id', this.registro.estudio_producto_id);
 
             try {
+                if (!this.id || !this.registro.estudio_producto_id) {
+                    try {
+                        $.toast({
+                            heading: "Upss!!!",
+                            text: "Faltan IDs del estudio para enviar el audio.",
+                            position: "top-right",
+                            loaderBg: "#ff6849",
+                            icon: "warning",
+                            hideAfter: 3500,
+                            stack: 6,
+                        });
+                    } catch (e) { }
+                    return;
+                }
                 const res = await axios.post('/upload-audio', formData);
-                console.log('Audio enviado con éxito:', res.data);
+                try {
+                    $.toast({
+                        heading: "Ok!!!",
+                        text: res?.data?.message || "Audio enviado correctamente.",
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "success",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                } catch (e) { }
             } catch (error) {
                 console.error('Error al enviar audio:', error);
+                try {
+                    $.toast({
+                        heading: "Upss!!!",
+                        text: error?.response?.data?.message || "Error al enviar audio.",
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "error",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                } catch (e) { }
+            } finally {
+                this.loadingEnviar = false;
             }
         },
     }
