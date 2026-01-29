@@ -20,7 +20,7 @@ class EcografiaProductoController extends Controller
      */
     public function index()
     {
-        $ecografiaProductos = EcografiaProducto::with(['ecografia', 'medico', 'producto'])->get();
+        $ecografiaProductos = EcografiaProducto::with(['ecografia.medico', 'productos'])->get();
         return response()->json($ecografiaProductos);
     }
 
@@ -60,7 +60,7 @@ class EcografiaProductoController extends Controller
      */
     public function show($id)
     {
-        $ecografiaProducto = EcografiaProducto::with(['ecografia', 'medico', 'producto'])->findOrFail($id);
+        $ecografiaProducto = EcografiaProducto::with(['ecografia.medico', 'productos'])->findOrFail($id);
         return response()->json($ecografiaProducto);
     }
 

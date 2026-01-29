@@ -9,6 +9,16 @@ use Illuminate\Http\Request;
 
 class ConfigPrioridadController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        // Permitir lectura de catálogos a quienes asignan/leen/transcriben estudios (sin abrir CRUD completo)
+        $this->middleware('permission:config.prioridades.index|estudio.asignar|estudio.transcribir|estudio.leerEstudio')->only(['index']);
+        $this->middleware('permission:config.prioridades.create')->only(['store']);
+        $this->middleware('permission:config.prioridades.edit')->only(['update']);
+        $this->middleware('permission:config.prioridades.destroy')->only(['destroy']);
+    }
+
     /**
      * Lista todas las prioridades configuradas.
      *

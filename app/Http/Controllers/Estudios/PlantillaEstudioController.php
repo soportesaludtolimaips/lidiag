@@ -54,17 +54,17 @@ class PlantillaEstudioController extends Controller
         $templateProcessor->setValue('edad', $request->edad);
         $templateProcessor->setValue('eps', $request->eps);
         $templateProcessor->setValue('contrato', $request->contrato);
-        $fecEstudio = Carbon::parse($request->fec_estudio)->format('d/m/Y');
-        $fecLectura = Carbon::parse($request->fechor_lectura)->format('d/m/Y H:i');
-        $fecTrascrito = Carbon::parse($request->fechor_trascrito)->format('d/m/Y H:i');
+        $fecEstudio = $request->fec_estudio ? Carbon::parse($request->fec_estudio)->format('d/m/Y') : '';
+        $fecLectura = $request->fechor_lectura ? Carbon::parse($request->fechor_lectura)->format('d/m/Y H:i') : '';
+        $fecTrascrito = $request->fechor_trascrito ? Carbon::parse($request->fechor_trascrito)->format('d/m/Y H:i') : '';
 
         $templateProcessor->setValue('fechor_estudio', $fecEstudio);
         $templateProcessor->setValue('fechor_lectura', $fecLectura);
         $templateProcessor->setValue('fechor_transcipcion', $fecTrascrito);
 
-        if($request->atencion == 'null'){
+        if ($request->atencion == 'null') {
             $templateProcessor->setValue('atencion', '');
-        }else{
+        } else {
             $templateProcessor->setValue('atencion', $request->atencion);
         }
 
@@ -114,7 +114,7 @@ class PlantillaEstudioController extends Controller
         $templateProcessor->saveAs($outputPath);
 
         $plantillaPdf = $this->convertDocxToPdf($nomArchivo);
-        if ($plantillaPdf) {
+        if ($plantillaPdf === true) {
 
             unlink($outputPath);
 
@@ -126,7 +126,8 @@ class PlantillaEstudioController extends Controller
                 200
             );
         } else {
-            return response()->json('No fue posible convertir la plantilla a PDF', 400);
+            // Mantener compatibilidad: error 400 con mensaje claro
+            return response()->json(['message' => 'No fue posible convertir la plantilla a PDF'], 400);
         }
     }
 
@@ -136,7 +137,7 @@ class PlantillaEstudioController extends Controller
      * @param string $nomPlantilla Nombre base del archivo (sin extensión).
      * @return string|null Ruta del archivo PDF generado o null si falla.
      */
-    function convertDocxToPdf($nomPlantilla)
+    function convertDocxToPdf($nomPlantilla): bool
     {
         // Rutas de los archivos de entrada y salida
         $sourceFile = storage_path('app/reporte_lecturas/' . $nomPlantilla . '.docx');
@@ -152,9 +153,9 @@ class PlantillaEstudioController extends Controller
         if (!file_exists($destinationFile)) {
             // Registrar el error
             \Log::error('Error converting DOCX to PDF: ' . $output);
-            return response()->json(['error' => 'Error converting DOCX to PDF'], 500);
+            return false;
         }
 
-        return $destinationFile;
+        return true;
     }
 }

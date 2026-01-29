@@ -8,8 +8,7 @@ use App\Models\Dcm4chee\Study;
 use App\Models\Estudio\Estudio;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class StudyController extends Controller
 {
@@ -17,6 +16,7 @@ class StudyController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
+        $this->middleware('permission:estudio.asignar');
     }
 
     /**
@@ -35,6 +35,16 @@ class StudyController extends Controller
      */
     public function listarEstudios(Request $request, Study $study)
     {
+        $validator = Validator::make($request->all(), [
+            'sede_id' => 'required|integer|exists:config_sedes,id',
+            'bus_nom_num_docu' => 'nullable|string|max:255',
+            'bus_fehc_ini' => 'nullable|date',
+            'bus_fecha_fin' => 'nullable|date',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['message' => 'Datos inválidos', 'errors' => $validator->errors()], 422);
+        }
+
         $sedeActual = ConfigSede::find($request->sede_id);
 
         //Configuramos la segunda base de datos
@@ -70,47 +80,41 @@ class StudyController extends Controller
         )
             ->join('patient', 'study.patient_fk', 'patient.pk');
 
-        if ($request->bus_nom_num_docu != "") {
-            $query->where('patient.pat_id', 'like', "%$request->bus_nom_num_docu%")
-                ->orWhere('patient.pat_name', 'like', "%$request->bus_nom_num_docu%");
+        if (!empty($request->bus_nom_num_docu)) {
+            $needle = $request->bus_nom_num_docu;
+            $query->where(function ($q) use ($needle) {
+                $q->where('patient.pat_id', 'like', "%{$needle}%")
+                    ->orWhere('patient.pat_name', 'like', "%{$needle}%");
+            });
         }
 
-        if ($request->bus_fehc_ini != "" and $request->bus_fecha_fin != "") {
-            $query->whereRaw('DATE(study.study_datetime) BETWEEN "' . $request->bus_fehc_ini . '" AND "' . $request->bus_fecha_fin . '"');
-            //$query->whereBetween('study.study_datetime', [$request->bus_fehc_ini, $request->bus_fecha_fin]);
+        if (!empty($request->bus_fehc_ini) && !empty($request->bus_fecha_fin)) {
+            // Filtrar por fecha (solo la parte DATE)
+            $query->whereBetween(\DB::raw('DATE(study.study_datetime)'), [$request->bus_fehc_ini, $request->bus_fecha_fin]);
         }
 
-        $resultPrueba = $query->get();
+        $resultados = $query->get();
 
         Config::set('database.default', 'mysql');
 
-        $nuevosRegistro = [];
-        foreach ($resultPrueba as $resul) {
-            $agendado = Estudio::select('study_pk')->where('sede_id', '=', $request->sede_id)
-                ->where('study_pk', '=', $resul->study_pk)
-                ->get();
+        // Evitar N+1: traer todos los study_pk ya agendados en una sola consulta
+        $studyPks = $resultados->pluck('study_pk')->filter()->values()->all();
+        $agendados = Estudio::query()
+            ->where('sede_id', $request->sede_id)
+            ->whereIn('study_pk', $studyPks)
+            ->pluck('study_pk')
+            ->flip(); // set rápido
 
-            $resul->agendado = $agendado->count();
-            $nuevosRegistro[] = $resul;
-        }
-
-        // Recorre el array para convertir las cadenas
-        foreach ($nuevosRegistro as $key => $value) {
-            if (is_string($value)) {
-                // Convertir la cadena usando iconv con TRANSLIT para reemplazar caracteres inválidos
-                $nuevosRegistro[$key] = iconv('UTF-8', 'UTF-8//TRANSLIT//IGNORE', $value);
+        // Marcar agendado y convertir strings latin1 -> utf8 si aplica
+        foreach ($resultados as $row) {
+            $row->agendado = isset($agendados[$row->study_pk]) ? 1 : 0;
+            foreach (['study_desc', 'mods_in_study', 'pat_name'] as $field) {
+                if (isset($row->$field) && is_string($row->$field)) {
+                    $row->$field = @iconv('ISO-8859-1', 'UTF-8//TRANSLIT//IGNORE', $row->$field) ?: $row->$field;
+                }
             }
         }
 
-        // Ahora que las cadenas han sido convertidas, puedes continuar con el procesamiento
-        // ...
-
-        // Codifica los datos como JSON
-        $nuevosRegistrosJson = json_encode($nuevosRegistro, JSON_INVALID_UTF8_SUBSTITUTE);
-
-        // Devuelve la respuesta JSON
-        return response($nuevosRegistrosJson, 200);
-
-        //    return json_encode($nuevosRegistro, JSON_INVALID_UTF8_SUBSTITUTE);
+        return response()->json($resultados, 200, [], JSON_INVALID_UTF8_SUBSTITUTE);
     }
 }

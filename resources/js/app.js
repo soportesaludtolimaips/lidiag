@@ -108,6 +108,8 @@ app.component("ecografias-admisionadas-component", ecografiasAdmisionadasCompone
  */
 import agendaDisponibilidadComponent from "./components/modulos/agenda/agendaDisponibilidadComponent.vue";
 app.component("agenda-disponibilidad-component", agendaDisponibilidadComponent);
+// Alias para compatibilidad con Blade antiguo (`resources/views/modulos/agenda/index.blade.php`)
+app.component("agenda-component", agendaDisponibilidadComponent);
 
 /**
  * Seguridad
@@ -116,6 +118,8 @@ import usuarioComponent from "./components/modulos/seguridad/usuarioComponent.vu
 app.component("usuario-component", usuarioComponent);
 import usuarioPerfil from "./components/modulos/seguridad/usuarioPerfil.vue";
 app.component("usuario-perfil-component", usuarioPerfil);
+// Alias para compatibilidad con Blade (`resources/views/modulos/seguridad/perfil.blade.php`)
+app.component("seguridad-perfil", usuarioPerfil);
 import roleComponente from "./components/modulos/seguridad/roleComponente.vue";
 app.component("role-componente", roleComponente);
 

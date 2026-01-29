@@ -59,8 +59,10 @@
                                 </div>
 
                                 <div class="form-actions mt-3">
-                                    <button type="button" class="btn btn-success m-r-5" @click="buscarStudy()">
-                                        <i class="fa fa-search"></i> Buscar
+                                    <button type="button" class="btn btn-success m-r-5" @click="buscarStudy()"
+                                        :disabled="loadingBuscar">
+                                        <i v-if="loadingBuscar" class="fa fa-spinner fa-spin"></i>
+                                        <i v-else class="fa fa-search"></i> Buscar
                                     </button>
 
                                     <button type="button" class="btn btn-inverse" @click="btnLimpiar()">
@@ -96,7 +98,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(item, index) in registros" :key="item.id" :id="item.study_pk"
+                                    <tr v-for="(item, index) in registros" :key="item.study_pk" :id="item.study_pk"
                                         :class="{ 'text-info': item.agendado !== 0 }">
                                         <td>{{ item.study_datetime }}</td>
                                         <td>{{ item.pat_id }}</td>
@@ -106,13 +108,19 @@
                                         <td class="text-nowrap">
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
+                                                :disabled="loadingAbrirIndex === index"
                                                 @click="mostrarRegistro(item, index);" title="Ordenar estudio">
-                                                <i class=" fa fa-child"></i>
+                                                <i v-if="loadingAbrirIndex === index" class="fa fa-spinner fa-spin"></i>
+                                                <i v-else class=" fa fa-child"></i>
                                             </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
-                                                @click="verImagen(item.pat_id, item.study_iuid)" title="Ver imagenes">
-                                                <i class="fa fa-file-photo-o"></i>
+                                                :disabled="loadingImagenIndex === index"
+                                                @click="verImagen(item.pat_id, item.study_iuid, index)"
+                                                title="Ver imagenes">
+                                                <i v-if="loadingImagenIndex === index"
+                                                    class="fa fa-spinner fa-spin"></i>
+                                                <i v-else class="fa fa-file-photo-o"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -199,7 +207,7 @@
                                             <div class="form-group">
                                                 <label class="control-label">Télefono</label>
                                                 <input type="number" id="telefono" name="telefono"
-                                                    v-model="orden.paciente.telefono" class="form-control" />
+                                                    v-model="orden.paciente.tel" class="form-control" />
                                             </div>
                                         </div>
                                         <div class="col-md-5">
@@ -354,9 +362,11 @@
                                                     <tr v-for="(item, index) in productosInterface" :key="item.id">
                                                         <td>
                                                             <input type="checkbox" class="iCheck-helper"
-                                                                id="flat-checkbox-2" data-checkbox="icheckbox_flat-red"
+                                                                :id="`flat-checkbox-producto-interface-${index}`"
+                                                                data-checkbox="icheckbox_flat-red"
                                                                 @change="guardarProductosEstudio(item.id, item.cod_cups, item.nom_produc)">
-                                                            <label for="flat-checkbox-2"></label>
+                                                            <label
+                                                                :for="`flat-checkbox-producto-interface-${index}`"></label>
                                                         </td>
                                                         <td>{{ item.cod_cups }}</td>
                                                         <td>{{ item.nom_produc }}</td>
@@ -393,8 +403,10 @@
                             </div>
 
                             <div class="form-actions mt-3">
-                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()">
-                                    <i class="fa fa-check"></i> Guardar
+                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
+                                    :disabled="loadingGuardar">
+                                    <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
+                                    <i v-else class="fa fa-check"></i> Guardar
                                 </button>
 
                                 <button type="button" class="btn btn-inverse" @click="cerrarModal()">Cancel</button>
@@ -422,7 +434,7 @@ export default {
         this.emitter.on("sedeSeleccionada", (data) => {
             this.orden.sede.id = data.idSede;
             this.establecerSede();
-            $("#example23").DataTable().destroy();
+            this.destroyDataTable();
         });
     },
     data() {
@@ -433,7 +445,7 @@ export default {
             tituloModal: "Nuevo registro",
             registro: {
                 study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", mods_in_study: "", observaciones: "PRUEBA", medico_id: "", prioridad_id: "",
-                sede_id: this.sedeActual, quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", telefono: "",
+                sede_id: this.sedeActual, quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", tel: "",
                 productosEstudio: [], diagnosticosEstudio: [], atencion_id: null, destino_estudio: 'Tele Radiologia', destino_estudio_id: null
             },
             orden: {
@@ -444,6 +456,10 @@ export default {
                     nom_pacien: "",
                     fec_naci: "",
                     sexo: "",
+                    tel: "",
+                    telefono: "",
+                    email: "",
+                    direccion: "",
                 },
                 priori: {
                     id: "",
@@ -459,7 +475,7 @@ export default {
                 observaciones: null
             },
             soportesHC: { archivo1: null, archivo2: null, archivo3: null },
-            busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "5897469", bus_fehc_ini: "", bus_fecha_fin: "" },
+            busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
             interfaceAtenciones: [],
             interfaceAtencionSeleccionada: null,
             errores: {},
@@ -474,6 +490,10 @@ export default {
             sedeInterface: false,
             idRow: null,
             selectedRows: {},
+            loadingBuscar: false,
+            loadingGuardar: false,
+            loadingAbrirIndex: null,
+            loadingImagenIndex: null,
         };
     },
     computed: {
@@ -488,8 +508,28 @@ export default {
         },
     },
     methods: {
+        initDataTable() {
+            try {
+                if ($ && $.fn && $.fn.DataTable) {
+                    $("#example23").DataTable({
+                        dom: "Bfrtip",
+                        buttons: ["copy", "csv", "excel", "pdf", "print"],
+                        retrieve: true,
+                    });
+                }
+            } catch (e) { }
+        },
+        destroyDataTable() {
+            try {
+                if ($ && $.fn && $.fn.DataTable && $.fn.dataTable.isDataTable('#example23')) {
+                    $("#example23").DataTable().destroy();
+                }
+            } catch (e) { }
+        },
         async buscarStudy() {
-            $("#example23").DataTable().destroy();
+            if (this.loadingBuscar) return;
+            this.loadingBuscar = true;
+            this.destroyDataTable();
             try {
                 if (sessionStorage.getItem('ST-sede') == null) {
                     $.toast({
@@ -512,17 +552,14 @@ export default {
                         stack: 6,
                     });
                 } else {
-                    const res = await axios.post("/study.listarEstudios", this.busqueda);
-                    console.log(res)
+                    // En Tele-radiología consultamos estudios vía endpoint del módulo
+                    const res = await axios.post("/tele-radiologia-listar-estudios", this.busqueda);
                     if (res.status == 200) {
-                        $("#example23").DataTable().destroy();
+                        this.destroyDataTable();
 
                         this.registros = res.data;
                         this.$nextTick(() => {
-                            $("#example23").DataTable({
-                                dom: "Bfrtip",
-                                buttons: ["copy", "csv", "excel", "pdf", "print"],
-                            });
+                            this.initDataTable();
                         });
 
                     } else if (res.status == 500) {
@@ -553,9 +590,13 @@ export default {
                 if (error.response && error.response.data && error.response.data.errors) {
                     this.erroresBusqueda = error.response.data.errors;
                 }
+            } finally {
+                this.loadingBuscar = false;
             }
         },
         async guardarRegistro() {
+            if (this.loadingGuardar) return;
+            this.loadingGuardar = true;
             try {
 
                 if (this.orden.producto.length === 0) {
@@ -586,17 +627,24 @@ export default {
                     return;
                 }
 
+                // Mantener compatibilidad con backend externo: duplicar tel/telefono
+                this.orden.paciente.telefono = this.orden.paciente.tel;
+                this.registro.tel = this.orden.paciente.tel;
+                this.registro.direccion = this.orden.paciente.direccion;
+                this.registro.email = this.orden.paciente.email;
+
                 const resOrdenTele = await axios.post('/tele-radiologia-enviar-orden', { orden: this.orden });
                 console.log('resOrdenTele', resOrdenTele)
-                console.log('this.registro', resOrdenTele.data.confirmation)
-                if (resOrdenTele.status == 201) {
+                const confirmation = resOrdenTele?.data?.confirmation ?? resOrdenTele?.data?.data?.confirmation ?? resOrdenTele?.data?.id ?? null;
+                console.log('confirmation', confirmation)
+                if (resOrdenTele.status == 201 || resOrdenTele.status == 200) {
 
                     //Asigno el id de la orden de tele radiologia al estudio
-                    this.registro.destino_estudio_id = resOrdenTele.data.confirmation;
+                    this.registro.destino_estudio_id = confirmation;
 
                     $.toast({
                         heading: "Ok!!!",
-                        text: resOrdenTele.data.message,
+                        text: resOrdenTele?.data?.message || 'Orden enviada correctamente.',
                         position: "top-right",
                         loaderBg: "#ff6849",
                         icon: "success",
@@ -642,6 +690,8 @@ export default {
                         stack: 6,
                     });
                 }
+            } finally {
+                this.loadingGuardar = false;
             }
         },
         toBase64(file) {
@@ -778,16 +828,16 @@ export default {
             this.registro.prioridad_id = seleccion.id
             this.orden.priori.nom_priori = seleccion.nom_priori
         },
-        establecerSede() {
+        async establecerSede() {
             this.orden.sede.id = sessionStorage.getItem('ST-sede');
             this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
             this.idSedeActual = sessionStorage.getItem('ST-sede');
             this.nomSedeActual = sessionStorage.getItem('ST-nomsede');
             this.registro.sede_id = sessionStorage.getItem('ST-sede');
-
-            if (this.orden.sede.id == 1) {
-                this.sedeInterface = true;
-            } else {
+            try {
+                const res = await axios.get('/config-sedes/' + this.idSedeActual + '/buscarPorId');
+                this.sedeInterface = (res.data && res.data.interface_software === 'SAHI');
+            } catch (e) {
                 this.sedeInterface = false;
             }
             this.registros = [];
@@ -914,9 +964,22 @@ export default {
         quitarProductoEstudio(indexEliminar) {
             this.orden.producto.splice(indexEliminar, 1);
         },
-        verImagen(pat_id, study_iuid) {
-            let Url = sessionStorage.getItem('ST-urlsede') + '?patientID =' + pat_id + '&studyUID=' + study_iuid + '&serverName=' + sessionStorage.getItem('ST-servername')
-            window.open(Url, '_blank');
+        verImagen(pat_id, study_iuid, index = null) {
+            if (index !== null) {
+                if (this.loadingImagenIndex !== null) return;
+                this.loadingImagenIndex = index;
+            }
+            const base = sessionStorage.getItem('ST-urlsede') || '';
+            const params = new URLSearchParams({
+                patientID: String(pat_id ?? ''),
+                studyUID: String(study_iuid ?? ''),
+                serverName: String(sessionStorage.getItem('ST-servername') ?? ''),
+            });
+            try {
+                window.open(`${base}?${params.toString()}`, '_blank', 'noopener,noreferrer');
+            } finally {
+                setTimeout(() => { this.loadingImagenIndex = null; }, 500);
+            }
         },
     },
 };

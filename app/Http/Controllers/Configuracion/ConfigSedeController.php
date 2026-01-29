@@ -12,6 +12,16 @@ use Str;
 
 class ConfigSedeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        // Permitir lectura de sedes a quienes asignan/leen/transcriben estudios (sin abrir CRUD completo)
+        $this->middleware('permission:config.sedes.index|estudio.asignar|estudio.transcribir|estudio.leerEstudio')->only(['index', 'buscarPorId', 'listarSedesActivas']);
+        $this->middleware('permission:config.sedes.create')->only(['store']);
+        $this->middleware('permission:config.sedes.edit')->only(['update']);
+        $this->middleware('permission:config.sedes.destroy')->only(['destroy']);
+    }
+
     /**
      * Lista todas las sedes ordenadas alfabéticamente.
      *

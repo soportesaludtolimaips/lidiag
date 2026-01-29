@@ -10,6 +10,16 @@ use Illuminate\Validation\Rule;
 
 class ConfigProductoController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        // Permitir lectura de catálogos a quienes asignan/leen/transcriben estudios (sin abrir CRUD completo)
+        $this->middleware('permission:config.productos.index|estudio.asignar|estudio.transcribir|estudio.leerEstudio')->only(['index', 'show']);
+        $this->middleware('permission:config.productos.create')->only(['store']);
+        $this->middleware('permission:config.productos.edit')->only(['update']);
+        $this->middleware('permission:config.productos.destroy')->only(['destroy']);
+    }
+
     /**
      * Lista todos los productos (CUPS) ordenados alfabéticamente.
      *

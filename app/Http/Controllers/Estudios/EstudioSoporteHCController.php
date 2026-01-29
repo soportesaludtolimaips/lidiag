@@ -8,6 +8,12 @@ use Illuminate\Http\Request;
 
 class EstudioSoporteHCController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:estudio.asignar|estudio.transcribir|estudio.leerEstudio');
+    }
+
     /**
      * Lista los soportes de historia clínica asociados a un estudio.
      *
@@ -29,6 +35,9 @@ class EstudioSoporteHCController extends Controller
     public function descargarSoporte($nomArchivoEncriptadot)
     {
         $rutaArchivo = storage_path('app/soportes_hc/' . $nomArchivoEncriptadot);
+        if (!file_exists($rutaArchivo)) {
+            abort(404);
+        }
         return response()->download($rutaArchivo);
     }
 }

@@ -157,8 +157,10 @@
 
                                 <div class="form-actions mt-3">
                                     <button type="button" class="btn btn-success m-r-5"
-                                        @click="listarPendiestePorLectura()">
-                                        <i class="fa fa-search"></i> Buscar
+                                        @click="listarPendiestePorLectura()" :disabled="isBuscandoPendientes">
+                                        <i class="fa"
+                                            :class="isBuscandoPendientes ? 'fa-spinner fa-spin' : 'fa-search'"></i>
+                                        {{ isBuscandoPendientes ? 'Buscando...' : 'Buscar' }}
                                     </button>
 
                                     <button type="button" class="btn btn-inverse" @click="btnLimpiar()">
@@ -330,9 +332,36 @@
                             </div>
                         </div>
                         <div class="form-actions mt-3">
-                            <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()">
+                            <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
+                                :disabled="isGuardandoLectura || (sedeInterface && registro.estado_envio_sahi === 'ENVIANDO')">
                                 <i class="fa fa-check"></i> Guardar
                             </button>
+
+                            <button v-if="sedeInterface && registro.ecografia_producto_id" type="button"
+                                class="btn btn-info m-r-5" @click="consultarEstadoSahi(false)"
+                                :disabled="isConsultandoSahi">
+                                <i class="fa" :class="isConsultandoSahi ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                                {{ isConsultandoSahi ? 'Consultando...' : 'Actualizar SAHI' }}
+                            </button>
+
+                            <button v-if="sedeInterface && registro.estado_envio_sahi === 'ERROR'" type="button"
+                                class="btn btn-warning m-r-5" @click="enviarASahiEcografiaProducto()"
+                                :disabled="isEnviandoSahi || registro.estado_envio_sahi === 'ENVIANDO'">
+                                <i class="fa fa-refresh"></i> Reintentar SAHI
+                            </button>
+
+                            <span v-if="sedeInterface && registro.estado_envio_sahi" class="label m-r-5" :class="{
+                                'label-success': registro.estado_envio_sahi === 'ENVIADO',
+                                'label-warning': registro.estado_envio_sahi === 'ENVIANDO' || registro.estado_envio_sahi === 'PENDIENTE',
+                                'label-danger': registro.estado_envio_sahi === 'ERROR'
+                            }">
+                                SAHI: {{ registro.estado_envio_sahi }}
+                            </span>
+                            <small
+                                v-if="sedeInterface && registro.estado_envio_sahi === 'ERROR' && registro.error_envio_sahi"
+                                class="text-danger d-block">
+                                {{ registro.error_envio_sahi }}
+                            </small>
 
                             <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">Cancel</button>
                         </div>
@@ -401,6 +430,13 @@ export default {
         this.url = window.location.pathname;
         this.establecerMedico();
     },
+    beforeUnmount() {
+        this.stopSahiPolling();
+    },
+    beforeDestroy() {
+        // compat Vue 2/3 (según build)
+        this.stopSahiPolling();
+    },
     data() {
         return {
             tituloModal: 'Nueva adminsión',
@@ -410,7 +446,8 @@ export default {
             registros: [],
             registro: {
                 ecografia_id: "", ecografia_producto_id: "", producto_id: "", sede_id: this.sedeActual, medico_id: '', quien_registro_id: this.usuarioactual.id, atencion_id: null,
-                lectura: null, opinion: null, tipo_estudio: null, nom_pacien: null
+                lectura: null, opinion: null, tipo_estudio: null, nom_pacien: null,
+                estado_envio_sahi: null, fechor_envio_sahi: null, error_envio_sahi: null, sahi_esquema_149: null, sahi_esquema_150: null,
             },
             errores: {},
             erroresBusqueda: {},
@@ -423,6 +460,14 @@ export default {
             url: '',
 
             microfono: 'admin-wrap/assets/images/mic.gif',
+
+            isGuardandoLectura: false,
+            isEnviandoSahi: false,
+            isBuscandoPendientes: false,
+
+            isConsultandoSahi: false,
+            sahiPollTimer: null,
+            sahiPollCount: 0,
         }
     },
     computed: {
@@ -436,21 +481,111 @@ export default {
         },
     },
     methods: {
-        async listarPendiestePorLectura() {
+        startSahiPolling() {
+            if (!this.sedeInterface) return;
+            if (!this.registro?.ecografia_producto_id) return;
+            if (this.sahiPollTimer) return;
 
-            const res = await axios.post('/ecografia-listarPendientesPorLectura/' + this.busqueda.medico_id);
-            console.log(res.data);
-            if (res.status == 200) {
-                $("#example23").DataTable().destroy();
+            this.sahiPollCount = 0;
+            this.sahiPollTimer = setInterval(async () => {
+                this.sahiPollCount += 1;
+                // ~3 minutos max (36 * 5s)
+                if (this.sahiPollCount > 36) {
+                    this.stopSahiPolling();
+                    return;
+                }
+                await this.consultarEstadoSahi(true);
+            }, 5000);
+        },
+        stopSahiPolling() {
+            if (this.sahiPollTimer) {
+                clearInterval(this.sahiPollTimer);
+                this.sahiPollTimer = null;
+            }
+            this.sahiPollCount = 0;
+        },
+        async consultarEstadoSahi(silent = false) {
+            if (!this.sedeInterface) return;
+            const id = this.registro.ecografia_producto_id;
+            if (!id) return;
 
-                this.registros = res.data.ecografias;
+            try {
+                this.isConsultandoSahi = true;
+                const res = await axios.get(`/interface-sahi-ecografias/estado/ecografia-producto/${id}`);
+                const d = res.data?.data || {};
 
-                this.$nextTick(() => {
-                    $("#example23").DataTable({
-                        dom: "Bfrtip",
-                        buttons: ["copy", "csv", "excel", "pdf", "print"],
+                if (d.estado_envio_sahi != null) this.registro.estado_envio_sahi = d.estado_envio_sahi;
+                this.registro.fechor_envio_sahi = d.fechor_envio_sahi ?? this.registro.fechor_envio_sahi;
+                this.registro.error_envio_sahi = d.error_envio_sahi ?? null;
+                this.registro.sahi_esquema_149 = d.sahi_esquema_149 ?? this.registro.sahi_esquema_149;
+                this.registro.sahi_esquema_150 = d.sahi_esquema_150 ?? this.registro.sahi_esquema_150;
+
+                if (this.registro.estado_envio_sahi !== 'ENVIANDO') {
+                    this.stopSahiPolling();
+                }
+
+                if (!silent) {
+                    $.toast({
+                        heading: 'SAHI',
+                        text: 'Estado actualizado.',
+                        position: 'top-right',
+                        loaderBg: '#ff6849',
+                        icon: 'info',
+                        hideAfter: 2500,
+                        stack: 6,
                     });
+                }
+            } catch (error) {
+                if (!silent) {
+                    $.toast({
+                        heading: 'SAHI',
+                        text: error.response?.data?.message || 'No se pudo consultar el estado en SAHI.',
+                        position: 'top-right',
+                        loaderBg: '#ff6849',
+                        icon: 'warning',
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                }
+            } finally {
+                this.isConsultandoSahi = false;
+            }
+        },
+        safeDestroyDataTable(selector = "#example23") {
+            if (typeof window === 'undefined' || !window.$ || !window.$.fn || !window.$.fn.DataTable) return;
+            const $t = window.$(selector);
+            if (!$t.length) return;
+            if (window.$.fn.DataTable.isDataTable($t)) {
+                $t.DataTable().clear().destroy();
+            }
+        },
+        safeInitDataTable(selector = "#example23") {
+            if (typeof window === 'undefined' || !window.$ || !window.$.fn || !window.$.fn.DataTable) return;
+            this.$nextTick(() => {
+                const $t = window.$(selector);
+                if (!$t.length) return;
+                if (window.$.fn.DataTable.isDataTable($t)) return;
+                $t.DataTable({
+                    dom: "Bfrtip",
+                    buttons: ["copy", "csv", "excel", "pdf", "print"],
                 });
+            });
+        },
+        async listarPendiestePorLectura() {
+            try {
+                this.isBuscandoPendientes = true;
+
+                const res = await axios.post('/ecografia-listarPendientesPorLectura/' + this.busqueda.medico_id);
+                console.log(res.data);
+                if (res.status == 200) {
+                    this.safeDestroyDataTable("#example23");
+
+                    this.registros = res.data.ecografias;
+
+                    this.safeInitDataTable("#example23");
+                }
+            } finally {
+                this.isBuscandoPendientes = false;
             }
         },
         async generarLectura() {
@@ -470,6 +605,8 @@ export default {
                         hideAfter: 3500,
                         stack: 6,
                     });
+
+                    return true;
                 } else {
                     $.toast({
                         heading: "Upss!!!",
@@ -480,11 +617,10 @@ export default {
                         hideAfter: 3500,
                         stack: 6,
                     });
+
+                    return false;
                 }
             } catch (error) {
-                // Manejar errores y mostrar notificación
-                console.error('Error al guardar la agenda:', error);
-
                 $.toast({
                     heading: 'Error',
                     text: error.response?.data?.message || 'Ocurrió un error al guardar la agenda.',
@@ -499,31 +635,132 @@ export default {
                 if (error.response?.data?.errors) {
                     this.errores = error.response.data.errors;
                 }
+
+                return false;
+            }
+        },
+        async enviarASahiEcografiaProducto() {
+            // Solo aplica si la sede está configurada para interface
+            if (!this.sedeInterface) return true;
+
+            const id = this.registro.ecografia_producto_id;
+            if (!id) {
+                $.toast({
+                    heading: 'Advertencia',
+                    text: 'No se encontró ecografia_producto_id para enviar a SAHI.',
+                    position: 'top-right',
+                    loaderBg: '#ff6849',
+                    icon: 'warning',
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+                return false;
+            }
+
+            try {
+                this.isEnviandoSahi = true;
+                this.registro.estado_envio_sahi = 'ENVIANDO';
+
+                const res = await axios.post('/interface-sahi-ecografias/enviar/ecografia-producto', {
+                    ecografia_producto_id: id,
+                });
+
+                const encolado = res.status === 202;
+                $.toast({
+                    heading: 'SAHI',
+                    text: res.data?.message || (encolado ? 'Envío a SAHI encolado.' : 'Enviado a SAHI correctamente.'),
+                    position: 'top-right',
+                    loaderBg: '#ff6849',
+                    icon: encolado ? 'info' : 'success',
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+
+                // Reflejar estado en UI (lo más confiable sigue siendo recargar listado)
+                this.registro.estado_envio_sahi = encolado ? 'ENVIANDO' : 'ENVIADO';
+                this.registro.fechor_envio_sahi = new Date().toISOString();
+                this.registro.error_envio_sahi = null;
+                if (!encolado && res.data?.data) {
+                    this.registro.sahi_esquema_149 = res.data.data.IdEsquemaEncabezado149 ?? this.registro.sahi_esquema_149;
+                    this.registro.sahi_esquema_150 = res.data.data.IdEsquemaEncabezado150 ?? this.registro.sahi_esquema_150;
+                }
+
+                if (encolado) {
+                    this.startSahiPolling();
+                }
+
+                return true;
+            } catch (error) {
+                $.toast({
+                    heading: 'SAHI',
+                    text: error.response?.data?.message || 'No se pudo enviar a SAHI.',
+                    position: 'top-right',
+                    loaderBg: '#ff6849',
+                    icon: 'warning',
+                    hideAfter: 4500,
+                    stack: 6,
+                });
+                this.registro.estado_envio_sahi = 'ERROR';
+                this.registro.error_envio_sahi = error.response?.data?.message || 'No se pudo enviar a SAHI.';
+                return false;
+            } finally {
+                this.isEnviandoSahi = false;
             }
         },
         async guardarRegistro() {
-            this.accion = 'TERMINAR_LECTURA';
-            this.generarLectura();
-            this.listarPendiestePorLectura();
+            const accionActual = 'TERMINAR_LECTURA';
+            this.accion = accionActual;
+
+            this.isGuardandoLectura = true;
+            const guardadoOk = await this.generarLectura();
             this.accion = null;
+            this.isGuardandoLectura = false;
+
+            if (!guardadoOk) return;
+
+            // Enviar a SAHI solo si la sede tiene interface y la acción fue TERMINAR_LECTURA
+            if (this.sedeInterface && accionActual === 'TERMINAR_LECTURA') {
+                await this.enviarASahiEcografiaProducto();
+            }
+
+            this.listarPendiestePorLectura();
             this.limpiarFormulario();
             this.btnCerralModalForm();
         },
         async generarReporte() {
-            this.accion = 'IMPRIMIR_LECTURA';
-            this.generarLectura();
-            this.accion = null;
+            try {
+                this.accion = 'IMPRIMIR_LECTURA';
+                this.generarLectura();
+                this.accion = null;
 
-            const iframe = document.getElementById('ifrReporteEcografia');
-            iframe.src = '';
+                const iframe = document.getElementById('ifrReporteEcografia');
+                iframe.src = '';
 
-            const res = await axios.post('/ecografia-generar-reporte/' + this.registro.ecografia_id, this.registro);
-            const pathReporte = res.data.plantilla;
+                const res = await axios.post('/ecografia-generar-reporte/' + this.registro.ecografia_id, this.registro);
+                const pathReporte = res.data.plantilla;
 
-            // Mostrar el reporte en el iframe
-            iframe.src = pathReporte;
+                // Mostrar el reporte en el iframe
+                iframe.src = pathReporte;
 
-            this.listarPendiestePorLectura();
+                this.listarPendiestePorLectura();
+
+                return true;
+            } catch (error) {
+                $.toast({
+                    heading: 'Error',
+                    text: error.response?.data?.message || 'Ocurrió un error al guardar la lectura.',
+                    position: 'top-right',
+                    loaderBg: '#ff6849',
+                    icon: 'error',
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+
+                // Mostrar errores específicos en el formulario
+                if (error.response?.data?.errors) {
+                    this.errores = error.response.data.errors;
+                }
+            }
         },
         establecerSede() {
             this.registro.sede_id = sessionStorage.getItem('ST-sede');
@@ -588,6 +825,8 @@ export default {
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);
             $(".right-sidebar").toggleClass("shw-rside");
+            // al cerrar, detenemos polling para evitar fugas
+            this.stopSahiPolling();
         },
         mostrarRegistro(data = {}) {
             console.log('data', data)
@@ -618,10 +857,24 @@ export default {
             this.registro.lectura = data.lectura;
             this.registro.opinion = data.opinion;
 
+            // Estado de envío a SAHI (si viene en el select)
+            this.registro.estado_envio_sahi = data.estado_envio_sahi || null;
+            this.registro.fechor_envio_sahi = data.fechor_envio_sahi || null;
+            this.registro.error_envio_sahi = data.error_envio_sahi || null;
+            this.registro.sahi_esquema_149 = data.sahi_esquema_149 || null;
+            this.registro.sahi_esquema_150 = data.sahi_esquema_150 || null;
+
+            if (this.sedeInterface && this.registro.estado_envio_sahi === 'ENVIANDO') {
+                this.startSahiPolling();
+            } else {
+                this.stopSahiPolling();
+            }
+
             this.btnCerralModalForm();
         },
         limpiarFormulario() {
             this.tituloModal = '';
+            this.stopSahiPolling();
 
             this.registro.paciente_id = '';
             this.registro.num_docu = '';
@@ -642,10 +895,6 @@ export default {
             this.registro.lectura = '';
             this.registro.opinion = '';
             this.errores = {};
-        },
-        btnCerralModalForm() {
-            $(".right-sidebar").slideDown(50);
-            $(".right-sidebar").toggleClass("shw-rside");
         },
     }
 }

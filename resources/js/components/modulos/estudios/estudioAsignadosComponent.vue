@@ -85,9 +85,12 @@
                                 </div>
 
                                 <div class="form-actions mt-3">
-                                    <button type="button" class="btn btn-success m-r-5"
-                                        @click="listarEstudiosAsignados()"><i class="fa fa-search"></i>
-                                        Buscar</button>
+                                    <button type="button" class="btn btn-success m-r-5" :disabled="loadingBuscar"
+                                        @click="listarEstudiosAsignados()">
+                                        <i v-if="loadingBuscar" class="fa fa-spinner fa-spin"></i>
+                                        <i v-else class="fa fa-search"></i>
+                                        Buscar
+                                    </button>
                                     <button type="button" class="btn btn-inverse" @click="btnLimpiar()"><i
                                             class="fa fa-refresh"></i> Limpiar</button>
                                 </div>
@@ -126,8 +129,8 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(item, index) in registros" :key="item.id"
-                                        :id="item.id_producto_lectura">
+                                    <tr v-for="item in registros" :key="item.estudio_producto_id"
+                                        :id="item.estudio_producto_id">
                                         <td>
                                             <button type="button" v-if="item.priori_id == 1"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">A</button>
@@ -171,9 +174,20 @@
                                         </td>
                                         <td class="text-nowrap">
                                             <button type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
+                                                :disabled="loadingAbrirRegistroId === item.estudio_producto_id"
+                                                @click="mostrarRegistro(item)">
+                                                <i v-if="loadingAbrirRegistroId === item.estudio_producto_id"
+                                                    class="fa fa-spinner fa-spin"></i>
+                                                <i v-else class="fa fa-pencil"></i>
+                                            </button>
+                                            <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
+                                                :disabled="loadingAnularId === item.estudio_producto_id"
                                                 @click="anularAsignacion(item.estudio_producto_id, item.nom_pacien, item.nom_produc);">
-                                                <i class="fa fa-eraser"></i>
+                                                <i v-if="loadingAnularId === item.estudio_producto_id"
+                                                    class="fa fa-spinner fa-spin"></i>
+                                                <i v-else class="fa fa-eraser"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -252,9 +266,9 @@
                                             <div class="form-group">
                                                 <label class="control-label">Télefono</label>
                                                 <input type="number" id="telefono" name="telefono"
-                                                    v-model="registro.telefono" class="form-control" />
-                                                <span class="text-danger" v-if="errores.telefono">
-                                                    {{ errores.telefono[0] }}
+                                                    v-model="registro.tel" class="form-control" />
+                                                <span class="text-danger" v-if="errores.tel">
+                                                    {{ errores.tel[0] }}
                                                 </span>
                                             </div>
                                         </div>
@@ -274,8 +288,8 @@
                                     </h5>
                                     <hr>
 
-                                    <input type="hidden" id="id_producto_lectura" name="id_producto_lectura"
-                                        v-model="registro.id_producto_lectura" />
+                                    <input type="hidden" id="estudio_producto_id" name="estudio_producto_id"
+                                        v-model="registro.estudio_producto_id" />
                                     <input type="hidden" id="email" name="email" v-model="registro.email" />
 
                                     <div class="row">
@@ -349,8 +363,9 @@
                                         <div class="col-3">
                                             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                                                 <button type="button" class="btn btn-secondary btn-xs"
-                                                    @click="verImagen()">
-                                                    <i class="fa fa-file-image-o"></i>
+                                                    :disabled="loadingVerImagen" @click="verImagen()">
+                                                    <i v-if="loadingVerImagen" class="fa fa-spinner fa-spin"></i>
+                                                    <i v-else class="fa fa-file-image-o"></i>
                                                 </button>
                                             </div>
                                         </div>
@@ -395,14 +410,17 @@
                                                     <div class="col-md-8 col-lg-9"
                                                         v-for="(itemArchivo, index) in soportesHC" :key="index">
                                                         <a href="javascript:void(0)"
-                                                            @click="descargaSoportte(itemArchivo.archivo_encrip)">
+                                                            :style="{ pointerEvents: (loadingDescargaSoporte === itemArchivo.archivo_encrip) ? 'none' : 'auto' }"
+                                                            @click="descargaSoportte(itemArchivo.archivo_original, itemArchivo.archivo_encrip)">
+                                                            <i v-if="loadingDescargaSoporte === itemArchivo.archivo_encrip"
+                                                                class="fa fa-spinner fa-spin"></i>
                                                             {{ itemArchivo.archivo_original }}
                                                         </a>
                                                     </div>
                                                 </div>
                                                 <div class="tab-pane  p-20" id="profile8" role="tabpanel">
                                                     <template v-for="(item, index) in audiosDeEstudio" :key="index">
-                                                        <audio :src="item.audio" controls
+                                                        <audio :src="item.url || item.audio" controls
                                                             style="height: 15px; width: 100%;"></audio>
                                                     </template>
                                                 </div>
@@ -414,8 +432,10 @@
                             </div>
 
                             <div class="form-actions mt-3">
-                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()">
-                                    <i class="fa fa-check"></i> Guardar
+                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
+                                    :disabled="loadingGuardar">
+                                    <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
+                                    <i v-else class="fa fa-check"></i> Guardar
                                 </button>
 
                                 <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">
@@ -435,7 +455,7 @@
 
 <script>
 $(function () {
-    $('#textarea_editor').wysihtml5();
+    try { $('.textarea_editor').wysihtml5(); } catch (e) { }
 });
 
 import { listarUsuariosYSedes } from '../../../helpers/usuarios';
@@ -451,13 +471,15 @@ export default {
     },
     data() {
         return {
+            id: 0,
             diagnosticosEstudio: [],
             soportesHC: [],
             registros: [],
             tituloModal: "Transcirbir estudio",
+            actualizar: false,
             registro: {
-                id_estudio: 0, id_producto_lectura: 0, lectura: "", fec_lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", email_reportar: '', num_docu: "", nom_pacien: "", sexo: "",
-                fec_naci: "", email: "", diagnosticosEstudio: [], sede_id: "", atencion: null, servicio: null, eps: null, contrato: null, medico_id: null, cod_cups: '', nom_produc: '', num_docu_medi: '',
+                id_estudio: 0, estudio_producto_id: 0, lectura: "", fec_lectura: "", fec_estudio: "", accession_no: "", study_desc: "", observaciones: "", email_reportar: '', num_docu: "", nom_pacien: "", sexo: "",
+                fec_naci: "", email: "", tel: "", direccion: "", diagnosticosEstudio: [], sede_id: "", atencion: null, servicio: null, eps: null, contrato: null, medico_id: null, cod_cups: '', nom_produc: '', num_docu_medi: '',
                 reg_med: '', medico: '', firma: '',
 
             },
@@ -468,10 +490,57 @@ export default {
             medicos: [],
             errores: {},
             idRow: null,
+            loadingBuscar: false,
+            loadingAnularId: null,
+            loadingAbrirRegistroId: null,
+            loadingGuardar: false,
+            loadingDescargaSoporte: null,
+            loadingAudios: false,
+            loadingVerImagen: false,
         };
     },
     methods: {
+        initDataTable() {
+            try {
+                if ($ && $.fn && $.fn.DataTable) {
+                    $("#example23").DataTable({
+                        dom: "Bfrtip",
+                        buttons: ["copy", "csv", "excel", "pdf", "print"],
+                        retrieve: true,
+                    });
+                }
+            } catch (e) {
+                console.warn(e);
+            }
+        },
+        destroyDataTable() {
+            try {
+                if ($.fn.DataTable && $.fn.DataTable.isDataTable("#example23")) {
+                    $("#example23").DataTable().destroy();
+                }
+            } catch (e) {
+                console.warn(e);
+            }
+        },
+        btnLimpiar() {
+            this.busqueda.quien_asigno_id = "";
+            this.busqueda.medico_id = "";
+            this.busqueda.bus_nom_num_docu = "";
+            this.busqueda.bus_fehc_ini = "";
+            this.busqueda.bus_fecha_fin = "";
+            this.errores = {};
+            this.destroyDataTable();
+            this.registros = [];
+            // limpiar sidebar (best-effort)
+            this.id = 0;
+            this.idRow = null;
+            this.diagnosticosEstudio = [];
+            this.soportesHC = [];
+            this.audiosDeEstudio = [];
+        },
         async listarEstudiosAsignados() {
+            if (this.loadingBuscar) return;
+            this.loadingBuscar = true;
             try {
                 if (sessionStorage.getItem('ST-sede') == null) {
                     $.toast({
@@ -490,23 +559,46 @@ export default {
 
                     this.registros = res.data;
 
-                    $("#example23").DataTable().destroy();
+                    this.destroyDataTable();
                     this.$nextTick(() => {
-                        $("#example23").DataTable({
-                            dom: "Bfrtip",
-                            buttons: ["copy", "csv", "excel", "pdf", "print"],
-                        });
+                        this.initDataTable();
                     });
                 }
             } catch (error) {
                 console.log(error);
+                const status = error?.response?.status;
+                const message = error?.response?.data?.message;
+                // Si el backend devuelve errores de validación, mostrar mensaje genérico
+                if (status === 400 && error?.response?.data && typeof error.response.data === 'object') {
+                    $.toast({
+                        heading: "Upss!!!",
+                        text: "Revisa los filtros de búsqueda.",
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "warning",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                } else {
+                    $.toast({
+                        heading: "Upss!!!",
+                        text: message || "No fue posible listar los estudios asignados.",
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "error",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                }
+            } finally {
+                this.loadingBuscar = false;
             }
         },
         async listarUsuariosYSedes() {
             /**
              * Lisato los transcriptores
              */
-            const res = await axios.get('/user.listarUsuarios/Transcriptor');
+            const res = await axios.get('/user.listarUsuarios/Transcriptor/1');
             this.quienes_asignaron = res.data;
 
             /**
@@ -519,6 +611,105 @@ export default {
              * Listo las sedes
              */
             this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
+        },
+        async listarAudios() {
+            this.loadingAudios = true;
+            try {
+                const res = await axios.get('/listar-audios-estudio/' + this.id);
+                this.audiosDeEstudio = res.data;
+            } catch (e) {
+                console.log(e);
+                this.audiosDeEstudio = [];
+            } finally {
+                this.loadingAudios = false;
+            }
+        },
+        descargaSoportte(nomArchivoOriginal, nomArchivoEncriptado) {
+            if (this.loadingDescargaSoporte) return;
+            this.loadingDescargaSoporte = nomArchivoEncriptado;
+            const url = `/descarga-soportes-hc/${nomArchivoEncriptado}`;
+            axios.get(url, { responseType: 'blob' })
+                .then(response => {
+                    const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+                    const link = document.createElement('a');
+                    link.href = blobUrl;
+                    link.setAttribute('download', nomArchivoOriginal || nomArchivoEncriptado);
+                    document.body.appendChild(link);
+                    link.click();
+                    setTimeout(() => window.URL.revokeObjectURL(blobUrl), 2000);
+                })
+                .catch(error => {
+                    console.error(error);
+                })
+                .finally(() => {
+                    this.loadingDescargaSoporte = null;
+                });
+        },
+        async guardarRegistro() {
+            if (this.loadingGuardar) return;
+            this.loadingGuardar = true;
+            try {
+                const payload = {
+                    ...this.registro,
+                    id_estudio: this.id,
+                    estudio_producto_id: this.registro.estudio_producto_id,
+                };
+                const res = await axios.post('/estudio-guardarTranscripcion', payload);
+
+                if (res.status === 200) {
+                    $.toast({
+                        heading: "Ok!!!",
+                        text: res.data.message || 'Guardado correctamente.',
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "success",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+
+                    const idx = this.registros.findIndex(x => x.estudio_producto_id == this.idRow);
+                    if (idx >= 0) {
+                        this.registros.splice(idx, 1);
+                        this.destroyDataTable();
+                        this.$nextTick(() => {
+                            $("#example23").DataTable({
+                                dom: "Bfrtip",
+                                buttons: ["copy", "csv", "excel", "pdf", "print"],
+                            });
+                        });
+                    }
+
+                    this.btnCerralModalForm();
+                    this.limpiar();
+                } else {
+                    $.toast({
+                        heading: "Upss!!!",
+                        text: res.data.message || 'No fue posible guardar.',
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "danger",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                }
+            } catch (error) {
+                const status = error?.response?.status;
+                const message = error?.response?.data?.message;
+                if (status == 400 && error?.response?.data && typeof error.response.data === 'object') {
+                    this.errores = error.response.data;
+                }
+                $.toast({
+                    heading: "Upss!!!",
+                    text: message || "No fue posible guardar la transcripción.",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "error",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+            } finally {
+                this.loadingGuardar = false;
+            }
         },
         async anularAsignacion(idProductoEstudio, paciente, producto) {
             var $this = this;
@@ -533,6 +724,15 @@ export default {
                 closeOnConfirm: false
             }, function (isConfirm) {
                 if (isConfirm) {
+                    if ($this.loadingAnularId) return;
+                    $this.loadingAnularId = idProductoEstudio;
+                    swal({
+                        title: "Anulando...",
+                        text: "Procesando, por favor espere.",
+                        type: "info",
+                        showConfirmButton: false,
+                        allowOutsideClick: false
+                    });
                     axios.post('estudio-anular-asignacion', { 'id': idProductoEstudio })
                         .then(res => {
                             if (res.status === 200) {
@@ -541,11 +741,11 @@ export default {
                                 if (row) {
                                     row.remove();
 
-                                    var estudioEliminar = $this.registros.findIndex((x) => x.id_producto_lectura == idProductoEstudio);
+                                    var estudioEliminar = $this.registros.findIndex((x) => x.estudio_producto_id == idProductoEstudio);
                                     console.log(estudioEliminar)
                                     $this.registros.splice(estudioEliminar, 1);
 
-                                    $("#example23").DataTable().destroy();
+                                    $this.destroyDataTable();
 
                                     $this.$nextTick(() => {
                                         $("#example23").DataTable({
@@ -560,68 +760,118 @@ export default {
                         })
                         .catch(err => {
                             console.log(err);
+                            swal("Error", "No fue posible anular el producto.", "error");
+                        })
+                        .finally(() => {
+                            $this.loadingAnularId = null;
                         });
                 }
             });
         },
         verImagen() {
-            let Url = this.datosImagen.urlOviyam + '?patientID =' + this.datosImagen.patientId + '&studyUID=' + this.datosImagen.studyUID + '&serverName=' + this.datosImagen.serverName
-            window.open(Url, '_blank');
+            if (this.loadingVerImagen) return;
+            this.loadingVerImagen = true;
+            const base = this.datosImagen.urlOviyam || '';
+            const params = new URLSearchParams({
+                patientID: String(this.datosImagen.patientId ?? ''),
+                studyUID: String(this.datosImagen.studyUID ?? ''),
+                serverName: String(this.datosImagen.serverName ?? ''),
+            });
+            try {
+                window.open(`${base}?${params.toString()}`, '_blank');
+            } finally {
+                setTimeout(() => { this.loadingVerImagen = false; }, 500);
+            }
         },
         async mostrarRegistro(data = {}) {
+            if (this.loadingAbrirRegistroId !== null) return;
+            this.loadingAbrirRegistroId = data.estudio_producto_id;
+            try {
+                // reset panel data
+                this.errores = {};
+                this.diagnosticosEstudio = [];
+                this.soportesHC = [];
+                this.audiosDeEstudio = [];
 
-            this.tituloModal = "Paciente: " + data.nom_pacien;
-            this.id = data.id;
-            this.idRow = data.id;
-            this.registro.id_producto_lectura = data.id_producto_lectura;
-            this.registro.fec_estudio = data.fec_estudio;
-            this.registro.fec_lectura = data.fechor_lectura;
-            this.registro.accession_no = data.accession_no;
-            this.registro.study_desc = data.study_desc;
-            this.registro.email_reportar = data.email_reportar;
-            this.registro.atencion = data.atencion;
-            this.registro.medico_id = data.medico_id;
-            this.registro.num_docu = data.num_docu;
-            this.registro.nom_pacien = data.nom_pacien;
-            this.registro.direccion = data.direccion;
-            this.registro.email = data.email;
-            this.registro.tel = data.tel;
-            this.registro.sexo = data.pat_sex;
-            this.registro.fec_naci = data.pat_birthdate;
-            this.registro.cod_cups = data.cod_cups;
-            this.registro.nom_produc = data.nom_produc;
-            this.registro.num_docu_medi = data.num_docu_medi;
-            this.registro.reg_med = data.reg_med;
-            this.registro.medico = data.medico;
-            this.registro.firma = data.firma;
-            this.registro.lectura = `Atención: ${data.atencion}\nFecha y Hora: ${data.fec_estudio}\n\n${data.nom_produc}\n\n${data.lectura}`;
+                this.tituloModal = "Paciente: " + data.nom_pacien;
+                this.id = data.id;
+                this.idRow = data.estudio_producto_id;
 
-            this.datosImagen.urlOviyam = data.url_oviyam;
-            this.datosImagen.patientId = data.num_docu;
-            this.datosImagen.studyUID = data.study_iuid;
-            this.datosImagen.serverName = data.tap_oviyam;
+                this.registro.id_estudio = data.id;
+                this.registro.estudio_producto_id = data.estudio_producto_id;
+                this.registro.fec_estudio = data.fec_estudio;
+                this.registro.fec_lectura = data.fechor_lectura;
+                this.registro.accession_no = data.accession_no;
+                this.registro.study_desc = data.study_desc;
+                this.registro.email_reportar = data.email_reportar;
+                this.registro.atencion = data.atencion;
+                this.registro.medico_id = data.medico_id;
+                this.registro.num_docu = data.num_docu;
+                this.registro.nom_pacien = data.nom_pacien;
+                this.registro.direccion = data.direccion;
+                this.registro.email = data.email;
+                this.registro.tel = data.tel;
+                this.registro.sexo = data.sexo;
+                this.registro.fec_naci = data.fec_naci;
+                this.registro.cod_cups = data.cod_cups;
+                this.registro.nom_produc = data.nom_produc;
+                this.registro.num_docu_medi = data.num_docu_medi;
+                this.registro.reg_med = data.reg_med;
+                this.registro.medico = data.medico;
+                this.registro.firma = data.firma;
+                this.registro.lectura = `Atención: ${data.atencion}\nFecha y Hora: ${data.fec_estudio}\n\n${data.nom_produc}\n\n${data.lectura}`;
 
-            this.registro.sede_id = data.sede_id;
-            this.registro.nom_sede = data.nom_sede;
+                this.datosImagen.urlOviyam = data.url_oviyam;
+                this.datosImagen.patientId = data.num_docu;
+                this.datosImagen.studyUID = data.study_iuid;
+                this.datosImagen.serverName = data.tap_oviyam;
 
-            const res = await axios.get('/study-listar-diagnostico-por-estudio?id=' + this.id);
-            this.diagnosticosEstudio = res.data;
+                this.registro.sede_id = data.sede_id;
+                this.registro.nom_sede = data.nom_sede;
 
-            this.btnCerralModalForm();
-            this.errores = [];
+                const res = await axios.get('/study-listar-diagnostico-por-estudio?id=' + this.id);
+                this.diagnosticosEstudio = res.data;
+
+                const resSoportesHC = await axios.get('/listar-soportes-hc-estudio?id=' + this.id);
+                this.soportesHC = resSoportesHC.data;
+
+                this.audiosDeEstudio = [];
+                this.listarAudios();
+
+                this.btnCerralModalForm();
+            } catch (error) {
+                console.log(error);
+                $.toast({
+                    heading: "Upss!!!",
+                    text: error?.response?.data?.message || "No fue posible cargar el estudio seleccionado.",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "error",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+            } finally {
+                this.loadingAbrirRegistroId = null;
+            }
         },
         limpiar() {
             this.actualizar = false;
             this.tituloModal = "Nuevo registro";
             this.registro.email_reportar = "";
             this.registro.email = "";
+            this.registro.tel = "";
+            this.registro.direccion = "";
+            this.registro.lectura = "";
+            this.registro.estudio_producto_id = 0;
+            this.registro.id_estudio = 0;
 
             $('#btnCerralModalForm').click();
-            this.errores = [];
+            this.errores = {};
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);
             $(".right-sidebar").toggleClass("shw-rside");
+            this.audiosDeEstudio = [];
         }
     },
     computed: {

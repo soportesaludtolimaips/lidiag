@@ -30,6 +30,14 @@ class SAHIEcografiasController extends Controller
         $atencionId = $request->bus_nom_num_docu;
         $gruposPermitidos = [44, 195, 156, 190, 204, 191];
 
+        // `quien_ordeno` es solo texto informativo: lo resolvemos una vez por atención
+        // (evita subconsulta correlacionada por fila).
+        $quienOrdeno = DB::connection('sqlsrv')
+            ->table('hceProceOrden')
+            ->where('IdAtencion', $atencionId)
+            ->orderByDesc('IdOrdenPro')
+            ->value('NomResponsable');
+
         $consulta1 = facFacturaDet::select([
             'admAtencion.IdAtencion',
             DB::raw("CONVERT(char(10), admAtencion.FecIngreso, 120) AS FecIngreso"),
@@ -55,12 +63,6 @@ class SAHIEcografiasController extends Controller
             'conContrato.DesContrato',
             'conPlan.DesPlan',
             'genTercero.NomTercero',
-            DB::raw("(SELECT TOP(1) QuinOrdenoOrden.NomResponsable
-                    FROM hceProceOrden QuinOrdenoOrden
-                        INNER JOIN hceProceDetalle ON QuinOrdenoOrden.IdOrdenPro = hceProceDetalle.IdOrdenPro
-                        INNER JOIN proProducto PoducOrden ON hceProceDetalle.IdProducto = PoducOrden.IdProducto
-                    WHERE QuinOrdenoOrden.IdAtencion = admAtencion.IdAtencion AND PoducOrden.CodProducto = proProducto.CodProducto
-                ) as quien_ordeno")
         ])
             ->join('facFactura', 'facFacturaDet.IdFactura', '=', 'facFactura.IdFactura')
             ->join('proProducto', 'facFacturaDet.IdProducto', '=', 'proProducto.IdProducto')
@@ -100,12 +102,6 @@ class SAHIEcografiasController extends Controller
             'conContrato.DesContrato',
             'conPlan.DesPlan',
             'genTercero.NomTercero',
-            DB::raw("(SELECT TOP(1) QuinOrdenoOrden.NomResponsable
-                    FROM hceProceOrden QuinOrdenoOrden
-                        INNER JOIN hceProceDetalle ON QuinOrdenoOrden.IdOrdenPro = hceProceDetalle.IdOrdenPro
-                        INNER JOIN proProducto PoducOrden ON hceProceDetalle.IdProducto = PoducOrden.IdProducto
-                    WHERE QuinOrdenoOrden.IdAtencion = admAtencion.IdAtencion AND PoducOrden.CodProducto = proProducto.CodProducto
-                ) as quien_ordeno")
         ])
             ->join('facMovimiento', 'facMovimientoDet.IdMovimiento', '=', 'facMovimiento.IdMovimiento')
             ->join('proProducto', 'facMovimientoDet.IdProducto', '=', 'proProducto.IdProducto')
@@ -121,6 +117,55 @@ class SAHIEcografiasController extends Controller
             ->whereIn('proProducto.IdGrupo', $gruposPermitidos);
 
         $atencionesSahi = $consulta1->union($consulta2)->get();
+
+        // Agregar texto de quien ordenó (si existe) para todos los ítems.
+        if ($quienOrdeno) {
+            $atencionesSahi->transform(function ($row) use ($quienOrdeno) {
+                $row->quien_ordeno = $quienOrdeno;
+                return $row;
+            });
+        }
+
+        // Enriquecer con estado en LIDiag (si la atención/producto ya fue admitida)
+        // Nota: ecografias.atencion_id (string) debe corresponder al IdAtencion SAHI.
+        $local = DB::table('ecografias')
+            ->join('ecografias_productos as ep', 'ep.ecografia_id', '=', 'ecografias.id')
+            ->where('ecografias.atencion_id', $atencionId)
+            ->select([
+                'ecografias.id as ecografia_id',
+                'ecografias.estado as estado_ecografia',
+                'ep.producto_id',
+                'ep.id as ecografia_producto_id',
+                'ep.estado_envio_sahi',
+                'ep.fechor_envio_sahi',
+                'ep.error_envio_sahi',
+                'ep.sahi_esquema_149',
+                'ep.sahi_esquema_150',
+            ])
+            // determinístico: si existen múltiples ecografías por (atención, producto),
+            // nos quedamos con la de mayor id (más reciente)
+            ->orderBy('ecografias.id')
+            ->get()
+            ->keyBy('producto_id');
+
+        $atencionesSahi = $atencionesSahi->map(function ($row) use ($local) {
+            $productoId = (int) ($row->IdProducto ?? 0);
+            $match = $productoId && isset($local[$productoId]) ? $local[$productoId] : null;
+
+            // Campos que el frontend ya usa
+            $row->id = $match?->ecografia_id ?? null; // usado por anulación
+            $row->estado_ecografia = $match?->estado_ecografia ?? null;
+
+            // Campos SAHI (estado de envío) para consistencia UI
+            $row->ecografia_producto_id = $match?->ecografia_producto_id ?? null;
+            $row->estado_envio_sahi = $match?->estado_envio_sahi ?? null;
+            $row->fechor_envio_sahi = $match?->fechor_envio_sahi ?? null;
+            $row->error_envio_sahi = $match?->error_envio_sahi ?? null;
+            $row->sahi_esquema_149 = $match?->sahi_esquema_149 ?? null;
+            $row->sahi_esquema_150 = $match?->sahi_esquema_150 ?? null;
+
+            return $row;
+        });
 
         return response()->json($atencionesSahi, 200);
     }

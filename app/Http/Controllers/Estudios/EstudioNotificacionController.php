@@ -10,10 +10,12 @@ use App\Models\Dcm4chee\Instance;
 use App\Models\Estudio\Estudio;
 use App\Models\General\Paciente;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Validator;
 use Twilio\Rest\Client;
 
 class EstudioNotificacionController extends Controller
@@ -21,6 +23,8 @@ class EstudioNotificacionController extends Controller
     public function __construct()
     {
         ini_set('max_execution_time', -1);
+        $this->middleware('auth');
+        $this->middleware('permission:estudios.notificar.index');
     }
 
     /**
@@ -31,6 +35,16 @@ class EstudioNotificacionController extends Controller
      */
     public function listarEstudios(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'bus_num_docu' => 'nullable|string|max:50',
+            'bus_nom' => 'nullable|string|max:255',
+            'bus_fehc_ini' => 'nullable|date',
+            'bus_fecha_fin' => 'nullable|date',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['message' => 'Datos inválidos', 'errors' => $validator->errors()], 422);
+        }
+
         $query = Estudio::query();
 
         $query->select(
@@ -43,6 +57,9 @@ class EstudioNotificacionController extends Controller
             'pacientes.nombres as nom_pacien',
             'pacientes.direccion',
             'pacientes.email',
+            'pacientes.tel',
+            'pacientes.sexo',
+            'pacientes.fec_naci',
             'estudios_productos.id AS estudio_producto_id',
             'estudios_productos.lectura',
             'estudios_productos.cod_cups',
@@ -73,7 +90,13 @@ class EstudioNotificacionController extends Controller
             $query->where('pacientes.nombres', 'like', "%$request->bus_nom%");
         }
 
-        $registros = $query->get();
+        if ($request->filled('bus_fehc_ini') && $request->filled('bus_fecha_fin')) {
+            $inicio = Carbon::parse($request->bus_fehc_ini)->startOfDay()->format('Y-m-d H:i:s');
+            $fin = Carbon::parse($request->bus_fecha_fin)->endOfDay()->format('Y-m-d H:i:s');
+            $query->whereBetween('estudios.fec_estudio', [$inicio, $fin]);
+        }
+
+        $registros = $query->orderByDesc('estudios_productos.fechor_trascrito')->limit(1000)->get();
         return response()->json($registros);
     }
 
@@ -119,7 +142,11 @@ class EstudioNotificacionController extends Controller
             'tap_oviyam' => $estudio->tap_oviyam,
         ];
 
-        $fileBytes = file_get_contents(storage_path('app/reporte_lecturas/' . $nomArchivoReporte));
+        $reportePath = storage_path('app/reporte_lecturas/' . $nomArchivoReporte);
+        if (!file_exists($reportePath)) {
+            return response()->json(['message' => 'No se encontró el reporte PDF para notificar.'], 400);
+        }
+        $fileBytes = file_get_contents($reportePath);
 
         $method = 'POST';
         $path = parse_url($urlApiReportes, PHP_URL_PATH) ?: '/api/almacenarLectura';
@@ -155,7 +182,11 @@ class EstudioNotificacionController extends Controller
             ['num_docu' => $estudio->num_docu],
             [
                 'nombres' => $estudio->nom_pacien,
-                'email' => $estudio->email
+                'email' => $estudio->email,
+                'tel' => $estudio->tel ?? null,
+                'sexo' => $estudio->sexo ?? null,
+                'fec_naci' => $estudio->fec_naci ?? null,
+                'direccion' => $estudio->direccion ?? null,
             ]
         );
 
@@ -174,10 +205,13 @@ class EstudioNotificacionController extends Controller
             Mail::to($estudio->email_reportar)->send($mailable);
         }
 
-        unlink(storage_path('app/reporte_lecturas/' . $nomArchivoReporte));
+        // Borrar el PDF temporal si existe
+        @unlink($reportePath);
 
         // Obtener las rutas de las imágenes que se enviaron
-        $imagenesAdjuntos = Storage::files('img_dicom/' . $estudio->study_iuid);
+        $imagenesAdjuntos = Storage::exists('img_dicom/' . $estudio->study_iuid)
+            ? Storage::files('img_dicom/' . $estudio->study_iuid)
+            : [];
 
         // Eliminar cada imagen
         foreach ($imagenesAdjuntos as $imagen) {
@@ -219,7 +253,11 @@ class EstudioNotificacionController extends Controller
             'tap_oviyam' => $estudio->tap_oviyam,
         ];
 
-        $fileBytes = file_get_contents(storage_path('app/reporte_lecturas/' . $nomArchivoReporte));
+        $reportePath = storage_path('app/reporte_lecturas/' . $nomArchivoReporte);
+        if (!file_exists($reportePath)) {
+            return response()->json(['message' => 'No se encontró el reporte PDF para enviar al portal.'], 400);
+        }
+        $fileBytes = file_get_contents($reportePath);
 
         $method = 'POST';
         $path = parse_url($urlApiReportes, PHP_URL_PATH) ?: '/api/almacenarLectura';
@@ -257,7 +295,7 @@ class EstudioNotificacionController extends Controller
         } finally {
             // Limpieza best-effort del archivo temporal del reporte
             try {
-                @unlink(storage_path('app/reporte_lecturas/' . $nomArchivoReporte));
+                @unlink($reportePath);
             } catch (\Exception $e) {
                 // no-op
             }
