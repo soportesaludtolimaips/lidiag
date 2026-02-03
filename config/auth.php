@@ -41,7 +41,8 @@ return [
             'provider' => 'users',
         ],
         'api' => [
-            'driver' => 'passport',
+            // API con Sanctum (tokens personales o SPA cookie auth si se configura)
+            'driver' => 'sanctum',
             'provider' => 'users',
         ],
     ],

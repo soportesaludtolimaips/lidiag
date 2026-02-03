@@ -13,10 +13,17 @@ use PhpOffice\PhpWord\Element\TextRun;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Process\Process;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Str;
 
 
 class PlantillaEcografiaController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:ecografias.reporte')->only(['editWord']);
+    }
+
     /**
      * Genera el reporte final de ecografía reemplazando marcadores en una plantilla de Word y convirtiéndolo a PDF.
      *
@@ -40,11 +47,17 @@ class PlantillaEcografiaController extends Controller
         $filePath = '';
 
         $sede = ConfigSede::find($request->sede_id);
+        if (!$sede) {
+            return response()->json(['message' => 'Sede no encontrada.'], 404);
+        }
 
         if (!$sede->plantilla_ecografia) {
             return response()->json(['message' => 'La plantilla para ecografias de la sede ' . $sede->nom_sede . ' no está  configurada, por favor consulte con el administrador del sistema'], 402);
         } elseif ($sede->plantilla_ecografia) {
             $medico = User::find($request->medico_id);
+            if (!$medico) {
+                return response()->json(['message' => 'Médico no encontrado.'], 404);
+            }
             $request->merge(['nombres_medico' => $medico->name]);
             $request->merge(['reg_medico' => $medico->reg_med]);
             $request->merge(['num_docu_medico' => $medico->num_docu]);
@@ -73,9 +86,9 @@ class PlantillaEcografiaController extends Controller
         $templateProcessor->setValue('cel', $request->cel);
 
         // Actualizar los datos del estudio
-        $fecEstudio = Carbon::parse($request->fec_estudio)->format('d/m/Y');
-        $fecLectura = Carbon::parse($request->fechor_lectura)->format('d/m/Y H:i');
-        $fecTrascrito = Carbon::parse($request->fechor_trascrito)->format('d/m/Y H:i');
+        $fecEstudio = $request->fec_estudio ? Carbon::parse($request->fec_estudio)->format('d/m/Y') : '';
+        $fecLectura = $request->fechor_lectura ? Carbon::parse($request->fechor_lectura)->format('d/m/Y H:i') : '';
+        $fecTrascrito = $request->fechor_trascrito ? Carbon::parse($request->fechor_trascrito)->format('d/m/Y H:i') : '';
 
         $templateProcessor->setValue('fechor_estudio', $fecEstudio);
         $templateProcessor->setValue('fechor_lectura', $fecLectura);
@@ -122,8 +135,9 @@ class PlantillaEcografiaController extends Controller
             ]);
         }
 
-        // Ruta para guardar el archivo editado
-        $nomArchivo = 'ECOGRAFIA-' . $request->tipo_estudio . '-' . $request->num_docu . "-" . $nombrePaciente;
+        // Ruta para guardar el archivo editado (sanear nombre de archivo)
+        $rawName = 'ECOGRAFIA-' . ($request->tipo_estudio ?? 'ECO') . '-' . ($request->num_docu ?? 'SIN_DOC') . "-" . $nombrePaciente;
+        $nomArchivo = Str::of($rawName)->replaceMatches('/[\\\\\\/\\:\\*\\?\\"\\<\\>\\|]+/', '-')->limit(150, '')->toString();
 
         $outputPath = storage_path('app/reporte_lecturas/' . $nomArchivo . '.docx');
         $templateProcessor->saveAs($outputPath);
@@ -142,7 +156,12 @@ class PlantillaEcografiaController extends Controller
                 200
             );
         } else {
-            return response()->json('No fue posible convertir la plantilla a PDF', 400);
+            // best-effort cleanup del docx
+            try {
+                @unlink($outputPath);
+            } catch (\Exception $e) {
+            }
+            return response()->json(['message' => 'No fue posible convertir la plantilla a PDF'], 400);
         }
     }
 
@@ -155,7 +174,7 @@ class PlantillaEcografiaController extends Controller
      * @param string $nomPlantilla Nombre base del archivo (sin extensión) ubicado en storage/app/reporte_lecturas/
      * @return string|\Illuminate\Http\JsonResponse Retorna un JSON con la URL pública del PDF o un error.
      */
-    function convertDocxToPdf(string $nomPlantilla): string|\Illuminate\Http\JsonResponse
+    function convertDocxToPdf(string $nomPlantilla): bool
     {
         // Rutas de entrada y salida
         $inputPath = storage_path("app/reporte_lecturas/{$nomPlantilla}.docx");
@@ -164,7 +183,7 @@ class PlantillaEcografiaController extends Controller
         // Validar existencia del archivo de origen
         if (!file_exists($inputPath)) {
             Log::error("Archivo DOCX no encontrado: {$inputPath}");
-            return response()->json(['error' => 'Archivo DOCX no encontrado.'], 404);
+            return false;
         }
 
         // Determinar comando según el sistema operativo
@@ -177,22 +196,45 @@ class PlantillaEcografiaController extends Controller
         // Validar que unoconv exista
         if (!file_exists($unoconvPath)) {
             Log::error("unoconv no encontrado en la ruta: {$unoconvPath}");
-            return response()->json(['error' => 'unoconv no encontrado en el sistema.'], 500);
+            return false;
         }
 
         try {
-            // Comando para convertir el archivo .docx a PDF utilizando unoconv
-            $command = escapeshellcmd('C:\unoconv\unoconv -f pdf -o ' . escapeshellarg($outputPath) . ' ' . escapeshellarg($inputPath));
+            // Asegurar carpeta destino
+            $outDir = dirname($outputPath);
+            if (!is_dir($outDir)) {
+                @mkdir($outDir, 0775, true);
+            }
 
-            // Ejecutar el comando
-            $output = shell_exec($command);
+            // Comando para convertir el archivo .docx a PDF utilizando unoconv
+            $cmd = [
+                $unoconvPath,
+                '-f',
+                'pdf',
+                '-o',
+                $outputPath,
+                $inputPath,
+            ];
+
+            // En Windows, si es .bat se ejecuta mejor vía cmd
+            if (PHP_OS_FAMILY === 'Windows') {
+                $command = 'cmd /c "' . $unoconvPath . '" -f pdf -o ' . escapeshellarg($outputPath) . ' ' . escapeshellarg($inputPath);
+                shell_exec($command);
+            } else {
+                $process = new Process($cmd);
+                $process->setTimeout(60);
+                $process->run();
+            }
         } catch (\Exception $e) {
             Log::error("Error durante la conversión: " . $e->getMessage());
-            return response()->json(['error' => 'Error durante la conversión a PDF.'], 500);
+            return false;
         }
 
-        return response()->json([
-            'url' => asset("storage/reporte_lecturas/{$nomPlantilla}.pdf")
-        ]);
+        if (!file_exists($outputPath)) {
+            Log::error("PDF no generado: {$outputPath}");
+            return false;
+        }
+
+        return true;
     }
 }

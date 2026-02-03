@@ -92,7 +92,7 @@
                             lectura.
                         </h6>
                         <div class="table-responsive">
-                            <table id="example23" class="table table-bordered table-striped" cellspacing="0"
+                            <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
                                 width="100%">
                                 <thead>
                                     <tr>
@@ -503,8 +503,11 @@
 </template>
 
 <script>
+import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import { handleAxiosErrorToast } from "@/helpers/alerts";
+
 export default {
-    props: ['usuarioactual'],
+    props: ['usuarioactual', 'permisos'],
     mounted() {
         this.registro.email_reportar = "";
         this.listarMedicos();
@@ -513,13 +516,18 @@ export default {
         this.listarDiagnosticos();
         this.establecerSede();
         this.limpiar();
+
         this.emitter.on("sedeSeleccionada", (data) => {
             this.registro.sede_id = data.idSede;
             this.establecerSede();
             this.destroyDataTable();
         });
     },
+    beforeUnmount() {
+        this.destroyDataTable();
+    },
     data() {
+        const sedeActual = sessionStorage.getItem('ST-sede');
         return {
             dataIndex: 0,
             id: 0,
@@ -527,11 +535,11 @@ export default {
             tituloModal: "Nuevo registro",
             registro: {
                 study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", mods_in_study: "", observaciones: "", medico_id: "", prioridad_id: "",
-                sede_id: this.sedeActual, quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", tel: "",
+                sede_id: sedeActual, quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", tel: "",
                 productosEstudio: [], diagnosticosEstudio: [], atencion_id: null, destino_estudio: 'Salud Tolima'
             },
             soportesHC: { archivo1: null, archivo2: null, archivo3: null }, //Soporte de historia clinica
-            busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
+            busqueda: { sede_id: sedeActual, bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
             interfaceAtenciones: [], //Ateniones disponibles del paciente
             interfaceAtencionSeleccionada: null, //Atencion seleccinada para listar los productos y diagnosticos
             errores: {},
@@ -542,7 +550,7 @@ export default {
             diagnosticos: [], //Listo todos los diagnosticos
             productoSelecciondo: "",
             diagnosticoSelecciondo: "",
-            sedeActual: sessionStorage.getItem('ST-sede'),
+            sedeActual,
             productosAtencion: [],
             sedeInterface: false,
             idRow: null,
@@ -568,14 +576,7 @@ export default {
     },
     methods: {
         destroyDataTable() {
-            try {
-                if ($.fn.DataTable && $.fn.DataTable.isDataTable("#example23")) {
-                    $("#example23").DataTable().destroy();
-                }
-            } catch (e) {
-                // No romper el flujo por un destroy fallido
-                console.warn(e);
-            }
+            safeDestroyDataTable(this.$refs.dt || "#example23");
         },
         async buscarStudy() {
 
@@ -602,10 +603,30 @@ export default {
                         hideAfter: 3500,
                         stack: 6,
                     });
+                } else if (this.busqueda.bus_nom_num_docu == '' && (this.busqueda.bus_fehc_ini == "" || this.busqueda.bus_fecha_fin == "")) {
+                    $.toast({
+                        heading: "Upsss!!!",
+                        text: 'Para buscar por fecha debes seleccionar fecha inicio y fecha fin.',
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "warning",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                } else if (this.busqueda.bus_fehc_ini && this.busqueda.bus_fecha_fin && this.busqueda.bus_fehc_ini > this.busqueda.bus_fecha_fin) {
+                    $.toast({
+                        heading: "Upsss!!!",
+                        text: 'La fecha inicio no puede ser mayor a la fecha fin.',
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "warning",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
                 } else {
                     if (this.loadingBuscar) return;
                     this.loadingBuscar = true;
-                    const res = await axios.post("/study.listarEstudios", this.busqueda);
+                    const res = await axios.post("/api/study.listarEstudios", this.busqueda);
 
                     if (res.status == 200) {
                         this.destroyDataTable();
@@ -614,7 +635,7 @@ export default {
                         const data = (typeof res.data === "string") ? JSON.parse(res.data) : res.data;
                         this.registros = Array.isArray(data) ? data : [];
                         this.$nextTick(() => {
-                            $("#example23").DataTable({
+                            safeInitDataTable(this.$refs.dt || "#example23", {
                                 dom: "Bfrtip",
                                 buttons: ["copy", "csv", "excel", "pdf", "print"],
                             });
@@ -634,21 +655,8 @@ export default {
                     }
                 }
             } catch (error) {
-                console.log(error)
-                const status = error?.response?.status;
-                if (status == 500) {
-                    $.toast({
-                        heading: "Upss!!!",
-                        text: error.response.data.message,
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "error",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                }
-
                 this.erroresBusqueda = error?.response?.data?.errors || {};
+                handleAxiosErrorToast(error, "No fue posible listar estudios.");
             } finally {
                 this.loadingBuscar = false;
             }
@@ -663,7 +671,7 @@ export default {
                 formData.append('archivo2', this.soportesHC.archivo2);
                 formData.append('archivo3', this.soportesHC.archivo3);
 
-                const res = await axios.post('/estudios', formData, {
+                const res = await axios.post('/api/estudios', formData, {
                     headers: { "Content-Type": "multipart/form-data" }
                 });
 
@@ -699,6 +707,8 @@ export default {
                         hideAfter: 5500,
                         stack: 6,
                     });
+                } else {
+                    handleAxiosErrorToast(error, "No fue posible guardar el estudio.");
                 }
             } finally {
                 this.loadingGuardar = false;
@@ -741,13 +751,14 @@ export default {
              * Verificar si la sede tiene interface, traigo la informacion de las producto y diagnosticos
              */
             try {
-                const res = await axios.get('/config-sedes/' + this.sedeActual + '/buscarPorId');
-                // La UI debe depender de la configuración real de la sede, no de un ID hardcodeado
-                this.sedeInterface = (res.data && res.data.interface_software === 'SAHI');
-                if (this.sedeInterface) {
-                    const resAtenciones = await axios.get('/interface-sahi-listar-atenciones/' + this.registro.num_docu);
+                const res = await axios.get('/api/config-sedes/' + this.sedeActual + '/buscarPorId');
+
+                if (res.data.interface_software != null) {
+                    const resAtenciones = await axios.get('/api/interface-sahi-listar-atenciones/' + this.registro.num_docu);
                     this.interfaceAtenciones = resAtenciones.data
                 }
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible cargar la configuración/atenciones de la sede.");
             } finally {
                 this.loadingAbrirRegistroIndex = null;
             }
@@ -756,42 +767,50 @@ export default {
             /**
              * Listo los productos de una atención
              */
-            const resProuctos = await axios.get('/interface-sahi-listar-listarProductosDiagnosticos/' + this.interfaceAtencionSeleccionada);
+            try {
+                const resProuctos = await axios.get('/api/interface-sahi-listar-listarProductosDiagnosticos/' + this.interfaceAtencionSeleccionada);
 
-            this.registro.productosEstudio = [];
-            if (resProuctos.data.productos.length > 0) {
-                resProuctos.data.productos.forEach(element => {
+                this.registro.productosEstudio = [];
+                if (resProuctos.data.productos.length > 0) {
+                    resProuctos.data.productos.forEach(element => {
 
-                    this.registro.productosEstudio.push(
-                        {
-                            checked: true,
-                            id: element.IdProducto,
-                            cod_cups: element.cod_cups,
-                            nom_produc: element.nom_produc
-                        }
-                    );
-                });
+                        this.registro.productosEstudio.push(
+                            {
+                                checked: true,
+                                id: element.IdProducto,
+                                cod_cups: element.cod_cups,
+                                nom_produc: element.nom_produc
+                            }
+                        );
+                    });
+                }
+
+                this.registro.diagnosticosEstudio = [];
+                if (resProuctos.data.diagnosticos.length > 0) {
+                    // Normalizar llaves para el backend (usa cod_diagnos/nom_diagnos)
+                    this.registro.diagnosticosEstudio = resProuctos.data.diagnosticos.map(d => ({
+                        id: d.IdDiagnostico ?? d.id ?? null,
+                        cod_diagnos: d.cod_diagnos,
+                        nom_diagnos: d.nom_diagnos,
+                    }));
+                }
+
+                this.registro.atencion_id = this.interfaceAtencionSeleccionada;
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible listar productos/diagnósticos de la atención.");
             }
-
-            this.registro.diagnosticosEstudio = [];
-            if (resProuctos.data.diagnosticos.length > 0) {
-                // Normalizar llaves para el backend (usa cod_diagnos/nom_diagnos)
-                this.registro.diagnosticosEstudio = resProuctos.data.diagnosticos.map(d => ({
-                    id: d.IdDiagnostico ?? d.id ?? null,
-                    cod_diagnos: d.cod_diagnos,
-                    nom_diagnos: d.nom_diagnos,
-                }));
-            }
-
-            this.registro.atencion_id = this.interfaceAtencionSeleccionada;
         },
         establecerSede() {
             this.registro.sede_id = sessionStorage.getItem('ST-sede');
             this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
             this.sedeActual = sessionStorage.getItem('ST-sede');
 
-            // Por defecto false; se actualizará según configuración real al abrir un estudio
-            this.sedeInterface = false;
+            if (this.registro.sede_id == 1) {
+                this.sedeInterface = true;
+            } else {
+                this.sedeInterface = false;
+            }
+
             this.registros = [];
         },
         btnCerralModalForm() {
@@ -838,34 +857,35 @@ export default {
         },
         async listarMedicos() {
             try {
-                const res = await axios.get("/user.listarUsuarios/Medico/1");
+                const moduloId = sessionStorage.getItem('ST-modulo') || '1';
+                const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
                 this.medicos = res.data;
             } catch (error) {
-                console.log(error);
+                handleAxiosErrorToast(error, "No fue posible listar médicos.");
             }
         },
         async listarPrioridades() {
             try {
-                const res = await axios.get("/config-prioridades");
+                const res = await axios.get("/api/config-prioridades");
                 this.prioridades = res.data;
             } catch (error) {
-                console.log(error);
+                handleAxiosErrorToast(error, "No fue posible listar prioridades.");
             }
         },
         async listarProductos() {
             try {
-                const res = await axios.get("/config-productos");
+                const res = await axios.get("/api/config-productos");
                 this.productos = res.data;
             } catch (error) {
-                console.log(error);
+                handleAxiosErrorToast(error, "No fue posible listar productos.");
             }
         },
         async listarDiagnosticos() {
             try {
-                const res = await axios.get("/config-diagnosticos");
+                const res = await axios.get("/api/config-diagnosticos");
                 this.diagnosticos = res.data;
             } catch (error) {
-                console.log(error);
+                handleAxiosErrorToast(error, "No fue posible listar diagnósticos.");
             }
         },
         onMedicoSelect(value) {

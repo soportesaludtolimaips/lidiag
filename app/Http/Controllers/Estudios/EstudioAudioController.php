@@ -15,7 +15,8 @@ class EstudioAudioController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('permission:estudio.transcribir|estudio.leerEstudio');
+        // Tolerante a variación de nombre (leerestudio vs leerEstudio)
+        $this->middleware('permission:estudio.transcribir|estudio.leerestudio|estudio.leerEstudio,web');
     }
 
     /**

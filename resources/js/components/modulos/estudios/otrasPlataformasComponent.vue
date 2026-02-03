@@ -109,7 +109,7 @@
                             lectura.
                         </h6>
                         <div class="table-responsive">
-                            <table id="example23" class="table table-bordered table-striped" cellspacing="0"
+                            <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
                                 width="100%">
                                 <thead>
                                     <tr>
@@ -127,7 +127,7 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="item in registros" :key="item.estudio_producto_id"
-                                        :id="item.estudio_producto_id">
+                                        :id="'row-' + item.estudio_producto_id">
                                         <td>
                                             <button type="button" v-if="item.priori_id == 1"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">A</button>
@@ -391,11 +391,17 @@
 $(function () {
     try { $('.textarea_editor').wysihtml5(); } catch (e) { }
 });
+import { safeDestroyDataTable, safeInitDataTable, safeRemoveDataTableRow } from "@/helpers/datatables.js";
+import { alertError, alertSuccess, confirmAction, handleAxiosErrorToast } from "@/helpers/alerts.js";
+
 export default {
     props: ['usuarioactual'],
     mounted() {
         this.listarUsuariosYSedes();
         //this.busqueda.quien_asigno_id = this.usuarioactual.id;
+    },
+    beforeUnmount() {
+        this.destroyDataTable();
     },
     data() {
         return {
@@ -426,22 +432,14 @@ export default {
     },
     methods: {
         initDataTable() {
-            try {
-                if ($ && $.fn && $.fn.DataTable) {
-                    $("#example23").DataTable({
-                        dom: "Bfrtip",
-                        buttons: ["copy", "csv", "excel", "pdf", "print"],
-                        retrieve: true,
-                    });
-                }
-            } catch (e) { }
+            safeInitDataTable(this.$refs.dt || "#example23", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
+                retrieve: true,
+            });
         },
         destroyDataTable() {
-            try {
-                if ($ && $.fn && $.fn.DataTable && $.fn.dataTable.isDataTable('#example23')) {
-                    $("#example23").DataTable().destroy();
-                }
-            } catch (e) { }
+            safeDestroyDataTable(this.$refs.dt || "#example23");
         },
         btnLimpiar() {
             this.busqueda.quien_asigno_id = "";
@@ -469,7 +467,7 @@ export default {
                     });
                 } else {
 
-                    const res = await axios.post("/estudio-listarPendientesTrascribir", this.busqueda);
+                    const res = await axios.post("/api/estudio-listarPendientesTrascribir", this.busqueda);
                     this.destroyDataTable();
 
                     this.registros = res.data;
@@ -479,16 +477,7 @@ export default {
                     });
                 }
             } catch (error) {
-                console.log(error);
-                $.toast({
-                    heading: "Upss!!!",
-                    text: error?.response?.data?.message || "No fue posible listar los estudios.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "error",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
+                handleAxiosErrorToast(error, "No fue posible listar los estudios.");
             } finally {
                 this.loadingBuscar = false;
             }
@@ -507,15 +496,14 @@ export default {
                     stack: 6,
                 });
 
-                const res = await axios.post('/estudio-guardarTranscripcion', this.registro);
+                const res = await axios.post('/api/estudio-guardarTranscripcion', this.registro);
 
                 if (res.status == 200) {
 
                     const idx = this.registros.findIndex(x => x.estudio_producto_id == this.idRow);
                     if (idx >= 0) {
+                        try { safeRemoveDataTableRow(this.$refs.dt || "#example23", "#row-" + this.idRow); } catch (e) { }
                         this.registros.splice(idx, 1);
-                        this.destroyDataTable();
-                        this.$nextTick(() => this.initDataTable());
                     }
 
                     $.toast({
@@ -574,61 +562,48 @@ export default {
             }
         },
         async anularAsignacion(idProductoEstudio, paciente, producto) {
-            const $this = this;
-            swal({
+            const ok = await confirmAction({
                 title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
                 text: "No podrás recuperar este registro!",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "si, anular!",
-                closeOnConfirm: false
-            }, function (isConfirm) {
-                if (isConfirm) {
-                    if ($this.loadingAnularId) return;
-                    $this.loadingAnularId = idProductoEstudio;
-                    swal({
-                        title: "Anulando...",
-                        text: "Procesando, por favor espere.",
-                        type: "info",
-                        showConfirmButton: false,
-                        allowOutsideClick: false
-                    });
-                    axios.post('estudio-anular-asignacion', { 'id': idProductoEstudio })
-                        .then(res => {
-                            if (res.status === 200) {
-                                const idx = $this.registros.findIndex(x => x.estudio_producto_id == idProductoEstudio);
-                                if (idx >= 0) {
-                                    $this.registros.splice(idx, 1);
-                                    $this.destroyDataTable();
-                                    $this.$nextTick(() => $this.initDataTable());
-                                }
-                                swal("Anulado!", "El producto se anulo correctamente.", "success");
-                            } else {
-                                swal("Ups!", "No fue posible anular el producto.", "error");
-                            }
-                        })
-                        .catch(err => {
-                            console.log(err);
-                            swal("Error", "No fue posible anular el producto.", "error");
-                        })
-                        .finally(() => {
-                            $this.loadingAnularId = null;
-                        });
-                }
+                icon: "warning",
             });
+            if (!ok) return;
+            if (this.loadingAnularId) return;
+
+            this.loadingAnularId = idProductoEstudio;
+            try {
+                const res = await axios.post('/api/estudio-anular-asignacion', { id: idProductoEstudio });
+                if (res.status === 200) {
+                    const idx = this.registros.findIndex(x => x.estudio_producto_id == idProductoEstudio);
+                    if (idx >= 0) {
+                        try { safeRemoveDataTableRow(this.$refs.dt || "#example23", "#row-" + idProductoEstudio); } catch (e) { }
+                        this.registros.splice(idx, 1);
+                    }
+                    alertSuccess("Anulado!", "El producto se anulo correctamente.", "success");
+                } else {
+                    alertError("Ups!", "No fue posible anular el producto.", "error");
+                }
+            } catch (err) {
+                handleAxiosErrorToast(err, "No fue posible anular el producto.");
+                alertError("Error", "No fue posible anular el producto.", "error");
+            } finally {
+                this.loadingAnularId = null;
+            }
         },
         async listarUsuariosYSedes() {
             /**
              * Lisato los transcriptores
              */
-            const res = await axios.get('/user.listarUsuarios/Transcriptor/1');
+            const pathname = String(window?.location?.pathname || "").toLowerCase();
+            const moduloId = sessionStorage.getItem("ST-modulo")
+                || (pathname.includes("ecografia") ? "2" : "1");
+            const res = await axios.get(`/api/user.listarUsuarios/Transcriptor/${moduloId}`);
             this.quienes_asignaron = res.data;
 
             /**
              * Listo los medicos
              */
-            const resMedicos = await axios.get('/user.listarUsuarios/Medico/1');
+            const resMedicos = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
             this.medicos = resMedicos.data;
         },
         verImagen() {

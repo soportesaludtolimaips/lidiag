@@ -16,7 +16,7 @@ use App\Models\Configuracion\ConfigSede;
 use App\Models\Estudio\EstudioSoportesHC;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Str;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
 class EstudioController extends Controller
@@ -107,30 +107,6 @@ class EstudioController extends Controller
             return response()->json($validator->errors(), 400);
         }
 
-        // Validación de adjuntos (soportes HC): solo PDF/JPG/JPEG/PNG y máximo 5MB por archivo
-        $valArchivos = Validator::make(
-            $request->all(),
-            [
-                'archivo1' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
-                'archivo2' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
-                'archivo3' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
-            ],
-            [
-                'archivo1.file' => 'El soporte 1 debe ser un archivo válido.',
-                'archivo1.mimes' => 'El soporte 1 debe ser PDF/JPG/JPEG/PNG.',
-                'archivo1.max' => 'El soporte 1 no debe exceder 5MB.',
-                'archivo2.file' => 'El soporte 2 debe ser un archivo válido.',
-                'archivo2.mimes' => 'El soporte 2 debe ser PDF/JPG/JPEG/PNG.',
-                'archivo2.max' => 'El soporte 2 no debe exceder 5MB.',
-                'archivo3.file' => 'El soporte 3 debe ser un archivo válido.',
-                'archivo3.mimes' => 'El soporte 3 debe ser PDF/JPG/JPEG/PNG.',
-                'archivo3.max' => 'El soporte 3 no debe exceder 5MB.',
-            ]
-        );
-        if ($valArchivos->fails()) {
-            return response()->json($valArchivos->errors(), 400);
-        }
-
         // Asegurar que venga al menos un producto marcado (checked=true)
         $productosMarcados = array_values(array_filter(
             $registro['productosEstudio'] ?? [],
@@ -152,7 +128,8 @@ class EstudioController extends Controller
                 'direccion' => $registro['direccion'],
                 'sexo' => $registro['sexo'],
                 'fec_naci' => $registro['fec_naci'],
-                'tel' => $registro['telefono'],
+                // Unificar nombre de campo: el frontend envía `tel` (con fallback a `telefono` por compatibilidad)
+                'tel' => $registro['tel'] ?? ($registro['telefono'] ?? null),
                 'email' => $registro['email']
             ]
         );
@@ -297,7 +274,7 @@ class EstudioController extends Controller
      * @param Estudio $estudio Instancia vacía (no usada).
      * @return \Illuminate\Http\JsonResponse Lista de estudios pendientes.
      */
-    public function listarPendientesMedico(Request $request, Estudio $estudio)
+    public function listarPendientesMedico(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'id' => 'required|integer|exists:users,id',

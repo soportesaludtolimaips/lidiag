@@ -36,8 +36,9 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de roles</h4>
                         <div class="table-responsive m-t-40">
-                            <table id="example23" class="display nowrap table table-hover table-striped table-bordered"
-                                cellspacing="0" width="100%">
+                            <table id="example23" ref="dt"
+                                class="display nowrap table table-hover table-striped table-bordered" cellspacing="0"
+                                width="100%">
                                 <thead>
                                     <tr>
                                         <th>Rol</th>
@@ -118,7 +119,8 @@
                             </div>
 
                             <p class="text-info"><i class="fa fa-unlock"></i> Permisos</p>
-                            <span class="text-danger" v-if="erroresRpermisosElegidos">{{ erroresRpermisosElegidos }}</span>
+                            <span class="text-danger" v-if="erroresRpermisosElegidos">{{ erroresRpermisosElegidos
+                            }}</span>
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
@@ -139,12 +141,14 @@
 
                             <div class="form-actions mt-3">
                                 <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
-                                    v-if="!actualizar">
-                                    <i class="fa fa-check"></i> Guardar
+                                    v-if="!actualizar" :disabled="loadingGuardar">
+                                    <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
+                                    <i v-else class="fa fa-check"></i> Guardar
                                 </button>
                                 <button type="button" class="btn btn-warning m-r-5" v-if="actualizar"
-                                    @click="guardarRegistro()">
-                                    <i class="fa fa-pencil"></i> Actualizar
+                                    @click="guardarRegistro()" :disabled="loadingGuardar">
+                                    <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
+                                    <i v-else class="fa fa-pencil"></i> Actualizar
                                 </button>
                                 <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">
                                     Cancel
@@ -162,9 +166,15 @@
 </template>
 
 <script>
+import { handleAxiosErrorToast } from "@/helpers/alerts";
+import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+
 export default {
     mounted() {
         this.ListarDatos();
+    },
+    beforeUnmount() {
+        this.destroyDataTable();
     },
     data() {
         return {
@@ -176,29 +186,46 @@ export default {
             actualizar: false,
             errores: "",
             erroresRpermisosElegidos: "",
+            loadingListar: false,
+            loadingGuardar: false,
         };
     },
     methods: {
-        async ListarDatos() {
-            const res = await axios.get("/seguridad-roles");
-
-            $("#example23").DataTable().destroy();
-
-            this.listarRoles = [];
-            this.permisos = [];
-            this.registro.permisosRol = [];
-
-            this.listarRoles = res.data[0];
-            this.permisos = res.data[1];
-
-            this.listarPermisosRol();
-
-            this.$nextTick(() => {
-                $("#example23").DataTable({
-                    dom: "Bfrtip",
-                    buttons: ["copy", "csv", "excel", "pdf", "print"],
-                });
+        initDataTable() {
+            safeInitDataTable(this.$refs.dt || "#example23", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
+                retrieve: true,
             });
+        },
+        destroyDataTable() {
+            safeDestroyDataTable(this.$refs.dt || "#example23");
+        },
+        async ListarDatos() {
+            if (this.loadingListar) return;
+            this.loadingListar = true;
+            try {
+                const res = await axios.get("/api/seguridad-roles");
+
+                this.destroyDataTable();
+
+                this.listarRoles = [];
+                this.permisos = [];
+                this.registro.permisosRol = [];
+
+                this.listarRoles = res.data[0];
+                this.permisos = res.data[1];
+
+                this.listarPermisosRol();
+
+                this.$nextTick(() => {
+                    this.initDataTable();
+                });
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible listar roles.");
+            } finally {
+                this.loadingListar = false;
+            }
         },
         async guardarRegistro() {
 
@@ -214,9 +241,11 @@ export default {
                 return false;
             }
 
+            if (this.loadingGuardar) return;
+            this.loadingGuardar = true;
             try {
                 if (this.actualizar === false) {
-                    const res = await axios.post("/seguridad-roles", this.registro);
+                    const res = await axios.post("/api/seguridad-roles", this.registro);
 
                     if (res.status == 200) {
                         $.toast({
@@ -234,7 +263,7 @@ export default {
                         this.btnCerralModalForm();
                     }
                 } else {
-                    const res = await axios.put("/seguridad-roles/" + this.id, { registro: this.registro });
+                    const res = await axios.put("/api/seguridad-roles/" + this.id, { registro: this.registro });
                     if (res.status == 200) {
 
                         $.toast({
@@ -254,7 +283,10 @@ export default {
                 }
 
             } catch (error) {
-                this.errores = error.response.data.message;
+                this.errores = error?.response?.data?.message || "";
+                handleAxiosErrorToast(error, "No fue posible guardar el rol.");
+            } finally {
+                this.loadingGuardar = false;
             }
         },
         listarPermisosRol() {
@@ -276,7 +308,7 @@ export default {
                 this.id = data.id;
                 this.registro.name = data.name;
 
-                axios.get("/seguridad-roles/" + this.id).then((res) => {
+                axios.get("/api/seguridad-roles/" + this.id).then((res) => {
 
                     this.registro.permisos = [];
                     const permisosDelRol = Object.keys(res.data.permisosRol);
@@ -290,6 +322,8 @@ export default {
                         let permisoActivo = me.permisos.findIndex((x) => x.id == permisosDelRol);
                         me.registro.permisosRol[permisoActivo].checked = true;
                     });
+                }).catch((error) => {
+                    handleAxiosErrorToast(error, "No fue posible cargar los permisos del rol.");
                 });
             } else {
                 this.actualizar = false;

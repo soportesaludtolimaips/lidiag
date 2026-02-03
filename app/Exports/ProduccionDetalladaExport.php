@@ -161,7 +161,7 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
         ]);
 
         // Establece bordes para todas las celdas de datos
-        $sheet->getStyle('A4:P' . ($sheet->getHighestRow()))->applyFromArray([
+        $sheet->getStyle('A4:Q' . ($sheet->getHighestRow()))->applyFromArray([
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,

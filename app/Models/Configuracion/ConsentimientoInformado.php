@@ -12,17 +12,24 @@ class ConsentimientoInformado extends Model
     protected $fillable = [
         'producto_id',
         'sede_id',
+        'usuario_crea_id',
         'nombre',
-        'plantilla',
+        'archivo',
+        'estado',
     ];
 
     public function producto()
     {
-        return $this->belongsTo(Producto::class);
+        return $this->belongsTo(ConfigProducto::class, 'producto_id');
     }
 
     public function sede()
     {
-        return $this->belongsTo(Sede::class);
+        return $this->belongsTo(ConfigSede::class, 'sede_id');
+    }
+
+    public function usuarioCrea()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'usuario_crea_id');
     }
 }

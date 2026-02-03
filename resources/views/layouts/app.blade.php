@@ -102,7 +102,10 @@
                     <!-- User profile and search -->
                     <!-- ============================================================== -->
                     {{-- @include('comunes.userProfileAndSearch') --}}
-                    <user-profile-and-search-component :usuarioactual="{{ Auth::user() }}" />
+                    <user-profile-and-search-component
+                        :usuarioactual='@json(Auth::user())'
+                        perfil-url="{{ route('seguridad.perfil') }}"
+                    />
                 </div>
             </nav>
         </header>
@@ -174,13 +177,13 @@
     <script src="{{ asset('admin-wrap/assets/node_modules/html5-editor/bootstrap-wysihtml5.js') }}"></script>
 
     <!--morris JavaScript -->
-    <script src="admin-wrap/assets/node_modules/raphael/raphael-min.js"></script>
-    <script src="admin-wrap/assets/node_modules/morrisjs/morris.min.js"></script>
+    <script src="{{ asset('admin-wrap/assets/node_modules/raphael/raphael-min.js') }}"></script>
+    <script src="{{ asset('admin-wrap/assets/node_modules/morrisjs/morris.min.js') }}"></script>
     <!--c3 JavaScript -->
-    <script src="admin-wrap/assets/node_modules/d3/d3.min.js"></script>
-    <script src="admin-wrap/assets/node_modules/c3-master/c3.min.js"></script>
+    <script src="{{ asset('admin-wrap/assets/node_modules/d3/d3.min.js') }}"></script>
+    <script src="{{ asset('admin-wrap/assets/node_modules/c3-master/c3.min.js') }}"></script>
     <!-- Popup message jquery -->
-    <script src="admin-wrap/assets/node_modules/toast-master/js/jquery.toast.js"></script>
+    <script src="{{ asset('admin-wrap/assets/node_modules/toast-master/js/jquery.toast.js') }}"></script>
 
     <!-- This is data table -->
     <script src="{{ asset('admin-wrap/assets/node_modules/datatables/jquery.dataTables.min.js') }}"></script>

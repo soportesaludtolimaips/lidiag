@@ -1,5 +1,5 @@
 @extends('layouts.app')
 
 @section('content')
-    <agenda-component :usuarioactual="{{ Auth::user() }}" />
+    <agenda-component :usuarioactual='@json(Auth::user())' />
 @endsection

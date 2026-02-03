@@ -38,8 +38,9 @@
                         <h6 class="card-subtitle">Administración de productos para la prestación del servicio de
                             imagenes diagnosticas.</h6>
                         <div class="table-responsive m-t-40">
-                            <table id="example23" class="display nowrap table table-hover table-striped table-bordered"
-                                cellspacing="0" width="100%">
+                            <table id="example23" ref="dt"
+                                class="display nowrap table table-hover table-striped table-bordered" cellspacing="0"
+                                width="100%">
                                 <thead>
                                     <tr>
                                         <th>Cups</th>
@@ -74,8 +75,10 @@
                                             </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="elimnarRegistro(item.id)">
-                                                <i class="fa fa-trash"></i>
+                                                @click="elimnarRegistro(item.id)"
+                                                :disabled="loadingEliminarId === item.id">
+                                                <i class="fa"
+                                                    :class="loadingEliminarId === item.id ? 'fa-spinner fa-spin' : 'fa-trash'"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -115,7 +118,7 @@
                                         <input type="text" id="cod_cups" name="cod_cups" v-model="registro.cod_cups"
                                             class="form-control" placeholder="Código cups">
                                         <span class="text-danger" v-if="errores.cod_cups">{{ errores.cod_cups[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -128,7 +131,7 @@
                                             v-model="registro.nom_produc" class="form-control"
                                             placeholder="Ingrese aquí el nombre del producto">
                                         <span class="text-danger" v-if="errores.nom_produc">{{ errores.nom_produc[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -190,13 +193,15 @@
 
                             <div class="form-actions mt-3">
                                 <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
-                                    v-if="!actualizar">
-                                    <i class="fa fa-check"></i> Guardar
+                                    v-if="!actualizar" :disabled="loadingGuardar">
+                                    <i class="fa" :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"></i>
+                                    Guardar
                                 </button>
 
                                 <button type="button" class="btn btn-warning m-r-5" v-if="actualizar"
-                                    @click="guardarRegistro()">
-                                    <i class="fa fa-pencil"></i> Actualizar
+                                    @click="guardarRegistro()" :disabled="loadingGuardar">
+                                    <i class="fa" :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-pencil'"></i>
+                                    Actualizar
                                 </button>
 
                                 <button type="button" class="btn btn-inverse"
@@ -215,9 +220,15 @@
 
 
 <script>
+import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import { alertError, alertSuccess, confirmAction, handleAxiosErrorToast } from "@/helpers/alerts.js";
+
 export default {
     mounted() {
         this.ListarDatos();
+    },
+    beforeUnmount() {
+        safeDestroyDataTable(this.$refs.dt || "#example23");
     },
     data() {
         return {
@@ -227,29 +238,38 @@ export default {
             tituloModal: 'Nuevo registro',
             actualizar: false,
             errores: {},
+            loadingListar: false,
+            loadingGuardar: false,
+            loadingEliminarId: null,
         };
     },
     methods: {
         async ListarDatos() {
-            const res = await axios.get("/config-productos");
-
-            $('#example23').DataTable().destroy();
-
-            this.registros = res.data;
-            console.log(res.data);
-            this.$nextTick(() => {
-                $('#example23').DataTable({
-                    dom: 'Bfrtip',
-                    buttons: [
-                        'copy', 'csv', 'excel', 'pdf', 'print'
-                    ]
+            if (this.loadingListar) return;
+            this.loadingListar = true;
+            try {
+                const res = await axios.get("/api/config-productos");
+                safeDestroyDataTable(this.$refs.dt || "#example23");
+                this.registros = res.data;
+                this.$nextTick(() => {
+                    safeInitDataTable(this.$refs.dt || "#example23", {
+                        dom: 'Bfrtip',
+                        buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
+                    });
                 });
-            });
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible listar productos.");
+                this.registros = [];
+            } finally {
+                this.loadingListar = false;
+            }
         },
         async guardarRegistro() {
+            if (this.loadingGuardar) return;
+            this.loadingGuardar = true;
             try {
                 if (this.actualizar === false) {
-                    const res = await axios.post('/config-productos', this.registro);
+                    const res = await axios.post('/api/config-productos', this.registro);
 
                     if (res.status == 200) {
 
@@ -269,7 +289,7 @@ export default {
                         this.limpiar();
                     }
                 } else {
-                    const res = await axios.put('/config-productos/' + this.id, this.registro);
+                    const res = await axios.put('/api/config-productos/' + this.id, this.registro);
                     if (res.status == 200) {
 
                         this.ListarDatos()
@@ -290,30 +310,32 @@ export default {
                     }
                 }
             } catch (error) {
-                console.log(error);
-                this.errores = error.response.data.errors;
+                this.errores = error?.response?.data?.errors || {};
+                handleAxiosErrorToast(error, "No fue posible guardar el producto.");
+            } finally {
+                this.loadingGuardar = false;
             }
         },
-        elimnarRegistro(id) {
-            var $this = this;
-            swal({
-                title: "Estas seguro?",
+        async elimnarRegistro(id) {
+            const ok = await confirmAction({
+                title: "¿Estas seguro?",
                 text: "No podrás recuperar este registro!",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "si, eliminarlo!",
-                closeOnConfirm: false
-            }, function (isConfirm) {
-                if (isConfirm) {
-                    axios.delete('/config-productos/' + id).then(response => {
-                        swal("Ok!!!!", response.data.message, "success");
-                        $this.ListarDatos()
-                    }).catch(error => {
-                        console.log(error)
-                    })
-                }
+                icon: "warning",
             });
+            if (!ok) return;
+
+            try {
+                if (this.loadingEliminarId) return;
+                this.loadingEliminarId = id;
+                const response = await axios.delete('/api/config-productos/' + id);
+                alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
+                this.ListarDatos();
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
+                alertError("Error", "No fue posible eliminar el registro.", "error");
+            } finally {
+                this.loadingEliminarId = null;
+            }
         },
         mostrarRegistro(data = {}) {
             if (this.actualizar == true) {

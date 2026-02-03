@@ -119,7 +119,8 @@
                 <div class="card-body">
                     <h4 class="card-title">Listado de mis pendientes por leer</h4>
                     <div class="table-responsive">
-                        <table id="example23" class="table table-bordered table-striped" cellspacing="0" width="100%">
+                        <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
+                            width="100%">
                             <thead>
                                 <tr>
                                     <th></th>
@@ -135,7 +136,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="item in registros" :key="item.estudio_producto_id"
-                                    :class="{ 'text-info': item.visto === 1 }" :id="item.estudio_producto_id">
+                                    :class="{ 'text-info': item.visto === 1 }" :id="'row-' + item.estudio_producto_id">
                                     <td width="2%">
                                         <button type="button" v-if="item.priori_id == 1"
                                             class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">A</button>
@@ -334,19 +335,24 @@
                                         </h5>
                                         <hr>
                                     </div>
-                                    <div class="col-3">
-                                        <div class="col-md-7 align-self-center text-right d-none d-md-block">
-                                            <button type="button" class="btn btn-secondary btn-xs"
-                                                :disabled="loadingImagenSidebar"
-                                                @click="verImagen(this.registro.urlOviyam, this.registro.patientId, this.registro.studyUID, this.registro.serverName)">
-                                                <i v-if="loadingImagenSidebar" class="fa fa-spinner fa-spin"></i>
-                                                <i v-else class="fa fa-file-image-o"></i>
-                                            </button>
-                                            <a class="" @click="toggleSpeechRecognition"
-                                                style="width: 30px; height: 30px;">
-                                                <img title="Grabadora" :src="microfono">
-                                            </a>
-                                        </div>
+
+                                    <div class="ml-auto">
+                                        <ul class="list-inline text-center">
+                                            <li>
+                                                <button type="button" class="btn btn-secondary btn-xs"
+                                                    :disabled="loadingImagenSidebar"
+                                                    @click="verImagen(this.registro.urlOviyam, this.registro.patientId, this.registro.studyUID, this.registro.serverName)">
+                                                    <i v-if="loadingImagenSidebar" class="fa fa-spinner fa-spin"></i>
+                                                    <i v-else class="fa fa-file-image-o"></i>
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <a class="" @click="toggleSpeechRecognition"
+                                                    style="width: 30px; height: 30px;">
+                                                    <img title="Grabadora" :src="microfono">
+                                                </a>
+                                            </li>
+                                        </ul>
                                     </div>
                                 </div>
 
@@ -354,9 +360,12 @@
                                 <div class="row">
                                     <div class="col-12">
                                         <div class="form-group">
-                                            <textarea v-model="registro.lectura" class="textarea_editor form-control"
-                                                rows="15" id="lectura" style="height: 100%;"
+                                            <textarea v-model="registro.lectura" class="form-control" rows="15"
+                                                id="lectura" style="height: 100%;"
                                                 placeholder="Ingrese aquí la lectura del estudio ..."></textarea>
+                                            <small v-if="recognizing && speechInterim" class="form-text text-muted">
+                                                Dictando: <i>{{ speechInterim }}</i>
+                                            </small>
                                         </div>
                                     </div>
                                 </div>
@@ -374,7 +383,8 @@
                                                 </a>
                                             </li>
                                             <li class="nav-item">
-                                                <a class="nav-link" data-toggle="tab" href="#profile8" role="tab">
+                                                <a class="nav-link" data-toggle="tab" href="#profile8" role="tab"
+                                                    @click="listarAudios()">
                                                     <span>
                                                         <h5 class="card-title text-info">
                                                             <i class="fa fa-file-audio-o"></i> Audios
@@ -404,6 +414,19 @@
                                                             class="fa fa-spinner fa-spin"></i>
                                                         {{ itemArchivo.archivo_original }}
                                                     </a>
+                                                </div>
+                                            </div>
+                                            <div class="tab-pane p-20" id="profile8" role="tabpanel">
+                                                <div v-if="loadingAudios" class="text-muted">
+                                                    <i class="fa fa-spinner fa-spin"></i> Cargando audios...
+                                                </div>
+                                                <template v-for="(item, index) in audiosDeEstudio" :key="index">
+                                                    <audio :src="item.url" controls
+                                                        style="height: 15px; width: 100%;"></audio>
+                                                </template>
+                                                <div v-if="!loadingAudios && (!audiosDeEstudio || audiosDeEstudio.length === 0)"
+                                                    class="text-muted">
+                                                    No hay audios para este estudio.
                                                 </div>
                                             </div>
                                         </div>
@@ -438,13 +461,18 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import { safeDestroyDataTable, safeInitDataTable, safeRemoveDataTableRow } from "@/helpers/datatables.js";
+import { handleAxiosErrorToast } from "@/helpers/alerts";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export default {
-    props: ['usuarioactual'],
+    props: ['usuarioactual', 'permisos'],
     mounted() {
+        console.log('Usuario actual:', this.usuarioactual);
+        console.log('Permisos:', this.permisos);
+
         this.establecerSede();
         this.sede_id = sessionStorage.getItem('ST-sede');
         this.listarMisPendientes();
@@ -457,6 +485,9 @@ export default {
             this.destroyDataTable();
             this.listarMisPendientes();
         });
+    },
+    beforeUnmount() {
+        this.destroyDataTable();
     },
     data() {
         return {
@@ -481,11 +512,15 @@ export default {
             loadingDescargaSoporte: null,
             loadingImagenId: null,
             loadingImagenSidebar: false,
+            loadingAudios: false,
+            audiosDeEstudio: [],
 
             /**
              * Variables para convertir de voz a texto y grabacion de audio
              */
             recognizing: false,
+            recognitionActive: false,
+            recognitionRestartTimer: null,
             recording: false,
             microfono: 'admin-wrap/assets/images/mic.gif',
             recognition: null,
@@ -493,6 +528,7 @@ export default {
             audioChunks: [],
             audioBlob: null,
             audioUrl: null,
+            speechInterim: "",
             uppercase: false,
             mediaStream: null,
             capitalizeNext: false,
@@ -630,28 +666,120 @@ export default {
             return text;
         },
         initDataTable() {
-            if ($ && $.fn && $.fn.DataTable) {
-                $("#example23").DataTable({
-                    dom: "Bfrtip",
-                    buttons: ["copy", "csv", "excel", "pdf", "print"],
-                    retrieve: true,
-                });
-            }
+            safeInitDataTable(this.$refs.dt || "#example23", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
+                retrieve: true,
+            });
         },
         destroyDataTable() {
-            try {
-                if ($ && $.fn && $.fn.DataTable && $.fn.dataTable.isDataTable('#example23')) {
-                    $("#example23").DataTable().destroy();
-                }
-            } catch (e) {
-                // No-op
+            safeDestroyDataTable(this.$refs.dt || "#example23");
+        },
+        getMicErrorToastConfig(error) {
+            const name = error && error.name ? String(error.name) : "";
+            const message = error && error.message ? String(error.message) : String(error);
+
+            // Casos típicos: permisos denegados / contexto inseguro / sin mic / mic ocupado
+            if (name === "NotAllowedError" || /permission denied/i.test(message)) {
+                return {
+                    heading: "Permiso de micrófono",
+                    text:
+                        "El navegador negó el acceso al micrófono. " +
+                        "Solución: en el ícono del candado del navegador → Permisos del sitio → Micrófono → Permitir, y recarga. " +
+                        "Si estás en Windows, revisa Configuración → Privacidad y seguridad → Micrófono y permite el acceso para tu navegador.",
+                    icon: "warning",
+                    hideAfter: 7000,
+                };
             }
+
+            if (name === "SecurityError" || /secure origins|only secure origins/i.test(message)) {
+                return {
+                    heading: "HTTPS requerido",
+                    text:
+                        "El micrófono solo funciona en contextos seguros (HTTPS o localhost). " +
+                        "Abre el sistema en `https://` (por ejemplo `https://lidiag.test`) y acepta el certificado si corresponde, luego recarga.",
+                    icon: "warning",
+                    hideAfter: 8000,
+                };
+            }
+
+            if (name === "NotFoundError" || /notfound/i.test(name)) {
+                return {
+                    heading: "Sin micrófono",
+                    text: "No se encontró un dispositivo de micrófono. Conecta/activa un micrófono y vuelve a intentar.",
+                    icon: "warning",
+                    hideAfter: 7000,
+                };
+            }
+
+            if (name === "NotReadableError") {
+                return {
+                    heading: "Micrófono ocupado",
+                    text:
+                        "El micrófono está siendo usado por otra aplicación o el navegador no puede acceder a él. " +
+                        "Cierra apps que lo estén usando (Meet/Zoom/otra pestaña) y reintenta.",
+                    icon: "warning",
+                    hideAfter: 7000,
+                };
+            }
+
+            return {
+                heading: "Upsss!!!",
+                text: "Error al acceder al micrófono: " + (message || name || "desconocido"),
+                icon: "danger",
+                hideAfter: 4500,
+            };
+        },
+        async ensureMicApiAvailable() {
+            if (!navigator || !navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== "function") {
+                $.toast({
+                    heading: "No soportado",
+                    text: "Este navegador no soporta acceso al micrófono (getUserMedia). Usa Chrome/Edge actualizado.",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "warning",
+                    hideAfter: 7000,
+                    stack: 6,
+                });
+                return false;
+            }
+            return true;
+        },
+        clearRecognitionRestartTimer() {
+            if (this.recognitionRestartTimer) {
+                try { clearTimeout(this.recognitionRestartTimer); } catch (e) { }
+                this.recognitionRestartTimer = null;
+            }
+        },
+        safeStartRecognition() {
+            if (!this.recognition) return false;
+            // Evita InvalidStateError (start() cuando ya está activo)
+            if (this.recognitionActive) return false;
+
+            try {
+                this.recognition.start();
+                return true;
+            } catch (e) {
+                // InvalidStateError: ya inició (race). No lo tratamos como fatal.
+                return false;
+            }
+        },
+        scheduleRecognitionRestart(delayMs = 500) {
+            this.clearRecognitionRestartTimer();
+            if (!this.recognition || !this.recognizing) return;
+
+            this.recognitionRestartTimer = setTimeout(() => {
+                // Si sigue en modo "reconociendo", intenta arrancar.
+                if (!this.recognizing || !this.recognition) return;
+                this.safeStartRecognition();
+            }, delayMs);
         },
         pauseRecognition() {
             // SpeechRecognition no tiene "pause": se simula con stop() y una bandera
             if (this.recognition && this.recognizing) {
                 try {
                     this.recognizing = false; // evita auto-restart en onend
+                    this.clearRecognitionRestartTimer();
                     this.recognition.stop();
                 } catch (e) {
                     // best-effort
@@ -665,7 +793,7 @@ export default {
             if (this.recognition && !this.recognizing) {
                 try {
                     this.recognizing = true;
-                    this.recognition.start();
+                    this.safeStartRecognition();
                 } catch (e) {
                     // Algunos navegadores lanzan InvalidStateError si ya está arrancado
                     // best-effort: mantener bandera consistente
@@ -697,43 +825,56 @@ export default {
         },
         // Inicia una nueva grabación de audio sin tocar el reconocimiento de voz
         startAudioOnly() {
-            // Asegura que no queden streams previos abiertos
-            if (this.mediaStream && this.mediaStream.getTracks) {
-                try { this.mediaStream.getTracks().forEach(t => t.stop()); } catch (e) { }
-                this.mediaStream = null;
-            }
-            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-                this.mediaRecorder = new MediaRecorder(stream, {
-                    mimeType: "audio/webm;codecs=opus",
-                    audioBitsPerSecond: 64000,
+            // Debe ejecutarse por un gesto del usuario (click/touch) o el navegador lo bloqueará.
+            this.ensureMicApiAvailable().then((ok) => {
+                if (!ok) return;
+
+                // Asegura que no queden streams previos abiertos
+                if (this.mediaStream && this.mediaStream.getTracks) {
+                    try { this.mediaStream.getTracks().forEach(t => t.stop()); } catch (e) { }
+                    this.mediaStream = null;
+                }
+                navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+                    try {
+                        this.mediaRecorder = new MediaRecorder(stream, {
+                            mimeType: "audio/webm;codecs=opus",
+                            audioBitsPerSecond: 64000,
+                        });
+                    } catch (e) {
+                        // Fallback for browsers that don't support the mimeType
+                        this.mediaRecorder = new MediaRecorder(stream);
+                    }
+                    this.mediaStream = stream;
+                    this.audioChunks = [];
+                    this.audioBlob = null;
+
+                    this.mediaRecorder.ondataavailable = (event) => {
+                        this.audioChunks.push(event.data);
+                    };
+
+                    this.mediaRecorder.onstop = () => {
+                        this.audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+                        this.audioUrl = URL.createObjectURL(this.audioBlob);
+                    };
+
+                    this.mediaRecorder.start();
+                    this.recording = true;
+                    this.microfono = 'admin-wrap/assets/images/mic-animate.gif';
+                }).catch(error => {
+                    this.recording = false;
+                    this.microfono = 'admin-wrap/assets/images/mic.gif';
+                    const cfg = this.getMicErrorToastConfig(error);
+                    $.toast({
+                        heading: cfg.heading,
+                        text: cfg.text,
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: cfg.icon,
+                        hideAfter: cfg.hideAfter,
+                        stack: 6,
+                    });
+                    console.error('Error al acceder al micrófono:', error);
                 });
-                this.mediaStream = stream;
-                this.audioChunks = [];
-                this.audioBlob = null;
-
-                this.mediaRecorder.ondataavailable = (event) => {
-                    this.audioChunks.push(event.data);
-                };
-
-                this.mediaRecorder.onstop = () => {
-                    this.audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
-                    this.audioUrl = URL.createObjectURL(this.audioBlob);
-                };
-
-                this.mediaRecorder.start();
-                this.recording = true;
-                this.microfono = 'admin-wrap/assets/images/mic-animate.gif';
-            }).catch(error => {
-                $.toast({
-                    heading: "Upsss!!!",
-                    text: 'Error al acceder al micrófono: ' + (error && error.message ? error.message : String(error)),
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "danger",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
-                console.error('Error al acceder al micrófono:', error);
             });
         },
         // Permite detener explícitamente el reconocimiento de voz
@@ -752,6 +893,7 @@ export default {
                 }
                 this.recognizing = false;
                 this.microfono = 'admin-wrap/assets/images/mic.gif';
+                this.speechInterim = "";
             } catch (e) {
                 console.error('Error al detener reconocimiento:', e);
             }
@@ -781,11 +923,28 @@ export default {
             }
         },
         startRecording() {
+            // Debe ejecutarse por un gesto del usuario (click/touch) o el navegador lo bloqueará.
+            // Preflight: asegurar API
+            // Nota: SpeechRecognition también puede solicitar micrófono; por eso manejamos bien NotAllowedError.
+            // (no hacemos return si SpeechRecognition existe; solo verificamos getUserMedia)
+            // eslint-disable-next-line no-unused-vars
+            const _micReadyPromise = this.ensureMicApiAvailable();
             if (!this.recognition) {
                 // Asegura que existan sinónimos antes de crear gramática
                 this.prepareVoiceCommands();
 
-                this.recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                this.recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition)();
+                if (!this.recognition) {
+                    $.toast({
+                        heading: "Error",
+                        text: 'Reconocimiento de voz no soportado en este navegador.',
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "error",
+                        hideAfter: 5000,
+                    });
+                    return;
+                }
                 this.recognition.lang = 'es-ES';
                 this.recognition.continuous = true;
                 this.recognition.interimResults = true;
@@ -798,33 +957,62 @@ export default {
                     ...this.punctuationCommands
                 };
 
-                // Implementación de SpeechGrammarList para optimizar los comandos
-                const speechRecognitionList = new (window.SpeechGrammarList || window.webkitSpeechGrammarList)();
-                const commandsList = Object.keys(allCommands);
-                const grammar = `#JSGF V1.0; grammar commands; public <command> = ${commandsList.join(" | ")};`;
-                speechRecognitionList.addFromString(grammar, 1);
-                this.recognition.grammars = speechRecognitionList;
+                // Implementación de SpeechGrammarList para optimizar los comandos (best-effort)
+                // Nota: en algunos navegadores puede fallar por longitud/charset de la gramática.
+                try {
+                    const SpeechGrammarListCtor = (window.SpeechGrammarList || window.webkitSpeechGrammarList);
+                    if (SpeechGrammarListCtor) {
+                        const speechRecognitionList = new SpeechGrammarListCtor();
+                        const commandsList = Object.keys(allCommands);
+                        const grammar = `#JSGF V1.0; grammar commands; public <command> = ${commandsList.join(" | ")};`;
+                        speechRecognitionList.addFromString(grammar, 1);
+                        this.recognition.grammars = speechRecognitionList;
+                    }
+                } catch (e) {
+                    console.warn("No se pudo configurar SpeechGrammarList:", e);
+                }
 
                 this.recognition.onresult = (event) => {
                     let finalText = '';
+                    let interimText = '';
+
                     for (let i = event.resultIndex; i < event.results.length; i++) {
-                        if (event.results[i].isFinal) {
-                            let text = event.results[i][0].transcript.trim();
-                            console.log("Texto reconocido antes de procesar:", text); // Verifica lo que se reconoce antes
+                        const result = event.results[i];
+                        const transcript = result && result[0] && result[0].transcript ? String(result[0].transcript) : '';
 
-                            text = this.processCommands(text); // Aplica los comandos correctamente
+                        if (result && result.isFinal) {
+                            let text = transcript.trim();
+                            text = this.processCommands(text);
 
-                            console.log("Texto después de procesar comandos:", text); // Verifica después de aplicar comandos
-
-                            finalText += text + ' ';
+                            // Si el resultado final es un comando "vacío" (ej: activar mayúsculas), no agregues espacios.
+                            if (text && String(text).length) {
+                                finalText += text;
+                                // Agregar espacio SOLO si el texto no termina en espacio/salto de línea
+                                if (!/[ \n]$/.test(finalText)) finalText += ' ';
+                            }
+                        } else if (transcript) {
+                            // Mostrar dictado parcial sin tocar el textarea (evita duplicación).
+                            interimText += transcript;
                         }
                     }
-                    this.registro.lectura += finalText;
+
+                    if (finalText) {
+                        this.registro.lectura += finalText;
+                        this.speechInterim = "";
+                    } else {
+                        this.speechInterim = interimText.trim();
+                    }
+                };
+
+                // Flags para evitar dobles starts (Chrome lanza InvalidStateError si arrancas 2 veces)
+                this.recognition.onstart = () => {
+                    this.recognitionActive = true;
                 };
 
                 this.recognition.onend = () => {
+                    this.recognitionActive = false;
                     if (this.recognizing) {
-                        setTimeout(() => this.recognition.start(), 500);
+                        this.scheduleRecognitionRestart(500);
                     } else {
                         // Reconocimiento fue detenido/pausado: pausar también la grabación de audio
                         if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
@@ -836,21 +1024,40 @@ export default {
 
                 this.recognition.onerror = (event) => {
                     console.warn('Error en reconocimiento:', event && event.error ? event.error : event);
-                    // En errores comunes (silencio o red), reiniciar automáticamente para mantener fluidez
-                    if (event.error === 'no-speech' || event.error === 'network') {
+                    const err = event && event.error ? String(event.error) : '';
+
+                    // Si el usuario/bloqueo del navegador niega permisos, NO reintentar (evita loop infinito).
+                    if (err === 'not-allowed' || err === 'service-not-allowed' || err === 'permission-denied') {
+                        this.recognizing = false;
+                        this.clearRecognitionRestartTimer();
+                        this.microfono = 'admin-wrap/assets/images/mic.gif';
+                        this.speechInterim = "";
+                        try { this.recognition.onend = null; } catch (e) { }
                         try { this.recognition.stop(); } catch (e) { }
-                        if (this.recognizing) {
-                            setTimeout(() => {
-                                try { this.recognition.start(); } catch (e) { console.warn('Fallo reintento de reconocimiento:', e); }
-                            }, 500);
-                        }
+
+                        $.toast({
+                            heading: "Permiso requerido",
+                            text: "El navegador bloqueó el micrófono. Permite el acceso al micrófono para usar dictado.",
+                            position: "top-right",
+                            loaderBg: "#ff6849",
+                            icon: "warning",
+                            hideAfter: 6000,
+                            stack: 6,
+                        });
+                        return;
+                    }
+
+                    // En errores comunes (silencio o red), detenemos.
+                    // El reinicio queda centralizado en onend() para evitar doble start().
+                    if (err === 'no-speech' || err === 'network') {
+                        try { this.recognition.stop(); } catch (e) { }
                     }
                 };
             }
 
             try {
                 this.recognizing = true;
-                this.recognition.start();
+                this.safeStartRecognition();
             } catch (e) {
                 this.recognizing = false;
             }
@@ -862,10 +1069,15 @@ export default {
                 this.mediaStream = null;
             }
             navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-                this.mediaRecorder = new MediaRecorder(stream, {
-                    mimeType: "audio/webm;codecs=opus",
-                    audioBitsPerSecond: 64000, // Reduce la calidad (valores entre 16kbps y 128kbps)
-                });
+                try {
+                    this.mediaRecorder = new MediaRecorder(stream, {
+                        mimeType: "audio/webm;codecs=opus",
+                        audioBitsPerSecond: 64000, // Reduce la calidad (valores entre 16kbps y 128kbps)
+                    });
+                } catch (e) {
+                    // Fallback for browsers that don't support the mimeType
+                    this.mediaRecorder = new MediaRecorder(stream);
+                }
                 this.mediaStream = stream;
                 this.audioChunks = [];
                 this.audioBlob = null;
@@ -882,13 +1094,16 @@ export default {
                 this.mediaRecorder.start();
                 this.recording = true;
             }).catch(error => {
+                this.recording = false;
+                this.microfono = 'admin-wrap/assets/images/mic.gif';
+                const cfg = this.getMicErrorToastConfig(error);
                 $.toast({
-                    heading: "Upsss!!!",
-                    text: 'Error al acceder al micrófono: ' + (error && error.message ? error.message : String(error)),
+                    heading: cfg.heading,
+                    text: cfg.text,
                     position: "top-right",
                     loaderBg: "#ff6849",
-                    icon: "danger",
-                    hideAfter: 3500,
+                    icon: cfg.icon,
+                    hideAfter: cfg.hideAfter,
                     stack: 6,
                 });
                 console.error('Error al acceder al micrófono:', error);
@@ -955,7 +1170,7 @@ export default {
             formData.append('estudio_producto_id', this.registro.estudio_producto_id);
 
             try {
-                const res = await axios.post('/upload-audio', formData);
+                const res = await axios.post('/api/upload-audio', formData);
 
                 if (res && res.status === 200) {
                     $.toast({
@@ -969,6 +1184,8 @@ export default {
                     });
                     // Limpieza de estado de audio tras envío exitoso
                     this.clearAudioBuffer();
+                    // Refrescar listado de audios del estudio (para reproducirlo de inmediato)
+                    await this.listarAudios();
                 } else {
                     // Acordado: si el backend dice "sin contenido", no hacer nada (sin toasts)
                     const msg = (res && res.data && res.data.message) ? String(res.data.message) : '';
@@ -1011,6 +1228,23 @@ export default {
                 });
             }
         },
+        async listarAudios() {
+            if (this.loadingAudios) return;
+            this.loadingAudios = true;
+            try {
+                if (!this.id) {
+                    this.audiosDeEstudio = [];
+                    return;
+                }
+                const res = await axios.get('/api/listar-audios-estudio/' + this.id);
+                this.audiosDeEstudio = res.data;
+            } catch (e) {
+                handleAxiosErrorToast(e, "No fue posible listar audios.");
+                this.audiosDeEstudio = [];
+            } finally {
+                this.loadingAudios = false;
+            }
+        },
         async listarMisPendientes() {
             if (sessionStorage.getItem('ST-sede') == null) {
                 $.toast({
@@ -1026,7 +1260,7 @@ export default {
                 if (this.loadingListar) return;
                 this.loadingListar = true;
                 try {
-                    const res = await axios.post('/estudio-listarPendientesMedico', { id: this.usuarioactual.id, sede_id: this.sede_id });
+                    const res = await axios.post('/api/estudio-listarPendientesMedico', { id: this.usuarioactual.id, sede_id: this.sede_id });
                     this.destroyDataTable();
 
                     this.registros = res.data;
@@ -1035,16 +1269,7 @@ export default {
                         this.initDataTable();
                     });
                 } catch (error) {
-                    console.log(error);
-                    $.toast({
-                        heading: "Upss!!!",
-                        text: error?.response?.data?.message || "No fue posible listar los pendientes.",
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "error",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
+                    handleAxiosErrorToast(error, "No fue posible listar los pendientes.");
                 } finally {
                     this.loadingListar = false;
                 }
@@ -1057,7 +1282,7 @@ export default {
                 // Acordado: al Guardar, detener automáticamente dictado+grabación
                 await this.stopAll();
 
-                const res = await axios.post('/estudio-leerEstudio', this.registro);
+                const res = await axios.post('/api/estudio-leerEstudio', this.registro);
 
                 if (res.status == 200) {
 
@@ -1078,11 +1303,14 @@ export default {
 
                     const estudioEliminar = this.registros.findIndex((x) => x.estudio_producto_id == this.idRow);
                     if (estudioEliminar >= 0) {
+                        // En guardado NO destruimos/reinicializamos la tabla:
+                        // solo removemos la fila correspondiente y mantenemos el resto de pendientes visible.
+                        try {
+                            safeRemoveDataTableRow(this.$refs.dt || "#example23", "#row-" + this.idRow);
+                        } catch (e) {
+                            // best-effort: si DataTables no está listo, seguimos con el splice (Vue actualizará el DOM)
+                        }
                         this.registros.splice(estudioEliminar, 1);
-                        this.destroyDataTable();
-                        this.$nextTick(() => {
-                            this.initDataTable();
-                        });
                     }
 
                     this.btnCerralModalForm();
@@ -1090,6 +1318,7 @@ export default {
                 }
             } catch (error) {
                 this.errores = error.response && error.response.data ? error.response.data.errors : {};
+                handleAxiosErrorToast(error, "No fue posible guardar la lectura.");
             } finally {
                 this.loadingGuardar = false;
             }
@@ -1097,20 +1326,12 @@ export default {
         async visto(id) {
             if (this.loadingVistoId) return;
             this.loadingVistoId = id;
+
             try {
-                await axios.post('/marcar-visto/' + id);
+                await axios.post('/api/marcar-visto/' + id);
                 await this.listarMisPendientes();
             } catch (error) {
-                console.log(error);
-                $.toast({
-                    heading: "Upss!!!",
-                    text: error?.response?.data?.message || "No fue posible marcar como visto.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "error",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
+                handleAxiosErrorToast(error, "No fue posible marcar como visto.");
             } finally {
                 this.loadingVistoId = null;
             }
@@ -1124,6 +1345,7 @@ export default {
             this.clearAudioBuffer();
             this.uppercase = false;
             this.capitalizeNext = false;
+            this.audiosDeEstudio = [];
 
             this.tituloModal = "Lectura de paciente: " + data.nom_pacien + "Producto: \n" + data.nom_produc;
             this.id = data.id;
@@ -1147,25 +1369,18 @@ export default {
             this.productoEstudio.nom_produc = data.nom_produc;
 
             try {
-                const res = await axios.get('/study-listar-diagnostico-por-estudio?id=' + this.id);
+                const res = await axios.get('/api/study-listar-diagnostico-por-estudio?id=' + this.id);
                 this.diagnosticosEstudio = res.data;
 
-                const resSoportesHC = await axios.get('/listar-soportes-hc-estudio?id=' + this.id);
+                const resSoportesHC = await axios.get('/api/listar-soportes-hc-estudio?id=' + this.id);
                 this.soportesHC = resSoportesHC.data;
+
+                await this.listarAudios();
 
                 this.btnCerralModalForm();
                 this.errores = {};
             } catch (error) {
-                console.log(error);
-                $.toast({
-                    heading: "Upss!!!",
-                    text: error?.response?.data?.message || "No fue posible cargar el estudio seleccionado.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "error",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
+                handleAxiosErrorToast(error, "No fue posible cargar el estudio seleccionado.");
             } finally {
                 this.loadingAbrirId = null;
             }
@@ -1173,7 +1388,7 @@ export default {
         descargaSoportte(nomArchivoOriginal, nomArchivoEncriptado) {
             if (this.loadingDescargaSoporte) return;
             this.loadingDescargaSoporte = nomArchivoEncriptado;
-            const url = `/descarga-soportes-hc/${nomArchivoEncriptado}`;
+            const url = `/api/descarga-soportes-hc/${nomArchivoEncriptado}`;
 
             axios.get(url, { responseType: 'blob' })
                 .then(response => {
@@ -1186,7 +1401,7 @@ export default {
                     setTimeout(() => window.URL.revokeObjectURL(blobUrl), 2000);
                 })
                 .catch(error => {
-                    console.error(error);
+                    handleAxiosErrorToast(error, "No fue posible descargar el soporte.");
                 })
                 .finally(() => {
                     this.loadingDescargaSoporte = null;
@@ -1238,6 +1453,8 @@ export default {
             this.clearAudioBuffer();
             this.uppercase = false;
             this.capitalizeNext = false;
+            this.speechInterim = "";
+            this.audiosDeEstudio = [];
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);

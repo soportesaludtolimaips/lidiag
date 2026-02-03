@@ -11,17 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('agenda_disponibilidas', function (Blueprint $table) {
+        Schema::create('agenda_disponibilidad', function (Blueprint $table) {
             $table->id();
 
             $table->unsignedBigInteger('quien_registro_id');
             $table->foreign('quien_registro_id')->references('id')->on('users');
 
+            $table->unsignedBigInteger('sede_id');
+            $table->foreign('sede_id')->references('id')->on('config_sedes');
+
             $table->unsignedBigInteger('servicio_id');
             $table->foreign('servicio_id')->references('id')->on('config_modulos');
 
-            $table->datetime('fecha_hora_ini');
-            $table->datetime('fecha_hora_fin');
+            $table->dateTime('fecha_hora_ini');
+            $table->dateTime('fecha_hora_fin');
             $table->integer('total_citas')->default(0)->comment('Total de citas disponibles');
             $table->integer('dura_cita')->default(0)->comment('Duracion de la prestacion en minutos');
 
@@ -36,6 +39,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('agenda_disponibilidad');
     }
 };

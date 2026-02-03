@@ -61,7 +61,8 @@
 export default {
     data() {
         return {
-            datosLogin: { email: "administrador@administrador.com", password: "123456" },
+            // Nunca hardcodear credenciales en frontend
+            datosLogin: { email: "", password: "" },
             errores: {},
             erroreLogin: ''
         }
@@ -70,20 +71,22 @@ export default {
         async iniciarSesion() {
 
             try {
-                const res = await axios.post('/autenticacion/login', {
+                const res = await axios.post('/login', {
                     email: this.datosLogin.email,
-                    password: this.datosLogin.password
+                    password: this.datosLogin.password,
                 });
 
-                if (res.data.code == 401) {
-                    this.erroreLogin = "Estas credenciales no coinciden con nuestros registro";
-                } else if (res.data.code == 200) {
-                    this.$router.push({ name: 'dashboard.index' });
-                    location.reload();
-                }
+                // Si el backend responde JSON, usamos el redirect sugerido.
+                const redirect = res?.data?.redirect || '/dashboard';
+                window.location.href = redirect;
             } catch (error) {
-                console.log(error);
-                this.errores = error.response.data.errors;
+                const status = error?.response?.status;
+                if (status === 401) {
+                    this.erroreLogin = "Estas credenciales no coinciden con nuestros registros";
+                    return;
+                }
+
+                this.errores = error?.response?.data?.errors || {};
             }
         }
     }

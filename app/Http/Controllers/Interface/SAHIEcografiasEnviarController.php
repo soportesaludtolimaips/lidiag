@@ -10,6 +10,13 @@ use Illuminate\Support\Facades\DB;
 
 class SAHIEcografiasEnviarController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        // Enviar/consultar estado de envío a SAHI debe estar limitado
+        $this->middleware('permission:ecografias.leer|ecografias.reporte')->only(['enviarPorEcografiaProducto', 'estadoPorEcografiaProducto']);
+    }
+
     public function estadoPorEcografiaProducto(int $ecografia_producto_id)
     {
         $ecoProd = EcografiaProducto::select([

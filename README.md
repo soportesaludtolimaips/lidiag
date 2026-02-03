@@ -2,6 +2,14 @@
 
 LIDiag es una plataforma integral diseñada para la gestión, procesamiento y lectura de imágenes diagnósticas. Facilita el flujo de trabajo desde la asignación de citas hasta la entrega de resultados a la historia clínica, integrándose con sistemas PACS y HIS (Hospital Information System).
 
+## Stack Tecnológico (resumen)
+
+-   **Backend**: Laravel 10 (PHP >= 8.0.2), MySQL
+-   **Frontend**: Vue 3 + Vite (Laravel Vite Plugin), Bootstrap 5
+-   **Seguridad**: `spatie/laravel-permission` (roles/permisos)
+-   **Integraciones**: HIS/SAHI (SQL Server), PACS Dcm4chee, Twilio (WhatsApp), generación de PDF/Excel (DomPDF / Maatwebsite Excel)
+-   **Multimedia**: FFmpeg (conversión/compresión de audios a MP3)
+
 ## Arquitectura y Flujo de Datos
 
 El siguiente diagrama ilustra cómo interactúa LIDiag con los sistemas externos:
@@ -95,6 +103,26 @@ La aplicación está compuesta por los siguientes módulos especializados:
 
 LIDiag incluye comandos de consola para tareas de mantenimiento y sincronización de datos críticos.
 
+### Auditoría y mantenimiento de permisos (Spatie)
+
+Estos comandos ayudan a evitar “drift” entre **permisos usados en código** (rutas/controllers/blade/vue) y **permisos existentes en BD** (`spatie/laravel-permission`).
+
+```bash
+# Auditoría: compara permisos usados vs permisos en BD (guard web)
+php artisan permissions:audit --show-unused
+
+# Auditoría estricta (útil en CI): falla si hay permisos usados en código que no existen en BD
+php artisan permissions:audit --fail
+
+# Buscar un permiso exacto en BD (independiente del guard)
+php artisan permissions:audit --find=config.plantillas.index
+
+# Reset “safe” del cache de Spatie (en CACHE_DRIVER=file puede no existir el key y eso es normal)
+php artisan permissions:cache-reset
+```
+
+> Nota: `php artisan permission:cache-reset` (comando del paquete Spatie) puede mostrar `Unable to flush cache` en entornos con `CACHE_DRIVER=file` cuando el key no existe. El comando `permissions:cache-reset` evita ese falso negativo.
+
 ### Sincronización de Usuarios
 
 ```bash
@@ -175,6 +203,10 @@ El sistema utiliza varios servicios de terceros configurados en el archivo `.env
 
 A continuación, una guía rápida de las ubicaciones clave en el código fuente:
 
+-   **Comandos de consola (Artisan)**:
+
+    -   `app/Console/Commands`: comandos personalizados (ej. `sync-usuarios`, `sync:dicom-ecografias`).
+
 -   **Modelos de Datos**:
 
     -   `app/Models/Ecografias`: Lógica de negocio para el módulo de ecografías.
@@ -191,6 +223,7 @@ A continuación, una guía rápida de las ubicaciones clave en el código fuente
 
 -   **Frontend (Vue.js)**:
     -   `resources/js/components/modulos`: Componentes Vue organizados por módulo funcional (ej. `agendamiento`, `ecografias`).
+    -   `resources/js/helpers`: utilidades reutilizables del frontend (ej. `alerts.js`, `datatables.js`).
 
 ---
 
@@ -217,7 +250,7 @@ El proyecto cuenta con documentación detallada para facilitar el mantenimiento 
 Los controladores más importantes del sistema incluyen:
 
 -   **`EstudioController`**: Gestión completa del ciclo de vida de estudios radiológicos
--   **`SAHIController`** y **`SAHITranscibirController`**: Integración bidireccional con HIS
+-   **`SAHIController`**, **`SAHIEcografiasController`** y **`SAHIEcografiasEnviarController`**: Integración con HIS (consulta/consumo de atenciones y envío de resultados)
 -   **`StudyController` (Dcm4chee)**: Consulta dinámica de estudios desde PACS
 -   **`UserController`** y **`RolController`**: Gestión de seguridad y permisos
 -   **`DashBoardController`**: Estadísticas y métricas del sistema
@@ -234,7 +267,28 @@ Siga estos pasos para desplegar la aplicación en un entorno local o de producci
 -   **Composer**
 -   **Servidor Web**: Apache o Nginx
 -   **Base de Datos**: MySQL (Principal) y SQL Server (Integraciones opcionales)
--   **Node.js & NPM** (para compilar assets del frontend)
+-   **Node.js & NPM** (para compilar assets del frontend). Recomendado **Node 16+**.
+
+### Quick start (Windows + Laragon)
+
+Si estás en Windows con Laragon:
+
+1. **Virtual host**
+    - Crea/usa el host **`lidiag.test`** en Laragon (Virtual Hosts).
+    - Ajusta `APP_URL` al dominio local, por ejemplo:
+
+        ```ini
+        APP_URL=https://lidiag.test
+        ```
+
+2. **Certificados SSL (Vite/HMR)**
+    - `vite.config.js` usa los certificados de Laragon:
+        - `C:/laragon/etc/ssl/laragon.key`
+        - `C:/laragon/etc/ssl/laragon.crt`
+    - Si tu Laragon usa otra ruta o no tienes SSL, ajusta `vite.config.js` (o desactiva `server.https` para desarrollo).
+
+3. **Archivo hosts**
+    - Verifica que `lidiag.test` resuelva a tu máquina (normalmente `127.0.0.1`). Si Laragon no lo gestiona automáticamente, agrega la entrada en `C:\Windows\System32\drivers\etc\hosts`.
 
 ### Pasos de Instalación
 
@@ -256,6 +310,10 @@ Siga estos pasos para desplegar la aplicación en un entorno local o de producci
     - Copie el archivo de ejemplo `.env.example` a `.env`:
         ```bash
         cp .env.example .env
+        ```
+        En Windows (PowerShell) también puede usar:
+        ```powershell
+        Copy-Item .env.example .env
         ```
     - Configure las credenciales de la base de datos y otras variables en el archivo `.env`:
         ```ini
@@ -285,6 +343,8 @@ Siga estos pasos para desplegar la aplicación en un entorno local o de producci
     php artisan db:seed
     ```
 
+> Nota: el seeding de permisos/roles depende del orden. Los **roles** deben existir antes de hacer `syncRoles()` en permisos (por ejemplo, se ejecuta `RoleSeeder` antes de seeders como `PlantillaSeeder`).
+
 6. **Instalar Dependencias de Frontend**
 
     ```bash
@@ -310,6 +370,20 @@ Siga estos pasos para desplegar la aplicación en un entorno local o de producci
         php artisan storage:link
         ```
 
+### Variables de entorno clave
+
+Además de `APP_*`, las variables más importantes que suelen requerir ajuste son:
+
+-   **Base de datos principal (MySQL)**: `DB_*`
+-   **Conexión secundaria (MySQL, si aplica)**: `DB_DATABASE_2`, `DB_USERNAME_2`, `DB_PASSWORD_2`
+-   **Migración/importación (si aplica)**: `DB_CONNECTION_IMPORTAR`, `DB_HOST_IMPORTAR`, `DB_DATABASE_IMPORTAR`, etc.
+-   **HIS/SAHI (SQL Server)**: `DB_CONNECTION_SQLSRV=sqlsrv`, `DB_HOST_SQLSRV`, `DB_DATABASE_SQLSRV`, `DB_USERNAME_SQLSRV`, `DB_PASSWORD_SQLSRV`
+-   **Twilio (WhatsApp)**: `TWILIO_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_NUMBER`
+-   **Servicio externo de reportes**: `URL_API_REPORTES`, `PASSWORD_API_REPORTES`
+-   **FFmpeg/FFprobe (audios)**: `FFMPEG_BINARIES`, `FFPROBE_BINARIES` (ver sección de FFmpeg arriba)
+
+> Nota: este repositorio incluye `.env.example` como referencia. **No uses credenciales reales** allí (y evita subir secretos al repositorio).
+
 ### Despliegue
 
 Para servir la aplicación localmente:
@@ -319,6 +393,8 @@ php artisan serve
 ```
 
 La aplicación estará disponible en `http://localhost:8000` (o el puerto configurado).
+
+En Laragon, normalmente accederás por tu vhost, por ejemplo `https://lidiag.test`.
 
 ---
 

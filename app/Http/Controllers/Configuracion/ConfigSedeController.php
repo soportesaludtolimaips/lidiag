@@ -8,15 +8,21 @@ use App\Models\Configuracion\ConfigSede;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Str;
+use Illuminate\Support\Str;
 
 class ConfigSedeController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
-        // Permitir lectura de sedes a quienes asignan/leen/transcriben estudios (sin abrir CRUD completo)
-        $this->middleware('permission:config.sedes.index|estudio.asignar|estudio.transcribir|estudio.leerEstudio')->only(['index', 'buscarPorId', 'listarSedesActivas']);
+        /**
+         * Nota importante:
+         * En `routes/api_configuracion.php` algunas rutas de catálogos (p.ej. listar sedes activas)
+         * están definidas como públicas (sin auth). Si dejamos `auth` global aquí, esas rutas
+         * siempre retornan 401 desde `/api/*` (porque el grupo api es stateless salvo Sanctum SPA).
+         *
+         * Por eso solo protegemos operaciones sensibles (CRUD) y dejamos los listados como catálogo.
+         */
+        $this->middleware('auth')->only(['store', 'update', 'destroy']);
         $this->middleware('permission:config.sedes.create')->only(['store']);
         $this->middleware('permission:config.sedes.edit')->only(['update']);
         $this->middleware('permission:config.sedes.destroy')->only(['destroy']);
@@ -143,10 +149,14 @@ class ConfigSedeController extends Controller
      * @param ConfigSede $configsede Instancia de la sede.
      * @return ConfigSede Datos de la sede.
      */
-    public function buscarPorId(ConfigSede $configsede)
+    public function buscarPorId($id)
     {
-        //return 'ok';
-        return $configsede;
+        $sede = ConfigSede::find($id);
+        if (!$sede) {
+            return response()->json(['message' => 'No se encontró la sede'], 404);
+        }
+
+        return response()->json($sede);
     }
 
     /**

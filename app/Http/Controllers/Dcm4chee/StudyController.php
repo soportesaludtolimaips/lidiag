@@ -8,6 +8,7 @@ use App\Models\Dcm4chee\Study;
 use App\Models\Estudio\Estudio;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class StudyController extends Controller
@@ -16,7 +17,7 @@ class StudyController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('permission:estudio.asignar');
+        $this->middleware('permission:estudio.asignar,web');
     }
 
     /**
@@ -38,8 +39,8 @@ class StudyController extends Controller
         $validator = Validator::make($request->all(), [
             'sede_id' => 'required|integer|exists:config_sedes,id',
             'bus_nom_num_docu' => 'nullable|string|max:255',
-            'bus_fehc_ini' => 'nullable|date',
-            'bus_fecha_fin' => 'nullable|date',
+            'bus_fehc_ini' => 'nullable|date|required_with:bus_fecha_fin',
+            'bus_fecha_fin' => 'nullable|date|required_with:bus_fehc_ini|after_or_equal:bus_fehc_ini',
         ]);
         if ($validator->fails()) {
             return response()->json(['message' => 'Datos inválidos', 'errors' => $validator->errors()], 422);
@@ -90,7 +91,7 @@ class StudyController extends Controller
 
         if (!empty($request->bus_fehc_ini) && !empty($request->bus_fecha_fin)) {
             // Filtrar por fecha (solo la parte DATE)
-            $query->whereBetween(\DB::raw('DATE(study.study_datetime)'), [$request->bus_fehc_ini, $request->bus_fecha_fin]);
+            $query->whereBetween(DB::raw('DATE(study.study_datetime)'), [$request->bus_fehc_ini, $request->bus_fecha_fin]);
         }
 
         $resultados = $query->get();

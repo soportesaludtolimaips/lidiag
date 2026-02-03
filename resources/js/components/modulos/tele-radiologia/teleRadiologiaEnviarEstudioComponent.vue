@@ -85,7 +85,7 @@
                             lectura.
                         </h6>
                         <div class="table-responsive">
-                            <table id="example23" class="table table-bordered table-striped" cellspacing="0"
+                            <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
                                 width="100%">
                                 <thead>
                                     <tr>
@@ -364,6 +364,7 @@
                                                             <input type="checkbox" class="iCheck-helper"
                                                                 :id="`flat-checkbox-producto-interface-${index}`"
                                                                 data-checkbox="icheckbox_flat-red"
+                                                                :checked="orden.producto.some(p => p.cod_cups == item.cod_cups)"
                                                                 @change="guardarProductosEstudio(item.id, item.cod_cups, item.nom_produc)">
                                                             <label
                                                                 :for="`flat-checkbox-producto-interface-${index}`"></label>
@@ -423,6 +424,9 @@
 </template>
 
 <script>
+import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import { handleAxiosErrorToast } from "@/helpers/alerts";
+
 export default {
     props: ['usuarioactual'],
     mounted() {
@@ -436,6 +440,9 @@ export default {
             this.establecerSede();
             this.destroyDataTable();
         });
+    },
+    beforeUnmount() {
+        this.destroyDataTable();
     },
     data() {
         return {
@@ -475,7 +482,7 @@ export default {
                 observaciones: null
             },
             soportesHC: { archivo1: null, archivo2: null, archivo3: null },
-            busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
+            busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "28645203", bus_fehc_ini: "", bus_fecha_fin: "" },
             interfaceAtenciones: [],
             interfaceAtencionSeleccionada: null,
             errores: {},
@@ -484,6 +491,7 @@ export default {
             productos: [],
             productosInterface: [], //Productos que se traen de la interface de la sede
             productoSelecciondo: "",
+            productoSelecciondoOrder: [], //Productos que se seleccionan para la orden
             idSedeActual: '',
             nomSedeActual: '',
             productosAtencion: [],
@@ -509,22 +517,14 @@ export default {
     },
     methods: {
         initDataTable() {
-            try {
-                if ($ && $.fn && $.fn.DataTable) {
-                    $("#example23").DataTable({
-                        dom: "Bfrtip",
-                        buttons: ["copy", "csv", "excel", "pdf", "print"],
-                        retrieve: true,
-                    });
-                }
-            } catch (e) { }
+            safeInitDataTable(this.$refs.dt || "#example23", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
+                retrieve: true,
+            });
         },
         destroyDataTable() {
-            try {
-                if ($ && $.fn && $.fn.DataTable && $.fn.dataTable.isDataTable('#example23')) {
-                    $("#example23").DataTable().destroy();
-                }
-            } catch (e) { }
+            safeDestroyDataTable(this.$refs.dt || "#example23");
         },
         async buscarStudy() {
             if (this.loadingBuscar) return;
@@ -553,7 +553,7 @@ export default {
                     });
                 } else {
                     // En Tele-radiología consultamos estudios vía endpoint del módulo
-                    const res = await axios.post("/tele-radiologia-listar-estudios", this.busqueda);
+                    const res = await axios.post("/api/tele-radiologia-listar-estudios", this.busqueda);
                     if (res.status == 200) {
                         this.destroyDataTable();
 
@@ -575,7 +575,6 @@ export default {
                     }
                 }
             } catch (error) {
-                console.log(error)
                 if (error.response && error.response.status == 500) {
                     $.toast({
                         heading: "Upss!!!",
@@ -590,6 +589,7 @@ export default {
                 if (error.response && error.response.data && error.response.data.errors) {
                     this.erroresBusqueda = error.response.data.errors;
                 }
+                handleAxiosErrorToast(error, "No fue posible listar estudios.");
             } finally {
                 this.loadingBuscar = false;
             }
@@ -633,10 +633,8 @@ export default {
                 this.registro.direccion = this.orden.paciente.direccion;
                 this.registro.email = this.orden.paciente.email;
 
-                const resOrdenTele = await axios.post('/tele-radiologia-enviar-orden', { orden: this.orden });
-                console.log('resOrdenTele', resOrdenTele)
+                const resOrdenTele = await axios.post('/api/tele-radiologia-enviar-orden', { orden: this.orden });
                 const confirmation = resOrdenTele?.data?.confirmation ?? resOrdenTele?.data?.data?.confirmation ?? resOrdenTele?.data?.id ?? null;
-                console.log('confirmation', confirmation)
                 if (resOrdenTele.status == 201 || resOrdenTele.status == 200) {
 
                     //Asigno el id de la orden de tele radiologia al estudio
@@ -658,10 +656,9 @@ export default {
                     formData.append('archivo2', this.soportesHC.archivo2);
                     formData.append('archivo3', this.soportesHC.archivo3);
 
-                    const resEstudio = await axios.post('/estudios', formData, {
+                    const resEstudio = await axios.post('/api/estudios', formData, {
                         headers: { "Content-Type": "multipart/form-data" }
                     });
-                    console.log('resEstudio', resEstudio)
                     if (resEstudio.status == 200) {
                         $.toast({
                             heading: "Ok!!!",
@@ -680,16 +677,8 @@ export default {
             } catch (error) {
                 if (error.response) {
                     this.errores = error.response.data;
-                    $.toast({
-                        heading: "Upsss!!!",
-                        text: error.response.data.message,
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "warning",
-                        hideAfter: 5500,
-                        stack: 6,
-                    });
                 }
+                handleAxiosErrorToast(error, "No fue posible guardar/enviar el estudio.");
             } finally {
                 this.loadingGuardar = false;
             }
@@ -743,7 +732,7 @@ export default {
             })
         },
         async mostrarRegistro(data = {}, index) {
-            //this.limpiar();
+            this.limpiar();
             this.tituloModal = "Generar orden: " + data.pat_name;
             this.orden.study_pk = data.study_pk;
             this.orden.study_iuid = data.study_iuid;
@@ -775,14 +764,14 @@ export default {
             /**
              * Verificar si la sede tiene interface, traigo la informacion de las producto y diagnosticos
              */
-            const res = await axios.get('/config-sedes/' + this.idSedeActual + '/buscarPorId');
+            const res = await axios.get('/api/config-sedes/' + this.idSedeActual + '/buscarPorId');
             if (res.data.interface_software != null) {
-                const resAtenciones = await axios.get('/interface-sahi-listar-atenciones/' + this.orden.paciente.num_docu);
+                const resAtenciones = await axios.get('/api/interface-sahi-listar-atenciones/' + this.orden.paciente.num_docu);
                 this.interfaceAtenciones = resAtenciones.data
             }
         },
         async interfaceListarProductosDiagnosticos() {
-            const resProuctos = await axios.get('/interface-sahi-listar-listarProductosDiagnosticos/' + this.interfaceAtencionSeleccionada);
+            const resProuctos = await axios.get('/api/interface-sahi-listar-listarProductosDiagnosticos/' + this.interfaceAtencionSeleccionada);
             this.productosInterface = resProuctos.data.productos
 
             let EnfermedadActualDiagnosticos = '';
@@ -835,7 +824,7 @@ export default {
             this.nomSedeActual = sessionStorage.getItem('ST-nomsede');
             this.registro.sede_id = sessionStorage.getItem('ST-sede');
             try {
-                const res = await axios.get('/config-sedes/' + this.idSedeActual + '/buscarPorId');
+                const res = await axios.get('/api/config-sedes/' + this.idSedeActual + '/buscarPorId');
                 this.sedeInterface = (res.data && res.data.interface_software === 'SAHI');
             } catch (e) {
                 this.sedeInterface = false;
@@ -871,8 +860,16 @@ export default {
 
             this.productoSelecciondo = 0;
 
-            this.ordenproducto = []
-            this.orden.adjuntos = []
+            this.orden.producto = []
+            this.orden.adjuntos = [];
+            this.productosInterface = [];
+            this.diagnosticosInterface = [];
+            this.interfaceAtenciones = [];
+            this.registro.diagnosticosEstudio = [];
+            this.registro.productosEstudio = [];
+            this.registro.atencion_id = null;
+            this.registro.destino_estudio_id = null;
+            this.registro.destino_estudio = 'Tele Radiologia';
 
             this.soportesHC.archivo1 = null;
             this.soportesHC.archivo2 = null;
@@ -880,18 +877,20 @@ export default {
         },
         async listarPrioridades() {
             try {
-                const res = await axios.get("/config-prioridades");
+                const res = await axios.get("/api/config-prioridades");
                 this.prioridades = res.data;
             } catch (error) {
-                console.log(error);
+                this.prioridades = [];
+                handleAxiosErrorToast(error, "No fue posible listar prioridades.");
             }
         },
         async listarProductos() {
             try {
-                const res = await axios.get("/config-productos");
+                const res = await axios.get("/api/config-productos");
                 this.productos = res.data;
             } catch (error) {
-                console.log(error);
+                this.productos = [];
+                handleAxiosErrorToast(error, "No fue posible listar productos.");
             }
         },
         onMedicoSelect(value) {
@@ -941,9 +940,17 @@ export default {
             const productoEstudioCod_Cubs = cod_cups;
             const productoEstudioNomProduc = nom_produc;
 
-            const yaExiste = this.orden.producto.some(p => p.id == productoEstudioCod_Cubs);
-            if (!yaExiste) {
-                console.log('yaExiste', yaExiste)
+            const yaExisteIndex = this.orden.producto.findIndex(p => p.cod_cups == productoEstudioCod_Cubs);
+            if (yaExisteIndex !== -1) {
+                // Si ya existe, quitarlo
+                this.orden.producto.splice(yaExisteIndex, 1);
+                // También quitarlo de registro.productosEstudio
+                const registroIndex = this.registro.productosEstudio.findIndex(p => p.cod_cups == productoEstudioCod_Cubs);
+                if (registroIndex !== -1) {
+                    this.registro.productosEstudio.splice(registroIndex, 1);
+                }
+            } else {
+                // Si no existe, agregarlo
                 this.orden.producto.push({
                     cod_cups: productoEstudioCod_Cubs,
                     nom_produc: productoEstudioNomProduc,

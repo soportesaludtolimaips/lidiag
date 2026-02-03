@@ -94,7 +94,7 @@
                         <h6 class="card-subtitle text-info">Asigne los médicos para su respectiva lectura.
                         </h6>
                         <div class="table-responsive">
-                            <table id="example23" class="table table-bordered table-striped" cellspacing="0"
+                            <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
                                 width="100%">
                                 <thead>
                                     <tr>
@@ -126,13 +126,13 @@
                                         <td>
                                             <span class="label label-info" v-if="item.estado === 'EN PROCESO'">{{
                                                 item.estado
-                                            }}</span>
+                                                }}</span>
                                             <span class="label label-success" v-if="item.estado === 'LEIDO'">{{
                                                 item.estado
-                                            }}</span>
+                                                }}</span>
                                             <span class="label label-danger" v-if="item.estado === 'ANULADO'">{{
                                                 item.estado
-                                            }}</span>
+                                                }}</span>
                                         </td>
                                         <td>
                                             <template v-if="sedeInterface">
@@ -234,6 +234,8 @@
 </template>
 <script>
 import usePermissions from "@/helpers/permissions.js"
+import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts.js";
+import { handleAxiosErrorToast } from "@/helpers/alerts";
 
 export default {
     props: ['usuarioactual', 'permisos'],
@@ -270,13 +272,17 @@ export default {
                 this[mapName][key] = value;
             }
         },
-        establecerSede() {
+        async establecerSede() {
             const sede = sessionStorage.getItem('ST-sede');
             if (sede != null) {
                 this.busqueda.sede_id = sede;
             }
-            // misma regla usada en los otros componentes
-            this.sedeInterface = String(this.busqueda.sede_id) === '1';
+            try {
+                const res = await axios.get(`/api/config-sedes/${this.busqueda.sede_id}/buscarPorId`);
+                this.sedeInterface = (res?.data?.interface_software === 'SAHI');
+            } catch (error) {
+                this.sedeInterface = false;
+            }
         },
         safeDestroyDataTable(selector = "#example23") {
             if (typeof window === 'undefined' || !window.$ || !window.$.fn || !window.$.fn.DataTable) return;
@@ -316,16 +322,18 @@ export default {
             try {
                 this.isBuscandoAdmisionadas = true;
 
-                const res = await axios.post('/ecografias-filtar', this.busqueda);
+                const res = await axios.post('/api/ecografias-filtar', this.busqueda);
 
                 if (res.status == 200) {
-                    this.safeDestroyDataTable("#example23");
+                    this.safeDestroyDataTable(this.$refs.dt || "#example23");
 
                     this.registros = res.data;
-                    console.log(this.registros)
 
-                    this.safeInitDataTable("#example23");
+                    this.safeInitDataTable(this.$refs.dt || "#example23");
                 }
+            } catch (error) {
+                this.erroresBusqueda = error?.response?.data?.errors || {};
+                handleAxiosErrorToast(error, "No fue posible listar ecografías admisionadas.");
             } finally {
                 this.isBuscandoAdmisionadas = false;
             }
@@ -333,8 +341,21 @@ export default {
         async imprimirReporte(id) {
             try {
                 this.isImprimiendoReporte = true;
-                const res = await axios.post(`/ecografia-generar-reporte/${id}`);
-                console.log(res)
+                const res = await axios.post(`/api/ecografia-generar-reporte/${id}`);
+                const url = res?.data?.plantilla || res?.data?.url;
+                if (url) {
+                    window.open(url, "_blank");
+                } else {
+                    $.toast({
+                        heading: "Upss!!!",
+                        text: res?.data?.message || "No fue posible generar el reporte.",
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "warning",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                }
                 /* const res = await axios.post(`/ecografia-generar-reporte/${id}`, {
                     responseType: 'blob'
                 });
@@ -343,7 +364,7 @@ export default {
                 const fileURL = URL.createObjectURL(file);
                 window.open(fileURL); */
             } catch (error) {
-                console.log(error);
+                handleAxiosErrorToast(error, "No fue posible generar el reporte.");
             } finally {
                 this.isImprimiendoReporte = false;
             }
@@ -353,51 +374,40 @@ export default {
             this.registroAnular.atencion_id = data.IdAtencion;
         },
         anularEcografia() {
-            try {
-
-
-                if (this.registroAnular.motivo_anula === "") {
-                    $.toast({
-                        heading: '¡Atención!',
-                        text: 'Debe ingresar el motivo de anulación.',
-                        position: 'top-right',
-                        loaderBg: '#ff6849',
-                        icon: 'warning',
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                    return;
-                }
-
-                var $this = this;
-                swal({
-                    title: "Estas seguro de anular la ecografia?",
-                    text: "No podrás recuperar este registro!",
-                    type: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#DD6B55",
-                    confirmButtonText: "si, eliminarlo!",
-                    closeOnConfirm: false
-                }, function (isConfirm) {
-                    if (isConfirm) {
-                        $this.isAnulandoAdmisionada = true;
-                        axios.post(`/ecografia-anular/${$this.registroAnular.ecografia_id}`, $this.registroAnular).then(response => {
-
-                            swal("Ok!!!!", response.data.message, "success");
-                            const cerrarModal = document.getElementById('btnCerrarModalAunular');
-                            cerrarModal.click();
-                            this.listarAtenciones();
-
-                        }).catch(error => {
-                            console.log(error)
-                        }).finally(() => {
-                            $this.isAnulandoAdmisionada = false;
-                        })
-                    }
+            if (this.registroAnular.motivo_anula === "") {
+                $.toast({
+                    heading: '¡Atención!',
+                    text: 'Debe ingresar el motivo de anulación.',
+                    position: 'top-right',
+                    loaderBg: '#ff6849',
+                    icon: 'warning',
+                    hideAfter: 3500,
+                    stack: 6,
                 });
-            } catch (error) {
-                console.log(error);
+                return;
             }
+
+            confirmAction({
+                title: "Estas seguro de anular la ecografia?",
+                text: "No podrás recuperar este registro!",
+                icon: "warning",
+            }).then(async (ok) => {
+                if (!ok) return;
+                if (this.isAnulandoAdmisionada) return;
+                this.isAnulandoAdmisionada = true;
+                try {
+                    const response = await axios.post(`/api/ecografia-anular/${this.registroAnular.ecografia_id}`, this.registroAnular);
+                    alertSuccess("Ok!", response?.data?.message || "Ecografía anulada.", "success");
+                    const cerrarModal = document.getElementById('btnCerrarModalAunular');
+                    if (cerrarModal) cerrarModal.click();
+                    await this.listarAtenciones();
+                } catch (error) {
+                    handleAxiosErrorToast(error, "No fue posible anular la ecografía.");
+                    alertError("Error", "No fue posible anular la ecografía.", "error");
+                } finally {
+                    this.isAnulandoAdmisionada = false;
+                }
+            });
         },
         async consultarEstadoSahi(item) {
             if (!this.sedeInterface) return;
@@ -406,7 +416,7 @@ export default {
             const id = item.ecografia_producto_id;
             try {
                 this.setMapValue('isConsultandoSahi', id, true);
-                const res = await axios.get(`/interface-sahi-ecografias/estado/ecografia-producto/${id}`);
+                const res = await axios.get(`/api/interface-sahi-ecografias/estado/ecografia-producto/${id}`);
                 const d = res.data?.data || {};
 
                 item.estado_envio_sahi = d.estado_envio_sahi ?? item.estado_envio_sahi;
@@ -415,8 +425,8 @@ export default {
                 item.sahi_esquema_149 = d.sahi_esquema_149 ?? item.sahi_esquema_149;
                 item.sahi_esquema_150 = d.sahi_esquema_150 ?? item.sahi_esquema_150;
 
-                this.safeDestroyDataTable("#example23");
-                this.safeInitDataTable("#example23");
+                this.safeDestroyDataTable(this.$refs.dt || "#example23");
+                this.safeInitDataTable(this.$refs.dt || "#example23");
             } catch (error) {
                 $.toast({
                     heading: 'SAHI',
@@ -441,7 +451,7 @@ export default {
                 item.estado_envio_sahi = 'ENVIANDO';
                 item.error_envio_sahi = null;
 
-                const res = await axios.post('/interface-sahi-ecografias/enviar/ecografia-producto', {
+                const res = await axios.post('/api/interface-sahi-ecografias/enviar/ecografia-producto', {
                     ecografia_producto_id: id,
                 });
 
@@ -455,8 +465,8 @@ export default {
                     stack: 6,
                 });
 
-                this.safeDestroyDataTable("#example23");
-                this.safeInitDataTable("#example23");
+                this.safeDestroyDataTable(this.$refs.dt || "#example23");
+                this.safeInitDataTable(this.$refs.dt || "#example23");
             } catch (error) {
                 item.estado_envio_sahi = 'ERROR';
                 item.error_envio_sahi = error.response?.data?.message || 'No se pudo reenviar a SAHI.';

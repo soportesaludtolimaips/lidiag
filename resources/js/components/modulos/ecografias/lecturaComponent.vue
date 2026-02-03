@@ -182,7 +182,7 @@
                         <h6 class="card-subtitle text-info">Asigne los médicos para su respectiva lectura.
                         </h6>
                         <div class="table-responsive">
-                            <table id="example23" class="table table-bordered table-striped" cellspacing="0"
+                            <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
                                 width="100%">
                                 <thead>
                                     <tr>
@@ -403,6 +403,7 @@
 import { establecerMedico } from "@/helpers/establecerMedico";
 import { establecerSede } from "@/helpers/establecerSede";
 import usePermissions from "@/helpers/permissions.js"
+import { handleAxiosErrorToast } from "@/helpers/alerts";
 
 export default {
     props: ['usuarioactual', 'permisos'],
@@ -511,7 +512,7 @@ export default {
 
             try {
                 this.isConsultandoSahi = true;
-                const res = await axios.get(`/interface-sahi-ecografias/estado/ecografia-producto/${id}`);
+                const res = await axios.get(`/api/interface-sahi-ecografias/estado/ecografia-producto/${id}`);
                 const d = res.data?.data || {};
 
                 if (d.estado_envio_sahi != null) this.registro.estado_envio_sahi = d.estado_envio_sahi;
@@ -575,15 +576,17 @@ export default {
             try {
                 this.isBuscandoPendientes = true;
 
-                const res = await axios.post('/ecografia-listarPendientesPorLectura/' + this.busqueda.medico_id);
-                console.log(res.data);
+                const res = await axios.post('/api/ecografia-listarPendientesPorLectura/' + this.busqueda.medico_id);
                 if (res.status == 200) {
-                    this.safeDestroyDataTable("#example23");
+                    this.safeDestroyDataTable(this.$refs.dt || "#example23");
 
                     this.registros = res.data.ecografias;
 
-                    this.safeInitDataTable("#example23");
+                    this.safeInitDataTable(this.$refs.dt || "#example23");
                 }
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible listar pendientes por lectura.");
+                this.registros = [];
             } finally {
                 this.isBuscandoPendientes = false;
             }
@@ -591,7 +594,7 @@ export default {
         async generarLectura() {
             try {
                 // Enviar solicitud para guardar la ecografía
-                const res = await axios.put('/ecografia-lectura/' + this.registro.ecografia_id, { accion: this.accion, registro: this.registro });
+                const res = await axios.put('/api/ecografia-lectura/' + this.registro.ecografia_id, { accion: this.accion, registro: this.registro });
 
                 if (res.status === 201) {
 
@@ -621,15 +624,7 @@ export default {
                     return false;
                 }
             } catch (error) {
-                $.toast({
-                    heading: 'Error',
-                    text: error.response?.data?.message || 'Ocurrió un error al guardar la agenda.',
-                    position: 'top-right',
-                    loaderBg: '#ff6849',
-                    icon: 'error',
-                    hideAfter: 3500,
-                    stack: 6,
-                });
+                handleAxiosErrorToast(error, "Ocurrió un error al guardar la lectura.");
 
                 // Mostrar errores específicos en el formulario
                 if (error.response?.data?.errors) {
@@ -661,7 +656,7 @@ export default {
                 this.isEnviandoSahi = true;
                 this.registro.estado_envio_sahi = 'ENVIANDO';
 
-                const res = await axios.post('/interface-sahi-ecografias/enviar/ecografia-producto', {
+                const res = await axios.post('/api/interface-sahi-ecografias/enviar/ecografia-producto', {
                     ecografia_producto_id: id,
                 });
 
@@ -736,7 +731,7 @@ export default {
                 const iframe = document.getElementById('ifrReporteEcografia');
                 iframe.src = '';
 
-                const res = await axios.post('/ecografia-generar-reporte/' + this.registro.ecografia_id, this.registro);
+                const res = await axios.post('/api/ecografia-generar-reporte/' + this.registro.ecografia_id, this.registro);
                 const pathReporte = res.data.plantilla;
 
                 // Mostrar el reporte en el iframe
@@ -762,14 +757,14 @@ export default {
                 }
             }
         },
-        establecerSede() {
+        async establecerSede() {
             this.registro.sede_id = sessionStorage.getItem('ST-sede');
             this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
             this.sedeActual = sessionStorage.getItem('ST-sede');
-
-            if (this.registro.sede_id == 1) {
-                this.sedeInterface = true;
-            } else {
+            try {
+                const res = await axios.get(`/api/config-sedes/${this.sedeActual}/buscarPorId`);
+                this.sedeInterface = (res?.data?.interface_software === 'SAHI');
+            } catch (error) {
                 this.sedeInterface = false;
             }
             this.registros = [];
@@ -778,8 +773,6 @@ export default {
             //if (this.url === '/ecografias-pendientes-lecturas') {
             this.busqueda.medico_id = sessionStorage.getItem('ST-medico');
             this.registro.medico_id = sessionStorage.getItem('ST-medico');
-            console.log(this.busqueda.medico_id);
-
             //sessionStorage.setItem('ST-medico', this.usuarioactual.id);
 
             this.listarPendiestePorLectura();
@@ -787,10 +780,11 @@ export default {
         },
         async listarTiposPlantillas() {
             try {
-                const res = await axios.get("/config-tipos-plantillas/listar/activos");
+                const res = await axios.get("/api/config-tipos-plantillas/listar/activos");
                 this.tiposPlantillas = res.data;
             } catch (error) {
-                console.log(error);
+                handleAxiosErrorToast(error, "No fue posible listar tipos de plantillas.");
+                this.tiposPlantillas = [];
             }
         },
         async onTipoPlantillaSelect(value) {
@@ -808,14 +802,14 @@ export default {
 
             // Traigos las plantillas dependiendo del tipo de plantilla seleccionado
             try {
-                const res = await axios.get(`/config-plantillas/listar/activos/${selectedId}`);
+                const res = await axios.get(`/api/config-plantillas/listar/activos/${selectedId}`);
 
                 // Cargo el compo de las plantillas
                 this.plantillas = res.data;
                 this.plantillasOptions;
                 this.registro.tipo_estudio = value[0].nom_tipo;
             } catch (error) {
-                console.log(error);
+                handleAxiosErrorToast(error, "No fue posible listar plantillas.");
             }
         },
         onPlantillaSelect(value) {
@@ -829,7 +823,6 @@ export default {
             this.stopSahiPolling();
         },
         mostrarRegistro(data = {}) {
-            console.log('data', data)
             this.tituloAtencion = `Atención N°: ${data.atencion_id}`;
             this.tituloModal = `Paciente: ${data.paciente.num_docu} - Nombres: ${data.paciente.nombres} ${data.paciente.seg_nom} ${data.paciente.pri_ape} ${data.paciente.seg_ape} `;
             this.subTituloModal = `Examen: ${data.nom_produc} - Valor: ${data.ValProduc}`;

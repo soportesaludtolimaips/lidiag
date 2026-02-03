@@ -5,7 +5,7 @@
         $user = auth()->user()->load('roles', 'permissions');
         $permisos = auth()->user()->getAllPermissions()->pluck('name');
     @endphp
-    <reportes-produccion-component :usuarioactual="{{ $user }}" :permisos="{{ $permisos }}" />
+    <reportes-produccion-component :usuarioactual='@json($user)' :permisos='@json($permisos)' />
 @endsection
 
 @section('javascript')

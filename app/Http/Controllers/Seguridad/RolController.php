@@ -11,6 +11,16 @@ use DB;
 
 class RolController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:seguridad.roles.index')->only(['index']);
+        $this->middleware('permission:seguridad.roles.create')->only(['store']);
+        $this->middleware('permission:seguridad.roles.show')->only(['show']);
+        $this->middleware('permission:seguridad.roles.edit')->only(['update']);
+        $this->middleware('permission:seguridad.roles.destroy')->only(['destroy']);
+    }
+
     /**
      * Lista todos los roles y permisos del sistema.
      *
@@ -43,7 +53,7 @@ class RolController extends Controller
             }
         }
 
-        $role->syncPermissions(['permission_id' => $permisosInsertar]);
+        $role->syncPermissions($permisosInsertar);
 
         return response()->json(['message' => 'Registro creado satisfactoriamente.']);
     }
@@ -61,7 +71,7 @@ class RolController extends Controller
         if (!$seguridad_role) {
             return response()->json(['message' => 'El rol no se encontro'], 404);
         }
-        
+
         $permisos = Permission::orderby('name')->get();
         $permisosRol = DB::table("role_has_permissions")
             ->where("role_has_permissions.role_id", $id)
@@ -99,7 +109,7 @@ class RolController extends Controller
             }
         }
 
-        $role->syncPermissions(['permission_id' => $permisosInsertar]);
+        $role->syncPermissions($permisosInsertar);
 
         return response()->json(['message' => 'Registro actualizado satisfactoriamente.']);
     }
@@ -110,13 +120,11 @@ class RolController extends Controller
      * @param Rol $rol Instancia del rol a eliminar.
      * @return \Illuminate\Http\JsonResponse Confirmación.
      */
-    public function destroy(Rol $rol)
+    public function destroy($id)
     {
-        if (!$rol) {
-            return response()->json(['message' => 'El rol no se encontro'], 404);
-        }
-
-        $rol->delete();
+        $role = Role::find($id);
+        if (!$role) return response()->json(['message' => 'El rol no se encontro'], 404);
+        $role->delete();
 
         return response()->json(['message' => 'Registro eliminado satisfactoriamente.']);
     }

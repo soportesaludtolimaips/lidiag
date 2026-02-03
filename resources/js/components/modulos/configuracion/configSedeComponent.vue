@@ -39,8 +39,9 @@
                             estudios
                             y agenda de lecturas de imagenes díagnosticas.</h6>
                         <div class="table-responsive m-t-40">
-                            <table id="example23" class="display nowrap table table-hover table-striped table-bordered"
-                                cellspacing="0" width="100%">
+                            <table id="example23" ref="dt"
+                                class="display nowrap table table-hover table-striped table-bordered" cellspacing="0"
+                                width="100%">
                                 <thead>
                                     <tr>
                                         <th>Sede</th>
@@ -73,8 +74,10 @@
                                             </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="elimnarRegistro(item.id)">
-                                                <i class="fa fa-trash"></i>
+                                                @click="elimnarRegistro(item.id)"
+                                                :disabled="loadingEliminarId === item.id">
+                                                <i class="fa"
+                                                    :class="loadingEliminarId === item.id ? 'fa-spinner fa-spin' : 'fa-trash'"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -336,13 +339,15 @@
 
                             <div class="form-actions mt-3">
                                 <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
-                                    v-if="!actualizar">
-                                    <i class="fa fa-check"></i> Guardar
+                                    v-if="!actualizar" :disabled="loadingGuardar">
+                                    <i class="fa" :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"></i>
+                                    Guardar
                                 </button>
 
                                 <button type="button" class="btn btn-warning m-r-5" v-if="actualizar"
-                                    @click="guardarRegistro()">
-                                    <i class="fa fa-pencil"></i> Actualizar
+                                    @click="guardarRegistro()" :disabled="loadingGuardar">
+                                    <i class="fa" :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-pencil'"></i>
+                                    Actualizar
                                 </button>
 
                                 <button type="button" class="btn btn-inverse"
@@ -359,9 +364,15 @@
     </div>
 </template>
 <script>
+import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import { alertError, alertSuccess, confirmAction, handleAxiosErrorToast } from "@/helpers/alerts.js";
+
 export default {
     mounted() {
         this.ListarDatos();
+    },
+    beforeUnmount() {
+        safeDestroyDataTable(this.$refs.dt || "#example23");
     },
     data() {
         return {
@@ -375,27 +386,35 @@ export default {
             plantillaRx: null,
             plantillaEcografia: null,
             errores: {},
+            loadingListar: false,
+            loadingGuardar: false,
+            loadingEliminarId: null,
         };
     },
     methods: {
         async ListarDatos() {
-            const res = await axios.get("/config-sedes");
-
-            $('#example23').DataTable().destroy();
-
-            this.registros = res.data;
-
-            this.$nextTick(() => {
-                $('#example23').DataTable({
-                    dom: 'Bfrtip',
-                    buttons: [
-                        'copy', 'csv', 'excel', 'pdf', 'print'
-                    ]
+            if (this.loadingListar) return;
+            this.loadingListar = true;
+            try {
+                const res = await axios.get("/api/config-sedes");
+                safeDestroyDataTable(this.$refs.dt || "#example23");
+                this.registros = res.data;
+                this.$nextTick(() => {
+                    safeInitDataTable(this.$refs.dt || "#example23", {
+                        dom: 'Bfrtip',
+                        buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
+                    });
                 });
-            });
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible listar sedes.");
+                this.registros = [];
+            } finally {
+                this.loadingListar = false;
+            }
         },
         async guardarRegistro() {
-
+            if (this.loadingGuardar) return;
+            this.loadingGuardar = true;
             try {
                 const formData = new FormData();
                 formData.append('registro', JSON.stringify(this.registro));
@@ -404,7 +423,7 @@ export default {
 
                 if (this.actualizar === false) {
 
-                    const res = await axios.post('/config-sedes', formData);
+                    const res = await axios.post('/api/config-sedes', formData);
 
                     if (res.status == 200) {
                         $.toast({
@@ -438,48 +457,38 @@ export default {
                             stack: 6
                         });
 
-                        /* this.ListarDatos();
+                        this.ListarDatos();
                         this.btnCerralModalForm();
-                        this.limpiar(); */
+                        this.limpiar();
                     }
                 }
             } catch (error) {
-
-                this.errores = error.response.data;
-                if (this.error.status === 402) {
-                    console.log('Si')
-                    $.toast({
-                        heading: 'Ok!!!',
-                        text: error.response.data.message,
-                        position: 'top-right',
-                        loaderBg: '#ff6849',
-                        icon: 'success',
-                        hideAfter: 3500,
-                        stack: 6
-                    });
-                }
+                this.errores = error?.response?.data?.errors || {};
+                handleAxiosErrorToast(error, "No fue posible guardar la sede.");
+            } finally {
+                this.loadingGuardar = false;
             }
         },
-        elimnarRegistro(id) {
-            var $this = this;
-            swal({
-                title: "Estas seguro?",
+        async elimnarRegistro(id) {
+            const ok = await confirmAction({
+                title: "¿Estas seguro?",
                 text: "No podrás recuperar este registro!",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "si, eliminarlo!",
-                closeOnConfirm: false
-            }, function (isConfirm) {
-                if (isConfirm) {
-                    axios.delete('/config-sedes/' + id).then(response => {
-                        swal("Ok!!!!", response.data.message, "success");
-                        $this.ListarDatos()
-                    }).catch(error => {
-                        console.log(error)
-                    })
-                }
+                icon: "warning",
             });
+            if (!ok) return;
+
+            try {
+                if (this.loadingEliminarId) return;
+                this.loadingEliminarId = id;
+                const response = await axios.delete('/api/config-sedes/' + id);
+                alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
+                this.ListarDatos();
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
+                alertError("Error", "No fue posible eliminar el registro.", "error");
+            } finally {
+                this.loadingEliminarId = null;
+            }
         },
         obtenerPlantillaRx(e) {
             this.plantillaRx = e.target.files[0];

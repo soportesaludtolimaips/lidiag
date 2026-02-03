@@ -17,7 +17,8 @@ class RouteServiceProvider extends ServiceProvider
      *
      * @var string
      */
-    public const HOME = '/home';
+    // Default post-auth redirection target (si algún flujo lo usa)
+    public const HOME = '/dashboard';
 
     /**
      * Define your route model bindings, pattern filters, and other route configuration.
@@ -32,6 +33,30 @@ class RouteServiceProvider extends ServiceProvider
             Route::middleware('api')
                 ->prefix('api')
                 ->group(base_path('routes/api.php'));
+
+            // Rutas de configuración con middleware personalizado (algunas públicas, algunas protegidas)
+            Route::prefix('api')
+                ->group(base_path('routes/api_configuracion.php'));
+
+            Route::middleware('api')
+                ->prefix('api')
+                ->group(base_path('routes/api_estudios.php'));
+
+            Route::middleware('api')
+                ->prefix('api')
+                ->group(base_path('routes/api_ecografias.php'));
+
+            Route::middleware('api')
+                ->prefix('api')
+                ->group(base_path('routes/api_seguridad.php'));
+
+            Route::middleware('api')
+                ->prefix('api')
+                ->group(base_path('routes/api_interfaces.php'));
+
+            Route::middleware('api')
+                ->prefix('api')
+                ->group(base_path('routes/api_agendamiento_dashboard.php'));
 
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));

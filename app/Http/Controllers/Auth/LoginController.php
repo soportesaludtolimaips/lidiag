@@ -26,8 +26,27 @@ class LoginController extends Controller
             // Evita session fixation: regenerar el ID de sesión tras login
             $request->session()->regenerate();
 
-            return redirect()->intended(route('dashboard'));
+            $redirectTo = route('dashboard');
+
+            // Si es llamada AJAX/JSON (Axios), devolver JSON (evita que Axios "trague" un HTML redirect)
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'ok' => true,
+                    'redirect' => $redirectTo,
+                ], 200);
+            }
+
+            // En este proyecto queremos SIEMPRE ir al dashboard luego del login.
+            // (Evita redirecciones inesperadas a /home por "intended url")
+            return redirect()->to($redirectTo);
         } else {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'Credenciales inválidas',
+                ], 401);
+            }
+
             return redirect()
                 ->route('login')
                 ->withErrors(['email' => 'Credenciales inválidas'])
@@ -49,7 +68,11 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return response()->json(null, 204);
+        if ($request->expectsJson()) {
+            return response()->json(null, 204);
+        }
+
+        return redirect()->route('login');
     }
 
     /**

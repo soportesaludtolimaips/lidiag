@@ -8,12 +8,6 @@ use Illuminate\Http\Request;
 
 class EstudioSoporteHCController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-        $this->middleware('permission:estudio.asignar|estudio.transcribir|estudio.leerEstudio');
-    }
-
     /**
      * Lista los soportes de historia clínica asociados a un estudio.
      *

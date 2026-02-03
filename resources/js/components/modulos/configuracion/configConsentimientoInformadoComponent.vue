@@ -37,8 +37,9 @@
                         <h4 class="card-title">Listado de consentimiento informado</h4>
                         <h6 class="card-subtitle">Administración de los consentimiento informado.</h6>
                         <div class="table-responsive m-t-40">
-                            <table id="example23" class="display nowrap table table-hover table-striped table-bordered"
-                                cellspacing="0" width="100%">
+                            <table id="example23" ref="dt"
+                                class="display nowrap table table-hover table-striped table-bordered" cellspacing="0"
+                                width="100%">
                                 <thead>
                                     <tr>
                                         <th width="150px">Producto</th>
@@ -53,10 +54,13 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="item in registros" :key="item.id">
-                                        <td>{{ item.producto.nom_producto }}</td>
+                                        <td>{{ item.producto?.nom_produc || '—' }}</td>
                                         <td>{{ item.sede.nom_sede }}</td>
                                         <td>{{ item.nombre }}</td>
-                                        <td>{{ item.archivo }}</td>
+                                        <td>
+                                            <a v-if="item.archivo" :href="archivoUrl(item)" target="_blank">Ver PDF</a>
+                                            <span v-else class="text-muted">—</span>
+                                        </td>
                                         <td>{{ item.created_at }}</td>
                                         <td>{{ item.updated_at }}</td>
                                         <td>
@@ -71,7 +75,7 @@
                                             </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="elimnarRegistro(item.id, item.nom_tipo)">
+                                                @click="elimnarRegistro(item.id, item.nombre)">
                                                 <i class="fa fa-trash"></i>
                                             </button>
                                         </td>
@@ -114,7 +118,7 @@
                                             @input="onProductoSelect" />
                                         <span class="text-danger" v-if="errores.producto_id">{{
                                             errores.producto_id[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -171,20 +175,31 @@
 </template>
 
 <script>
+import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import { alertError, alertSuccess, confirmAction, handleAxiosErrorToast } from "@/helpers/alerts.js";
+
 export default {
     mounted() {
-        console.log('mounted');
         this.ListarDatos();
         this.listarProductos();
     },
+    beforeUnmount() {
+        safeDestroyDataTable(this.$refs.dt || "#example23");
+    },
     data() {
         return {
+            id: 0,
             registros: [],
-            registro: { nombre: '', archivo: '', estado: '' },
+            registro: { producto_id: null, sede_id: sessionStorage.getItem('ST-sede'), nombre: '', estado: true },
+            productoSelecciondo: null,
+            archivoFile: null,
             tituloModal: 'Nuevo registro',
             actualizar: false,
             errores: {},
-            productos: []
+            productos: [],
+            loadingListar: false,
+            loadingGuardar: false,
+            loadingEliminarId: null,
         };
     },
     computed: {
@@ -195,109 +210,149 @@ export default {
     },
     methods: {
         async ListarDatos() {
-            const res = await axios.get("/config-consentimiento-informado")
-            console.log('data', res.data);
-            $('#example23').DataTable().destroy();
-            this.registros = res.data;
-            this.$nextTick(() => {
-                $('#example23').DataTable({
-                    dom: 'Bfrtip',
-                    buttons: [
-                        'copy', 'csv', 'excel', 'pdf', 'print'
-                    ]
-                });
-            });
-        },
-        async guardarRegistro() {
+            if (this.loadingListar) return;
+            this.loadingListar = true;
             try {
-                if (this.actualizar === false) {
-                    const res = await axios.post('/config-tipos-plantillas', this.registro);
-
-                    if (res.status == 200) {
-
-                        this.ListarDatos()
-
-                        $.toast({
-                            heading: 'Ok!!!',
-                            text: res.data.message,
-                            position: 'top-right',
-                            loaderBg: '#ff6849',
-                            icon: 'success',
-                            hideAfter: 3500,
-                            stack: 6
-                        });
-                    }
-                } else {
-                    const res = await axios.put('/config-tipos-plantillas/' + this.id, this.registro);
-                    if (res.status == 200) {
-
-                        this.ListarDatos()
-
-                        $.toast({
-                            heading: 'Ok!!!',
-                            text: res.data.message,
-                            position: 'top-right',
-                            loaderBg: '#ff6849',
-                            icon: 'success',
-                            hideAfter: 3500,
-                            stack: 6
-                        });
-                    }
-                }
+                const res = await axios.get("/api/config-consentimiento-informado");
+                safeDestroyDataTable(this.$refs.dt || "#example23");
+                this.registros = res?.data?.data || res?.data || [];
+                this.$nextTick(() => {
+                    safeInitDataTable(this.$refs.dt || "#example23", {
+                        dom: 'Bfrtip',
+                        buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
+                    });
+                });
             } catch (error) {
-                console.log(error);
-                this.errores = error.response.data.errors;
+                handleAxiosErrorToast(error, "No fue posible listar consentimientos informados.");
+                this.registros = [];
+            } finally {
+                this.loadingListar = false;
             }
         },
-        elimnarRegistro(id, nom) {
-            var $this = this;
-            swal({
-                title: "Estas seguro de eliminar el tipo de plantillas " + nom + "?",
-                text: "No podrás recuperar este registro!",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "si, eliminarlo!",
-                closeOnConfirm: false
-            }, function (isConfirm) {
-                if (isConfirm) {
-                    axios.delete('/config-tipos-plantillas/' + id).then(response => {
-                        swal("Ok!!!!", response.data.message, "success");
-                        $this.ListarDatos()
-                    }).catch(error => {
-                        console.log(error)
-                    })
+        async guardarRegistro() {
+            if (this.loadingGuardar) return;
+            this.loadingGuardar = true;
+            try {
+                const sedeId = sessionStorage.getItem('ST-sede');
+                const formData = new FormData();
+                formData.append('producto_id', String(this.registro.producto_id ?? ''));
+                formData.append('sede_id', String(this.registro.sede_id ?? sedeId ?? ''));
+                formData.append('nombre', String(this.registro.nombre ?? ''));
+                formData.append('estado', this.registro.estado ? '1' : '0');
+                if (this.archivoFile) formData.append('archivo', this.archivoFile);
+
+                let res;
+                if (!this.actualizar) {
+                    res = await axios.post('/api/config-consentimiento-informado', formData, {
+                        headers: { "Content-Type": "multipart/form-data" }
+                    });
+                } else {
+                    formData.append('_method', 'PUT');
+                    res = await axios.post('/api/config-consentimiento-informado/' + this.id, formData, {
+                        headers: { "Content-Type": "multipart/form-data" }
+                    });
                 }
+
+                if (res.status === 200 || res.status === 201) {
+                    $.toast({
+                        heading: 'Ok!!!',
+                        text: res.data.message || 'Guardado correctamente.',
+                        position: 'top-right',
+                        loaderBg: '#ff6849',
+                        icon: 'success',
+                        hideAfter: 3500,
+                        stack: 6
+                    });
+                    this.ListarDatos();
+                    this.limpiarFormulario();
+                    this.btnCerralModalForm();
+                }
+            } catch (error) {
+                this.errores = error?.response?.data?.errors || {};
+                handleAxiosErrorToast(error, "No fue posible guardar el consentimiento informado.");
+            } finally {
+                this.loadingGuardar = false;
+            }
+        },
+        async elimnarRegistro(id, nom) {
+            const ok = await confirmAction({
+                title: `Estas seguro de eliminar el consentimiento informado ${nom}?`,
+                text: "No podrás recuperar este registro!",
+                icon: "warning",
             });
+            if (!ok) return;
+
+            try {
+                if (this.loadingEliminarId) return;
+                this.loadingEliminarId = id;
+                const response = await axios.delete('/api/config-consentimiento-informado/' + id);
+                alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
+                this.ListarDatos();
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
+                alertError("Error", "No fue posible eliminar el registro.", "error");
+            } finally {
+                this.loadingEliminarId = null;
+            }
         },
         async listarProductos() {
             try {
-                const res = await axios.get("/config-productos");
+                const res = await axios.get("/api/config-productos");
                 this.productos = res.data;
             } catch (error) {
-                console.log(error);
+                handleAxiosErrorToast(error, "No fue posible listar productos.");
             }
         },
         obtenerArchivo(e) {
-            this.registro.archivo = e.target.files[0];
+            this.archivoFile = e.target.files?.[0] || null;
+        },
+        onProductoSelect(value) {
+            let selectedId = null;
+            if (Array.isArray(value) && value.length > 0) {
+                const v = value[0];
+                selectedId = String(typeof v === 'object' && v && v.id != null ? v.id : v);
+            } else if (value && typeof value === 'object' && value.id != null) {
+                selectedId = String(value.id);
+            } else if (value != null) {
+                selectedId = String(value);
+            }
+            this.registro.producto_id = selectedId ? Number(selectedId) : null;
+            this.productoSelecciondo = selectedId;
+        },
+        archivoUrl(item) {
+            if (!item?.archivo) return null;
+            return `/storage/${item.archivo}`;
         },
         mostrarRegistro(data = {}) {
             if (this.actualizar == true) {
-                this.tituloModal = "Actualizar el registro: " + data.nom_tipo;
+                this.tituloModal = "Actualizar el registro: " + (data.nombre || "");
                 this.id = data.id;
-                this.registro.producto_id = data.producti_id;
-                this.registro.nom_tipo = data.nom_tipo;
-                this.registro.estado = data.estado;
+                this.registro.producto_id = data.producto_id;
+                this.productoSelecciondo = String(data.producto_id ?? '');
+                this.registro.sede_id = data.sede_id;
+                this.registro.nombre = data.nombre;
+                this.registro.estado = !!data.estado;
+                this.archivoFile = null;
             } else {
                 this.actualizar = false;
                 this.tituloModal = "Nuevo registro";
                 this.id = 0;
-                this.registro.producto_id = "";
-                this.registro.nom_tipo = "";
-                this.registro.estado = 1;
+                this.limpiarFormulario();
             }
 
             this.btnCerralModalForm();
+        },
+        limpiarFormulario() {
+            this.actualizar = false;
+            this.tituloModal = "Nuevo registro";
+            this.id = 0;
+            this.errores = {};
+            this.registro.producto_id = null;
+            this.registro.sede_id = sessionStorage.getItem('ST-sede');
+            this.registro.nombre = "";
+            this.registro.estado = true;
+            this.productoSelecciondo = null;
+            this.archivoFile = null;
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);

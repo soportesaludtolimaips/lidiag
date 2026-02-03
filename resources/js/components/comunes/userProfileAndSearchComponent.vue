@@ -255,7 +255,7 @@
                     </li>
                     <li role="separator" class="divider"></li>
                     <li>
-                        <a href="#">
+                        <a :href="perfilUrl || '/seguridad.perfil'">
                             <i class="ti-user"></i> Mi Perfil
                         </a>
                     </li>
@@ -267,8 +267,7 @@
                     </li>
                     <li role="separator" class="divider"></li>
                     <li>
-                        <a href="{{ route('logout') }}"
-                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                        <a href="#" @click.prevent="Logout()">
                             <i class="fa fa-power-off"></i> Logout
                         </a>
                     </li>
@@ -279,8 +278,9 @@
 </template>
 <script>
 export default {
-    props: ['usuarioactual'],
+    props: ['usuarioactual', 'perfilUrl'],
     mounted() {
+        this.establecerModuloActual();
         this.listarSedes();
         this.listarMedicos();
 
@@ -309,17 +309,37 @@ export default {
         },
     },
     methods: {
-        Logout() {
-            axios.post('/autenticacion/logout').then(res => {
-                if (res.data.code == 204) {
-                    this.$router.push({ name: 'login' })
-                    location.reload();
-                }
-            });
+        establecerModuloActual() {
+            try {
+                const pathname = String(window?.location?.pathname || "").toLowerCase();
+                let moduloId = sessionStorage.getItem("ST-modulo");
+                if (moduloId) return String(moduloId);
+
+                // Heurística del proyecto (mismos IDs que se ven en llamadas existentes):
+                // - ecografías: 2
+                // - estudios: 1
+                if (pathname.includes("ecografia")) moduloId = "2";
+                else if (pathname.includes("estudios") || pathname.includes("study")) moduloId = "1";
+                else moduloId = "1";
+
+                sessionStorage.setItem("ST-modulo", moduloId);
+                return String(moduloId);
+            } catch (_) {
+                return "1";
+            }
+        },
+        async Logout() {
+            try {
+                // Usa el logout estándar de Laravel UI (Auth::routes)
+                await axios.post('/logout');
+            } finally {
+                // Asegura salida al login aunque el response sea 204 sin body
+                window.location.href = '/';
+            }
         },
         async listarSedes() {
             try {
-                const res = await axios.get('/config-sedes/listar/sedes/activas');
+                const res = await axios.get('/api/config-sedes/listar/sedes/activas');
                 this.sedes = res.data;
             } catch (error) {
                 console.log(error);
@@ -327,7 +347,8 @@ export default {
         },
         async listarMedicos() {
             try {
-                const res = await axios.get("/user.listarUsuarios/Medico/2");
+                const moduloId = sessionStorage.getItem("ST-modulo") || this.establecerModuloActual();
+                const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
                 this.medicos = res.data;
             } catch (error) {
                 console.log(error);
@@ -335,7 +356,7 @@ export default {
         },
         async estableserSede() {
 
-            const res = await axios.get('/config-sedes/' + this.sedeSeleccionada + '/buscarPorId');
+            const res = await axios.get('/api/config-sedes/' + this.sedeSeleccionada + '/buscarPorId');
 
             this.nomSedeSeleccionada = $('select[name="sedes"] option:selected').text();
 

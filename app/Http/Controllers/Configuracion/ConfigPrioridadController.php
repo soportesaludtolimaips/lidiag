@@ -6,14 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Configuracion\ConfigPrioridadRequest;
 use App\Models\Configuracion\ConfigPrioridad;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ConfigPrioridadController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
-        // Permitir lectura de catálogos a quienes asignan/leen/transcriben estudios (sin abrir CRUD completo)
-        $this->middleware('permission:config.prioridades.index|estudio.asignar|estudio.transcribir|estudio.leerEstudio')->only(['index']);
+        // Catálogo público: solo proteger escrituras
+        $this->middleware('auth')->only(['store', 'update', 'destroy']);
         $this->middleware('permission:config.prioridades.create')->only(['store']);
         $this->middleware('permission:config.prioridades.edit')->only(['update']);
         $this->middleware('permission:config.prioridades.destroy')->only(['destroy']);

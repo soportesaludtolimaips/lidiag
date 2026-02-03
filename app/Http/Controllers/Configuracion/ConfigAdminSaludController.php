@@ -8,6 +8,15 @@ use App\Http\Requests\Configuracion\ConfigAdminSaludRequest;
 
 class ConfigAdminSaludController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:config.admin.salud.index')->only(['index']);
+        $this->middleware('permission:config.admin.salud.create')->only(['store']);
+        $this->middleware('permission:config.admin.salud.edit')->only(['update']);
+        $this->middleware('permission:config.admin.salud.destroy')->only(['destroy']);
+    }
+
     /**
      * Lista todas las Administradoras de Salud (EPS).
      *

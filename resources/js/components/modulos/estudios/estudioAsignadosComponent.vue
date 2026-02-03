@@ -109,7 +109,7 @@
                         <h6 class="card-subtitle text-info">Seguimiento a los estudios asignados.
                         </h6>
                         <div class="table-responsive">
-                            <table id="example23" class="table table-bordered table-striped" cellspacing="0"
+                            <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
                                 width="100%">
                                 <thead>
                                     <tr>
@@ -130,7 +130,7 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="item in registros" :key="item.estudio_producto_id"
-                                        :id="item.estudio_producto_id">
+                                        :id="'row-' + item.estudio_producto_id">
                                         <td>
                                             <button type="button" v-if="item.priori_id == 1"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">A</button>
@@ -459,6 +459,8 @@ $(function () {
 });
 
 import { listarUsuariosYSedes } from '../../../helpers/usuarios';
+import { safeDestroyDataTable, safeInitDataTable, safeRemoveDataTableRow } from "@/helpers/datatables.js";
+import { alertError, alertSuccess, confirmAction, handleAxiosErrorToast } from "@/helpers/alerts.js";
 
 export default {
     props: ['usuarioactual'],
@@ -468,6 +470,9 @@ export default {
         await listarUsuariosYSedes(this);
 
         //this.busqueda.quien_asigno_id = this.usuarioactual.id;
+    },
+    beforeUnmount() {
+        this.destroyDataTable();
     },
     data() {
         return {
@@ -501,26 +506,14 @@ export default {
     },
     methods: {
         initDataTable() {
-            try {
-                if ($ && $.fn && $.fn.DataTable) {
-                    $("#example23").DataTable({
-                        dom: "Bfrtip",
-                        buttons: ["copy", "csv", "excel", "pdf", "print"],
-                        retrieve: true,
-                    });
-                }
-            } catch (e) {
-                console.warn(e);
-            }
+            safeInitDataTable(this.$refs.dt || "#example23", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
+                retrieve: true,
+            });
         },
         destroyDataTable() {
-            try {
-                if ($.fn.DataTable && $.fn.DataTable.isDataTable("#example23")) {
-                    $("#example23").DataTable().destroy();
-                }
-            } catch (e) {
-                console.warn(e);
-            }
+            safeDestroyDataTable(this.$refs.dt || "#example23");
         },
         btnLimpiar() {
             this.busqueda.quien_asigno_id = "";
@@ -555,7 +548,7 @@ export default {
                 } else {
                     this.registros = [];
 
-                    const res = await axios.post("/estudio-listarEstudiosAsignados", this.busqueda);
+                    const res = await axios.post("/api/estudio-listarEstudiosAsignados", this.busqueda);
 
                     this.registros = res.data;
 
@@ -565,7 +558,6 @@ export default {
                     });
                 }
             } catch (error) {
-                console.log(error);
                 const status = error?.response?.status;
                 const message = error?.response?.data?.message;
                 // Si el backend devuelve errores de validación, mostrar mensaje genérico
@@ -580,15 +572,7 @@ export default {
                         stack: 6,
                     });
                 } else {
-                    $.toast({
-                        heading: "Upss!!!",
-                        text: message || "No fue posible listar los estudios asignados.",
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "error",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
+                    handleAxiosErrorToast(error, message || "No fue posible listar los estudios asignados.");
                 }
             } finally {
                 this.loadingBuscar = false;
@@ -598,13 +582,16 @@ export default {
             /**
              * Lisato los transcriptores
              */
-            const res = await axios.get('/user.listarUsuarios/Transcriptor/1');
+            const pathname = String(window?.location?.pathname || "").toLowerCase();
+            const moduloId = sessionStorage.getItem("ST-modulo")
+                || (pathname.includes("ecografia") ? "2" : "1");
+            const res = await axios.get(`/api/user.listarUsuarios/Transcriptor/${moduloId}`);
             this.quienes_asignaron = res.data;
 
             /**
              * Listo los medicos
              */
-            const resMedicos = await axios.get('/user.listarUsuarios/Medico/1');
+            const resMedicos = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
             this.medicos = resMedicos.data;
 
             /**
@@ -615,10 +602,10 @@ export default {
         async listarAudios() {
             this.loadingAudios = true;
             try {
-                const res = await axios.get('/listar-audios-estudio/' + this.id);
+                const res = await axios.get('/api/listar-audios-estudio/' + this.id);
                 this.audiosDeEstudio = res.data;
             } catch (e) {
-                console.log(e);
+                handleAxiosErrorToast(e, "No fue posible listar audios.");
                 this.audiosDeEstudio = [];
             } finally {
                 this.loadingAudios = false;
@@ -627,7 +614,7 @@ export default {
         descargaSoportte(nomArchivoOriginal, nomArchivoEncriptado) {
             if (this.loadingDescargaSoporte) return;
             this.loadingDescargaSoporte = nomArchivoEncriptado;
-            const url = `/descarga-soportes-hc/${nomArchivoEncriptado}`;
+            const url = `/api/descarga-soportes-hc/${nomArchivoEncriptado}`;
             axios.get(url, { responseType: 'blob' })
                 .then(response => {
                     const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
@@ -654,7 +641,7 @@ export default {
                     id_estudio: this.id,
                     estudio_producto_id: this.registro.estudio_producto_id,
                 };
-                const res = await axios.post('/estudio-guardarTranscripcion', payload);
+                const res = await axios.post('/api/estudio-guardarTranscripcion', payload);
 
                 if (res.status === 200) {
                     $.toast({
@@ -669,14 +656,9 @@ export default {
 
                     const idx = this.registros.findIndex(x => x.estudio_producto_id == this.idRow);
                     if (idx >= 0) {
+                        // En guardado NO destruimos/reinicializamos la tabla: removemos solo la fila guardada.
+                        try { safeRemoveDataTableRow(this.$refs.dt || "#example23", "#row-" + this.idRow); } catch (e) { }
                         this.registros.splice(idx, 1);
-                        this.destroyDataTable();
-                        this.$nextTick(() => {
-                            $("#example23").DataTable({
-                                dom: "Bfrtip",
-                                buttons: ["copy", "csv", "excel", "pdf", "print"],
-                            });
-                        });
                     }
 
                     this.btnCerralModalForm();
@@ -712,61 +694,34 @@ export default {
             }
         },
         async anularAsignacion(idProductoEstudio, paciente, producto) {
-            var $this = this;
-
-            swal({
+            const ok = await confirmAction({
                 title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
                 text: "No podrás recuperar este registro!",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "si, anular!",
-                closeOnConfirm: false
-            }, function (isConfirm) {
-                if (isConfirm) {
-                    if ($this.loadingAnularId) return;
-                    $this.loadingAnularId = idProductoEstudio;
-                    swal({
-                        title: "Anulando...",
-                        text: "Procesando, por favor espere.",
-                        type: "info",
-                        showConfirmButton: false,
-                        allowOutsideClick: false
-                    });
-                    axios.post('estudio-anular-asignacion', { 'id': idProductoEstudio })
-                        .then(res => {
-                            if (res.status === 200) {
-                                var row = document.getElementById(idProductoEstudio);
-
-                                if (row) {
-                                    row.remove();
-
-                                    var estudioEliminar = $this.registros.findIndex((x) => x.estudio_producto_id == idProductoEstudio);
-                                    console.log(estudioEliminar)
-                                    $this.registros.splice(estudioEliminar, 1);
-
-                                    $this.destroyDataTable();
-
-                                    $this.$nextTick(() => {
-                                        $("#example23").DataTable({
-                                            dom: "Bfrtip",
-                                            buttons: ["copy", "csv", "excel", "pdf", "print"],
-                                        });
-                                    });
-                                }
-
-                                swal("Anulado!", "El producto se anulo correctamente.", "success");
-                            }
-                        })
-                        .catch(err => {
-                            console.log(err);
-                            swal("Error", "No fue posible anular el producto.", "error");
-                        })
-                        .finally(() => {
-                            $this.loadingAnularId = null;
-                        });
-                }
+                icon: "warning",
             });
+            if (!ok) return;
+            if (this.loadingAnularId) return;
+
+            this.loadingAnularId = idProductoEstudio;
+            try {
+                const res = await axios.post('/api/estudio-anular-asignacion', { id: idProductoEstudio });
+                if (res.status === 200) {
+                    const idx = this.registros.findIndex((x) => x.estudio_producto_id == idProductoEstudio);
+                    if (idx >= 0) {
+                        // Al anular, remover solo la fila afectada.
+                        try { safeRemoveDataTableRow(this.$refs.dt || "#example23", "#row-" + idProductoEstudio); } catch (e) { }
+                        this.registros.splice(idx, 1);
+                    }
+                    alertSuccess("Anulado!", "El producto se anulo correctamente.", "success");
+                } else {
+                    alertError("Ups!", "No fue posible anular el producto.", "error");
+                }
+            } catch (err) {
+                handleAxiosErrorToast(err, "No fue posible anular el producto.");
+                alertError("Error", "No fue posible anular el producto.", "error");
+            } finally {
+                this.loadingAnularId = null;
+            }
         },
         verImagen() {
             if (this.loadingVerImagen) return;
@@ -829,10 +784,10 @@ export default {
                 this.registro.sede_id = data.sede_id;
                 this.registro.nom_sede = data.nom_sede;
 
-                const res = await axios.get('/study-listar-diagnostico-por-estudio?id=' + this.id);
+                const res = await axios.get('/api/study-listar-diagnostico-por-estudio?id=' + this.id);
                 this.diagnosticosEstudio = res.data;
 
-                const resSoportesHC = await axios.get('/listar-soportes-hc-estudio?id=' + this.id);
+                const resSoportesHC = await axios.get('/api/listar-soportes-hc-estudio?id=' + this.id);
                 this.soportesHC = resSoportesHC.data;
 
                 this.audiosDeEstudio = [];
@@ -840,16 +795,7 @@ export default {
 
                 this.btnCerralModalForm();
             } catch (error) {
-                console.log(error);
-                $.toast({
-                    heading: "Upss!!!",
-                    text: error?.response?.data?.message || "No fue posible cargar el estudio seleccionado.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "error",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
+                handleAxiosErrorToast(error, "No fue posible cargar el estudio seleccionado.");
             } finally {
                 this.loadingAbrirRegistroId = null;
             }

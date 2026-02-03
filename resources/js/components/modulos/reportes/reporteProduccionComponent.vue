@@ -121,8 +121,10 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-info waves-effect waves-light" @click="descargarReporte()">
-                            <i class="fa fa-download"></i>
+                        <button type="button" class="btn btn-info waves-effect waves-light" @click="descargarReporte()"
+                            :disabled="loadingDescargar">
+                            <i v-if="loadingDescargar" class="fa fa-spinner fa-spin"></i>
+                            <i v-else class="fa fa-download"></i>
                             Descargar reportes
                         </button>
                     </div>
@@ -136,6 +138,7 @@
 <script>
 import { listarUsuariosYSedes } from '../../../helpers/usuarios';
 import usePermissions from "@/helpers/permissions.js"
+import { handleAxiosErrorToast } from "@/helpers/alerts";
 
 export default {
     props: ['usuarioactual', 'permisos'],
@@ -153,7 +156,8 @@ export default {
             datosReporte: { sedeId: 0, quien_asigno: '', medico: '', fechaIni: '', fechaFin: '' },
             quienes_asignaron: [],
             medicos: [],
-            tipoReporte: 'Rx'
+            tipoReporte: 'Rx',
+            loadingDescargar: false,
         }
     },
     methods: {
@@ -162,23 +166,55 @@ export default {
 
                 await listarUsuariosYSedes(this);
 
-                const res = await axios.get('/config-sedes/listar/sedes/activas');
+                const res = await axios.get('/api/config-sedes/listar/sedes/activas');
                 this.sedes = res.data;
             } catch (error) {
-                console.log(error);
+                handleAxiosErrorToast(error, "No fue posible cargar sedes/usuarios.");
             }
         },
         async descargarReporte() {
+            if (this.loadingDescargar) return;
+            this.loadingDescargar = true;
             try {
-                if (this.tipoReporte === 'Rx') {
-                    window.open(`/descarga-reportes-produccion?tipo=${this.tipoReporte}&sedeId=${this.datosReporte.sedeId}&quien_asigno=${this.datosReporte.quien_asigno}&medico=${this.datosReporte.medico}&fechaIni=${this.datosReporte.fechaIni}&fechaFin=${this.datosReporte.fechaFin}`);
+                if (!this.datosReporte.fechaIni || !this.datosReporte.fechaFin) {
+                    $.toast({
+                        heading: "Upsss!!!",
+                        text: "Debes seleccionar fecha inicio y fecha fin.",
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "warning",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                    return;
                 }
-                if (this.tipoReporte === 'Ecografia') {
-                    window.open(`/descarga-reportes-produccion?tipo=${this.tipoReporte}&sedeId=${this.datosReporte.sedeId}&quien_asigno=${this.datosReporte.quien_asigno}&medico=${this.datosReporte.medico}&fechaIni=${this.datosReporte.fechaIni}&fechaFin=${this.datosReporte.fechaFin}`);
+                if (this.datosReporte.fechaIni > this.datosReporte.fechaFin) {
+                    $.toast({
+                        heading: "Upsss!!!",
+                        text: "La fecha inicio no puede ser mayor a la fecha fin.",
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "warning",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                    return;
                 }
 
+                const params = new URLSearchParams({
+                    tipo: String(this.tipoReporte || 'Rx'),
+                    sedeId: String(this.datosReporte.sedeId ?? 0),
+                    quien_asigno: String(this.datosReporte.quien_asigno ?? 0),
+                    medico: String(this.datosReporte.medico ?? 0),
+                    fechaIni: String(this.datosReporte.fechaIni),
+                    fechaFin: String(this.datosReporte.fechaFin),
+                });
+                window.open(`/descarga-reportes-produccion?${params.toString()}`, "_blank");
             } catch (error) {
-                console.log(error);
+                handleAxiosErrorToast(error, "No fue posible descargar el reporte.");
+            } finally {
+                // pequeño delay para evitar doble click inmediato
+                setTimeout(() => { this.loadingDescargar = false; }, 700);
             }
         },
 

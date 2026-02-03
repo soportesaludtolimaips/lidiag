@@ -8,6 +8,17 @@ use Illuminate\Http\Request;
 
 class ConfigPlantillaController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+
+        // Permisos por acción (Spatie)
+        $this->middleware('permission:config.plantillas.index')->only(['index', 'show', 'listarActivos']);
+        $this->middleware('permission:config.plantillas.create')->only(['store']);
+        $this->middleware('permission:config.plantillas.edit')->only(['update']);
+        $this->middleware('permission:config.plantillas.delete')->only(['destroy']);
+    }
+
     /**
      * Lista todas las plantillas de lectura.
      *

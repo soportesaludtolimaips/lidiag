@@ -4,10 +4,21 @@ namespace App\Http\Controllers\Agenda;
 
 use App\Http\Controllers\Controller;
 use App\Models\Agenda\AgendaDisponibilidaDetalle;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class AgendaDisponibilidaDetalleController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        // Detalles de disponibilidad: se asocian al flujo de disponibilidad
+        $this->middleware('permission:agendamiento.disponibilidad.index|agenda.index')->only(['index']);
+        $this->middleware('permission:agenda.show|agendamiento.disponibilidad.index|agenda.index')->only(['show']);
+        $this->middleware('permission:agendamiento.disponibilidad.create|agenda.create')->only(['store']);
+        $this->middleware('permission:agendamiento.disponibilidad.delete|agenda.destroy')->only(['destroy']);
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -23,21 +34,23 @@ class AgendaDisponibilidaDetalleController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'agenda_disponibilidad_id' => 'required|integer',
             'total_citas' => 'required|integer|min:1',
             'dura_cita' => 'required|integer|min:1',
             'fecha_hora_inicio' => 'required|date',
         ]);
 
         $data = [];
-        $inicio = \Carbon\Carbon::parse($request->fecha_hora_inicio);
+        $inicio = Carbon::parse($request->fecha_hora_inicio);
 
         for ($i = 0; $i < $request->total_citas; $i++) {
             $fin = $inicio->copy()->addMinutes($request->dura_cita);
 
             $registro = AgendaDisponibilidaDetalle::create([
+                'agenda_disponibilidad_id' => (int) $request->agenda_disponibilidad_id,
                 'fecha_hora_inicio' => $inicio,
                 'fecha_hora_fin' => $fin,
-                'duracion' => $request->dura_cita,
+                'estado' => 'Disponible',
             ]);
 
             $data[] = $registro;
