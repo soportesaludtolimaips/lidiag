@@ -1,10 +1,8 @@
 <?php
 
-use App\Http\Controllers\Auth\LoginController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 
-/*
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -20,9 +18,21 @@ use Illuminate\Support\Facades\Route;
     return $request->user();
 }); */
 
-Route::middleware(['auth:sanctum'])->group(function () {
-
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
+Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
+    return $request->user();
 });
+
+// Ruta de prueba pública
+Route::get('/test', function () {
+    return response()->json(['message' => 'API funcionando correctamente']);
+});
+
+/*
+ * Rutas API organizadas por módulos en archivos separados:
+ * - api_configuracion.php
+ * - api_estudios.php
+ * - api_ecografias.php
+ * - api_seguridad.php
+ * - api_interfaces.php
+ * - api_agendamiento_dashboard.php
+ */

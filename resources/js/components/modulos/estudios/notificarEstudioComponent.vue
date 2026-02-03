@@ -95,7 +95,7 @@
                             imágenes de
                             un paciente.</h6>
                         <div class="table-responsive">
-                            <table id="example23" class="table table-bordered table-striped" cellspacing="0"
+                            <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
                                 width="100%">
                                 <thead>
                                     <tr>
@@ -292,11 +292,15 @@
     </div>
 </template>
 <script>
+import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 
 export default {
     props: ['usuarioactual', 'permisos'],
     mounted() {
 
+    },
+    beforeUnmount() {
+        this.destroyDataTable();
     },
     data() {
         return {
@@ -320,13 +324,7 @@ export default {
     },
     methods: {
         destroyDataTable() {
-            try {
-                if ($.fn.DataTable && $.fn.DataTable.isDataTable("#example23")) {
-                    $("#example23").DataTable().destroy();
-                }
-            } catch (e) {
-                console.warn(e);
-            }
+            safeDestroyDataTable(this.$refs.dt || "#example23");
         },
         btnLimpiar() {
             this.busqueda.bus_num_docu = "";
@@ -353,7 +351,7 @@ export default {
                         stack: 6,
                     });
                 } else {
-                    const res = await axios.post("/listar.estudios.notificaciones", this.busqueda);
+                    const res = await axios.post("/api/listar.estudios.notificaciones", this.busqueda);
 
                     if (res.status == 200) {
                         this.destroyDataTable();
@@ -361,7 +359,7 @@ export default {
                         this.registros = res.data;
 
                         this.$nextTick(() => {
-                            $("#example23").DataTable({
+                            safeInitDataTable(this.$refs.dt || "#example23", {
                                 dom: "Bfrtip",
                                 buttons: ["copy", "csv", "excel", "pdf", "print"],
                             });
@@ -413,7 +411,7 @@ export default {
                     stack: 6,
                 });
 
-                const res = await axios.post("/edit-word", estudio);
+                const res = await axios.post("/api/edit-word", estudio);
 
                 window.open(`/descargar.pdf.lectura/${res.data.plantilla}`, '_blank');
             } catch (error) {
@@ -438,7 +436,7 @@ export default {
 
                 this.estudio.email = this.registro.email;
                 this.estudio.tel = this.registro.tel;
-                const res = await axios.post('/notificar.email', this.estudio);
+                const res = await axios.post('/api/notificar.email', this.estudio);
 
                 if (res.status == 200) {
                     $.toast({
@@ -504,7 +502,7 @@ export default {
                     stack: 6,
                 });
 
-                const res = await axios.post('/enviar-portal-pacientes', this.estudio);
+                const res = await axios.post('/api/enviar-portal-pacientes', this.estudio);
 
                 if (res.status == 200) {
                     $.toast({

@@ -12,9 +12,19 @@ use App\Models\Ecografias\EcografiaProducto;
 use App\Models\General\Paciente;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class EcografiaController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:ecografias.index,web')->only(['index', 'show', 'filtarEcografias']);
+        $this->middleware('permission:ecografias.admision,web')->only(['store', 'update', 'destroy']);
+        $this->middleware('permission:ecografias.anular,web')->only(['anularEcografia']);
+        $this->middleware('permission:ecografias.reporte,web')->only(['generarReporte']);
+    }
+
     /**
      * Listar ecografías con filtros básicos.
      *
@@ -178,7 +188,8 @@ class EcografiaController extends Controller
             $ecografia = Ecografia::create([
                 'medico_id' => $request->medico_id,
                 'paciente_id' => $paciente->id,
-                'usua_regis_id' => $request->quien_registro_id,
+                // No confiar en IDs enviados desde el frontend
+                'usua_regis_id' => auth()->id(),
                 'admin_salud_id' => $adminSalud->id ?? null,
                 'atencion_id' => $request->atencion_id,
                 'fec_cita_sahi' => $request->fec_cita_sahi ?? null,
@@ -206,7 +217,8 @@ class EcografiaController extends Controller
 
                 // Asociar el producto a la ecografía
                 EcografiaProducto::create([
-                    'usua_regis_id' => $request->quien_registro_id,
+                    // No confiar en IDs enviados desde el frontend
+                    'usua_regis_id' => auth()->id(),
                     'ecografia_id' => $ecografia->id,
                     'producto_id' => $productoExistente->id,
                     'lectura' => $producto['lectura'] ?? null,
@@ -318,7 +330,7 @@ class EcografiaController extends Controller
 
         $ecografia->estado = 'ANULADO';
         $ecografia->motivo_anula = request()->input('motivo_anula');
-        $ecografia->usua_anula_id = Auth()->id();
+        $ecografia->usua_anula_id = auth()->id();
         $ecografia->fechor_anula = now();
         $ecografia->save();
 

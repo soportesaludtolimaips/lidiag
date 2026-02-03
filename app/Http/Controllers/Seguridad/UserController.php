@@ -11,9 +11,20 @@ use Str;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:seguridad.usuarios.index')->only(['index', 'usuariosPorModulo']);
+        $this->middleware('permission:seguridad.usuarios.create')->only(['store']);
+        $this->middleware('permission:seguridad.usuarios.edit')->only(['update', 'estadoUsuario']);
+        $this->middleware('permission:seguridad.usuarios.destroy')->only(['destroy']);
+        // show/actualizarPerfil/listarPermisosUsuario se controlan con reglas adicionales (self vs admin)
+    }
+
     /**
      * Lista todos los usuarios con sus módulos y roles.
      *
@@ -58,6 +69,14 @@ class UserController extends Controller
     public function show($id)
     {
         $usuario = User::find($id);
+        if (!$usuario) return response()->json(['message' => 'El usuario no se encontro'], 404);
+
+        $authId = Auth::id();
+        $isSelf = $authId && ((int)$authId === (int)$id);
+        if (!$isSelf && !Auth::user()->can('seguridad.usuarios.show')) {
+            return response()->json(['message' => 'No autorizado'], 403);
+        }
+
         $roles = Role::all();
         $userRole = $usuario->roles;
 
@@ -75,10 +94,18 @@ class UserController extends Controller
      * @param Request $request ID y nuevo estado del usuario.
      * @return \Illuminate\Http\JsonResponse Confirmación.
      */
-    public function estadoUsuario(Request $request)
+    public function estadoUsuario(Request $request, $idUsua = null)
     {
-        $seguridad_usuario = User::find($request->id);
-        $seguridad_usuario->estado = $request->estado;
+        $id = $idUsua ?? $request->id;
+        $validator = Validator::make($request->all(), [
+            'estado' => 'required|boolean',
+        ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
+        $seguridad_usuario = User::findOrFail($id);
+        $seguridad_usuario->estado = (int) $request->estado;
         $seguridad_usuario->save();
 
         return response()->json(['message' => 'Registro actualizado correctamente.']);
@@ -143,9 +170,11 @@ class UserController extends Controller
 
         $seguridad_usuario = new User();
         $seguridad_usuario->num_docu = $registro['num_docu'];
-        $seguridad_usuario->reg_med = $registro['reg_med'];
+        $seguridad_usuario->reg_med = $registro['reg_med'] ?? null;
         $seguridad_usuario->name = $registro['name'];
         $seguridad_usuario->email = $registro['email'];
+        $seguridad_usuario->tel = $registro['tel'] ?? null;
+        $seguridad_usuario->interface_id = $registro['interface_id'] ?? null;
 
         if ($registro['password']) {
             $seguridad_usuario->password = bcrypt($registro['password']);
@@ -265,11 +294,13 @@ class UserController extends Controller
             return response()->json($validator->errors(), 400);
         }
 
-        $seguridad_usuario = User::find($request->id);
-        $seguridad_usuario->num_docu = $registro['num_docu'];
+        $seguridad_usuario = User::findOrFail($request->id);
+        $seguridad_usuario->num_docu = $registro['num_docu'] ?? $seguridad_usuario->num_docu;
         $seguridad_usuario->reg_med = $registro['reg_med'];
         $seguridad_usuario->name = $registro['name'];
         $seguridad_usuario->email = $registro['email'];
+        $seguridad_usuario->tel = $registro['tel'] ?? $seguridad_usuario->tel;
+        $seguridad_usuario->interface_id = $registro['interface_id'] ?? $seguridad_usuario->interface_id;
 
         if ($registro['password']) {
             $seguridad_usuario->password = bcrypt($registro['password']);
@@ -347,7 +378,49 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        //
+        // Evitar auto-eliminación
+        if (Auth::id() && (int) Auth::id() === (int) $user->id) {
+            return response()->json(['message' => 'No es posible eliminar su propio usuario.'], 400);
+        }
+
+        // Limpieza best-effort de archivos
+        try {
+            if (!is_null($user->firma)) {
+                if (Storage::disk('firmas_medicos')->exists($user->firma)) {
+                    Storage::disk('firmas_medicos')->delete($user->firma);
+                } else {
+                    $base = basename($user->firma);
+                    if (Storage::disk('firmas_medicos')->exists($base)) Storage::disk('firmas_medicos')->delete($base);
+                }
+            }
+        } catch (\Exception $e) {
+        }
+
+        try {
+            if (!is_null($user->imagen_perfil)) {
+                if (Storage::disk('avatars')->exists($user->imagen_perfil)) {
+                    Storage::disk('avatars')->delete($user->imagen_perfil);
+                } else {
+                    $base = basename($user->imagen_perfil);
+                    if (Storage::disk('avatars')->exists($base)) Storage::disk('avatars')->delete($base);
+                }
+            }
+        } catch (\Exception $e) {
+        }
+
+        // Sync relaciones (best-effort)
+        try {
+            if (method_exists($user, 'roles')) $user->roles()->detach();
+        } catch (\Exception $e) {
+        }
+        try {
+            if (method_exists($user, 'modulos')) $user->modulos()->detach();
+        } catch (\Exception $e) {
+        }
+
+        $user->delete();
+
+        return response()->json(['message' => 'Registro eliminado satisfactoriamente.']);
     }
 
     /**
@@ -365,5 +438,83 @@ class UserController extends Controller
         }
 
         return response()->json($modulo->usuarios);
+    }
+
+    /**
+     * Actualiza el perfil del usuario (self) incluyendo avatar opcional.
+     */
+    public function actualizarPerfil(Request $request, $idUsua)
+    {
+        $usuario = User::findOrFail($idUsua);
+
+        $authId = Auth::id();
+        $isSelf = $authId && ((int)$authId === (int)$idUsua);
+        if (!$isSelf && !Auth::user()->can('seguridad.usuarios.edit')) {
+            return response()->json(['message' => 'No autorizado'], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'num_docu' => 'required|string|max:20',
+            'name' => 'required|string|max:50',
+            'email' => 'required|email|max:255|unique:users,email,' . $usuario->id,
+            'password' => 'nullable|string|min:6',
+            'imagen_perfil' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
+        $usuario->num_docu = $request->num_docu;
+        $usuario->name = $request->name;
+        $usuario->email = $request->email;
+        if ($request->filled('password')) {
+            $usuario->password = bcrypt($request->password);
+        }
+
+        if ($request->hasFile('imagen_perfil')) {
+            $archivo = $request->file('imagen_perfil');
+            if ($archivo && $archivo->isValid()) {
+                // Borrado best-effort (considera paths viejos tipo "avatars/xxx")
+                try {
+                    if (!is_null($usuario->imagen_perfil) && Storage::disk('avatars')->exists($usuario->imagen_perfil)) {
+                        Storage::disk('avatars')->delete($usuario->imagen_perfil);
+                    } elseif (!is_null($usuario->imagen_perfil)) {
+                        $base = basename($usuario->imagen_perfil);
+                        if (Storage::disk('avatars')->exists($base)) Storage::disk('avatars')->delete($base);
+                    }
+                } catch (\Exception $e) {
+                }
+
+                $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+                $path = $archivo->storeAs('avatars', $nombreEncrip);
+                $usuario->imagen_perfil = $path;
+            }
+        }
+
+        $usuario->save();
+
+        return response()->json(['message' => 'Perfil actualizado correctamente.']);
+    }
+
+    /**
+     * Lista roles y permisos efectivos del usuario.
+     */
+    public function listarPermisosUsuario($id)
+    {
+        $usuario = User::findOrFail($id);
+
+        $authId = Auth::id();
+        $isSelf = $authId && ((int)$authId === (int)$id);
+        if (!$isSelf && !Auth::user()->can('seguridad.usuarios.show')) {
+            return response()->json(['message' => 'No autorizado'], 403);
+        }
+
+        return response()->json([
+            'usuario_id' => $usuario->id,
+            'roles' => $usuario->roles ? $usuario->roles->pluck('name')->values() : [],
+            'permisos' => method_exists($usuario, 'getAllPermissions')
+                ? $usuario->getAllPermissions()->pluck('name')->values()
+                : [],
+        ]);
     }
 }

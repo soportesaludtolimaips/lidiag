@@ -15,6 +15,7 @@
 <script>
 
 //import sucursalActual from '../../mixins/sucursal';
+import { handleAxiosErrorToast } from "@/helpers/alerts";
 
 export default {
     mounted() {
@@ -30,8 +31,16 @@ export default {
     //mixins: [sucursalActual],
     methods: {
         async listarSucursales() {
-            const res = await axios.get('api/config-sucursales');
-            this.registros = res.data;
+            try {
+                const res = await axios.get('/api/config-sedes');
+                this.registros = res.data;
+                if (Array.isArray(this.registros) && this.registros.length > 0 && !this.nomSucursal) {
+                    this.nomSucursal = this.registros[0].sucursal || '';
+                }
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible listar sucursales.");
+                this.registros = [];
+            }
         },
         establecerSucursal(data = {}) {
             this.nomSucursal = data.sucursal;

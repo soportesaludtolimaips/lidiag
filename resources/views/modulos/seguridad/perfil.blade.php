@@ -1,5 +1,5 @@
 @extends('layouts.app')
 
 @section('content')
-    <seguridad-perfil :usuarioactual="{{ Auth::user() }}"></seguridad-perfil>
+    <seguridad-perfil :usuarioactual='@json(Auth::user())'></seguridad-perfil>
 @endsection

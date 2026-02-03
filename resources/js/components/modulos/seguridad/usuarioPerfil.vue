@@ -31,9 +31,11 @@
                 <div class="card">
                     <div class="card-body">
                         <center class="m-t-30">
-                            <img v-if="!registro.imagen_perfil" src="@/admin-wrap/assets/images/users/avatar_default.png"
-                                :alt="registro.name" class="img-circle" width="150">
-                            <img v-else :src="registro.imagen_perfil" :alt="registro.name" class="img-circle" width="150">
+                            <img v-if="!registro.imagen_perfil"
+                                src="@/admin-wrap/assets/images/users/avatar_default.png" :alt="registro.name"
+                                class="img-circle" width="150">
+                            <img v-else :src="registro.imagen_perfil" :alt="registro.name" class="img-circle"
+                                width="150">
                             <h4 class="card-title m-t-10">{{ registro.name }}</h4>
                             <h6 class="card-subtitle">{{ registro.tipo_user }}</h6>
 
@@ -100,20 +102,23 @@
                                         <label for="example-email" class="col-md-12">Email</label>
                                         <div class="col-md-12">
                                             <input type="email" id="email" email="email" v-model="registro.email"
-                                                placeholder="Ingrese aqui el email" class="form-control form-control-line">
+                                                placeholder="Ingrese aqui el email"
+                                                class="form-control form-control-line">
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <label class="col-md-12">Password</label>
                                         <div class="col-md-12">
-                                            <input type="password" id="password" name="password" v-model="registro.password"
-                                                class="form-control form-control-line">
+                                            <input type="password" id="password" name="password"
+                                                v-model="registro.password" class="form-control form-control-line">
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <div class="col-sm-12">
-                                            <button type="button" class="btn btn-success m-r-5" @click="actualizarPerfil()">
-                                                <i class="fa fa-pencil"></i> Actualizar Perfil
+                                            <button type="button" class="btn btn-success m-r-5"
+                                                :disabled="loadingActualizar" @click="actualizarPerfil()">
+                                                <i v-if="loadingActualizar" class="fa fa-spinner fa-spin"></i>
+                                                <i v-else class="fa fa-pencil"></i> Actualizar Perfil
                                             </button>
                                             <!-- <button type="button" class="btn btn-inverse">
                                                 <i class="fa fa-reply"></i> Cancel
@@ -135,6 +140,8 @@
 </template>
 
 <script>
+import { handleAxiosErrorToast } from "@/helpers/alerts";
+
 export default {
     props: ['usuarioactual'],
     mounted() {
@@ -145,12 +152,16 @@ export default {
             id: this.usuarioactual.id,
             registro: { id: this.usuarioactual.id, num_docu: '', dependencia_id: this.usuarioactual.dependencia_id, name: '', email: '', password: '', estado: 0, imagen_perfil: null },
             errores: {},
+            loadingObtener: false,
+            loadingActualizar: false,
         };
     },
     methods: {
         async obtenerRegistro() {
+            if (this.loadingObtener) return;
+            this.loadingObtener = true;
             try {
-                const res = await axios.get("/seguridad-usuarios/" + this.id);
+                const res = await axios.get("/api/seguridad-usuarios/" + this.id);
 
                 if (res.status == 200) {
                     this.registro.num_docu = res.data.usuario.num_docu;
@@ -158,18 +169,28 @@ export default {
                     this.registro.email = res.data.usuario.email;
                 }
             } catch (error) {
-                this.errores = error.response.data.errors;
+                this.errores = error?.response?.data?.errors || {};
+                handleAxiosErrorToast(error, "No fue posible cargar el perfil.");
+            } finally {
+                this.loadingObtener = false;
             }
         },
         async actualizarPerfil() {
+            if (this.loadingActualizar) return;
+            this.loadingActualizar = true;
             try {
+                const formData = new FormData();
+                Object.keys(this.registro).forEach((key) => {
+                    if (this.registro[key] !== undefined && this.registro[key] !== null) {
+                        formData.append(key, this.registro[key]);
+                    }
+                });
+                // Permite subir archivo con PUT (method spoof)
+                formData.append('_method', 'PUT');
 
-                let registro = new FormData();
-                for (let key in this.registro) {
-                    registro.append(key, this.registro[key]);
-                }
-
-                const res = await axios.put('/seguridad-actualizar-perfil/' + this.id, this.registro);
+                const res = await axios.post('/api/seguridad-actualizar-perfil/' + this.id, formData, {
+                    headers: { "Content-Type": "multipart/form-data" }
+                });
                 if (res.status == 200) {
 
                     $.toast({
@@ -183,8 +204,10 @@ export default {
                     });
                 }
             } catch (error) {
-                console.log(error);
-                this.errores = error.response.data.errors;
+                this.errores = error?.response?.data?.errors || {};
+                handleAxiosErrorToast(error, "No fue posible actualizar el perfil.");
+            } finally {
+                this.loadingActualizar = false;
             }
         },
         obtenerArchivo(e) {

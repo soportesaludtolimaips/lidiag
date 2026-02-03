@@ -16,6 +16,13 @@ use Symfony\Contracts\Service\Attribute\Required;
 
 class SAHIEcografiasController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        // Este endpoint se usa en admisión/listado de ecografías
+        $this->middleware('permission:ecografias.admision|ecografias.index')->only(['listarProductosAtencion']);
+    }
+
     /**
      * Lista los productos de ecografía de una atención, combinando fuentes de facturación y movimientos.
      *

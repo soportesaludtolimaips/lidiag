@@ -1,0 +1,32 @@
+---
+description: Frontend: consumir backend por /api (Sanctum) y excepciones web
+globs: resources/js/**/*.{js,ts,vue}
+alwaysApply: false
+---
+
+# Convención de rutas (Vue/JS)
+
+## Regla base
+
+- **Todas las llamadas al backend desde Vue/JS deben ir por `/api/...`** (rutas en `routes/api*.php`).
+- **No** usar endpoints “web” sin `/api` para CRUD/listados si ya fueron movidos a API.
+
+## Excepciones permitidas (web)
+
+- **Navegación / páginas Blade**: `window.location`, links del menú, etc.
+- **Reportes/descargas web** cuando la ruta vive en `routes/web.php` (por ejemplo PDFs que se abren con `window.open(...)`).
+
+## Ejemplos
+
+```js
+// ✅ API (Sanctum / cookies)
+await axios.post('/api/estudio-guardarTranscripcion', payload);
+
+// ❌ NO (si la ruta ya está en api_*.php)
+await axios.post('/estudio-guardarTranscripcion', payload);
+```
+
+## Checklist rápido al tocar endpoints
+
+- Si agregas/mueves rutas en backend a `routes/api_*.php`, actualiza el frontend a `/api/...`.
+- Si el endpoint devuelve archivo (blob), usa `responseType: 'blob'` y **mantén** el prefijo `/api` si la ruta es API.

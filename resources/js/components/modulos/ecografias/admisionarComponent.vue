@@ -95,7 +95,7 @@
                         <h6 class="card-subtitle text-info">Asigne los médicos para su respectiva lectura.
                         </h6>
                         <div class="table-responsive">
-                            <table id="example23" class="table table-bordered table-striped" cellspacing="0"
+                            <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
                                 width="100%">
                                 <thead>
                                     <tr>
@@ -337,11 +337,8 @@
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <label class="control-label">Télefono</label>
-                                                <input type="number" id="telefono" name="telefono"
-                                                    v-model="registro.telefono" class="form-control" />
-                                                <!-- <span class="text-danger" v-if="errores.telefono">
-                                                    {{ errores.telefono[0] }}
-                                                </span> -->
+                                                <input type="number" id="tel" name="tel" v-model="registro.tel"
+                                                    class="form-control" />
                                             </div>
                                         </div>
                                     </div>
@@ -477,6 +474,8 @@
 <script>
 import usePermissions from "@/helpers/permissions.js"
 import { formatoMoneda } from "@/helpers/funciones.js";
+import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts.js";
+import { handleAxiosErrorToast } from "@/helpers/alerts";
 
 export default {
     props: ['usuarioactual', 'permisos'],
@@ -572,15 +571,18 @@ export default {
             try {
                 this.isBuscandoAtenciones = true;
 
-                const res = await axios.post('/interface-sahi-ecografias/listar/productos/atencion', this.busqueda);
+                const res = await axios.post('/api/interface-sahi-ecografias/listar/productos/atencion', this.busqueda);
 
                 if (res.status == 200) {
-                    this.safeDestroyDataTable("#example23");
+                    this.safeDestroyDataTable(this.$refs.dt || "#example23");
 
                     this.registros = res.data;
 
-                    this.safeInitDataTable("#example23");
+                    this.safeInitDataTable(this.$refs.dt || "#example23");
                 }
+            } catch (error) {
+                this.erroresBusqueda = error?.response?.data?.errors || {};
+                handleAxiosErrorToast(error, "No fue posible listar atenciones.");
             } finally {
                 this.isBuscandoAtenciones = false;
             }
@@ -589,7 +591,7 @@ export default {
             try {
                 this.isGuardandoEcografia = true;
 
-                const ecografiaRes = await axios.post('/ecografias', this.registro);
+                const ecografiaRes = await axios.post('/api/ecografias', this.registro);
 
                 if (ecografiaRes.status === 201) {
 
@@ -621,16 +623,7 @@ export default {
                     });
                 }
             } catch (error) {
-                // Manejar errores y mostrar notificación
-                $.toast({
-                    heading: 'Error',
-                    text: error.response?.data?.error || 'Ocurrió un error al guardar la agenda.',
-                    position: 'top-right',
-                    loaderBg: '#ff6849',
-                    icon: 'error',
-                    hideAfter: 3500,
-                    stack: 6,
-                });
+                handleAxiosErrorToast(error, "Ocurrió un error al guardar la agenda.");
 
                 // Mostrar errores específicos en el formulario
                 if (error.response?.data?.errors) {
@@ -646,70 +639,63 @@ export default {
             this.registroAnular.atencion_id = data.IdAtencion;
         },
         anularEcografia() {
-            try {
-                if (this.registroAnular.motivo_anula === "") {
-                    $.toast({
-                        heading: '¡Atención!',
-                        text: 'Debe ingresar el motivo de anulación.',
-                        position: 'top-right',
-                        loaderBg: '#ff6849',
-                        icon: 'warning',
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                    return;
-                }
-
-                var $this = this;
-                swal({
-                    title: "Estas seguro de anular la ecografia?",
-                    text: "No podrás recuperar este registro!",
-                    type: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#DD6B55",
-                    confirmButtonText: "si, eliminarlo!",
-                    closeOnConfirm: false
-                }, function (isConfirm) {
-                    if (isConfirm) {
-                        $this.isAnulandoEcografia = true;
-                        axios.post(`/ecografia-anular/${$this.registroAnular.ecografia_id}`, $this.registroAnular).then(response => {
-
-                            swal("Ok!!!!", response.data.message, "success");
-                            const cerrarModal = document.getElementById('btnCerrarModalAunular');
-                            cerrarModal.click();
-                            this.listarAtenciones();
-
-                        }).catch(error => {
-                            console.log(error)
-                        }).finally(() => {
-                            $this.isAnulandoEcografia = false;
-                        })
-                    }
+            if (this.registroAnular.motivo_anula === "") {
+                $.toast({
+                    heading: '¡Atención!',
+                    text: 'Debe ingresar el motivo de anulación.',
+                    position: 'top-right',
+                    loaderBg: '#ff6849',
+                    icon: 'warning',
+                    hideAfter: 3500,
+                    stack: 6,
                 });
-            } catch (error) {
-                console.log(error);
+                return;
             }
+
+            confirmAction({
+                title: "Estas seguro de anular la ecografia?",
+                text: "No podrás recuperar este registro!",
+                icon: "warning",
+            }).then(async (ok) => {
+                if (!ok) return;
+                if (this.isAnulandoEcografia) return;
+                this.isAnulandoEcografia = true;
+                try {
+                    const response = await axios.post(`/api/ecografia-anular/${this.registroAnular.ecografia_id}`, this.registroAnular);
+                    alertSuccess("Ok!", response?.data?.message || "Ecografía anulada.", "success");
+                    const cerrarModal = document.getElementById('btnCerrarModalAunular');
+                    if (cerrarModal) cerrarModal.click();
+                    await this.listarAtenciones();
+                } catch (error) {
+                    handleAxiosErrorToast(error, "No fue posible anular la ecografía.");
+                    alertError("Error", "No fue posible anular la ecografía.", "error");
+                } finally {
+                    this.isAnulandoEcografia = false;
+                }
+            });
         },
-        establecerSede() {
+        async establecerSede() {
             this.registro.sede_id = sessionStorage.getItem('ST-sede');
             this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
             this.sedeActual = sessionStorage.getItem('ST-sede');
 
-            if (this.registro.sede_id == 1) {
-                this.sedeInterface = true;
-            } else {
+            try {
+                const res = await axios.get(`/api/config-sedes/${this.sedeActual}/buscarPorId`);
+                this.sedeInterface = (res?.data?.interface_software === 'SAHI');
+            } catch (error) {
                 this.sedeInterface = false;
             }
             this.registros = [];
         },
-        establecerMedico() {
+        async establecerMedico() {
             this.registro.sede_id = sessionStorage.getItem('ST-sede');
             this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
             this.medicoActual = sessionStorage.getItem('ST-medico');
 
-            if (this.registro.sede_id == 1) {
-                this.sedeInterface = true;
-            } else {
+            try {
+                const res = await axios.get(`/api/config-sedes/${this.registro.sede_id}/buscarPorId`);
+                this.sedeInterface = (res?.data?.interface_software === 'SAHI');
+            } catch (error) {
                 this.sedeInterface = false;
             }
             this.registros = [];
@@ -721,7 +707,7 @@ export default {
             const id = item.ecografia_producto_id;
             try {
                 this.setMapValue('isConsultandoSahi', id, true);
-                const res = await axios.get(`/interface-sahi-ecografias/estado/ecografia-producto/${id}`);
+                const res = await axios.get(`/api/interface-sahi-ecografias/estado/ecografia-producto/${id}`);
                 const d = res.data?.data || {};
 
                 item.estado_envio_sahi = d.estado_envio_sahi ?? item.estado_envio_sahi;
@@ -753,7 +739,7 @@ export default {
                 item.estado_envio_sahi = 'ENVIANDO';
                 item.error_envio_sahi = null;
 
-                const res = await axios.post('/interface-sahi-ecografias/enviar/ecografia-producto', {
+                const res = await axios.post('/api/interface-sahi-ecografias/enviar/ecografia-producto', {
                     ecografia_producto_id: id,
                 });
 
@@ -784,28 +770,32 @@ export default {
         },
         async listarMedicos() {
             try {
-                const res = await axios.get("/user.listarUsuarios/Medico/2");
-                console.log('Medicos: ', res.data);
+                const pathname = String(window?.location?.pathname || "").toLowerCase();
+                const moduloId = sessionStorage.getItem("ST-modulo")
+                    || (pathname.includes("ecografia") ? "2" : "1");
+                const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
                 this.medicos = res.data;
             } catch (error) {
-                console.log(error);
+                this.medicos = [];
+                handleAxiosErrorToast(error, "No fue posible listar médicos.");
             }
         },
         async listarTipoDocumentos() {
             try {
-                const res = await axios.get("/config-tipos-documentos/listar/activos");
+                const res = await axios.get("/api/config-tipos-documentos/listar/activos");
                 this.tipoDocumentos = res.data;
             } catch (error) {
-                console.log(error);
+                this.tipoDocumentos = [];
+                handleAxiosErrorToast(error, "No fue posible listar tipos de documento.");
             }
         },
         async listarProductos() {
             try {
-                const res = await axios.get("/config-productos");
-                console.log(res.data);
+                const res = await axios.get("/api/config-productos");
                 this.productos = res.data;
             } catch (error) {
-                console.log(error);
+                this.productos = [];
+                handleAxiosErrorToast(error, "No fue posible listar productos.");
             }
         },
         onMedicoSelect(value) {
@@ -893,7 +883,6 @@ export default {
             this.registro.quien_ordeno = data.quien_ordeno
 
             this.registro.productosAgenda = this.registros
-            console.log(data);
             // Homologar tipo de documento
             const codigo = data.CodTipoDoc;
             const tipoHomologado = this.tipoDocumentoOptions.find(

@@ -61,7 +61,7 @@ class RoleSeeder extends Seeder
         Permission::create(['name' => 'config.productos.edit'])->syncRoles([$Rol1]);
         Permission::create(['name' => 'config.productos.destroy'])->syncRoles([$Rol1]);
 
-        Permission::create(['name' => 'config.sedes.index'])->syncRoles([$Rol1]);
+        Permission::create(['name' => 'config.sedes.index'])->syncRoles([$Rol1, $Rol3, $Rol4, $Rol5]);
         Permission::create(['name' => 'config.sedes.create'])->syncRoles([$Rol1]);
         Permission::create(['name' => 'config.sedes.edit'])->syncRoles([$Rol1]);
         Permission::create(['name' => 'config.sedes.destroy'])->syncRoles([$Rol1]);
@@ -71,7 +71,7 @@ class RoleSeeder extends Seeder
          */
         Permission::create(['name' => 'estudio.asignar'])->syncRoles([$Rol1, $Rol3, $Rol4]);
         Permission::create(['name' => 'estudio.transcribir'])->syncRoles([$Rol1, $Rol3, $Rol4]);
-        Permission::create(['name' => 'estudio.leerEstudio'])->syncRoles([$Rol2]);
+        Permission::create(['name' => 'estudio.leerestudio'])->syncRoles([$Rol2]);
         Permission::create(['name' => 'estudios.notificar.index'])->syncRoles([$Rol3, $Rol3, $Rol4]);
 
         /**

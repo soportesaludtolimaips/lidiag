@@ -36,8 +36,9 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de usuarios</h4>
                         <div class="table-responsive m-t-40">
-                            <table id="example23" class="display nowrap table table-hover table-striped table-bordered"
-                                cellspacing="0" width="100%">
+                            <table id="example23" ref="dt"
+                                class="display nowrap table table-hover table-striped table-bordered" cellspacing="0"
+                                width="100%">
                                 <thead>
                                     <tr>
                                         <th></th>
@@ -100,18 +101,25 @@
                                             </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
+                                                :disabled="loadingEliminarId === item.id"
                                                 @click="elimnarRegistro(item.id)">
-                                                <i class="fa fa-trash"></i>
+                                                <i v-if="loadingEliminarId === item.id"
+                                                    class="fa fa-spinner fa-spin"></i>
+                                                <i v-else class="fa fa-trash"></i>
                                             </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-success btn-sm"
-                                                @click="cambiarEstado(1, item)" v-if="item.estado == 1">
-                                                <i class="fa fa-unlock"></i>
+                                                :disabled="loadingEstadoId === item.id" @click="cambiarEstado(1, item)"
+                                                v-if="item.estado == 1">
+                                                <i v-if="loadingEstadoId === item.id" class="fa fa-spinner fa-spin"></i>
+                                                <i v-else class="fa fa-unlock"></i>
                                             </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
-                                                @click="cambiarEstado(0, item)" v-if="item.estado == 0">
-                                                <i class="fa fa-lock"></i>
+                                                :disabled="loadingEstadoId === item.id" @click="cambiarEstado(0, item)"
+                                                v-if="item.estado == 0">
+                                                <i v-if="loadingEstadoId === item.id" class="fa fa-spinner fa-spin"></i>
+                                                <i v-else class="fa fa-lock"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -326,13 +334,15 @@
 
                             <div class="form-actions mt-3">
                                 <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
-                                    v-if="!actualizar">
-                                    <i class="fa fa-check"></i> Guardar
+                                    v-if="!actualizar" :disabled="loadingGuardar">
+                                    <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
+                                    <i v-else class="fa fa-check"></i> Guardar
                                 </button>
 
                                 <button type="button" class="btn btn-warning m-r-5" v-if="actualizar"
-                                    @click="guardarRegistro()">
-                                    <i class="fa fa-pencil"></i> Actualizar
+                                    @click="guardarRegistro()" :disabled="loadingGuardar">
+                                    <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
+                                    <i v-else class="fa fa-pencil"></i> Actualizar
                                 </button>
 
                                 <button type="button" class="btn btn-inverse"
@@ -350,11 +360,17 @@
 </template>
 
 <script>
+import { handleAxiosErrorToast, confirmAction, alertError, alertSuccess } from "@/helpers/alerts";
+import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+
 export default {
     props: ['usuarioactual'],
     mounted() {
         this.ListarDatos();
         this.ListarModulos();
+    },
+    beforeUnmount() {
+        this.destroyDataTable();
     },
     data() {
         return {
@@ -368,32 +384,49 @@ export default {
             firma: null,
             errores: {},
             dependencias: [], //Listo las dependencias
-            modulos: []
+            modulos: [],
+            loadingListar: false,
+            loadingGuardar: false,
+            loadingEstadoId: null,
+            loadingEliminarId: null,
         };
     },
     methods: {
-        async ListarDatos() {
-            const res = await axios.get("/seguridad-usuarios");
-            const resRoles = await axios.get("/seguridad-roles")
-
-            $('#example23').DataTable().destroy();
-
-            this.registros = [];
-            this.roles = [];
-            this.registro.rolesUsuario = [];
-
-            this.registros = res.data;
-            this.roles = resRoles.data[0];
-            this.listarRoles();
-
-            this.$nextTick(() => {
-                $('#example23').DataTable({
-                    dom: 'Bfrtip',
-                    buttons: [
-                        'copy', 'csv', 'excel', 'pdf', 'print'
-                    ]
-                });
+        initDataTable() {
+            safeInitDataTable(this.$refs.dt || "#example23", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
+                retrieve: true,
             });
+        },
+        destroyDataTable() {
+            safeDestroyDataTable(this.$refs.dt || "#example23");
+        },
+        async ListarDatos() {
+            if (this.loadingListar) return;
+            this.loadingListar = true;
+            try {
+                const res = await axios.get("/api/seguridad-usuarios");
+                const resRoles = await axios.get("/api/seguridad-roles");
+
+                this.destroyDataTable();
+
+                this.registros = [];
+                this.roles = [];
+                this.registro.rolesUsuario = [];
+
+                this.registros = res.data;
+                this.roles = resRoles.data[0];
+                this.listarRoles();
+
+                this.$nextTick(() => {
+                    this.initDataTable();
+                });
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible listar usuarios.");
+            } finally {
+                this.loadingListar = false;
+            }
         },
         listarRoles() {
             let me = this;
@@ -407,6 +440,8 @@ export default {
             });
         },
         async guardarRegistro() {
+            if (this.loadingGuardar) return;
+            this.loadingGuardar = true;
             try {
 
                 const formData = new FormData();
@@ -417,7 +452,7 @@ export default {
 
                 if (this.actualizar === false) {
 
-                    const res = await axios.post('/seguridad-usuarios', formData, {
+                    const res = await axios.post('/api/seguridad-usuarios', formData, {
                         headers: { "Content-Type": "multipart/form-data" }
                     });
 
@@ -439,7 +474,7 @@ export default {
                     }
                 } else {
 
-                    const res = await axios.post('/seguridad/usuarios/update', formData, {
+                    const res = await axios.post('/api/seguridad/usuarios/update', formData, {
                         headers: { "Content-Type": "multipart/form-data" }
                     });
 
@@ -461,37 +496,61 @@ export default {
                     }
                 }
             } catch (error) {
-                this.errores = error.response.data;
+                this.errores = error?.response?.data || {};
+                handleAxiosErrorToast(error, "No fue posible guardar el usuario.");
+            } finally {
+                this.loadingGuardar = false;
             }
         },
         async cambiarEstado(estado, data = {}) {
-            var $this = this;
-
-            swal({
-                title: "Estas seguro de que desea " + ((estado == 0) ? ' activar' : 'desactivar') + ' el usaurio ' + data.name + '?',
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: ((estado == 0) ? ' Si, activar' : 'Si, desactivar'),
-                closeOnConfirm: false
-            }, function (isConfirm) {
-                if (isConfirm) {
-
-                    axios.put('/seguridad-usuarios/estado/' + data.id, { id: data.id, estado: ((estado == 0) ? 1 : 0) }).then(response => {
-
-                        swal("Ok!!!!", 'el usaurio ' + data.name + ' se ' + ((estado == 0) ? ' activo' : 'desactivo') + ' correctamente',
-                            "success");
-
-                        $this.ListarDatos()
-                    }).catch(error => {
-                        console.log(error)
-                    })
-                }
+            const ok = await confirmAction({
+                title: "Confirmación",
+                text: "Estas seguro de que desea " + ((estado == 0) ? ' activar' : 'desactivar') + ' el usaurio ' + data.name + '?',
+                icon: "warning",
             });
+            if (!ok) return;
+            if (this.loadingEstadoId) return;
+
+            this.loadingEstadoId = data.id;
+            try {
+                await axios.put('/api/seguridad-usuarios/estado/' + data.id, { id: data.id, estado: ((estado == 0) ? 1 : 0) });
+                alertSuccess("Ok!", 'el usaurio ' + data.name + ' se ' + ((estado == 0) ? ' activo' : 'desactivo') + ' correctamente', "success");
+                this.ListarDatos();
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible actualizar el estado.");
+                alertError("Error", error?.response?.data?.message || "No fue posible actualizar el estado.", "error");
+            } finally {
+                this.loadingEstadoId = null;
+            }
+        },
+        async elimnarRegistro(id) {
+            const ok = await confirmAction({
+                title: "Estas seguro de eliminar este usuario?",
+                text: "No podrás recuperar este registro!",
+                icon: "warning",
+            });
+            if (!ok) return;
+            if (this.loadingEliminarId) return;
+
+            this.loadingEliminarId = id;
+            try {
+                const res = await axios.delete('/api/seguridad-usuarios/' + id);
+                alertSuccess("Eliminado!", res?.data?.message || "Registro eliminado.", "success");
+                this.ListarDatos();
+            } catch (err) {
+                handleAxiosErrorToast(err, "No fue posible eliminar.");
+                alertError("Error", err?.response?.data?.message || "No fue posible eliminar.", "error");
+            } finally {
+                this.loadingEliminarId = null;
+            }
         },
         async ListarModulos() {
-            const res = await axios.get("/confing-modulos-listar");
-            this.registro.modulos = res.data;
+            try {
+                const res = await axios.get("/api/config-modulos-listar");
+                this.registro.modulos = res.data;
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible listar módulos.");
+            }
         },
         obtenerFirma(event) {
             this.firma = event.target.files[0];
@@ -526,7 +585,7 @@ export default {
                  * Recorro los roles que estan en el Frond y los desactivo para
                  * marcar los roles del usuario a editar
                  */
-                axios.get('/seguridad-usuarios/' + this.id).then(res => {
+                axios.get('/api/seguridad-usuarios/' + this.id).then(res => {
 
                     const RolesDelUsuario = res.data.RolesDeUsuario;
                     let me = this;
@@ -550,7 +609,7 @@ export default {
                 this.registro.email = "";
                 this.registro.password = "";
                 this.registro.estado = 1;
-                his.resgistro.interface_id = '';
+                this.registro.interface_id = '';
             }
 
             this.btnCerralModalForm();

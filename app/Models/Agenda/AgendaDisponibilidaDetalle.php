@@ -9,10 +9,10 @@ class AgendaDisponibilidaDetalle extends Model
 {
     use HasFactory;
 
-    protected $table = 'agenda_disponibilida_detalle';
+    protected $table = 'agenda_disponibilidad_detalle';
 
     protected $fillable = [
-        'agenda_disponibilida_id',
+        'agenda_disponibilidad_id',
         'fecha_hora_inicio',
         'fecha_hora_fin',
         'estado',
@@ -20,6 +20,6 @@ class AgendaDisponibilidaDetalle extends Model
 
     public function agendaDisponibilida()
     {
-        return $this->belongsTo(AgendaDisponibilida::class, 'agenda_disponibilida_id');
+        return $this->belongsTo(AgendaDisponibilida::class, 'agenda_disponibilidad_id');
     }
 }

@@ -53,8 +53,10 @@
                                 </div>
 
                                 <div class="form-actions mt-3">
-                                    <button type="button" class="btn btn-success m-r-5" @click="buscarStudy()">
-                                        <i class="fa fa-search"></i> Buscar
+                                    <button type="button" class="btn btn-success m-r-5" @click="buscarStudy()"
+                                        :disabled="loadingBuscar">
+                                        <i class="fa" :class="loadingBuscar ? 'fa-spinner fa-spin' : 'fa-search'"></i>
+                                        {{ loadingBuscar ? 'Buscando...' : 'Buscar' }}
                                     </button>
 
                                     <button type="button" class="btn btn-inverse" @click="btnLimpiar()">
@@ -76,7 +78,7 @@
                         <h6 class="card-subtitle text-info">Gestione las disponibilidades de citas para estudios.
                         </h6>
                         <div class="table-responsive">
-                            <table id="example23" class="table table-bordered table-striped" cellspacing="0"
+                            <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
                                 width="100%">
                                 <thead>
                                     <tr>
@@ -88,26 +90,21 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <!-- <tr v-for="(item, index) in registros" :key="item.id" :id="item.study_pk"
-                                        :class="{ 'text-info': item.agendado !== 0 }">
-                                        <td>{{ item.study_datetime }}</td>
-                                        <td>{{ item.pat_id }}</td>
-                                        <td>{{ item.pat_name }}</td>
-                                        <td>{{ item.accession_no }}</td>
-                                        <td>{{ item.study_desc }}</td>
+                                    <tr v-for="item in registros" :key="item.id">
+                                        <td>{{ item.fecha_hora_ini }}</td>
+                                        <td>{{ item.fecha_hora_fin }}</td>
+                                        <td>{{ item.sede?.nom_sede || item.sede_id }}</td>
+                                        <td>{{ item.servicio?.modulo || item.servicio_id }}</td>
                                         <td class="text-nowrap">
                                             <button type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
-                                                @click="mostrarRegistro(item, index);" title="Ordenar estudio">
-                                                <i class=" fa fa-child"></i>
-                                            </button>
-                                            <button type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
-                                                @click="verImagen(item.pat_id, item.study_iuid)" title="Ver imagenes">
-                                                <i class="fa fa-file-photo-o"></i>
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
+                                                @click="elimnarRegistro(item.id)"
+                                                :disabled="loadingEliminarId === item.id">
+                                                <i class="fa"
+                                                    :class="loadingEliminarId === item.id ? 'fa-spinner fa-spin' : 'fa-trash'"></i>
                                             </button>
                                         </td>
-                                    </tr> -->
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -155,9 +152,9 @@
 
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label class="control-label">Minutos Por Citas</label>
-                                                <input type="number" id="minutos_citas" name="minutos_citas"
-                                                    v-model="registro.minutos_citas" class="form-control"
+                                                <label class="control-label">Minutos Por Cita</label>
+                                                <input type="number" id="dura_cita" name="dura_cita"
+                                                    v-model="registro.dura_cita" class="form-control"
                                                     placeholder="Minutos por cita" />
                                                 <!-- <span class="text-danger" v-if="errores.minutos_citas">
                                                     {{ errores.minutos_citas[0] }}
@@ -184,8 +181,8 @@
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <label class="control-label">Fec. Inicio</label>
-                                                <input type="date" id="fec_naci" name="fec_naci"
-                                                    v-model="registro.fec_naci" class="form-control" />
+                                                <input type="date" id="fecha_hora_ini" name="fecha_hora_ini"
+                                                    v-model="registro.fecha_hora_ini" class="form-control" />
                                             </div>
                                         </div>
                                     </div>
@@ -193,8 +190,10 @@
                             </div>
 
                             <div class="form-actions mt-3">
-                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()">
-                                    <i class="fa fa-check"></i> Guardar
+                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
+                                    :disabled="loadingGuardar">
+                                    <i class="fa" :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"></i>
+                                    {{ loadingGuardar ? 'Guardando...' : 'Guardar' }}
                                 </button>
 
                                 <button type="button" class="btn btn-inverse" @click="cerrarModal()">Cancel</button>
@@ -211,81 +210,181 @@
 </template>
 
 <script>
+import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import { handleAxiosErrorToast } from "@/helpers/alerts";
+
 export default {
     props: ['usuarioactual'],
     mounted() {
         this.establecerSede();
         this.listarServicios();
+        this.buscarStudy();
 
         this.emitter.on("sedeSeleccionada", (data) => {
             this.establecerSede();
-            $("#example23").DataTable().destroy();
+            safeDestroyDataTable(this.$refs.dt || "#example23");
         });
+    },
+    beforeUnmount() {
+        safeDestroyDataTable(this.$refs.dt || "#example23");
     },
     data() {
         return {
             tituloModal: 'Guardar disponibilidad de citas',
-            registro: { sede_id: this.sedeActual, quien_registro_id: this.usuarioactual.id, servicio_id: "" },
-            busqueda: { sede_id: this.sedeActual, bus_nom_num_docu: "", bus_fehc_ini: "2025-11-21", bus_fecha_fin: "2025-11-21" },
+            registro: {
+                sede_id: this.sedeActual,
+                quien_registro_id: this.usuarioactual.id,
+                servicio_id: "",
+                total_citas: 1,
+                dura_cita: 15,
+                fecha_hora_ini: "",
+            },
+            busqueda: { sede_id: this.sedeActual, bus_fehc_ini: "", bus_fecha_fin: "" },
             sedeActual: sessionStorage.getItem('ST-sede'),
             servicios: [],
             errores: [],
             registros: [],
+            loadingBuscar: false,
+            loadingGuardar: false,
+            loadingEliminarId: null,
         };
     },
     computed: {
 
     },
     methods: {
-        async guardarRegistro() {
+        async buscarStudy() {
+            if (this.loadingBuscar) return;
+            this.loadingBuscar = true;
             try {
-                const res = await axios.post('/agenda-disponibilidad', this.registro);
+                const params = {
+                    sede_id: this.busqueda.sede_id,
+                    bus_fehc_ini: this.busqueda.bus_fehc_ini || undefined,
+                    bus_fecha_fin: this.busqueda.bus_fecha_fin || undefined,
+                };
+                const res = await axios.get('/api/agenda-disponibilidad', { params });
+                safeDestroyDataTable(this.$refs.dt || "#example23");
+                this.registros = res.data || [];
+                this.$nextTick(() => {
+                    safeInitDataTable(this.$refs.dt || "#example23", {
+                        dom: "Bfrtip",
+                        buttons: ["copy", "csv", "excel", "pdf", "print"],
+                    });
+                });
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible listar disponibilidades.");
+                this.registros = [];
+            } finally {
+                this.loadingBuscar = false;
+            }
+        },
+        async guardarRegistro() {
+            if (this.loadingGuardar) return;
+            this.loadingGuardar = true;
+            try {
+                if (!this.registro.fecha_hora_ini) {
+                    $.toast({
+                        heading: "Upsss!!!",
+                        text: "Debes seleccionar la fecha inicio.",
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "warning",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+                    return;
+                }
+                const payload = {
+                    sede_id: this.registro.sede_id,
+                    servicio_id: this.registro.servicio_id,
+                    total_citas: this.registro.total_citas,
+                    dura_cita: this.registro.dura_cita,
+                    // backend acepta date/datetime
+                    fecha_hora_ini: this.registro.fecha_hora_ini,
+                };
+                const res = await axios.post('/api/agenda-disponibilidad', payload);
 
                 $.toast({
                     heading: "Bien hecho!!!",
-                    text: "La disponibilidad de citas se ha guardado con exito.",
+                    text: res?.data?.message || "La disponibilidad de citas se ha guardado con exito.",
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: "success",
                     hideAfter: 5500,
                     stack: 6,
                 });
+                this.cerrarModal();
+                await this.buscarStudy();
             } catch (error) {
-                this.errores = error.response.data;
-                if (error.response.status == 400) {
-                    $.toast({
-                        heading: "Upsss!!!",
-                        text: error.response.data.message,
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "warning",
-                        hideAfter: 5500,
-                        stack: 6,
-                    });
-                }
+                this.errores = error?.response?.data?.errors || {};
+                handleAxiosErrorToast(error, "No fue posible guardar la disponibilidad.");
+            } finally {
+                this.loadingGuardar = false;
+            }
+        },
+        async elimnarRegistro(id) {
+            const ok = await swal({
+                title: "¿Estas seguro?",
+                text: "No podrás recuperar este registro!",
+                icon: "warning",
+                buttons: true,
+                dangerMode: true,
+            });
+            if (!ok) return;
+            if (this.loadingEliminarId) return;
+            this.loadingEliminarId = id;
+            try {
+                const res = await axios.delete('/api/agenda-disponibilidad/' + id);
+                $.toast({
+                    heading: "Ok!!!",
+                    text: res?.data?.message || "Registro eliminado.",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "success",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+                await this.buscarStudy();
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible eliminar la disponibilidad.");
+            } finally {
+                this.loadingEliminarId = null;
             }
         },
         async listarServicios() {
-            const res = await axios.get('/confing-modulos-listar')
-            this.servicios = res.data;
+            try {
+                const res = await axios.get('/api/config-modulos-listar')
+                this.servicios = res.data;
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible listar servicios.");
+            }
         },
         establecerSede() {
             this.registro.sede_id = sessionStorage.getItem('ST-sede');
             this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
             this.sedeActual = sessionStorage.getItem('ST-sede');
-
-            if (this.registro.sede_id == 1) {
-                this.sedeInterface = true;
-            } else {
-                this.sedeInterface = false;
-            }
             this.registros = [];
+        },
+        btnLimpiar() {
+            this.busqueda.bus_fehc_ini = "";
+            this.busqueda.bus_fecha_fin = "";
+            this.buscarStudy();
         },
         mostrarRegistro() {
             this.tituloModal = 'Guardar disponibilidad de citas';
-            this.registro = { sede_id: this.sedeActual, quien_registro_id: this.usuarioactual.id, servicio_id: "" };
+            this.registro = {
+                sede_id: this.sedeActual,
+                quien_registro_id: this.usuarioactual.id,
+                servicio_id: "",
+                total_citas: 1,
+                dura_cita: 15,
+                fecha_hora_ini: "",
+            };
             this.errores = [];
             $('#right-sidebar').addClass('shw-rside');
+        },
+        cerrarModal() {
+            $('#right-sidebar').removeClass('shw-rside');
         },
     },
 };

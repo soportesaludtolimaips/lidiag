@@ -6,5 +6,5 @@
         $permisos = auth()->user()->getAllPermissions()->pluck('name');
     @endphp
 
-    <ecografias-lectura-component :usuarioactual="{{ Auth::user() }}" :permisos="{{ $permisos }}" />
+    <ecografias-lectura-component :usuarioactual='@json(Auth::user())' :permisos='@json($permisos)' />
 @endsection

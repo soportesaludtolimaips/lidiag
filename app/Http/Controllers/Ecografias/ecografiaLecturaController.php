@@ -12,6 +12,12 @@ use Illuminate\Support\Facades\DB;
 
 class ecografiaLecturaController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:ecografias.leer')->only(['leer', 'listarPendientesPorLectura']);
+    }
+
     /**
      * Registra o actualiza la lectura y opinión de una ecografía.
      *

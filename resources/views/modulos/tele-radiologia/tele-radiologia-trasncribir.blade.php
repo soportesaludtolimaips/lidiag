@@ -1,5 +1,5 @@
 @extends('layouts.app')
 
 @section('content')
-    <tele-radiologia-transcribir-component :usuarioactual="{{ Auth::user() }}" />
+    <tele-radiologia-transcribir-component :usuarioactual='@json(Auth::user())' />
 @endsection

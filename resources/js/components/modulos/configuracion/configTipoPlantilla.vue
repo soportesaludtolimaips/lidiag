@@ -37,8 +37,9 @@
                         <h4 class="card-title">Listado de tipos de plantillas</h4>
                         <h6 class="card-subtitle">Administración de las tipos de plantillas.</h6>
                         <div class="table-responsive m-t-40">
-                            <table id="example23" class="display nowrap table table-hover table-striped table-bordered"
-                                cellspacing="0" width="100%">
+                            <table id="example23" ref="dt"
+                                class="display nowrap table table-hover table-striped table-bordered" cellspacing="0"
+                                width="100%">
                                 <thead>
                                     <tr>
                                         <th width="150px">Tipo de Plantilla</th>
@@ -61,8 +62,10 @@
                                             </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="elimnarRegistro(item.id, item.nom_tipo)">
-                                                <i class="fa fa-trash"></i>
+                                                @click="elimnarRegistro(item.id, item.nom_tipo)"
+                                                :disabled="loadingEliminarId === item.id">
+                                                <i class="fa"
+                                                    :class="loadingEliminarId === item.id ? 'fa-spinner fa-spin' : 'fa-trash'"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -103,7 +106,7 @@
                                             class="form-control" placeholder="Nombre del tipo de plantilla">
                                         <span class="text-danger" v-if="errores.nom_tipo">{{
                                             errores.nom_tipo[0]
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -122,13 +125,15 @@
 
                             <div class="form-actions mt-3">
                                 <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
-                                    v-if="!actualizar">
-                                    <i class="fa fa-check"></i> Guardar
+                                    v-if="!actualizar" :disabled="loadingGuardar">
+                                    <i class="fa" :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"></i>
+                                    Guardar
                                 </button>
 
                                 <button type="button" class="btn btn-warning m-r-5" v-if="actualizar"
-                                    @click="guardarRegistro()">
-                                    <i class="fa fa-pencil"></i> Actualizar
+                                    @click="guardarRegistro()" :disabled="loadingGuardar">
+                                    <i class="fa" :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-pencil'"></i>
+                                    Actualizar
                                 </button>
 
                                 <button type="button" class="btn btn-inverse"
@@ -146,10 +151,16 @@
 </template>
 
 <script>
+import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import { alertError, alertSuccess, confirmAction, handleAxiosErrorToast } from "@/helpers/alerts.js";
+
 export default {
     mounted() {
         this.ListarDatos();
         //this.listarProductos();
+    },
+    beforeUnmount() {
+        safeDestroyDataTable(this.$refs.dt || "#example23");
     },
     data() {
         return {
@@ -159,28 +170,39 @@ export default {
             tituloModal: 'Nuevo registro',
             actualizar: false,
             errores: {},
-            productos: []
+            productos: [],
+            loadingListar: false,
+            loadingGuardar: false,
+            loadingEliminarId: null,
         };
     },
     methods: {
         async ListarDatos() {
-            const res = await axios.get("/config-tipos-plantillas")
-
-            $('#example23').DataTable().destroy();
-            this.registros = res.data;
-            this.$nextTick(() => {
-                $('#example23').DataTable({
-                    dom: 'Bfrtip',
-                    buttons: [
-                        'copy', 'csv', 'excel', 'pdf', 'print'
-                    ]
+            if (this.loadingListar) return;
+            this.loadingListar = true;
+            try {
+                const res = await axios.get("/api/config-tipos-plantillas");
+                safeDestroyDataTable(this.$refs.dt || "#example23");
+                this.registros = res.data;
+                this.$nextTick(() => {
+                    safeInitDataTable(this.$refs.dt || "#example23", {
+                        dom: 'Bfrtip',
+                        buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
+                    });
                 });
-            });
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible listar tipos de plantilla.");
+                this.registros = [];
+            } finally {
+                this.loadingListar = false;
+            }
         },
         async guardarRegistro() {
+            if (this.loadingGuardar) return;
+            this.loadingGuardar = true;
             try {
                 if (this.actualizar === false) {
-                    const res = await axios.post('/config-tipos-plantillas', this.registro);
+                    const res = await axios.post('/api/config-tipos-plantillas', this.registro);
 
                     if (res.status == 200) {
 
@@ -197,7 +219,7 @@ export default {
                         });
                     }
                 } else {
-                    const res = await axios.put('/config-tipos-plantillas/' + this.id, this.registro);
+                    const res = await axios.put('/api/config-tipos-plantillas/' + this.id, this.registro);
                     if (res.status == 200) {
 
                         this.ListarDatos()
@@ -214,43 +236,43 @@ export default {
                     }
                 }
             } catch (error) {
-                console.log(error);
-                this.errores = error.response.data.errors;
+                this.errores = error?.response?.data?.errors || {};
+                handleAxiosErrorToast(error, "No fue posible guardar el tipo de plantilla.");
+            } finally {
+                this.loadingGuardar = false;
             }
         },
-        elimnarRegistro(id, nom) {
-            var $this = this;
-            swal({
-                title: "Estas seguro de eliminar el tipo de plantillas " + nom + "?",
+        async elimnarRegistro(id, nom) {
+            const ok = await confirmAction({
+                title: `Estas seguro de eliminar el tipo de plantillas ${nom}?`,
                 text: "No podrás recuperar este registro!",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "si, eliminarlo!",
-                closeOnConfirm: false
-            }, function (isConfirm) {
-                if (isConfirm) {
-                    axios.delete('/config-tipos-plantillas/' + id).then(response => {
-                        swal("Ok!!!!", response.data.message, "success");
-                        $this.ListarDatos()
-                    }).catch(error => {
-                        console.log(error)
-                    })
-                }
+                icon: "warning",
             });
+            if (!ok) return;
+
+            try {
+                if (this.loadingEliminarId) return;
+                this.loadingEliminarId = id;
+                const response = await axios.delete('/api/config-tipos-plantillas/' + id);
+                alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
+                this.ListarDatos();
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
+                alertError("Error", "No fue posible eliminar el registro.", "error");
+            } finally {
+                this.loadingEliminarId = null;
+            }
         },
         mostrarRegistro(data = {}) {
             if (this.actualizar == true) {
                 this.tituloModal = "Actualizar el registro: " + data.nom_tipo;
                 this.id = data.id;
-                this.registro.producto_id = data.producti_id;
                 this.registro.nom_tipo = data.nom_tipo;
                 this.registro.estado = data.estado;
             } else {
                 this.actualizar = false;
                 this.tituloModal = "Nuevo registro";
                 this.id = 0;
-                this.registro.producto_id = "";
                 this.registro.nom_tipo = "";
                 this.registro.estado = 1;
             }

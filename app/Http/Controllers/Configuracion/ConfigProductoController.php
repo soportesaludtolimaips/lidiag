@@ -12,9 +12,8 @@ class ConfigProductoController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
-        // Permitir lectura de catálogos a quienes asignan/leen/transcriben estudios (sin abrir CRUD completo)
-        $this->middleware('permission:config.productos.index|estudio.asignar|estudio.transcribir|estudio.leerEstudio')->only(['index', 'show']);
+        // Catálogo público: solo proteger escrituras
+        $this->middleware('auth')->only(['store', 'update', 'destroy']);
         $this->middleware('permission:config.productos.create')->only(['store']);
         $this->middleware('permission:config.productos.edit')->only(['update']);
         $this->middleware('permission:config.productos.destroy')->only(['destroy']);

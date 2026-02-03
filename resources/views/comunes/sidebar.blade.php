@@ -20,7 +20,7 @@
                         <li><a href="index4.html">Modern</a></li>
                     </ul> --}}
                     </li>
-                    @if (auth()->user()->hasAnyPermission(['gestion.pacientes.index', 'gestion.pacientes.create', 'gestion.pacientes.delete']))
+                    @if (auth()->user()->hasAnyPermission(['gestion.pacientes.index', 'gestion.pacientes.create', 'gestion.pacientes.delete', 'gestion.pacientes.update']))
                         <li class="nav-small-cap">--- PACIENTES</li>
                         <li>
                             <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
@@ -68,22 +68,19 @@
                                         <a href="{{ route('estudios.transcribir.listar') }}">
                                             <i class="fa fa-search text-info"></i> Pendientes por transcribir
                                         </a>
-                                        {{-- <a href="{{ route('estudios.otrasPlataformas.listar') }}">
-                                            <i class="fa fa-search text-info"></i> Estudios en otras plataforma
-                                        </a> --}}
                                         <a href="{{ route('estudios.teleradiologis.listar') }}">
                                             <i class="fa fa-search text-info"></i> Tele Radiologia
                                         </a>
                                     </li>
                                 @endcan
-                                @can('estudio.leerEstudio')
+                                @canany('estudio.leerEstudio')
                                     <li>
                                         <a href="{{ route('estudios.leer.estudio.listar') }}">
                                             <i class="fa fa-search text-info"></i> Pendientes por leer
                                         </a>
                                     </li>
-                                @endcan
-                                @canany(['estudios.notificar.index', 'estudios.reporteLectura.index'])
+                                @endcanany
+                                @canany('estudios.notificar.index')
                                     <li>
                                         <a href="{{ route('estudios.notificar.index') }}">
                                             <i class="fa fa-envelope-o text-info"></i> Notificar estudio
@@ -195,7 +192,7 @@
                             </ul>
                         </li>
                     @endif
-                    @if (auth()->user()->hasAnyPermission(['agendamiento.agendamiento.index', 'agendamiento.agendamiento.create', 'agendamiento.agendamiento.delete', 'agendamiento.agendamiento.update', 'agendamiento.agendamiento.interectuar']))
+                    @if (auth()->user()->hasAnyPermission(['agendamiento.agendamiento.index', 'agendamiento.agendamiento.create', 'agendamiento.agendamiento.delete', 'agendamiento.agendamiento.update', 'agendamiento.agendamiento.interectuar', 'agendamiento.solicitudes.index', 'agendamiento.solicitudes.create', 'agendamiento.solicitudes.delete', 'agendamiento.solicitudes.update']))
                         <li class="nav-small-cap">--- Agendamiento</li>
                         <li>
                             <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
@@ -284,7 +281,7 @@
                             </ul>
                         </li>
                     @endif
-                    @if (auth()->user()->hasAnyPermission(['seguridad.usuarios.inde', 'seguridad.roles.index']))
+                    @if (auth()->user()->hasAnyPermission(['seguridad.usuarios.index', 'seguridad.roles.index']))
                         <li class="nav-small-cap">--- Seguridad</li>
                         <li>
                             <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">

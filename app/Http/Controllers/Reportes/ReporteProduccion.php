@@ -9,9 +9,24 @@ use App\Models\Estudio\Estudio;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class ReporteProduccion extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:reportes.detallados|reportes.indicadores')->only(['reporteProduccionDetallado']);
+    }
+
+    private function normalizeNullable($value)
+    {
+        if ($value === null) return null;
+        $v = is_string($value) ? trim($value) : $value;
+        if ($v === '' || $v === '0' || $v === 0 || $v === 'null') return null;
+        return $v;
+    }
+
     /**
      * Genera y descarga un reporte detallado de producción en Excel.
      *
@@ -23,13 +38,30 @@ class ReporteProduccion extends Controller
      */
     public function reporteProduccionDetallado(Request $resquest)
     {
-        
+        $validator = Validator::make($resquest->all(), [
+            'tipo' => 'required|in:Rx,Ecografia',
+            'fechaIni' => 'required|date',
+            'fechaFin' => 'required|date|after_or_equal:fechaIni',
+            'sedeId' => 'nullable',
+            'quien_asigno' => 'nullable',
+            'medico' => 'nullable',
+        ], [
+            'tipo.required' => 'Debes seleccionar el tipo de reporte.',
+            'tipo.in' => 'Tipo de reporte inválido.',
+            'fechaIni.required' => 'Debes seleccionar la fecha inicio.',
+            'fechaFin.required' => 'Debes seleccionar la fecha fin.',
+            'fechaFin.after_or_equal' => 'La fecha fin no puede ser menor que la fecha inicio.',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['message' => 'Datos inválidos', 'errors' => $validator->errors()], 422);
+        }
+
         $fechaInicio = $resquest->fechaIni;
         $fechaFin    = $resquest->fechaFin;
 
-        $sedeId = $resquest->sedeId !== '0' ? $resquest->sedeId : null;
-        $quienAsignoId = $resquest->quien_asigno !== 'null' ? $resquest->quien_asigno : null;
-        $medicoId = $resquest->medico !== 'null' ? $resquest->medico : null;
+        $sedeId = $this->normalizeNullable($resquest->sedeId);
+        $quienAsignoId = $this->normalizeNullable($resquest->quien_asigno);
+        $medicoId = $this->normalizeNullable($resquest->medico);
 
         /* $estudios = DB::table('estudios_productos')
             ->join('estudios', 'estudios_productos.estudio_id', '=', 'estudios.id')
@@ -72,15 +104,13 @@ class ReporteProduccion extends Controller
             ->toSql();
         return $estudios;  */
 
-        // Define el nombre y la ruta del archivo
-        $fileName = 'estudios_' . now()->format('Ymd_His') . '.xlsx';
-        $filePath = $resquest->tipo === 'Rx' ? 'reporte_lecturas/' . $fileName : 'reporte_lecturas_ecografias/' . $fileName;
-        
         if ($resquest->tipo === 'Rx') {
             return Excel::download(new ProduccionDetalladaExport($fechaInicio, $fechaFin, $sedeId, $quienAsignoId, $medicoId),  'produccion lecturas de imagenes diagnosticas.xlsx');
         }
         if ($resquest->tipo === 'Ecografia') {
             return Excel::download(new ProduccionDetalladaEcografiasExport($fechaInicio, $fechaFin, $sedeId, $quienAsignoId, $medicoId),  'produccion lecturas de ecografias.xlsx');
         }
+
+        return response()->json(['message' => 'Tipo de reporte inválido.'], 422);
     }
 }

@@ -15,7 +15,8 @@ return [
     |
     */
 
-    'paths' => ['api/*', ''],
+    // No exponer CORS en paths vacíos (equivalente a "todo").
+    'paths' => ['api/*'],
 
     'allowed_methods' => ['*'],
 

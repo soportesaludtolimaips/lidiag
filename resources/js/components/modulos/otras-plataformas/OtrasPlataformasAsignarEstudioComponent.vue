@@ -65,8 +65,10 @@
                                 </div>
 
                                 <div class="form-actions mt-3">
-                                    <button type="button" class="btn btn-success m-r-5" @click="buscarStudy()">
-                                        <i class="fa fa-search"></i> Buscar
+                                    <button type="button" class="btn btn-success m-r-5" @click="buscarStudy()"
+                                        :disabled="loadingBuscar">
+                                        <i class="fa" :class="loadingBuscar ? 'fa-spinner fa-spin' : 'fa-search'"></i>
+                                        {{ loadingBuscar ? 'Buscando...' : 'Buscar' }}
                                     </button>
 
                                     <button type="button" class="btn btn-inverse" @click="btnLimpiar()">
@@ -89,7 +91,7 @@
                             lectura.
                         </h6>
                         <div class="table-responsive">
-                            <table id="example23" class="table table-bordered table-striped" cellspacing="0"
+                            <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
                                 width="100%">
                                 <thead>
                                     <tr>
@@ -118,8 +120,10 @@
                                             </button>
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
-                                                @click="verImagen(item.pat_id, item.study_iuid)" title="Ver imagenes">
-                                                <i class="fa fa-file-photo-o"></i>
+                                                @click="verImagen(item.pat_id, item.study_iuid, index)"
+                                                :disabled="loadingVerImagenIndex === index" title="Ver imagenes">
+                                                <i class="fa"
+                                                    :class="loadingVerImagenIndex === index ? 'fa-spinner fa-spin' : 'fa-file-photo-o'"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -214,11 +218,8 @@
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label class="control-label">Télefono</label>
-                                                <input type="number" id="telefono" name="telefono"
-                                                    v-model="registro.telefono" class="form-control" />
-                                                <!-- <span class="text-danger" v-if="errores.telefono">
-                                                    {{ errores.telefono[0] }}
-                                                </span> -->
+                                                <input type="number" id="tel" name="tel" v-model="registro.tel"
+                                                    class="form-control" />
                                             </div>
                                         </div>
                                         <div class="col-md-5">
@@ -407,9 +408,10 @@
                                                         :key="item.id">
                                                         <td>
                                                             <input type="checkbox" class="iCheck-helper"
-                                                                id="flat-checkbox-2" data-checkbox="icheckbox_flat-red"
+                                                                :id="`producto-check-${index}`"
+                                                                data-checkbox="icheckbox_flat-red"
                                                                 v-model="item.checked">
-                                                            <label for="flat-checkbox-2"></label>
+                                                            <label :for="`producto-check-${index}`"></label>
                                                         </td>
                                                         <td>{{ item.cod_cups }}</td>
                                                         <td>{{ item.nom_produc }}</td>
@@ -477,8 +479,10 @@
                             </div>
 
                             <div class="form-actions mt-3">
-                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()">
-                                    <i class="fa fa-check"></i> Guardar
+                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
+                                    :disabled="loadingGuardar">
+                                    <i class="fa" :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"></i>
+                                    {{ loadingGuardar ? 'Guardando...' : 'Guardar' }}
                                 </button>
 
                                 <button type="button" class="btn btn-inverse" @click="cerrarModal()">Cancel</button>
@@ -495,6 +499,9 @@
 </template>
 
 <script>
+import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import { handleAxiosErrorToast } from "@/helpers/alerts";
+
 export default {
     props: ['usuarioactual'],
     mounted() {
@@ -508,8 +515,11 @@ export default {
         this.emitter.on("sedeSeleccionada", (data) => {
             this.registro.sede_id = data.idSede;
             this.establecerSede();
-            $("#example23").DataTable().destroy();
+            safeDestroyDataTable(this.$refs.dt || "#example23");
         });
+    },
+    beforeUnmount() {
+        safeDestroyDataTable(this.$refs.dt || "#example23");
     },
     data() {
         return {
@@ -519,7 +529,7 @@ export default {
             tituloModal: "Nuevo registro",
             registro: {
                 study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", mods_in_study: "", observaciones: "", medico_id: "", prioridad_id: "",
-                sede_id: this.sedeActual, quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", telefono: "",
+                sede_id: this.sedeActual, quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", tel: "",
                 productosEstudio: [], diagnosticosEstudio: [], atencion_id: null, destino_estudio: 'Teleradiologia'
             },
             soportesHC: { archivo1: null, archivo2: null, archivo3: null }, //Soporte de historia clinica
@@ -539,6 +549,9 @@ export default {
             sedeInterface: false,
             idRow: null,
             selectedRows: {},
+            loadingBuscar: false,
+            loadingGuardar: false,
+            loadingVerImagenIndex: null,
         };
     },
     computed: {
@@ -558,9 +571,11 @@ export default {
     methods: {
         async buscarStudy() {
 
-            $("#example23").DataTable().destroy();
+            safeDestroyDataTable(this.$refs.dt || "#example23");
 
             try {
+                if (this.loadingBuscar) return;
+                this.loadingBuscar = true;
                 if (sessionStorage.getItem('ST-sede') == null) {
                     $.toast({
                         heading: "Upsss!!!",
@@ -582,14 +597,39 @@ export default {
                         stack: 6,
                     });
                 } else {
-                    const res = await axios.post("/study.listarEstudios", this.busqueda);
+                    // Validación de rango de fechas
+                    if ((this.busqueda.bus_fehc_ini && !this.busqueda.bus_fecha_fin) || (!this.busqueda.bus_fehc_ini && this.busqueda.bus_fecha_fin)) {
+                        $.toast({
+                            heading: "Upsss!!!",
+                            text: "Debes diligenciar Fecha Inicio y Fecha Fin.",
+                            position: "top-right",
+                            loaderBg: "#ff6849",
+                            icon: "warning",
+                            hideAfter: 3500,
+                            stack: 6,
+                        });
+                        return;
+                    }
+                    if (this.busqueda.bus_fehc_ini && this.busqueda.bus_fecha_fin && this.busqueda.bus_fehc_ini > this.busqueda.bus_fecha_fin) {
+                        $.toast({
+                            heading: "Upsss!!!",
+                            text: "La Fecha Inicio no puede ser mayor que la Fecha Fin.",
+                            position: "top-right",
+                            loaderBg: "#ff6849",
+                            icon: "warning",
+                            hideAfter: 3500,
+                            stack: 6,
+                        });
+                        return;
+                    }
+                    const res = await axios.post("/api/study.listarEstudios", this.busqueda);
 
                     if (res.status == 200) {
-                        $("#example23").DataTable().destroy();
+                        safeDestroyDataTable(this.$refs.dt || "#example23");
 
                         this.registros = res.data;
                         this.$nextTick(() => {
-                            $("#example23").DataTable({
+                            safeInitDataTable(this.$refs.dt || "#example23", {
                                 dom: "Bfrtip",
                                 buttons: ["copy", "csv", "excel", "pdf", "print"],
                             });
@@ -609,23 +649,15 @@ export default {
                     }
                 }
             } catch (error) {
-                console.log(error)
-                if (error.response.status == 500) {
-                    $.toast({
-                        heading: "Upss!!!",
-                        text: error.response.data.message,
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "error",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                }
-
-                this.erroresBusqueda = error.response.data.errors;
+                this.erroresBusqueda = error?.response?.data?.errors || {};
+                handleAxiosErrorToast(error, "No fue posible listar estudios.");
+            } finally {
+                this.loadingBuscar = false;
             }
         },
         async guardarRegistro() {
+            if (this.loadingGuardar) return;
+            this.loadingGuardar = true;
             try {
                 const formData = new FormData();
                 formData.append('registro', JSON.stringify(this.registro));
@@ -633,11 +665,11 @@ export default {
                 formData.append('archivo2', this.soportesHC.archivo2);
                 formData.append('archivo3', this.soportesHC.archivo3);
 
-                const res = await axios.post('/estudios', formData, {
+                const res = await axios.post('/api/estudios', formData, {
                     headers: { "Content-Type": "multipart/form-data" }
                 });
 
-                if (res.status == 200) {
+                if (res.status == 200 || res.status === 201) {
                     $.toast({
                         heading: "Ok!!!",
                         text: res.data.message,
@@ -657,18 +689,10 @@ export default {
                 this.limpiar(); */
 
             } catch (error) {
-                this.errores = error.response.data;
-                if (error.response.status == 400) {
-                    $.toast({
-                        heading: "Upsss!!!",
-                        text: error.response.data.message,
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "warning",
-                        hideAfter: 5500,
-                        stack: 6,
-                    });
-                }
+                this.errores = error?.response?.data?.errors || error?.response?.data || {};
+                handleAxiosErrorToast(error, "No fue posible guardar el registro.");
+            } finally {
+                this.loadingGuardar = false;
             }
         },
         obtenerArchivo1(e) {
@@ -705,9 +729,9 @@ export default {
             /**
              * Verificar si la sede tiene interface, traigo la informacion de las producto y diagnosticos
              */
-            const res = await axios.get('/config-sedes/' + this.sedeActual + '/buscarPorId');
+            const res = await axios.get('/api/config-sedes/' + this.sedeActual + '/buscarPorId');
             if (res.data.interface_software != null) {
-                const resAtenciones = await axios.get('/interface-sahi-listar-atenciones/' + this.registro.num_docu);
+                const resAtenciones = await axios.get('/api/interface-sahi-listar-atenciones/' + this.registro.num_docu);
                 this.interfaceAtenciones = resAtenciones.data
             }
         },
@@ -715,7 +739,7 @@ export default {
             /**
              * Listo los productos de una atención
              */
-            const resProuctos = await axios.get('/interface-sahi-listar-listarProductosDiagnosticos/' + this.interfaceAtencionSeleccionada);
+            const resProuctos = await axios.get('/api/interface-sahi-listar-listarProductosDiagnosticos/' + this.interfaceAtencionSeleccionada);
 
             this.registro.productosEstudio = [];
             if (resProuctos.data.productos.length > 0) {
@@ -739,14 +763,15 @@ export default {
 
             this.registro.atencion_id = this.interfaceAtencionSeleccionada;
         },
-        establecerSede() {
+        async establecerSede() {
             this.registro.sede_id = sessionStorage.getItem('ST-sede');
             this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
             this.sedeActual = sessionStorage.getItem('ST-sede');
 
-            if (this.registro.sede_id == 1) {
-                this.sedeInterface = true;
-            } else {
+            try {
+                const res = await axios.get(`/config-sedes/${this.sedeActual}/buscarPorId`);
+                this.sedeInterface = (res?.data?.interface_software === 'SAHI');
+            } catch (error) {
                 this.sedeInterface = false;
             }
             this.registros = [];
@@ -795,34 +820,41 @@ export default {
         },
         async listarMedicos() {
             try {
-                const res = await axios.get("/user.listarUsuarios/Medico/1");
+                const pathname = String(window?.location?.pathname || "").toLowerCase();
+                const moduloId = sessionStorage.getItem("ST-modulo")
+                    || (pathname.includes("ecografia") ? "2" : "1");
+                const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
                 this.medicos = res.data;
             } catch (error) {
-                console.log(error);
+                handleAxiosErrorToast(error, "No fue posible listar médicos.");
+                this.medicos = [];
             }
         },
         async listarPrioridades() {
             try {
-                const res = await axios.get("/config-prioridades");
+                const res = await axios.get("/api/config-prioridades");
                 this.prioridades = res.data;
             } catch (error) {
-                console.log(error);
+                handleAxiosErrorToast(error, "No fue posible listar prioridades.");
+                this.prioridades = [];
             }
         },
         async listarProductos() {
             try {
-                const res = await axios.get("/config-productos");
+                const res = await axios.get("/api/config-productos");
                 this.productos = res.data;
             } catch (error) {
-                console.log(error);
+                handleAxiosErrorToast(error, "No fue posible listar productos.");
+                this.productos = [];
             }
         },
         async listarDiagnosticos() {
             try {
-                const res = await axios.get("/config-diagnosticos");
+                const res = await axios.get("/api/config-diagnosticos");
                 this.diagnosticos = res.data;
             } catch (error) {
-                console.log(error);
+                handleAxiosErrorToast(error, "No fue posible listar diagnósticos.");
+                this.diagnosticos = [];
             }
         },
         onMedicoSelect(value) {
@@ -911,9 +943,20 @@ export default {
         quitarDiagnosticoEstudio(indexEliminar) {
             this.registro.diagnosticosEstudio.splice(indexEliminar, 1);
         },
-        verImagen(pat_id, study_iuid) {
-            let Url = sessionStorage.getItem('ST-urlsede') + '?patientID =' + pat_id + '&studyUID=' + study_iuid + '&serverName=' + sessionStorage.getItem('ST-servername')
-            window.open(Url, '_blank');
+        verImagen(pat_id, study_iuid, index = null) {
+            try {
+                if (index != null) this.loadingVerImagenIndex = index;
+                const base = sessionStorage.getItem('ST-urlsede') || '';
+                const params = new URLSearchParams({
+                    patientID: String(pat_id ?? ''),
+                    studyUID: String(study_iuid ?? ''),
+                    serverName: String(sessionStorage.getItem('ST-servername') || ''),
+                });
+                const url = `${base}?${params.toString()}`;
+                window.open(url, '_blank');
+            } finally {
+                this.loadingVerImagenIndex = null;
+            }
         },
 
     },

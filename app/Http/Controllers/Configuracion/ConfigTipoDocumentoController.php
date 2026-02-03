@@ -8,6 +8,15 @@ use Illuminate\Http\Request;
 
 class ConfigTipoDocumentoController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:config.tipo.documento.index')->only(['index', 'show', 'listarActivos']);
+        $this->middleware('permission:config.tipo.documento.create')->only(['store']);
+        $this->middleware('permission:config.tipo.documento.edit')->only(['update']);
+        $this->middleware('permission:config.tipo.documento.destroy')->only(['destroy']);
+    }
+
     /**
      * Lista todos los tipos de documento.
      *
@@ -18,7 +27,7 @@ class ConfigTipoDocumentoController extends Controller
         $tiposDocumento = ConfigTipoDocumento::all();
         return response()->json($tiposDocumento);
     }
-    
+
     /**
      * Crea un nuevo tipo de documento.
      *
@@ -27,6 +36,11 @@ class ConfigTipoDocumentoController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'codigo' => 'required|string|max:20',
+            'tipo_documento' => 'required|string|max:100',
+            'estado' => 'nullable|boolean',
+        ]);
         $tipoDocumento = ConfigTipoDocumento::create($request->all());
         return response()->json($tipoDocumento);
     }
@@ -57,6 +71,11 @@ class ConfigTipoDocumentoController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $request->validate([
+            'codigo' => 'required|string|max:20',
+            'tipo_documento' => 'required|string|max:100',
+            'estado' => 'nullable|boolean',
+        ]);
         $tipoDocumento = ConfigTipoDocumento::find($id);
         if (!$tipoDocumento) {
             return response()->json([
@@ -84,7 +103,7 @@ class ConfigTipoDocumentoController extends Controller
         }
 
         $tipoDocumento->delete();
-        
+
         return response()->json([
             'message' => 'Tipo de documento eliminado'
         ]);

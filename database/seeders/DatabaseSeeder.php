@@ -41,9 +41,8 @@ class DatabaseSeeder extends Seeder
         $this->call(PermisionConsentimientoInformadoSeeder::class);
         $this->call(PermisionConfigTipoDocumentoSeeder::class);
         $this->call(TipoDocumentoSeeder::class);
-        $this->call(PlantillaSeeder::class);
-
         $this->call(RoleSeeder::class);
+        $this->call(PlantillaSeeder::class);
         $this->call(UserSeeder::class);
         $this->call(RoleSeederReporteLectura::class);
         $this->call(RoleSeederAgenda::class);

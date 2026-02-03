@@ -11,11 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('agenda_disponibilidas_detalle', function (Blueprint $table) {
+        Schema::create('agenda_disponibilidad_detalle', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('agenda_disponibilida_id');
-            $table->foreign('agenda_disponibilida_id')->references('id')->on('agenda_disponibilida');
-            $table->datetimes('fecha_hora_inicio', 'fecha_hora_fin');
+            $table->foreign('agenda_disponibilida_id')->references('id')->on('agenda_disponibilidad');
+            $table->dateTime('fecha_hora_inicio');
+            $table->dateTime('fecha_hora_fin');
+            $table->enum('estado', ['Disponible', 'Reservado', 'Cancelado'])->default('Disponible');
             $table->timestamps();
         });
     }
@@ -25,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('agenda_disponibilidas_detalle');
+        Schema::dropIfExists('agenda_disponibilidad_detalle');
     }
 };

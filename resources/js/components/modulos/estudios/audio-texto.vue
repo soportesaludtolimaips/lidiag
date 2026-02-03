@@ -108,23 +108,18 @@ export default {
             if (!this.recognizing) {
                 this.startRecording();
             } else if (this.mediaRecorder) {
-                console.log('antes mediaRecorder.state: ', this.mediaRecorder.state);
                 if (this.mediaRecorder.state === "recording") {
-                    console.log("⏸️ Pausando grabación...");
                     this.mediaRecorder.pause();
                     this.microfono = 'admin-wrap/assets/images/mic.gif';
                 } else if (this.mediaRecorder.state === "paused" || this.mediaRecorder.state === "inactive") {
-                    console.log("▶️ Reanudando grabación...");
                     this.mediaRecorder.resume();
                     this.microfono = 'admin-wrap/assets/images/mic-animate.gif';
                 }
-                console.log('despues mediaRecorder.state: ', this.mediaRecorder.state);
             }
         },
         startRecording() {
-            console.log('Inicio startRecording')
             if (!this.recognition) {
-                this.recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                this.recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition)();
                 this.recognition.lang = 'es-ES';
                 this.recognition.continuous = true;
                 this.recognition.interimResults = true;
@@ -142,11 +137,8 @@ export default {
                     for (let i = event.resultIndex; i < event.results.length; i++) {
                         if (event.results[i].isFinal) {
                             let text = event.results[i][0].transcript.trim();
-                            console.log("Texto reconocido antes de procesar:", text); // Verifica lo que se reconoce antes
 
                             text = this.processCommands(text); // Aplica los comandos correctamente
-
-                            console.log("Texto después de procesar comandos:", text); // Verifica después de aplicar comandos
 
                             finalText += text + ' ';
                         }
@@ -156,7 +148,6 @@ export default {
 
                 this.recognition.onend = () => {
                     if (this.recognizing) {
-                        console.log("Reconocimiento finalizado, reiniciando...");
                         setTimeout(() => this.recognition.start(), 500);
                     }
                 };
@@ -174,10 +165,15 @@ export default {
             this.microfono = 'admin-wrap/assets/images/mic-animate.gif';
 
             navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-                this.mediaRecorder = new MediaRecorder(stream, {
-                    mimeType: "audio/webm;codecs=opus",
-                    audioBitsPerSecond: 64000, // Reduce la calidad (valores entre 16kbps y 128kbps)
-                });
+                try {
+                    this.mediaRecorder = new MediaRecorder(stream, {
+                        mimeType: "audio/webm;codecs=opus",
+                        audioBitsPerSecond: 64000, // Reduce la calidad (valores entre 16kbps y 128kbps)
+                    });
+                } catch (e) {
+                    // Fallback for browsers that don't support the mimeType
+                    this.mediaRecorder = new MediaRecorder(stream);
+                }
                 this.audioChunks = [];
 
                 this.mediaRecorder.ondataavailable = (event) => {
