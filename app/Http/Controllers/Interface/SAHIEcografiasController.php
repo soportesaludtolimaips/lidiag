@@ -3,24 +3,22 @@
 namespace App\Http\Controllers\Interface;
 
 use App\Http\Controllers\Controller;
-use App\Models\Ecografias\Ecografia;
-use App\Models\Interface\Sahi\Atencion;
-use App\Models\Interface\Sahi\FacFactura;
+use App\Models\Configuracion\ConfigProducto;
+use App\Models\Consentimientos\ConsentimientoPlantilla;
+use App\Models\Consentimientos\EcografiaConsentimiento;
 use App\Models\Interface\Sahi\facFacturaDet;
-use App\Models\Interface\Sahi\FacMovimiento;
 use App\Models\Interface\Sahi\FacMovimientoDet;
-use App\Models\Interface\Sahi\HceConsulta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Symfony\Contracts\Service\Attribute\Required;
 
 class SAHIEcografiasController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        // Estas rutas se exponen por /api (ver routes/api_ecografias.php)
+        $this->middleware('auth:sanctum');
         // Este endpoint se usa en admisión/listado de ecografías
-        $this->middleware('permission:ecografias.admision|ecografias.index')->only(['listarProductosAtencion']);
+        $this->middleware('permission:ecografias.admision|ecografias.index,web')->only(['listarProductosAtencion']);
     }
 
     /**
@@ -29,7 +27,7 @@ class SAHIEcografiasController extends Controller
      * Similar a `SAHIController@listarProductosAtencion`, pero filtra específicamente por grupos
      * de productos relacionados con ecografías y devuelve la lista unificada.
      *
-     * @param Request $request ID de la atención (`bus_nom_num_docu`).
+     * @param  Request  $request  ID de la atención (`bus_nom_num_docu`).
      * @return \Illuminate\Http\JsonResponse Lista de productos de ecografía.
      */
     public function listarProductosAtencion(Request $request)
@@ -129,9 +127,38 @@ class SAHIEcografiasController extends Controller
         if ($quienOrdeno) {
             $atencionesSahi->transform(function ($row) use ($quienOrdeno) {
                 $row->quien_ordeno = $quienOrdeno;
+
                 return $row;
             });
         }
+
+        /**
+         * Consentimientos (Ecografías)
+         * - Se mapea SAHI proProducto.CodProducto -> config_productos.cod_cups
+         * - Se marca si el producto tiene plantilla vigente configurada para el módulo Ecografías (config_modulos.id=2)
+         */
+        $moduloEcografiasId = 2;
+        $cods = $atencionesSahi
+            ->map(fn ($r) => trim((string) ($r->CodProducto ?? '')))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $configProductos = ConfigProducto::query()
+            ->select(['id', 'cod_cups'])
+            ->whereIn('cod_cups', $cods->all())
+            ->get()
+            ->keyBy('cod_cups');
+
+        $productoIds = $configProductos->pluck('id')->values();
+
+        $plantillasVigentes = ConsentimientoPlantilla::query()
+            ->select(['id', 'producto_id'])
+            ->where('config_modulo_id', $moduloEcografiasId)
+            ->where('vigente', true)
+            ->whereIn('producto_id', $productoIds->all())
+            ->get()
+            ->keyBy('producto_id');
 
         // Enriquecer con estado en LIDiag (si la atención/producto ya fue admitida)
         // Nota: ecografias.atencion_id (string) debe corresponder al IdAtencion SAHI.
@@ -155,7 +182,15 @@ class SAHIEcografiasController extends Controller
             ->get()
             ->keyBy('producto_id');
 
-        $atencionesSahi = $atencionesSahi->map(function ($row) use ($local) {
+        $ecografiaProductoIds = $local->pluck('ecografia_producto_id')->filter()->values();
+        $consentimientos = EcografiaConsentimiento::query()
+            ->select(['id', 'ecografia_producto_id', 'estado'])
+            ->where('vigente', true)
+            ->whereIn('ecografia_producto_id', $ecografiaProductoIds->all())
+            ->get()
+            ->keyBy('ecografia_producto_id');
+
+        $atencionesSahi = $atencionesSahi->map(function ($row) use ($local, $configProductos, $plantillasVigentes, $consentimientos) {
             $productoId = (int) ($row->IdProducto ?? 0);
             $match = $productoId && isset($local[$productoId]) ? $local[$productoId] : null;
 
@@ -170,6 +205,27 @@ class SAHIEcografiasController extends Controller
             $row->error_envio_sahi = $match?->error_envio_sahi ?? null;
             $row->sahi_esquema_149 = $match?->sahi_esquema_149 ?? null;
             $row->sahi_esquema_150 = $match?->sahi_esquema_150 ?? null;
+
+            // Consentimientos: plantilla configurada + estado (si ya existe consentimiento)
+            $cod = trim((string) ($row->CodProducto ?? ''));
+            $cfg = $cod && isset($configProductos[$cod]) ? $configProductos[$cod] : null;
+            $cfgId = $cfg?->id ? (int) $cfg->id : null;
+
+            $row->config_producto_id = $cfgId;
+            $row->tiene_plantilla_consentimiento = $cfgId ? isset($plantillasVigentes[$cfgId]) : false;
+
+            $row->consentimiento_id = null;
+            $row->consentimiento_estado = null;
+            $row->consentimiento_bloquea = false;
+
+            $epId = $row->ecografia_producto_id ? (int) $row->ecografia_producto_id : null;
+            if ($epId && isset($consentimientos[$epId])) {
+                $c = $consentimientos[$epId];
+                $row->consentimiento_id = (int) $c->id;
+                $row->consentimiento_estado = (string) $c->estado;
+                // Bloquea lectura solo si falta firma paciente/acompañante
+                $row->consentimiento_bloquea = $row->tiene_plantilla_consentimiento && $c->estado === 'PENDIENTE_PACIENTE';
+            }
 
             return $row;
         });

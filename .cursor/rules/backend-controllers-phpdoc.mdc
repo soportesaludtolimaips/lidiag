@@ -1,0 +1,32 @@
+---
+description: Backend: estándares de PHPDoc en controladores (con flujo del proceso)
+globs: app/Http/Controllers/**/*.php
+alwaysApply: false
+---
+
+# PHPDoc en controladores (LIDiag)
+
+- Cada método “real” (no trivial) debe tener PHPDoc con:
+  - **Descripción** (1–2 líneas)
+  - **Flujo del proceso** (lista numerada de pasos)
+  - `@param` y `@return` correctos
+
+## Fuente de verdad
+
+- Estándar: `docs/CODING_STANDARDS.md`
+- Índice/overview: `docs/CONTROLLERS.md` (si agregas controlador o métodos relevantes)
+
+## Mini plantilla
+
+```php
+/**
+ * [Qué hace].
+ *
+ * Flujo del proceso:
+ * 1. ...
+ * 2. ...
+ *
+ * @param Request $request ...
+ * @return \Illuminate\Http\JsonResponse ...
+ */
+```

@@ -5,19 +5,19 @@ namespace App\Http\Controllers\Estudios;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Interface\SAHIController;
 use App\Http\Controllers\Interface\SAHITranscibirController;
-use App\Models\General\Paciente;
+use App\Models\Configuracion\ConfigProducto;
+use App\Models\Configuracion\ConfigSede;
 use App\Models\Estudio\Estudio;
 use App\Models\Estudio\EstudioDiagnostico;
 use App\Models\Estudio\EstudioProducto;
+use App\Models\Estudio\EstudioSoportesHC;
+use App\Models\General\Paciente;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use App\Models\Configuracion\ConfigProducto;
-use App\Models\Configuracion\ConfigSede;
-use App\Models\Estudio\EstudioSoportesHC;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
 
 class EstudioController extends Controller
 {
@@ -27,6 +27,7 @@ class EstudioController extends Controller
     {
         $this->middleware('auth');
     }
+
     /**
      * Display a listing of the resource.
      *
@@ -40,13 +41,13 @@ class EstudioController extends Controller
     public function index()
     {
         $estudios = Estudio::all();
+
         return response()->json($estudios);
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     /**
@@ -62,7 +63,7 @@ class EstudioController extends Controller
      * 7. Procesa y guarda los archivos de soporte (HC) si existen.
      * 8. Retorna confirmación.
      *
-     * @param Request $request Datos del estudio y archivos.
+     * @param  Request  $request  Datos del estudio y archivos.
      * @return \Illuminate\Http\JsonResponse Confirmación de creación o errores.
      */
     public function store(Request $request)
@@ -110,7 +111,7 @@ class EstudioController extends Controller
         // Asegurar que venga al menos un producto marcado (checked=true)
         $productosMarcados = array_values(array_filter(
             $registro['productosEstudio'] ?? [],
-            fn($p) => isset($p['checked']) && $p['checked'] == true
+            fn ($p) => isset($p['checked']) && $p['checked'] == true
         ));
         if (count($productosMarcados) === 0) {
             return response()->json(['productosEstudio' => ['Debe seleccionar al menos un producto (marcar el check).']], 400);
@@ -130,7 +131,7 @@ class EstudioController extends Controller
                 'fec_naci' => $registro['fec_naci'],
                 // Unificar nombre de campo: el frontend envía `tel` (con fallback a `telefono` por compatibilidad)
                 'tel' => $registro['tel'] ?? ($registro['telefono'] ?? null),
-                'email' => $registro['email']
+                'email' => $registro['email'],
             ]
         );
 
@@ -154,7 +155,8 @@ class EstudioController extends Controller
                 $servicio = $buscarDatos[0]->NomUbicacion;
             }
         }
-        //return $registro['destino_estudio'];
+
+        // return $registro['destino_estudio'];
         /**
          * Inserto el estudio en Lidiag
          */
@@ -186,7 +188,7 @@ class EstudioController extends Controller
             );
 
             if ($registro['destino_estudio'] === 'Salud Tolima') {
-                $estudio->medico_id =  $registro['medico_id'];
+                $estudio->medico_id = $registro['medico_id'];
             } else {
                 $estudio->destino_estudio_id = $registro['destino_estudio_id'] ?? null;
             }
@@ -197,11 +199,11 @@ class EstudioController extends Controller
             foreach ($productosMarcados as $Producto) {
                 $productoDicom = ConfigProducto::where('cod_cups', $Producto['cod_cups'])->first();
 
-                if (!$productoDicom) {
-                    return response()->json(['message' => 'No se encontró el producto con código CUPS ' . $Producto['cod_cups'] . ' en la base de datos.'], 400);
+                if (! $productoDicom) {
+                    return response()->json(['message' => 'No se encontró el producto con código CUPS '.$Producto['cod_cups'].' en la base de datos.'], 400);
                 }
-                if ((int)$productoDicom->requi_lectura === 0) {
-                    return response()->json(['message' => 'El producto ' . $productoDicom->nom_produc . ' no requiere lectura.'], 400);
+                if ((int) $productoDicom->requi_lectura === 0) {
+                    return response()->json(['message' => 'El producto '.$productoDicom->nom_produc.' no requiere lectura.'], 400);
                 }
 
                 EstudioProducto::create([
@@ -215,7 +217,7 @@ class EstudioController extends Controller
             // Reemplazar diagnósticos (si llegan)
             EstudioDiagnostico::where('estudio_id', $estudio->id)->delete();
             foreach (($registro['diagnosticosEstudio'] ?? []) as $Diagnostico) {
-                if (!isset($Diagnostico['cod_diagnos']) || !isset($Diagnostico['nom_diagnos'])) {
+                if (! isset($Diagnostico['cod_diagnos']) || ! isset($Diagnostico['nom_diagnos'])) {
                     continue;
                 }
                 EstudioDiagnostico::create([
@@ -243,16 +245,16 @@ class EstudioController extends Controller
     /**
      * Procesa y almacena un archivo de soporte de Historia Clínica.
      *
-     * @param \Illuminate\Http\UploadedFile $archivo Archivo a procesar.
-     * @param int $estudioId ID del estudio asociado.
+     * @param  \Illuminate\Http\UploadedFile  $archivo  Archivo a procesar.
+     * @param  int  $estudioId  ID del estudio asociado.
      * @return void
      */
-    function procesarArchivo($archivo, $estudioId)
+    public function procesarArchivo($archivo, $estudioId)
     {
-        $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+        $nombreEncrip = Str::random(50).".".$archivo->extension();
         $nombreOriginal = $archivo->getClientOriginalName();
 
-        $archivoSoporteHC = new EstudioSoportesHC();
+        $archivoSoporteHC = new EstudioSoportesHC;
         $archivoSoporteHC->estudio_id = $estudioId;
         $archivoSoporteHC->archivo_original = $nombreOriginal;
         $archivoSoporteHC->archivo_encrip = $nombreEncrip;
@@ -270,8 +272,8 @@ class EstudioController extends Controller
      * 3. Ordena por prioridad (nivel).
      * 4. Retorna la lista de pendientes.
      *
-     * @param Request $request Filtros (id médico, sede_id).
-     * @param Estudio $estudio Instancia vacía (no usada).
+     * @param  Request  $request  Filtros (id médico, sede_id).
+     * @param  Estudio  $estudio  Instancia vacía (no usada).
      * @return \Illuminate\Http\JsonResponse Lista de estudios pendientes.
      */
     public function listarPendientesMedico(Request $request)
@@ -325,7 +327,7 @@ class EstudioController extends Controller
             'sesde.url_oviyam',
             'sesde.tap_oviyam'
         )
-            ->join('pacientes AS pacien', 'estudios.paciente_id',  '=', 'pacien.id')
+            ->join('pacientes AS pacien', 'estudios.paciente_id', '=', 'pacien.id')
             ->join('config_sedes AS sesde', 'estudios.sede_id', '=', 'sesde.id')
             ->join('estudios_productos AS estu_produc', 'estu_produc.estudio_id', '=', 'estudios.id')
             ->join('users', 'estudios.quien_registro_id', '=', 'users.id')
@@ -347,8 +349,8 @@ class EstudioController extends Controller
     /**
      * Guarda la lectura realizada por el médico.
      *
-     * @param Request $request Datos de la lectura.
-     * @param EstudioProducto $estudioProducto Instancia vacía (no usada).
+     * @param  Request  $request  Datos de la lectura.
+     * @param  EstudioProducto  $estudioProducto  Instancia vacía (no usada).
      * @return \Illuminate\Http\JsonResponse Confirmación.
      */
     public function leerEstudio(Request $request, EstudioProducto $estudioProducto)
@@ -374,7 +376,7 @@ class EstudioController extends Controller
     /**
      * Marca un estudio como visto.
      *
-     * @param int $id ID del producto de estudio.
+     * @param  int  $id  ID del producto de estudio.
      * @return void
      */
     public function marcarEstudioVisto($id)
@@ -387,12 +389,13 @@ class EstudioController extends Controller
     /**
      * Lista los diagnósticos asociados a un estudio.
      *
-     * @param Request $request ID del estudio.
+     * @param  Request  $request  ID del estudio.
      * @return \Illuminate\Http\JsonResponse Lista de diagnósticos.
      */
     public function listarDiagnosticoPorEstudio(Request $request)
     {
         $diagnosticos = EstudioDiagnostico::where('estudio_id', '=', $request->id)->get();
+
         return response()->json($diagnosticos);
     }
 
@@ -407,13 +410,25 @@ class EstudioController extends Controller
      *    - Fechas, nombre/documento, usuario asignador, médico.
      * 4. Ordena por prioridad.
      *
-     * @param Request $request Filtros de búsqueda.
+     * @param  Request  $request  Filtros de búsqueda.
      * @return \Illuminate\Http\JsonResponse Lista de estudios pendientes.
      */
     public function listarPendientesTrascribir(Request $request)
     {
+        // Validación mínima solicitada: solo sede_id
+        $validator = Validator::make($request->all(), [
+            'sede_id' => 'required|integer|exists:config_sedes,id',
+        ], [
+            'sede_id.required' => 'La sede es obligatoria.',
+            'sede_id.integer' => 'La sede debe ser un número entero.',
+            'sede_id.exists' => 'La sede seleccionada no existe.',
+        ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
         /**
-         * @estudioParaTranscibir para saber si se van a listar los estudio que ya estan leidos o no, 
+         * @estudioParaTranscibir para saber si se van a listar los estudio que ya estan leidos o no,
          * para transcribir los estudios que se envian a trys o a teleradiologia
          */
         $misPendiente = Estudio::select(
@@ -487,6 +502,7 @@ class EstudioController extends Controller
                 // Si vienen solo fechas (YYYY-MM-DD), incluir el día completo para no excluir por hora
                 $inicio = Carbon::parse($request->bus_fehc_ini)->startOfDay()->format('Y-m-d H:i:s');
                 $fin = Carbon::parse($request->bus_fecha_fin)->endOfDay()->format('Y-m-d H:i:s');
+
                 return $query->whereBetween('estudios.fec_estudio', [$inicio, $fin]);
             })
             ->where('estudios_productos.activo', '=', 1)
@@ -499,7 +515,7 @@ class EstudioController extends Controller
             ->when($request->bus_nom_num_docu, function ($query, $bus_nom_num_docu) {
                 return $query->where(function ($q) use ($bus_nom_num_docu) {
                     $q->where('pacien.num_docu', $bus_nom_num_docu)
-                        ->orWhere('pacien.nombres', 'LIKE', '%' . $bus_nom_num_docu . '%');
+                        ->orWhere('pacien.nombres', 'LIKE', '%'.$bus_nom_num_docu.'%');
                 });
             })
             ->when($request->quien_asigno_id, function ($query, $quien_asigno_id) {
@@ -522,18 +538,18 @@ class EstudioController extends Controller
      * 2. Aplica filtros por fechas, sede, paciente, usuario asignador y médico.
      * 3. Ordena por fecha de creación.
      *
-     * @param Request $request Filtros de búsqueda.
+     * @param  Request  $request  Filtros de búsqueda.
      * @return \Illuminate\Http\JsonResponse Lista de estudios asignados.
      */
     public function listarEstudiosAsignados(Request $request)
     {
+        // Validación mínima solicitada: solo sede_id
         $validator = Validator::make($request->all(), [
             'sede_id' => 'required|integer|exists:config_sedes,id',
-            'bus_nom_num_docu' => 'nullable|string|max:255',
-            'quien_asigno_id' => 'nullable|integer|exists:users,id',
-            'medico_id' => 'nullable|integer|exists:users,id',
-            'bus_fehc_ini' => 'nullable|date',
-            'bus_fecha_fin' => 'nullable|date|after_or_equal:bus_fehc_ini',
+        ], [
+            'sede_id.required' => 'La sede es obligatoria.',
+            'sede_id.integer' => 'La sede debe ser un número entero.',
+            'sede_id.exists' => 'La sede seleccionada no existe.',
         ]);
         if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
@@ -575,7 +591,7 @@ class EstudioController extends Controller
             ->join('users as medi', 'estudios.medico_id', '=', 'medi.id')
             ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
             ->join('config_productos', 'estudios_productos.producto_id', '=', 'config_productos.id')
-            //->where('estudios_productos.activo', '=', 1)
+            // ->where('estudios_productos.activo', '=', 1)
             ->when($request->bus_fehc_ini && $request->bus_fecha_fin, function ($query) use ($request) {
                 return $query->whereBetween(
                     DB::raw('DATE(estudios.fec_estudio)'),
@@ -586,7 +602,7 @@ class EstudioController extends Controller
             ->when($request->bus_nom_num_docu, function ($query, $bus_nom_num_docu) {
                 return $query->where(function ($q) use ($bus_nom_num_docu) {
                     $q->where('pacien.num_docu', $bus_nom_num_docu)
-                        ->orWhere('pacien.nombres', 'LIKE', '%' . $bus_nom_num_docu . '%');
+                        ->orWhere('pacien.nombres', 'LIKE', '%'.$bus_nom_num_docu.'%');
                 });
             })
             ->when($request->quien_asigno_id, function ($query, $quien_asigno_id) {
@@ -615,7 +631,7 @@ class EstudioController extends Controller
      *    - Convierte a PDF.
      *    - Notifica por email con `EstudioNotificacionController`.
      *
-     * @param Request $request Datos de transcripción y paciente.
+     * @param  Request  $request  Datos de transcripción y paciente.
      * @return \Illuminate\Http\JsonResponse Confirmación o error.
      */
     public function guardarTranscripcion(Request $request)
@@ -645,7 +661,7 @@ class EstudioController extends Controller
             'fechor_trascrito' => $request->input('fechor_trascrito', Carbon::now()->format('Y-m-d H:i:s')),
         ]);
 
-        //return $request;
+        // return $request;
         /**
          * Actualizo los datos del paciente
          */
@@ -658,7 +674,7 @@ class EstudioController extends Controller
                 'sexo' => $request->sexo,
                 'fec_naci' => $request->fec_naci,
                 'tel' => $request->tel,
-                'email' => $request->email
+                'email' => $request->email,
             ]
         );
 
@@ -674,7 +690,7 @@ class EstudioController extends Controller
 
         if ($request->destino_estudio === 'Tele Radiologia') {
             $estudio = Estudio::findOrFail($request->id_estudio);
-            $estudio->medico_id =  $request['medico_id'];
+            $estudio->medico_id = $request['medico_id'];
             $estudio->save();
         }
 
@@ -683,8 +699,8 @@ class EstudioController extends Controller
          */
         $sede = ConfigSede::findOrfail($request->sede_id);
         if ($sede->interface_software === 'SAHI') {
-            $transcribir = (new SAHITranscibirController())->enviarEstudio($request->atencion, $request->medico_id, $request->lectura, $request->cod_cups, $request->fec_lectura);
-            //$transcribir->status();
+            $transcribir = (new SAHITranscibirController)->enviarEstudio($request->atencion, $request->medico_id, $request->lectura, $request->cod_cups, $request->fec_lectura);
+            // $transcribir->status();
         }
 
         /**
@@ -693,19 +709,18 @@ class EstudioController extends Controller
          * 2. Convierto la plantilla .docx a .pdf
          * 3. Notificacion por correo electronico
          */
-
-        $genearPlantilla = (new PlantillaEstudioController())->editWord($request);
+        $genearPlantilla = (new PlantillaEstudioController)->editWord($request);
         if ($genearPlantilla->status() === 402) {
-            return response()->json(['message' => 'La plantilla para la sede ' . $sede->nom_sede . ', no está  configurada, por favor consulte con el administrador del sistema'], 402);
+            return response()->json(['message' => 'La plantilla para la sede '.$sede->nom_sede.', no está  configurada, por favor consulte con el administrador del sistema'], 402);
         } elseif ($genearPlantilla->status() == 200) {
 
-            $notificar = (new EstudioNotificacionController())->enviarPortalPacientes($request);
+            $notificar = (new EstudioNotificacionController)->enviarPortalPacientes($request);
             if ($notificar->status() == 200) {
                 return response()->json(['message' => 'Lectura transferida correctamente'], 200);
             } else {
                 return response()->json(['message' => 'Error en la trnaferencia de la lectura'], 400);
             }
-            //}
+            // }
         } else {
             return response()->json(['message' => 'Error en la trnaferencia de la lectura'], 400);
         }
@@ -716,7 +731,7 @@ class EstudioController extends Controller
     /**
      * Lista estudios pendientes por leer o transcribir.
      *
-     * @param Request $request Filtros (no usados explícitamente en la consulta actual).
+     * @param  Request  $request  Filtros (no usados explícitamente en la consulta actual).
      * @return \Illuminate\Http\JsonResponse Lista de pendientes.
      */
     public function penditesPorLeerTranscribir(Request $request)
@@ -742,7 +757,7 @@ class EstudioController extends Controller
             'medico.id as medico_id',
             'medico.name as medico_name'
         )
-            ->join('pacientes AS pacien', 'estudios.paciente_id',  '=', 'pacien.id')
+            ->join('pacientes AS pacien', 'estudios.paciente_id', '=', 'pacien.id')
             ->join('config_sedes AS sesde', 'estudios.sede_id', '=', 'sesde.id')
             ->join('estudios_productos AS produc', 'produc.estudio_id', '=', 'estudios.id')
             ->join('users', 'estudios.quien_registro_id', '=', 'users.id')
@@ -758,7 +773,7 @@ class EstudioController extends Controller
     /**
      * Busca si un paciente tiene estudios por su número de documento.
      *
-     * @param Request $request Número de documento.
+     * @param  Request  $request  Número de documento.
      * @return \Illuminate\Http\JsonResponse 'Si' o 'No'.
      */
     public function buscarEstudioPorNumDocu(Request $request)
@@ -780,8 +795,8 @@ class EstudioController extends Controller
     /**
      * Anula la asignación de un producto de estudio (lo desactiva).
      *
-     * @param Request $request ID del producto.
-     * @param EstudioProducto $estudioProducto Instancia vacía (no usada).
+     * @param  Request  $request  ID del producto.
+     * @param  EstudioProducto  $estudioProducto  Instancia vacía (no usada).
      * @return \Illuminate\Http\JsonResponse Confirmación.
      */
     public function anularAsignacion(Request $request, EstudioProducto $estudioProducto)
@@ -796,26 +811,28 @@ class EstudioController extends Controller
     /**
      * Descarga el archivo PDF de una lectura.
      *
-     * @param string $nomArchivo Nombre del archivo.
+     * @param  string  $nomArchivo  Nombre del archivo.
      * @return \Symfony\Component\HttpFoundation\BinaryFileResponse Archivo PDF.
      */
     public function descargarPdfLectura($nomArchivo)
     {
-        $rutaArchivo = storage_path('app/reporte_lecturas/' . $nomArchivo);
+        $rutaArchivo = storage_path('app/reporte_lecturas/'.$nomArchivo);
+
         return response()->file($rutaArchivo);
     }
 
     /**
      * Reenvía la notificación por email de un estudio.
      *
-     * @param Request $request Datos para generar reporte y notificar.
+     * @param  Request  $request  Datos para generar reporte y notificar.
      * @return mixed Respuesta del notificador.
      */
     public function notificarEmail(Request $request)
     {
-        $genearPlantilla = (new PlantillaEstudioController())->editWord($request);
+        $genearPlantilla = (new PlantillaEstudioController)->editWord($request);
         if ($genearPlantilla->status() == 200) {
-            $notificar = (new EstudioNotificacionController())->notificarEmail($request);
+            $notificar = (new EstudioNotificacionController)->notificarEmail($request);
+
             return $notificar;
         } else {
             return $genearPlantilla;
@@ -824,9 +841,10 @@ class EstudioController extends Controller
 
     public function enviarPortalPacientes(Request $request)
     {
-        $genearPlantilla = (new PlantillaEstudioController())->editWord($request);
+        $genearPlantilla = (new PlantillaEstudioController)->editWord($request);
         if ($genearPlantilla->status() == 200) {
-            $notificar = (new EstudioNotificacionController())->enviarPortalPacientes($request);
+            $notificar = (new EstudioNotificacionController)->enviarPortalPacientes($request);
+
             return $notificar;
         } else {
             return $genearPlantilla;

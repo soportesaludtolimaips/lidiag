@@ -3,8 +3,9 @@ node_modules/
 npm-debug.log
 yarn-error.log
 
+public/hot
 public_html/hot
-storage/logs/laravel.log
+storage/logs/*.log
 storage/*.key
 
 .env
@@ -13,10 +14,25 @@ Homestead.json
 /.vagrant
 .phpunit.result.cache
 
+/vendor/
+node_modules/
+storage/phpstan/cache/PHPStan
 
-/public/reporte_lecturas
-public/reporte_lecturas/*
-/public/audios
-/public/plantillas_lecturas
-/node_modules
-/public
+# Vite build output (no versionar artefactos)
+public/build/
+
+# Links públicos (storage:link) - no versionar
+public/storage
+public/reporte_lecturas
+public/avatars
+public/firmas_medicos
+public/soportes_hc
+public/audios
+public/plantillas_lecturas
+public/img_dicom
+public/files_help_desk
+public/firmas_consntimientos
+public/files_consentimientos
+
+
+

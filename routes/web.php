@@ -1,40 +1,12 @@
 <?php
 
-use App\Http\Controllers\Agenda\AgendaDisponibilidaController;
-use App\Http\Controllers\Agenda\AgendaDisponibilidaDetalleController;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route;
-
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Seguridad\UserController;
-use App\Http\Controllers\Seguridad\RolController;
-
-use App\Http\Controllers\Configuracion\ConfigAdminSaludController;
-use App\Http\Controllers\Configuracion\ConfigProductoController;
-use App\Http\Controllers\Configuracion\ConfigDiagnosticoController;
-use App\Http\Controllers\Configuracion\ConfigModulosController;
-use App\Http\Controllers\Configuracion\ConfigPlantillaController;
-use App\Http\Controllers\Configuracion\ConfigPlantillaTipoController;
-use App\Http\Controllers\Configuracion\ConfigPrioridadController;
-use App\Http\Controllers\Configuracion\ConfigSedeController;
-use App\Http\Controllers\Configuracion\ConfigTipoDocumentoController;
-use App\Http\Controllers\Configuracion\ConsentimientoInformadoController;
-use App\Http\Controllers\Dcm4chee\StudyController;
-use App\Http\Controllers\Ecografias\EcografiaController;
-use App\Http\Controllers\Ecografias\EcografiaProductoController;
-use App\Http\Controllers\Ecografias\ecografiaLecturaController;
 use App\Http\Controllers\Estudios\EstudioAudioController;
 use App\Http\Controllers\Estudios\EstudioController;
-use App\Http\Controllers\Estudios\EstudioProductoController;
-use App\Http\Controllers\Estudios\EstudioDiagnosticoController;
-use App\Http\Controllers\Estudios\EstudioNotificacionController;
 use App\Http\Controllers\Estudios\EstudioSoporteHCController;
-use App\Http\Controllers\Estudios\PlantillaEstudioController;
 use App\Http\Controllers\Importar\ImportarDicom;
-use App\Http\Controllers\Interface\SAHIController;
-use App\Http\Controllers\Interface\SAHIEcografiasController;
-use App\Http\Controllers\Interface\SAHIEcografiasEnviarController;
 use App\Http\Controllers\Reportes\ReporteProduccion;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -69,6 +41,31 @@ Route::post('/logout', [LoginController::class, 'logout'])
 Route::view('dashboard', 'modulos.dashboard.dashboard')->name('dashboard')->middleware('auth');
 
 /**
+ * Helpdesk
+ */
+Route::view('/helpdesk-tickets', 'modulos.help-desk.tickets')
+    ->name('helpdesk.tickets.listar')
+    ->middleware(['auth', 'permission:helpdesk.tickets.index']);
+
+Route::view('/helpdesk-tickets/crear', 'modulos.help-desk.crear-ticket')
+    ->name('helpdesk.tickets.crear')
+    ->middleware(['auth', 'permission:helpdesk.tickets.create']);
+
+Route::get('/helpdesk-tickets/{ticket_id}', function (string $ticket_id) {
+    return view('modulos.help-desk.detalle-ticket');
+})
+    ->name('helpdesk.tickets.detalle')
+    ->middleware(['auth', 'permission:helpdesk.tickets.show']);
+
+Route::view('/helpdesk-reportes', 'modulos.help-desk.reportes')
+    ->name('helpdesk.reportes')
+    ->middleware(['auth', 'permission:helpdesk.reportes.index']);
+
+Route::view('/helpdesk-notificaciones', 'modulos.help-desk.notificaciones')
+    ->name('helpdesk.notificaciones')
+    ->middleware(['auth', 'permission:helpdesk.notificaciones.index']);
+
+/**
  * Estudios radiologicos
  */
 Route::view('/estudios.asignar.listar', 'modulos.estudios.asignar-estudio')
@@ -88,6 +85,12 @@ Route::get('/descargar.pdf.lectura/{nomArchivo}', [EstudioController::class, 'de
     ->name('descargar.pdf.lectura')
     ->middleware(['auth', 'permission:estudio.asignar|estudio.transcribir|estudio.leerestudio|estudio.leerEstudio']);
 
+// Audios (fallback sin depender de symlink `public/audios`)
+Route::get('/audios/{filename}', [EstudioAudioController::class, 'stream'])
+    ->name('audios.stream')
+    ->middleware(['auth', 'permission:estudio.transcribir|estudio.leerestudio|estudio.leerEstudio'])
+    ->where('filename', 'audio_[A-Z0-9]{10,}\.mp3');
+
 Route::view('/estudios.leer.estudio.listar', 'modulos.estudios.leer-estudio')
     ->name('estudios.leer.estudio.listar')
     ->middleware(['auth', 'permission:estudio.leerestudio|estudio.leerEstudio']);
@@ -95,7 +98,7 @@ Route::view('/estudios.leer.estudio.listar', 'modulos.estudios.leer-estudio')
 Route::view('/estudios.transcribir.listar', 'modulos.estudios.transcribir-estudio')
     ->name('estudios.transcribir.listar')
     ->middleware(['auth', 'permission:estudio.transcribir']);
-Route::view('/estudios.tele-radiologia', 'modulos.estudios.tele-radiologia')
+Route::view('/estudios.tele-radiologia', 'modulos.tele-radiologia.tele-radiologia')
     ->name('estudios.teleradiologis.listar')
     ->middleware(['auth', 'permission:tele.ragiologia.index|tele.ragiologia.enviar|tele.ragiologia.transcribir|estudio.asignar|estudio.transcribir']);
 
@@ -128,6 +131,35 @@ Route::view('/ecografias.admisionadas', 'modulos.ecografias.adminisionadas')
 Route::view('/ecografias-pendientes-lecturas', 'modulos.ecografias.lectura')
     ->name('ecografias.pendientes.lecturas')
     ->middleware(['auth', 'permission:ecografias.leer']);
+
+Route::view('/ecografias-consentimientos', 'modulos.ecografias.consentimientos')
+    ->name('ecografias.consentimientos')
+    ->middleware(['auth', 'permission:ecografias.consentimientos.index']);
+
+Route::view('/ecografias-consentimientos-plantillas', 'modulos.ecografias.consentimientos-plantillas')
+    ->name('ecografias.consentimientos.plantillas')
+    ->middleware(['auth', 'permission:ecografias.consentimientos.plantillas.index']);
+
+// Alias en Configuración (menú Parametrización)
+Route::view('/config-consentimientos', 'modulos.ecografias.consentimientos')
+    ->name('config.consentimientos.index')
+    ->middleware(['auth', 'permission:ecografias.consentimientos.index']);
+
+Route::view('/config-consentimientos-plantillas', 'modulos.ecografias.consentimientos-plantillas')
+    ->name('config.consentimientos.plantillas.index')
+    ->middleware(['auth', 'permission:ecografias.consentimientos.plantillas.index']);
+
+/**
+ * Firma de consentimiento (paciente/acompañante) - acceso por token (sin login).
+ */
+Route::view('/firma/consentimiento-ecografia/{token}', 'modulos.ecografias.firma-consentimiento')
+    ->name('ecografias.consentimientos.firma.paciente.view');
+Route::get('/firma/consentimiento-ecografia/{token}/info', [App\Http\Controllers\Ecografias\EcografiaConsentimientosController::class, 'infoPorToken'])
+    ->name('ecografias.consentimientos.firma.paciente.info')
+    ->middleware(['throttle:60,1']);
+Route::post('/firma/consentimiento-ecografia/{token}/firmar', [App\Http\Controllers\Ecografias\EcografiaConsentimientosController::class, 'firmarPacientePorToken'])
+    ->name('ecografias.consentimientos.firma.paciente.post')
+    ->middleware(['throttle:20,1']);
 
 /**
  * Reportes
@@ -179,6 +211,21 @@ Route::view('/config-consentimiento-informado-listar', 'modulos.configuracion.co
     ->middleware(['auth', 'permission:config.consentimiento_informado.index']);
 
 /**
+ * Configuración Helpdesk
+ */
+Route::view('/config-helpdesk-categorias-listar', 'modulos.configuracion.config-helpdesk-categorias')
+    ->name('config.helpdesk.categorias.listar')
+    ->middleware(['auth', 'permission:helpdesk.config.categorias.index']);
+
+Route::view('/config-helpdesk-prioridades-listar', 'modulos.configuracion.config-helpdesk-prioridades')
+    ->name('config.helpdesk.prioridades.listar')
+    ->middleware(['auth', 'permission:helpdesk.config.prioridades.index']);
+
+Route::view('/config-helpdesk-estados-listar', 'modulos.configuracion.config-helpdesk-estados')
+    ->name('config.helpdesk.estados.listar')
+    ->middleware(['auth', 'permission:helpdesk.config.estados.index']);
+
+/**
  * Seguridad
  */
 Route::view('/seguridad.usuarios.listar', 'modulos.seguridad.usuarios')
@@ -211,8 +258,6 @@ Route::view('/agenda', 'modulos.agenda.index')
 Route::view('/agenda-disponibilidad', 'modulos.agenda.disponibilidad')
     ->name('agenda.disponibilidad.index')
     ->middleware(['auth', 'permission:agendamiento.disponibilidad.index|agenda.index']);
-
-
 
 /* Route::get('/{optional?}', function () {
     return view('layouts.app');

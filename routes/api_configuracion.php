@@ -75,16 +75,20 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->except(['create', 'edit'])
         ->middleware([]);
 
+    // Catálogo usado por UI (Vue) — evitar 401 si Sanctum no trata la request como stateful.
     Route::get('/config-plantillas/listar/activos/{tipo_id}', [App\Http\Controllers\Configuracion\ConfigPlantillaController::class, 'listarActivos'])
-        ->name('api.config.plantillas.listar.activos');
+        ->name('api.config.plantillas.listar.activos')
+        ->withoutMiddleware(['auth:sanctum']);
 
     Route::resource('/config-tipos-plantillas', App\Http\Controllers\Configuracion\ConfigPlantillaTipoController::class)
         ->names('api.config.tipos.plantillas')
         ->except(['create', 'edit'])
         ->middleware([]);
 
+    // Catálogo usado por UI (Vue) — evitar 401 si Sanctum no trata la request como stateful.
     Route::get('/config-tipos-plantillas/listar/activos', [App\Http\Controllers\Configuracion\ConfigPlantillaTipoController::class, 'listarActivos'])
-        ->name('api.config.tipos.plantillas.listar.activos');
+        ->name('api.config.tipos.plantillas.listar.activos')
+        ->withoutMiddleware(['auth:sanctum']);
 
     Route::resource('/config-consentimiento-informado', App\Http\Controllers\Configuracion\ConsentimientoInformadoController::class)
         ->names('api.config.consentimiento.informado')
@@ -94,4 +98,40 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/config-consentimiento-informado/listar/activos', [App\Http\Controllers\Configuracion\ConsentimientoInformadoController::class, 'listarActivos'])
         ->name('api.config.consentimiento.informado.listar.activos')
         ->middleware(['permission:config.consentimiento_informado.index,web']);
+
+    /**
+     * Plantillas de Consentimiento (WYSIWYG + versionado) para múltiples módulos (Rx/Ecografías/Oftalmología)
+     * Relación: consentimiento_plantillas.config_modulo_id -> config_modulos.id
+     */
+    Route::get('/consentimientos-plantillas', [App\Http\Controllers\Consentimientos\ConsentimientoPlantillasController::class, 'index'])
+        ->name('api.consentimientos.plantillas.index')
+        ->middleware(['permission:ecografias.consentimientos.plantillas.index,web']);
+
+    Route::get('/consentimientos-plantillas/{id}', [App\Http\Controllers\Consentimientos\ConsentimientoPlantillasController::class, 'show'])
+        ->name('api.consentimientos.plantillas.show')
+        ->middleware(['permission:ecografias.consentimientos.plantillas.index,web']);
+
+    Route::post('/consentimientos-plantillas', [App\Http\Controllers\Consentimientos\ConsentimientoPlantillasController::class, 'store'])
+        ->name('api.consentimientos.plantillas.store')
+        ->middleware(['permission:ecografias.consentimientos.plantillas.create,web']);
+
+    Route::put('/consentimientos-plantillas/{id}', [App\Http\Controllers\Consentimientos\ConsentimientoPlantillasController::class, 'update'])
+        ->name('api.consentimientos.plantillas.update')
+        ->middleware(['permission:ecografias.consentimientos.plantillas.edit,web']);
+
+    Route::post('/consentimientos-plantillas/{id}/vigente', [App\Http\Controllers\Consentimientos\ConsentimientoPlantillasController::class, 'setVigente'])
+        ->name('api.consentimientos.plantillas.vigente')
+        ->middleware(['permission:ecografias.consentimientos.plantillas.edit,web']);
+
+    Route::get('/consentimientos-plantillas/producto/{productoId}/versions', [App\Http\Controllers\Consentimientos\ConsentimientoPlantillasController::class, 'versions'])
+        ->name('api.consentimientos.plantillas.versions')
+        ->middleware(['permission:ecografias.consentimientos.plantillas.index,web']);
+
+    Route::delete('/consentimientos-plantillas/{id}', [App\Http\Controllers\Consentimientos\ConsentimientoPlantillasController::class, 'destroy'])
+        ->name('api.consentimientos.plantillas.destroy')
+        ->middleware(['permission:ecografias.consentimientos.plantillas.destroy,web']);
+
+    Route::get('/consentimientos-plantillas/{id}/preview-pdf', [App\Http\Controllers\Consentimientos\ConsentimientoPlantillasController::class, 'previewPdf'])
+        ->name('api.consentimientos.plantillas.preview_pdf')
+        ->middleware(['permission:ecografias.consentimientos.plantillas.preview_pdf,web']);
 });

@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class PermisionEcografiasSeeder extends Seeder
 {
@@ -13,26 +14,31 @@ class PermisionEcografiasSeeder extends Seeder
      */
     public function run(): void
     {
-        $permisions = [
-            [
-                'name' => 'ecografias.index',
-            ],
-            [
-                'name' => 'ecografias.admision',
-            ],
-            [
-                'name' => 'ecografias.anular',
-            ],
-            [
-                'name' => 'ecografias.leer',
-            ],
-            [
-                'name' => 'ecografias.reporte',
-            ]
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        foreach (['Administrador', 'Medico', 'Administrativo', 'Transcriptor'] as $roleName) {
+            Role::findOrCreate($roleName, 'web');
+        }
+
+        $map = [
+            'ecografias.index' => ['Administrador', 'Transcriptor', 'Administrativo'],
+            'ecografias.admision' => ['Administrador', 'Transcriptor'],
+            'ecografias.anular' => ['Administrador', 'Transcriptor'],
+            'ecografias.leer' => ['Administrador', 'Medico'],
+            'ecografias.reporte' => ['Administrador', 'Medico', 'Administrativo'],
         ];
 
-        foreach ($permisions as $permision) {
-            Permission::create($permision);
+        foreach ($map as $name => $roles) {
+            $perm = Permission::query()
+                ->where('name', $name)
+                ->where('guard_name', 'web')
+                ->first();
+
+            if (! $perm) {
+                $perm = Permission::create(['name' => $name, 'guard_name' => 'web']);
+            }
+
+            $perm->syncRoles($roles);
         }
     }
 }

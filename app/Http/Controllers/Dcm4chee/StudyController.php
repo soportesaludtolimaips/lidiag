@@ -6,14 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\Dcm4chee\Study;
 use App\Models\Estudio\Estudio;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 
 class StudyController extends Controller
 {
-
     public function __construct()
     {
         $this->middleware('auth');
@@ -30,8 +28,8 @@ class StudyController extends Controller
      * 4. Cruza resultados con Lidiag para marcar estudios ya agendados.
      * 5. Limpia caracteres inválidos UTF-8 antes de retornar JSON.
      *
-     * @param Request $request Filtros: `sede_id`, `bus_nom_num_docu`, `bus_fehc_ini`, `bus_fecha_fin`.
-     * @param Study $study Modelo de estudio DCM4CHEE.
+     * @param  Request  $request  Filtros: `sede_id`, `bus_nom_num_docu`, `bus_fehc_ini`, `bus_fecha_fin`.
+     * @param  Study  $study  Modelo de estudio DCM4CHEE.
      * @return \Illuminate\Http\Response Lista de estudios en formato JSON.
      */
     public function listarEstudios(Request $request, Study $study)
@@ -46,9 +44,18 @@ class StudyController extends Controller
             return response()->json(['message' => 'Datos inválidos', 'errors' => $validator->errors()], 422);
         }
 
+        $tieneBusqueda = ! empty(trim($request->bus_nom_num_docu ?? ''));
+        $tieneFechas = ! empty($request->bus_fehc_ini) && ! empty($request->bus_fecha_fin);
+        if (! $tieneBusqueda && ! $tieneFechas) {
+            return response()->json([
+                'message' => 'Debe indicar al menos un filtro: documento/nombre o rango de fechas.',
+                'errors' => ['bus_nom_num_docu' => ['Requerido si no hay fechas.'], 'bus_fehc_ini' => ['Requerido si no hay búsqueda.']],
+            ], 422);
+        }
+
         $sedeActual = ConfigSede::find($request->sede_id);
 
-        //Configuramos la segunda base de datos
+        // Configuramos la segunda base de datos
         config(['database.connections.mysql_sucursal' => [
             'driver' => 'mysql',
             'host' => env('DB_SUCURSAL_HOST', $sedeActual->ip_dcm),
@@ -60,10 +67,10 @@ class StudyController extends Controller
             'collation' => env('DB_SUCURSAL_collation', 'latin1_swedish_ci'),
         ]]);
 
-        //Aplicamos la nueva configuracion de bade datos
+        // Aplicamos la nueva configuracion de bade datos
         Config::set('database.default', 'mysql_sucursal');
 
-        $estudios = new Study();
+        $estudios = new Study;
         $query = $estudios->query();
 
         $query->select(
@@ -81,18 +88,23 @@ class StudyController extends Controller
         )
             ->join('patient', 'study.patient_fk', 'patient.pk');
 
-        if (!empty($request->bus_nom_num_docu)) {
-            $needle = $request->bus_nom_num_docu;
+        if ($tieneBusqueda) {
+            $needle = trim($request->bus_nom_num_docu);
             $query->where(function ($q) use ($needle) {
                 $q->where('patient.pat_id', 'like', "%{$needle}%")
                     ->orWhere('patient.pat_name', 'like', "%{$needle}%");
             });
         }
 
-        if (!empty($request->bus_fehc_ini) && !empty($request->bus_fecha_fin)) {
-            // Filtrar por fecha (solo la parte DATE)
-            $query->whereBetween(DB::raw('DATE(study.study_datetime)'), [$request->bus_fehc_ini, $request->bus_fecha_fin]);
+        if ($tieneFechas) {
+            // Rango sin DATE() para permitir uso de índice en study_datetime
+            $inicio = $request->bus_fehc_ini.' 00:00:00';
+            $fin = date('Y-m-d', strtotime($request->bus_fecha_fin.' +1 day')).' 00:00:00';
+            $query->where('study.study_datetime', '>=', $inicio)
+                ->where('study.study_datetime', '<', $fin);
         }
+
+        $query->orderBy('study.study_datetime', 'desc')->limit(500);
 
         $resultados = $query->get();
 

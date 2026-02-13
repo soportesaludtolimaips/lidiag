@@ -1,0 +1,20 @@
+---
+description: Frontend: Vite + Laragon (HTTPS/HMR) y alias @
+globs: vite.config.js
+alwaysApply: false
+---
+
+# Vite en local (Laragon + HTTPS)
+
+- Host por defecto: `lidiag.test`
+- HMR usa el mismo host.
+- HTTPS usa certificados de Laragon (puede fallar si la ruta cambia).
+
+## Si Vite/HMR no conecta
+
+- Verificar `APP_URL` y que el vhost sea el mismo host.
+- Si no tienes SSL en Laragon, deshabilita `server.https` o ajusta rutas de `key/cert`.
+
+## Alias
+
+- `@` → `/resources/js`

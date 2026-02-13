@@ -29,7 +29,8 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros para busqueda las ecografias adminisionadas.
+                            <i class="fa fa-filter"></i> Filtros para busqueda las ecografias
+                            adminisionadas.
                         </h4>
                         <form action="#">
                             <div class="form-body">
@@ -39,17 +40,27 @@
                                             <label class="control-label">
                                                 # de atención, # de documento ó Nombres de paciente
                                             </label>
-                                            <input type="text" id="bus_nom_num_docu" name="bus_nom_num_docu"
-                                                v-model="busqueda.bus_nom_num_docu" class="form-control"
+                                            <input
+                                                type="text"
+                                                id="bus_nom_num_docu"
+                                                name="bus_nom_num_docu"
+                                                v-model="busqueda.bus_nom_num_docu"
+                                                class="form-control"
                                                 placeholder=" Atención, Nombres de paciente o # de documento"
-                                                @keyup.enter="buscarStudy()" />
+                                                @keyup.enter="buscarStudy()"
+                                            />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Inicio</label>
-                                            <input type="date" id="bus_fehc_ini" name="bus_fehc_ini"
-                                                v-model="busqueda.bus_fehc_ini" class="form-control" />
+                                            <input
+                                                type="date"
+                                                id="bus_fehc_ini"
+                                                name="bus_fehc_ini"
+                                                v-model="busqueda.bus_fehc_ini"
+                                                class="form-control"
+                                            />
                                             <!-- <span class="text-danger" v-if="errores.bus_fehc_ini">
                                                 {{ erroresBusqueda.bus_fehc_ini[0] }}
                                             </span> -->
@@ -58,8 +69,13 @@
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Fin</label>
-                                            <input type="date" id="bus_fecha_fin" name="bus_fecha_fin"
-                                                v-model="busqueda.bus_fecha_fin" class="form-control" />
+                                            <input
+                                                type="date"
+                                                id="bus_fecha_fin"
+                                                name="bus_fecha_fin"
+                                                v-model="busqueda.bus_fecha_fin"
+                                                class="form-control"
+                                            />
                                             <!-- <span class="text-danger" v-if="errores.bus_fecha_fin">
                                                 {{ erroresBusqueda.bus_fecha_fin[0] }}
                                             </span> -->
@@ -68,14 +84,28 @@
                                 </div>
 
                                 <div class="form-actions mt-3">
-                                    <button type="button" class="btn btn-success m-r-5" @click="listarAtenciones()"
-                                        :disabled="isBuscandoAdmisionadas">
-                                        <i class="fa"
-                                            :class="isBuscandoAdmisionadas ? 'fa-spinner fa-spin' : 'fa-search'"></i>
-                                        {{ isBuscandoAdmisionadas ? 'Buscando...' : 'Buscar' }}
+                                    <button
+                                        type="button"
+                                        class="btn btn-success m-r-5"
+                                        @click="listarAtenciones()"
+                                        :disabled="isBuscandoAdmisionadas"
+                                    >
+                                        <i
+                                            class="fa"
+                                            :class="
+                                                isBuscandoAdmisionadas
+                                                    ? 'fa-spinner fa-spin'
+                                                    : 'fa-search'
+                                            "
+                                        ></i>
+                                        {{ isBuscandoAdmisionadas ? "Buscando..." : "Buscar" }}
                                     </button>
 
-                                    <button type="button" class="btn btn-inverse" @click="btnLimpiar()">
+                                    <button
+                                        type="button"
+                                        class="btn btn-inverse"
+                                        @click="btnLimpiar()"
+                                    >
                                         <i class="fa fa-refresh"></i> Limpiar
                                     </button>
                                 </div>
@@ -91,16 +121,22 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de atenciones disponibles.</h4>
-                        <h6 class="card-subtitle text-info">Asigne los médicos para su respectiva lectura.
+                        <h6 class="card-subtitle text-info">
+                            Asigne los médicos para su respectiva lectura.
                         </h6>
                         <div class="table-responsive">
-                            <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
-                                width="100%">
+                            <table
+                                id="example23"
+                                ref="dt"
+                                class="table table-bordered table-striped"
+                                cellspacing="0"
+                                width="100%"
+                            >
                                 <thead>
                                     <tr>
-                                        <th with='5%'>Fecha</th>
-                                        <th with='5%'># Documento</th>
-                                        <th with='30%'>Paciente</th>
+                                        <th with="5%">Fecha</th>
+                                        <th with="5%"># Documento</th>
+                                        <th with="30%">Paciente</th>
                                         <th>Examen</th>
                                         <th>Val. Examen</th>
                                         <th>Administradora</th>
@@ -115,56 +151,107 @@
                                     <tr v-for="(item, index) in registros" :key="index">
                                         <td>{{ item.created_at }}</td>
                                         <td>{{ item.paciente.num_docu }}</td>
-                                        <td>{{ item.paciente.nombres }} {{ item.paciente.seg_nom }} {{
-                                            item.paciente.pri_ape }}
-                                            {{ item.paciente.seg_ape }}</td>
+                                        <td>
+                                            {{ item.paciente.nombres }} {{ item.paciente.seg_nom }}
+                                            {{ item.paciente.pri_ape }} {{ item.paciente.seg_ape }}
+                                        </td>
                                         <td>{{ item.nom_produc }}</td>
                                         <td>{{ item.ValProduc }}</td>
                                         <td>{{ item.admin_salud.nom_admin_salud }}</td>
                                         <td>{{ item.contrato }}</td>
                                         <td>{{ item.plan }}</td>
                                         <td>
-                                            <span class="label label-info" v-if="item.estado === 'EN PROCESO'">{{
-                                                item.estado
-                                                }}</span>
-                                            <span class="label label-success" v-if="item.estado === 'LEIDO'">{{
-                                                item.estado
-                                                }}</span>
-                                            <span class="label label-danger" v-if="item.estado === 'ANULADO'">{{
-                                                item.estado
-                                                }}</span>
+                                            <span
+                                                class="label label-info"
+                                                v-if="item.estado === 'EN PROCESO'"
+                                                >{{ item.estado }}</span
+                                            >
+                                            <span
+                                                class="label label-success"
+                                                v-if="item.estado === 'LEIDO'"
+                                                >{{ item.estado }}</span
+                                            >
+                                            <span
+                                                class="label label-danger"
+                                                v-if="item.estado === 'ANULADO'"
+                                                >{{ item.estado }}</span
+                                            >
                                         </td>
                                         <td>
                                             <template v-if="sedeInterface">
-                                                <span v-if="item.estado_envio_sahi" class="label" :class="{
-                                                    'label-success': item.estado_envio_sahi === 'ENVIADO',
-                                                    'label-warning': item.estado_envio_sahi === 'ENVIANDO' || item.estado_envio_sahi === 'PENDIENTE',
-                                                    'label-danger': item.estado_envio_sahi === 'ERROR',
-                                                    'label-default': !item.estado_envio_sahi
-                                                }">
+                                                <span
+                                                    v-if="item.estado_envio_sahi"
+                                                    class="label"
+                                                    :class="{
+                                                        'label-success':
+                                                            item.estado_envio_sahi === 'ENVIADO',
+                                                        'label-warning':
+                                                            item.estado_envio_sahi === 'ENVIANDO' ||
+                                                            item.estado_envio_sahi === 'PENDIENTE',
+                                                        'label-danger':
+                                                            item.estado_envio_sahi === 'ERROR',
+                                                        'label-default': !item.estado_envio_sahi,
+                                                    }"
+                                                >
                                                     {{ item.estado_envio_sahi }}
                                                 </span>
                                                 <span v-else class="text-muted">—</span>
 
                                                 <div class="m-t-5">
-                                                    <button type="button" class="btn btn-info btn-xs m-r-5"
+                                                    <button
+                                                        type="button"
+                                                        class="btn btn-info btn-xs m-r-5"
                                                         @click="consultarEstadoSahi(item)"
-                                                        :disabled="isConsultandoSahi[item.ecografia_producto_id]">
-                                                        <i class="fa"
-                                                            :class="isConsultandoSahi[item.ecografia_producto_id] ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                                                        :disabled="
+                                                            isConsultandoSahi[
+                                                                item.ecografia_producto_id
+                                                            ]
+                                                        "
+                                                    >
+                                                        <i
+                                                            class="fa"
+                                                            :class="
+                                                                isConsultandoSahi[
+                                                                    item.ecografia_producto_id
+                                                                ]
+                                                                    ? 'fa-spinner fa-spin'
+                                                                    : 'fa-refresh'
+                                                            "
+                                                        ></i>
                                                     </button>
 
-                                                    <button v-if="item.estado_envio_sahi === 'ERROR'" type="button"
-                                                        class="btn btn-warning btn-xs" @click="reenviarASahi(item)"
-                                                        :disabled="isEnviandoSahi[item.ecografia_producto_id] || item.estado_envio_sahi === 'ENVIANDO'">
-                                                        <i class="fa"
-                                                            :class="isEnviandoSahi[item.ecografia_producto_id] ? 'fa-spinner fa-spin' : 'fa-repeat'"></i>
+                                                    <button
+                                                        v-if="item.estado_envio_sahi === 'ERROR'"
+                                                        type="button"
+                                                        class="btn btn-warning btn-xs"
+                                                        @click="reenviarASahi(item)"
+                                                        :disabled="
+                                                            isEnviandoSahi[
+                                                                item.ecografia_producto_id
+                                                            ] ||
+                                                            item.estado_envio_sahi === 'ENVIANDO'
+                                                        "
+                                                    >
+                                                        <i
+                                                            class="fa"
+                                                            :class="
+                                                                isEnviandoSahi[
+                                                                    item.ecografia_producto_id
+                                                                ]
+                                                                    ? 'fa-spinner fa-spin'
+                                                                    : 'fa-repeat'
+                                                            "
+                                                        ></i>
                                                     </button>
                                                 </div>
 
                                                 <small
-                                                    v-if="item.estado_envio_sahi === 'ERROR' && item.error_envio_sahi"
-                                                    class="text-danger d-block">
+                                                    v-if="
+                                                        item.estado_envio_sahi === 'ERROR' &&
+                                                        item.error_envio_sahi
+                                                    "
+                                                    class="text-danger d-block"
+                                                >
                                                     {{ item.error_envio_sahi }}
                                                 </small>
                                             </template>
@@ -173,20 +260,37 @@
                                             </template>
                                         </td>
                                         <td class="text-nowrap">
-                                            <button type="button"
+                                            <button
+                                                type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
-                                                @click="actualizar = false; registroParaAnular(item);"
-                                                title="Anular lectura" alt="default" data-toggle="modal"
-                                                data-target="#responsive-modal" v-if="item.estado === 'EN PROCESO'">
-                                                <i class=" fa fa-trash"></i>
+                                                @click="
+                                                    actualizar = false;
+                                                    registroParaAnular(item);
+                                                "
+                                                title="Anular lectura"
+                                                alt="default"
+                                                data-toggle="modal"
+                                                data-target="#responsive-modal"
+                                                v-if="item.estado === 'EN PROCESO'"
+                                            >
+                                                <i class="fa fa-trash"></i>
                                             </button>
 
-                                            <button type="button"
+                                            <button
+                                                type="button"
                                                 class="btn waves-effect waves-info btn-rounded btn-outline-primary btn-sm m-r-5"
-                                                @click="imprimirReporte(item.id);" title="Imprimir reporte"
-                                                :disabled="isImprimiendoReporte">
-                                                <i class="fa"
-                                                    :class="isImprimiendoReporte ? 'fa-spinner fa-spin' : 'fa-print'"></i>
+                                                @click="imprimirReporte(item.id)"
+                                                title="Imprimir reporte"
+                                                :disabled="isImprimiendoReporte"
+                                            >
+                                                <i
+                                                    class="fa"
+                                                    :class="
+                                                        isImprimiendoReporte
+                                                            ? 'fa-spinner fa-spin'
+                                                            : 'fa-print'
+                                                    "
+                                                ></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -202,30 +306,58 @@
         <!-- ============================================================== -->
     </div>
 
-    <div id="responsive-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
-        aria-hidden="true" style="display: none;">
+    <div
+        id="responsive-modal"
+        class="modal fade"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="myModalLabel"
+        aria-hidden="true"
+        style="display: none"
+    >
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title">Anular Agenda</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        ×
+                    </button>
                 </div>
                 <div class="modal-body">
                     <form>
                         <div class="form-group">
-                            <label for="message-text" class="control-label">Motivo de anulación:</label>
-                            <textarea class="form-control" id="message-text"
-                                v-model="registroAnular.motivo_anula"></textarea>
+                            <label for="message-text" class="control-label"
+                                >Motivo de anulación:</label
+                            >
+                            <textarea
+                                class="form-control"
+                                id="message-text"
+                                v-model="registroAnular.motivo_anula"
+                            ></textarea>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default waves-effect" data-dismiss="modal"
-                        id="btnCerrarModalAunular">Close</button>
-                    <button type="button" class="btn btn-danger waves-effect waves-light"
-                        v-if="can('ecografias.anular')" @click="anularEcografia()" :disabled="isAnulandoAdmisionada">
-                        <i class="fa" :class="isAnulandoAdmisionada ? 'fa-spinner fa-spin' : 'fa-trash'"></i>
-                        {{ isAnulandoAdmisionada ? 'Anulando...' : 'Anular' }}
+                    <button
+                        type="button"
+                        class="btn btn-default waves-effect"
+                        data-dismiss="modal"
+                        id="btnCerrarModalAunular"
+                    >
+                        Close
+                    </button>
+                    <button
+                        type="button"
+                        class="btn btn-danger waves-effect waves-light"
+                        v-if="can('ecografias.anular')"
+                        @click="anularEcografia()"
+                        :disabled="isAnulandoAdmisionada"
+                    >
+                        <i
+                            class="fa"
+                            :class="isAnulandoAdmisionada ? 'fa-spinner fa-spin' : 'fa-trash'"
+                        ></i>
+                        {{ isAnulandoAdmisionada ? "Anulando..." : "Anular" }}
                     </button>
                 </div>
             </div>
@@ -233,12 +365,12 @@
     </div>
 </template>
 <script>
-import usePermissions from "@/helpers/permissions.js"
+import usePermissions from "@/helpers/permissions.js";
 import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts.js";
 import { handleAxiosErrorToast } from "@/helpers/alerts";
 
 export default {
-    props: ['usuarioactual', 'permisos'],
+    props: ["usuarioactual", "permisos"],
     setup(props) {
         const { can } = usePermissions(props.permisos);
 
@@ -249,9 +381,20 @@ export default {
     },
     data() {
         return {
-            busqueda: { sede_id: this.sedeActual, medico_id: this.medicoActual, bus_nom_num_docu: "6341296", bus_fehc_ini: "", bus_fecha_fin: "" },
+            busqueda: {
+                sede_id: this.sedeActual,
+                medico_id: this.medicoActual,
+                bus_nom_num_docu: "6341296",
+                bus_fehc_ini: "",
+                bus_fecha_fin: "",
+            },
             registros: [],
-            registroAnular: { ecografia_id: "", atencion_id: "", quien_anulo_id: this.usuarioactual.id, motivo_anula: '' },
+            registroAnular: {
+                ecografia_id: "",
+                atencion_id: "",
+                quien_anulo_id: this.usuarioactual.id,
+                motivo_anula: "",
+            },
             errores: {},
             erroresBusqueda: {},
             isBuscandoAdmisionadas: false,
@@ -261,31 +404,53 @@ export default {
             sedeInterface: false,
             isConsultandoSahi: {},
             isEnviandoSahi: {},
-        }
+        };
     },
     methods: {
+        buscarStudy() {
+            // Soporte para Enter en el input de búsqueda
+            return this.listarAtenciones();
+        },
+        btnLimpiar() {
+            // Limpia criterios de búsqueda (mantiene sede/medico del contexto)
+            this.busqueda.bus_nom_num_docu = "";
+            this.busqueda.bus_fehc_ini = "";
+            this.busqueda.bus_fecha_fin = "";
+            this.erroresBusqueda = {};
+
+            this.safeDestroyDataTable(this.$refs.dt || "#example23");
+            this.registros = [];
+        },
         setMapValue(mapName, key, value) {
             if (!key) return;
-            if (typeof this.$set === 'function') {
+            if (typeof this.$set === "function") {
                 this.$set(this[mapName], key, value);
             } else {
                 this[mapName][key] = value;
             }
         },
         async establecerSede() {
-            const sede = sessionStorage.getItem('ST-sede');
+            const sede = sessionStorage.getItem("ST-sede");
             if (sede != null) {
                 this.busqueda.sede_id = sede;
             }
             try {
-                const res = await axios.get(`/api/config-sedes/${this.busqueda.sede_id}/buscarPorId`);
-                this.sedeInterface = (res?.data?.interface_software === 'SAHI');
+                const res = await axios.get(
+                    `/api/config-sedes/${this.busqueda.sede_id}/buscarPorId`
+                );
+                this.sedeInterface = res?.data?.interface_software === "SAHI";
             } catch (error) {
                 this.sedeInterface = false;
             }
         },
         safeDestroyDataTable(selector = "#example23") {
-            if (typeof window === 'undefined' || !window.$ || !window.$.fn || !window.$.fn.DataTable) return;
+            if (
+                typeof window === "undefined" ||
+                !window.$ ||
+                !window.$.fn ||
+                !window.$.fn.DataTable
+            )
+                return;
             const $t = window.$(selector);
             if (!$t.length) return;
             if (window.$.fn.DataTable.isDataTable($t)) {
@@ -293,7 +458,13 @@ export default {
             }
         },
         safeInitDataTable(selector = "#example23") {
-            if (typeof window === 'undefined' || !window.$ || !window.$.fn || !window.$.fn.DataTable) return;
+            if (
+                typeof window === "undefined" ||
+                !window.$ ||
+                !window.$.fn ||
+                !window.$.fn.DataTable
+            )
+                return;
             this.$nextTick(() => {
                 const $t = window.$(selector);
                 if (!$t.length) return;
@@ -305,14 +476,17 @@ export default {
             });
         },
         async listarAtenciones() {
-
-            if (this.registroAnular.bus_nom_num_docu == "" && this.busqueda.bus_fehc_ini == "" && this.busqueda.bus_fecha_fin == "") {
+            if (
+                this.busqueda.bus_nom_num_docu == "" &&
+                this.busqueda.bus_fehc_ini == "" &&
+                this.busqueda.bus_fecha_fin == ""
+            ) {
                 $.toast({
-                    heading: '¡Atención!',
-                    text: 'Debe ingresar almenos un criterio de busqueda.',
-                    position: 'top-right',
-                    loaderBg: '#ff6849',
-                    icon: 'warning',
+                    heading: "¡Atención!",
+                    text: "Debe ingresar almenos un criterio de busqueda.",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "warning",
                     hideAfter: 3500,
                     stack: 6,
                 });
@@ -322,7 +496,7 @@ export default {
             try {
                 this.isBuscandoAdmisionadas = true;
 
-                const res = await axios.post('/api/ecografias-filtar', this.busqueda);
+                const res = await axios.post("/api/ecografias-filtar", this.busqueda);
 
                 if (res.status == 200) {
                     this.safeDestroyDataTable(this.$refs.dt || "#example23");
@@ -371,16 +545,16 @@ export default {
         },
         registroParaAnular(data) {
             this.registroAnular.ecografia_id = data.id;
-            this.registroAnular.atencion_id = data.IdAtencion;
+            this.registroAnular.atencion_id = data?.atencion_id ?? data?.IdAtencion ?? "";
         },
         anularEcografia() {
             if (this.registroAnular.motivo_anula === "") {
                 $.toast({
-                    heading: '¡Atención!',
-                    text: 'Debe ingresar el motivo de anulación.',
-                    position: 'top-right',
-                    loaderBg: '#ff6849',
-                    icon: 'warning',
+                    heading: "¡Atención!",
+                    text: "Debe ingresar el motivo de anulación.",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "warning",
                     hideAfter: 3500,
                     stack: 6,
                 });
@@ -396,9 +570,12 @@ export default {
                 if (this.isAnulandoAdmisionada) return;
                 this.isAnulandoAdmisionada = true;
                 try {
-                    const response = await axios.post(`/api/ecografia-anular/${this.registroAnular.ecografia_id}`, this.registroAnular);
+                    const response = await axios.post(
+                        `/api/ecografia-anular/${this.registroAnular.ecografia_id}`,
+                        this.registroAnular
+                    );
                     alertSuccess("Ok!", response?.data?.message || "Ecografía anulada.", "success");
-                    const cerrarModal = document.getElementById('btnCerrarModalAunular');
+                    const cerrarModal = document.getElementById("btnCerrarModalAunular");
                     if (cerrarModal) cerrarModal.click();
                     await this.listarAtenciones();
                 } catch (error) {
@@ -415,8 +592,10 @@ export default {
 
             const id = item.ecografia_producto_id;
             try {
-                this.setMapValue('isConsultandoSahi', id, true);
-                const res = await axios.get(`/api/interface-sahi-ecografias/estado/ecografia-producto/${id}`);
+                this.setMapValue("isConsultandoSahi", id, true);
+                const res = await axios.get(
+                    `/api/interface-sahi-ecografias/estado/ecografia-producto/${id}`
+                );
                 const d = res.data?.data || {};
 
                 item.estado_envio_sahi = d.estado_envio_sahi ?? item.estado_envio_sahi;
@@ -429,16 +608,16 @@ export default {
                 this.safeInitDataTable(this.$refs.dt || "#example23");
             } catch (error) {
                 $.toast({
-                    heading: 'SAHI',
-                    text: error.response?.data?.message || 'No se pudo consultar el estado SAHI.',
-                    position: 'top-right',
-                    loaderBg: '#ff6849',
-                    icon: 'warning',
+                    heading: "SAHI",
+                    text: error.response?.data?.message || "No se pudo consultar el estado SAHI.",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "warning",
                     hideAfter: 3500,
                     stack: 6,
                 });
             } finally {
-                this.setMapValue('isConsultandoSahi', id, false);
+                this.setMapValue("isConsultandoSahi", id, false);
             }
         },
         async reenviarASahi(item) {
@@ -447,20 +626,23 @@ export default {
 
             const id = item.ecografia_producto_id;
             try {
-                this.setMapValue('isEnviandoSahi', id, true);
-                item.estado_envio_sahi = 'ENVIANDO';
+                this.setMapValue("isEnviandoSahi", id, true);
+                item.estado_envio_sahi = "ENVIANDO";
                 item.error_envio_sahi = null;
 
-                const res = await axios.post('/api/interface-sahi-ecografias/enviar/ecografia-producto', {
-                    ecografia_producto_id: id,
-                });
+                const res = await axios.post(
+                    "/api/interface-sahi-ecografias/enviar/ecografia-producto",
+                    {
+                        ecografia_producto_id: id,
+                    }
+                );
 
                 $.toast({
-                    heading: 'SAHI',
-                    text: res.data?.message || 'Envío a SAHI encolado.',
-                    position: 'top-right',
-                    loaderBg: '#ff6849',
-                    icon: 'info',
+                    heading: "SAHI",
+                    text: res.data?.message || "Envío a SAHI encolado.",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "info",
                     hideAfter: 3500,
                     stack: 6,
                 });
@@ -468,23 +650,24 @@ export default {
                 this.safeDestroyDataTable(this.$refs.dt || "#example23");
                 this.safeInitDataTable(this.$refs.dt || "#example23");
             } catch (error) {
-                item.estado_envio_sahi = 'ERROR';
-                item.error_envio_sahi = error.response?.data?.message || 'No se pudo reenviar a SAHI.';
+                item.estado_envio_sahi = "ERROR";
+                item.error_envio_sahi =
+                    error.response?.data?.message || "No se pudo reenviar a SAHI.";
                 $.toast({
-                    heading: 'SAHI',
+                    heading: "SAHI",
                     text: item.error_envio_sahi,
-                    position: 'top-right',
-                    loaderBg: '#ff6849',
-                    icon: 'warning',
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "warning",
                     hideAfter: 4500,
                     stack: 6,
                 });
             } finally {
-                this.setMapValue('isEnviandoSahi', id, false);
+                this.setMapValue("isEnviandoSahi", id, false);
             }
         },
-    }
-}
+    },
+};
 </script>
 <style scoped>
 .right-sidebar {

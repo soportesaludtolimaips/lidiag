@@ -1,0 +1,17 @@
+---
+description: Storage: discos públicos y links extra (storage:link) en LIDiag
+globs: config/filesystems.php
+alwaysApply: false
+---
+
+# Filesystems / storage:link (LIDiag)
+
+- LIDiag usa múltiples discos públicos (ej. `audios`, `files_help_desk`, `firmas_consntimientos`, etc.).
+- Si agregas un disk público, debes:
+  - Definirlo en `config/filesystems.php` (`root`, `url`, `visibility`).
+  - Agregar su symlink en `links` para que `php artisan storage:link` lo cree en `public/`.
+
+## Checklist
+
+- `root` debe existir/ser creable por el proceso (Apache/CLI).
+- Para desarrollo local, ejecutar `php artisan storage:link` después de cambios en `links`.

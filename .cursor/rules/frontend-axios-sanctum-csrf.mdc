@@ -1,0 +1,26 @@
+---
+description: Frontend: axios/Sanctum/CSRF (cookies stateful) y uso de /api
+globs: resources/js/**/*.{js,vue}
+alwaysApply: false
+---
+
+# Axios + Sanctum (SPA stateful)
+
+## Base (ya configurado)
+
+- `resources/js/bootstrap.js` configura:
+  - `axios.defaults.withCredentials = true`
+  - `X-Requested-With: XMLHttpRequest`
+  - `X-CSRF-TOKEN` desde meta tag `csrf-token` (si existe)
+
+## Reglas al consumir backend
+
+- **Siempre** usar `/api/...` para endpoints del SPA.
+- Si un endpoint devuelve archivo:
+  - `responseType: 'blob'`
+- Evitar mezclar dominios (`localhost` vs `lidiag.test`), porque rompe cookies stateful.
+
+## Debug
+
+- 401 en `/api/*` → revisar `APP_URL`, `SANCTUM_STATEFUL_DOMAINS` y cookies (ver `config/sanctum.php`).
+

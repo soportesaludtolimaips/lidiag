@@ -35,7 +35,10 @@ class RouteServiceProvider extends ServiceProvider
                 ->group(base_path('routes/api.php'));
 
             // Rutas de configuración con middleware personalizado (algunas públicas, algunas protegidas)
-            Route::prefix('api')
+            // Importante: debe ir bajo middleware('api') para que Sanctum SPA
+            // (EnsureFrontendRequestsAreStateful) aplique y `auth:sanctum` reconozca sesión/cookies.
+            Route::middleware('api')
+                ->prefix('api')
                 ->group(base_path('routes/api_configuracion.php'));
 
             Route::middleware('api')
@@ -58,6 +61,10 @@ class RouteServiceProvider extends ServiceProvider
                 ->prefix('api')
                 ->group(base_path('routes/api_agendamiento_dashboard.php'));
 
+            Route::middleware('api')
+                ->prefix('api')
+                ->group(base_path('routes/api_helpdesk.php'));
+
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
         });
@@ -77,7 +84,7 @@ class RouteServiceProvider extends ServiceProvider
         // Limita intentos de login por email+IP para mitigar brute force
         RateLimiter::for('login', function (Request $request) {
             $email = (string) $request->input('email');
-            $key = mb_strtolower($email) . '|' . $request->ip();
+            $key = mb_strtolower($email).'|'.$request->ip();
 
             return Limit::perMinute(10)->by($key);
         });

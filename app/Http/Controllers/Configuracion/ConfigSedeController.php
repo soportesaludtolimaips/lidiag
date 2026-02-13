@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Configuracion;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Configuracion\ConfigSedeRequest;
 use App\Models\Configuracion\ConfigSede;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -36,6 +36,7 @@ class ConfigSedeController extends Controller
     public function index()
     {
         $sedes = ConfigSede::orderBy('nom_sede')->get();
+
         return response()->json($sedes);
     }
 
@@ -50,8 +51,8 @@ class ConfigSedeController extends Controller
      * 5. Procesa y guarda la plantilla Ecografía si se adjunta (encripta nombre).
      * 6. Guarda el registro en la base de datos.
      *
-     * @param Request $request Datos de la sede y archivos.
-     * @param ConfigSede $configsede Instancia vacía (no usada).
+     * @param  Request  $request  Datos de la sede y archivos.
+     * @param  ConfigSede  $configsede  Instancia vacía (no usada).
      * @return \Illuminate\Http\JsonResponse Confirmación de creación o errores de validación.
      */
     public function store(Request $request, ConfigSede $configsede)
@@ -92,7 +93,7 @@ class ConfigSedeController extends Controller
             return response()->json($validator->errors(), 400);
         }
 
-        $configSede = new ConfigSede();
+        $configSede = new ConfigSede;
         $configSede->nom_sede = $registro['nom_sede'];
         $configSede->email_repor = $registro['email_repor'];
         $configSede->ip_dcm = $registro['ip_dcm'];
@@ -112,11 +113,11 @@ class ConfigSedeController extends Controller
         if ($request->hasFile('plantilla_rx')) {
             $archivo = $request->plantilla_rx;
 
-            if (!is_null($configSede->plantilla_rx) && Storage::disk('plantillas_lecturas')->exists($configSede->plantilla_rx)) {
+            if (! is_null($configSede->plantilla_rx) && Storage::disk('plantillas_lecturas')->exists($configSede->plantilla_rx)) {
                 Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_rx);
             }
 
-            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+            $nombreEncrip = Str::random(50).".".$archivo->extension();
 
             $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
             $configSede->plantilla_rx = $nombreEncrip;
@@ -129,34 +130,62 @@ class ConfigSedeController extends Controller
 
             $archivo = $request->plantilla_ecografia;
 
-            if (!is_null($configSede->plantilla_ecografia) && Storage::disk('plantillas_lecturas')->exists($configSede->plantilla_ecografia)) {
+            if (! is_null($configSede->plantilla_ecografia) && Storage::disk('plantillas_lecturas')->exists($configSede->plantilla_ecografia)) {
                 Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_ecografia);
             }
 
-            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+            $nombreEncrip = Str::random(50).".".$archivo->extension();
 
             $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
             $configSede->plantilla_ecografia = $nombreEncrip;
         }
 
         $configSede->save();
+
         return response()->json(['message' => 'El registro se creo correctamente']);
     }
 
     /**
      * Retorna la sede buscada por ID.
      *
-     * @param ConfigSede $configsede Instancia de la sede.
+     * @param  ConfigSede  $configsede  Instancia de la sede.
      * @return ConfigSede Datos de la sede.
      */
     public function buscarPorId($id)
     {
-        $sede = ConfigSede::find($id);
-        if (!$sede) {
-            return response()->json(['message' => 'No se encontró la sede'], 404);
-        }
+        try {
+            // Endpoint público usado por el UI (selección de sede / validación de interface).
+            // Por seguridad, NO exponemos credenciales ni passwords.
+            $sede = ConfigSede::query()
+                ->select([
+                    'id',
+                    'cod_sede',
+                    'nom_sede',
+                    'email_repor',
+                    'url_oviyam',
+                    'tap_oviyam',
+                    'estado',
+                    'interface_software',
+                ])
+                ->find($id);
 
-        return response()->json($sede);
+            if (! $sede) {
+                return response()->json(['message' => 'No se encontró la sede'], 404);
+            }
+
+            // Evita 500 por datos con encoding inválido en BD (p.ej. bytes no UTF-8).
+            return response()->json($sede, 200, [], JSON_INVALID_UTF8_SUBSTITUTE);
+        } catch (\Throwable $e) {
+            Log::error('Error consultando ConfigSede (buscarPorId).', [
+                'id' => $id,
+                'exception' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Error consultando la sede.',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
     }
 
     /**
@@ -167,6 +196,7 @@ class ConfigSedeController extends Controller
     public function listarSedesActivas()
     {
         $sedes = ConfigSede::where('estado', '=', 1)->get();
+
         return response()->json($sedes);
     }
 
@@ -181,7 +211,7 @@ class ConfigSedeController extends Controller
      * 5. Reemplaza plantillas (RX/Ecografía) si se envían nuevas, eliminando las anteriores.
      * 6. Guarda los cambios.
      *
-     * @param Request $request Datos actualizados y archivos.
+     * @param  Request  $request  Datos actualizados y archivos.
      * @return \Illuminate\Http\JsonResponse Confirmación de actualización o errores.
      */
     public function update(Request $request)
@@ -243,11 +273,11 @@ class ConfigSedeController extends Controller
         if ($request->hasFile('plantilla_rx')) {
             $archivo = $request->plantilla_rx;
 
-            if (!is_null($configSede->plantilla_rx) && Storage::disk('plantillas_lecturas')->exists($configSede->plantilla_rx)) {
+            if (! is_null($configSede->plantilla_rx) && Storage::disk('plantillas_lecturas')->exists($configSede->plantilla_rx)) {
                 Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_rx);
             }
 
-            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+            $nombreEncrip = Str::random(50).".".$archivo->extension();
 
             $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
             $configSede->plantilla_rx = $nombreEncrip;
@@ -260,11 +290,11 @@ class ConfigSedeController extends Controller
 
             $archivo = $request->plantilla_ecografia;
 
-            if (!is_null($configSede->plantilla_ecografia) && Storage::disk('plantillas_lecturas')->exists($configSede->plantilla_ecografia)) {
+            if (! is_null($configSede->plantilla_ecografia) && Storage::disk('plantillas_lecturas')->exists($configSede->plantilla_ecografia)) {
                 Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_ecografia);
             }
 
-            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+            $nombreEncrip = Str::random(50).".".$archivo->extension();
 
             $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
             $configSede->plantilla_ecografia = $nombreEncrip;
@@ -278,14 +308,13 @@ class ConfigSedeController extends Controller
     /**
      * Método auxiliar para depuración de carga de archivos (No usado en producción).
      *
-     * @param Request $request
      * @return mixed Nombre del archivo o null.
      */
     public function updateWitchPlantillas(Request $request)
     {
         if ($request->hasFile('plantilla')) {
             $filename = $request->plantilla->getClientOriginalName();
-            info($filename); //log
+            info($filename); // log
         }
 
         return $filename;
@@ -294,12 +323,13 @@ class ConfigSedeController extends Controller
     /**
      * Elimina una sede.
      *
-     * @param ConfigSede $configSede Instancia a eliminar.
+     * @param  ConfigSede  $configSede  Instancia a eliminar.
      * @return \Illuminate\Http\JsonResponse Confirmación de eliminación.
      */
     public function destroy(ConfigSede $configSede)
     {
         $configSede->delete();
+
         return response()->json(['message' => 'El registro se elimino correctamente.']);
     }
 }

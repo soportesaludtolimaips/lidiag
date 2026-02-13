@@ -1,0 +1,27 @@
+/* Minimal CSS to satisfy bootstrap-wysihtml5 defaultOptions.stylesheets.
+ *
+ * The editor loads this stylesheet inside its iframe.
+ * Keep it lightweight: avoid overriding global typography.
+ */
+
+/* Provide reasonable defaults for content inside the iframe */
+html, body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #2b2b2b;
+}
+
+/* Optional: a few utility colors (in case content uses classes) */
+.wysiwyg-color-black { color: #000000; }
+.wysiwyg-color-silver { color: #c0c0c0; }
+.wysiwyg-color-gray { color: #808080; }
+.wysiwyg-color-maroon { color: #800000; }
+.wysiwyg-color-red { color: #ff0000; }
+.wysiwyg-color-purple { color: #800080; }
+.wysiwyg-color-green { color: #008000; }
+.wysiwyg-color-olive { color: #808000; }
+.wysiwyg-color-navy { color: #000080; }
+.wysiwyg-color-blue { color: #0000ff; }
+.wysiwyg-color-orange { color: #ffa500; }
+

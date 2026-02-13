@@ -1,0 +1,21 @@
+---
+description: Frontend: convención de tags Vue en Blade y registro en resources/js/app.js
+globs: resources/js/app.js
+alwaysApply: false
+---
+
+# Vue components: registro y tags (Blade)
+
+- La app registra componentes globales en `resources/js/app.js`.
+- En Blade, usar tags en **kebab-case** (minúsculas) para evitar inconsistencias del DOM/HTML.
+
+## Reglas
+
+- Si cambias el nombre de un componente/tag, agrega **alias** temporal para compatibilidad (como ya se hace en `app.js`).
+- Mantener nombres consistentes: `modulo-accion-component` (ej. `ecografias-lectura-component`).
+
+## Checklist al crear pantalla nueva
+
+- Vista Blade renderiza el tag del componente.
+- `resources/js/app.js` lo registra con el mismo tag (y alias si hay legado).
+

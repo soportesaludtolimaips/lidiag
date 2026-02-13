@@ -1,0 +1,8 @@
+public/build/
+public/admin-wrap/
+resources/js/admin-wrap/
+vendor/
+storage/
+bootstrap/cache/
+node_modules/
+

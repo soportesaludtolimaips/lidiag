@@ -16,7 +16,7 @@
             <div class="dropdown-menu dropdown-menu-right mailbox animated bounceInDown">
                 <ul>
                     <li>
-                        <div class="drop-title">Notifications</div>
+                        <div class="drop-title">Notificaciones</div>
                     </li>
                     <li>
                         <div class="message-center">

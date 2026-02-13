@@ -164,7 +164,13 @@
                         </li>
                     @endif
 
-                    @if (auth()->user()->hasAnyPermission(['ecografias.index', 'ecografias.admision', 'ecografias.anular', 'ecografias.leer', 'ecografias.reporte']))
+                    @if (auth()->user()->hasAnyPermission([
+                        'ecografias.index',
+                        'ecografias.admision',
+                        'ecografias.anular',
+                        'ecografias.leer',
+                        'ecografias.reporte',
+                    ]))
                         <li class="nav-small-cap">--- ECOGRAFIAS</li>
                         <li>
                             <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
@@ -183,7 +189,7 @@
                                             <i class="fa fa-address-book-o  text-info"></i> Ecografías admisionadas
                                         </a>
                                     @endcan
-                                    @can('ecografias.leer')
+                                @can('ecografias.leer')
                                         <a href="{{ route('ecografias.pendientes.lecturas') }}">
                                             <i class="fa fa-pencil text-info"></i> Realizar lectura
                                         </a>
@@ -227,7 +233,61 @@
                         </li>
                     @endif
 
-                    @if (auth()->user()->hasAnyPermission(['config.admin.salud.index', 'config.diagnosticos.index', 'config.prioridades.index', 'config.productos.index', 'config.sedes.index']))
+                    @if (auth()->user()->hasAnyPermission(['helpdesk.tickets.index', 'helpdesk.tickets.create', 'helpdesk.tickets.show', 'helpdesk.reportes.index', 'helpdesk.notificaciones.index']))
+                        <li class="nav-small-cap">--- SOPORTE</li>
+                        <li>
+                            <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
+                                <i class="icon-Support"></i>
+                                <span class="hide-menu">Helpdesk</span>
+                            </a>
+                            <ul aria-expanded="false" class="collapse">
+                                @can('helpdesk.tickets.index')
+                                    <li>
+                                        <a href="{{ route('helpdesk.tickets.listar') }}">
+                                            <i class="fa fa-ticket text-info"></i> Mis tickets
+                                        </a>
+                                    </li>
+                                @endcan
+                                @can('helpdesk.tickets.create')
+                                    <li>
+                                        <a href="{{ route('helpdesk.tickets.crear') }}">
+                                            <i class="fa fa-plus text-info"></i> Crear ticket
+                                        </a>
+                                    </li>
+                                @endcan
+                                @can('helpdesk.reportes.index')
+                                    <li>
+                                        <a href="{{ route('helpdesk.reportes') }}">
+                                            <i class="fa fa-bar-chart text-info"></i> Reportes Helpdesk
+                                        </a>
+                                    </li>
+                                @endcan
+                                @can('helpdesk.notificaciones.index')
+                                    <li>
+                                        <a href="{{ route('helpdesk.notificaciones') }}">
+                                            <i class="fa fa-bell text-info"></i> Notificaciones
+                                        </a>
+                                    </li>
+                                @endcan
+                            </ul>
+                        </li>
+                    @endif
+
+                    @if (auth()->user()->hasAnyPermission([
+                        'config.admin.salud.index',
+                        'config.diagnosticos.index',
+                        'config.prioridades.index',
+                        'config.productos.index',
+                        'config.sedes.index',
+                        'config.plantillas.index',
+                        'config.tipo.documento.index',
+                        'config.consentimiento_informado.index',
+                        'ecografias.consentimientos.index',
+                        'ecografias.consentimientos.plantillas.index',
+                        'helpdesk.config.categorias.index',
+                        'helpdesk.config.prioridades.index',
+                        'helpdesk.config.estados.index',
+                    ]))
                         <li class="nav-small-cap">--- PARAMETRIZACIÓN</li>
                         <li>
                             <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
@@ -278,6 +338,41 @@
                                         <a href="{{ route('config.consentimiento.informado.listar') }}">Consentimiento Informado</a>
                                     </li>
                                 @endcan
+                                @can('ecografias.consentimientos.index')
+                                    <li>
+                                        <a href="{{ route('config.consentimientos.index') }}">Consentimientos (Firmas/PDF)</a>
+                                    </li>
+                                @endcan
+                                @can('ecografias.consentimientos.plantillas.index')
+                                    <li>
+                                        <a href="{{ route('config.consentimientos.plantillas.index') }}">Plantillas Consentimientos</a>
+                                    </li>
+                                @endcan
+
+                                @if (auth()->user()->hasAnyPermission(['helpdesk.config.categorias.index', 'helpdesk.config.prioridades.index', 'helpdesk.config.estados.index']))
+                                    <li class="nav-small-cap">--- Helpdesk</li>
+                                    @can('helpdesk.config.categorias.index')
+                                        <li>
+                                            <a href="{{ route('config.helpdesk.categorias.listar') }}">
+                                                Categorías Helpdesk
+                                            </a>
+                                        </li>
+                                    @endcan
+                                    @can('helpdesk.config.prioridades.index')
+                                        <li>
+                                            <a href="{{ route('config.helpdesk.prioridades.listar') }}">
+                                                Prioridades Helpdesk
+                                            </a>
+                                        </li>
+                                    @endcan
+                                    @can('helpdesk.config.estados.index')
+                                        <li>
+                                            <a href="{{ route('config.helpdesk.estados.listar') }}">
+                                                Estados Helpdesk
+                                            </a>
+                                        </li>
+                                    @endcan
+                                @endif
                             </ul>
                         </li>
                     @endif

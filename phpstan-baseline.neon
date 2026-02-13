@@ -1,0 +1,1731 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Call to an undefined static method Illuminate\\\\Support\\\\Facades\\\\File\\:\\:isAbsolutePath\\(\\)\\.$#"
+			count: 1
+			path: app/Console/Commands/AuditPermissions.php
+
+		-
+			message: "#^Expression on left side of \\?\\? is not nullable\\.$#"
+			count: 1
+			path: app/Console/Commands/CheckUserPermission.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\ConfigEps\\:\\:\\$cod_eps\\.$#"
+			count: 3
+			path: app/Console/Commands/SyncDicomEcografias.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\ConfigEps\\:\\:\\$nom_eps\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncDicomEcografias.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\ConfigProducto\\:\\:\\$cod_produc\\.$#"
+			count: 3
+			path: app/Console/Commands/SyncDicomEcografias.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\ConfigProducto\\:\\:\\$val_soat\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncDicomEcografias.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\Lectura\\:\\:\\$eps\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncDicomEcografias.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\Lectura\\:\\:\\$fechor_lectura\\.$#"
+			count: 2
+			path: app/Console/Commands/SyncDicomEcografias.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\Lectura\\:\\:\\$id_atencion\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncDicomEcografias.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\Lectura\\:\\:\\$medico\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncDicomEcografias.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\Lectura\\:\\:\\$paciente\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncDicomEcografias.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\Lectura\\:\\:\\$usuarioRegistrador\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncDicomEcografias.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\SeguUsuario\\:\\:\\$login\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncDicomEcografias.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\SeguUsuario\\:\\:\\$personal\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncDicomEcografias.php
+
+		-
+			message: "#^Property App\\\\Models\\\\Configuracion\\\\ConfigAdminSalud\\:\\:\\$estado \\(bool\\) does not accept int\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncDicomEcografias.php
+
+		-
+			message: "#^Property App\\\\Models\\\\Configuracion\\\\ConfigProducto\\:\\:\\$estado \\(bool\\) does not accept int\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncDicomEcografias.php
+
+		-
+			message: "#^Property App\\\\Models\\\\Ecografias\\\\Ecografia\\:\\:\\$estado \\('ANULADO'\\|'EN PROCESO'\\|'LEIDO'\\) does not accept 1\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncDicomEcografias.php
+
+		-
+			message: "#^Relation 'paciente' is not found in App\\\\Models\\\\ImportarEcografias\\\\Lectura model\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncDicomEcografias.php
+
+		-
+			message: "#^Relation 'personal' is not found in App\\\\Models\\\\ImportarEcografias\\\\SeguUsuario model\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncDicomEcografias.php
+
+		-
+			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncDicomEcografias.php
+
+		-
+			message: "#^Variable \\$medico might not be defined\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncDicomEcografias.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\ConfigPlantillaDetalle\\:\\:\\$acti\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncUsuarios.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\ConfigPlantillaDetalle\\:\\:\\$detalle\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncUsuarios.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\ConfigPlantillaDetalle\\:\\:\\$id_personal\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncUsuarios.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\ConfigPlantillaDetalle\\:\\:\\$nom_plantilla\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncUsuarios.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\ConfigPlantillaDetalle\\:\\:\\$opinion\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncUsuarios.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\ConfigPlantillaTipo\\:\\:\\$nom_tipo\\.$#"
+			count: 3
+			path: app/Console/Commands/SyncUsuarios.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\GenePersonal\\:\\:\\$acti\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncUsuarios.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\GenePersonal\\:\\:\\$e_mail\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncUsuarios.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\GenePersonal\\:\\:\\$id_sahi\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncUsuarios.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\GenePersonal\\:\\:\\$nom_usua\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncUsuarios.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\GenePersonal\\:\\:\\$num_docu\\.$#"
+			count: 5
+			path: app/Console/Commands/SyncUsuarios.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\GenePersonal\\:\\:\\$num_regis\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncUsuarios.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\GenePersonal\\:\\:\\$pri_ape\\.$#"
+			count: 2
+			path: app/Console/Commands/SyncUsuarios.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\ImportarEcografias\\\\GenePersonal\\:\\:\\$pri_nom\\.$#"
+			count: 2
+			path: app/Console/Commands/SyncUsuarios.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\User\\:\\:\\$tipo_usua\\.$#"
+			count: 1
+			path: app/Console/Commands/SyncUsuarios.php
+
+		-
+			message: "#^Relation 'sede' is not found in App\\\\Models\\\\Agenda\\\\AgendaDisponibilida model\\.$#"
+			count: 2
+			path: app/Http/Controllers/Agenda/AgendaDisponibilidaController.php
+
+		-
+			message: "#^Relation 'servicio' is not found in App\\\\Models\\\\Agenda\\\\AgendaDisponibilida model\\.$#"
+			count: 2
+			path: app/Http/Controllers/Agenda/AgendaDisponibilidaController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Auth\\\\LoginController\\:\\:login\\(\\) should return Illuminate\\\\Http\\\\RedirectResponse but returns Illuminate\\\\Http\\\\JsonResponse\\.$#"
+			count: 2
+			path: app/Http/Controllers/Auth/LoginController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Auth\\\\LoginController\\:\\:logout\\(\\) should return Illuminate\\\\Http\\\\JsonResponse but returns Illuminate\\\\Http\\\\RedirectResponse\\.$#"
+			count: 1
+			path: app/Http/Controllers/Auth/LoginController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\CitaController\\:\\:create\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/CitaController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\CitaController\\:\\:destroy\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/CitaController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\CitaController\\:\\:edit\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/CitaController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\CitaController\\:\\:index\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/CitaController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\CitaController\\:\\:show\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/CitaController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\CitaController\\:\\:store\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/CitaController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\CitaController\\:\\:update\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/CitaController.php
+
+		-
+			message: "#^Relation 'medico' is not found in App\\\\Models\\\\Configuracion\\\\ConfigPlantilla model\\.$#"
+			count: 2
+			path: app/Http/Controllers/Configuracion/ConfigPlantillaController.php
+
+		-
+			message: "#^Relation 'plantillaTipo' is not found in App\\\\Models\\\\Configuracion\\\\ConfigPlantilla model\\.$#"
+			count: 2
+			path: app/Http/Controllers/Configuracion/ConfigPlantillaController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Configuracion\\\\ConfigSede\\:\\:\\$plantilla_rx\\.$#"
+			count: 2
+			path: app/Http/Controllers/Configuracion/ConfigSedeController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Configuracion\\\\ConfigSede\\|Illuminate\\\\Database\\\\Eloquent\\\\Collection\\<int, App\\\\Models\\\\Configuracion\\\\ConfigSede\\>\\:\\:\\$plantilla_rx\\.$#"
+			count: 2
+			path: app/Http/Controllers/Configuracion/ConfigSedeController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Configuracion\\\\ConfigSedeController\\:\\:buscarPorId\\(\\) should return App\\\\Models\\\\Configuracion\\\\ConfigSede but returns Illuminate\\\\Http\\\\JsonResponse\\.$#"
+			count: 3
+			path: app/Http/Controllers/Configuracion/ConfigSedeController.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$configsede$#"
+			count: 1
+			path: app/Http/Controllers/Configuracion/ConfigSedeController.php
+
+		-
+			message: "#^Variable \\$filename might not be defined\\.$#"
+			count: 1
+			path: app/Http/Controllers/Configuracion/ConfigSedeController.php
+
+		-
+			message: "#^Relation 'producto' is not found in App\\\\Models\\\\Configuracion\\\\ConsentimientoInformado model\\.$#"
+			count: 3
+			path: app/Http/Controllers/Configuracion/ConsentimientoInformadoController.php
+
+		-
+			message: "#^Relation 'sede' is not found in App\\\\Models\\\\Configuracion\\\\ConsentimientoInformado model\\.$#"
+			count: 3
+			path: app/Http/Controllers/Configuracion/ConsentimientoInformadoController.php
+
+		-
+			message: "#^Relation 'usuarioCrea' is not found in App\\\\Models\\\\Configuracion\\\\ConsentimientoInformado model\\.$#"
+			count: 2
+			path: app/Http/Controllers/Configuracion/ConsentimientoInformadoController.php
+
+		-
+			message: "#^Anonymous function has an unused use \\$current\\.$#"
+			count: 1
+			path: app/Http/Controllers/Consentimientos/ConsentimientoPlantillasController.php
+
+		-
+			message: "#^Relation 'producto' is not found in App\\\\Models\\\\Consentimientos\\\\ConsentimientoPlantilla model\\.$#"
+			count: 3
+			path: app/Http/Controllers/Consentimientos/ConsentimientoPlantillasController.php
+
+		-
+			message: "#^Relation 'usuarioCrea' is not found in App\\\\Models\\\\Consentimientos\\\\ConsentimientoPlantilla model\\.$#"
+			count: 3
+			path: app/Http/Controllers/Consentimientos/ConsentimientoPlantillasController.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$name\\.$#"
+			count: 1
+			path: app/Http/Controllers/Dashboard/DashBoardController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Dashboard\\\\DashBoardController\\:\\:getAsignadosPorDia\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, object\\> but returns Illuminate\\\\Database\\\\Eloquent\\\\Collection\\<int, App\\\\Models\\\\Estudio\\\\Estudio\\>\\.$#"
+			count: 1
+			path: app/Http/Controllers/Dashboard/DashBoardController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Dashboard\\\\DashBoardController\\:\\:getEventosPorHoraHoy\\(\\) should return array\\<string, Illuminate\\\\Support\\\\Collection\\<int, object\\>\\> but returns array\\{asignados\\: Illuminate\\\\Support\\\\Collection\\<int, stdClass\\>, leidos\\: Illuminate\\\\Support\\\\Collection\\<int, stdClass\\>, transcritos\\: Illuminate\\\\Support\\\\Collection\\<int, stdClass\\>\\}\\.$#"
+			count: 1
+			path: app/Http/Controllers/Dashboard/DashBoardController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Dashboard\\\\DashBoardController\\:\\:getHeatmap7d\\(\\) should return array\\<string, Illuminate\\\\Support\\\\Collection\\<int, object\\>\\> but returns array\\{days\\: int\\<1, 31\\>, asignados\\: Illuminate\\\\Support\\\\Collection\\<int, stdClass\\>, leidos\\: Illuminate\\\\Support\\\\Collection\\<int, stdClass\\>, transcritos\\: Illuminate\\\\Support\\\\Collection\\<int, stdClass\\>\\}\\.$#"
+			count: 1
+			path: app/Http/Controllers/Dashboard/DashBoardController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Dashboard\\\\DashBoardController\\:\\:getLeidosPorDia\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, object\\> but returns Illuminate\\\\Database\\\\Eloquent\\\\Collection\\<int, App\\\\Models\\\\Estudio\\\\EstudioProducto\\>\\.$#"
+			count: 1
+			path: app/Http/Controllers/Dashboard/DashBoardController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Dashboard\\\\DashBoardController\\:\\:getPendientesLecturaTop\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, object\\> but returns Illuminate\\\\Support\\\\Collection\\<int, stdClass\\>\\.$#"
+			count: 1
+			path: app/Http/Controllers/Dashboard/DashBoardController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Dashboard\\\\DashBoardController\\:\\:getPendientesTranscripcionTop\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, object\\> but returns Illuminate\\\\Support\\\\Collection\\<int, stdClass\\>\\.$#"
+			count: 1
+			path: app/Http/Controllers/Dashboard/DashBoardController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Dashboard\\\\DashBoardController\\:\\:getRankingMedicosTranscritos\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, object\\> but returns Illuminate\\\\Support\\\\Collection\\<int, array\\{medico_id\\: int, medico\\: string, total\\: int, prev_total\\: int, delta\\: int, deltaPct\\: float\\|null\\}\\>\\.$#"
+			count: 1
+			path: app/Http/Controllers/Dashboard/DashBoardController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Dashboard\\\\DashBoardController\\:\\:getRankingUsuarioTranscritos\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, object\\> but returns Illuminate\\\\Support\\\\Collection\\<int, array\\{medico_id\\: int, medico\\: string, total\\: int, prev_total\\: int, delta\\: int, deltaPct\\: float\\|null\\}\\>\\.$#"
+			count: 1
+			path: app/Http/Controllers/Dashboard/DashBoardController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Dashboard\\\\DashBoardController\\:\\:getTopModalidades\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, object\\> but returns Illuminate\\\\Database\\\\Eloquent\\\\Collection\\<int, App\\\\Models\\\\Estudio\\\\Estudio\\>\\.$#"
+			count: 1
+			path: app/Http/Controllers/Dashboard/DashBoardController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Dashboard\\\\DashBoardController\\:\\:getTranscritosPorDia\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, object\\> but returns Illuminate\\\\Database\\\\Eloquent\\\\Collection\\<int, App\\\\Models\\\\Estudio\\\\EstudioProducto\\>\\.$#"
+			count: 1
+			path: app/Http/Controllers/Dashboard/DashBoardController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Dashboard\\\\DashBoardController\\:\\:getTranscritosPorSede\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, object\\> but returns Illuminate\\\\Support\\\\Collection\\<int, array\\{sede_id\\: int, sede\\: string, total\\: int, prev_total\\: int, delta\\: int, deltaPct\\: float\\|null\\}\\>\\.$#"
+			count: 1
+			path: app/Http/Controllers/Dashboard/DashBoardController.php
+
+		-
+			message: "#^Relation 'estudio' is not found in App\\\\Models\\\\Estudio\\\\EstudioProducto model\\.$#"
+			count: 9
+			path: app/Http/Controllers/Dashboard/DashBoardController.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$agendado\\.$#"
+			count: 1
+			path: app/Http/Controllers/Dcm4chee/StudyController.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$study_pk\\.$#"
+			count: 1
+			path: app/Http/Controllers/Dcm4chee/StudyController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Dcm4chee\\\\StudyController\\:\\:listarEstudios\\(\\) should return Illuminate\\\\Http\\\\Response but returns Illuminate\\\\Http\\\\JsonResponse\\.$#"
+			count: 2
+			path: app/Http/Controllers/Dcm4chee/StudyController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Consentimientos\\\\EcografiaConsentimiento\\:\\:\\$ecografiaProducto\\.$#"
+			count: 5
+			path: app/Http/Controllers/Ecografias/EcografiaConsentimientosController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Consentimientos\\\\EcografiaConsentimiento\\:\\:\\$producto\\.$#"
+			count: 2
+			path: app/Http/Controllers/Ecografias/EcografiaConsentimientosController.php
+
+		-
+			message: "#^Offset 'error' on array\\{error\\: bool, consentimiento\\: App\\\\Models\\\\Consentimientos\\\\EcografiaConsentimiento, url\\: string, expires_at\\: Illuminate\\\\Support\\\\Carbon\\}\\|array\\{error\\: bool, status\\: int, message\\: string\\} in isset\\(\\) always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Http/Controllers/Ecografias/EcografiaConsentimientosController.php
+
+		-
+			message: "#^Relation 'ecografia' is not found in App\\\\Models\\\\Ecografias\\\\EcografiaProducto model\\.$#"
+			count: 1
+			path: app/Http/Controllers/Ecografias/EcografiaConsentimientosController.php
+
+		-
+			message: "#^Relation 'ecografiaProducto' is not found in App\\\\Models\\\\Consentimientos\\\\EcografiaConsentimiento model\\.$#"
+			count: 5
+			path: app/Http/Controllers/Ecografias/EcografiaConsentimientosController.php
+
+		-
+			message: "#^Relation 'producto' is not found in App\\\\Models\\\\Ecografias\\\\EcografiaProducto model\\.$#"
+			count: 1
+			path: app/Http/Controllers/Ecografias/EcografiaConsentimientosController.php
+
+		-
+			message: "#^Negated boolean expression is always false\\.$#"
+			count: 4
+			path: app/Http/Controllers/Ecografias/EcografiaController.php
+
+		-
+			message: "#^Relation 'adminSalud' is not found in App\\\\Models\\\\Ecografias\\\\Ecografia model\\.$#"
+			count: 3
+			path: app/Http/Controllers/Ecografias/EcografiaController.php
+
+		-
+			message: "#^Relation 'medico' is not found in App\\\\Models\\\\Ecografias\\\\Ecografia model\\.$#"
+			count: 2
+			path: app/Http/Controllers/Ecografias/EcografiaController.php
+
+		-
+			message: "#^Relation 'paciente' is not found in App\\\\Models\\\\Ecografias\\\\Ecografia model\\.$#"
+			count: 5
+			path: app/Http/Controllers/Ecografias/EcografiaController.php
+
+		-
+			message: "#^Relation 'usuarioRegistrador' is not found in App\\\\Models\\\\Ecografias\\\\Ecografia model\\.$#"
+			count: 3
+			path: app/Http/Controllers/Ecografias/EcografiaController.php
+
+		-
+			message: "#^Relation 'ecografia' is not found in App\\\\Models\\\\Ecografias\\\\EcografiaProducto model\\.$#"
+			count: 2
+			path: app/Http/Controllers/Ecografias/EcografiaProductoController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Ecografias\\\\EcografiaProducto\\:\\:\\$productos\\.$#"
+			count: 1
+			path: app/Http/Controllers/Ecografias/PlantillaEcografiaController.php
+
+		-
+			message: "#^PHPDoc tag @return with type Illuminate\\\\Http\\\\JsonResponse\\|string is incompatible with native type bool\\.$#"
+			count: 1
+			path: app/Http/Controllers/Ecografias/PlantillaEcografiaController.php
+
+		-
+			message: "#^Relation 'productos' is not found in App\\\\Models\\\\Ecografias\\\\EcografiaProducto model\\.$#"
+			count: 1
+			path: app/Http/Controllers/Ecografias/PlantillaEcografiaController.php
+
+		-
+			message: "#^Relation 'adminSalud' is not found in App\\\\Models\\\\Ecografias\\\\Ecografia model\\.$#"
+			count: 1
+			path: app/Http/Controllers/Ecografias/ecografiaLecturaController.php
+
+		-
+			message: "#^Relation 'medico' is not found in App\\\\Models\\\\Ecografias\\\\Ecografia model\\.$#"
+			count: 1
+			path: app/Http/Controllers/Ecografias/ecografiaLecturaController.php
+
+		-
+			message: "#^Relation 'paciente' is not found in App\\\\Models\\\\Ecografias\\\\Ecografia model\\.$#"
+			count: 1
+			path: app/Http/Controllers/Ecografias/ecografiaLecturaController.php
+
+		-
+			message: "#^Relation 'usuarioRegistrador' is not found in App\\\\Models\\\\Ecografias\\\\Ecografia model\\.$#"
+			count: 1
+			path: app/Http/Controllers/Ecografias/ecografiaLecturaController.php
+
+		-
+			message: "#^Left side of && is always true\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioAudioController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Estudios\\\\EstudioAudioController\\:\\:stream\\(\\) should return Illuminate\\\\Http\\\\Response\\|Symfony\\\\Component\\\\HttpFoundation\\\\BinaryFileResponse but returns Symfony\\\\Component\\\\HttpFoundation\\\\StreamedResponse\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioAudioController.php
+
+		-
+			message: "#^Negated boolean expression is always false\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioAudioController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\General\\\\Paciente\\:\\:\\$lecturas\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioController.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$estudio$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioController.php
+
+		-
+			message: "#^Property App\\\\Models\\\\Estudio\\\\EstudioProducto\\:\\:\\$visto \\(bool\\|null\\) does not accept int\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioController.php
+
+		-
+			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Estudios\\\\EstudioDiagnosticoController\\:\\:create\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioDiagnosticoController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Estudios\\\\EstudioDiagnosticoController\\:\\:destroy\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioDiagnosticoController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Estudios\\\\EstudioDiagnosticoController\\:\\:edit\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioDiagnosticoController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Estudios\\\\EstudioDiagnosticoController\\:\\:index\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioDiagnosticoController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Estudios\\\\EstudioDiagnosticoController\\:\\:show\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioDiagnosticoController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Estudios\\\\EstudioDiagnosticoController\\:\\:store\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioDiagnosticoController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Estudios\\\\EstudioDiagnosticoController\\:\\:update\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioDiagnosticoController.php
+
+		-
+			message: "#^PHPDoc tag @param for parameter \\$lecturaDiagnostico with type App\\\\Models\\\\Estudios\\\\EstudioDiagnostico is not subtype of native type App\\\\Http\\\\Controllers\\\\Estudios\\\\LecturaDiagnostico\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioDiagnosticoController.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$estudioDiagnostico$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioDiagnosticoController.php
+
+		-
+			message: "#^Parameter \\$estudioDiagnostico of method App\\\\Http\\\\Controllers\\\\Estudios\\\\EstudioDiagnosticoController\\:\\:edit\\(\\) has invalid type App\\\\Models\\\\Estudios\\\\EstudioDiagnostico\\.$#"
+			count: 2
+			path: app/Http/Controllers/Estudios/EstudioDiagnosticoController.php
+
+		-
+			message: "#^Parameter \\$estudioDiagnostico of method App\\\\Http\\\\Controllers\\\\Estudios\\\\EstudioDiagnosticoController\\:\\:show\\(\\) has invalid type App\\\\Models\\\\Estudios\\\\EstudioDiagnostico\\.$#"
+			count: 2
+			path: app/Http/Controllers/Estudios/EstudioDiagnosticoController.php
+
+		-
+			message: "#^Parameter \\$lecturaDiagnostico of method App\\\\Http\\\\Controllers\\\\Estudios\\\\EstudioDiagnosticoController\\:\\:destroy\\(\\) has invalid type App\\\\Http\\\\Controllers\\\\Estudios\\\\LecturaDiagnostico\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioDiagnosticoController.php
+
+		-
+			message: "#^Parameter \\$lecturaDiagnostico of method App\\\\Http\\\\Controllers\\\\Estudios\\\\EstudioDiagnosticoController\\:\\:destroy\\(\\) has invalid type App\\\\Models\\\\Estudios\\\\EstudioDiagnostico\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioDiagnosticoController.php
+
+		-
+			message: "#^Parameter \\$lecturaDiagnostico of method App\\\\Http\\\\Controllers\\\\Estudios\\\\EstudioDiagnosticoController\\:\\:update\\(\\) has invalid type App\\\\Models\\\\Estudios\\\\EstudioDiagnostico\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioDiagnosticoController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Dcm4chee\\\\Instance\\:\\:\\$series_iuid\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioNotificacionController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Dcm4chee\\\\Instance\\:\\:\\$sop_iuid\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioNotificacionController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Estudios\\\\EstudioNotificacionController\\:\\:descargaImgDicom\\(\\) should return Illuminate\\\\Http\\\\JsonResponse but returns string\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioNotificacionController.php
+
+		-
+			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioNotificacionController.php
+
+		-
+			message: "#^Call to method create\\(\\) on an unknown class App\\\\Models\\\\Estudios\\\\EstudioProducto\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioProductoController.php
+
+		-
+			message: "#^Call to static method where\\(\\) on an unknown class App\\\\Models\\\\Estudios\\\\EstudioProducto\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioProductoController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Estudios\\\\EstudioProductoController\\:\\:destroy\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioProductoController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Estudios\\\\EstudioProductoController\\:\\:update\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/EstudioProductoController.php
+
+		-
+			message: "#^Parameter \\$estudioProducto of method App\\\\Http\\\\Controllers\\\\Estudios\\\\EstudioProductoController\\:\\:destroy\\(\\) has invalid type App\\\\Models\\\\Estudios\\\\EstudioProducto\\.$#"
+			count: 2
+			path: app/Http/Controllers/Estudios/EstudioProductoController.php
+
+		-
+			message: "#^Parameter \\$estudioProducto of method App\\\\Http\\\\Controllers\\\\Estudios\\\\EstudioProductoController\\:\\:store\\(\\) has invalid type App\\\\Models\\\\Estudios\\\\EstudioProducto\\.$#"
+			count: 2
+			path: app/Http/Controllers/Estudios/EstudioProductoController.php
+
+		-
+			message: "#^Parameter \\$estudioProducto of method App\\\\Http\\\\Controllers\\\\Estudios\\\\EstudioProductoController\\:\\:update\\(\\) has invalid type App\\\\Models\\\\Estudios\\\\EstudioProducto\\.$#"
+			count: 2
+			path: app/Http/Controllers/Estudios/EstudioProductoController.php
+
+		-
+			message: "#^PHPDoc tag @return with type string\\|null is incompatible with native type bool\\.$#"
+			count: 1
+			path: app/Http/Controllers/Estudios/PlantillaEstudioController.php
+
+		-
+			message: "#^Negated boolean expression is always false\\.$#"
+			count: 1
+			path: app/Http/Controllers/HelpDesk/HelpDeskTicketsController.php
+
+		-
+			message: "#^Relation 'asignado' is not found in App\\\\Models\\\\HelpDesk\\\\HelpDeskTickets model\\.$#"
+			count: 1
+			path: app/Http/Controllers/HelpDesk/HelpDeskTicketsController.php
+
+		-
+			message: "#^Relation 'categoria' is not found in App\\\\Models\\\\HelpDesk\\\\HelpDeskTickets model\\.$#"
+			count: 1
+			path: app/Http/Controllers/HelpDesk/HelpDeskTicketsController.php
+
+		-
+			message: "#^Relation 'estado' is not found in App\\\\Models\\\\HelpDesk\\\\HelpDeskTickets model\\.$#"
+			count: 1
+			path: app/Http/Controllers/HelpDesk/HelpDeskTicketsController.php
+
+		-
+			message: "#^Relation 'prioridad' is not found in App\\\\Models\\\\HelpDesk\\\\HelpDeskTickets model\\.$#"
+			count: 1
+			path: app/Http/Controllers/HelpDesk/HelpDeskTicketsController.php
+
+		-
+			message: "#^Relation 'sede' is not found in App\\\\Models\\\\HelpDesk\\\\HelpDeskTickets model\\.$#"
+			count: 1
+			path: app/Http/Controllers/HelpDesk/HelpDeskTicketsController.php
+
+		-
+			message: "#^Relation 'solicitante' is not found in App\\\\Models\\\\HelpDesk\\\\HelpDeskTickets model\\.$#"
+			count: 1
+			path: app/Http/Controllers/HelpDesk/HelpDeskTicketsController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\HelpDeskTicketsController\\:\\:create\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/HelpDeskTicketsController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\HelpDeskTicketsController\\:\\:destroy\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/HelpDeskTicketsController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\HelpDeskTicketsController\\:\\:edit\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/HelpDeskTicketsController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\HelpDeskTicketsController\\:\\:index\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/HelpDeskTicketsController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\HelpDeskTicketsController\\:\\:show\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/HelpDeskTicketsController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\HelpDeskTicketsController\\:\\:store\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/HelpDeskTicketsController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\HelpDeskTicketsController\\:\\:update\\(\\) should return Illuminate\\\\Http\\\\Response but return statement is missing\\.$#"
+			count: 1
+			path: app/Http/Controllers/HelpDeskTicketsController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Dcm4chee\\\\Study\\:\\:\\$mods_in_study\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\Agenda\\:\\:\\$acti\\.$#"
+			count: 2
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\Agenda\\:\\:\\$eps\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\Agenda\\:\\:\\$fechor_regis\\.$#"
+			count: 2
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\Agenda\\:\\:\\$id_agenda\\.$#"
+			count: 3
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\Agenda\\:\\:\\$id_atencion\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\Agenda\\:\\:\\$id_medico\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\Agenda\\:\\:\\$id_prioridad\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\Agenda\\:\\:\\$id_quien_agendo\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\Agenda\\:\\:\\$observaciones\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\Agenda\\:\\:\\$plan_contrato\\.$#"
+			count: 2
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\Agenda\\:\\:\\$study_pk\\.$#"
+			count: 3
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\AgendaDiagnostico\\:\\:\\$id_diag\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\AgendaProducto\\:\\:\\$cod_cups\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\AgendaProducto\\:\\:\\$fechor_lectura\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\AgendaProducto\\:\\:\\$fechor_trascrito\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\AgendaProducto\\:\\:\\$id_produc\\.$#"
+			count: 2
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\AgendaProducto\\:\\:\\$id_transcriptor\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\AgendaProducto\\:\\:\\$lectura\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\AgendaProducto\\:\\:\\$nom_produc\\.$#"
+			count: 2
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\AgendaProducto\\:\\:\\$requi_lectura\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\ConfigDiagnosticoDicom\\:\\:\\$cod_diag\\.$#"
+			count: 3
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\ConfigDiagnosticoDicom\\:\\:\\$nom_diag\\.$#"
+			count: 2
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\GeneralPersonal\\:\\:\\$ape\\.$#"
+			count: 3
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\GeneralPersonal\\:\\:\\$e_mail\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\GeneralPersonal\\:\\:\\$nom\\.$#"
+			count: 3
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\GeneralPersonal\\:\\:\\$num_docu\\.$#"
+			count: 5
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\GeneralPersonal\\:\\:\\$reg_med\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\PacienteDicom\\:\\:\\$pat_id\\.$#"
+			count: 2
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\PacienteDicom\\:\\:\\$pat_name\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\StudyDicom\\:\\:\\$accession_no\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\StudyDicom\\:\\:\\$patient_fk\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\StudyDicom\\:\\:\\$study_datetime\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\StudyDicom\\:\\:\\$study_desc\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\StudyDicom\\:\\:\\$study_id\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Importar\\\\StudyDicom\\:\\:\\$study_iuid\\.$#"
+			count: 1
+			path: app/Http/Controllers/Importar/ImportarDicom.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\facFacturaDet\\:\\:\\$estado_ecografia\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIController.php
+
+		-
+			message: "#^Parameter \\#1 \\$query of method Illuminate\\\\Database\\\\Eloquent\\\\Builder\\<App\\\\Models\\\\Interface\\\\Sahi\\\\facFacturaDet\\>\\:\\:union\\(\\) expects Closure\\|Illuminate\\\\Database\\\\Eloquent\\\\Builder\\<App\\\\Models\\\\Interface\\\\Sahi\\\\facFacturaDet\\>\\|Illuminate\\\\Database\\\\Query\\\\Builder, Illuminate\\\\Database\\\\Eloquent\\\\Builder\\<App\\\\Models\\\\Interface\\\\Sahi\\\\FacMovimientoDet\\> given\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\facFacturaDet\\:\\:\\$config_producto_id\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\facFacturaDet\\:\\:\\$consentimiento_bloquea\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\facFacturaDet\\:\\:\\$consentimiento_estado\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\facFacturaDet\\:\\:\\$consentimiento_id\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\facFacturaDet\\:\\:\\$ecografia_producto_id\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\facFacturaDet\\:\\:\\$error_envio_sahi\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\facFacturaDet\\:\\:\\$estado_ecografia\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\facFacturaDet\\:\\:\\$estado_envio_sahi\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\facFacturaDet\\:\\:\\$fechor_envio_sahi\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\facFacturaDet\\:\\:\\$quien_ordeno\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\facFacturaDet\\:\\:\\$sahi_esquema_149\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\facFacturaDet\\:\\:\\$sahi_esquema_150\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\facFacturaDet\\:\\:\\$tiene_plantilla_consentimiento\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasController.php
+
+		-
+			message: "#^Parameter \\#1 \\$query of method Illuminate\\\\Database\\\\Eloquent\\\\Builder\\<App\\\\Models\\\\Interface\\\\Sahi\\\\facFacturaDet\\>\\:\\:union\\(\\) expects Closure\\|Illuminate\\\\Database\\\\Eloquent\\\\Builder\\<App\\\\Models\\\\Interface\\\\Sahi\\\\facFacturaDet\\>\\|Illuminate\\\\Database\\\\Query\\\\Builder, Illuminate\\\\Database\\\\Eloquent\\\\Builder\\<App\\\\Models\\\\Interface\\\\Sahi\\\\FacMovimientoDet\\> given\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Ecografias\\\\EcografiaProducto\\:\\:\\$ecografia\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\ASI_USUA\\:\\:\\$IdPersonal\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\ASI_USUA\\:\\:\\$IdUsuario\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\Atencion\\:\\:\\$IdUbicacionActual\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\HceEsquema\\:\\:\\$IdConsecutivoEsq\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\ProProducto\\:\\:\\$CodLegal\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\ProProducto\\:\\:\\$IdProducto\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\ProProducto\\:\\:\\$NomProducto\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetMemo\\:\\:\\$DesMemo\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetMemo\\:\\:\\$IdEsquemaEncabezado\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetMemo\\:\\:\\$IdMemo\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$FecRegistro\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$IdDetalleValor\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$IdEsquemaEncabezado\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$IdUsuarioR\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValNroRegistro\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar1\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar10\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar11\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar12\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar13\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar14\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar15\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar16\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar17\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar18\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar19\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar2\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar20\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar3\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar4\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar5\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar6\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar7\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar8\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar9\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$CodProducto\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$FecRegistro\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$IdEsquema\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$IdEsquemaEncabezado\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$IdEstudio\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$IdProductoR\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$IdUbicacion\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$IdUsuarioR\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$IndActivado\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$IndHabilitado\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$NomProducto\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$ValEsquemaConsecutivo\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$ValUltimoNroRegistro\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$idAtencion\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$idEncabezadoPadre\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$valDetConsecutivo\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemasdeAte\\:\\:\\$FecCerrado\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemasdeAte\\:\\:\\$FecEsquema\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemasdeAte\\:\\:\\$IdAtencion\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemasdeAte\\:\\:\\$IdEsquema\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemasdeAte\\:\\:\\$IdEsquemadeAtencion\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemasdeAte\\:\\:\\$IdMedico\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemasdeAte\\:\\:\\$IdUbicacion\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemasdeAte\\:\\:\\$IdUsuarioR\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemasdeAte\\:\\:\\$IndActivado\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemasdeAte\\:\\:\\$IndHabilitado\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemasdeAte\\:\\:\\$idTraslado\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\sisTabla\\:\\:\\$Consecutivo\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Comparison operation \"\\>\" between int\\<1, max\\> and 0 is always true\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Offset 'data' on \\*NEVER\\* on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Offset 'message' on \\*NEVER\\* on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Offset 'message' on array\\{ok\\: bool, status\\: int, message\\: string, data\\?\\: array\\{IdEsquemaEncabezado149\\: int, IdEsquemaEncabezado150\\: int, IdAtencion\\: mixed, IdProductos\\: non\\-empty\\-array\\<int, mixed\\>, already_exists\\: bool, existing_map\\: non\\-empty\\-array\\<int, array\\{IdEsquemaEncabezado149\\: int, IdEsquemaEncabezado150\\: int\\}\\>\\}\\|array\\{IdEsquemaEncabezado149\\: int, IdEsquemaEncabezado150\\: int, IdAtencion\\: mixed, IdProductos\\: non\\-empty\\-array\\<int, mixed\\>, ProductosCount\\: int, already_exists\\: bool\\}\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Offset 'message' on array\\{ok\\: bool, status\\: int, message\\: string, data\\?\\: array\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Offset 'ok' on array\\{ok\\: bool, status\\: int, message\\: string, data\\?\\: array\\{IdEsquemaEncabezado149\\: int, IdEsquemaEncabezado150\\: int, IdAtencion\\: mixed, IdProductos\\: non\\-empty\\-array\\<int, mixed\\>, already_exists\\: bool, existing_map\\: non\\-empty\\-array\\<int, array\\{IdEsquemaEncabezado149\\: int, IdEsquemaEncabezado150\\: int\\}\\>\\}\\|array\\{IdEsquemaEncabezado149\\: int, IdEsquemaEncabezado150\\: int, IdAtencion\\: mixed, IdProductos\\: non\\-empty\\-array\\<int, mixed\\>, ProductosCount\\: int, already_exists\\: bool\\}\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Offset 'ok' on array\\{ok\\: bool, status\\: int, message\\: string, data\\?\\: array\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Offset 'status' on \\*NEVER\\* on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Relation 'ecografia' is not found in App\\\\Models\\\\Ecografias\\\\EcografiaProducto model\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Variable \\$existingMap in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHIEcografiasEnviarController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\HceEsquema\\:\\:\\$IdConsecutivoEsq\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\ProProducto\\:\\:\\$CodLegal\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\ProProducto\\:\\:\\$IdProducto\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\ProProducto\\:\\:\\$NomProducto\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetMemo\\:\\:\\$DesMemo\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetMemo\\:\\:\\$IdEsquemaEncabezado\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetMemo\\:\\:\\$IdMemo\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$FecRegistro\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$IdDetalleValor\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$IdEsquemaEncabezado\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$IdUsuarioR\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValNroRegistro\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar1\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar10\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar11\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar12\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar13\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar14\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar15\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar16\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar17\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar18\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar19\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar2\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar20\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar3\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar4\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar5\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar6\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar7\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar8\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaDetProc\\:\\:\\$ValVarChar9\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$CodProducto\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$FecRegistro\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$IdEsquema\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$IdEsquemaEncabezado\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$IdEstudio\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$IdProductoR\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$IdUbicacion\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$IdUsuarioR\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$IndActivado\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$IndHabilitado\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$NomProducto\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$ValEsquemaConsecutivo\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$ValUltimoNroRegistro\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$idAtencion\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$idEncabezadoPadre\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemaEncabeza\\:\\:\\$valDetConsecutivo\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemasdeAte\\:\\:\\$FecCerrado\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemasdeAte\\:\\:\\$FecEsquema\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemasdeAte\\:\\:\\$IdAtencion\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemasdeAte\\:\\:\\$IdEsquema\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemasdeAte\\:\\:\\$IdEsquemadeAtencion\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemasdeAte\\:\\:\\$IdMedico\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemasdeAte\\:\\:\\$IdUbicacion\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemasdeAte\\:\\:\\$IdUsuarioR\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemasdeAte\\:\\:\\$IndActivado\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemasdeAte\\:\\:\\$IndHabilitado\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\hceEsquemasdeAte\\:\\:\\$idTraslado\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Interface\\\\Sahi\\\\sisTabla\\:\\:\\$Consecutivo\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^If condition is always true\\.$#"
+			count: 2
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Negated boolean expression is always false\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/SAHITranscibirController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Interface\\\\TeleRadiologiaController\\:\\:enviarOrdenTeleRadiologia\\(\\) should return Illuminate\\\\Http\\\\JsonResponse but returns Illuminate\\\\Http\\\\Request\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/TeleRadiologiaController.php
+
+		-
+			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			count: 1
+			path: app/Http/Controllers/Interface/TeleRadiologiaController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Reportes\\\\ReporteProduccion\\:\\:reporteProduccionDetallado\\(\\) should return Symfony\\\\Component\\\\HttpFoundation\\\\BinaryFileResponse but returns Illuminate\\\\Http\\\\JsonResponse\\.$#"
+			count: 2
+			path: app/Http/Controllers/Reportes/ReporteProduccion.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$rol$#"
+			count: 1
+			path: app/Http/Controllers/Seguridad/RolController.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Models\\\\Configuracion\\\\ConfigModulo\\:\\:\\$usuarios\\.$#"
+			count: 1
+			path: app/Http/Controllers/Seguridad/UserController.php
+
+		-
+			message: "#^Access to an undefined property Illuminate\\\\Database\\\\Eloquent\\\\Model\\:\\:\\$id\\.$#"
+			count: 1
+			path: app/Http/Controllers/Seguridad/UserController.php
+
+		-
+			message: "#^Method App\\\\Http\\\\Controllers\\\\Seguridad\\\\UserController\\:\\:destroy\\(\\) should return Illuminate\\\\Http\\\\Response but returns Illuminate\\\\Http\\\\JsonResponse\\.$#"
+			count: 2
+			path: app/Http/Controllers/Seguridad/UserController.php
+
+		-
+			message: "#^Relation 'modulos' is not found in App\\\\Models\\\\User model\\.$#"
+			count: 2
+			path: app/Http/Controllers/Seguridad/UserController.php
+
+		-
+			message: "#^Relation 'usuarios' is not found in App\\\\Models\\\\Configuracion\\\\ConfigModulo model\\.$#"
+			count: 1
+			path: app/Http/Controllers/Seguridad/UserController.php
+
+		-
+			message: "#^Ternary operator condition is always true\\.$#"
+			count: 1
+			path: app/Http/Controllers/Seguridad/UserController.php
+
+		-
+			message: "#^Array has 2 duplicate keys with value 'name\\.min' \\('name\\.min', 'name\\.min'\\)\\.$#"
+			count: 1
+			path: app/Http/Requests/Seguridad/RolActualizarRequest.php
+
+		-
+			message: "#^Array has 2 duplicate keys with value 'name\\.min' \\('name\\.min', 'name\\.min'\\)\\.$#"
+			count: 1
+			path: app/Http/Requests/Seguridad/RolAgregarRequest.php
+
+		-
+			message: "#^Class App\\\\Models\\\\Configuracion\\\\Paciente not found\\.$#"
+			count: 1
+			path: app/Models/Configuracion/ConfigTipoDocumento.php
+
+		-
+			message: "#^Class App\\\\Models\\\\General\\\\TipoDocumento not found\\.$#"
+			count: 1
+			path: app/Models/General/Paciente.php
+
+		-
+			message: "#^Class App\\\\Models\\\\ImportarEcografias\\\\ConfigDepar not found\\.$#"
+			count: 1
+			path: app/Models/ImportarEcografias/GenePersonal.php
+
+		-
+			message: "#^Class App\\\\Models\\\\ImportarEcografias\\\\ConfigMuni not found\\.$#"
+			count: 1
+			path: app/Models/ImportarEcografias/GenePersonal.php

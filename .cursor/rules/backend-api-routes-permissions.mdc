@@ -1,0 +1,18 @@
+---
+description: Backend: convención de rutas API (/api), auth:sanctum y middleware permission:...,web
+globs: routes/api_*.php
+alwaysApply: false
+---
+
+# Rutas API (Laravel + Sanctum + Spatie)
+
+- Las rutas del SPA viven en `routes/api_*.php` y se registran con prefijo **`/api`** (ver `app/Providers/RouteServiceProvider.php`).
+- Proteger endpoints de SPA con:
+  - `Route::middleware(['auth:sanctum'])->group(...)`
+  - `->middleware(['permission:permiso1|permiso2,web'])` cuando aplique (nota el **`,web`**).
+
+## Convenciones
+
+- Preferir `Route::resource(...)->except(['create','edit'])` para CRUD.
+- `->name('api....')` consistente (ej. `api.ecografias.*`, `api.estudios.*`).
+- Evitar duplicar endpoints “web” si ya existe `/api/...` equivalente.
