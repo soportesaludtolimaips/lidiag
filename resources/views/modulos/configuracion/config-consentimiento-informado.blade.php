@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-    <config-Consentimiento-Informados-Component
+    <config-consentimiento-informados-component
         :usuarioactual='@json(Auth::user())'
-        :permisos='@json(Auth::user()->getAllPermissions()->pluck("name"))'
+        :permisos='@json(Auth::user()->getAllPermissions()->pluck("name")->values())'
     />
 @endsection

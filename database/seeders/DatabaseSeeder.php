@@ -9,12 +9,10 @@ use Database\Seeders\Configuracion\ConfigDiagnosticoSeeder;
 use Database\Seeders\configuracion\ConfigPrioridadeSeeder;
 use Database\Seeders\Configuracion\ConfigProductoSeeder;
 use Database\Seeders\Configuracion\ConfigSedeSeeder;
-use Database\Seeders\PermisionConsentimientoInformadoSeeder;
-use Database\Seeders\PermisionConfigTipoDocumentoSeeder;
+use Database\Seeders\HelpDesk\HelpDeskCatalogosSeeder;
+use Database\Seeders\HelpDesk\HelpDeskPermisosSeeder;
 use Database\Seeders\Seguridad\RoleSeeder;
-use Database\Seeders\RoleSeederReporteLectura;
 use Database\Seeders\Seguridad\UserSeeder;
-use Database\Seeders\PermisionEcografiasSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -48,6 +46,11 @@ class DatabaseSeeder extends Seeder
         $this->call(RoleSeederAgenda::class);
         $this->call(ModulosSeeder::class);
         $this->call(PermisionEcografiasSeeder::class);
+        $this->call(PermisionConsentimientosEcografiasSeeder::class);
+
+        // HelpDesk
+        $this->call(HelpDeskCatalogosSeeder::class);
+        $this->call(HelpDeskPermisosSeeder::class);
 
         $this->call(OtrasInterfacesSeeder::class);
         $this->call(InterfaceTeleRadiologiaSeeder::class);

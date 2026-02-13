@@ -20,7 +20,12 @@
 
         <div v-if="alerts.length" class="row">
             <div class="col-12">
-                <div v-for="(a, idx) in alerts" :key="idx" class="alert" :class="alertClass(a.level)">
+                <div
+                    v-for="(a, idx) in alerts"
+                    :key="idx"
+                    class="alert"
+                    :class="alertClass(a.level)"
+                >
                     <strong>{{ a.title }}:</strong> {{ a.message }}
                 </div>
             </div>
@@ -33,7 +38,9 @@
                         <div class="d-flex no-block">
                             <div>
                                 <h4 class="card-title m-b-0">Filtros</h4>
-                                <small class="text-muted">Afectan todas las métricas del dashboard</small>
+                                <small class="text-muted"
+                                    >Afectan todas las métricas del dashboard</small
+                                >
                             </div>
                         </div>
                     </div>
@@ -41,37 +48,62 @@
                         <div class="row">
                             <div class="col-lg-3 col-md-6 m-b-10">
                                 <label class="text-muted m-b-5">Sede</label>
-                                <select v-model.number="filters.selected.sede_id" class="custom-select"
-                                    @change="fetchDashboard">
+                                <select
+                                    v-model.number="filters.selected.sede_id"
+                                    class="custom-select"
+                                    @change="fetchDashboard"
+                                >
                                     <option :value="null">Todas</option>
-                                    <option v-for="s in filters.options.sedes" :key="s.id" :value="s.id">
+                                    <option
+                                        v-for="s in filters.options.sedes"
+                                        :key="s.id"
+                                        :value="s.id"
+                                    >
                                         {{ s.nom_sede }}
                                     </option>
                                 </select>
                             </div>
                             <div class="col-lg-3 col-md-6 m-b-10">
                                 <label class="text-muted m-b-5">Modalidad</label>
-                                <select v-model="filters.selected.modalidad" class="custom-select"
-                                    @change="fetchDashboard">
+                                <select
+                                    v-model="filters.selected.modalidad"
+                                    class="custom-select"
+                                    @change="fetchDashboard"
+                                >
                                     <option :value="null">Todas</option>
-                                    <option v-for="m in filters.options.modalidades" :key="m" :value="m">
+                                    <option
+                                        v-for="m in filters.options.modalidades"
+                                        :key="m"
+                                        :value="m"
+                                    >
                                         {{ m }}
                                     </option>
                                 </select>
                             </div>
                             <div v-if="isAdmin" class="col-lg-4 col-md-6 m-b-10">
                                 <label class="text-muted m-b-5">Médico</label>
-                                <select v-model.number="filters.selected.medico_id" class="custom-select"
-                                    @change="fetchDashboard">
+                                <select
+                                    v-model.number="filters.selected.medico_id"
+                                    class="custom-select"
+                                    @change="fetchDashboard"
+                                >
                                     <option :value="null">Todos</option>
-                                    <option v-for="u in filters.options.medicos" :key="u.id" :value="u.id">
+                                    <option
+                                        v-for="u in filters.options.medicos"
+                                        :key="u.id"
+                                        :value="u.id"
+                                    >
                                         {{ u.name }}
                                     </option>
                                 </select>
                             </div>
                             <div class="col-lg-2 col-md-6 m-b-10">
                                 <label class="text-muted m-b-5">Rango</label>
-                                <select v-model.number="days" class="custom-select" @change="fetchDashboard">
+                                <select
+                                    v-model.number="days"
+                                    class="custom-select"
+                                    @change="fetchDashboard"
+                                >
                                     <option :value="7">7 días</option>
                                     <option :value="30">30 días</option>
                                     <option :value="90">90 días</option>
@@ -104,7 +136,9 @@
                         <div class="row">
                             <div class="col-lg-2 col-md-4 col-6 m-b-15">
                                 <div class="d-flex">
-                                    <div class="m-r-10"><i class="text-info icon-Target-Market"></i></div>
+                                    <div class="m-r-10">
+                                        <i class="text-info icon-Target-Market"></i>
+                                    </div>
                                     <div>
                                         <h4 class="m-b-0">
                                             <span v-if="loading">...</span>
@@ -116,7 +150,9 @@
                             </div>
                             <div class="col-lg-2 col-md-4 col-6 m-b-15">
                                 <div class="d-flex">
-                                    <div class="m-r-10"><i class="text-warning icon-Inbox-Forward"></i></div>
+                                    <div class="m-r-10">
+                                        <i class="text-warning icon-Inbox-Forward"></i>
+                                    </div>
                                     <div>
                                         <h4 class="m-b-0">
                                             <span v-if="loading">...</span>
@@ -140,11 +176,15 @@
                             </div>
                             <div class="col-lg-2 col-md-4 col-6 m-b-15">
                                 <div class="d-flex">
-                                    <div class="m-r-10"><i class="text-danger icon-File-HorizontalText"></i></div>
+                                    <div class="m-r-10">
+                                        <i class="text-danger icon-File-HorizontalText"></i>
+                                    </div>
                                     <div>
                                         <h4 class="m-b-0">
                                             <span v-if="loading">...</span>
-                                            <span v-else>{{ operacion.pendientesTranscripcion }}</span>
+                                            <span v-else>{{
+                                                operacion.pendientesTranscripcion
+                                            }}</span>
                                         </h4>
                                         <small class="text-muted">Pend. transcripción</small>
                                     </div>
@@ -152,7 +192,9 @@
                             </div>
                             <div class="col-lg-2 col-md-4 col-6 m-b-15">
                                 <div class="d-flex">
-                                    <div class="m-r-10"><i class="text-primary icon-Receipt-4"></i></div>
+                                    <div class="m-r-10">
+                                        <i class="text-primary icon-Receipt-4"></i>
+                                    </div>
                                     <div>
                                         <h4 class="m-b-0">
                                             <span v-if="loading">...</span>
@@ -164,7 +206,9 @@
                             </div>
                             <div class="col-lg-2 col-md-4 col-6 m-b-15">
                                 <div class="d-flex">
-                                    <div class="m-r-10"><i class="text-muted icon-Time-Clock"></i></div>
+                                    <div class="m-r-10">
+                                        <i class="text-muted icon-Time-Clock"></i>
+                                    </div>
                                     <div>
                                         <h4 class="m-b-0">
                                             <span v-if="loading">...</span>
@@ -270,8 +314,7 @@
                                     <h2 class="m-b-0">
                                         <span v-if="loading">...</span>
                                         <span v-else>{{ indicadores.estudiosDescargados }}</span>
-                                        <small><i class="ti-angle-down text-danger"></i>
-                                        </small>
+                                        <small><i class="ti-angle-down text-danger"></i> </small>
                                     </h2>
                                     <h6 class="text-muted m-b-0">Total de estudios descargados</h6>
                                 </div>
@@ -301,7 +344,7 @@
                                 <small class="text-muted">Actualizado</small>
                             </div>
                         </div>
-                        <div id="visitor" style="height:260px; width:100%;"></div>
+                        <div id="visitor" style="height: 260px; width: 100%"></div>
                         <div v-if="loading" class="text-center text-muted m-t-10">Cargando...</div>
                     </div>
                 </div>
@@ -316,7 +359,7 @@
                                 <small class="text-muted">Transcritos vs Pendientes</small>
                             </div>
                         </div>
-                        <div id="income" style="height:260px; width:100%;"></div>
+                        <div id="income" style="height: 260px; width: 100%"></div>
                         <div v-if="loading" class="text-center text-muted m-t-10">Cargando...</div>
                     </div>
                 </div>
@@ -328,13 +371,19 @@
                         <h5 class="card-title">Estudios más solicitados</h5>
                         <table class="table browser m-t-30 no-border">
                             <tbody>
-                                <tr v-for="item in estudiosMasSolicitados" :key="item.mods_in_study">
+                                <tr
+                                    v-for="item in estudiosMasSolicitados"
+                                    :key="item.mods_in_study"
+                                >
                                     <td>{{ item.mods_in_study }}</td>
                                     <td class="text-right">{{ item.total }}</td>
                                 </tr>
                             </tbody>
                         </table>
-                        <div v-if="!loading && estudiosMasSolicitados.length === 0" class="text-muted">
+                        <div
+                            v-if="!loading && estudiosMasSolicitados.length === 0"
+                            class="text-muted"
+                        >
                             Sin datos para mostrar.
                         </div>
                     </div>
@@ -352,7 +401,7 @@
                                 <small class="text-muted">0-2h / 2-6h / 6-24h / 24h+</small>
                             </div>
                         </div>
-                        <div id="aging-lectura" style="height:220px; width:100%;"></div>
+                        <div id="aging-lectura" style="height: 220px; width: 100%"></div>
                         <div v-if="loading" class="text-center text-muted m-t-10">Cargando...</div>
                     </div>
                 </div>
@@ -361,12 +410,14 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex m-b-10 no-block">
-                            <h5 class="card-title m-b-0 align-self-center">Aging pend. transcripción</h5>
+                            <h5 class="card-title m-b-0 align-self-center">
+                                Aging pend. transcripción
+                            </h5>
                             <div class="ml-auto">
                                 <small class="text-muted">Desde lectura</small>
                             </div>
                         </div>
-                        <div id="aging-transcripcion" style="height:220px; width:100%;"></div>
+                        <div id="aging-transcripcion" style="height: 220px; width: 100%"></div>
                         <div v-if="loading" class="text-center text-muted m-t-10">Cargando...</div>
                     </div>
                 </div>
@@ -386,19 +437,26 @@
                                 <h6 class="text-muted m-b-0">Asignado → Lectura</h6>
                                 <h3 class="m-b-0">
                                     <span v-if="loading">...</span>
-                                    <span v-else>{{ formatMin(calidad.tiempos.asignadoALectura?.avgMin) }}</span>
+                                    <span v-else>{{
+                                        formatMin(calidad.tiempos.asignadoALectura?.avgMin)
+                                    }}</span>
                                 </h3>
-                                <small class="text-muted">muestras: {{ calidad.tiempos.asignadoALectura?.n || 0
-                                    }}</small>
+                                <small class="text-muted"
+                                    >muestras: {{ calidad.tiempos.asignadoALectura?.n || 0 }}</small
+                                >
                             </div>
                             <div class="col-6">
                                 <h6 class="text-muted m-b-0">Lectura → Transcrito</h6>
                                 <h3 class="m-b-0">
                                     <span v-if="loading">...</span>
-                                    <span v-else>{{ formatMin(calidad.tiempos.lecturaATranscrito?.avgMin) }}</span>
+                                    <span v-else>{{
+                                        formatMin(calidad.tiempos.lecturaATranscrito?.avgMin)
+                                    }}</span>
                                 </h3>
-                                <small class="text-muted">muestras: {{ calidad.tiempos.lecturaATranscrito?.n || 0
-                                    }}</small>
+                                <small class="text-muted"
+                                    >muestras:
+                                    {{ calidad.tiempos.lecturaATranscrito?.n || 0 }}</small
+                                >
                             </div>
                         </div>
                     </div>
@@ -412,11 +470,13 @@
                     <div class="card-body">
                         <div class="d-flex no-block">
                             <div>
-                                <h5 class="card-title m-b-0">SLA Lectura</h5>
-                                <small class="text-muted">Por prioridad (últimos {{ days }} días)</small>
+                                <h5 class="card-title m-b-0">Cumplimiento de tiempos (Lectura)</h5>
+                                <small class="text-muted"
+                                    >Por prioridad (últimos {{ days }} días)</small
+                                >
                             </div>
                         </div>
-                        <div id="sla-lectura" style="height:260px; width:100%;"></div>
+                        <div id="sla-lectura" style="height: 260px; width: 100%"></div>
                         <div v-if="loading" class="text-center text-muted m-t-10">Cargando...</div>
                     </div>
                 </div>
@@ -426,11 +486,15 @@
                     <div class="card-body">
                         <div class="d-flex no-block">
                             <div>
-                                <h5 class="card-title m-b-0">SLA Transcripción</h5>
-                                <small class="text-muted">Por prioridad (últimos {{ days }} días)</small>
+                                <h5 class="card-title m-b-0">
+                                    Cumplimiento de tiempos (Transcripción)
+                                </h5>
+                                <small class="text-muted"
+                                    >Por prioridad (últimos {{ days }} días)</small
+                                >
                             </div>
                         </div>
-                        <div id="sla-transcripcion" style="height:260px; width:100%;"></div>
+                        <div id="sla-transcripcion" style="height: 260px; width: 100%"></div>
                         <div v-if="loading" class="text-center text-muted m-t-10">Cargando...</div>
                     </div>
                 </div>
@@ -446,10 +510,13 @@
                                 <h5 class="card-title m-b-0">Heatmap (últimos 7 días)</h5>
                                 <small class="text-muted">Hora × Día</small>
                             </div>
-                            <div class="ml-auto d-flex align-items-center" style="gap: 8px;">
+                            <div class="ml-auto d-flex align-items-center" style="gap: 8px">
                                 <small class="text-muted">Métrica</small>
-                                <select v-model="heatmapMetric" class="custom-select custom-select-sm"
-                                    style="width: 160px;">
+                                <select
+                                    v-model="heatmapMetric"
+                                    class="custom-select custom-select-sm"
+                                    style="width: 160px"
+                                >
                                     <option value="transcritos">Transcritos</option>
                                     <option value="leidos">Leídos</option>
                                     <option value="asignados">Asignados</option>
@@ -461,9 +528,13 @@
                             <table class="table table-sm table-bordered m-b-0">
                                 <thead>
                                     <tr>
-                                        <th style="min-width:60px;">Hora</th>
-                                        <th v-for="d in heatmapDays" :key="d" class="text-center"
-                                            style="min-width:90px;">
+                                        <th style="min-width: 60px">Hora</th>
+                                        <th
+                                            v-for="d in heatmapDays"
+                                            :key="d"
+                                            class="text-center"
+                                            style="min-width: 90px"
+                                        >
                                             {{ d }}
                                         </th>
                                     </tr>
@@ -471,9 +542,18 @@
                                 <tbody>
                                     <tr v-for="h in 24" :key="h">
                                         <td class="text-center font-500">{{ h - 1 }}</td>
-                                        <td v-for="d in heatmapDays" :key="`${d}-${h - 1}`" class="text-center"
+                                        <td
+                                            v-for="d in heatmapDays"
+                                            :key="`${d}-${h - 1}`"
+                                            class="text-center"
                                             :title="`${d} ${h - 1}:00 → ${heatmapValue(d, h - 1)}`"
-                                            :style="{ backgroundColor: heatmapColor(heatmapValue(d, h - 1), heatmapMax) }">
+                                            :style="{
+                                                backgroundColor: heatmapColor(
+                                                    heatmapValue(d, h - 1),
+                                                    heatmapMax
+                                                ),
+                                            }"
+                                        >
                                             {{ heatmapValue(d, h - 1) }}
                                         </td>
                                     </tr>
@@ -506,23 +586,36 @@
                                 <tbody>
                                     <tr v-for="row in tablas.pendientesLecturaTop" :key="row.id">
                                         <td>
-                                            <div class="font-500">{{ formatPacienteNombre(row) }}</div>
-                                            <small class="text-muted">{{ row.paciente_num_docu || '' }}</small>
+                                            <div class="font-500">
+                                                {{ formatPacienteNombre(row) }}
+                                            </div>
+                                            <small class="text-muted">{{
+                                                row.paciente_num_docu || ""
+                                            }}</small>
                                         </td>
-                                        <td>{{ row.sede || '' }}</td>
+                                        <td>{{ row.sede || "" }}</td>
                                         <td>{{ row.accession_no || row.study_id || row.id }}</td>
                                         <td>{{ row.mods_in_study }}</td>
                                         <td>
-                                            <button class="btn btn-sm btn-info" type="button" @click="goToLectura(row)">
+                                            <button
+                                                class="btn btn-sm btn-info"
+                                                type="button"
+                                                @click="goToLectura(row)"
+                                            >
                                                 Ir
                                             </button>
                                         </td>
-                                        <td class="text-right">{{ formatEdadMin(row.edad_min) }}</td>
+                                        <td class="text-right">
+                                            {{ formatEdadMin(row.edad_min) }}
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
-                        <div v-if="!loading && tablas.pendientesLecturaTop.length === 0" class="text-muted">
+                        <div
+                            v-if="!loading && tablas.pendientesLecturaTop.length === 0"
+                            class="text-muted"
+                        >
                             Sin pendientes de lectura.
                         </div>
                     </div>
@@ -545,26 +638,41 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="row in tablas.pendientesTranscripcionTop" :key="row.id">
+                                    <tr
+                                        v-for="row in tablas.pendientesTranscripcionTop"
+                                        :key="row.id"
+                                    >
                                         <td>
-                                            <div class="font-500">{{ formatPacienteNombre(row) }}</div>
-                                            <small class="text-muted">{{ row.paciente_num_docu || '' }}</small>
+                                            <div class="font-500">
+                                                {{ formatPacienteNombre(row) }}
+                                            </div>
+                                            <small class="text-muted">{{
+                                                row.paciente_num_docu || ""
+                                            }}</small>
                                         </td>
-                                        <td>{{ row.sede || '' }}</td>
+                                        <td>{{ row.sede || "" }}</td>
                                         <td>{{ row.accession_no || row.study_id || row.id }}</td>
                                         <td>{{ row.mods_in_study }}</td>
                                         <td>
-                                            <button class="btn btn-sm btn-primary" type="button"
-                                                @click="goToTranscripcion(row)">
+                                            <button
+                                                class="btn btn-sm btn-primary"
+                                                type="button"
+                                                @click="goToTranscripcion(row)"
+                                            >
                                                 Ir
                                             </button>
                                         </td>
-                                        <td class="text-right">{{ formatEdadMin(row.edad_min) }}</td>
+                                        <td class="text-right">
+                                            {{ formatEdadMin(row.edad_min) }}
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
-                        <div v-if="!loading && tablas.pendientesTranscripcionTop.length === 0" class="text-muted">
+                        <div
+                            v-if="!loading && tablas.pendientesTranscripcionTop.length === 0"
+                            class="text-muted"
+                        >
                             Sin pendientes de transcripción.
                         </div>
                     </div>
@@ -577,7 +685,9 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex m-b-10 no-block">
-                            <h5 class="card-title m-b-0 align-self-center">Ranking médicos (transcritos)</h5>
+                            <h5 class="card-title m-b-0 align-self-center">
+                                Ranking médicos (transcritos)
+                            </h5>
                             <div class="ml-auto">
                                 <small class="text-muted">Últimos {{ days }} días</small>
                             </div>
@@ -592,7 +702,10 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="row in productividad.rankingMedicosTranscritos" :key="row.medico_id">
+                                    <tr
+                                        v-for="row in productividad.rankingMedicosTranscritos"
+                                        :key="row.medico_id"
+                                    >
                                         <td>{{ row.medico }}</td>
                                         <td class="text-right">{{ row.total }}</td>
                                         <td class="text-right">{{ formatDelta(row) }}</td>
@@ -600,7 +713,10 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div v-if="!loading && productividad.rankingMedicosTranscritos.length === 0" class="text-muted">
+                        <div
+                            v-if="!loading && productividad.rankingMedicosTranscritos.length === 0"
+                            class="text-muted"
+                        >
                             Sin datos para mostrar.
                         </div>
                     </div>
@@ -621,10 +737,12 @@
                                 <h5 class="card-title m-b-0">Flujo diario</h5>
                             </div>
                             <div class="ml-auto">
-                                <small class="text-muted">Asignados / Leídos / Transcritos ({{ days }} días)</small>
+                                <small class="text-muted"
+                                    >Asignados / Leídos / Transcritos ({{ days }} días)</small
+                                >
                             </div>
                         </div>
-                        <div class="" id="sales-chart" style="height: 355px;"></div>
+                        <div class="" id="sales-chart" style="height: 355px"></div>
                         <div v-if="loading" class="text-center text-muted m-t-10">Cargando...</div>
                     </div>
                 </div>
@@ -640,12 +758,11 @@
                                 <small class="text-muted">0–23h</small>
                             </div>
                         </div>
-                        <div id="por-hora-hoy" style="height: 355px; width: 100%;"></div>
+                        <div id="por-hora-hoy" style="height: 355px; width: 100%"></div>
                         <div v-if="loading" class="text-center text-muted m-t-10">Cargando...</div>
                     </div>
                 </div>
             </div>
-
         </div>
 
         <div v-if="isAdmin" class="row">
@@ -660,7 +777,7 @@
                                 <small class="text-muted">{{ days }} días</small>
                             </div>
                         </div>
-                        <div id="por-sede" style="height: 260px; width: 100%;"></div>
+                        <div id="por-sede" style="height: 260px; width: 100%"></div>
                         <div v-if="loading" class="text-center text-muted m-t-10">Cargando...</div>
                     </div>
                 </div>
@@ -679,7 +796,10 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="row in productividad.transcritosPorSede" :key="row.sede_id">
+                                    <tr
+                                        v-for="row in productividad.transcritosPorSede"
+                                        :key="row.sede_id"
+                                    >
                                         <td>{{ row.sede }}</td>
                                         <td class="text-right">{{ row.total }}</td>
                                         <td class="text-right">{{ formatDelta(row) }}</td>
@@ -687,7 +807,10 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div v-if="!loading && productividad.transcritosPorSede.length === 0" class="text-muted">
+                        <div
+                            v-if="!loading && productividad.transcritosPorSede.length === 0"
+                            class="text-muted"
+                        >
                             Sin datos para mostrar.
                         </div>
                     </div>
@@ -701,12 +824,11 @@
 </template>
 
 <script>
-
 export default {
-    props: ['usuarioactual', 'rolesusuario'],
+    props: ["usuarioactual", "rolesusuario"],
     computed: {
         isAdmin() {
-            return this.rolesusuario === 'Administrador';
+            return this.rolesusuario === "Administrador";
         },
         heatmapDays() {
             const arr = this.series?.heatmap7d?.[this.heatmapMetric] || [];
@@ -716,7 +838,9 @@ export default {
             // fallback: últimos 7 días
             const d = window.dayjs ? window.dayjs() : null;
             if (!d) return [];
-            return Array.from({ length: 7 }, (_, i) => d.subtract(6 - i, 'day').format('YYYY-MM-DD'));
+            return Array.from({ length: 7 }, (_, i) =>
+                d.subtract(6 - i, "day").format("YYYY-MM-DD")
+            );
         },
         heatmapMax() {
             const arr = this.series?.heatmap7d?.[this.heatmapMetric] || [];
@@ -769,7 +893,7 @@ export default {
                 porHoraHoy: { asignados: [], leidos: [], transcritos: [] },
                 heatmap7d: { days: 7, asignados: [], leidos: [], transcritos: [] },
             },
-            heatmapMetric: 'transcritos',
+            heatmapMetric: "transcritos",
             heatmapIndex: {},
             calidad: {
                 tiempos: {
@@ -800,7 +924,7 @@ export default {
                 slaLectura: null,
                 slaTranscripcion: null,
             },
-        }
+        };
     },
     methods: {
         safeC3Generate(selector, config) {
@@ -811,29 +935,39 @@ export default {
         initCharts() {
             // Donut: modalidades
             this.charts.modalidades = c3.generate({
-                bindto: '#visitor',
+                bindto: "#visitor",
                 data: {
                     columns: [],
-                    type: 'donut',
+                    type: "donut",
                 },
                 donut: {
                     label: { show: false },
-                    title: 'Modalidades',
+                    title: "Modalidades",
                     width: 20,
                 },
                 legend: { hide: true },
-                color: { pattern: ['#24d2b5', '#20aee3', '#6772e5', '#ff9041', '#7460ee', '#f62d51', '#90a4ae'] },
+                color: {
+                    pattern: [
+                        "#24d2b5",
+                        "#20aee3",
+                        "#6772e5",
+                        "#ff9041",
+                        "#7460ee",
+                        "#f62d51",
+                        "#90a4ae",
+                    ],
+                },
             });
 
             // Bar: resumen transcritos vs pendientes
             this.charts.resumen = c3.generate({
-                bindto: '#income',
+                bindto: "#income",
                 data: {
                     columns: [
-                        ['Transcritos', 0],
-                        ['Pendientes', 0],
+                        ["Transcritos", 0],
+                        ["Pendientes", 0],
                     ],
-                    type: 'bar',
+                    type: "bar",
                 },
                 bar: {
                     width: 20,
@@ -845,62 +979,57 @@ export default {
                 legend: { show: true },
                 grid: { y: { show: true } },
                 size: { height: 290 },
-                color: { pattern: ['#24d2b5', '#f62d51'] },
+                color: { pattern: ["#24d2b5", "#f62d51"] },
             });
 
             // Área: flujo diario (asignados / leídos / transcritos)
             this.charts.transcritos = Morris.Area({
-                element: 'sales-chart',
+                element: "sales-chart",
                 data: [],
-                xkey: 'period',
-                ykeys: ['asignados', 'leidos', 'transcritos'],
-                labels: ['Asignados', 'Leídos', 'Transcritos'],
+                xkey: "period",
+                ykeys: ["asignados", "leidos", "transcritos"],
+                labels: ["Asignados", "Leídos", "Transcritos"],
                 pointSize: 2,
                 fillOpacity: 0.2,
-                pointStrokeColors: ['#26c6da', '#ffb22b', '#24d2b5'],
+                pointStrokeColors: ["#26c6da", "#ffb22b", "#24d2b5"],
                 behaveLikeLine: true,
-                gridLineColor: '#e0e0e0',
+                gridLineColor: "#e0e0e0",
                 lineWidth: 2,
-                hideHover: 'auto',
-                lineColors: ['#26c6da', '#ffb22b', '#24d2b5'],
+                hideHover: "auto",
+                lineColors: ["#26c6da", "#ffb22b", "#24d2b5"],
                 resize: true,
             });
 
             // Donut: aging lectura
             this.charts.agingLectura = c3.generate({
-                bindto: '#aging-lectura',
-                data: { columns: [], type: 'donut' },
-                donut: { label: { show: false }, title: 'Lectura', width: 18 },
+                bindto: "#aging-lectura",
+                data: { columns: [], type: "donut" },
+                donut: { label: { show: false }, title: "Lectura", width: 18 },
                 legend: { hide: true },
-                color: { pattern: ['#26c6da', '#ffb22b', '#7460ee', '#f62d51'] },
+                color: { pattern: ["#26c6da", "#ffb22b", "#7460ee", "#f62d51"] },
             });
 
             // Donut: aging transcripción
             this.charts.agingTranscripcion = c3.generate({
-                bindto: '#aging-transcripcion',
-                data: { columns: [], type: 'donut' },
-                donut: { label: { show: false }, title: 'Transcripción', width: 18 },
+                bindto: "#aging-transcripcion",
+                data: { columns: [], type: "donut" },
+                donut: { label: { show: false }, title: "Transcripción", width: 18 },
                 legend: { hide: true },
-                color: { pattern: ['#26c6da', '#ffb22b', '#7460ee', '#f62d51'] },
+                color: { pattern: ["#26c6da", "#ffb22b", "#7460ee", "#f62d51"] },
             });
 
             // Bar: distribución por hora (hoy)
-            this.charts.porHoraHoy = this.safeC3Generate('#por-hora-hoy', {
-                bindto: '#por-hora-hoy',
+            this.charts.porHoraHoy = this.safeC3Generate("#por-hora-hoy", {
+                bindto: "#por-hora-hoy",
                 data: {
-                    x: 'x',
-                    columns: [
-                        ['x'],
-                        ['Asignados'],
-                        ['Leídos'],
-                        ['Transcritos'],
-                    ],
-                    type: 'bar',
-                    groups: [['Asignados', 'Leídos', 'Transcritos']],
+                    x: "x",
+                    columns: [["x"], ["Asignados"], ["Leídos"], ["Transcritos"]],
+                    type: "bar",
+                    groups: [["Asignados", "Leídos", "Transcritos"]],
                 },
                 axis: {
                     x: {
-                        type: 'category',
+                        type: "category",
                         tick: {
                             rotate: 75,
                             multiline: false,
@@ -914,42 +1043,44 @@ export default {
                 bar: { width: { ratio: 0.6 } },
                 legend: { show: true },
                 grid: { y: { show: true } },
-                color: { pattern: ['#26c6da', '#ffb22b', '#24d2b5'] },
+                color: { pattern: ["#26c6da", "#ffb22b", "#24d2b5"] },
             });
 
             // Donut: transcritos por sede (solo si existe el contenedor)
-            this.charts.porSede = this.safeC3Generate('#por-sede', {
-                bindto: '#por-sede',
-                data: { columns: [], type: 'donut' },
-                donut: { label: { show: false }, title: 'Sedes', width: 18 },
+            this.charts.porSede = this.safeC3Generate("#por-sede", {
+                bindto: "#por-sede",
+                data: { columns: [], type: "donut" },
+                donut: { label: { show: false }, title: "Sedes", width: 18 },
                 legend: { hide: true },
-                color: { pattern: ['#745af2', '#26c6da', '#24d2b5', '#ffb22b', '#f62d51', '#90a4ae'] },
+                color: {
+                    pattern: ["#745af2", "#26c6da", "#24d2b5", "#ffb22b", "#f62d51", "#90a4ae"],
+                },
             });
 
-            // SLA charts
-            this.charts.slaLectura = this.safeC3Generate('#sla-lectura', {
-                bindto: '#sla-lectura',
-                data: { x: 'x', columns: [['x'], ['Incumplimiento %']], type: 'bar' },
+            // Cumplimiento de tiempos (charts)
+            this.charts.slaLectura = this.safeC3Generate("#sla-lectura", {
+                bindto: "#sla-lectura",
+                data: { x: "x", columns: [["x"], ["Incumplimiento %"]], type: "bar" },
                 axis: {
-                    x: { type: 'category' },
+                    x: { type: "category" },
                     y: { tick: { count: 4, outer: false }, max: 100, min: 0 },
                 },
                 bar: { width: { ratio: 0.7 } },
                 legend: { hide: true },
                 grid: { y: { show: true } },
-                color: { pattern: ['#f62d51'] },
+                color: { pattern: ["#f62d51"] },
             });
-            this.charts.slaTranscripcion = this.safeC3Generate('#sla-transcripcion', {
-                bindto: '#sla-transcripcion',
-                data: { x: 'x', columns: [['x'], ['Incumplimiento %']], type: 'bar' },
+            this.charts.slaTranscripcion = this.safeC3Generate("#sla-transcripcion", {
+                bindto: "#sla-transcripcion",
+                data: { x: "x", columns: [["x"], ["Incumplimiento %"]], type: "bar" },
                 axis: {
-                    x: { type: 'category' },
+                    x: { type: "category" },
                     y: { tick: { count: 4, outer: false }, max: 100, min: 0 },
                 },
                 bar: { width: { ratio: 0.7 } },
                 legend: { hide: true },
                 grid: { y: { show: true } },
-                color: { pattern: ['#ffb22b'] },
+                color: { pattern: ["#ffb22b"] },
             });
         },
         async fetchDashboard() {
@@ -961,9 +1092,11 @@ export default {
                     days: this.days,
                     sede_id: this.filters?.selected?.sede_id || undefined,
                     modalidad: this.filters?.selected?.modalidad || undefined,
-                    medico_id: this.isAdmin ? (this.filters?.selected?.medico_id || undefined) : undefined,
+                    medico_id: this.isAdmin
+                        ? this.filters?.selected?.medico_id || undefined
+                        : undefined,
                 };
-                const res = await axios.get('/api/reportes.dashboard', {
+                const res = await axios.get("/api/reportes.dashboard", {
                     params,
                 });
 
@@ -980,10 +1113,18 @@ export default {
                 this.indicadores.estudiosPorTranscribir = Number(data.estudiosPorTranscribir || 0);
                 this.indicadores.estudiosDescargados = Number(data.estudiosDescargados || 0);
 
-                this.estudiosMasSolicitados = Array.isArray(data.estudiosMasSolicitados) ? data.estudiosMasSolicitados : [];
-                this.series.transcritosPorDia = Array.isArray(data?.series?.transcritosPorDia) ? data.series.transcritosPorDia : [];
-                this.series.asignadosPorDia = Array.isArray(data?.series?.asignadosPorDia) ? data.series.asignadosPorDia : [];
-                this.series.leidosPorDia = Array.isArray(data?.series?.leidosPorDia) ? data.series.leidosPorDia : [];
+                this.estudiosMasSolicitados = Array.isArray(data.estudiosMasSolicitados)
+                    ? data.estudiosMasSolicitados
+                    : [];
+                this.series.transcritosPorDia = Array.isArray(data?.series?.transcritosPorDia)
+                    ? data.series.transcritosPorDia
+                    : [];
+                this.series.asignadosPorDia = Array.isArray(data?.series?.asignadosPorDia)
+                    ? data.series.asignadosPorDia
+                    : [];
+                this.series.leidosPorDia = Array.isArray(data?.series?.leidosPorDia)
+                    ? data.series.leidosPorDia
+                    : [];
                 this.series.porHoraHoy = data?.series?.porHoraHoy || this.series.porHoraHoy;
                 this.series.heatmap7d = data?.series?.heatmap7d || this.series.heatmap7d;
 
@@ -995,7 +1136,7 @@ export default {
                 this.reindexHeatmap();
                 this.renderCharts();
             } catch (e) {
-                this.error = 'No fue posible cargar las estadísticas del dashboard.';
+                this.error = "No fue posible cargar las estadísticas del dashboard.";
                 // opcional: log mínimo para depurar en consola sin ruido
                 // console.error(e);
             } finally {
@@ -1012,15 +1153,15 @@ export default {
             if (this.charts.modalidades && donutColumns.length > 0) {
                 this.charts.modalidades.load({ columns: donutColumns });
             } else if (this.charts.modalidades) {
-                this.charts.modalidades.load({ columns: [['Sin datos', 1]] });
+                this.charts.modalidades.load({ columns: [["Sin datos", 1]] });
             }
 
             // Bar (resumen)
             if (this.charts.resumen) {
                 this.charts.resumen.load({
                     columns: [
-                        ['Transcritos', this.indicadores.estudiosLeidos],
-                        ['Pendientes', this.indicadores.estudiosPorTranscribir],
+                        ["Transcritos", this.indicadores.estudiosLeidos],
+                        ["Pendientes", this.indicadores.estudiosPorTranscribir],
                     ],
                 });
             }
@@ -1031,32 +1172,43 @@ export default {
                 (arr || []).forEach((x) => {
                     if (!x || !x.fecha) return;
                     const f = String(x.fecha);
-                    if (!byDate[f]) byDate[f] = { period: f, asignados: 0, leidos: 0, transcritos: 0 };
+                    if (!byDate[f])
+                        byDate[f] = { period: f, asignados: 0, leidos: 0, transcritos: 0 };
                     byDate[f][key] = Number(x.total || 0);
                 });
             };
-            upsert(this.series.asignadosPorDia, 'asignados');
-            upsert(this.series.leidosPorDia, 'leidos');
-            upsert(this.series.transcritosPorDia, 'transcritos');
+            upsert(this.series.asignadosPorDia, "asignados");
+            upsert(this.series.leidosPorDia, "leidos");
+            upsert(this.series.transcritosPorDia, "transcritos");
 
             const areaData = Object.keys(byDate)
                 .sort()
                 .map((k) => byDate[k]);
 
-            if (this.charts.transcritos && typeof this.charts.transcritos.setData === 'function') {
+            if (this.charts.transcritos && typeof this.charts.transcritos.setData === "function") {
                 this.charts.transcritos.setData(areaData);
             }
 
             // Donut aging lectura
-            const agingLecturaCols = (this.calidad?.agingLectura || []).map((x) => [String(x.bucket), Number(x.total || 0)]);
+            const agingLecturaCols = (this.calidad?.agingLectura || []).map((x) => [
+                String(x.bucket),
+                Number(x.total || 0),
+            ]);
             if (this.charts.agingLectura) {
-                this.charts.agingLectura.load({ columns: agingLecturaCols.length ? agingLecturaCols : [['Sin datos', 1]] });
+                this.charts.agingLectura.load({
+                    columns: agingLecturaCols.length ? agingLecturaCols : [["Sin datos", 1]],
+                });
             }
 
             // Donut aging transcripción
-            const agingTransCols = (this.calidad?.agingTranscripcion || []).map((x) => [String(x.bucket), Number(x.total || 0)]);
+            const agingTransCols = (this.calidad?.agingTranscripcion || []).map((x) => [
+                String(x.bucket),
+                Number(x.total || 0),
+            ]);
             if (this.charts.agingTranscripcion) {
-                this.charts.agingTranscripcion.load({ columns: agingTransCols.length ? agingTransCols : [['Sin datos', 1]] });
+                this.charts.agingTranscripcion.load({
+                    columns: agingTransCols.length ? agingTransCols : [["Sin datos", 1]],
+                });
             }
 
             // Bar por hora (hoy)
@@ -1083,29 +1235,42 @@ export default {
 
                 this.charts.porHoraHoy.load({
                     columns: [
-                        ['x', ...hours],
-                        ['Asignados', ...asignados],
-                        ['Leídos', ...leidos],
-                        ['Transcritos', ...transcritos],
+                        ["x", ...hours],
+                        ["Asignados", ...asignados],
+                        ["Leídos", ...leidos],
+                        ["Transcritos", ...transcritos],
                     ],
                 });
             }
 
             // Donut transcritos por sede (admin)
             if (this.charts.porSede) {
-                const cols = (this.productividad?.transcritosPorSede || []).map((x) => [String(x.sede), Number(x.total || 0)]);
-                this.charts.porSede.load({ columns: cols.length ? cols : [['Sin datos', 1]] });
+                const cols = (this.productividad?.transcritosPorSede || []).map((x) => [
+                    String(x.sede),
+                    Number(x.total || 0),
+                ]);
+                this.charts.porSede.load({ columns: cols.length ? cols : [["Sin datos", 1]] });
             }
 
-            // SLA charts (breachRate %)
+            // Cumplimiento de tiempos (incumplimiento %)
             if (this.charts.slaLectura) {
-                const x = ['x', ...(this.sla?.lectura || []).map((r) => String(r.prioridad))];
-                const y = ['Incumplimiento %', ...(this.sla?.lectura || []).map((r) => Math.round(Number(r.breachRate || 0) * 100))];
+                const x = ["x", ...(this.sla?.lectura || []).map((r) => String(r.prioridad))];
+                const y = [
+                    "Incumplimiento %",
+                    ...(this.sla?.lectura || []).map((r) =>
+                        Math.round(Number(r.breachRate || 0) * 100)
+                    ),
+                ];
                 this.charts.slaLectura.load({ columns: [x, y] });
             }
             if (this.charts.slaTranscripcion) {
-                const x = ['x', ...(this.sla?.transcripcion || []).map((r) => String(r.prioridad))];
-                const y = ['Incumplimiento %', ...(this.sla?.transcripcion || []).map((r) => Math.round(Number(r.breachRate || 0) * 100))];
+                const x = ["x", ...(this.sla?.transcripcion || []).map((r) => String(r.prioridad))];
+                const y = [
+                    "Incumplimiento %",
+                    ...(this.sla?.transcripcion || []).map((r) =>
+                        Math.round(Number(r.breachRate || 0) * 100)
+                    ),
+                ];
                 this.charts.slaTranscripcion.load({ columns: [x, y] });
             }
         },
@@ -1123,31 +1288,38 @@ export default {
         },
 
         heatmapValue(date, hour) {
-            return (this.heatmapIndex?.[date] && this.heatmapIndex[date][hour]) ? this.heatmapIndex[date][hour] : 0;
+            return this.heatmapIndex?.[date] && this.heatmapIndex[date][hour]
+                ? this.heatmapIndex[date][hour]
+                : 0;
         },
 
         heatmapColor(value, max) {
             const v = Number(value || 0);
             const m = Number(max || 0);
-            if (m <= 0) return 'transparent';
+            if (m <= 0) return "transparent";
             const t = Math.max(0, Math.min(1, v / m));
             // base: #26c6da
             return `rgba(38, 198, 218, ${0.15 + t * 0.75})`;
         },
 
         alertClass(level) {
-            switch (String(level || '').toLowerCase()) {
-                case 'danger': return 'alert-danger';
-                case 'warning': return 'alert-warning';
-                case 'info': return 'alert-info';
-                case 'success': return 'alert-success';
-                default: return 'alert-secondary';
+            switch (String(level || "").toLowerCase()) {
+                case "danger":
+                    return "alert-danger";
+                case "warning":
+                    return "alert-warning";
+                case "info":
+                    return "alert-info";
+                case "success":
+                    return "alert-success";
+                default:
+                    return "alert-secondary";
             }
         },
 
         formatEdadMin(min) {
             const m = Number(min || 0);
-            if (!m || m < 0) return '0m';
+            if (!m || m < 0) return "0m";
             const days = Math.floor(m / (60 * 24));
             const hours = Math.floor((m % (60 * 24)) / 60);
             const minutes = Math.floor(m % 60);
@@ -1158,7 +1330,7 @@ export default {
 
         formatMin(min) {
             const m = Number(min || 0);
-            if (!m || m < 0) return '0m';
+            if (!m || m < 0) return "0m";
             const hours = Math.floor(m / 60);
             const minutes = Math.floor(m % 60);
             if (hours > 0) return `${hours}h ${minutes}m`;
@@ -1168,19 +1340,23 @@ export default {
         formatDelta(row) {
             const total = Number(row?.total || 0);
             const prev = Number(row?.prev_total || 0);
-            const delta = (row && typeof row.delta !== 'undefined') ? Number(row.delta) : (total - prev);
-            const pct = (row && row.deltaPct !== null && typeof row.deltaPct !== 'undefined') ? Number(row.deltaPct) : null;
+            const delta =
+                row && typeof row.delta !== "undefined" ? Number(row.delta) : total - prev;
+            const pct =
+                row && row.deltaPct !== null && typeof row.deltaPct !== "undefined"
+                    ? Number(row.deltaPct)
+                    : null;
 
-            const sign = delta > 0 ? '+' : '';
+            const sign = delta > 0 ? "+" : "";
             if (prev <= 0) {
                 return `${sign}${delta}`;
             }
-            const pctStr = pct === null ? '' : `${Math.round(pct * 100)}%`;
+            const pctStr = pct === null ? "" : `${Math.round(pct * 100)}%`;
             return `${sign}${delta} (${pctStr})`;
         },
 
         formatPacienteNombre(row) {
-            if (!row) return '';
+            if (!row) return "";
             const parts = [
                 row.paciente_nombres,
                 row.paciente_seg_nom,
@@ -1191,26 +1367,32 @@ export default {
                 .map((x) => String(x).trim())
                 .filter(Boolean);
 
-            return parts.join(' ') || 'Paciente';
+            return parts.join(" ") || "Paciente";
         },
 
         goToLectura(row) {
             try {
-                if (row && row.sede_id) sessionStorage.setItem('ST-sede', String(row.sede_id));
-                if (row && row.accession_no) sessionStorage.setItem('ST-accession', String(row.accession_no));
-            } catch (e) { /* noop */ }
-            window.location.href = '/estudios.leer.estudio.listar';
+                if (row && row.sede_id) sessionStorage.setItem("ST-sede", String(row.sede_id));
+                if (row && row.accession_no)
+                    sessionStorage.setItem("ST-accession", String(row.accession_no));
+            } catch (e) {
+                /* noop */
+            }
+            window.location.href = "/estudios.leer.estudio.listar";
         },
 
         goToTranscripcion(row) {
             try {
-                if (row && row.sede_id) sessionStorage.setItem('ST-sede', String(row.sede_id));
-                if (row && row.accession_no) sessionStorage.setItem('ST-accession', String(row.accession_no));
-            } catch (e) { /* noop */ }
-            window.location.href = '/estudios.transcribir.listar';
+                if (row && row.sede_id) sessionStorage.setItem("ST-sede", String(row.sede_id));
+                if (row && row.accession_no)
+                    sessionStorage.setItem("ST-accession", String(row.accession_no));
+            } catch (e) {
+                /* noop */
+            }
+            window.location.href = "/estudios.transcribir.listar";
         },
-    }
-}
+    },
+};
 </script>
 
 <style></style>

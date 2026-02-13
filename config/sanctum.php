@@ -2,6 +2,20 @@
 
 use Laravel\Sanctum\Sanctum;
 
+$defaultStatefulDomains = sprintf(
+    '%s%s',
+    'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1',
+    Sanctum::currentApplicationUrlWithPort()
+);
+
+// En algunos entornos locales el APP_URL puede no coincidir con el host real (ej: lidiag.test),
+// y Sanctum no tratará las peticiones como "stateful", causando 401 en `auth:sanctum`.
+// Incluimos el host actual best-effort para soportar entornos tipo Laragon.
+$currentHost = $_SERVER['HTTP_HOST'] ?? null;
+if (is_string($currentHost) && $currentHost !== '') {
+    $defaultStatefulDomains .= ','.$currentHost;
+}
+
 return [
 
     /*
@@ -15,11 +29,10 @@ return [
     |
     */
 
-    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
-        '%s%s',
-        'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1',
-        Sanctum::currentApplicationUrlWithPort()
-    ))),
+    'stateful' => array_values(array_unique(array_filter(array_map('trim', explode(',', env(
+        'SANCTUM_STATEFUL_DOMAINS',
+        $defaultStatefulDomains
+    )))))),
 
     /*
     |--------------------------------------------------------------------------

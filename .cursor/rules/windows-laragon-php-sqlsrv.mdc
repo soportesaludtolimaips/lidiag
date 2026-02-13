@@ -1,0 +1,19 @@
+---
+description: Windows/Laragon: ruido por extensiones sqlsrv faltantes y cómo manejarlo en dev
+alwaysApply: true
+---
+
+# Windows + Laragon: `sqlsrv` / `pdo_sqlsrv`
+
+Si al ejecutar `php`, `composer` o `artisan` aparece:
+
+- `Unable to load dynamic library 'php_sqlsrv_...'`
+- `Unable to load dynamic library 'php_pdo_sqlsrv_...'`
+
+Entonces tu `php.ini` está intentando cargar extensiones que **no están instaladas** para esa versión de PHP.
+
+## Reglas en este repo
+
+- Esos warnings **no deben impedir** tareas de desarrollo que no requieran SQL Server.
+- Para trabajar con integración SAHI (SQL Server) sí necesitas `sqlsrv` + `pdo_sqlsrv` instaladas y habilitadas.
+

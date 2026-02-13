@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Seguridad;
 
 use App\Http\Controllers\Controller;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use App\Http\Requests\Seguridad\RolAgregarRequest;
 use Illuminate\Http\Request;
-use DB;
+use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class RolController extends Controller
 {
@@ -37,15 +37,20 @@ class RolController extends Controller
     /**
      * Crea un nuevo rol y le asigna los permisos seleccionados.
      *
-     * @param RolAgregarRequest $request Datos del rol y permisos.
+     * @param  RolAgregarRequest  $request  Datos del rol y permisos.
      * @return \Illuminate\Http\JsonResponse Confirmación.
      */
     public function store(RolAgregarRequest $request)
     {
-        $role = Role::create(['name' => $request->input('name')]);
+        // Forzar guard web: el frontend usa sesiones y el middleware de permisos está configurado para web.
+        // Evita que una petición autenticada por Sanctum cree roles con guard_name=sanctum.
+        $role = Role::create([
+            'name' => $request->input('name'),
+            'guard_name' => 'web',
+        ]);
 
         $permisos = $request->permisosRol;
-        $permisosInsertar = array();
+        $permisosInsertar = [];
 
         foreach ($permisos as $permiso) {
             if ($permiso['checked'] == true) {
@@ -53,7 +58,21 @@ class RolController extends Controller
             }
         }
 
-        $role->syncPermissions($permisosInsertar);
+        // Resolver permisos solo del guard web para evitar PermissionDoesNotExist (guard sanctum vs web)
+        $permissionNames = Permission::query()
+            ->whereIn('id', $permisosInsertar)
+            ->where('guard_name', 'web')
+            ->pluck('name')
+            ->values()
+            ->all();
+
+        if (count($permissionNames) !== count($permisosInsertar)) {
+            return response()->json([
+                'message' => 'Uno o más permisos no existen o no pertenecen al guard web.',
+            ], 400);
+        }
+
+        $role->syncPermissions($permissionNames);
 
         return response()->json(['message' => 'Registro creado satisfactoriamente.']);
     }
@@ -61,14 +80,14 @@ class RolController extends Controller
     /**
      * Muestra un rol específico junto con sus permisos asignados y la lista total de permisos.
      *
-     * @param int $id ID del rol.
+     * @param  int  $id  ID del rol.
      * @return \Illuminate\Http\JsonResponse Datos del rol, permisos y permisos asignados.
      */
     public function show($id)
     {
         $seguridad_role = Role::find($id);
 
-        if (!$seguridad_role) {
+        if (! $seguridad_role) {
             return response()->json(['message' => 'El rol no se encontro'], 404);
         }
 
@@ -84,8 +103,8 @@ class RolController extends Controller
     /**
      * Actualiza el nombre del rol y sincroniza sus permisos.
      *
-     * @param Request $request Datos actualizados del rol.
-     * @param int $id ID del rol.
+     * @param  Request  $request  Datos actualizados del rol.
+     * @param  int  $id  ID del rol.
      * @return \Illuminate\Http\JsonResponse Confirmación.
      */
     public function update(Request $request, $id)
@@ -93,15 +112,17 @@ class RolController extends Controller
 
         $role = Role::find($id);
 
-        if (!$role) {
+        if (! $role) {
             return response()->json(['message' => 'El rol no se encontro'], 404);
         }
 
         $role->name = $request->registro['name'];
+        // Forzar guard web por consistencia
+        $role->guard_name = 'web';
         $role->save();
 
         $permisos = $request->registro['permisosRol'];
-        $permisosInsertar = array();
+        $permisosInsertar = [];
 
         foreach ($permisos as $permiso) {
             if ($permiso['checked'] == true) {
@@ -109,7 +130,20 @@ class RolController extends Controller
             }
         }
 
-        $role->syncPermissions($permisosInsertar);
+        $permissionNames = Permission::query()
+            ->whereIn('id', $permisosInsertar)
+            ->where('guard_name', 'web')
+            ->pluck('name')
+            ->values()
+            ->all();
+
+        if (count($permissionNames) !== count($permisosInsertar)) {
+            return response()->json([
+                'message' => 'Uno o más permisos no existen o no pertenecen al guard web.',
+            ], 400);
+        }
+
+        $role->syncPermissions($permissionNames);
 
         return response()->json(['message' => 'Registro actualizado satisfactoriamente.']);
     }
@@ -117,13 +151,15 @@ class RolController extends Controller
     /**
      * Elimina un rol.
      *
-     * @param Rol $rol Instancia del rol a eliminar.
+     * @param  Rol  $rol  Instancia del rol a eliminar.
      * @return \Illuminate\Http\JsonResponse Confirmación.
      */
     public function destroy($id)
     {
         $role = Role::find($id);
-        if (!$role) return response()->json(['message' => 'El rol no se encontro'], 404);
+        if (! $role) {
+            return response()->json(['message' => 'El rol no se encontro'], 404);
+        }
         $role->delete();
 
         return response()->json(['message' => 'Registro eliminado satisfactoriamente.']);

@@ -39,17 +39,27 @@
                                             <label class="control-label">
                                                 # de atención, # de documento ó Nombres de paciente
                                             </label>
-                                            <input type="text" id="bus_nom_num_docu" name="bus_nom_num_docu"
-                                                v-model="busqueda.bus_nom_num_docu" class="form-control"
+                                            <input
+                                                type="text"
+                                                id="bus_nom_num_docu"
+                                                name="bus_nom_num_docu"
+                                                v-model="busqueda.bus_nom_num_docu"
+                                                class="form-control"
                                                 placeholder=" Atención, Nombres de paciente o # de documento"
-                                                @keyup.enter="buscarStudy()" />
+                                                @keyup.enter="buscarStudy()"
+                                            />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Inicio</label>
-                                            <input type="date" id="bus_fehc_ini" name="bus_fehc_ini"
-                                                v-model="busqueda.bus_fehc_ini" class="form-control" />
+                                            <input
+                                                type="date"
+                                                id="bus_fehc_ini"
+                                                name="bus_fehc_ini"
+                                                v-model="busqueda.bus_fehc_ini"
+                                                class="form-control"
+                                            />
                                             <!-- <span class="text-danger" v-if="errores.bus_fehc_ini">
                                                 {{ erroresBusqueda.bus_fehc_ini[0] }}
                                             </span> -->
@@ -58,8 +68,13 @@
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Fin</label>
-                                            <input type="date" id="bus_fecha_fin" name="bus_fecha_fin"
-                                                v-model="busqueda.bus_fecha_fin" class="form-control" />
+                                            <input
+                                                type="date"
+                                                id="bus_fecha_fin"
+                                                name="bus_fecha_fin"
+                                                v-model="busqueda.bus_fecha_fin"
+                                                class="form-control"
+                                            />
                                             <!-- <span class="text-danger" v-if="errores.bus_fecha_fin">
                                                 {{ erroresBusqueda.bus_fecha_fin[0] }}
                                             </span> -->
@@ -68,15 +83,29 @@
                                 </div>
 
                                 <div class="form-actions mt-3">
-                                    <button type="button" class="btn btn-success m-r-5" @click="listarAtenciones()"
-                                        :disabled="isBuscandoAtenciones">
-                                        <i class="fa"
-                                            :class="isBuscandoAtenciones ? 'fa-spinner fa-spin' : 'fa-search'"></i>
-                                        {{ isBuscandoAtenciones ? 'Buscando...' : 'Buscar' }}
+                                    <button
+                                        type="button"
+                                        class="btn btn-success m-r-5"
+                                        @click="listarAtenciones()"
+                                        :disabled="isBuscandoAtenciones"
+                                    >
+                                        <i
+                                            class="fa"
+                                            :class="
+                                                isBuscandoAtenciones
+                                                    ? 'fa-spinner fa-spin'
+                                                    : 'fa-search'
+                                            "
+                                        ></i>
+                                        {{ isBuscandoAtenciones ? "Buscando..." : "Buscar" }}
                                     </button>
 
-                                    <button type="button" class="btn btn-inverse" @click="btnLimpiar()"
-                                        :disabled="isBuscandoAtenciones || isGuardandoEcografia">
+                                    <button
+                                        type="button"
+                                        class="btn btn-inverse"
+                                        @click="btnLimpiar()"
+                                        :disabled="isBuscandoAtenciones || isGuardandoEcografia"
+                                    >
                                         <i class="fa fa-refresh"></i> Limpiar
                                     </button>
                                 </div>
@@ -92,16 +121,22 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de atenciones disponibles.</h4>
-                        <h6 class="card-subtitle text-info">Asigne los médicos para su respectiva lectura.
+                        <h6 class="card-subtitle text-info">
+                            Asigne los médicos para su respectiva lectura.
                         </h6>
                         <div class="table-responsive">
-                            <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
-                                width="100%">
+                            <table
+                                id="example23"
+                                ref="dt"
+                                class="table table-bordered table-striped"
+                                cellspacing="0"
+                                width="100%"
+                            >
                                 <thead>
                                     <tr>
-                                        <th with='5%'>Fecha</th>
-                                        <th with='5%'># Documento</th>
-                                        <th with='30%'>Paciente</th>
+                                        <th with="5%">Fecha</th>
+                                        <th with="5%"># Documento</th>
+                                        <th with="30%">Paciente</th>
                                         <th>Examen</th>
                                         <th>Cantidad</th>
                                         <th>Val. Examen</th>
@@ -118,9 +153,42 @@
                                     <tr v-for="(item, index) in registros" :key="index">
                                         <td>{{ item.FecIngreso }}</td>
                                         <td>{{ item.NumDocumento }}</td>
-                                        <td>{{ item.PrimerNombre }} {{ item.SegundoNombre }} {{ item.PrimerApellido }}
-                                            {{ item.SegundoApellido }}</td>
-                                        <td>{{ item.NomProducto }}</td>
+                                        <td>
+                                            {{ item.PrimerNombre }} {{ item.SegundoNombre }}
+                                            {{ item.PrimerApellido }} {{ item.SegundoApellido }}
+                                        </td>
+                                        <td>
+                                            <div>{{ item.NomProducto }}</div>
+                                            <small
+                                                v-if="
+                                                    item.tiene_plantilla_consentimiento &&
+                                                    item.consentimiento_estado ===
+                                                        'PENDIENTE_PACIENTE'
+                                                "
+                                                class="text-danger"
+                                            >
+                                                Pendiente firma paciente/acompañante
+                                            </small>
+                                            <small
+                                                v-else-if="
+                                                    item.tiene_plantilla_consentimiento &&
+                                                    item.consentimiento_estado ===
+                                                        'PENDIENTE_MEDICO'
+                                                "
+                                                class="text-warning"
+                                            >
+                                                Pendiente firma médico
+                                            </small>
+                                            <small
+                                                v-else-if="
+                                                    item.tiene_plantilla_consentimiento &&
+                                                    item.consentimiento_estado === 'COMPLETO'
+                                                "
+                                                class="text-success"
+                                            >
+                                                Consentimiento completo
+                                            </small>
+                                        </td>
                                         <td align="right">{{ item.Cantidad }}</td>
                                         <td align="right">{{ formatoMoneda(item.ValProduc) }}</td>
                                         <td>{{ item.NomTercero }}</td>
@@ -128,47 +196,99 @@
                                         <td>{{ item.DesPlan }}</td>
                                         <td>{{ item.quien_ordeno }}</td>
                                         <td>
-                                            <span class="label label-info"
-                                                v-if="item.estado_ecografia === 'EN PROCESO'">{{
-                                                    item.estado_ecografia }}</span>
-                                            <span class="label label-success"
-                                                v-if="item.estado_ecografia === 'LEIDO'">{{
-                                                    item.estado_ecografia }}</span>
-                                            <span class="label label-danger"
-                                                v-if="item.estado_ecografia === 'ANULADO'">{{
-                                                    item.estado_ecografia }}</span>
+                                            <span
+                                                class="label label-info"
+                                                v-if="item.estado_ecografia === 'EN PROCESO'"
+                                                >{{ item.estado_ecografia }}</span
+                                            >
+                                            <span
+                                                class="label label-success"
+                                                v-if="item.estado_ecografia === 'LEIDO'"
+                                                >{{ item.estado_ecografia }}</span
+                                            >
+                                            <span
+                                                class="label label-danger"
+                                                v-if="item.estado_ecografia === 'ANULADO'"
+                                                >{{ item.estado_ecografia }}</span
+                                            >
                                         </td>
                                         <td>
-                                            <template v-if="sedeInterface && item.ecografia_producto_id">
-                                                <span v-if="item.estado_envio_sahi" class="label" :class="{
-                                                    'label-success': item.estado_envio_sahi === 'ENVIADO',
-                                                    'label-warning': item.estado_envio_sahi === 'ENVIANDO' || item.estado_envio_sahi === 'PENDIENTE',
-                                                    'label-danger': item.estado_envio_sahi === 'ERROR',
-                                                    'label-default': !item.estado_envio_sahi
-                                                }">
+                                            <template
+                                                v-if="sedeInterface && item.ecografia_producto_id"
+                                            >
+                                                <span
+                                                    v-if="item.estado_envio_sahi"
+                                                    class="label"
+                                                    :class="{
+                                                        'label-success':
+                                                            item.estado_envio_sahi === 'ENVIADO',
+                                                        'label-warning':
+                                                            item.estado_envio_sahi === 'ENVIANDO' ||
+                                                            item.estado_envio_sahi === 'PENDIENTE',
+                                                        'label-danger':
+                                                            item.estado_envio_sahi === 'ERROR',
+                                                        'label-default': !item.estado_envio_sahi,
+                                                    }"
+                                                >
                                                     {{ item.estado_envio_sahi }}
                                                 </span>
                                                 <span v-else class="text-muted">—</span>
 
                                                 <div class="m-t-5">
-                                                    <button type="button" class="btn btn-info btn-xs m-r-5"
+                                                    <button
+                                                        type="button"
+                                                        class="btn btn-info btn-xs m-r-5"
                                                         @click="consultarEstadoSahi(item)"
-                                                        :disabled="isConsultandoSahi[item.ecografia_producto_id]">
-                                                        <i class="fa"
-                                                            :class="isConsultandoSahi[item.ecografia_producto_id] ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                                                        :disabled="
+                                                            isConsultandoSahi[
+                                                                item.ecografia_producto_id
+                                                            ]
+                                                        "
+                                                    >
+                                                        <i
+                                                            class="fa"
+                                                            :class="
+                                                                isConsultandoSahi[
+                                                                    item.ecografia_producto_id
+                                                                ]
+                                                                    ? 'fa-spinner fa-spin'
+                                                                    : 'fa-refresh'
+                                                            "
+                                                        ></i>
                                                     </button>
 
-                                                    <button v-if="item.estado_envio_sahi === 'ERROR'" type="button"
-                                                        class="btn btn-warning btn-xs" @click="reenviarASahi(item)"
-                                                        :disabled="isEnviandoSahi[item.ecografia_producto_id] || item.estado_envio_sahi === 'ENVIANDO'">
-                                                        <i class="fa"
-                                                            :class="isEnviandoSahi[item.ecografia_producto_id] ? 'fa-spinner fa-spin' : 'fa-repeat'"></i>
+                                                    <button
+                                                        v-if="item.estado_envio_sahi === 'ERROR'"
+                                                        type="button"
+                                                        class="btn btn-warning btn-xs"
+                                                        @click="reenviarASahi(item)"
+                                                        :disabled="
+                                                            isEnviandoSahi[
+                                                                item.ecografia_producto_id
+                                                            ] ||
+                                                            item.estado_envio_sahi === 'ENVIANDO'
+                                                        "
+                                                    >
+                                                        <i
+                                                            class="fa"
+                                                            :class="
+                                                                isEnviandoSahi[
+                                                                    item.ecografia_producto_id
+                                                                ]
+                                                                    ? 'fa-spinner fa-spin'
+                                                                    : 'fa-repeat'
+                                                            "
+                                                        ></i>
                                                     </button>
                                                 </div>
 
                                                 <small
-                                                    v-if="item.estado_envio_sahi === 'ERROR' && item.error_envio_sahi"
-                                                    class="text-danger d-block">
+                                                    v-if="
+                                                        item.estado_envio_sahi === 'ERROR' &&
+                                                        item.error_envio_sahi
+                                                    "
+                                                    class="text-danger d-block"
+                                                >
                                                     {{ item.error_envio_sahi }}
                                                 </small>
                                             </template>
@@ -177,20 +297,53 @@
                                             </template>
                                         </td>
                                         <td class="text-nowrap">
-                                            <button type="button"
+                                            <button
+                                                type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
-                                                @click="actualizar = false; registroParaAnular(item);"
-                                                title="Anular agenda" alt="default" data-toggle="modal"
+                                                @click="
+                                                    actualizar = false;
+                                                    registroParaAnular(item);
+                                                "
+                                                title="Anular agenda"
+                                                alt="default"
+                                                data-toggle="modal"
                                                 data-target="#responsive-modal"
-                                                v-if="item.estado_ecografia === 'EN PROCESO'">
-                                                <i class=" fa fa-trash"></i>
+                                                v-if="item.estado_ecografia === 'EN PROCESO'"
+                                            >
+                                                <i class="fa fa-trash"></i>
                                             </button>
 
-                                            <button type="button"
+                                            <button
+                                                type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
-                                                @click="actualizar = true;
-                                                mostrarRegistro(item);" title="Agendar ecografia">
-                                                <i class=" fa fa-check"></i>
+                                                @click="
+                                                    actualizar = true;
+                                                    mostrarRegistro(item);
+                                                "
+                                                title="Agendar ecografia"
+                                            >
+                                                <i class="fa fa-check"></i>
+                                            </button>
+
+                                            <button
+                                                v-if="
+                                                    can(
+                                                        'ecografias.consentimientos.capturar_firma'
+                                                    ) &&
+                                                    item.tiene_plantilla_consentimiento &&
+                                                    item.ecografia_producto_id &&
+                                                    (!item.consentimiento_estado ||
+                                                        item.consentimiento_estado ===
+                                                            'PENDIENTE_PACIENTE')
+                                                "
+                                                type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-success btn-sm"
+                                                title="Capturar firma (paciente/acompañante)"
+                                                data-toggle="modal"
+                                                data-target="#modal-consentimiento"
+                                                @click="abrirModalConsentimiento(item)"
+                                            >
+                                                <i class="fa fa-pencil"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -209,7 +362,10 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%;">
+        <div
+            class="right-sidebar"
+            style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%"
+        >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -228,18 +384,25 @@
                                     <h5 class="card-title text-info">
                                         <i class="fa fa-user"></i> Datos del Paciente
                                     </h5>
-                                    <hr>
+                                    <hr />
                                     <div class="row">
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label>Tipo de documento</label>
-                                                <Select2 :value="registro.tipo_documento_id"
-                                                    :options="tipoDocumentoOptions" width="100%" :allow-clear="true"
+                                                <Select2
+                                                    :value="registro.tipo_documento_id"
+                                                    :options="tipoDocumentoOptions"
+                                                    width="100%"
+                                                    :allow-clear="true"
                                                     :label-fields="['codigo', 'tipo_documento']"
                                                     :dropdown-parent-selector="'#tipoDocumentos-parent'"
-                                                    @input="onTipoDocumentoSelect" />
+                                                    @input="onTipoDocumentoSelect"
+                                                />
 
-                                                <span class="text-danger" v-if="errores.tipo_documento_id">
+                                                <span
+                                                    class="text-danger"
+                                                    v-if="errores.tipo_documento_id"
+                                                >
                                                     {{ errores.tipo_documento_id[0] }}
                                                 </span>
                                             </div>
@@ -247,9 +410,14 @@
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label class="control-label"># Documento</label>
-                                                <input type="text" id="num_docu" name="num_docu"
-                                                    v-model="registro.num_docu" class="form-control"
-                                                    placeholder="# de Documento" />
+                                                <input
+                                                    type="text"
+                                                    id="num_docu"
+                                                    name="num_docu"
+                                                    v-model="registro.num_docu"
+                                                    class="form-control"
+                                                    placeholder="# de Documento"
+                                                />
                                                 <!-- <span class="text-danger" v-if="errores.num_docu">
                                                     {{ errores.num_docu[0] }}
                                                 </span> -->
@@ -260,9 +428,14 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label class="control-label">Primer Nombre</label>
-                                                <input type="text" id="nombres" name="nombres"
-                                                    v-model="registro.nombres" class="form-control"
-                                                    placeholder="Nombres" />
+                                                <input
+                                                    type="text"
+                                                    id="nombres"
+                                                    name="nombres"
+                                                    v-model="registro.nombres"
+                                                    class="form-control"
+                                                    placeholder="Nombres"
+                                                />
                                                 <!-- <span class="text-danger" v-if="errores.nombres">
                                                     {{ errores.nombres[0] }}
                                                 </span> -->
@@ -272,9 +445,14 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label class="control-label">Segundo Nombre</label>
-                                                <input type="text" id="seg_nom" name="seg_nom"
-                                                    v-model="registro.seg_nom" class="form-control"
-                                                    placeholder="seg_nom" />
+                                                <input
+                                                    type="text"
+                                                    id="seg_nom"
+                                                    name="seg_nom"
+                                                    v-model="registro.seg_nom"
+                                                    class="form-control"
+                                                    placeholder="seg_nom"
+                                                />
                                                 <!-- <span class="text-danger" v-if="errores.seg_nom">
                                                     {{ errores.seg_nom[0] }}
                                                 </span> -->
@@ -285,9 +463,14 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label class="control-label">Primer Apellido</label>
-                                                <input type="text" id="pri_ape" name="pri_ape"
-                                                    v-model="registro.pri_ape" class="form-control"
-                                                    placeholder="pri_ape" />
+                                                <input
+                                                    type="text"
+                                                    id="pri_ape"
+                                                    name="pri_ape"
+                                                    v-model="registro.pri_ape"
+                                                    class="form-control"
+                                                    placeholder="pri_ape"
+                                                />
                                                 <!-- <span class="text-danger" v-if="errores.pri_ape">
                                                     {{ errores.pri_ape[0] }}
                                                 </span> -->
@@ -296,10 +479,17 @@
 
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label class="control-label">Segundo Apellido</label>
-                                                <input type="text" id="seg_ape" name="seg_ape"
-                                                    v-model="registro.seg_ape" class="form-control"
-                                                    placeholder="seg_ape" />
+                                                <label class="control-label"
+                                                    >Segundo Apellido</label
+                                                >
+                                                <input
+                                                    type="text"
+                                                    id="seg_ape"
+                                                    name="seg_ape"
+                                                    v-model="registro.seg_ape"
+                                                    class="form-control"
+                                                    placeholder="seg_ape"
+                                                />
                                                 <!-- <span class="text-danger" v-if="errores.seg_ape">
                                                     {{ errores.seg_ape[0] }}
                                                 </span> -->
@@ -310,16 +500,26 @@
                                         <div class="col-md-2">
                                             <div class="form-group">
                                                 <label class="control-label">Sexo</label>
-                                                <input type="text" id="sexo" name="sexo" v-model="registro.sexo"
-                                                    class="form-control" />
+                                                <input
+                                                    type="text"
+                                                    id="sexo"
+                                                    name="sexo"
+                                                    v-model="registro.sexo"
+                                                    class="form-control"
+                                                />
                                             </div>
                                         </div>
 
                                         <div class="col-md-4">
                                             <div class="form-group">
                                                 <label class="control-label">Fec. Nacimi</label>
-                                                <input type="date" id="fec_naci" name="fec_naci"
-                                                    v-model="registro.fec_naci" class="form-control" />
+                                                <input
+                                                    type="date"
+                                                    id="fec_naci"
+                                                    name="fec_naci"
+                                                    v-model="registro.fec_naci"
+                                                    class="form-control"
+                                                />
                                             </div>
                                         </div>
                                     </div>
@@ -327,8 +527,13 @@
                                         <div class="col-md-7">
                                             <div class="form-group">
                                                 <label class="control-label">Dirección</label>
-                                                <input type="text" id="direccion" name="direccion"
-                                                    v-model="registro.direccion" class="form-control" />
+                                                <input
+                                                    type="text"
+                                                    id="direccion"
+                                                    name="direccion"
+                                                    v-model="registro.direccion"
+                                                    class="form-control"
+                                                />
                                                 <!-- <span class="text-danger" v-if="errores.direccion">
                                                     {{ errores.direccion[0] }}
                                                 </span> -->
@@ -337,8 +542,13 @@
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <label class="control-label">Télefono</label>
-                                                <input type="number" id="tel" name="tel" v-model="registro.tel"
-                                                    class="form-control" />
+                                                <input
+                                                    type="number"
+                                                    id="tel"
+                                                    name="tel"
+                                                    v-model="registro.tel"
+                                                    class="form-control"
+                                                />
                                             </div>
                                         </div>
                                     </div>
@@ -346,8 +556,13 @@
                                         <div class="col-md-7">
                                             <div class="form-group">
                                                 <label class="control-label">E - Mail</label>
-                                                <input type="email" id="email" name="email" v-model="registro.email"
-                                                    class="form-control" />
+                                                <input
+                                                    type="email"
+                                                    id="email"
+                                                    name="email"
+                                                    v-model="registro.email"
+                                                    class="form-control"
+                                                />
                                                 <!-- <span class="text-danger" v-if="errores.email">
                                                     {{ errores.email[0] }}</span> -->
                                             </div>
@@ -355,19 +570,23 @@
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-
                                     <h5 class="card-title text-info">
                                         <i class="fa fa-user"></i> Datos de la Asignacion
                                     </h5>
-                                    <hr>
+                                    <hr />
                                     <div class="row">
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <label>Médico</label>
-                                                <Select2 :value="registro.medico_id" :options="medicoOptions"
-                                                    width="100%" :allow-clear="true" :label-fields="['name']"
+                                                <Select2
+                                                    :value="registro.medico_id"
+                                                    :options="medicoOptions"
+                                                    width="100%"
+                                                    :allow-clear="true"
+                                                    :label-fields="['name']"
                                                     :dropdown-parent-selector="'#medicos-parent'"
-                                                    @input="onMedicoSelect" />
+                                                    @input="onMedicoSelect"
+                                                />
 
                                                 <span class="text-danger" v-if="errores.medico_id">
                                                     {{ errores.medico_id[0] }}
@@ -377,10 +596,14 @@
                                         <div class="col-md-7">
                                             <div class="form-group">
                                                 <label>Producto</label>
-                                                <Select2 :value="productoSelecciondo" :options="productoOptions"
-                                                    width="100%" :allow-clear="true"
+                                                <Select2
+                                                    :value="productoSelecciondo"
+                                                    :options="productoOptions"
+                                                    width="100%"
+                                                    :allow-clear="true"
                                                     :dropdown-parent-selector="'#productos-parent'"
-                                                    @input="onProductoSelect" />
+                                                    @input="onProductoSelect"
+                                                />
                                             </div>
                                         </div>
                                     </div>
@@ -388,10 +611,13 @@
                                     <h5 class="card-title text-info">
                                         <i class="fa fa-product-hunt"></i> Productos
                                     </h5>
-                                    <hr>
+                                    <hr />
                                     <div class="row">
                                         <div class="col-md-12 table-responsive">
-                                            <table id="myTable" class="table table-bordered table-striped">
+                                            <table
+                                                id="myTable"
+                                                class="table table-bordered table-striped"
+                                            >
                                                 <thead>
                                                     <tr>
                                                         <th>Código</th>
@@ -401,15 +627,26 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <tr v-for="item in registro.productosAgenda" :key="item.id">
+                                                    <tr
+                                                        v-for="item in registro.productosAgenda"
+                                                        :key="item.id"
+                                                    >
                                                         <td>{{ item.CodLegal }}</td>
                                                         <td>{{ item.NomProducto }}</td>
                                                         <td align="right">{{ item.Cantidad }}</td>
-                                                        <td align="right">{{ formatoMoneda(item.ValProduc) }}</td>
+                                                        <td align="right">
+                                                            {{ formatoMoneda(item.ValProduc) }}
+                                                        </td>
                                                         <td class="text-nowrap">
-                                                            <button type="button"
+                                                            <button
+                                                                type="button"
                                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                                @click="quitarProductoAgenda(item.CodLegal)">
+                                                                @click="
+                                                                    quitarProductoAgenda(
+                                                                        item.CodLegal
+                                                                    )
+                                                                "
+                                                            >
                                                                 <i class="fa fa-trash"></i>
                                                             </button>
                                                         </td>
@@ -422,14 +659,29 @@
                             </div>
 
                             <div class="form-actions mt-3">
-                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
-                                    :disabled="isGuardandoEcografia">
-                                    <i class="fa" :class="isGuardandoEcografia ? 'fa-spinner fa-spin' : 'fa-check'"></i>
-                                    {{ isGuardandoEcografia ? 'Guardando...' : 'Guardar' }}
+                                <button
+                                    type="button"
+                                    class="btn btn-success m-r-5"
+                                    @click="guardarRegistro()"
+                                    :disabled="isGuardandoEcografia"
+                                >
+                                    <i
+                                        class="fa"
+                                        :class="
+                                            isGuardandoEcografia ? 'fa-spinner fa-spin' : 'fa-check'
+                                        "
+                                    ></i>
+                                    {{ isGuardandoEcografia ? "Guardando..." : "Guardar" }}
                                 </button>
 
-                                <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()"
-                                    :disabled="isGuardandoEcografia">Cancel</button>
+                                <button
+                                    type="button"
+                                    class="btn btn-inverse"
+                                    @click="btnCerralModalForm()"
+                                    :disabled="isGuardandoEcografia"
+                                >
+                                    Cancel
+                                </button>
                             </div>
                         </div>
                     </form>
@@ -441,30 +693,169 @@
         <!-- ============================================================== -->
     </div>
 
-    <div id="responsive-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
-        aria-hidden="true" style="display: none;">
+    <div
+        id="responsive-modal"
+        class="modal fade"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="myModalLabel"
+        aria-hidden="true"
+        style="display: none"
+    >
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title">Anular Agenda</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        ×
+                    </button>
                 </div>
                 <div class="modal-body">
                     <form>
                         <div class="form-group">
-                            <label for="message-text" class="control-label">Motivo de anulación:</label>
-                            <textarea class="form-control" id="message-text"
-                                v-model="registroAnular.motivo_anula"></textarea>
+                            <label for="message-text" class="control-label"
+                                >Motivo de anulación:</label
+                            >
+                            <textarea
+                                class="form-control"
+                                id="message-text"
+                                v-model="registroAnular.motivo_anula"
+                            ></textarea>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default waves-effect" data-dismiss="modal"
-                        id="btnCerrarModalAunular">Close</button>
-                    <button type="button" class="btn btn-danger waves-effect waves-light" @click="anularEcografia()"
-                        :disabled="isAnulandoEcografia">
-                        <i class="fa" :class="isAnulandoEcografia ? 'fa-spinner fa-spin' : 'fa-trash'"></i>
-                        {{ isAnulandoEcografia ? 'Anulando...' : 'Anular' }}
+                    <button
+                        type="button"
+                        class="btn btn-default waves-effect"
+                        data-dismiss="modal"
+                        id="btnCerrarModalAunular"
+                    >
+                        Close
+                    </button>
+                    <button
+                        type="button"
+                        class="btn btn-danger waves-effect waves-light"
+                        @click="anularEcografia()"
+                        :disabled="isAnulandoEcografia"
+                    >
+                        <i
+                            class="fa"
+                            :class="isAnulandoEcografia ? 'fa-spinner fa-spin' : 'fa-trash'"
+                        ></i>
+                        {{ isAnulandoEcografia ? "Anulando..." : "Anular" }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div
+        id="modal-consentimiento"
+        class="modal fade"
+        tabindex="-1"
+        role="dialog"
+        aria-hidden="true"
+        style="display: none"
+    >
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Capturar firma consentimiento</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        ×
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div v-if="consentimientoItem">
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                {{ consentimientoItem.NomProducto }} ·
+                                {{ consentimientoItem.NumDocumento }}
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label">¿Quién firma?</label>
+                            <select class="form-control" v-model="consentimientoFirmanteTipo">
+                                <option value="PACIENTE">Paciente</option>
+                                <option value="ACOMPANANTE">Acompañante</option>
+                            </select>
+                        </div>
+
+                        <div v-if="consentimientoFirmanteTipo === 'ACOMPANANTE'" class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="control-label">Cédula</label>
+                                    <input class="form-control" v-model="acompanante.cedula" />
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <label class="control-label">Nombres</label>
+                                    <input class="form-control" v-model="acompanante.nombres" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label">Email</label>
+                                    <input class="form-control" v-model="acompanante.email" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label">Teléfono</label>
+                                    <input class="form-control" v-model="acompanante.telefono" />
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label">Dirección</label>
+                                    <input class="form-control" v-model="acompanante.direccion" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-2">
+                            <button
+                                type="button"
+                                class="btn btn-success"
+                                @click="generarLinkFirma()"
+                                :disabled="isGenerandoLinkFirma"
+                            >
+                                <i
+                                    class="fa"
+                                    :class="isGenerandoLinkFirma ? 'fa-spinner fa-spin' : 'fa-link'"
+                                ></i>
+                                {{
+                                    isGenerandoLinkFirma
+                                        ? "Generando…"
+                                        : "Generar link de firma (10 min)"
+                                }}
+                            </button>
+                        </div>
+
+                        <div v-if="consentimientoUrl" class="alert alert-info mt-3">
+                            <div><strong>Link de firma</strong></div>
+                            <div class="small" style="word-break: break-all">
+                                {{ consentimientoUrl }}
+                            </div>
+                            <div class="mt-2">
+                                <button
+                                    class="btn btn-sm btn-primary"
+                                    type="button"
+                                    @click="abrirLinkFirma()"
+                                >
+                                    Abrir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="text-muted">Seleccione un registro.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">
+                        Cerrar
                     </button>
                 </div>
             </div>
@@ -472,13 +863,13 @@
     </div>
 </template>
 <script>
-import usePermissions from "@/helpers/permissions.js"
+import usePermissions from "@/helpers/permissions.js";
 import { formatoMoneda } from "@/helpers/funciones.js";
 import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts.js";
 import { handleAxiosErrorToast } from "@/helpers/alerts";
 
 export default {
-    props: ['usuarioactual', 'permisos'],
+    props: ["usuarioactual", "permisos"],
     setup(props) {
         const { can } = usePermissions(props.permisos);
 
@@ -498,21 +889,50 @@ export default {
     },
     data() {
         return {
-            tituloModal: 'Nueva adminsión',
-            busqueda: { sede_id: this.sedeActual, medico_id: this.medicoActual, bus_nom_num_docu: "6341296", bus_fehc_ini: "", bus_fecha_fin: "" },
+            tituloModal: "Nueva adminsión",
+            busqueda: {
+                sede_id: this.sedeActual,
+                medico_id: this.medicoActual,
+                bus_nom_num_docu: "6341296",
+                bus_fehc_ini: "",
+                bus_fecha_fin: "",
+            },
             registros: [],
             registro: {
-                paciente_id: "", tipo_documento_id: "", num_docu: "", nombres: "", seg_nom: "", pri_ape: "", seg_ape: "", sexo: "", fec_naci: "", direccion: "", tel: "",
-                sede_id: this.sedeActual, medico_id: this.medicoActual, quien_registro_id: this.usuarioactual.id, cel: "", atencion_id: null, productosAgenda: [], contrato: null, plan: null,
-                admin_salud: null, quien_ordeno: null
+                paciente_id: "",
+                tipo_documento_id: "",
+                num_docu: "",
+                nombres: "",
+                seg_nom: "",
+                pri_ape: "",
+                seg_ape: "",
+                sexo: "",
+                fec_naci: "",
+                direccion: "",
+                tel: "",
+                sede_id: this.sedeActual,
+                medico_id: this.medicoActual,
+                quien_registro_id: this.usuarioactual.id,
+                cel: "",
+                atencion_id: null,
+                productosAgenda: [],
+                contrato: null,
+                plan: null,
+                admin_salud: null,
+                quien_ordeno: null,
             },
-            registroAnular: { ecografia_id: "", atencion_id: "", quien_anulo_id: this.usuarioactual.id, motivo_anula: '' },
+            registroAnular: {
+                ecografia_id: "",
+                atencion_id: "",
+                quien_anulo_id: this.usuarioactual.id,
+                motivo_anula: "",
+            },
             errores: {},
             erroresBusqueda: {},
             medicos: [],
             tipoDocumentos: [],
-            sedeActual: sessionStorage.getItem('ST-sede'),
-            medicoActual: sessionStorage.getItem('ST-medico'),
+            sedeActual: sessionStorage.getItem("ST-sede"),
+            medicoActual: sessionStorage.getItem("ST-medico"),
             productosAgenda: [],
             productoSelecciondo: null,
             productos: [],
@@ -522,33 +942,68 @@ export default {
             sedeInterface: false,
             isConsultandoSahi: {},
             isEnviandoSahi: {},
-        }
+
+            // Consentimientos
+            consentimientoItem: null,
+            consentimientoFirmanteTipo: "PACIENTE",
+            acompanante: { cedula: "", nombres: "", email: "", direccion: "", telefono: "" },
+            isGenerandoLinkFirma: false,
+            consentimientoUrl: "",
+        };
     },
     computed: {
         medicoOptions() {
             // Opciones para el Select2 local de medicos.
-            return (this.medicos || []).map(p => ({ id: String(p.id), name: p.name }));
+            return (this.medicos || []).map((p) => ({ id: String(p.id), name: p.name }));
         },
         tipoDocumentoOptions() {
             // Opciones para el Select2 local de medicos.
-            return (this.tipoDocumentos || []).map(p => ({ id: String(p.id), codigo: p.codigo, tipo_documento: p.tipo_documento }));
+            return (this.tipoDocumentos || []).map((p) => ({
+                id: String(p.id),
+                codigo: p.codigo,
+                tipo_documento: p.tipo_documento,
+            }));
         },
         productoOptions() {
             // Opciones para el Select2 local de productos.
-            return (this.productos || []).map(p => ({ id: String(p.id), cod_cups: p.cod_cups, nom_produc: p.nom_produc }));
+            return (this.productos || []).map((p) => ({
+                id: String(p.id),
+                cod_cups: p.cod_cups,
+                nom_produc: p.nom_produc,
+            }));
         },
     },
     methods: {
+        buscarStudy() {
+            // Soporte para Enter en el input de búsqueda
+            return this.listarAtenciones();
+        },
+        btnLimpiar() {
+            // Limpia criterios de búsqueda (mantiene sede/medico del contexto)
+            this.busqueda.bus_nom_num_docu = "";
+            this.busqueda.bus_fehc_ini = "";
+            this.busqueda.bus_fecha_fin = "";
+            this.erroresBusqueda = {};
+
+            this.safeDestroyDataTable(this.$refs.dt || "#example23");
+            this.registros = [];
+        },
         setMapValue(mapName, key, value) {
             if (!key) return;
-            if (typeof this.$set === 'function') {
+            if (typeof this.$set === "function") {
                 this.$set(this[mapName], key, value);
             } else {
                 this[mapName][key] = value;
             }
         },
         safeDestroyDataTable(selector = "#example23") {
-            if (typeof window === 'undefined' || !window.$ || !window.$.fn || !window.$.fn.DataTable) return;
+            if (
+                typeof window === "undefined" ||
+                !window.$ ||
+                !window.$.fn ||
+                !window.$.fn.DataTable
+            )
+                return;
             const $t = window.$(selector);
             if (!$t.length) return;
             if (window.$.fn.DataTable.isDataTable($t)) {
@@ -556,7 +1011,13 @@ export default {
             }
         },
         safeInitDataTable(selector = "#example23") {
-            if (typeof window === 'undefined' || !window.$ || !window.$.fn || !window.$.fn.DataTable) return;
+            if (
+                typeof window === "undefined" ||
+                !window.$ ||
+                !window.$.fn ||
+                !window.$.fn.DataTable
+            )
+                return;
             this.$nextTick(() => {
                 const $t = window.$(selector);
                 if (!$t.length) return;
@@ -571,7 +1032,10 @@ export default {
             try {
                 this.isBuscandoAtenciones = true;
 
-                const res = await axios.post('/api/interface-sahi-ecografias/listar/productos/atencion', this.busqueda);
+                const res = await axios.post(
+                    "/api/interface-sahi-ecografias/listar/productos/atencion",
+                    this.busqueda
+                );
 
                 if (res.status == 200) {
                     this.safeDestroyDataTable(this.$refs.dt || "#example23");
@@ -587,21 +1051,72 @@ export default {
                 this.isBuscandoAtenciones = false;
             }
         },
+
+        abrirModalConsentimiento(item) {
+            this.consentimientoItem = item;
+            this.consentimientoFirmanteTipo = "PACIENTE";
+            this.acompanante = { cedula: "", nombres: "", email: "", direccion: "", telefono: "" };
+            this.consentimientoUrl = "";
+        },
+
+        async generarLinkFirma() {
+            if (!this.consentimientoItem?.ecografia_producto_id) return;
+            try {
+                this.isGenerandoLinkFirma = true;
+                const payload = {
+                    ecografia_producto_id: this.consentimientoItem.ecografia_producto_id,
+                    sede_id: this.busqueda?.sede_id || sessionStorage.getItem("ST-sede") || null,
+                    firmante_tipo: this.consentimientoFirmanteTipo,
+                };
+                if (this.consentimientoFirmanteTipo === "ACOMPANANTE") {
+                    payload.acompanante = { ...this.acompanante };
+                }
+                const res = await axios.post("/api/ecografias-consentimientos/token", payload);
+                this.consentimientoUrl = res?.data?.url || "";
+                // refrescar estado del consentimiento en el listado
+                await this.refrescarConsentimientoItem();
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible generar el link de firma.");
+            } finally {
+                this.isGenerandoLinkFirma = false;
+            }
+        },
+
+        abrirLinkFirma() {
+            if (!this.consentimientoUrl) return;
+            window.open(this.consentimientoUrl, "_blank", "noopener");
+        },
+
+        async refrescarConsentimientoItem() {
+            if (!this.consentimientoItem?.ecografia_producto_id) return;
+            try {
+                const res = await axios.get(
+                    `/api/ecografias-consentimientos/vigente/${this.consentimientoItem.ecografia_producto_id}`
+                );
+                const c = res?.data;
+                this.consentimientoItem.consentimiento_id = c?.id ?? null;
+                this.consentimientoItem.consentimiento_estado = c?.estado ?? null;
+                this.consentimientoItem.consentimiento_bloquea =
+                    this.consentimientoItem.tiene_plantilla_consentimiento &&
+                    c?.estado === "PENDIENTE_PACIENTE";
+            } catch (_) {
+                // best-effort
+            }
+        },
         async guardarRegistro() {
             try {
                 this.isGuardandoEcografia = true;
 
-                const ecografiaRes = await axios.post('/api/ecografias', this.registro);
+                const ecografiaRes = await axios.post("/api/ecografias", this.registro);
 
                 if (ecografiaRes.status === 201) {
-
                     // Mostrar notificación de éxito
                     $.toast({
-                        heading: '¡Éxito!',
-                        text: 'Agenda guardada correctamente.',
-                        position: 'top-right',
-                        loaderBg: '#ff6849',
-                        icon: 'success',
+                        heading: "¡Éxito!",
+                        text: "Agenda guardada correctamente.",
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "success",
                         hideAfter: 3500,
                         stack: 6,
                     });
@@ -610,7 +1125,6 @@ export default {
                     this.listarAtenciones();
                     this.limpiarFormulario();
                     this.btnCerralModalForm();
-
                 } else {
                     $.toast({
                         heading: "Upss!!!",
@@ -629,23 +1143,22 @@ export default {
                 if (error.response?.data?.errors) {
                     this.errores = error.response.data.errors;
                 }
-            }
-            finally {
+            } finally {
                 this.isGuardandoEcografia = false;
             }
         },
         registroParaAnular(data) {
             this.registroAnular.ecografia_id = data.id;
-            this.registroAnular.atencion_id = data.IdAtencion;
+            this.registroAnular.atencion_id = data?.atencion_id ?? data?.IdAtencion ?? "";
         },
         anularEcografia() {
             if (this.registroAnular.motivo_anula === "") {
                 $.toast({
-                    heading: '¡Atención!',
-                    text: 'Debe ingresar el motivo de anulación.',
-                    position: 'top-right',
-                    loaderBg: '#ff6849',
-                    icon: 'warning',
+                    heading: "¡Atención!",
+                    text: "Debe ingresar el motivo de anulación.",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "warning",
                     hideAfter: 3500,
                     stack: 6,
                 });
@@ -661,9 +1174,12 @@ export default {
                 if (this.isAnulandoEcografia) return;
                 this.isAnulandoEcografia = true;
                 try {
-                    const response = await axios.post(`/api/ecografia-anular/${this.registroAnular.ecografia_id}`, this.registroAnular);
+                    const response = await axios.post(
+                        `/api/ecografia-anular/${this.registroAnular.ecografia_id}`,
+                        this.registroAnular
+                    );
                     alertSuccess("Ok!", response?.data?.message || "Ecografía anulada.", "success");
-                    const cerrarModal = document.getElementById('btnCerrarModalAunular');
+                    const cerrarModal = document.getElementById("btnCerrarModalAunular");
                     if (cerrarModal) cerrarModal.click();
                     await this.listarAtenciones();
                 } catch (error) {
@@ -675,26 +1191,28 @@ export default {
             });
         },
         async establecerSede() {
-            this.registro.sede_id = sessionStorage.getItem('ST-sede');
-            this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
-            this.sedeActual = sessionStorage.getItem('ST-sede');
+            this.registro.sede_id = sessionStorage.getItem("ST-sede");
+            this.busqueda.sede_id = sessionStorage.getItem("ST-sede");
+            this.sedeActual = sessionStorage.getItem("ST-sede");
 
             try {
                 const res = await axios.get(`/api/config-sedes/${this.sedeActual}/buscarPorId`);
-                this.sedeInterface = (res?.data?.interface_software === 'SAHI');
+                this.sedeInterface = res?.data?.interface_software === "SAHI";
             } catch (error) {
                 this.sedeInterface = false;
             }
             this.registros = [];
         },
         async establecerMedico() {
-            this.registro.sede_id = sessionStorage.getItem('ST-sede');
-            this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
-            this.medicoActual = sessionStorage.getItem('ST-medico');
+            this.registro.sede_id = sessionStorage.getItem("ST-sede");
+            this.busqueda.sede_id = sessionStorage.getItem("ST-sede");
+            this.medicoActual = sessionStorage.getItem("ST-medico");
 
             try {
-                const res = await axios.get(`/api/config-sedes/${this.registro.sede_id}/buscarPorId`);
-                this.sedeInterface = (res?.data?.interface_software === 'SAHI');
+                const res = await axios.get(
+                    `/api/config-sedes/${this.registro.sede_id}/buscarPorId`
+                );
+                this.sedeInterface = res?.data?.interface_software === "SAHI";
             } catch (error) {
                 this.sedeInterface = false;
             }
@@ -706,8 +1224,10 @@ export default {
 
             const id = item.ecografia_producto_id;
             try {
-                this.setMapValue('isConsultandoSahi', id, true);
-                const res = await axios.get(`/api/interface-sahi-ecografias/estado/ecografia-producto/${id}`);
+                this.setMapValue("isConsultandoSahi", id, true);
+                const res = await axios.get(
+                    `/api/interface-sahi-ecografias/estado/ecografia-producto/${id}`
+                );
                 const d = res.data?.data || {};
 
                 item.estado_envio_sahi = d.estado_envio_sahi ?? item.estado_envio_sahi;
@@ -717,16 +1237,16 @@ export default {
                 item.sahi_esquema_150 = d.sahi_esquema_150 ?? item.sahi_esquema_150;
             } catch (error) {
                 $.toast({
-                    heading: 'SAHI',
-                    text: error.response?.data?.message || 'No se pudo consultar el estado SAHI.',
-                    position: 'top-right',
-                    loaderBg: '#ff6849',
-                    icon: 'warning',
+                    heading: "SAHI",
+                    text: error.response?.data?.message || "No se pudo consultar el estado SAHI.",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "warning",
                     hideAfter: 3500,
                     stack: 6,
                 });
             } finally {
-                this.setMapValue('isConsultandoSahi', id, false);
+                this.setMapValue("isConsultandoSahi", id, false);
             }
         },
         async reenviarASahi(item) {
@@ -735,44 +1255,49 @@ export default {
 
             const id = item.ecografia_producto_id;
             try {
-                this.setMapValue('isEnviandoSahi', id, true);
-                item.estado_envio_sahi = 'ENVIANDO';
+                this.setMapValue("isEnviandoSahi", id, true);
+                item.estado_envio_sahi = "ENVIANDO";
                 item.error_envio_sahi = null;
 
-                const res = await axios.post('/api/interface-sahi-ecografias/enviar/ecografia-producto', {
-                    ecografia_producto_id: id,
-                });
+                const res = await axios.post(
+                    "/api/interface-sahi-ecografias/enviar/ecografia-producto",
+                    {
+                        ecografia_producto_id: id,
+                    }
+                );
 
                 $.toast({
-                    heading: 'SAHI',
-                    text: res.data?.message || 'Envío a SAHI encolado.',
-                    position: 'top-right',
-                    loaderBg: '#ff6849',
-                    icon: 'info',
+                    heading: "SAHI",
+                    text: res.data?.message || "Envío a SAHI encolado.",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "info",
                     hideAfter: 3500,
                     stack: 6,
                 });
             } catch (error) {
-                item.estado_envio_sahi = 'ERROR';
-                item.error_envio_sahi = error.response?.data?.message || 'No se pudo reenviar a SAHI.';
+                item.estado_envio_sahi = "ERROR";
+                item.error_envio_sahi =
+                    error.response?.data?.message || "No se pudo reenviar a SAHI.";
                 $.toast({
-                    heading: 'SAHI',
+                    heading: "SAHI",
                     text: item.error_envio_sahi,
-                    position: 'top-right',
-                    loaderBg: '#ff6849',
-                    icon: 'warning',
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "warning",
                     hideAfter: 4500,
                     stack: 6,
                 });
             } finally {
-                this.setMapValue('isEnviandoSahi', id, false);
+                this.setMapValue("isEnviandoSahi", id, false);
             }
         },
         async listarMedicos() {
             try {
                 const pathname = String(window?.location?.pathname || "").toLowerCase();
-                const moduloId = sessionStorage.getItem("ST-modulo")
-                    || (pathname.includes("ecografia") ? "2" : "1");
+                const moduloId =
+                    sessionStorage.getItem("ST-modulo") ||
+                    (pathname.includes("ecografia") ? "2" : "1");
                 const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
                 this.medicos = res.data;
             } catch (error) {
@@ -802,8 +1327,8 @@ export default {
             let selectedId = null;
             if (Array.isArray(value) && value.length > 0) {
                 const v = value[0];
-                selectedId = String(typeof v === 'object' && v && v.id != null ? v.id : v);
-            } else if (value && typeof value === 'object' && value.id != null) {
+                selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
+            } else if (value && typeof value === "object" && value.id != null) {
                 selectedId = String(value.id);
             } else if (value != null) {
                 selectedId = String(value);
@@ -814,8 +1339,8 @@ export default {
             let selectedId = null;
             if (Array.isArray(value) && value.length > 0) {
                 const v = value[0];
-                selectedId = String(typeof v === 'object' && v && v.id != null ? v.id : v);
-            } else if (value && typeof value === 'object' && value.id != null) {
+                selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
+            } else if (value && typeof value === "object" && value.id != null) {
                 selectedId = String(value.id);
             } else if (value != null) {
                 selectedId = String(value);
@@ -826,23 +1351,28 @@ export default {
             let selectedId = null;
             if (Array.isArray(value) && value.length > 0) {
                 const v = value[0];
-                selectedId = String(typeof v === 'object' && v && v.id != null ? v.id : v);
-            } else if (value && typeof value === 'object' && value.id != null) {
+                selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
+            } else if (value && typeof value === "object" && value.id != null) {
                 selectedId = String(value.id);
             } else if (value != null) {
                 selectedId = String(value);
             }
             if (selectedId != null) {
-
-                const indexProductoEstudio = this.productos.findIndex((x) => x.cod_cups == value[0].cod_cups);
+                const indexProductoEstudio = this.productos.findIndex(
+                    (x) => x.cod_cups == value[0].cod_cups
+                );
 
                 if (indexProductoEstudio >= 0) {
                     const productoEstudioId = this.productos[indexProductoEstudio].id;
                     const productoEstudioCod_cups = this.productos[indexProductoEstudio].cod_cups;
-                    const productoEstudioNomProduc = this.productos[indexProductoEstudio].nom_produc;
-                    const productoEstudioValProduc = this.productos[indexProductoEstudio].val_produc;
+                    const productoEstudioNomProduc =
+                        this.productos[indexProductoEstudio].nom_produc;
+                    const productoEstudioValProduc =
+                        this.productos[indexProductoEstudio].val_produc;
 
-                    const yaExiste = this.registro.productosAgenda.some(p => p.id == productoEstudioId);
+                    const yaExiste = this.registro.productosAgenda.some(
+                        (p) => p.id == productoEstudioId
+                    );
                     if (!yaExiste) {
                         this.registro.productosAgenda.push({
                             IdProducto: productoEstudioId,
@@ -863,7 +1393,7 @@ export default {
             $(".right-sidebar").toggleClass("shw-rside");
         },
         mostrarRegistro(data = {}) {
-            this.tituloModal = `Admisionar al paciente: ${data.PrimerNombre} ${data.SegundoNombre}`
+            this.tituloModal = `Admisionar al paciente: ${data.PrimerNombre} ${data.SegundoNombre}`;
 
             this.registro.paciente_id = data.paciente_id;
             this.registro.num_docu = data.NumDocumento;
@@ -876,18 +1406,16 @@ export default {
             this.registro.direccion = data.DirCasa;
             this.registro.tel = data.TelCasa;
             this.registro.cel = data.TelCasa;
-            this.registro.atencion_id = data.IdAtencion;
-            this.registro.contrato = data.DesContrato
-            this.registro.plan = data.DesPlan
-            this.registro.admin_salud = data.NomTercero
-            this.registro.quien_ordeno = data.quien_ordeno
+            this.registro.atencion_id = data?.IdAtencion ?? data?.atencion_id ?? null;
+            this.registro.contrato = data.DesContrato;
+            this.registro.plan = data.DesPlan;
+            this.registro.admin_salud = data.NomTercero;
+            this.registro.quien_ordeno = data.quien_ordeno;
 
-            this.registro.productosAgenda = this.registros
+            this.registro.productosAgenda = this.registros;
             // Homologar tipo de documento
             const codigo = data.CodTipoDoc;
-            const tipoHomologado = this.tipoDocumentoOptions.find(
-                t => t.codigo === codigo
-            );
+            const tipoHomologado = this.tipoDocumentoOptions.find((t) => t.codigo === codigo);
 
             if (tipoHomologado) {
                 this.registro.tipo_documento_id = tipoHomologado.id;
@@ -896,36 +1424,38 @@ export default {
             this.btnCerralModalForm();
         },
         limpiarFormulario() {
-            this.tituloModal = '';
+            this.tituloModal = "";
 
-            this.registro.paciente_id = '';
-            this.registro.num_docu = '';
-            this.registro.nombres = '';
-            this.registro.seg_nom = '';
-            this.registro.pri_ape = '';
-            this.registro.seg_ape = '';
-            this.registro.sexo = '';
-            this.registro.fec_naci = '';
-            this.registro.direccion = '';
-            this.registro.tel = '';
-            this.registro.cel = '';
-            this.registro.atencion_id = '';
-            this.registro.contrato = '';
-            this.registro.plan = '';
-            this.registro.admin_salud = '';
-            this.registro.quien_ordeno = '';
+            this.registro.paciente_id = "";
+            this.registro.num_docu = "";
+            this.registro.nombres = "";
+            this.registro.seg_nom = "";
+            this.registro.pri_ape = "";
+            this.registro.seg_ape = "";
+            this.registro.sexo = "";
+            this.registro.fec_naci = "";
+            this.registro.direccion = "";
+            this.registro.tel = "";
+            this.registro.cel = "";
+            this.registro.atencion_id = "";
+            this.registro.contrato = "";
+            this.registro.plan = "";
+            this.registro.admin_salud = "";
+            this.registro.quien_ordeno = "";
 
-            this.registro.productosAgenda = []
+            this.registro.productosAgenda = [];
         },
         quitarProductoAgenda(codProduc) {
-            this.registro.productosAgenda = this.registro.productosAgenda.filter(x => x.CodLegal !== codProduc);
+            this.registro.productosAgenda = this.registro.productosAgenda.filter(
+                (x) => x.CodLegal !== codProduc
+            );
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);
             $(".right-sidebar").toggleClass("shw-rside");
         },
-    }
-}
+    },
+};
 </script>
 <style scoped>
 .right-sidebar {

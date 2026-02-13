@@ -13,7 +13,10 @@ class ConfigPlantillaTipoController extends Controller
         $this->middleware('auth');
 
         // Permisos por acción (Spatie)
-        $this->middleware('permission:config.plantillas.index')->only(['index', 'show', 'listarActivos']);
+        // `listarActivos` se usa desde el módulo de Ecografías (lectura) para cargar catálogos.
+        // Permitimos acceso también con `ecografias.leer` para roles médicos.
+        $this->middleware('permission:config.plantillas.index')->only(['index', 'show']);
+        $this->middleware('permission:config.plantillas.index|ecografias.leer')->only(['listarActivos']);
         $this->middleware('permission:config.plantillas.create')->only(['store']);
         $this->middleware('permission:config.plantillas.edit')->only(['update']);
         $this->middleware('permission:config.plantillas.delete')->only(['destroy']);
@@ -37,13 +40,13 @@ class ConfigPlantillaTipoController extends Controller
      * 2. Crea el registro.
      * 3. Retorna el tipo creado.
      *
-     * @param Request $request Datos del tipo de plantilla.
+     * @param  Request  $request  Datos del tipo de plantilla.
      * @return \Illuminate\Http\JsonResponse Datos del tipo creado.
      */
     public function store(Request $request)
     {
         $request->validate([
-            //'producto_id' => 'required|exists:config_productos,id',
+            // 'producto_id' => 'required|exists:config_productos,id',
             'nom_tipo' => 'required|string|max:70',
             'estado' => 'boolean',
         ], [
@@ -63,7 +66,7 @@ class ConfigPlantillaTipoController extends Controller
     /**
      * Muestra un tipo de plantilla específico.
      *
-     * @param int $id ID del tipo de plantilla.
+     * @param  int  $id  ID del tipo de plantilla.
      * @return \Illuminate\Http\JsonResponse Datos del tipo de plantilla.
      */
     public function show($id)
@@ -80,8 +83,8 @@ class ConfigPlantillaTipoController extends Controller
      * 3. Actualiza el registro.
      * 4. Retorna el tipo actualizado.
      *
-     * @param Request $request Datos a actualizar.
-     * @param int $id ID del tipo de plantilla.
+     * @param  Request  $request  Datos a actualizar.
+     * @param  int  $id  ID del tipo de plantilla.
      * @return \Illuminate\Http\JsonResponse Datos actualizados.
      */
     public function update(Request $request, $id)
@@ -106,7 +109,7 @@ class ConfigPlantillaTipoController extends Controller
     /**
      * Elimina un tipo de plantilla.
      *
-     * @param int $id ID del tipo de plantilla.
+     * @param  int  $id  ID del tipo de plantilla.
      * @return \Illuminate\Http\JsonResponse Respuesta vacía (204).
      */
     public function destroy($id)
@@ -125,6 +128,7 @@ class ConfigPlantillaTipoController extends Controller
     public function listarActivos()
     {
         $plantillas = ConfigPlantillaTipo::where('estado', true)->get();
+
         return response()->json($plantillas);
     }
 }

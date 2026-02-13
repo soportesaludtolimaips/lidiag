@@ -157,10 +157,10 @@ class DashBoardController extends Controller
 
         $modsQ = Estudio::query()->select('mods_in_study')->whereNotNull('mods_in_study');
         // Modalidades relevantes según sede/medico (pero no según modalidad seleccionada)
-        if (!empty($scope['sede_id'])) {
+        if (! empty($scope['sede_id'])) {
             $modsQ->where('sede_id', '=', (int) $scope['sede_id']);
         }
-        if (!empty($scope['medico_id'])) {
+        if (! empty($scope['medico_id'])) {
             $modsQ->where('medico_id', '=', (int) $scope['medico_id']);
         }
         $modalidades = $modsQ->distinct()->orderBy('mods_in_study', 'ASC')->pluck('mods_in_study');
@@ -188,15 +188,16 @@ class DashBoardController extends Controller
      */
     protected function applyScopeToEstudioQuery($q, array $scope)
     {
-        if (!empty($scope['medico_id'])) {
+        if (! empty($scope['medico_id'])) {
             $q->where('medico_id', '=', (int) $scope['medico_id']);
         }
-        if (!empty($scope['sede_id'])) {
+        if (! empty($scope['sede_id'])) {
             $q->where('sede_id', '=', (int) $scope['sede_id']);
         }
-        if (!empty($scope['modalidad'])) {
+        if (! empty($scope['modalidad'])) {
             $q->where('mods_in_study', '=', (string) $scope['modalidad']);
         }
+
         return $q;
     }
 
@@ -205,15 +206,16 @@ class DashBoardController extends Controller
      */
     protected function applyScopeToJoinedEstudioQuery($q, array $scope)
     {
-        if (!empty($scope['medico_id'])) {
+        if (! empty($scope['medico_id'])) {
             $q->where('e.medico_id', '=', (int) $scope['medico_id']);
         }
-        if (!empty($scope['sede_id'])) {
+        if (! empty($scope['sede_id'])) {
             $q->where('e.sede_id', '=', (int) $scope['sede_id']);
         }
-        if (!empty($scope['modalidad'])) {
+        if (! empty($scope['modalidad'])) {
             $q->where('e.mods_in_study', '=', (string) $scope['modalidad']);
         }
+
         return $q;
     }
 
@@ -246,6 +248,7 @@ class DashBoardController extends Controller
     {
         $q = Estudio::query();
         $this->applyScopeToEstudioQuery($q, $scope);
+
         return (int) $q->count();
     }
 
@@ -260,7 +263,7 @@ class DashBoardController extends Controller
 
         $q->whereHas('estudio', function ($estudioQ) use ($scope) {
             $this->applyScopeToEstudioQuery($estudioQ, $scope);
-            });
+        });
 
         return (int) $q->count();
     }
@@ -276,7 +279,7 @@ class DashBoardController extends Controller
 
         $q->whereHas('estudio', function ($estudioQ) use ($scope) {
             $this->applyScopeToEstudioQuery($estudioQ, $scope);
-            });
+        });
 
         return (int) $q->count();
     }
@@ -292,7 +295,7 @@ class DashBoardController extends Controller
 
         $q->whereHas('estudio', function ($estudioQ) use ($scope) {
             $this->applyScopeToEstudioQuery($estudioQ, $scope);
-            });
+        });
 
         return (int) $q->count();
     }
@@ -363,7 +366,8 @@ class DashBoardController extends Controller
     }
 
     /**
-     * SLA por prioridad (lectura y transcripción) basado en `config_prioridades.tiempo` (minutos).
+     * Cumplimiento de tiempos por prioridad (lectura y transcripción)
+     * basado en `config_prioridades.tiempo` (minutos).
      *
      * @return array<string,mixed>
      */
@@ -385,7 +389,7 @@ class DashBoardController extends Controller
                 continue;
             }
 
-            // Lectura SLA: created_at -> fechor_lectura
+            // Lectura: created_at -> fechor_lectura
             $qL = DB::table('estudios_productos as ep')
                 ->join('estudios as e', 'e.id', '=', 'ep.estudio_id')
                 ->where('ep.activo', '=', 1)
@@ -410,7 +414,7 @@ class DashBoardController extends Controller
                 'breachRate' => $totalL > 0 ? round($breachL / $totalL, 4) : 0,
             ];
 
-            // Transcripción SLA: fechor_lectura -> fechor_trascrito
+            // Transcripción: fechor_lectura -> fechor_trascrito
             $qT = DB::table('estudios_productos as ep')
                 ->join('estudios as e', 'e.id', '=', 'ep.estudio_id')
                 ->where('ep.activo', '=', 1)
@@ -481,7 +485,7 @@ class DashBoardController extends Controller
             ];
         }
 
-        // SLA: alerta si breachRate alto (solo si hay muestra suficiente)
+        // Alerta: incumplimiento alto (solo si hay muestra suficiente)
         foreach (($sla['lectura'] ?? []) as $row) {
             $total = (int) ($row['total'] ?? 0);
             $rate = (float) ($row['breachRate'] ?? 0);
@@ -490,8 +494,8 @@ class DashBoardController extends Controller
                 $pct = (int) round($rate * 100);
                 $alerts[] = [
                     'level' => 'warning',
-                    'title' => 'SLA Lectura',
-                    'message' => "SLA lectura alto incumplimiento en {$p}: {$pct}% (últimos {$sla['days']} días).",
+                    'title' => 'Tiempos de lectura',
+                    'message' => "Incumplimiento alto en lectura ({$p}): {$pct}% (últimos {$sla['days']} días).",
                 ];
             }
         }
@@ -503,8 +507,8 @@ class DashBoardController extends Controller
                 $pct = (int) round($rate * 100);
                 $alerts[] = [
                     'level' => 'info',
-                    'title' => 'SLA Transcripción',
-                    'message' => "SLA transcripción con incumplimiento en {$p}: {$pct}% (últimos {$sla['days']} días).",
+                    'title' => 'Tiempos de transcripción',
+                    'message' => "Incumplimiento en transcripción ({$p}): {$pct}% (últimos {$sla['days']} días).",
                 ];
             }
         }
@@ -597,7 +601,7 @@ class DashBoardController extends Controller
             ")
             ->get();
 
-        return $rows->map(fn($r) => ['bucket' => $r->bucket, 'total' => (int) $r->total])->all();
+        return $rows->map(fn ($r) => ['bucket' => $r->bucket, 'total' => (int) $r->total])->all();
     }
 
     /**
@@ -630,7 +634,7 @@ class DashBoardController extends Controller
             ")
             ->get();
 
-        return $rows->map(fn($r) => ['bucket' => $r->bucket, 'total' => (int) $r->total])->all();
+        return $rows->map(fn ($r) => ['bucket' => $r->bucket, 'total' => (int) $r->total])->all();
     }
 
     /**
@@ -755,24 +759,25 @@ class DashBoardController extends Controller
             ->whereNotNull('ep.fechor_trascrito')
             ->where('ep.fechor_trascrito', '>=', $prevStart)
             ->selectRaw(
-                'e.medico_id as medico_id, u.name as medico, ' .
-                'SUM(CASE WHEN ep.fechor_trascrito >= ? THEN 1 ELSE 0 END) as total, ' .
+                'e.medico_id as medico_id, u.name as medico, '.
+                'SUM(CASE WHEN ep.fechor_trascrito >= ? THEN 1 ELSE 0 END) as total, '.
                 'SUM(CASE WHEN ep.fechor_trascrito < ? THEN 1 ELSE 0 END) as prev_total',
                 [$curStart, $curStart]
             )
             ->groupBy('e.medico_id', 'u.name')
             ->orderByDesc('total')
-            ->limit(max(1, $limit))
-            ;
+            ->limit(max(1, $limit));
 
         $this->applyScopeToJoinedEstudioQuery($q, $scope);
 
         $rows = $q->get();
+
         return $rows->map(function ($r) {
             $total = (int) ($r->total ?? 0);
             $prev = (int) ($r->prev_total ?? 0);
             $delta = $total - $prev;
             $deltaPct = $prev > 0 ? round($delta / $prev, 4) : null;
+
             return [
                 'medico_id' => (int) $r->medico_id,
                 'medico' => (string) $r->medico,
@@ -802,23 +807,24 @@ class DashBoardController extends Controller
             ->whereNotNull('ep.fechor_trascrito')
             ->where('ep.fechor_trascrito', '>=', $prevStart)
             ->selectRaw(
-                'e.medico_id as medico_id, u.name as medico, ' .
-                'SUM(CASE WHEN ep.fechor_trascrito >= ? THEN 1 ELSE 0 END) as total, ' .
+                'e.medico_id as medico_id, u.name as medico, '.
+                'SUM(CASE WHEN ep.fechor_trascrito >= ? THEN 1 ELSE 0 END) as total, '.
                 'SUM(CASE WHEN ep.fechor_trascrito < ? THEN 1 ELSE 0 END) as prev_total',
                 [$curStart, $curStart]
             )
-            ->groupBy('e.medico_id', 'u.name')
-            ;
+            ->groupBy('e.medico_id', 'u.name');
 
         // aplica sede/modalidad si vienen en scope
         $this->applyScopeToJoinedEstudioQuery($q, $scope);
 
         $rows = $q->get();
+
         return $rows->map(function ($r) {
             $total = (int) ($r->total ?? 0);
             $prev = (int) ($r->prev_total ?? 0);
             $delta = $total - $prev;
             $deltaPct = $prev > 0 ? round($delta / $prev, 4) : null;
+
             return [
                 'medico_id' => (int) $r->medico_id,
                 'medico' => (string) $r->medico,
@@ -982,24 +988,25 @@ class DashBoardController extends Controller
             ->whereNotNull('ep.fechor_trascrito')
             ->where('ep.fechor_trascrito', '>=', $prevStart)
             ->selectRaw(
-                'e.sede_id as sede_id, s.nom_sede as sede, ' .
-                'SUM(CASE WHEN ep.fechor_trascrito >= ? THEN 1 ELSE 0 END) as total, ' .
+                'e.sede_id as sede_id, s.nom_sede as sede, '.
+                'SUM(CASE WHEN ep.fechor_trascrito >= ? THEN 1 ELSE 0 END) as total, '.
                 'SUM(CASE WHEN ep.fechor_trascrito < ? THEN 1 ELSE 0 END) as prev_total',
                 [$curStart, $curStart]
             )
             ->groupBy('e.sede_id', 's.nom_sede')
             ->orderByDesc('total')
-            ->limit(max(1, $limit))
-            ;
+            ->limit(max(1, $limit));
 
         $this->applyScopeToJoinedEstudioQuery($q, $scope);
 
         $rows = $q->get();
+
         return $rows->map(function ($r) {
             $total = (int) ($r->total ?? 0);
             $prev = (int) ($r->prev_total ?? 0);
             $delta = $total - $prev;
             $deltaPct = $prev > 0 ? round($delta / $prev, 4) : null;
+
             return [
                 'sede_id' => (int) $r->sede_id,
                 'sede' => (string) $r->sede,
@@ -1072,11 +1079,12 @@ class DashBoardController extends Controller
     {
         /** @var \App\Models\User|null $user */
         $user = auth()->user();
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
         $role = $user->roles()->first();
+
         return $role && $role->name === 'Administrador';
     }
 }

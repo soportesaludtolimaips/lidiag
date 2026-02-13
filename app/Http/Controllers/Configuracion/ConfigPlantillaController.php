@@ -13,7 +13,10 @@ class ConfigPlantillaController extends Controller
         $this->middleware('auth');
 
         // Permisos por acción (Spatie)
-        $this->middleware('permission:config.plantillas.index')->only(['index', 'show', 'listarActivos']);
+        // `listarActivos` se usa desde el módulo de Ecografías (lectura) para cargar plantillas vigentes.
+        // Permitimos acceso también con `ecografias.leer` para roles médicos.
+        $this->middleware('permission:config.plantillas.index')->only(['index', 'show']);
+        $this->middleware('permission:config.plantillas.index|ecografias.leer')->only(['listarActivos']);
         $this->middleware('permission:config.plantillas.create')->only(['store']);
         $this->middleware('permission:config.plantillas.edit')->only(['update']);
         $this->middleware('permission:config.plantillas.delete')->only(['destroy']);
@@ -27,6 +30,7 @@ class ConfigPlantillaController extends Controller
     public function index()
     {
         $plantillas = ConfigPlantilla::with(['plantillaTipo', 'medico'])->get();
+
         return response()->json($plantillas);
     }
 
@@ -38,7 +42,7 @@ class ConfigPlantillaController extends Controller
      * 2. Crea el registro en la base de datos.
      * 3. Retorna la plantilla creada.
      *
-     * @param Request $request Datos de la plantilla.
+     * @param  Request  $request  Datos de la plantilla.
      * @return \Illuminate\Http\JsonResponse Datos de la plantilla creada.
      */
     public function store(Request $request)
@@ -73,7 +77,7 @@ class ConfigPlantillaController extends Controller
     /**
      * Muestra una plantilla específica.
      *
-     * @param int $id ID de la plantilla.
+     * @param  int  $id  ID de la plantilla.
      * @return \Illuminate\Http\JsonResponse Datos de la plantilla.
      */
     public function show($id)
@@ -90,8 +94,8 @@ class ConfigPlantillaController extends Controller
      * 3. Actualiza el registro.
      * 4. Retorna la plantilla actualizada.
      *
-     * @param Request $request Datos a actualizar.
-     * @param int $id ID de la plantilla.
+     * @param  Request  $request  Datos a actualizar.
+     * @param  int  $id  ID de la plantilla.
      * @return \Illuminate\Http\JsonResponse Datos actualizados.
      */
     public function update(Request $request, $id)
@@ -122,7 +126,7 @@ class ConfigPlantillaController extends Controller
     /**
      * Elimina una plantilla.
      *
-     * @param int $id ID de la plantilla.
+     * @param  int  $id  ID de la plantilla.
      * @return \Illuminate\Http\JsonResponse Respuesta vacía (204).
      */
     public function destroy($id)
@@ -143,6 +147,7 @@ class ConfigPlantillaController extends Controller
         $plantillas = ConfigPlantilla::with(['plantillaTipo', 'medico'])
             ->where('estado', true)
             ->get();
+
         return response()->json($plantillas);
     }
 }

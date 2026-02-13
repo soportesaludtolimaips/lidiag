@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Ecografias;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\Ecografias\PlantillaEcografiaController;
 use App\Http\Requests\Ecografias\EcografiaRequest;
 use App\Models\Configuracion\ConfigAdminSalud;
 use App\Models\Configuracion\ConfigProducto;
@@ -12,13 +11,13 @@ use App\Models\Ecografias\EcografiaProducto;
 use App\Models\General\Paciente;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Auth;
 
 class EcografiaController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        // Estas rutas se exponen por /api (ver routes/api_ecografias.php)
+        $this->middleware('auth:sanctum');
         $this->middleware('permission:ecografias.index,web')->only(['index', 'show', 'filtarEcografias']);
         $this->middleware('permission:ecografias.admision,web')->only(['store', 'update', 'destroy']);
         $this->middleware('permission:ecografias.anular,web')->only(['anularEcografia']);
@@ -34,7 +33,7 @@ class EcografiaController extends Controller
      * 3. Aplica filtro por rango de fechas de creación si se proporcionan.
      * 4. Retorna la colección de ecografías en formato JSON.
      *
-     * @param Request $request Filtros de búsqueda (bus_nom_num_docu, bus_fehc_ini, bus_fehc_fin).
+     * @param  Request  $request  Filtros de búsqueda (bus_nom_num_docu, bus_fehc_ini, bus_fehc_fin).
      * @return \Illuminate\Http\JsonResponse Lista de ecografías.
      */
     public function index(Request $request)
@@ -43,14 +42,14 @@ class EcografiaController extends Controller
             ->when($request->bus_nom_num_docu, function ($query) use ($request) {
                 if ($request->bus_nom_num_docu && $request->bus_nom_num_docu != '') {
                     $query->whereHas('paciente', function ($q) use ($request) {
-                        $q->where('num_docu', 'like', '%' . $request->bus_nom_num_docu . '%')
-                            ->orWhere('nombres', 'like', '%' . $request->bus_nom_num_docu . '%')
-                            ->orWhere('pri_ape', 'like', '%' . $request->bus_nom_num_docu . '%');
+                        $q->where('num_docu', 'like', '%'.$request->bus_nom_num_docu.'%')
+                            ->orWhere('nombres', 'like', '%'.$request->bus_nom_num_docu.'%')
+                            ->orWhere('pri_ape', 'like', '%'.$request->bus_nom_num_docu.'%');
                     });
                 }
             })->when($request->bus_fehc_ini, function ($query) use ($request) {
                 if ($request->bus_fehc_ini && $request->bus_fehc_fin) {
-                    $query->whereBetween('created_at', [$request->bus_fehc_ini . ' 00:00:00', $request->bus_fehc_fin . ' 23:59:59']);
+                    $query->whereBetween('created_at', [$request->bus_fehc_ini.' 00:00:00', $request->bus_fehc_fin.' 23:59:59']);
                 }
             })
             ->get();
@@ -67,7 +66,7 @@ class EcografiaController extends Controller
      * 3. Aplica filtros de búsqueda por paciente (nombre/documento) y fechas.
      * 4. Retorna los resultados filtrados.
      *
-     * @param Request $request Criterios de búsqueda (bus_nom_num_docu, bus_fehc_ini, bus_fehc_fin).
+     * @param  Request  $request  Criterios de búsqueda (bus_nom_num_docu, bus_fehc_ini, bus_fehc_fin).
      * @return \Illuminate\Http\JsonResponse Lista detallada de ecografías con productos.
      */
     public function filtarEcografias(Request $request)
@@ -82,7 +81,8 @@ class EcografiaController extends Controller
             'ep.sahi_esquema_149',
             'ep.sahi_esquema_150',
             'ep.error_envio_sahi',
-            'p.nom_produc'
+            'p.nom_produc',
+            'p.val_produc as ValProduc'
         )->with(['paciente', 'usuarioRegistrador', 'adminSalud', 'medico'])
             ->join('ecografias_productos as ep', 'ep.ecografia_id', '=', 'ecografias.id')
             ->join('config_productos as p', 'p.id', '=', 'ep.producto_id');
@@ -103,7 +103,7 @@ class EcografiaController extends Controller
         if ($request->filled('bus_fehc_ini') && $request->filled('bus_fehc_fin')) {
             $ecografias->whereBetween('ecografias.created_at', [
                 "{$request->bus_fehc_ini} 00:00:00",
-                "{$request->bus_fehc_fin} 23:59:59"
+                "{$request->bus_fehc_fin} 23:59:59",
             ]);
         }
 
@@ -123,7 +123,7 @@ class EcografiaController extends Controller
      *    b. Crea la relación EcografiaProducto.
      * 6. Retorna respuesta exitosa con los datos creados.
      *
-     * @param Request $request Datos completos de la admisión (paciente, cita, productos).
+     * @param  Request  $request  Datos completos de la admisión (paciente, cita, productos).
      * @return \Illuminate\Http\JsonResponse Confirmación de creación o error.
      */
     public function store(Request $request)
@@ -176,7 +176,7 @@ class EcografiaController extends Controller
 
             // Verificar si la administradora de salud existe
             $adminSalud = ConfigAdminSalud::where('nom_admin_salud', $request->admin_salud)->first();
-            if (!$adminSalud) {
+            if (! $adminSalud) {
                 // Crear la administradora de salud si no existe
                 $adminSalud = ConfigAdminSalud::create([
                     'nom_admin_salud' => $request->admin_salud,
@@ -205,7 +205,7 @@ class EcografiaController extends Controller
                 // Verificar si el producto existe
                 $productoExistente = ConfigProducto::where('id', $producto['IdProducto'])->first();
 
-                if (!$productoExistente) {
+                if (! $productoExistente) {
                     // Crear el producto si no existe
                     $productoExistente = ConfigProducto::create([
                         'id' => $producto['IdProducto'],
@@ -223,7 +223,8 @@ class EcografiaController extends Controller
                     'producto_id' => $productoExistente->id,
                     'lectura' => $producto['lectura'] ?? null,
                     'opinion' => $producto['opinion'] ?? null,
-                    'estado' => true,
+                    // Debe coincidir con el filtro de pendientes por lectura (ep.estado = 'EN PROCESO')
+                    'estado' => 'EN PROCESO',
                 ]);
             }
 
@@ -242,8 +243,6 @@ class EcografiaController extends Controller
         }
     }
 
-
-
     /**
      * Muestra una ecografía específica.
      *
@@ -251,13 +250,13 @@ class EcografiaController extends Controller
      * 1. Busca la ecografía por ID incluyendo relaciones.
      * 2. Retorna el objeto ecografía o error 404.
      *
-     * @param int $id ID de la ecografía.
+     * @param  int  $id  ID de la ecografía.
      * @return \Illuminate\Http\JsonResponse Datos de la ecografía.
      */
     public function show($id)
     {
         $ecografia = Ecografia::with(['paciente', 'usuarioRegistrador', 'adminSalud'])->findOrFail($id);
-        if (!$ecografia) {
+        if (! $ecografia) {
             return response()->json(['message' => 'Ecografía no encontrada'], 404);
         }
 
@@ -272,18 +271,19 @@ class EcografiaController extends Controller
      * 2. Actualiza con los datos validados del request.
      * 3. Retorna confirmación.
      *
-     * @param EcografiaRequest $request Datos a actualizar.
-     * @param int $id ID de la ecografía.
+     * @param  EcografiaRequest  $request  Datos a actualizar.
+     * @param  int  $id  ID de la ecografía.
      * @return \Illuminate\Http\JsonResponse Datos actualizados.
      */
     public function update(EcografiaRequest $request, $id)
     {
         $ecografia = Ecografia::findOrFail($id);
-        if (!$ecografia) {
+        if (! $ecografia) {
             return response()->json(['message' => 'Ecografía no encontrada'], 404);
         }
 
         $ecografia->update($request->validated());
+
         return response()->json(['success' => true, 'data' => $ecografia]);
     }
 
@@ -295,17 +295,18 @@ class EcografiaController extends Controller
      * 2. Elimina el registro.
      * 3. Retorna mensaje de éxito.
      *
-     * @param int $id ID de la ecografía.
+     * @param  int  $id  ID de la ecografía.
      * @return \Illuminate\Http\JsonResponse Confirmación.
      */
     public function destroy($id)
     {
         $ecografia = Ecografia::findOrFail($id);
-        if (!$ecografia) {
+        if (! $ecografia) {
             return response()->json(['message' => 'Ecografía no encontrada'], 404);
         }
 
         $ecografia->delete();
+
         return response()->json(['success' => true, 'message' => 'Ecografía eliminada correctamente']);
     }
 
@@ -318,13 +319,13 @@ class EcografiaController extends Controller
      * 3. Registra motivo, usuario y fecha de anulación.
      * 4. Guarda los cambios.
      *
-     * @param int $id ID de la ecografía.
+     * @param  int  $id  ID de la ecografía.
      * @return \Illuminate\Http\JsonResponse Confirmación.
      */
     public function anularEcografia($id)
     {
         $ecografia = Ecografia::findOrFail($id);
-        if (!$ecografia) {
+        if (! $ecografia) {
             return response()->json(['message' => 'Ecografía no encontrada'], 404);
         }
 
@@ -344,13 +345,14 @@ class EcografiaController extends Controller
      * 1. Invoca al PlantillaEcografiaController para procesar la plantilla Word y generar el PDF.
      * 2. Retorna la respuesta del controlador de plantillas (URL del PDF).
      *
-     * @param Request $request Datos para el reporte.
-     * @param Ecografia $ecografia Instancia de la ecografía (no usada directamente en el método, pero inyectada).
+     * @param  Request  $request  Datos para el reporte.
+     * @param  Ecografia  $ecografia  Instancia de la ecografía (no usada directamente en el método, pero inyectada).
      * @return mixed Respuesta de PlantillaEcografiaController::editWord.
      */
     public function generarReporte(Request $request, Ecografia $ecografia)
     {
-        $genearPlantilla = (new PlantillaEcografiaController())->editWord($request);
+        $genearPlantilla = (new PlantillaEcografiaController)->editWord($request);
+
         return $genearPlantilla;
     }
 }

@@ -3,22 +3,25 @@
 namespace App\Http\Controllers\Interface;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Dcm4chee\StudyController as Dcm4cheeStudyController;
+use App\Models\Dcm4chee\Study;
+use App\Models\Estudio\Estudio;
+use App\Models\Estudio\EstudioProducto;
+use App\Models\General\Paciente;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
-use App\Http\Controllers\Dcm4chee\StudyController as Dcm4cheeStudyController;
-use App\Models\Dcm4chee\Study;
-use App\Models\User;
-use App\Models\General\Paciente;
-use App\Models\Estudio\Estudio;
-use App\Models\Estudio\EstudioProducto;
 
 class TeleRadiologiaController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
-        $this->middleware('permission:estudio.asignar|estudio.transcribir,web');
+        // Este controlador se usa principalmente desde rutas /api (Sanctum SPA o token).
+        // El webhook `recibirLectura` está protegido por HMAC en ruta (sin auth).
+        $this->middleware('auth:sanctum')->except('recibirLectura');
+        $this->middleware('permission:tele.ragiologia.index|tele.ragiologia.enviar|tele.ragiologia.transcribir|estudio.asignar|estudio.transcribir,web')
+            ->except('recibirLectura');
     }
 
     /**
@@ -29,7 +32,7 @@ class TeleRadiologiaController extends Controller
     public function listarEstudios(Request $request)
     {
         // Reutilizar el controlador de DCM4CHEE para evitar duplicar lógica
-        return app(Dcm4cheeStudyController::class)->listarEstudios($request, new Study());
+        return app(Dcm4cheeStudyController::class)->listarEstudios($request, new Study);
     }
 
     /**
@@ -47,12 +50,11 @@ class TeleRadiologiaController extends Controller
     /**
      * Envía una orden a la API externa de Teleradiología.
      *
-     * @param Request $request Datos de la orden.
+     * @param  Request  $request  Datos de la orden.
      * @return \Illuminate\Http\JsonResponse Respuesta de la API externa o error.
      */
     public function enviarOrdenTeleRadiologia(Request $request)
     {
-        return $request;
         try {
             $validator = Validator::make($request->all(), [
                 'orden' => 'required|array',
@@ -64,7 +66,7 @@ class TeleRadiologiaController extends Controller
             $orden = $request->input('orden');
 
             // Validar que la orden exista
-            if (!$orden) {
+            if (! $orden) {
                 return response()->json(['message' => 'No se recibieron datos de la orden.'], 400);
             }
 
@@ -96,172 +98,138 @@ class TeleRadiologiaController extends Controller
             } else {
                 return response()->json([
                     'message' => 'Error en la API externa',
-                    'details' => $response->body()
+                    'details' => $response->body(),
                 ], $response->status());
             }
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error interno en el servidor proxy',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
 
     /**
-     * Recibe y procesa lecturas de estudios realizadas por tele radiología.
+     * Recibe y procesa lecturas de TLIMAGEN (TLIMAGEN -> SaludTolima).
      *
-     * @param Request $request Datos de la lectura.
+     * Payload Lectura: study_pk, study_iuid, fec_estudio, accession_no, study_desc, mods_in_study,
+     * sexo, paciente{num_docu,nom_pacien,fec_naci}, priori{id,nom_priori}, cod_cups, nom_produc,
+     * fechor_lectura, lectura, medico{reg_medico,num_docu,name,firma_medico}, tipo_resultado.
+     *
+     * @param  Request  $request  Datos de la lectura.
      * @return \Illuminate\Http\JsonResponse Respuesta de confirmación.
      */
     public function recibirLectura(Request $request)
     {
+        $rules = [
+            'study_pk' => 'required|integer',
+            'study_iuid' => 'required|string',
+            'fec_estudio' => 'required|date',
+            'accession_no' => 'required|string',
+            'study_desc' => 'required|string',
+            'mods_in_study' => 'required|string',
+            'sexo' => 'required|string|min:1',
+            'paciente' => 'required|array',
+            'paciente.num_docu' => 'required|string',
+            'paciente.nom_pacien' => 'required|string',
+            'paciente.fec_naci' => 'nullable|date',
+            'priori' => 'required|array',
+            'priori.id' => 'required|integer',
+            'priori.nom_priori' => 'required|string',
+            'cod_cups' => 'required|string',
+            'nom_produc' => 'required|string',
+            'fechor_lectura' => 'required|date',
+            'lectura' => 'required|string',
+            'medico' => 'required|array',
+            'medico.reg_medico' => 'nullable|string',
+            'medico.num_docu' => 'required|string',
+            'medico.name' => 'required|string',
+            'medico.firma_medico' => 'nullable|string',
+            'tipo_resultado' => 'nullable|integer|in:1,2,3', // 1 Norma, 2 Patologico, 3 Critico
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->json(['message' => 'Datos inválidos.', 'errors' => $validator->errors()], 400);
+        }
+
         try {
+            $d = $request->all();
 
-            $validator = Validator::make($request->all(), [
-                'study_pk' => 'required|integer',
-                'study_iuid' => 'required|string',
-                'fec_estudio' => 'required|date',
-                'accession_no' => 'required|string',
-                'study_desc' => 'required|string',
-                'mods_in_study' => 'required|string',
-                'sexo' => 'required|string|in:M,F',
-                'paciente' => 'required|array',
-                'paciente.num_docu' => 'required|string',
-                'paciente.nom_pacien' => 'required|string',
-                'paciente.fec_naci' => 'nullable|date',
-                'priori' => 'required|array',
-                'priori.id' => 'required|integer',
-                'priori.nom_priori' => 'required|string',
-                'cod_cups' => 'required|string',
-                'nom_produc' => 'required|string',
-                'fechor_lectura' => 'required|date',
-                'lectura' => 'required|string',
-                'medico' => 'required|array',
-                'medico.reg_medico' => 'nullable|string',
-                'medico.num_docu' => 'required|string',
-                'medico.name' => 'required|string',
-                'medico.firma_medico' => 'nullable|string',
+            $medico = User::firstOrCreate(
+                ['num_docu' => $d['medico']['num_docu']],
+                [
+                    'reg_med' => $d['medico']['reg_medico'] ?? null,
+                    'name' => 'TL '.$d['medico']['name'],
+                    'email' => $d['medico']['num_docu'].'@teleradiologia.com',
+                    'password' => bcrypt('password'),
+                ]
+            );
+
+            $sexo = strtoupper(substr((string) ($d['sexo'] ?? 'M'), 0, 1));
+            if ($sexo !== 'M' && $sexo !== 'F') {
+                $sexo = 'M';
+            }
+
+            $paciente = Paciente::firstOrCreate(
+                ['num_docu' => $d['paciente']['num_docu']],
+                [
+                    'tipo_documento_id' => 1,
+                    'nombres' => $d['paciente']['nom_pacien'],
+                    'sexo' => $sexo,
+                    'fec_naci' => $d['paciente']['fec_naci'] ?? null,
+                ]
+            );
+
+            $estudio = Estudio::where('study_pk', $d['study_pk'])
+                ->where('study_iuid', $d['study_iuid'])
+                ->first();
+
+            if (! $estudio) {
+                return response()->json([
+                    'message' => 'Estudio no encontrado.',
+                    'error' => 'No se encontró con study_pk: '.$d['study_pk'].' y study_iuid: '.($d['study_iuid'] ?? ''),
+                ], 404);
+            }
+
+            if (! $estudio->medico_id) {
+                $estudio->update(['medico_id' => $medico->id]);
+            }
+
+            $estudioProducto = EstudioProducto::where('estudio_id', $estudio->id)
+                ->where('cod_cups', $d['cod_cups'])
+                ->first();
+
+            if (! $estudioProducto) {
+                return response()->json([
+                    'message' => 'Producto del estudio no encontrado.',
+                    'error' => 'No se encontró producto con cod_cups: '.$d['cod_cups'],
+                ], 404);
+            }
+
+            $estudioProducto->update([
+                'fechor_lectura' => $d['fechor_lectura'],
+                'lectura' => $d['lectura'],
+                'transcriptor_id' => $medico->id,
             ]);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'message' => 'Datos inválidos.',
-                    'errors' => $validator->errors()
-                ], 400);
-            }
-
-            $data = $request->all();
-
-            // 1. Verificar/Crear médico
-            try {
-                $medico = User::where('num_docu', $data['medico']['num_docu'])->first();
-                if (!$medico) {
-                    $medico = User::create([
-                        'num_docu' => $data['medico']['num_docu'],
-                        'reg_med' => $data['medico']['reg_medico'] ?? null,
-                        'name' => 'TL ' . $data['medico']['name'],
-                        'email' => $data['medico']['num_docu'] . '@teleradiologia.com', // Email temporal
-                        'password' => bcrypt('password'), // Contraseña temporal
-                    ]);
-                }
-            } catch (\Exception $e) {
-                return response()->json([
-                    'message' => 'Error al procesar el médico.',
-                    'error' => 'No se pudo encontrar o crear el médico: ' . $e->getMessage()
-                ], 500);
-            }
-
-            // 2. Verificar/Crear paciente
-            try {
-                $paciente = Paciente::where('num_docu', $data['paciente']['num_docu'])->first();
-                if (!$paciente) {
-                    $paciente = Paciente::create([
-                        'tipo_documento_id' => 1, // Asumir CC
-                        'num_docu' => $data['paciente']['num_docu'],
-                        'nombres' => $data['paciente']['nom_pacien'],
-                        'sexo' => $data['sexo'],
-                        'fec_naci' => $data['paciente']['fec_naci'],
-                    ]);
-                }
-            } catch (\Exception $e) {
-                return response()->json([
-                    'message' => 'Error al procesar el paciente.',
-                    'error' => 'No se pudo encontrar o crear el paciente: ' . $e->getMessage()
-                ], 500);
-            }
-
-            // 3. Encontrar el estudio
-            try {
-                $estudio = Estudio::where('study_pk', $data['study_pk'])
-                    ->orWhere('accession_no', $data['accession_no'])
-                    ->first();
-
-                if (!$estudio) {
-                    return response()->json([
-                        'message' => 'Estudio no encontrado.',
-                        'error' => 'No se encontró un estudio con study_pk: ' . $data['study_pk'] . ' o accession_no: ' . $data['accession_no']
-                    ], 404);
-                }
-            } catch (\Exception $e) {
-                return response()->json([
-                    'message' => 'Error al buscar el estudio.',
-                    'error' => $e->getMessage()
-                ], 500);
-            }
-
-            // Actualizar estudio con médico si no lo tiene
-            try {
-                if (!$estudio->medico_id) {
-                    $estudio->update(['medico_id' => $medico->id]);
-                }
-            } catch (\Exception $e) {
-                return response()->json([
-                    'message' => 'Error al actualizar el estudio.',
-                    'error' => 'No se pudo asignar el médico al estudio: ' . $e->getMessage()
-                ], 500);
-            }
-
-            // 4. Actualizar estudios_productos
-            try {
-                $estudioProducto = EstudioProducto::where('estudio_id', $estudio->id)
-                    ->where('cod_cups', $data['cod_cups'])
-                    ->first();
-
-                if (!$estudioProducto) {
-                    return response()->json([
-                        'message' => 'Producto del estudio no encontrado.',
-                        'error' => 'No se encontró un producto con cod_cups: ' . $data['cod_cups'] . ' para el estudio ID: ' . $estudio->id
-                    ], 404);
-                }
-
-                $estudioProducto->update([
-                    'fechor_lectura' => $data['fechor_lectura'],
-                    'lectura' => $data['lectura'],
-                    //'transcriptor_id' => $medico->id, // Asumir que el médico es el transcriptor
-                ]);
-            } catch (\Exception $e) {
-                return response()->json([
-                    'message' => 'Error al actualizar el producto del estudio.',
-                    'error' => $e->getMessage()
-                ], 500);
-            }
 
             return response()->json([
                 'message' => 'Lectura recibida y procesada correctamente.',
                 'data' => [
-                    'study_pk' => $data['study_pk'],
-                    'accession_no' => $data['accession_no'],
+                    'study_pk' => $d['study_pk'],
+                    'accession_no' => $d['accession_no'],
+                    'tipo_resultado' => (int) ($d['tipo_resultado'] ?? 1),
                     'medico_id' => $medico->id,
                     'paciente_id' => $paciente->id,
                     'estudio_id' => $estudio->id,
                     'estudio_producto_id' => $estudioProducto->id,
                     'procesado_en' => now()->toISOString(),
-                ]
+                ],
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error interno al procesar la lectura.',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

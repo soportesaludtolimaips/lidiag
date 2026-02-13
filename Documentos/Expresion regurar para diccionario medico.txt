@@ -1,0 +1,32 @@
+
+  [
+    "\\beco\\s*doppler\\b",
+    "giu",
+    "eco-Doppler"
+  ]
+
+
+1) "\\beco\\s*doppler\\b" (patrón)
+Es una expresión regular escrita como string JSON, por eso ves muchos \\.
+\\b significa límite de palabra (word boundary).
+Evita que coincida dentro de una palabra más grande.
+eco coincide literalmente con “eco”
+\\s* significa cero o más espacios (también tab).
+Esto permite que detecte:
+eco doppler
+ecodoppler
+eco doppler
+doppler coincide literalmente con “doppler”
+\\b otro límite de palabra
+En texto normal (sin escapar), el regex sería:
+\beco\s*doppler\b
+2) "giu" (flags)
+g = global: reemplaza todas las coincidencias, no solo la primera.
+i = insensible a mayúsculas/minúsculas: “Eco Doppler”, “ECO DOPPLER”, etc.
+u = unicode: maneja correctamente caracteres Unicode (tildes, ñ, etc.) en general.
+3) "eco-Doppler" (reemplazo)
+Si el dictado produce “eco doppler” / “ecodoppler”, lo normaliza a:
+eco-Doppler
+Ejemplos rápidos
+"eco doppler" → "eco-Doppler""ECOdoppler" → "eco-Doppler""eco doppler" → "eco-Doppler"
+Si quieres que también convierta “Ecodoppler” a “Eco-Doppler” (con E mayúscula), solo cambia el reemplazo a "Eco-Doppler".

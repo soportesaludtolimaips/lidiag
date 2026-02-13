@@ -10,12 +10,14 @@ class Kernel extends ConsoleKernel
     /**
      * Define the application's command schedule.
      *
-     * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
      * @return void
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        // Reconciliación de envíos SAHI atascados (requiere cron en servidor)
+        $schedule->command('ecografias:sahi-reconcile --minutes=10 --limit=200')
+            ->everyTenMinutes()
+            ->withoutOverlapping();
     }
 
     /**

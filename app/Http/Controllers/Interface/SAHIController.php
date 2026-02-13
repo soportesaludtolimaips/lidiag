@@ -12,20 +12,20 @@ use App\Models\Interface\Sahi\FacMovimientoDet;
 use App\Models\Interface\Sahi\HceConsulta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Symfony\Contracts\Service\Attribute\Required;
 
 class SAHIController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
-        $this->middleware('permission:estudio.asignar')->only(['listarAtenciones', 'listarProductosDiagnosticos']);
+        // Estas rutas se exponen por /api (ver routes/api_interfaces.php)
+        $this->middleware('auth:sanctum');
+        $this->middleware('permission:estudio.asignar,web')->only(['listarAtenciones', 'listarProductosDiagnosticos']);
     }
 
     /**
      * Lista las atenciones (ingresos) de un paciente.
      *
-     * @param Request $request Número de documento del paciente (`numDocu`).
+     * @param  Request  $request  Número de documento del paciente (`numDocu`).
      * @return \Illuminate\Http\JsonResponse Lista de atenciones.
      */
     public function listarAtenciones(Request $request)
@@ -43,7 +43,7 @@ class SAHIController extends Controller
     /**
      * Lista productos facturados y diagnósticos asociados a una atención.
      *
-     * @param Request $request ID de la atención (`idAtencion`).
+     * @param  Request  $request  ID de la atención (`idAtencion`).
      * @return \Illuminate\Http\JsonResponse Objeto con listas de `productos` y `diagnosticos`.
      */
     public function listarProductosDiagnosticos(Request $request)
@@ -70,7 +70,7 @@ class SAHIController extends Controller
     /**
      * Busca los datos de la EPS, Plan y Contrato de una atención.
      *
-     * @param int $idAtencion ID de la atención.
+     * @param  int  $idAtencion  ID de la atención.
      * @return \Illuminate\Support\Collection Datos de facturación y contrato.
      */
     public function buscarEpsPlanContrato($idAtencion)
@@ -105,7 +105,7 @@ class SAHIController extends Controller
      * cargados a la cuenta del paciente. Luego cruza esta información con la base de datos local
      * de Lidiag para determinar el estado de la ecografía si existe.
      *
-     * @param Request $request ID de la atención (`bus_nom_num_docu`).
+     * @param  Request  $request  ID de la atención (`bus_nom_num_docu`).
      * @return \Illuminate\Http\JsonResponse Lista combinada de productos con estado.
      */
     public function listarProductosAtencion(Request $request)
@@ -140,7 +140,7 @@ class SAHIController extends Controller
                         INNER JOIN hceProceDetalle ON QuinOrdenoOrden.IdOrdenPro = hceProceDetalle.IdOrdenPro
                         INNER JOIN proProducto PoducOrden ON hceProceDetalle.IdProducto = PoducOrden.IdProducto
                     WHERE QuinOrdenoOrden.IdAtencion = admAtencion.IdAtencion AND PoducOrden.CodProducto = proProducto.CodProducto
-                ) as quien_ordeno")
+                ) as quien_ordeno"),
         ])
             ->join('facFactura', 'facFacturaDet.IdFactura', '=', 'facFactura.IdFactura')
             ->join('proProducto', 'facFacturaDet.IdProducto', '=', 'proProducto.IdProducto')
@@ -180,7 +180,7 @@ class SAHIController extends Controller
                         INNER JOIN hceProceDetalle ON QuinOrdenoOrden.IdOrdenPro = hceProceDetalle.IdOrdenPro
                         INNER JOIN proProducto PoducOrden ON hceProceDetalle.IdProducto = PoducOrden.IdProducto
                     WHERE QuinOrdenoOrden.IdAtencion = admAtencion.IdAtencion AND PoducOrden.CodProducto = proProducto.CodProducto
-                ) as quien_ordeno")
+                ) as quien_ordeno"),
         ])
             ->join('facMovimiento', 'facMovimientoDet.IdMovimiento', '=', 'facMovimiento.IdMovimiento')
             ->join('proProducto', 'facMovimientoDet.IdProducto', '=', 'proProducto.IdProducto')
@@ -217,7 +217,7 @@ class SAHIController extends Controller
     /**
      * Obtiene el estado de las ecografías en Lidiag para una atención.
      *
-     * @param int $atencionId ID de la atención.
+     * @param  int  $atencionId  ID de la atención.
      * @return \Illuminate\Support\Collection Colección de estados.
      */
     private function obtenerDatosLidiag($atencionId)

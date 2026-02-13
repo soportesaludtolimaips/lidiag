@@ -1,0 +1,22 @@
+---
+description: Registrar y retomar pendientes del proyecto (ej. diccionario médico)
+alwaysApply: true
+---
+
+# Pendientes
+
+Cuando el usuario indique que algo queda "pendiente" o pida “crear una regla llamada pendientes”:
+
+- Mantener una **lista corta** de pendientes (máx. 5) con:
+  - **Qué falta**
+  - **Dónde** (archivo/ruta)
+  - **Cómo retomarlo** (pasos concretos)
+
+## Pendiente actual (registrado)
+
+- **Diccionario de términos médicos**: queda pendiente su curación/ajuste fino con ejemplos reales de dictado.
+  - **Términos**: `resources/js/data/terminos_medicos.txt` (1 término por línea, permite comentarios con `#`).
+  - **Reemplazos/normalizaciones**: `resources/js/data/medical_replacements.json` (reglas `[regexString, flags, replacement]`).
+  - **Integración**: `resources/js/components/modulos/estudios/leerEstudioComponent.vue` importa ambos y aplica correcciones en dictado.
+  - **Para retomarlo**: recopilar 5–10 ejemplos “lo que dictó” → “lo correcto” y convertirlos en reglas nuevas en `medical_replacements.json`.
+

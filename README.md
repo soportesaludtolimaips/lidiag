@@ -2,13 +2,36 @@
 
 LIDiag es una plataforma integral diseñada para la gestión, procesamiento y lectura de imágenes diagnósticas. Facilita el flujo de trabajo desde la asignación de citas hasta la entrega de resultados a la historia clínica, integrándose con sistemas PACS y HIS (Hospital Information System).
 
+## Guía rápida (TL;DR)
+
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan db:seed
+php artisan storage:link
+npm install
+npm run dev
+```
+
+En Windows (PowerShell) puedes reemplazar el `cp` por:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+En Windows + Laragon, el proyecto está pensado para el vhost **`lidiag.test`** con HTTPS en Vite (ver `vite.config.js`).
+
 ## Stack Tecnológico (resumen)
 
 -   **Backend**: Laravel 10 (PHP >= 8.0.2), MySQL
 -   **Frontend**: Vue 3 + Vite (Laravel Vite Plugin), Bootstrap 5
 -   **Seguridad**: `spatie/laravel-permission` (roles/permisos)
 -   **Integraciones**: HIS/SAHI (SQL Server), PACS Dcm4chee, Twilio (WhatsApp), generación de PDF/Excel (DomPDF / Maatwebsite Excel)
+-   **Autenticación API**: `auth:sanctum` (Sanctum stateful para SPA)
 -   **Multimedia**: FFmpeg (conversión/compresión de audios a MP3)
+-   **Conversión Word→PDF** (según flujos): LibreOffice + `unoconv`
 
 ## Arquitectura y Flujo de Datos
 
@@ -57,6 +80,7 @@ La aplicación está compuesta por los siguientes módulos especializados:
 
 -   Módulo dedicado exclusivamente al flujo de trabajo de ecografías.
 -   Permite el registro, lectura y reporte de hallazgos ecográficos con plantillas específicas.
+-   Incluye flujo de **consentimientos informados** (plantillas, generación de PDF/ZIP y firma por token).
 
 ### 5. Interface (Integración SAHI)
 
@@ -109,6 +133,9 @@ Estos comandos ayudan a evitar “drift” entre **permisos usados en código** 
 
 ```bash
 # Auditoría: compara permisos usados vs permisos en BD (guard web)
+php artisan permissions:audit
+
+# Auditoría: compara permisos usados vs permisos en BD (guard web) y lista permisos en BD no usados en código
 php artisan permissions:audit --show-unused
 
 # Auditoría estricta (útil en CI): falla si hay permisos usados en código que no existen en BD
@@ -119,6 +146,10 @@ php artisan permissions:audit --find=config.plantillas.index
 
 # Reset “safe” del cache de Spatie (en CACHE_DRIVER=file puede no existir el key y eso es normal)
 php artisan permissions:cache-reset
+
+# Diagnóstico: validar permisos/roles de un usuario (Spatie)
+php artisan permissions:user-check --search=carlos
+php artisan permissions:user-check 5 --perm=estudio.leerestudio --perm=estudio.leerEstudio
 ```
 
 > Nota: `php artisan permission:cache-reset` (comando del paquete Spatie) puede mostrar `Unable to flush cache` en entornos con `CACHE_DRIVER=file` cuando el key no existe. El comando `permissions:cache-reset` evita ese falso negativo.
@@ -148,6 +179,13 @@ php artisan sync:dicom-ecografias
 -   **Productos:** Actualiza el listado de procedimientos (CUPS).
 -   **Ecografías:** Migra el historial de lecturas, asociándolas a pacientes, médicos y atenciones correspondientes.
 
+### Rate limiting (API / Login)
+
+Por defecto (ver `app/Providers/RouteServiceProvider.php`):
+
+-   **API**: 60 requests/minuto por usuario autenticado (o por IP si no hay usuario).
+-   **Login**: 10 intentos/minuto por combinación email+IP (`throttle:login` en `POST /login`).
+
 ---
 
 ## Integraciones y Servicios Externos
@@ -158,6 +196,7 @@ El sistema utiliza varios servicios de terceros configurados en el archivo `.env
 
     -   Utilizado para el envío de notificaciones automáticas a pacientes y médicos a través de WhatsApp.
     -   Casos de uso: Recordatorios de citas, confirmación de asignaciones.
+    -   Configuración: `config/services.php` lee `TWILIO_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_NUMBER`.
 
 -   **FFmpeg (`php-ffmpeg/php-ffmpeg`)**:
 
@@ -197,6 +236,16 @@ El sistema utiliza varios servicios de terceros configurados en el archivo `.env
 -   **AWS S3 (Opcional)**:
     -   Configurado para el almacenamiento escalable de documentos adjuntos o respaldos de informes, si se habilita en el entorno.
 
+-   **Conversión Word → PDF (LibreOffice + `unoconv`)**:
+    -   Usado en flujos de generación de reportes a partir de plantillas Word (por ejemplo, en `PlantillaEstudioController`).
+    -   En este repositorio hay utilidades en `Documentos/` relacionadas con `unoconv`. En producción normalmente se instala LibreOffice y se expone `unoconv` en PATH (o se ajusta el comando/ruta).
+
+-   **Speech-to-text (Google Cloud Speech) (Frontend)**:
+    -   Dependencia en `package.json` (`@google-cloud/speech`), usada en el flujo de transcripción del módulo de estudios.
+
+-   **Servicio externo de reportes (`URL_API_REPORTES`, `PASSWORD_API_REPORTES`)**:
+    -   Variables usadas por flujos de notificación/reportes (revisar `.env` en cada entorno).
+
 ---
 
 ## Estructura del Proyecto
@@ -206,6 +255,11 @@ A continuación, una guía rápida de las ubicaciones clave en el código fuente
 -   **Comandos de consola (Artisan)**:
 
     -   `app/Console/Commands`: comandos personalizados (ej. `sync-usuarios`, `sync:dicom-ecografias`).
+
+-   **Rutas**:
+    -   `routes/web.php`: pantallas Blade (MPA) con `auth` + `permission:...` (Spatie).
+    -   `routes/api_*.php`: endpoints API por módulo (generalmente bajo `auth:sanctum`).
+    -   Registro centralizado: `app/Providers/RouteServiceProvider.php` (incluye `api_configuracion`, `api_estudios`, `api_ecografias`, `api_seguridad`, `api_interfaces`, `api_agendamiento_dashboard`, `api_helpdesk`).
 
 -   **Modelos de Datos**:
 
@@ -224,8 +278,75 @@ A continuación, una guía rápida de las ubicaciones clave en el código fuente
 -   **Frontend (Vue.js)**:
     -   `resources/js/components/modulos`: Componentes Vue organizados por módulo funcional (ej. `agendamiento`, `ecografias`).
     -   `resources/js/helpers`: utilidades reutilizables del frontend (ej. `alerts.js`, `datatables.js`).
+    -   `resources/js/app.js`: entrypoint donde se registra Vue y se registran componentes globales por pantalla/módulo.
+    -   Comunicación entre componentes: event bus con `mitt` (`app.config.globalProperties.emitter`).
+    -   Utilidades de fechas: `dayjs` con plugins UTC/timezone (expuesto como `window.dayjs`).
+
+-   **Storage / discos públicos**:
+    -   Definición de discos y symlinks: `config/filesystems.php`.
+    -   `php artisan storage:link` crea enlaces adicionales además de `public/storage` (ej. `public/audios`, `public/files_help_desk`, `public/firmas_consntimientos`, etc.).
 
 ---
+
+## Frontend: `resources/js` y módulos en `resources/js/components`
+
+El frontend está organizado como **componentes Vue montados en vistas Blade**. En `resources/js/app.js` se crea la app con `createApp({})` y se registran componentes globales que se usan como tags en Blade.
+
+### Entry point
+
+- `resources/js/app.js`: registra componentes por módulo y hace `app.mount('#app')`.
+
+### Componentes por módulo (`resources/js/components/modulos`)
+
+- **Configuración**: `resources/js/components/modulos/configuracion/*`
+  - Catálogos (EPS, productos, diagnósticos, sedes, plantillas, tipos de documento).
+  - Parametrización HelpDesk (categorías, prioridades, estados).
+- **Estudios**: `resources/js/components/modulos/estudios/*`
+  - Asignar, leer, transcribir, notificar, y pantallas auxiliares.
+- **Ecografías**: `resources/js/components/modulos/ecografias/*`
+  - Admisión, lectura, admisionadas y consentimiento informado (captura/firma/plantillas).
+- **HelpDesk**: `resources/js/components/modulos/help-desk/*`
+  - Listado/creación/detalle de tickets, reportes y notificaciones.
+- **Agenda**: `resources/js/components/modulos/agenda/*`
+  - Disponibilidad/agenda.
+- **Seguridad**: `resources/js/components/modulos/seguridad/*`
+  - Usuarios, roles y perfil.
+- **Reportes**: `resources/js/components/modulos/reportes/*`
+  - Reportes de producción.
+- **Tele radiología**: `resources/js/components/modulos/tele-radiologia/*`
+  - Envío y transcripción.
+- **Otras plataformas**: `resources/js/components/modulos/otras-plataformas/*`
+  - Envío/asignación hacia/desde integraciones externas.
+- **Varios**: `resources/js/components/modulos/varios/*`
+  - Utilidades/UX (por ejemplo selección de sede).
+
+### Componentes comunes y compartidos
+
+- `resources/js/components/comunes/*`: UI común (sidebar, footer, header/search, etc.).
+- `resources/js/components/shared/*`: componentes reutilizables (ej. wrapper global de Select2).
+
+### Helpers y datos del frontend
+
+- `resources/js/helpers/*`: helpers reutilizables (alerts, permisos, datatables, utilidades, etc.).
+- `resources/js/helpers/voice/*`: helpers para captura/dictado/voz.
+- `resources/js/data/*`: archivos de datos (por ejemplo diccionarios/reemplazos médicos usados en transcripción).
+
+## Storage / Filesystems (detalle)
+
+Además de `public`, el proyecto define múltiples discos públicos (driver `local`) en `config/filesystems.php`:
+
+- `reporte_lecturas`
+- `avatars`
+- `firmas_medicos`
+- `soportes_hc`
+- `audios`
+- `plantillas_lecturas`
+- `img_dicom`
+- `files_help_desk`
+- `firmas_consntimientos`
+- `files_consentimientos`
+
+Al ejecutar `php artisan storage:link` se crean symlinks en `public/` para cada uno (por eso es un paso obligatorio en local/producción).
 
 ## Documentación del Código
 
@@ -289,6 +410,10 @@ Si estás en Windows con Laragon:
 
 3. **Archivo hosts**
     - Verifica que `lidiag.test` resuelva a tu máquina (normalmente `127.0.0.1`). Si Laragon no lo gestiona automáticamente, agrega la entrada en `C:\Windows\System32\drivers\etc\hosts`.
+
+4. **Sanctum (SPA stateful)**
+    - La mayoría de endpoints API usan `auth:sanctum` (cookies/sesión).
+    - Si en local tienes `401` en `/api/*`, revisa `APP_URL` y `SANCTUM_STATEFUL_DOMAINS` (en `config/sanctum.php` se incluye el host actual como best-effort, útil para `lidiag.test`).
 
 ### Pasos de Instalación
 
@@ -382,7 +507,7 @@ Además de `APP_*`, las variables más importantes que suelen requerir ajuste so
 -   **Servicio externo de reportes**: `URL_API_REPORTES`, `PASSWORD_API_REPORTES`
 -   **FFmpeg/FFprobe (audios)**: `FFMPEG_BINARIES`, `FFPROBE_BINARIES` (ver sección de FFmpeg arriba)
 
-> Nota: este repositorio incluye `.env.example` como referencia. **No uses credenciales reales** allí (y evita subir secretos al repositorio).
+> Nota: este repositorio incluye `.env.example` como referencia. **No uses credenciales reales** allí (y evita subir secretos al repositorio). Si vas a compartir/publicar el proyecto, revisa y sanitiza `.env.example` para que solo tenga placeholders.
 
 ### Despliegue
 
@@ -398,7 +523,23 @@ En Laragon, normalmente accederás por tu vhost, por ejemplo `https://lidiag.tes
 
 ---
 
+## Colas (Queue) y Scheduler
+
+- En `.env` el valor típico es `QUEUE_CONNECTION=sync` (ejecución síncrona).
+- `app/Console/Kernel.php` no tiene tareas programadas por defecto (scheduler vacío).
+
 ## Solución de Problemas (Troubleshooting)
+
+**0. 401 en endpoints `/api/*` (Sanctum stateful)**
+
+-   Verifica que el dominio real (ej. `lidiag.test`) esté contemplado en `SANCTUM_STATEFUL_DOMAINS`.
+-   Revisa que `APP_URL` coincida con el host por el que navegas.
+-   Borra cookies del dominio y vuelve a iniciar sesión.
+
+**0.1. Vite/HMR no conecta (Laragon + HTTPS)**
+
+-   `vite.config.js` usa `lidiag.test` y rutas fijas a certificados de Laragon (`C:/laragon/etc/ssl/...`).
+-   Si tu Laragon usa otra ruta o no tienes SSL, ajusta `vite.config.js` (o desactiva `server.https` para desarrollo).
 
 **1. Error de conexión con SQL Server (SAHI)**
 
@@ -421,3 +562,8 @@ En Laragon, normalmente accederás por tu vhost, por ejemplo `https://lidiag.tes
     -   Lectura/ejecución sobre la carpeta de FFmpeg.
     -   Escritura sobre el disk `audios` y su subcarpeta `tmp/`.
 -   Revise el log en `storage/logs/laravel.log` para ver el detalle del error devuelto por FFmpeg/FFprobe.
+
+**5. Word → PDF falla (unoconv / LibreOffice)**
+
+-   Confirma que LibreOffice esté instalado y que `unoconv` sea ejecutable por el usuario del servicio (Apache/Nginx/CLI).
+-   Si el comando no existe en el servidor, instala `unoconv` o ajusta el mecanismo de conversión en los controladores de plantillas.

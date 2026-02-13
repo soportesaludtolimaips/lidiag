@@ -12,6 +12,14 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+/*
+ * Recepción de lecturas TLIMAGEN → SaludTolima (HMAC, sin auth).
+ * Cliente envía X-Timestamp y X-Signature (ver docs/TELERADIOLOGIA_WEBHOOK_CLIENTE.md).
+ */
+Route::post('/tele-radiologia-recibir-lectura', [App\Http\Controllers\Interface\TeleRadiologiaController::class, 'recibirLectura'])
+    ->name('api.tele.radiologia.recibir.lectura')
+    ->middleware(['tele.hmac']);
+
 Route::middleware(['auth:sanctum'])->group(function () {
     /*
      * Tele Radiologia API Endpoints
@@ -27,10 +35,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/tele-radiologia-enviar-orden', [App\Http\Controllers\Interface\TeleRadiologiaController::class, 'enviarOrdenTeleRadiologia'])
         ->name('api.tele.radiologia.enviar.orden')
         ->middleware(['permission:tele.ragiologia.enviar|estudio.asignar,web']);
-
-    Route::post('/tele-radiologia-recibir-lectura', [App\Http\Controllers\Interface\TeleRadiologiaController::class, 'recibirLectura'])
-        ->name('api.tele.radiologia.recibir.lectura')
-        ->middleware(['permission:tele.ragiologia.recibir|estudio.asignar,web']);
 
     /*
      * Interface SAHI API Endpoints
