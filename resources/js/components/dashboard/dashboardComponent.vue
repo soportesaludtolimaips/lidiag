@@ -983,9 +983,12 @@ export default {
             });
 
             // Área: flujo diario (asignados / leídos / transcritos)
+            // Morris puede fallar en `resizeHandler` si se inicializa con `data: []`
+            // y ocurre un resize antes de que llegue `setData(...)`. Usamos un punto dummy.
+            const morrisAreaInitialData = [{ period: "", asignados: 0, leidos: 0, transcritos: 0 }];
             this.charts.transcritos = Morris.Area({
                 element: "sales-chart",
-                data: [],
+                data: morrisAreaInitialData,
                 xkey: "period",
                 ykeys: ["asignados", "leidos", "transcritos"],
                 labels: ["Asignados", "Leídos", "Transcritos"],

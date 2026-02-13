@@ -1691,21 +1691,16 @@ export default {
             this.registros = [];
         },
         establecerMedico() {
-            //if (this.url === '/ecografias-pendientes-lecturas') {
-            const stored = sessionStorage.getItem("ST-medico");
-            const fallback = this.usuarioactual?.id != null ? String(this.usuarioactual.id) : "";
-            const medicoId =
-                stored && stored !== "null" && stored !== "undefined" ? String(stored) : fallback;
+            // Siempre usar el usuario logueado como médico (evita null y evita depender de sessionStorage)
+            const medicoId = this.usuarioactual?.id != null ? String(this.usuarioactual.id) : "";
 
-            if (medicoId) {
-                sessionStorage.setItem("ST-medico", medicoId);
-            }
+            this.busqueda.medico_id = medicoId;
+            this.registro.medico_id = medicoId;
 
-            this.busqueda.medico_id = medicoId || "";
-            this.registro.medico_id = medicoId || "";
+            // Opcional: sincronizamos para otras pantallas que lean ST-medico
+            if (medicoId) sessionStorage.setItem("ST-medico", medicoId);
 
             this.listarPendiestePorLectura();
-            //}
         },
         async listarTiposPlantillas() {
             try {
