@@ -85,15 +85,22 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Notificaciones internas (Laravel notifications)
     Route::get('/helpdesk-notificaciones', [App\Http\Controllers\HelpDesk\HelpDeskNotificacionesController::class, 'index'])
         ->name('api.helpdesk.notificaciones.index')
-        ->middleware(['permission:helpdesk.notificaciones.index,web']);
+        ->middleware(['permission:helpdesk.notificaciones.index,web'])
+        // Se consume desde la misma app (web). Forzamos sesión web para evitar 401 por Sanctum stateful.
+        ->withoutMiddleware(['auth:sanctum'])
+        ->middleware(['web', 'auth']);
 
     Route::post('/helpdesk-notificaciones/{id}/read', [App\Http\Controllers\HelpDesk\HelpDeskNotificacionesController::class, 'markRead'])
         ->name('api.helpdesk.notificaciones.read')
-        ->middleware(['permission:helpdesk.notificaciones.read,web']);
+        ->middleware(['permission:helpdesk.notificaciones.read,web'])
+        ->withoutMiddleware(['auth:sanctum'])
+        ->middleware(['web', 'auth']);
 
     Route::post('/helpdesk-notificaciones/read-all', [App\Http\Controllers\HelpDesk\HelpDeskNotificacionesController::class, 'markAllRead'])
         ->name('api.helpdesk.notificaciones.read_all')
-        ->middleware(['permission:helpdesk.notificaciones.read,web']);
+        ->middleware(['permission:helpdesk.notificaciones.read,web'])
+        ->withoutMiddleware(['auth:sanctum'])
+        ->middleware(['web', 'auth']);
 
     /**
      * Reportes
