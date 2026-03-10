@@ -3,15 +3,14 @@
 namespace App\Http\Controllers\Seguridad;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Seguridad\UserAgregarRequest;
 use App\Models\Configuracion\ConfigModulo;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Str;
-use Illuminate\Support\Facades\Storage;
-use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Spatie\Permission\Models\Role;
+use Str;
 
 class UserController extends Controller
 {
@@ -28,20 +27,21 @@ class UserController extends Controller
     /**
      * Lista todos los usuarios con sus módulos y roles.
      *
-     * @param Request $request Parámetros de filtrado (no utilizados actualmente).
+     * @param  Request  $request  Parámetros de filtrado (no utilizados actualmente).
      * @return \Illuminate\Http\JsonResponse Lista de usuarios.
      */
     public function index(Request $request)
     {
         $users = User::with(['modulos', 'roles'])->get();
+
         return response()->json($users);
     }
 
     /**
      * Lista usuarios filtrados por tipo de rol y módulo.
      *
-     * @param string $tipo_user Nombre del rol (ej: 'Médico').
-     * @param int $modulo ID del módulo.
+     * @param  string  $tipo_user  Nombre del rol (ej: 'Médico').
+     * @param  int  $modulo  ID del módulo.
      * @return \Illuminate\Support\Collection Lista de usuarios.
      */
     public function listarUsuarios($tipo_user, $modulo)
@@ -57,30 +57,32 @@ class UserController extends Controller
             ->orderBy('users.name', 'asc') // Calificar la columna 'name' con el nombre de la tabla
             ->get();
 
-        return $usuarios;
+        return response()->json($usuarios);
     }
 
     /**
      * Muestra un usuario específico con sus roles.
      *
-     * @param int $id ID del usuario.
+     * @param  int  $id  ID del usuario.
      * @return \Illuminate\Http\JsonResponse Datos del usuario, roles disponibles y roles asignados.
      */
     public function show($id)
     {
         $usuario = User::find($id);
-        if (!$usuario) return response()->json(['message' => 'El usuario no se encontro'], 404);
+        if (! $usuario) {
+            return response()->json(['message' => 'El usuario no se encontro'], 404);
+        }
 
         $authId = Auth::id();
-        $isSelf = $authId && ((int)$authId === (int)$id);
-        if (!$isSelf && !Auth::user()->can('seguridad.usuarios.show')) {
+        $isSelf = $authId && ((int) $authId === (int) $id);
+        if (! $isSelf && ! Auth::user()->can('seguridad.usuarios.show')) {
             return response()->json(['message' => 'No autorizado'], 403);
         }
 
         $roles = Role::all();
         $userRole = $usuario->roles;
 
-        $RolesDeUsuario = array();
+        $RolesDeUsuario = [];
         foreach ($userRole as $del) {
             $RolesDeUsuario[] = $del->id;
         }
@@ -91,7 +93,7 @@ class UserController extends Controller
     /**
      * Actualiza el estado activo/inactivo de un usuario.
      *
-     * @param Request $request ID y nuevo estado del usuario.
+     * @param  Request  $request  ID y nuevo estado del usuario.
      * @return \Illuminate\Http\JsonResponse Confirmación.
      */
     public function estadoUsuario(Request $request, $idUsua = null)
@@ -114,7 +116,7 @@ class UserController extends Controller
     /**
      * Crea un nuevo usuario con validación, asignación de roles, módulos y archivos (firma/avatar).
      *
-     * @param Request $request Datos del usuario, archivos de firma y avatar.
+     * @param  Request  $request  Datos del usuario, archivos de firma y avatar.
      * @return \Illuminate\Http\JsonResponse Confirmación o errores de validación.
      */
     public function store(Request $request)
@@ -168,7 +170,7 @@ class UserController extends Controller
             return response()->json($validator->errors(), 400);
         }
 
-        $seguridad_usuario = new User();
+        $seguridad_usuario = new User;
         $seguridad_usuario->num_docu = $registro['num_docu'];
         $seguridad_usuario->reg_med = $registro['reg_med'] ?? null;
         $seguridad_usuario->name = $registro['name'];
@@ -184,11 +186,11 @@ class UserController extends Controller
 
             $archivo = $request->firma;
 
-            if (!is_null($seguridad_usuario->firma) && Storage::disk('firmas_medicos')->exists($seguridad_usuario->firma)) {
+            if (! is_null($seguridad_usuario->firma) && Storage::disk('firmas_medicos')->exists($seguridad_usuario->firma)) {
                 Storage::disk('firmas_medicos')->delete($seguridad_usuario->firma);
             }
 
-            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+            $nombreEncrip = Str::random(50).".".$archivo->extension();
 
             $cargarFirma = $archivo->storeAs('firmas_medicos', $nombreEncrip);
             $seguridad_usuario->firma = $cargarFirma;
@@ -197,11 +199,11 @@ class UserController extends Controller
         if ($request->hasFile('avatar')) {
             $archivo = $request->avatar;
 
-            if (!is_null($seguridad_usuario->imagen_perfil) && Storage::disk('avatars')->exists($seguridad_usuario->imagen_perfil)) {
+            if (! is_null($seguridad_usuario->imagen_perfil) && Storage::disk('avatars')->exists($seguridad_usuario->imagen_perfil)) {
                 Storage::disk('avatars')->delete($seguridad_usuario->imagen_perfil);
             }
 
-            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+            $nombreEncrip = Str::random(50).".".$archivo->extension();
 
             $cargarAvatar = $archivo->storeAs('avatars', $nombreEncrip);
             $seguridad_usuario->imagen_perfil = $cargarAvatar;
@@ -210,7 +212,7 @@ class UserController extends Controller
         $seguridad_usuario->save();
 
         $rolesDeUsuario = $registro['rolesUsuario'];
-        $rolesInsertar = array();
+        $rolesInsertar = [];
         foreach ($rolesDeUsuario as $rol) {
             if ($rol['checked'] === true) {
                 $rolesInsertar[] = $rol['id'];
@@ -223,7 +225,7 @@ class UserController extends Controller
          * Establezco los modulos del usuario
          */
         $modulosDeUsuario = $registro['modulos'];
-        $modulosInsertar = array();
+        $modulosInsertar = [];
         foreach ($modulosDeUsuario as $modulo) {
             if ($modulo['checked'] === true) {
                 $modulosInsertar[] = $modulo['id'];
@@ -231,7 +233,7 @@ class UserController extends Controller
         }
 
         // Insertar módulos si el usuario no tiene asociados previamente
-        if (!empty($modulosInsertar)) {
+        if (! empty($modulosInsertar)) {
             $seguridad_usuario->modulos()->sync($modulosInsertar);
         } else {
             $seguridad_usuario->modulos()->detach();
@@ -239,10 +241,11 @@ class UserController extends Controller
 
         return response()->json(['message' => 'El usuario se creo correctamente.']);
     }
+
     /**
      * Actualiza un usuario existente con validación, sincronización de roles, módulos y archivos.
      *
-     * @param Request $request Datos actualizados del usuario.
+     * @param  Request  $request  Datos actualizados del usuario.
      * @return \Illuminate\Http\JsonResponse Confirmación o errores de validación.
      */
     public function update(Request $request)
@@ -251,10 +254,10 @@ class UserController extends Controller
         $registro = json_decode($request->input('registro'), true);
 
         $validator = Validator::make($registro, [
-            //'num_docu' => 'required|string|max:20|unique:users,num_docu,' . $request->id,
+            // 'num_docu' => 'required|string|max:20|unique:users,num_docu,' . $request->id,
             'reg_med' => 'nullable|string|max:20',
             'name' => 'required|string|max:50',
-            'email' => 'required|email|max:255|unique:users,email,' . $request->id,
+            'email' => 'required|email|max:255|unique:users,email,'.$request->id,
             'tel' => 'nullable|string|max:50',
             'facebook' => 'nullable|string|max:100',
             'twitter' => 'nullable|string|max:100',
@@ -266,9 +269,9 @@ class UserController extends Controller
             'firma' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'avatar' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ], [
-            //'num_docu.required' => 'El número de documento es obligatorio.',
-            //'num_docu.max' => 'El número de documento no debe exceder los 20 caracteres.',
-            //'num_docu.unique' => 'El número de documento ya está en uso.',
+            // 'num_docu.required' => 'El número de documento es obligatorio.',
+            // 'num_docu.max' => 'El número de documento no debe exceder los 20 caracteres.',
+            // 'num_docu.unique' => 'El número de documento ya está en uso.',
             'reg_med.max' => 'El número de registro médico no debe exceder los 20 caracteres.',
             'name.required' => 'El nombre es obligatorio.',
             'name.max' => 'El nombre no debe exceder los 50 caracteres.',
@@ -310,11 +313,11 @@ class UserController extends Controller
 
             $archivo = $request->firma;
 
-            if (!is_null($seguridad_usuario->firma) && Storage::disk('firmas_medicos')->exists($seguridad_usuario->firma)) {
+            if (! is_null($seguridad_usuario->firma) && Storage::disk('firmas_medicos')->exists($seguridad_usuario->firma)) {
                 Storage::disk('firmas_medicos')->delete($seguridad_usuario->firma);
             }
 
-            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+            $nombreEncrip = Str::random(50).".".$archivo->extension();
 
             $cargarFirma = $archivo->storeAs('firmas_medicos', $nombreEncrip);
             $seguridad_usuario->firma = $cargarFirma;
@@ -323,11 +326,11 @@ class UserController extends Controller
         if ($request->hasFile('avatar')) {
             $archivo = $request->avatar;
 
-            if (!is_null($seguridad_usuario->imagen_perfil) && Storage::disk('avatars')->exists($seguridad_usuario->imagen_perfil)) {
+            if (! is_null($seguridad_usuario->imagen_perfil) && Storage::disk('avatars')->exists($seguridad_usuario->imagen_perfil)) {
                 Storage::disk('avatars')->delete($seguridad_usuario->imagen_perfil);
             }
 
-            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+            $nombreEncrip = Str::random(50).".".$archivo->extension();
 
             $cargarAvatar = $archivo->storeAs('avatars', $nombreEncrip);
             $seguridad_usuario->imagen_perfil = $cargarAvatar;
@@ -339,7 +342,7 @@ class UserController extends Controller
          * Establezco los roles del usuario
          */
         $rolesDeUsuario = $registro['rolesUsuario'];
-        $rolesInsertar = array();
+        $rolesInsertar = [];
         foreach ($rolesDeUsuario as $rol) {
             if ($rol['checked'] === true) {
                 $rolesInsertar[] = $rol['id'];
@@ -351,9 +354,8 @@ class UserController extends Controller
         /**
          * Establezco los modulos del usuario
          */
-
         $modulosDeUsuario = $registro['modulos'];
-        $modulosInsertar = array();
+        $modulosInsertar = [];
         foreach ($modulosDeUsuario as $modulo) {
             if (isset($modulo['checked']) and $modulo['checked'] === true) {
                 $modulosInsertar[] = $modulo['id'];
@@ -361,7 +363,7 @@ class UserController extends Controller
         }
 
         // Insertar módulos si el usuario no tiene asociados previamente
-        if (!empty($modulosInsertar)) {
+        if (! empty($modulosInsertar)) {
             $seguridad_usuario->modulos()->sync($modulosInsertar);
         } else {
             $seguridad_usuario->modulos()->detach();
@@ -373,7 +375,6 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\User  $user
      * @return \Illuminate\Http\Response
      */
     public function destroy(User $user)
@@ -385,24 +386,28 @@ class UserController extends Controller
 
         // Limpieza best-effort de archivos
         try {
-            if (!is_null($user->firma)) {
+            if (! is_null($user->firma)) {
                 if (Storage::disk('firmas_medicos')->exists($user->firma)) {
                     Storage::disk('firmas_medicos')->delete($user->firma);
                 } else {
                     $base = basename($user->firma);
-                    if (Storage::disk('firmas_medicos')->exists($base)) Storage::disk('firmas_medicos')->delete($base);
+                    if (Storage::disk('firmas_medicos')->exists($base)) {
+                        Storage::disk('firmas_medicos')->delete($base);
+                    }
                 }
             }
         } catch (\Exception $e) {
         }
 
         try {
-            if (!is_null($user->imagen_perfil)) {
+            if (! is_null($user->imagen_perfil)) {
                 if (Storage::disk('avatars')->exists($user->imagen_perfil)) {
                     Storage::disk('avatars')->delete($user->imagen_perfil);
                 } else {
                     $base = basename($user->imagen_perfil);
-                    if (Storage::disk('avatars')->exists($base)) Storage::disk('avatars')->delete($base);
+                    if (Storage::disk('avatars')->exists($base)) {
+                        Storage::disk('avatars')->delete($base);
+                    }
                 }
             }
         } catch (\Exception $e) {
@@ -410,11 +415,15 @@ class UserController extends Controller
 
         // Sync relaciones (best-effort)
         try {
-            if (method_exists($user, 'roles')) $user->roles()->detach();
+            if (method_exists($user, 'roles')) {
+                $user->roles()->detach();
+            }
         } catch (\Exception $e) {
         }
         try {
-            if (method_exists($user, 'modulos')) $user->modulos()->detach();
+            if (method_exists($user, 'modulos')) {
+                $user->modulos()->detach();
+            }
         } catch (\Exception $e) {
         }
 
@@ -426,14 +435,14 @@ class UserController extends Controller
     /**
      * Lista usuarios asociados a un módulo específico.
      *
-     * @param int $moduloId ID del módulo.
+     * @param  int  $moduloId  ID del módulo.
      * @return \Illuminate\Http\JsonResponse Lista de usuarios del módulo.
      */
     public function usuariosPorModulo($moduloId)
     {
         $modulo = ConfigModulo::with('usuarios')->find($moduloId);
 
-        if (!$modulo) {
+        if (! $modulo) {
             return response()->json(['message' => 'Módulo no encontrado'], 404);
         }
 
@@ -448,15 +457,15 @@ class UserController extends Controller
         $usuario = User::findOrFail($idUsua);
 
         $authId = Auth::id();
-        $isSelf = $authId && ((int)$authId === (int)$idUsua);
-        if (!$isSelf && !Auth::user()->can('seguridad.usuarios.edit')) {
+        $isSelf = $authId && ((int) $authId === (int) $idUsua);
+        if (! $isSelf && ! Auth::user()->can('seguridad.usuarios.edit')) {
             return response()->json(['message' => 'No autorizado'], 403);
         }
 
         $validator = Validator::make($request->all(), [
             'num_docu' => 'required|string|max:20',
             'name' => 'required|string|max:50',
-            'email' => 'required|email|max:255|unique:users,email,' . $usuario->id,
+            'email' => 'required|email|max:255|unique:users,email,'.$usuario->id,
             'password' => 'nullable|string|min:6',
             'imagen_perfil' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
@@ -476,16 +485,18 @@ class UserController extends Controller
             if ($archivo && $archivo->isValid()) {
                 // Borrado best-effort (considera paths viejos tipo "avatars/xxx")
                 try {
-                    if (!is_null($usuario->imagen_perfil) && Storage::disk('avatars')->exists($usuario->imagen_perfil)) {
+                    if (! is_null($usuario->imagen_perfil) && Storage::disk('avatars')->exists($usuario->imagen_perfil)) {
                         Storage::disk('avatars')->delete($usuario->imagen_perfil);
-                    } elseif (!is_null($usuario->imagen_perfil)) {
+                    } elseif (! is_null($usuario->imagen_perfil)) {
                         $base = basename($usuario->imagen_perfil);
-                        if (Storage::disk('avatars')->exists($base)) Storage::disk('avatars')->delete($base);
+                        if (Storage::disk('avatars')->exists($base)) {
+                            Storage::disk('avatars')->delete($base);
+                        }
                     }
                 } catch (\Exception $e) {
                 }
 
-                $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+                $nombreEncrip = Str::random(50).".".$archivo->extension();
                 $path = $archivo->storeAs('avatars', $nombreEncrip);
                 $usuario->imagen_perfil = $path;
             }
@@ -504,8 +515,8 @@ class UserController extends Controller
         $usuario = User::findOrFail($id);
 
         $authId = Auth::id();
-        $isSelf = $authId && ((int)$authId === (int)$id);
-        if (!$isSelf && !Auth::user()->can('seguridad.usuarios.show')) {
+        $isSelf = $authId && ((int) $authId === (int) $id);
+        if (! $isSelf && ! Auth::user()->can('seguridad.usuarios.show')) {
             return response()->json(['message' => 'No autorizado'], 403);
         }
 

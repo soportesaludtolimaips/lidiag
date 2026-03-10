@@ -12,6 +12,7 @@ use App\Models\Estudio\EstudioDiagnostico;
 use App\Models\Estudio\EstudioProducto;
 use App\Models\Estudio\EstudioSoportesHC;
 use App\Models\General\Paciente;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -485,18 +486,19 @@ class EstudioController extends Controller
             ->leftJoin('users as medi', 'estudios.medico_id', '=', 'medi.id')
             ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
             ->join('config_productos', 'estudios_productos.producto_id', '=', 'config_productos.id')
-            ->when($request->estudioParaTranscibir, function ($query) use ($request) {
+            ->when($request->estudioParaTranscibir, function ($query) {
                 /**
                  * Si el destino es = Salud Tolima se debe filtrar por los estudios que ya tienen lectura porque para transcribir los medicos ya realizaron la lectura
                  * Si el destino es diferente a Salud Tolima se deben filtrar los estudios que no tienen lectura porque son los estudios que se van a leer porque vienen de Teleradiologia
                  */
-                $query->where(function ($q) use ($request) {
+                $query->whereNotNull('estudios_productos.fechor_lectura');
+                /* $query->where(function ($q) use ($request) {
                     if ($request->destino_estudio === 'Salud Tolima') {
                         $q->whereNotNull('estudios_productos.fechor_lectura');
                     } else {
-                        $q->whereNull('estudios_productos.fechor_lectura');
+                        $q->whereNotNull('estudios_productos.fechor_lectura');
                     }
-                });
+                }); */
             })
             ->when($request->bus_fehc_ini && $request->bus_fecha_fin, function ($query) use ($request) {
                 // Si vienen solo fechas (YYYY-MM-DD), incluir el día completo para no excluir por hora
@@ -636,6 +638,18 @@ class EstudioController extends Controller
      */
     public function guardarTranscripcion(Request $request)
     {
+        /**
+         * Si la sede donde se realizó el estudio tiene interface hago el envio del reporte a la HC del hospital
+         */
+        $sede = ConfigSede::findOrfail($request->sede_id);
+        if ($sede->interface_software === 'SAHI') {
+
+            $medico = User::find($request->medico_id);
+            if (! $medico->interface_id) {
+                return response()->json(['message' => 'El medico '.$medico->name.' no está registrado en SAHI'], 400);
+            }
+        }
+
         $validator = Validator::make($request->all(), [
             'estudio_producto_id' => 'required|integer|exists:estudios_productos,id',
             'id_estudio' => 'nullable|integer|exists:estudios,id',
@@ -651,6 +665,7 @@ class EstudioController extends Controller
         ], [
             'lectura.required' => 'Debe ingresar la lectura.',
         ]);
+
         if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
         }
@@ -686,21 +701,26 @@ class EstudioController extends Controller
         $transcribirEstudios->transcriptor_id = auth()->user()->id;
         $transcribirEstudios->fechor_trascrito = Carbon::now()->format('Y-m-d H:i:s');
         $transcribirEstudios->visto = 1;
-        $transcribirEstudios->save();
+        // $transcribirEstudios->save();
 
+        /**
+         * Si el estudio se va a enviar a Teleradiologia o Trys no se asigna medico porque se asigna en la plataforma de ellos, pero si el estudio se va a enviar a Salud Tolima se asigna el medico que realizo la lectura porque es para que el medico de Salud Tolima pueda identificar quien realizo la lectura del estudio
+         */
         if ($request->destino_estudio === 'Tele Radiologia') {
             $estudio = Estudio::findOrFail($request->id_estudio);
             $estudio->medico_id = $request['medico_id'];
-            $estudio->save();
+            // $estudio->save();
         }
 
         /**
          * Si la sede donde se realizó el estudio tiene interface hago el envio del reporte a la HC del hospital
          */
-        $sede = ConfigSede::findOrfail($request->sede_id);
         if ($sede->interface_software === 'SAHI') {
             $transcribir = (new SAHITranscibirController)->enviarEstudio($request->atencion, $request->medico_id, $request->lectura, $request->cod_cups, $request->fec_lectura);
-            // $transcribir->status();
+
+            if ($transcribir->status() != 200) {
+                return response()->json(['message' => 'Error al enviar el reporte a la interface SAHI '.$transcribir->message()], 400);
+            }
         }
 
         /**
@@ -715,12 +735,12 @@ class EstudioController extends Controller
         } elseif ($genearPlantilla->status() == 200) {
 
             $notificar = (new EstudioNotificacionController)->enviarPortalPacientes($request);
+
             if ($notificar->status() == 200) {
                 return response()->json(['message' => 'Lectura transferida correctamente'], 200);
             } else {
                 return response()->json(['message' => 'Error en la trnaferencia de la lectura'], 400);
             }
-            // }
         } else {
             return response()->json(['message' => 'Error en la trnaferencia de la lectura'], 400);
         }
@@ -829,9 +849,21 @@ class EstudioController extends Controller
      */
     public function notificarEmail(Request $request)
     {
+
         $genearPlantilla = (new PlantillaEstudioController)->editWord($request);
         if ($genearPlantilla->status() == 200) {
-            $notificar = (new EstudioNotificacionController)->notificarEmail($request);
+            $enviarPortaPaciente = (new EstudioNotificacionController)->enviarPortalPacientes($request);
+
+            if ($enviarPortaPaciente->status() == 200) {
+                $respon = json_decode($enviarPortaPaciente->getContent(), true);
+                $enviarEmail = (new EstudioNotificacionController)->notificarEmail($request, $respon['reportePath']);
+
+                return response()->json(['message' => 'Notificación reenviada correctamente'], 200);
+            } else {
+                return response()->json(['message' => 'Error al reenviar la notificación'], 400);
+            }
+
+            $eliminarReporte = (new PlantillaEstudioController)->eliminarReporte($respon['reportePath']);
 
             return $notificar;
         } else {
@@ -843,9 +875,11 @@ class EstudioController extends Controller
     {
         $genearPlantilla = (new PlantillaEstudioController)->editWord($request);
         if ($genearPlantilla->status() == 200) {
-            $notificar = (new EstudioNotificacionController)->enviarPortalPacientes($request);
+            $enviarPortaPaciente = (new EstudioNotificacionController)->enviarPortalPacientes($request);
+            $respon = json_decode($enviarPortaPaciente->getContent(), true);
+            $eliminarReporte = (new PlantillaEstudioController)->eliminarReporte($respon['reportePath']);
 
-            return $notificar;
+            return $enviarPortaPaciente;
         } else {
             return $genearPlantilla;
         }

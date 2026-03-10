@@ -100,7 +100,7 @@
                         <tr>
                             <td class="sm-py-32 sm-px-24" style="font-family: Montserrat, -apple-system, 'Segoe UI', sans-serif; padding: 48px; text-align: center;" align="center">
                                 {{-- <a href="{{ Request::root() }}"> --}}
-                                    <img src="{{ asset('admin-wrap-login/assets/images/logo-icon.png') }}" width="80" alt="Salud Tolima IPS" style="border: 0; max-width: 100%; line-height: 100%; vertical-align: middle;">
+                                <img src="{{ asset('admin-wrap/assets/images/logo-icon.png') }}" width="80" alt="Salud Tolima IPS" style="border: 0; max-width: 100%; line-height: 100%; vertical-align: middle;">
                                 {{-- </a> --}}
                             </td>
                         </tr>
@@ -141,14 +141,14 @@
                                     <tr>
                                         <td style="font-family: Montserrat, -apple-system, 'Segoe UI', sans-serif; font-size: 12px; padding-left: 48px; padding-right: 48px; --text-opacity: 1; color: #eceff1; color: rgba(236, 239, 241, var(--text-opacity));">
                                             <p align="center" style="cursor: default; margin-bottom: 16px;">
-                                                <a href="https://www.facebook.com/pixinvents" style="--text-opacity: 1; color: #263238; color: rgba(38, 50, 56, var(--text-opacity)); text-decoration: none;">
-                                                    <img src="{{ asset('admin-wrap-login/assets/images/facebook.png') }}" width="17" alt="Facebook" style="border: 0; max-width: 100%; line-height: 100%; vertical-align: middle; margin-right: 12px;"></a>
+                                                <a href="https://saludtolimaips.com" style="--text-opacity: 1; color: #263238; color: rgba(38, 50, 56, var(--text-opacity)); text-decoration: none;">
+                                                    <img src="{{ asset('admin-wrap/assets/images/facebook.png') }}" width="17" alt="Facebook" style="border: 0; max-width: 100%; line-height: 100%; vertical-align: middle; margin-right: 12px;"></a>
                                                 &bull;
-                                                <a href="https://twitter.com/pixinvents" style="--text-opacity: 1; color: #263238; color: rgba(38, 50, 56, var(--text-opacity)); text-decoration: none;">
-                                                    <img src="{{ asset('admin-wrap-login/assets/images/twitter.png') }}" width="17" alt="Twitter" style="border: 0; max-width: 100%; line-height: 100%; vertical-align: middle; margin-right: 12px;"></a>
+                                                <a href="https://saludtolimaips.com" style="--text-opacity: 1; color: #263238; color: rgba(38, 50, 56, var(--text-opacity)); text-decoration: none;">
+                                                    <img src="{{ asset('admin-wrap/assets/images/twitter.png') }}" width="17" alt="Twitter" style="border: 0; max-width: 100%; line-height: 100%; vertical-align: middle; margin-right: 12px;"></a>
                                                 &bull;
-                                                <a href="https://www.instagram.com/pixinvents" style="--text-opacity: 1; color: #263238; color: rgba(38, 50, 56, var(--text-opacity)); text-decoration: none;">
-                                                    <img src="{{ asset('admin-wrap-login/assets/images/instagram.png') }}" width="17" alt="Instagram" style="border: 0; max-width: 100%; line-height: 100%; vertical-align: middle; margin-right: 12px;"></a>
+                                                <a href="https://saludtolimaips.com" style="--text-opacity: 1; color: #263238; color: rgba(38, 50, 56, var(--text-opacity)); text-decoration: none;">
+                                                    <img src="{{ asset('admin-wrap/assets/images/instagram.png') }}" width="17" alt="Instagram" style="border: 0; max-width: 100%; line-height: 100%; vertical-align: middle; margin-right: 12px;"></a>
                                             </p>
                                             <p style="--text-opacity: 1; color: #263238; color: rgba(38, 50, 56, var(--text-opacity));">
 
