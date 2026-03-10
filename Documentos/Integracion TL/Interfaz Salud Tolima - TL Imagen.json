@@ -85,6 +85,7 @@ Lectura
 	"accession_no": "74281",
   	"study_desc": "TC CRANEO SIMPLE/URG/WSA/6595425",
 	"mods_in_study": "CT",
+        "tipo": “lectura/adendum”,
 	"sexo": "M",
   	"paciente": {
 	    "num_docu": "5919726",
@@ -105,5 +106,12 @@ Lectura
     		"name": "JOSE FABIO MARIN CASTAÑO",
 	    	"firma_medico": "base64",
 	},
+       adendum: {
+       		fecha: “fecha del adendum”,
+	       lectura: “texto con obsevaciones/aclaraciones  nuevas”,
+	       medico: {
+	           // datos del medico que realizo el adendum. Puede serl distinto al medico original
+       		}
+    	},
 	tipo_resultado: '1 Norma, 2 Patologico, 3 Critico'
 }

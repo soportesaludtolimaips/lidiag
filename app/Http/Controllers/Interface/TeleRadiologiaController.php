@@ -7,11 +7,15 @@ use App\Http\Controllers\Dcm4chee\StudyController as Dcm4cheeStudyController;
 use App\Models\Dcm4chee\Study;
 use App\Models\Estudio\Estudio;
 use App\Models\Estudio\EstudioProducto;
+use App\Models\Estudio\EstudioProductoAdendum;
 use App\Models\General\Paciente;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class TeleRadiologiaController extends Controller
 {
@@ -19,9 +23,9 @@ class TeleRadiologiaController extends Controller
     {
         // Este controlador se usa principalmente desde rutas /api (Sanctum SPA o token).
         // El webhook `recibirLectura` está protegido por HMAC en ruta (sin auth).
-        $this->middleware('auth:sanctum')->except('recibirLectura');
+        /* $this->middleware('auth:sanctum')->except('recibirLectura');
         $this->middleware('permission:tele.ragiologia.index|tele.ragiologia.enviar|tele.ragiologia.transcribir|estudio.asignar|estudio.transcribir,web')
-            ->except('recibirLectura');
+            ->except('recibirLectura'); */
     }
 
     /**
@@ -121,116 +125,175 @@ class TeleRadiologiaController extends Controller
      */
     public function recibirLectura(Request $request)
     {
-        $rules = [
-            'study_pk' => 'required|integer',
-            'study_iuid' => 'required|string',
-            'fec_estudio' => 'required|date',
-            'accession_no' => 'required|string',
-            'study_desc' => 'required|string',
-            'mods_in_study' => 'required|string',
-            'sexo' => 'required|string|min:1',
-            'paciente' => 'required|array',
-            'paciente.num_docu' => 'required|string',
-            'paciente.nom_pacien' => 'required|string',
-            'paciente.fec_naci' => 'nullable|date',
-            'priori' => 'required|array',
-            'priori.id' => 'required|integer',
-            'priori.nom_priori' => 'required|string',
-            'cod_cups' => 'required|string',
-            'nom_produc' => 'required|string',
-            'fechor_lectura' => 'required|date',
-            'lectura' => 'required|string',
-            'medico' => 'required|array',
-            'medico.reg_medico' => 'nullable|string',
-            'medico.num_docu' => 'required|string',
-            'medico.name' => 'required|string',
-            'medico.firma_medico' => 'nullable|string',
-            'tipo_resultado' => 'nullable|integer|in:1,2,3', // 1 Norma, 2 Patologico, 3 Critico
-        ];
+        // 1. Logs iniciales para depuración
+        Log::info('RAW CONTENT: '.$request->getContent());
 
-        $validator = Validator::make($request->all(), $rules);
+        // 2. Procesamiento de Encoding y JSON (ISO-8859-1 a UTF-8)
+        $rawContent = $request->getContent();
+        $utf8Content = mb_convert_encoding($rawContent, 'UTF-8', 'ISO-8859-1');
+        $data = json_decode($utf8Content, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return response()->json([
+                'message' => 'Error al decodificar el payload JSON.',
+                'error' => json_last_error_msg(),
+            ], 400);
+        }
+
+        // 3. Validación de datos mínimos requeridos
+        $validator = Validator::make($data, [
+            'study_iuid' => 'required|string',
+            'cod_cups' => 'required|string',
+            'paciente.num_docu' => 'required|string',
+            // Validamos médico o adendum.medico según el caso
+            'medico.num_docu' => 'required_without:adendum.medico.num_docu|string',
+        ]);
+
         if ($validator->fails()) {
-            return response()->json(['message' => 'Datos inválidos.', 'errors' => $validator->errors()], 400);
+            return response()->json(['errors' => $validator->errors()], 400);
         }
 
         try {
-            $d = $request->all();
+            $d = $data;
 
-            $medico = User::firstOrCreate(
-                ['num_docu' => $d['medico']['num_docu']],
-                [
-                    'reg_med' => $d['medico']['reg_medico'] ?? null,
-                    'name' => 'TL '.$d['medico']['name'],
-                    'email' => $d['medico']['num_docu'].'@teleradiologia.com',
-                    'password' => bcrypt('password'),
-                ]
-            );
+            // 4. Identificar y procesar al Médico (independientemente de si es Adendum o Lectura)
+            $medicoData = (isset($d['tipo']) && $d['tipo'] === 'adendum')
+                ? $d['adendum']['medico']
+                : $d['medico'];
 
-            $sexo = strtoupper(substr((string) ($d['sexo'] ?? 'M'), 0, 1));
-            if ($sexo !== 'M' && $sexo !== 'F') {
-                $sexo = 'M';
-            }
+            $medico = $this->procesarMedicoConFirma($medicoData);
 
-            $paciente = Paciente::firstOrCreate(
-                ['num_docu' => $d['paciente']['num_docu']],
-                [
-                    'tipo_documento_id' => 1,
-                    'nombres' => $d['paciente']['nom_pacien'],
-                    'sexo' => $sexo,
-                    'fec_naci' => $d['paciente']['fec_naci'] ?? null,
-                ]
-            );
-
-            $estudio = Estudio::where('study_pk', $d['study_pk'])
-                ->where('study_iuid', $d['study_iuid'])
-                ->first();
+            // 5. Buscar el estudio base por IUID
+            $estudio = Estudio::where('study_iuid', $d['study_iuid'])->first();
 
             if (! $estudio) {
-                return response()->json([
-                    'message' => 'Estudio no encontrado.',
-                    'error' => 'No se encontró con study_pk: '.$d['study_pk'].' y study_iuid: '.($d['study_iuid'] ?? ''),
-                ], 404);
+                return response()->json(['message' => 'Estudio no encontrado con IUID: '.$d['study_iuid']], 404);
             }
 
-            if (! $estudio->medico_id) {
-                $estudio->update(['medico_id' => $medico->id]);
-            }
-
+            // 6. Buscar el producto específico del estudio (CUPS)
             $estudioProducto = EstudioProducto::where('estudio_id', $estudio->id)
                 ->where('cod_cups', $d['cod_cups'])
                 ->first();
 
             if (! $estudioProducto) {
-                return response()->json([
-                    'message' => 'Producto del estudio no encontrado.',
-                    'error' => 'No se encontró producto con cod_cups: '.$d['cod_cups'],
-                ], 404);
+                return response()->json(['message' => 'Producto CUPS no encontrado en este estudio.'], 404);
             }
 
+            // --- FLUJO A: ES UN ADENDUM ---
+            if (isset($d['tipo']) && $d['tipo'] === 'adendum') {
+                $adendum = EstudioProductoAdendum::create([
+                    'medico_id' => $medico->id,
+                    'estudio_producto_id' => $estudioProducto->id,
+                    'fechor_lectura' => $d['adendum']['fecha'] ?? now(),
+                    'lectura' => $d['adendum']['lectura'] ?? '',
+                    'activo' => 1,
+                ]);
+
+                return response()->json([
+                    'message' => 'Addendum procesado correctamente.',
+                    'adendum_id' => $adendum->id,
+                ], 200);
+            }
+
+            // --- FLUJO B: ES UNA LECTURA NORMAL ---
+
+            // Procesar Paciente
+            $sexo = strtoupper(substr((string) ($d['paciente']['sexo'] ?? 'M'), 0, 1));
+            $paciente = Paciente::updateOrCreate(
+                ['num_docu' => $d['paciente']['num_docu']],
+                [
+                    'tipo_documento_id' => 1,
+                    'nombres' => $d['paciente']['nom_pacien'] ?? null,
+                    'sexo' => in_array($sexo, ['M', 'F']) ? $sexo : 'M',
+                    'fec_naci' => $d['paciente']['fec_naci'] ?? null,
+                ]
+            );
+
+            // Asignar médico al estudio si no tiene uno
+            if (! $estudio->medico_id) {
+                $estudio->update(['medico_id' => $medico->id]);
+            }
+
+            // Actualizar el producto con la lectura final
             $estudioProducto->update([
-                'fechor_lectura' => $d['fechor_lectura'],
-                'lectura' => $d['lectura'],
-                'transcriptor_id' => $medico->id,
+                'fechor_lectura' => $d['fechor_lectura'] ?? $d['fecha_lectura'] ?? null,
+                'lectura' => $d['lectura'] ?? null,
+                // 'transcriptor_id' => $medico->id, // El médico que firma es el transcriptor/autor
             ]);
 
             return response()->json([
-                'message' => 'Lectura recibida y procesada correctamente.',
-                'data' => [
-                    'study_pk' => $d['study_pk'],
-                    'accession_no' => $d['accession_no'],
-                    'tipo_resultado' => (int) ($d['tipo_resultado'] ?? 1),
-                    'medico_id' => $medico->id,
-                    'paciente_id' => $paciente->id,
-                    'estudio_id' => $estudio->id,
-                    'estudio_producto_id' => $estudioProducto->id,
-                    'procesado_en' => now()->toISOString(),
-                ],
+                'message' => 'Lectura procesada correctamente.',
+                'estudio_id' => $estudio->id,
+                'medico' => $medico->name,
             ], 200);
         } catch (\Exception $e) {
+            Log::error("Error crítico en recibirLectura: ".$e->getMessage());
+
             return response()->json([
-                'message' => 'Error interno al procesar la lectura.',
+                'message' => 'Error interno del servidor.',
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Procesa la información del médico, crea/actualiza el registro
+     * y gestiona la firma en base64 si está presente.
+     *
+     * @param  array  $medicoData  Datos provenientes del JSON
+     * @return \App\Models\User
+     */
+    private function procesarMedicoConFirma(array $medicoData)
+    {
+        // 1. Buscar o instanciar el médico
+        $medico = User::firstOrNew(['num_docu' => $medicoData['num_docu']]);
+
+        // 2. Actualizar datos básicos
+        $medico->name = 'TL '.($medicoData['name'] ?? 'Sin Nombre');
+        $medico->reg_med = $medicoData['reg_medico'] ?? $medico->reg_med;
+
+        if (! $medico->exists) {
+            $medico->email = $medicoData['num_docu'].'@teleradiologia.com';
+            $medico->password = bcrypt('password');
+        }
+
+        // 3. Procesar firma si recibimos un base64 real
+        $firmaRaw = $medicoData['firma_medico'] ?? null;
+
+        if ($firmaRaw && strlen($firmaRaw) > 100) {
+            try {
+                // Extraer extensión y limpiar base64
+                $extension = 'png'; // Valor por defecto
+                if (preg_match('/^data:image\/(\w+);base64,/', $firmaRaw, $type)) {
+                    $extension = strtolower($type[1]);
+                    $firmaRaw = substr($firmaRaw, strpos($firmaRaw, ',') + 1);
+                }
+
+                $imgData = base64_decode($firmaRaw);
+
+                if ($imgData) {
+                    // --- LÓGICA DE SUSTITUCIÓN ---
+                    // Si el médico ya tenía una ruta de firma guardada, eliminamos el archivo físico
+                    if ($medico->firma && Storage::disk('firmas_medicos')->exists($medico->firma)) {
+                        Storage::disk('firmas_medicos')->delete($medico->firma);
+                    }
+
+                    // Generar nombre aleatorio de 50 caracteres
+                    $nombreArchivo = Str::random(50).".".$extension;
+
+                    // Guardar en el disco configurado
+                    Storage::disk('firmas_medicos')->put($nombreArchivo, $imgData);
+
+                    // Actualizar el path en el modelo
+                    $medico->firma = $nombreArchivo;
+                }
+            } catch (\Exception $e) {
+                Log::error("Error al sustituir firma del médico {$medico->num_docu}: ".$e->getMessage());
+            }
+        }
+
+        $medico->save();
+
+        return $medico;
     }
 }

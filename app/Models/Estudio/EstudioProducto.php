@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-
 class EstudioProducto extends Model
 {
     use HasFactory;
@@ -23,5 +22,10 @@ class EstudioProducto extends Model
     public function transcriptor()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function adendums()
+    {
+        return $this->hasMany(EstudioProductoAdendum::class);
     }
 }

@@ -91,7 +91,7 @@
                         </li>
                     @endif
 
-                    @if (auth()->user()->hasAnyPermission(['otrasPlataformas.index', 'otrasPlataformas.enviar', 'otrasPlataformas.trasbcribir']))
+                    {{-- @if (auth()->user()->hasAnyPermission(['otrasPlataformas.index', 'otrasPlataformas.enviar', 'otrasPlataformas.trasbcribir']))
                         <li class="nav-small-cap">--- Otras Plataformas</li>
                         <li>
                             <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
@@ -106,23 +106,10 @@
                                         </a>
                                     </li>
                                 @endcan
-                                {{-- @can('otrasPlataformas.index')
-                                    <li>
-                                        <a href="{{ route('otrasPlataformas.enviar') }}">
-                                            <i class="fa fa-check text-info"></i> Estudios Enviados
-                                        </a>
-                                    </li>
-                                @endcan
-                                @can('otrasPlataformas.trasbcribir')
-                                    <li>
-                                        <a href="{{ route('otrasPlataformas.transcribir') }}">
-                                            <i class="fa fa-search text-info"></i> Pendientes por transcribir
-                                        </a>
-                                    </li>
-                                @endcan --}}
+
                             </ul>
                         </li>
-                    @endif
+                    @endif --}}
 
                     @if (auth()->user()->hasAnyPermission(['tele.ragiologia.index', 'tele.ragiologia.enviar', 'tele.ragiologia.transcribir']))
                         <li class="nav-small-cap">--- Tele Radiología</li>
@@ -164,13 +151,7 @@
                         </li>
                     @endif
 
-                    @if (auth()->user()->hasAnyPermission([
-                        'ecografias.index',
-                        'ecografias.admision',
-                        'ecografias.anular',
-                        'ecografias.leer',
-                        'ecografias.reporte',
-                    ]))
+                    @if (auth()->user()->hasAnyPermission(['ecografias.index', 'ecografias.admision', 'ecografias.anular', 'ecografias.leer', 'ecografias.reporte']))
                         <li class="nav-small-cap">--- ECOGRAFIAS</li>
                         <li>
                             <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
@@ -189,7 +170,7 @@
                                             <i class="fa fa-address-book-o  text-info"></i> Ecografías admisionadas
                                         </a>
                                     @endcan
-                                @can('ecografias.leer')
+                                    @can('ecografias.leer')
                                         <a href="{{ route('ecografias.pendientes.lecturas') }}">
                                             <i class="fa fa-pencil text-info"></i> Realizar lectura
                                         </a>
@@ -273,21 +254,7 @@
                         </li>
                     @endif
 
-                    @if (auth()->user()->hasAnyPermission([
-                        'config.admin.salud.index',
-                        'config.diagnosticos.index',
-                        'config.prioridades.index',
-                        'config.productos.index',
-                        'config.sedes.index',
-                        'config.plantillas.index',
-                        'config.tipo.documento.index',
-                        'config.consentimiento_informado.index',
-                        'ecografias.consentimientos.index',
-                        'ecografias.consentimientos.plantillas.index',
-                        'helpdesk.config.categorias.index',
-                        'helpdesk.config.prioridades.index',
-                        'helpdesk.config.estados.index',
-                    ]))
+                    @if (auth()->user()->hasAnyPermission(['config.admin.salud.index', 'config.diagnosticos.index', 'config.prioridades.index', 'config.productos.index', 'config.sedes.index', 'config.plantillas.index', 'config.tipo.documento.index', 'config.consentimiento_informado.index', 'ecografias.consentimientos.index', 'ecografias.consentimientos.plantillas.index', 'helpdesk.config.categorias.index', 'helpdesk.config.prioridades.index', 'helpdesk.config.estados.index']))
                         <li class="nav-small-cap">--- PARAMETRIZACIÓN</li>
                         <li>
                             <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">

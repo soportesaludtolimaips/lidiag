@@ -9,8 +9,6 @@ use Database\Seeders\Configuracion\ConfigDiagnosticoSeeder;
 use Database\Seeders\configuracion\ConfigPrioridadeSeeder;
 use Database\Seeders\Configuracion\ConfigProductoSeeder;
 use Database\Seeders\Configuracion\ConfigSedeSeeder;
-use Database\Seeders\HelpDesk\HelpDeskCatalogosSeeder;
-use Database\Seeders\HelpDesk\HelpDeskPermisosSeeder;
 use Database\Seeders\Seguridad\RoleSeeder;
 use Database\Seeders\Seguridad\UserSeeder;
 use Illuminate\Database\Seeder;

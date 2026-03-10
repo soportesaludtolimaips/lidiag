@@ -696,7 +696,7 @@ export default {
                 accession_no: "",
                 study_desc: "",
                 mods_in_study: "",
-                observaciones: "PRUEBA",
+                observaciones: "PRUEBA PRODUCCION",
                 paciente: {
                     tipo_docu: "CC",
                     num_docu: "",
@@ -719,12 +719,11 @@ export default {
                 producto: [],
                 adjuntos: [],
                 motivo_examen: null,
-                observaciones: null,
             },
             soportesHC: { archivo1: null, archivo2: null, archivo3: null },
             busqueda: {
                 sede_id: this.sedeActual,
-                bus_nom_num_docu: "28645203",
+                bus_nom_num_docu: "",
                 bus_fehc_ini: "",
                 bus_fecha_fin: "",
             },
@@ -904,7 +903,7 @@ export default {
 
                     $.toast({
                         heading: "Ok!!!",
-                        text: resOrdenTele?.data?.message || "Orden enviada correctamente.",
+                        text: resOrdenTele?.data?.details || "Orden enviada correctamente.",
                         position: "top-right",
                         loaderBg: "#ff6849",
                         icon: "success",

@@ -862,7 +862,9 @@ export default {
                                 this.$refs.dt || "#example23",
                                 "#row-" + this.idRow
                             );
-                        } catch (e) {}
+                        } catch (e) {
+                            console.error("Error al intentar eliminar la fila de la tabla:", e);
+                        }
                         this.registros.splice(estudioEliminar, 1);
                     }
 

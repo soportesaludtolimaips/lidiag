@@ -593,8 +593,8 @@ export default {
                     });
                 }
 
-                this.btnCerralModalForm();
-                this.limpiar();
+                /* this.btnCerralModalForm();
+                this.limpiar(); */
             } catch (e) {
                 const status = e?.response?.status;
                 if (status == 402) {

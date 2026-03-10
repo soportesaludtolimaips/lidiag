@@ -11,10 +11,10 @@ use App\Models\Estudio\Estudio;
 use App\Models\General\Paciente;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Twilio\Rest\Client;
 
@@ -30,7 +30,7 @@ class EstudioNotificacionController extends Controller
     /**
      * Lista los estudios que ya tienen transcripción y están activos, listos para notificar.
      *
-     * @param Request $request Filtros por número de documento (`bus_num_docu`) o nombre (`bus_nom`).
+     * @param  Request  $request  Filtros por número de documento (`bus_num_docu`) o nombre (`bus_nom`).
      * @return \Illuminate\Http\JsonResponse Lista de estudios.
      */
     public function listarEstudios(Request $request)
@@ -97,6 +97,7 @@ class EstudioNotificacionController extends Controller
         }
 
         $registros = $query->orderByDesc('estudios_productos.fechor_trascrito')->limit(1000)->get();
+
         return response()->json($registros);
     }
 
@@ -111,106 +112,35 @@ class EstudioNotificacionController extends Controller
      *    - Envía email con el PDF adjunto usando `NotificacionDeLectura`.
      * 4. Limpia archivos temporales (PDF e imágenes).
      *
-     * @param object $estudio Objeto con datos del estudio y paciente.
+     * @param  object  $estudio  Objeto con datos del estudio y paciente.
      * @return \Illuminate\Http\JsonResponse Confirmación.
      */
-    public function notificarEmail($estudio)
+    public function notificarEmail($estudio, $archivoReporte)
     {
-        $nombrePaciente = str_replace('^^^', '', $estudio->nom_pacien);
-        $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
-        $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
-
-        $nomArchivoReporte = $estudio->estudio_producto_id . "-" . $estudio->num_docu . "-" . $nombrePaciente . ".pdf";
-
-        /**
-         * Envio la lectura a Lidiag-reportes para que este diponible para la descarga por parte del paciente
-         */
-        $urlApiReportes = rtrim(config('app.URL_API_REPORTES'), '/') . '/api/almacenarLectura';
-
-        $secret = env('API_HMAC_SECRET'); // mismo secreto que en lidiag-reportes
-        $ts = time();
-
-        $payload = [
-            'num_docu' => $estudio->num_docu,
-            'name' => $estudio->nom_pacien,
-            'fec_naci' => $estudio->fec_naci,
-            'nom_produc' => $estudio->nom_produc,
-            'fechor_lectura' => $estudio->fechor_lectura,
-            'nom_sede' => $estudio->nom_sede,
-            'url_oviyam' => $estudio->url_oviyam,
-            'study_iuid' => $estudio->study_iuid,
-            'tap_oviyam' => $estudio->tap_oviyam,
-        ];
-
-        $reportePath = storage_path('app/reporte_lecturas/' . $nomArchivoReporte);
-        if (!file_exists($reportePath)) {
-            return response()->json(['message' => 'No se encontró el reporte PDF para notificar.'], 400);
+        $reportePath = storage_path('app/reporte_lecturas/'.$archivoReporte);
+        if (! file_exists($reportePath)) {
+            return response()->json(['message' => 'No se encontró el reporte PDF para enviar al portal.'], 400);
         }
-        $fileBytes = file_get_contents($reportePath);
-
-        $method = 'POST';
-        $path = parse_url($urlApiReportes, PHP_URL_PATH) ?: '/api/almacenarLectura';
-
-        ksort($payload);
-        $payloadCanonical = http_build_query($payload, '', '&', PHP_QUERY_RFC3986);
-        $payloadSha = hash('sha256', $payloadCanonical);
-        $fileSha = hash('sha256', $fileBytes ?: '');
-
-        $stringToSign = implode("\n", [$method, $path, (string)$ts, $payloadSha, $fileSha]);
-        $signature = base64_encode(hash_hmac('sha256', $stringToSign, $secret, true));
-
-        $response = Http::withoutVerifying()
-            ->acceptJson()
-            ->withHeaders([
-                'X-Timestamp' => (string) $ts,
-                'X-Signature' => $signature,
-            ])
-            ->timeout(60)
-            ->attach('file_reporte', $fileBytes, $nomArchivoReporte)
-            ->post($urlApiReportes, $payload);
-
-        //return $response;
-
-        if ($response->successful()) {
-            // El reporte se subió bien
-        }
-
-        /**
-         * Actualizo el nombre y correo electronico del paciente
-         */
-        Paciente::updateOrCreate(
-            ['num_docu' => $estudio->num_docu],
-            [
-                'nombres' => $estudio->nom_pacien,
-                'email' => $estudio->email,
-                'tel' => $estudio->tel ?? null,
-                'sexo' => $estudio->sexo ?? null,
-                'fec_naci' => $estudio->fec_naci ?? null,
-                'direccion' => $estudio->direccion ?? null,
-            ]
-        );
-
         /**
          * Envio de email con el adjunto del reporte de la lectura del estudio
          */
         if ($estudio->email != "") {
-            //$imagenes = $this->descargaImgDicom($estudio->sede_id, $estudio->study_iuid);
-            //return $imagenes;
-            $mailable = new NotificacionDeLectura($estudio, $nomArchivoReporte, $estudio->study_iuid);
+            $imagenes = $this->descargaImgDicom($estudio->sede_id, $estudio->study_iuid);
+            $mailable = new NotificacionDeLectura($estudio, $archivoReporte, $estudio->study_iuid);
             Mail::to($estudio->email)->send($mailable);
         }
 
         if ($estudio->email_reportar != "") {
-            $mailable = new ReportarLectura($estudio, $nomArchivoReporte);
+            $mailable = new ReportarLectura($estudio, $archivoReporte);
             Mail::to($estudio->email_reportar)->send($mailable);
         }
 
         // Borrar el PDF temporal si existe
-        @unlink($reportePath);
+        @unlink($archivoReporte);
 
         // Obtener las rutas de las imágenes que se enviaron
-        $imagenesAdjuntos = Storage::exists('img_dicom/' . $estudio->study_iuid)
-            ? Storage::files('img_dicom/' . $estudio->study_iuid)
+        $imagenesAdjuntos = Storage::exists('img_dicom/'.$estudio->study_iuid)
+            ? Storage::files('img_dicom/'.$estudio->study_iuid)
             : [];
 
         // Eliminar cada imagen
@@ -219,7 +149,7 @@ class EstudioNotificacionController extends Controller
         }
 
         // Eliminar la carpeta que contiene las imágenes
-        Storage::deleteDirectory('img_dicom/' . $estudio->study_iuid);
+        Storage::deleteDirectory('img_dicom/'.$estudio->study_iuid);
 
         return response()->json(['message' => 'La notificación se generó correctamente.']);
     }
@@ -230,13 +160,12 @@ class EstudioNotificacionController extends Controller
         $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
         $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
 
-        $nomArchivoReporte = $estudio->estudio_producto_id . "-" . $estudio->num_docu . "-" . $nombrePaciente . ".pdf";
+        $nomArchivoReporte = $estudio->estudio_producto_id."-".$estudio->num_docu."-".$nombrePaciente.".pdf";
 
         /**
          * Envio la lectura a Lidiag-reportes para que este diponible para la descarga por parte del paciente
          */
-        $urlApiReportes = rtrim(config('app.URL_API_REPORTES'), '/') . '/api/almacenarLectura';
-
+        $urlApiReportes = rtrim(config('app.URL_API_REPORTES'), '/').'/api/almacenarLectura';
 
         $secret = env('API_HMAC_SECRET'); // mismo secreto que en lidiag-reportes
         $ts = time();
@@ -253,8 +182,8 @@ class EstudioNotificacionController extends Controller
             'tap_oviyam' => $estudio->tap_oviyam,
         ];
 
-        $reportePath = storage_path('app/reporte_lecturas/' . $nomArchivoReporte);
-        if (!file_exists($reportePath)) {
+        $reportePath = storage_path('app/reporte_lecturas/'.$nomArchivoReporte);
+        if (! file_exists($reportePath)) {
             return response()->json(['message' => 'No se encontró el reporte PDF para enviar al portal.'], 400);
         }
         $fileBytes = file_get_contents($reportePath);
@@ -267,7 +196,7 @@ class EstudioNotificacionController extends Controller
         $payloadSha = hash('sha256', $payloadCanonical);
         $fileSha = hash('sha256', $fileBytes ?: '');
 
-        $stringToSign = implode("\n", [$method, $path, (string)$ts, $payloadSha, $fileSha]);
+        $stringToSign = implode("\n", [$method, $path, (string) $ts, $payloadSha, $fileSha]);
         $signature = base64_encode(hash_hmac('sha256', $stringToSign, $secret, true));
 
         try {
@@ -282,7 +211,10 @@ class EstudioNotificacionController extends Controller
                 ->post($urlApiReportes, $payload);
 
             if ($response->successful()) {
-                return response()->json(['message' => 'El estudio se ha enviado al portal de pacientes correctamente.']);
+                return response()->json([
+                    'message' => 'El estudio se ha enviado al portal de pacientes correctamente.',
+                    'reportePath' => $nomArchivoReporte,
+                ], 200);
             }
 
             return response()->json([
@@ -295,7 +227,7 @@ class EstudioNotificacionController extends Controller
         } finally {
             // Limpieza best-effort del archivo temporal del reporte
             try {
-                @unlink($reportePath);
+                // @unlink($reportePath);
             } catch (\Exception $e) {
                 // no-op
             }
@@ -305,15 +237,15 @@ class EstudioNotificacionController extends Controller
     /**
      * Descarga imágenes DICOM (convertidas a JPEG) desde el servidor WADO de la sede.
      *
-     * @param int $sedeId ID de la sede.
-     * @param string $study_iuid UID del estudio.
+     * @param  int  $sedeId  ID de la sede.
+     * @param  string  $study_iuid  UID del estudio.
      * @return \Illuminate\Http\JsonResponse Resultado de la descarga.
      */
     public static function descargaImgDicom($sedeId, $study_iuid)
     {
         $sedeActual = ConfigSede::find($sedeId);
 
-        //Configuramos la segunda base de datos
+        // Configuramos la segunda base de datos
         config(['database.connections.mysql_sucursal' => [
             'driver' => 'mysql',
             'host' => env('DB_SUCURSAL_HOST', $sedeActual->ip_dcm),
@@ -325,7 +257,7 @@ class EstudioNotificacionController extends Controller
             'collation' => env('DB_SUCURSAL_collation', 'latin1_swedish_ci'),
         ]]);
 
-        //Aplicamos la nueva configuracion de bade datos
+        // Aplicamos la nueva configuracion de bade datos
         Config::set('database.default', 'mysql_sucursal');
 
         // Obtener todas las series y las instancias (imágenes) del estudio
@@ -333,7 +265,7 @@ class EstudioNotificacionController extends Controller
             ->join('study', 'series.study_fk', '=', 'study.pk')
             ->where('study.study_iuid', $study_iuid)
             ->select('series.series_iuid', 'instance.sop_iuid')
-            ->limit(10)
+            ->limit(20)
             ->get();
 
         // Verificar si se encontraron imágenes
@@ -347,8 +279,7 @@ class EstudioNotificacionController extends Controller
             $objectUID = $imagen->sop_iuid;
 
             // URL del servicio WADO para la imagen
-            $wadoUrl = "http://" . $sedeActual->ip_dcm . ":8080/wado?requestType=WADO&studyUID=$study_iuid&seriesUID=$seriesUID&objectUID=$objectUID&contentType=image/jpeg";
-            return $wadoUrl;
+            $wadoUrl = "http://".$sedeActual->ip_dcm.":8080/wado?requestType=WADO&studyUID=$study_iuid&seriesUID=$seriesUID&objectUID=$objectUID&contentType=image/jpeg";
 
             // Hacer la solicitud HTTP GET para obtener la imagen
             $response = Http::get($wadoUrl);
@@ -359,10 +290,10 @@ class EstudioNotificacionController extends Controller
                 $imageContent = $response->body();
 
                 // Definir el nombre del archivo
-                $filename = 'imagen_' . $study_iuid . '_' . $seriesUID . '_' . $objectUID . '.jpg';
+                $filename = 'imagen_'.$study_iuid.'_'.$seriesUID.'_'.$objectUID.'.jpg';
 
                 // Guardar la imagen en el directorio 'img_dicom' del storage
-                Storage::put('img_dicom/' . $study_iuid . "/" . $filename, $imageContent);
+                Storage::put('img_dicom/'.$study_iuid."/".$filename, $imageContent);
             } else {
                 // Manejo de errores si alguna imagen no se pudo descargar
                 return response()->json(['error' => 'Error al descargar una de las imágenes'], 500);
@@ -376,14 +307,14 @@ class EstudioNotificacionController extends Controller
     /**
      * Envía una notificación por WhatsApp usando Twilio.
      *
-     * @param string $numeroTelefono Número de destino.
-     * @param string $mensaje Cuerpo del mensaje.
+     * @param  string  $numeroTelefono  Número de destino.
+     * @param  string  $mensaje  Cuerpo del mensaje.
      * @return \Illuminate\Http\JsonResponse Resultado del envío.
      */
     public function enviarMensajeWhatsApp($numeroTelefono, $mensaje)
     {
-        $sid    = "ACcdc29948e05772a83ac3e0db74169c96";
-        $token  = "b92011d04a5d9d1b929a1b97d7dff9f7";
+        $sid = "ACcdc29948e05772a83ac3e0db74169c96";
+        $token = "b92011d04a5d9d1b929a1b97d7dff9f7";
         $twilio = new Client($sid, $token);
 
         /* $message = $twilio->messages
@@ -404,10 +335,15 @@ class EstudioNotificacionController extends Controller
                 "from" => "whatsapp:+14155238886",
                 "contentSid" => "HXb5b62575e6e4ff6129ad7c8efe1f983e",
                 'body' => 'Hola {nombre}, tu reporte de imagen diagnóstica está listo. Puedes revisarlo aquí: {link}. Gracias por elegirnos.',
-                'mediaUrl' => ['https://tureporte.com/reporte.pdf']  // Enlace o URL que quieras compartir
+                'mediaUrl' => ['https://tureporte.com/reporte.pdf'],  // Enlace o URL que quieras compartir
             ]
         );
 
         return response()->json(['success' => 'Mensaje enviado por WhatsApp', 'message' => $message->sid], 200);
+    }
+
+    public function eliminarReporte($reportePath)
+    {
+        @unlink($reportePath);   // Implementar lógica para eliminar el reporte si es necesario
     }
 }
