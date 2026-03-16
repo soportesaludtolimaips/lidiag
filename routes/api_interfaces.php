@@ -16,9 +16,9 @@ use Illuminate\Support\Facades\Route;
  * Recepción de lecturas TLIMAGEN → SaludTolima (HMAC, sin auth).
  * Cliente envía X-Timestamp y X-Signature (ver docs/TELERADIOLOGIA_WEBHOOK_CLIENTE.md).
  */
+
 Route::post('/tele-radiologia-recibir-lectura', [App\Http\Controllers\Interface\TeleRadiologiaController::class, 'recibirLectura'])
-    ->name('api.tele.radiologia.recibir.lectura')
-    ->middleware(['tele.hmac']);
+    ->name('api.tele.radiologia.recibir.lectura');
 
 Route::middleware(['auth:sanctum'])->group(function () {
     /*
