@@ -38,22 +38,14 @@
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label>Quien asigno</label>
-                                            <select
-                                                v-model="busqueda.quien_asigno_id"
-                                                name="quien_asigno_id"
-                                                id="quien_asigno_id"
-                                                class="form-control custom-select"
-                                            >
+                                            <select v-model="busqueda.quien_asigno_id" name="quien_asigno_id"
+                                                id="quien_asigno_id" class="form-control custom-select">
                                                 <option value="">
                                                     ...::: Todos los usuarios :::...
                                                 </option>
-                                                <option
-                                                    v-for="(
-                                                        ItemUsuario, index
-                                                    ) in quienes_asignaron"
-                                                    :key="index"
-                                                    :value="ItemUsuario.id"
-                                                >
+                                                <option v-for="(
+ItemUsuario, index
+                                                    ) in quienes_asignaron" :key="index" :value="ItemUsuario.id">
                                                     {{ ItemUsuario.name }}
                                                 </option>
                                             </select>
@@ -61,61 +53,36 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label class="control-label"
-                                                >Nombres o # documento</label
-                                            >
-                                            <input
-                                                type="text"
-                                                id="bus_nom_num_docu"
-                                                name="bus_nom_num_docu"
-                                                v-model="busqueda.bus_nom_num_docu"
-                                                class="form-control"
-                                                placeholder="Nombres de paciente o # de documento"
-                                            />
+                                            <label class="control-label">Nombres o # documento</label>
+                                            <input type="text" id="bus_nom_num_docu" name="bus_nom_num_docu"
+                                                v-model="busqueda.bus_nom_num_docu" class="form-control"
+                                                placeholder="Nombres de paciente o # de documento" />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Inicio</label>
-                                            <input
-                                                type="date"
-                                                id="nom_diagnos"
-                                                name="nom_diagnos"
-                                                v-model="busqueda.bus_fehc_ini"
-                                                class="form-control"
-                                            />
+                                            <input type="date" id="nom_diagnos" name="nom_diagnos"
+                                                v-model="busqueda.bus_fehc_ini" class="form-control" />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Fin</label>
-                                            <input
-                                                type="date"
-                                                id="fecha_fin"
-                                                name="fecha_fin"
-                                                v-model="busqueda.bus_fecha_fin"
-                                                class="form-control"
-                                            />
+                                            <input type="date" id="fecha_fin" name="fecha_fin"
+                                                v-model="busqueda.bus_fecha_fin" class="form-control" />
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="form-actions mt-3">
-                                    <button
-                                        type="button"
-                                        class="btn btn-success m-r-5"
-                                        :disabled="loadingBuscar"
-                                        @click="listarPendientesTrascribir()"
-                                    >
+                                    <button type="button" class="btn btn-success m-r-5" :disabled="loadingBuscar"
+                                        @click="listarPendientesTrascribir()">
                                         <i v-if="loadingBuscar" class="fa fa-spinner fa-spin"></i>
                                         <i v-else class="fa fa-search"></i>
                                         Buscar
                                     </button>
-                                    <button
-                                        type="button"
-                                        class="btn btn-inverse"
-                                        @click="btnLimpiar()"
-                                    >
+                                    <button type="button" class="btn btn-inverse" @click="btnLimpiar()">
                                         <i class="fa fa-refresh"></i> Limpiar
                                     </button>
                                 </div>
@@ -135,13 +102,8 @@
                             Asigne los estudios a los médicos para su respectiva lectura.
                         </h6>
                         <div class="table-responsive">
-                            <table
-                                id="example23"
-                                ref="dt"
-                                class="table table-bordered table-striped"
-                                cellspacing="0"
-                                width="100%"
-                            >
+                            <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
+                                width="100%">
                                 <thead>
                                     <tr>
                                         <th></th>
@@ -158,38 +120,23 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr
-                                        v-for="item in registros"
-                                        :key="item.estudio_producto_id"
-                                        :id="'row-' + item.estudio_producto_id"
-                                    >
+                                    <tr v-for="item in registros" :key="item.estudio_producto_id"
+                                        :id="'row-' + item.estudio_producto_id">
                                         <td>
-                                            <button
-                                                type="button"
-                                                v-if="item.priori_id == 1"
-                                                class="btn waves-effect waves-light btn-rounded btn-sm btn-danger"
-                                            >
+                                            <button type="button" v-if="item.priori_id == 1"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">
                                                 A
                                             </button>
-                                            <button
-                                                type="button"
-                                                v-else-if="item.priori_id == 2"
-                                                class="btn waves-effect waves-light btn-rounded btn-sm btn-warning"
-                                            >
+                                            <button type="button" v-else-if="item.priori_id == 2"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm btn-warning">
                                                 M
                                             </button>
-                                            <button
-                                                type="button"
-                                                v-else-if="item.priori_id == 3"
-                                                class="btn waves-effect waves-light btn-rounded btn-sm btn-info"
-                                            >
+                                            <button type="button" v-else-if="item.priori_id == 3"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm btn-info">
                                                 B
                                             </button>
-                                            <button
-                                                type="button"
-                                                v-else-if="item.priori_id == 4"
-                                                class="btn waves-effect waves-light btn-rounded btn-sm"
-                                            >
+                                            <button type="button" v-else-if="item.priori_id == 4"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm">
                                                 S
                                             </button>
                                         </td>
@@ -210,45 +157,31 @@
                                         </td>
                                         <td>{{ item.nom_produc }}</td>
                                         <td class="text-nowrap">
-                                            <button
-                                                type="button"
+                                            <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                :disabled="
-                                                    loadingAbrirId === item.estudio_producto_id
-                                                "
-                                                @click="
-                                                    actualizar = true;
+                                                :disabled="loadingAbrirId === item.estudio_producto_id
+                                                    " @click="
+                                                        actualizar = true;
                                                     mostrarRegistro(item);
-                                                "
-                                            >
-                                                <i
-                                                    v-if="
-                                                        loadingAbrirId === item.estudio_producto_id
-                                                    "
-                                                    class="fa fa-spinner fa-spin"
-                                                ></i>
+                                                    ">
+                                                <i v-if="
+                                                    loadingAbrirId === item.estudio_producto_id
+                                                " class="fa fa-spinner fa-spin"></i>
                                                 <i v-else class="fa fa-pencil"></i>
                                             </button>
-                                            <button
-                                                type="button"
+                                            <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
-                                                :disabled="
+                                                :disabled="loadingAnularId === item.estudio_producto_id
+                                                    " @click="
+                                                        anularAsignacion(
+                                                            item.estudio_producto_id,
+                                                            item.nom_pacien,
+                                                            item.nom_produc
+                                                        )
+                                                        ">
+                                                <i v-if="
                                                     loadingAnularId === item.estudio_producto_id
-                                                "
-                                                @click="
-                                                    anularAsignacion(
-                                                        item.estudio_producto_id,
-                                                        item.nom_pacien,
-                                                        item.nom_produc
-                                                    )
-                                                "
-                                            >
-                                                <i
-                                                    v-if="
-                                                        loadingAnularId === item.estudio_producto_id
-                                                    "
-                                                    class="fa fa-spinner fa-spin"
-                                                ></i>
+                                                " class="fa fa-spinner fa-spin"></i>
                                                 <i v-else class="fa fa-eraser"></i>
                                             </button>
                                         </td>
@@ -268,19 +201,12 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div
-            class="right-sidebar"
-            style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%"
-        >
+        <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <span @click="btnCerralModalForm()">
-                        <i
-                            class="ti-close right-side-toggle"
-                            id="btnCerralModalForm"
-                            @click="btnCerralModalForm()"
-                        ></i>
+                        <i class="ti-close right-side-toggle" id="btnCerralModalForm" @click="btnCerralModalForm()"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
@@ -324,13 +250,8 @@
                                         <div class="col-md-4">
                                             <div class="form-group">
                                                 <label class="control-label">Dirección</label>
-                                                <input
-                                                    type="text"
-                                                    id="direccion"
-                                                    name="direccion"
-                                                    v-model="registro.direccion"
-                                                    class="form-control"
-                                                />
+                                                <input type="text" id="direccion" name="direccion"
+                                                    v-model="registro.direccion" class="form-control" />
                                                 <span class="text-danger" v-if="errores.direccion">
                                                     {{ errores.direccion[0] }}
                                                 </span>
@@ -339,13 +260,8 @@
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label class="control-label">Télefono</label>
-                                                <input
-                                                    type="number"
-                                                    id="telefono"
-                                                    name="telefono"
-                                                    v-model="registro.tel"
-                                                    class="form-control"
-                                                />
+                                                <input type="number" id="telefono" name="telefono"
+                                                    v-model="registro.tel" class="form-control" />
                                                 <span class="text-danger" v-if="errores.tel">
                                                     {{ errores.tel[0] }}
                                                 </span>
@@ -354,16 +270,10 @@
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <label class="control-label">E - Mail</label>
-                                                <input
-                                                    type="email"
-                                                    id="email"
-                                                    name="email"
-                                                    v-model="registro.email"
-                                                    class="form-control"
-                                                />
+                                                <input type="email" id="email" name="email" v-model="registro.email"
+                                                    class="form-control" />
                                                 <span class="text-danger" v-if="errores.email">
-                                                    {{ errores.email[0] }}</span
-                                                >
+                                                    {{ errores.email[0] }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -373,18 +283,9 @@
                                     </h5>
                                     <hr />
 
-                                    <input
-                                        type="hidden"
-                                        id="estudio_producto_id"
-                                        name="estudio_producto_id"
-                                        v-model="registro.estudio_producto_id"
-                                    />
-                                    <input
-                                        type="hidden"
-                                        id="email"
-                                        name="email"
-                                        v-model="registro.email"
-                                    />
+                                    <input type="hidden" id="estudio_producto_id" name="estudio_producto_id"
+                                        v-model="registro.estudio_producto_id" />
+                                    <input type="hidden" id="email" name="email" v-model="registro.email" />
 
                                     <div class="row">
                                         <div class="col-md-5">
@@ -417,17 +318,10 @@
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
-                                                <label class="control-label"
-                                                    >Reportar al Email</label
-                                                >
-                                                <input
-                                                    type="text"
-                                                    id="email_reportar"
-                                                    name="email_reportar"
-                                                    v-model="registro.email_reportar"
-                                                    class="form-control"
-                                                    placeholder="Ingrese aqi el email a reportar"
-                                                />
+                                                <label class="control-label">Reportar al Email</label>
+                                                <input type="text" id="email_reportar" name="email_reportar"
+                                                    v-model="registro.email_reportar" class="form-control"
+                                                    placeholder="Ingrese aqi el email a reportar" />
                                             </div>
 
                                             <div class="form-group">
@@ -462,19 +356,10 @@
                                             <hr />
                                         </div>
                                         <div class="col-3">
-                                            <div
-                                                class="col-md-7 align-self-center text-right d-none d-md-block"
-                                            >
-                                                <button
-                                                    type="button"
-                                                    class="btn btn-secondary btn-xs"
-                                                    :disabled="loadingVerImagen"
-                                                    @click="verImagen()"
-                                                >
-                                                    <i
-                                                        v-if="loadingVerImagen"
-                                                        class="fa fa-spinner fa-spin"
-                                                    ></i>
+                                            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                                                <button type="button" class="btn btn-secondary btn-xs"
+                                                    :disabled="loadingVerImagen" @click="verImagen()">
+                                                    <i v-if="loadingVerImagen" class="fa fa-spinner fa-spin"></i>
                                                     <i v-else class="fa fa-file-image-o"></i>
                                                 </button>
                                             </div>
@@ -491,14 +376,10 @@
                                         </div>
                                         <div class="col-12">
                                             <div class="form-group">
-                                                <textarea
-                                                    v-model="registro.lectura"
-                                                    class="textarea_editor form-control"
-                                                    rows="20"
-                                                    id="lectura"
+                                                <textarea v-model="registro.lectura"
+                                                    class="textarea_editor form-control" rows="20" id="lectura"
                                                     style="height: 100%"
-                                                    placeholder="Ingrese aquí la lectura del estudio ..."
-                                                ></textarea>
+                                                    placeholder="Ingrese aquí la lectura del estudio ..."></textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -508,24 +389,15 @@
                                             <!-- Nav tabs -->
                                             <ul class="nav nav-tabs" role="tablist">
                                                 <li class="nav-item">
-                                                    <a
-                                                        class="nav-link active"
-                                                        data-toggle="tab"
-                                                        href="#home8"
-                                                        role="tab"
-                                                    >
+                                                    <a class="nav-link active" data-toggle="tab" href="#home8"
+                                                        role="tab">
                                                         <h5 class="card-title text-info">
                                                             <i class="fa fa-paperclip"></i> Adjuntos
                                                         </h5>
                                                     </a>
                                                 </li>
                                                 <li class="nav-item">
-                                                    <a
-                                                        class="nav-link"
-                                                        data-toggle="tab"
-                                                        href="#profile8"
-                                                        role="tab"
-                                                    >
+                                                    <a class="nav-link" data-toggle="tab" href="#profile8" role="tab">
                                                         <span>
                                                             <h5 class="card-title text-info">
                                                                 <i class="fa fa-file-audio-o"></i>
@@ -537,57 +409,33 @@
                                             </ul>
                                             <!-- Tab panes -->
                                             <div class="tab-content tabcontent-border">
-                                                <div
-                                                    class="tab-pane active p-20"
-                                                    id="home8"
-                                                    role="tabpanel"
-                                                >
-                                                    <div
-                                                        class="col-md-8 col-lg-9"
-                                                        v-for="(itemArchivo, index) in soportesHC"
-                                                        :key="index"
-                                                    >
-                                                        <a
-                                                            href="javascript:void(0)"
-                                                            :style="{
-                                                                pointerEvents:
-                                                                    loadingDescargaSoporte ===
+                                                <div class="tab-pane active p-20" id="home8" role="tabpanel">
+                                                    <div class="col-md-8 col-lg-9"
+                                                        v-for="(itemArchivo, index) in soportesHC" :key="index">
+                                                        <a href="javascript:void(0)" :style="{
+                                                            pointerEvents:
+                                                                loadingDescargaSoporte ===
                                                                     itemArchivo.archivo_encrip
-                                                                        ? 'none'
-                                                                        : 'auto',
-                                                            }"
-                                                            @click="
-                                                                descargaSoportte(
-                                                                    itemArchivo.archivo_original,
-                                                                    itemArchivo.archivo_encrip
-                                                                )
-                                                            "
-                                                        >
-                                                            <i
-                                                                v-if="
-                                                                    loadingDescargaSoporte ===
-                                                                    itemArchivo.archivo_encrip
-                                                                "
-                                                                class="fa fa-spinner fa-spin"
-                                                            ></i>
+                                                                    ? 'none'
+                                                                    : 'auto',
+                                                        }" @click="
+                                                            descargaSoportte(
+                                                                itemArchivo.archivo_original,
+                                                                itemArchivo.archivo_encrip
+                                                            )
+                                                            ">
+                                                            <i v-if="
+                                                                loadingDescargaSoporte ===
+                                                                itemArchivo.archivo_encrip
+                                                            " class="fa fa-spinner fa-spin"></i>
                                                             {{ itemArchivo.archivo_original }}
                                                         </a>
                                                     </div>
                                                 </div>
-                                                <div
-                                                    class="tab-pane p-20"
-                                                    id="profile8"
-                                                    role="tabpanel"
-                                                >
-                                                    <template
-                                                        v-for="(item, index) in audiosDeEstudio"
-                                                        :key="index"
-                                                    >
-                                                        <audio
-                                                            :src="item.url"
-                                                            controls
-                                                            style="height: 15px; width: 100%"
-                                                        ></audio>
+                                                <div class="tab-pane p-20" id="profile8" role="tabpanel">
+                                                    <template v-for="(item, index) in audiosDeEstudio" :key="index">
+                                                        <audio :src="item.url" controls
+                                                            style="height: 15px; width: 100%"></audio>
                                                     </template>
                                                 </div>
                                             </div>
@@ -597,22 +445,14 @@
                             </div>
 
                             <div class="form-actions mt-3">
-                                <button
-                                    type="button"
-                                    class="btn btn-success m-r-5"
-                                    @click="guardarRegistro()"
-                                    :disabled="loadingGuardar"
-                                >
+                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
+                                    :disabled="loadingGuardar">
                                     <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
                                     <i v-else class="fa fa-check"></i> Guardar
                                 </button>
 
-                                <button
-                                    type="button"
-                                    class="btn btn-inverse"
-                                    ref="btnCerrarForm"
-                                    @click="btnCerralModalForm()"
-                                >
+                                <button type="button" class="btn btn-inverse" ref="btnCerrarForm"
+                                    @click="btnCerralModalForm()">
                                     Cancel
                                 </button>
                             </div>
@@ -708,7 +548,6 @@ export default {
                 url_oviyam: null,
                 tap_oviyam: null,
                 study_iuid: null,
-                tap_oviyam: null,
                 destino_estudio: "Tele Radiologia",
             },
             busqueda: {
@@ -716,7 +555,7 @@ export default {
                 quien_asigno_id: "",
                 medico_id: "",
                 sede_id: "",
-                bus_nom_num_docu: "1105674814",
+                bus_nom_num_docu: "",
                 bus_fehc_ini: "",
                 bus_fecha_fin: "",
                 destino_estudio: "Tele Radiologia",
@@ -823,7 +662,7 @@ export default {
                                 this.$refs.dt || "#example23",
                                 "#row-" + this.idRow
                             );
-                        } catch (e) {}
+                        } catch (e) { }
                         this.registros.splice(estudioEliminar, 1);
                     }
 
@@ -956,7 +795,7 @@ export default {
                                 this.$refs.dt || "#example23",
                                 "#row-" + idProductoEstudio
                             );
-                        } catch (e) {}
+                        } catch (e) { }
                         this.registros.splice(idx, 1);
                     }
                     alertSuccess("Anulado!", "El producto se anulo correctamente.", "success");
