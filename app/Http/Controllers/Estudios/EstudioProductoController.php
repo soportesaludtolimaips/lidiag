@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Estudios;
 
 use App\Http\Controllers\Controller;
-use App\Models\Estudios\EstudioProducto;
+use App\Models\Estudio\EstudioProducto;
 use Illuminate\Http\Request;
 
 class EstudioProductoController extends Controller

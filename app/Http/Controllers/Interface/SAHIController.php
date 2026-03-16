@@ -18,8 +18,8 @@ class SAHIController extends Controller
     public function __construct()
     {
         // Estas rutas se exponen por /api (ver routes/api_interfaces.php)
-        $this->middleware('auth:sanctum');
-        $this->middleware('permission:estudio.asignar,web')->only(['listarAtenciones', 'listarProductosDiagnosticos']);
+        /* $this->middleware('auth:sanctum');
+        $this->middleware('permission:estudio.asignar,web')->only(['listarAtenciones', 'listarProductosDiagnosticos']); */
     }
 
     /**

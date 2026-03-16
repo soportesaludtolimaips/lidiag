@@ -23,7 +23,7 @@ class SAHIEcografiasEnviarController extends Controller
     public function __construct()
     {
         // Estas rutas viven bajo /api (auth:sanctum). Mantenerlo aquí evita usos accidentales sin auth.
-        $this->middleware('auth:sanctum');
+        //$this->middleware('auth:sanctum');
         // IMPORTANTE:
         // Los permisos se aplican a nivel de rutas (routes/api_ecografias.php).
         // No duplicar aquí, porque "estado" se consulta también desde Admisión/Admisionadas
@@ -237,7 +237,7 @@ class SAHIEcografiasEnviarController extends Controller
         // Igual que el script viejo: concatena siempre Opinion
         $lecturaPlano = $this->normalizeHtmlToText($ecoProd->lectura ?? '');
         $opinionPlano = $this->normalizeHtmlToText($ecoProd->opinion ?? '');
-        $memo = trim($lecturaPlano)."\n\nOpinion:\n".trim($opinionPlano);
+        $memo = trim($lecturaPlano) . "\n\nOpinion:\n" . trim($opinionPlano);
 
         try {
             $ecografiaId = (int) $ecografia->id;
@@ -297,7 +297,7 @@ class SAHIEcografiasEnviarController extends Controller
 
                 $idUsuario = (int) $usuarioSAHI->IdUsuario;
                 $idPersonal = (int) $usuarioSAHI->IdPersonal;
-                $nomMedico = trim(($usuarioSAHI->Nompersonal ?? '').' '.($usuarioSAHI->ApePersonal ?? ''));
+                $nomMedico = trim(($usuarioSAHI->Nompersonal ?? '') . ' ' . ($usuarioSAHI->ApePersonal ?? ''));
 
                 // Ubicación actual de la atención
                 $ubicacion = Atencion::select('IdUbicacionActual')
@@ -375,7 +375,7 @@ class SAHIEcografiasEnviarController extends Controller
                     }
                 }
                 if (! empty($missing)) {
-                    return ['ok' => false, 'status' => 422, 'message' => 'Algunos productos no se encontraron en SAHI (proProducto): '.implode(', ', $missing)];
+                    return ['ok' => false, 'status' => 422, 'message' => 'Algunos productos no se encontraron en SAHI (proProducto): ' . implode(', ', $missing)];
                 }
 
                 // Insertar procedimientos (IdDetalleValor incremental)
