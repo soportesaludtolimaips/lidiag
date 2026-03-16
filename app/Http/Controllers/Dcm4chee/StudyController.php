@@ -18,7 +18,7 @@ class StudyController extends Controller
         $this->middleware('permission:estudio.asignar')->only('store');
         $this->middleware('permission:estudio.transcribir')->only('guardarTranscripcion');
         $this->middleware('permission:estudio.leerEstudio')->only('leerEstudio');
-        $this->middleware('estudios.notificar.index')->only('listarEstudios');
+        $this->middleware('permission:estudios.notificar.index')->only('listarEstudios');
     }
 
     /**
