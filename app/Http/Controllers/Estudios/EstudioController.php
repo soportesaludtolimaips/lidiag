@@ -652,7 +652,7 @@ class EstudioController extends Controller
 
         $validator = Validator::make($request->all(), [
             'estudio_producto_id' => 'required|integer|exists:estudios_productos,id',
-            'id_estudio' => 'nullable|integer|exists:estudios,id',
+            'id_estudio' => 'nullable|integer',
             'lectura' => 'required|string|min:3',
             'num_docu' => 'required|string|max:50',
             'nom_pacien' => 'required|string|max:255',
@@ -717,9 +717,9 @@ class EstudioController extends Controller
         if ($sede->interface_software === 'SAHI') {
             $transcribir = (new SAHITranscibirController)->enviarEstudio($request->atencion, $request->medico_id, $request->lectura, $request->cod_cups, $request->fec_lectura);
 
-            if ($transcribir->status() != 200) {
+            /* if ($transcribir->status() != 200) {
                 return response()->json(['message' => 'Error al enviar el reporte a la interface SAHI ' . $transcribir->message()], 400);
-            }
+            } */
         }
 
         /**
@@ -735,13 +735,13 @@ class EstudioController extends Controller
 
             $notificar = (new EstudioNotificacionController)->enviarPortalPacientes($request);
 
-            if ($notificar->status() == 200) {
+            /* if ($notificar->status() == 200) {
                 return response()->json(['message' => 'Lectura transferida correctamente'], 200);
             } else {
-                return response()->json(['message' => 'Error en la trnaferencia de la lectura'], 400);
-            }
+                return response()->json(['message' => 'Error en la trnaferencia de la notificacion'], 400);
+            } */
         } else {
-            return response()->json(['message' => 'Error en la trnaferencia de la lectura'], 400);
+            return response()->json(['message' => 'Error en la notificación de la lectura'], 400);
         }
 
         return response()->json(['message' => 'La transcripción se guardo correctamente.']);
