@@ -2,6 +2,7 @@
 
 namespace App\Models\Configuracion;
 
+use App\Models\Estudio\EstudioProducto;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -14,5 +15,10 @@ class ConfigProducto extends Model
     public function consentimientoInformado()
     {
         return $this->hasMany(ConsentimientoInformado::class);
+    }
+
+    public function estudioProductos()
+    {
+        return $this->hasMany(EstudioProducto::class, 'producto_id');
     }
 }

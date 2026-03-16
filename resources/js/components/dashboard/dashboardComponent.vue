@@ -11,6 +11,7 @@
                         <a href="javascript:void(0)">Inicio</a>
                     </li>
                     <li class="breadcrumb-item active">Dashboard</li>
+                    <li class="breadcrumb-item active">Sede: {{ nomSedeActual }}</li>
                 </ol>
             </div>
         </div>
@@ -20,12 +21,7 @@
 
         <div v-if="alerts.length" class="row">
             <div class="col-12">
-                <div
-                    v-for="(a, idx) in alerts"
-                    :key="idx"
-                    class="alert"
-                    :class="alertClass(a.level)"
-                >
+                <div v-for="(a, idx) in alerts" :key="idx" class="alert" :class="alertClass(a.level)">
                     <strong>{{ a.title }}:</strong> {{ a.message }}
                 </div>
             </div>
@@ -38,9 +34,7 @@
                         <div class="d-flex no-block">
                             <div>
                                 <h4 class="card-title m-b-0">Filtros</h4>
-                                <small class="text-muted"
-                                    >Afectan todas las métricas del dashboard</small
-                                >
+                                <small class="text-muted">Afectan todas las métricas del dashboard</small>
                             </div>
                         </div>
                     </div>
@@ -48,62 +42,26 @@
                         <div class="row">
                             <div class="col-lg-3 col-md-6 m-b-10">
                                 <label class="text-muted m-b-5">Sede</label>
-                                <select
-                                    v-model.number="filters.selected.sede_id"
-                                    class="custom-select"
-                                    @change="fetchDashboard"
-                                >
+                                <select class="custom-select" @change="fetchDashboard" v-model="sedeSeleccionada">
                                     <option :value="null">Todas</option>
-                                    <option
-                                        v-for="s in filters.options.sedes"
-                                        :key="s.id"
-                                        :value="s.id"
-                                    >
+                                    <option v-for="s in sedes" :key="s.id" :value="s.id">
                                         {{ s.nom_sede }}
-                                    </option>
-                                </select>
-                            </div>
-                            <div class="col-lg-3 col-md-6 m-b-10">
-                                <label class="text-muted m-b-5">Modalidad</label>
-                                <select
-                                    v-model="filters.selected.modalidad"
-                                    class="custom-select"
-                                    @change="fetchDashboard"
-                                >
-                                    <option :value="null">Todas</option>
-                                    <option
-                                        v-for="m in filters.options.modalidades"
-                                        :key="m"
-                                        :value="m"
-                                    >
-                                        {{ m }}
                                     </option>
                                 </select>
                             </div>
                             <div v-if="isAdmin" class="col-lg-4 col-md-6 m-b-10">
                                 <label class="text-muted m-b-5">Médico</label>
-                                <select
-                                    v-model.number="filters.selected.medico_id"
-                                    class="custom-select"
-                                    @change="fetchDashboard"
-                                >
+                                <select v-model.number="filters.selected.medico_id" class="custom-select"
+                                    @change="fetchDashboard">
                                     <option :value="null">Todos</option>
-                                    <option
-                                        v-for="u in filters.options.medicos"
-                                        :key="u.id"
-                                        :value="u.id"
-                                    >
+                                    <option v-for="u in filters.options.medicos" :key="u.id" :value="u.id">
                                         {{ u.name }}
                                     </option>
                                 </select>
                             </div>
                             <div class="col-lg-2 col-md-6 m-b-10">
                                 <label class="text-muted m-b-5">Rango</label>
-                                <select
-                                    v-model.number="days"
-                                    class="custom-select"
-                                    @change="fetchDashboard"
-                                >
+                                <select v-model.number="days" class="custom-select" @change="fetchDashboard">
                                     <option :value="7">7 días</option>
                                     <option :value="30">30 días</option>
                                     <option :value="90">90 días</option>
@@ -184,7 +142,7 @@
                                             <span v-if="loading">...</span>
                                             <span v-else>{{
                                                 operacion.pendientesTranscripcion
-                                            }}</span>
+                                                }}</span>
                                         </h4>
                                         <small class="text-muted">Pend. transcripción</small>
                                     </div>
@@ -371,19 +329,13 @@
                         <h5 class="card-title">Estudios más solicitados</h5>
                         <table class="table browser m-t-30 no-border">
                             <tbody>
-                                <tr
-                                    v-for="item in estudiosMasSolicitados"
-                                    :key="item.mods_in_study"
-                                >
+                                <tr v-for="item in estudiosMasSolicitados" :key="item.mods_in_study">
                                     <td>{{ item.mods_in_study }}</td>
                                     <td class="text-right">{{ item.total }}</td>
                                 </tr>
                             </tbody>
                         </table>
-                        <div
-                            v-if="!loading && estudiosMasSolicitados.length === 0"
-                            class="text-muted"
-                        >
+                        <div v-if="!loading && estudiosMasSolicitados.length === 0" class="text-muted">
                             Sin datos para mostrar.
                         </div>
                     </div>
@@ -439,11 +391,10 @@
                                     <span v-if="loading">...</span>
                                     <span v-else>{{
                                         formatMin(calidad.tiempos.asignadoALectura?.avgMin)
-                                    }}</span>
+                                        }}</span>
                                 </h3>
-                                <small class="text-muted"
-                                    >muestras: {{ calidad.tiempos.asignadoALectura?.n || 0 }}</small
-                                >
+                                <small class="text-muted">muestras: {{ calidad.tiempos.asignadoALectura?.n || 0
+                                    }}</small>
                             </div>
                             <div class="col-6">
                                 <h6 class="text-muted m-b-0">Lectura → Transcrito</h6>
@@ -451,12 +402,10 @@
                                     <span v-if="loading">...</span>
                                     <span v-else>{{
                                         formatMin(calidad.tiempos.lecturaATranscrito?.avgMin)
-                                    }}</span>
+                                        }}</span>
                                 </h3>
-                                <small class="text-muted"
-                                    >muestras:
-                                    {{ calidad.tiempos.lecturaATranscrito?.n || 0 }}</small
-                                >
+                                <small class="text-muted">muestras:
+                                    {{ calidad.tiempos.lecturaATranscrito?.n || 0 }}</small>
                             </div>
                         </div>
                     </div>
@@ -471,9 +420,7 @@
                         <div class="d-flex no-block">
                             <div>
                                 <h5 class="card-title m-b-0">Cumplimiento de tiempos (Lectura)</h5>
-                                <small class="text-muted"
-                                    >Por prioridad (últimos {{ days }} días)</small
-                                >
+                                <small class="text-muted">Por prioridad (últimos {{ days }} días)</small>
                             </div>
                         </div>
                         <div id="sla-lectura" style="height: 260px; width: 100%"></div>
@@ -489,9 +436,7 @@
                                 <h5 class="card-title m-b-0">
                                     Cumplimiento de tiempos (Transcripción)
                                 </h5>
-                                <small class="text-muted"
-                                    >Por prioridad (últimos {{ days }} días)</small
-                                >
+                                <small class="text-muted">Por prioridad (últimos {{ days }} días)</small>
                             </div>
                         </div>
                         <div id="sla-transcripcion" style="height: 260px; width: 100%"></div>
@@ -512,11 +457,8 @@
                             </div>
                             <div class="ml-auto d-flex align-items-center" style="gap: 8px">
                                 <small class="text-muted">Métrica</small>
-                                <select
-                                    v-model="heatmapMetric"
-                                    class="custom-select custom-select-sm"
-                                    style="width: 160px"
-                                >
+                                <select v-model="heatmapMetric" class="custom-select custom-select-sm"
+                                    style="width: 160px">
                                     <option value="transcritos">Transcritos</option>
                                     <option value="leidos">Leídos</option>
                                     <option value="asignados">Asignados</option>
@@ -529,12 +471,8 @@
                                 <thead>
                                     <tr>
                                         <th style="min-width: 60px">Hora</th>
-                                        <th
-                                            v-for="d in heatmapDays"
-                                            :key="d"
-                                            class="text-center"
-                                            style="min-width: 90px"
-                                        >
+                                        <th v-for="d in heatmapDays" :key="d" class="text-center"
+                                            style="min-width: 90px">
                                             {{ d }}
                                         </th>
                                     </tr>
@@ -542,18 +480,13 @@
                                 <tbody>
                                     <tr v-for="h in 24" :key="h">
                                         <td class="text-center font-500">{{ h - 1 }}</td>
-                                        <td
-                                            v-for="d in heatmapDays"
-                                            :key="`${d}-${h - 1}`"
-                                            class="text-center"
-                                            :title="`${d} ${h - 1}:00 → ${heatmapValue(d, h - 1)}`"
-                                            :style="{
+                                        <td v-for="d in heatmapDays" :key="`${d}-${h - 1}`" class="text-center"
+                                            :title="`${d} ${h - 1}:00 → ${heatmapValue(d, h - 1)}`" :style="{
                                                 backgroundColor: heatmapColor(
                                                     heatmapValue(d, h - 1),
                                                     heatmapMax
                                                 ),
-                                            }"
-                                        >
+                                            }">
                                             {{ heatmapValue(d, h - 1) }}
                                         </td>
                                     </tr>
@@ -591,17 +524,13 @@
                                             </div>
                                             <small class="text-muted">{{
                                                 row.paciente_num_docu || ""
-                                            }}</small>
+                                                }}</small>
                                         </td>
                                         <td>{{ row.sede || "" }}</td>
                                         <td>{{ row.accession_no || row.study_id || row.id }}</td>
                                         <td>{{ row.mods_in_study }}</td>
                                         <td>
-                                            <button
-                                                class="btn btn-sm btn-info"
-                                                type="button"
-                                                @click="goToLectura(row)"
-                                            >
+                                            <button class="btn btn-sm btn-info" type="button" @click="goToLectura(row)">
                                                 Ir
                                             </button>
                                         </td>
@@ -612,10 +541,7 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div
-                            v-if="!loading && tablas.pendientesLecturaTop.length === 0"
-                            class="text-muted"
-                        >
+                        <div v-if="!loading && tablas.pendientesLecturaTop.length === 0" class="text-muted">
                             Sin pendientes de lectura.
                         </div>
                     </div>
@@ -638,27 +564,21 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr
-                                        v-for="row in tablas.pendientesTranscripcionTop"
-                                        :key="row.id"
-                                    >
+                                    <tr v-for="row in tablas.pendientesTranscripcionTop" :key="row.id">
                                         <td>
                                             <div class="font-500">
                                                 {{ formatPacienteNombre(row) }}
                                             </div>
                                             <small class="text-muted">{{
                                                 row.paciente_num_docu || ""
-                                            }}</small>
+                                                }}</small>
                                         </td>
                                         <td>{{ row.sede || "" }}</td>
                                         <td>{{ row.accession_no || row.study_id || row.id }}</td>
                                         <td>{{ row.mods_in_study }}</td>
                                         <td>
-                                            <button
-                                                class="btn btn-sm btn-primary"
-                                                type="button"
-                                                @click="goToTranscripcion(row)"
-                                            >
+                                            <button class="btn btn-sm btn-primary" type="button"
+                                                @click="goToTranscripcion(row)">
                                                 Ir
                                             </button>
                                         </td>
@@ -669,10 +589,7 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div
-                            v-if="!loading && tablas.pendientesTranscripcionTop.length === 0"
-                            class="text-muted"
-                        >
+                        <div v-if="!loading && tablas.pendientesTranscripcionTop.length === 0" class="text-muted">
                             Sin pendientes de transcripción.
                         </div>
                     </div>
@@ -702,10 +619,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr
-                                        v-for="row in productividad.rankingMedicosTranscritos"
-                                        :key="row.medico_id"
-                                    >
+                                    <tr v-for="row in productividad.rankingMedicosTranscritos" :key="row.medico_id">
                                         <td>{{ row.medico }}</td>
                                         <td class="text-right">{{ row.total }}</td>
                                         <td class="text-right">{{ formatDelta(row) }}</td>
@@ -713,10 +627,7 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div
-                            v-if="!loading && productividad.rankingMedicosTranscritos.length === 0"
-                            class="text-muted"
-                        >
+                        <div v-if="!loading && productividad.rankingMedicosTranscritos.length === 0" class="text-muted">
                             Sin datos para mostrar.
                         </div>
                     </div>
@@ -737,9 +648,7 @@
                                 <h5 class="card-title m-b-0">Flujo diario</h5>
                             </div>
                             <div class="ml-auto">
-                                <small class="text-muted"
-                                    >Asignados / Leídos / Transcritos ({{ days }} días)</small
-                                >
+                                <small class="text-muted">Asignados / Leídos / Transcritos ({{ days }} días)</small>
                             </div>
                         </div>
                         <div class="" id="sales-chart" style="height: 355px"></div>
@@ -796,10 +705,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr
-                                        v-for="row in productividad.transcritosPorSede"
-                                        :key="row.sede_id"
-                                    >
+                                    <tr v-for="row in productividad.transcritosPorSede" :key="row.sede_id">
                                         <td>{{ row.sede }}</td>
                                         <td class="text-right">{{ row.total }}</td>
                                         <td class="text-right">{{ formatDelta(row) }}</td>
@@ -807,10 +713,7 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div
-                            v-if="!loading && productividad.transcritosPorSede.length === 0"
-                            class="text-muted"
-                        >
+                        <div v-if="!loading && productividad.transcritosPorSede.length === 0" class="text-muted">
                             Sin datos para mostrar.
                         </div>
                     </div>
@@ -858,8 +761,23 @@ export default {
         },
     },
     async mounted() {
-        this.initCharts();
-        await this.fetchDashboard();
+        try {
+            this.initCharts();
+            await this.listarSedes();
+        } catch (e) {
+            // Si faltan librerías globales (c3/Morris), igual cargamos datos del dashboard.
+            this.charts = {
+                modalidades: null,
+                resumen: null,
+                transcritos: null,
+                agingLectura: null,
+                agingTranscripcion: null,
+                porHoraHoy: null,
+                porSede: null,
+                slaLectura: null,
+                slaTranscripcion: null,
+            };
+        }
     },
     data() {
         return {
@@ -867,9 +785,12 @@ export default {
             error: null,
             days: 30,
             alerts: [],
+            nomSedeActual: null,
+            sedeSeleccionada: null,
+            sedes: [],
             filters: {
-                selected: { sede_id: null, modalidad: null, medico_id: null },
-                options: { sedes: [], modalidades: [], medicos: [] },
+                selected: { sede_id: null, medico_id: null },
+                options: { sedes: [], medicos: [] },
             },
             indicadores: {
                 estudiosAsignados: 0,
@@ -914,7 +835,6 @@ export default {
                 transcritosPorSede: [],
             },
             charts: {
-                modalidades: null,
                 resumen: null,
                 transcritos: null,
                 agingLectura: null,
@@ -930,96 +850,83 @@ export default {
         safeC3Generate(selector, config) {
             const el = document.querySelector(selector);
             if (!el) return null;
-            return c3.generate(config);
+            const c3lib = window.c3;
+            if (!c3lib) return null;
+            return c3lib.generate(config);
         },
         initCharts() {
-            // Donut: modalidades
-            this.charts.modalidades = c3.generate({
-                bindto: "#visitor",
-                data: {
-                    columns: [],
-                    type: "donut",
-                },
-                donut: {
-                    label: { show: false },
-                    title: "Modalidades",
-                    width: 20,
-                },
-                legend: { hide: true },
-                color: {
-                    pattern: [
-                        "#24d2b5",
-                        "#20aee3",
-                        "#6772e5",
-                        "#ff9041",
-                        "#7460ee",
-                        "#f62d51",
-                        "#90a4ae",
-                    ],
-                },
-            });
+            const c3lib = window.c3;
+            const morrisLib = window.Morris;
 
             // Bar: resumen transcritos vs pendientes
-            this.charts.resumen = c3.generate({
-                bindto: "#income",
-                data: {
-                    columns: [
-                        ["Transcritos", 0],
-                        ["Pendientes", 0],
-                    ],
-                    type: "bar",
-                },
-                bar: {
-                    width: 20,
-                },
-                axis: {
-                    x: { show: false },
-                    y: { tick: { count: 4, outer: false } },
-                },
-                legend: { show: true },
-                grid: { y: { show: true } },
-                size: { height: 290 },
-                color: { pattern: ["#24d2b5", "#f62d51"] },
-            });
+            this.charts.resumen = c3lib
+                ? c3lib.generate({
+                    bindto: "#income",
+                    data: {
+                        columns: [
+                            ["Transcritos", 0],
+                            ["Pendientes", 0],
+                        ],
+                        type: "bar",
+                    },
+                    bar: {
+                        width: 20,
+                    },
+                    axis: {
+                        x: { show: false },
+                        y: { tick: { count: 4, outer: false } },
+                    },
+                    legend: { show: true },
+                    grid: { y: { show: true } },
+                    size: { height: 290 },
+                    color: { pattern: ["#24d2b5", "#f62d51"] },
+                })
+                : null;
 
             // Área: flujo diario (asignados / leídos / transcritos)
             // Morris puede fallar en `resizeHandler` si se inicializa con `data: []`
             // y ocurre un resize antes de que llegue `setData(...)`. Usamos un punto dummy.
             const morrisAreaInitialData = [{ period: "", asignados: 0, leidos: 0, transcritos: 0 }];
-            this.charts.transcritos = Morris.Area({
-                element: "sales-chart",
-                data: morrisAreaInitialData,
-                xkey: "period",
-                ykeys: ["asignados", "leidos", "transcritos"],
-                labels: ["Asignados", "Leídos", "Transcritos"],
-                pointSize: 2,
-                fillOpacity: 0.2,
-                pointStrokeColors: ["#26c6da", "#ffb22b", "#24d2b5"],
-                behaveLikeLine: true,
-                gridLineColor: "#e0e0e0",
-                lineWidth: 2,
-                hideHover: "auto",
-                lineColors: ["#26c6da", "#ffb22b", "#24d2b5"],
-                resize: true,
-            });
+            this.charts.transcritos = morrisLib
+                ? morrisLib.Area({
+                    element: "sales-chart",
+                    data: morrisAreaInitialData,
+                    xkey: "period",
+                    ykeys: ["asignados", "leidos", "transcritos"],
+                    labels: ["Asignados", "Leídos", "Transcritos"],
+                    pointSize: 2,
+                    fillOpacity: 0.2,
+                    pointStrokeColors: ["#26c6da", "#ffb22b", "#24d2b5"],
+                    behaveLikeLine: true,
+                    gridLineColor: "#e0e0e0",
+                    lineWidth: 2,
+                    hideHover: "auto",
+                    lineColors: ["#26c6da", "#ffb22b", "#24d2b5"],
+                    resize: true,
+                })
+                : null;
 
             // Donut: aging lectura
-            this.charts.agingLectura = c3.generate({
-                bindto: "#aging-lectura",
-                data: { columns: [], type: "donut" },
-                donut: { label: { show: false }, title: "Lectura", width: 18 },
-                legend: { hide: true },
-                color: { pattern: ["#26c6da", "#ffb22b", "#7460ee", "#f62d51"] },
-            });
+            this.charts.agingLectura = c3lib
+                ? c3lib.generate({
+                    bindto: "#aging-lectura",
+                    data: { columns: [], type: "donut" },
+                    donut: { label: { show: false }, title: "Lectura", width: 18 },
+                    legend: { hide: true },
+                    color: { pattern: ["#26c6da", "#ffb22b", "#7460ee", "#f62d51"] },
+                })
+                : null;
 
             // Donut: aging transcripción
-            this.charts.agingTranscripcion = c3.generate({
-                bindto: "#aging-transcripcion",
-                data: { columns: [], type: "donut" },
-                donut: { label: { show: false }, title: "Transcripción", width: 18 },
-                legend: { hide: true },
-                color: { pattern: ["#26c6da", "#ffb22b", "#7460ee", "#f62d51"] },
-            });
+            this.charts.agingTranscripcion = c3lib
+                ? c3lib.generate({
+                    bindto: "#aging-transcripcion",
+                    data: { columns: [], type: "donut" },
+                    donut: { label: { show: false }, title: "Transcripción", width: 18 },
+                    legend: { hide: true },
+                    color: { pattern: ["#26c6da", "#ffb22b", "#7460ee", "#f62d51"] },
+                })
+                : null;
 
             // Bar: distribución por hora (hoy)
             this.charts.porHoraHoy = this.safeC3Generate("#por-hora-hoy", {
@@ -1089,17 +996,21 @@ export default {
         async fetchDashboard() {
             this.loading = true;
             this.error = null;
+            this.filters.selected.sede_id = this.sedeSeleccionada;
 
             try {
+                const http = window.axios;
+                if (!http) {
+                    throw new Error("axios no está disponible en window");
+                }
                 const params = {
                     days: this.days,
                     sede_id: this.filters?.selected?.sede_id || undefined,
-                    modalidad: this.filters?.selected?.modalidad || undefined,
                     medico_id: this.isAdmin
                         ? this.filters?.selected?.medico_id || undefined
                         : undefined,
                 };
-                const res = await axios.get("/api/reportes.dashboard", {
+                const res = await http.get("/api/reportes.dashboard", {
                     params,
                 });
 
@@ -1146,19 +1057,7 @@ export default {
                 this.loading = false;
             }
         },
-
         renderCharts() {
-            // Donut (modalidades): usa topModalidades del backend
-            const donutColumns = (this.estudiosMasSolicitados || [])
-                .filter((x) => x && x.mods_in_study)
-                .map((x) => [String(x.mods_in_study), Number(x.total || 0)]);
-
-            if (this.charts.modalidades && donutColumns.length > 0) {
-                this.charts.modalidades.load({ columns: donutColumns });
-            } else if (this.charts.modalidades) {
-                this.charts.modalidades.load({ columns: [["Sin datos", 1]] });
-            }
-
             // Bar (resumen)
             if (this.charts.resumen) {
                 this.charts.resumen.load({
@@ -1393,6 +1292,14 @@ export default {
                 /* noop */
             }
             window.location.href = "/estudios.transcribir.listar";
+        },
+        async listarSedes() {
+            try {
+                const res = await axios.get("/api/config-sedes/listar/sedes/activas");
+                this.sedes = res.data;
+            } catch (error) {
+                console.log(error);
+            }
         },
     },
 };

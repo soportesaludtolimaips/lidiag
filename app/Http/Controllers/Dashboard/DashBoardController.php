@@ -11,6 +11,37 @@ use Illuminate\Support\Facades\DB;
 
 class DashBoardController extends Controller
 {
+    protected function applyFiltroProductosActivosRequierenLecturaToEstudioQuery($q)
+    {
+        return $q->whereExists(function ($sub) {
+            $sub->selectRaw('1')
+                ->from('estudios_productos as ep')
+                ->join('config_productos as cp', 'cp.id', '=', 'ep.producto_id')
+                ->whereColumn('ep.estudio_id', '=', 'estudios.id')
+                ->where('ep.activo', '=', 1)
+                ->where('cp.requi_lectura', '=', 1)
+                ->where('cp.estado', '=', 1);
+        })
+            ->where('estudios.estado', '=', 1);
+    }
+
+    /**
+     * Variante para queries con join de estudios como alias `e`.
+     */
+    protected function applyFiltroProductosActivosRequierenLecturaToJoinedEstudioQuery($q)
+    {
+        return $q->whereExists(function ($sub) {
+            $sub->selectRaw('1')
+                ->from('estudios_productos as ep')
+                ->join('config_productos as cp', 'cp.id', '=', 'ep.producto_id')
+                ->whereColumn('ep.estudio_id', '=', 'e.id')
+                ->where('ep.activo', '=', 1)
+                ->where('cp.requi_lectura', '=', 1)
+                ->where('cp.estado', '=', 1);
+        })
+            ->where('e.estado', '=', 1);
+    }
+
     /**
      * Endpoint principal del dashboard.
      * Mantiene compatibilidad con el frontend actual (`/reportes.dashboard`).
@@ -109,7 +140,7 @@ class DashBoardController extends Controller
      * - No admin: siempre queda forzado a su propio medico_id.
      * - Admin: puede filtrar por medico_id (opcional).
      *
-     * @return array{medico_id:int|null,sede_id:int|null,modalidad:string|null}
+     * @return array{medico_id:int|null,sede_id:int|null}
      */
     protected function resolveScope(Request $request, bool $isAdmin, int $userId): array
     {
@@ -117,12 +148,6 @@ class DashBoardController extends Controller
         $sedeId = is_numeric($sedeId) ? (int) $sedeId : null;
         if ($sedeId !== null && $sedeId <= 0) {
             $sedeId = null;
-        }
-
-        $modalidad = $request->query('modalidad');
-        $modalidad = is_string($modalidad) ? trim($modalidad) : null;
-        if ($modalidad === '') {
-            $modalidad = null;
         }
 
         $medicoId = null;
@@ -139,7 +164,6 @@ class DashBoardController extends Controller
         return [
             'medico_id' => $medicoId,
             'sede_id' => $sedeId,
-            'modalidad' => $modalidad,
         ];
     }
 
@@ -155,30 +179,20 @@ class DashBoardController extends Controller
             ->orderBy('nom_sede', 'ASC')
             ->get();
 
-        $modsQ = Estudio::query()->select('mods_in_study')->whereNotNull('mods_in_study');
-        // Modalidades relevantes según sede/medico (pero no según modalidad seleccionada)
-        if (! empty($scope['sede_id'])) {
-            $modsQ->where('sede_id', '=', (int) $scope['sede_id']);
-        }
-        if (! empty($scope['medico_id'])) {
-            $modsQ->where('medico_id', '=', (int) $scope['medico_id']);
-        }
-        $modalidades = $modsQ->distinct()->orderBy('mods_in_study', 'ASC')->pluck('mods_in_study');
-
         $medicos = collect();
         if ($isAdmin) {
             // Lista de médicos relevantes (los que aparecen en estudios)
-            $medicos = DB::table('estudios as e')
+            $medicosQ = DB::table('estudios as e')
                 ->join('users as u', 'u.id', '=', 'e.medico_id')
                 ->select('u.id', 'u.name')
                 ->distinct()
-                ->orderBy('u.name', 'ASC')
-                ->get();
+                ->orderBy('u.name', 'ASC');
+            $this->applyFiltroProductosActivosRequierenLecturaToJoinedEstudioQuery($medicosQ);
+            $medicos = $medicosQ->get();
         }
 
         return [
             'sedes' => $sedes,
-            'modalidades' => $modalidades,
             'medicos' => $medicos,
         ];
     }
@@ -194,10 +208,6 @@ class DashBoardController extends Controller
         if (! empty($scope['sede_id'])) {
             $q->where('sede_id', '=', (int) $scope['sede_id']);
         }
-        if (! empty($scope['modalidad'])) {
-            $q->where('mods_in_study', '=', (string) $scope['modalidad']);
-        }
-
         return $q;
     }
 
@@ -212,10 +222,6 @@ class DashBoardController extends Controller
         if (! empty($scope['sede_id'])) {
             $q->where('e.sede_id', '=', (int) $scope['sede_id']);
         }
-        if (! empty($scope['modalidad'])) {
-            $q->where('e.mods_in_study', '=', (string) $scope['modalidad']);
-        }
-
         return $q;
     }
 
@@ -247,6 +253,7 @@ class DashBoardController extends Controller
     public function countEstudiosAsignados(array $scope): int
     {
         $q = Estudio::query();
+        $this->applyFiltroProductosActivosRequierenLecturaToEstudioQuery($q);
         $this->applyScopeToEstudioQuery($q, $scope);
 
         return (int) $q->count();
@@ -261,7 +268,12 @@ class DashBoardController extends Controller
             ->where('activo', '=', 1)
             ->whereNotNull('fechor_trascrito');
 
+        $q->whereHas('producto', function ($productoQ) {
+            $productoQ->where('requi_lectura', '=', 1)
+                ->where('estado', '=', 1);
+        });
         $q->whereHas('estudio', function ($estudioQ) use ($scope) {
+            $this->applyFiltroProductosActivosRequierenLecturaToEstudioQuery($estudioQ);
             $this->applyScopeToEstudioQuery($estudioQ, $scope);
         });
 
@@ -277,7 +289,12 @@ class DashBoardController extends Controller
             ->where('activo', '=', 1)
             ->whereNull('fechor_trascrito');
 
+        $q->whereHas('producto', function ($productoQ) {
+            $productoQ->where('requi_lectura', '=', 1)
+                ->where('estado', '=', 1);
+        });
         $q->whereHas('estudio', function ($estudioQ) use ($scope) {
+            $this->applyFiltroProductosActivosRequierenLecturaToEstudioQuery($estudioQ);
             $this->applyScopeToEstudioQuery($estudioQ, $scope);
         });
 
@@ -293,7 +310,12 @@ class DashBoardController extends Controller
             ->where('activo', '=', 1)
             ->whereNull('fechor_lectura');
 
+        $q->whereHas('producto', function ($productoQ) {
+            $productoQ->where('requi_lectura', '=', 1)
+                ->where('estado', '=', 1);
+        });
         $q->whereHas('estudio', function ($estudioQ) use ($scope) {
+            $this->applyFiltroProductosActivosRequierenLecturaToEstudioQuery($estudioQ);
             $this->applyScopeToEstudioQuery($estudioQ, $scope);
         });
 
@@ -310,7 +332,9 @@ class DashBoardController extends Controller
         $from = Carbon::now()->startOfDay();
         $to = Carbon::now()->endOfDay();
 
-        $asignadosHoyQ = Estudio::query()->whereBetween('created_at', [$from, $to]);
+        $asignadosHoyQ = Estudio::query()
+            ->whereBetween('created_at', [$from, $to]);
+        $this->applyFiltroProductosActivosRequierenLecturaToEstudioQuery($asignadosHoyQ);
         $this->applyScopeToEstudioQuery($asignadosHoyQ, $scope);
 
         $pendientesLectura = $this->countEstudiosPendientesLectura($scope);
@@ -321,7 +345,12 @@ class DashBoardController extends Controller
             ->whereHas('estudio', function ($q) use ($from, $to) {
                 $q->whereBetween('created_at', [$from, $to]);
             });
+        $pendientesLecturaHoyQ->whereHas('producto', function ($productoQ) {
+            $productoQ->where('requi_lectura', '=', 1)
+                ->where('estado', '=', 1);
+        });
         $pendientesLecturaHoyQ->whereHas('estudio', function ($q) use ($scope) {
+            $this->applyFiltroProductosActivosRequierenLecturaToEstudioQuery($q);
             $this->applyScopeToEstudioQuery($q, $scope);
         });
 
@@ -329,7 +358,12 @@ class DashBoardController extends Controller
             ->where('activo', '=', 1)
             ->whereNotNull('fechor_lectura')
             ->whereBetween('fechor_lectura', [$from, $to]);
+        $leidosHoyQ->whereHas('producto', function ($productoQ) {
+            $productoQ->where('requi_lectura', '=', 1)
+                ->where('estado', '=', 1);
+        });
         $leidosHoyQ->whereHas('estudio', function ($q) use ($scope) {
+            $this->applyFiltroProductosActivosRequierenLecturaToEstudioQuery($q);
             $this->applyScopeToEstudioQuery($q, $scope);
         });
 
@@ -337,7 +371,12 @@ class DashBoardController extends Controller
             ->where('activo', '=', 1)
             ->whereNotNull('fechor_trascrito')
             ->whereBetween('fechor_trascrito', [$from, $to]);
+        $transcritosHoyQ->whereHas('producto', function ($productoQ) {
+            $productoQ->where('requi_lectura', '=', 1)
+                ->where('estado', '=', 1);
+        });
         $transcritosHoyQ->whereHas('estudio', function ($q) use ($scope) {
+            $this->applyFiltroProductosActivosRequierenLecturaToEstudioQuery($q);
             $this->applyScopeToEstudioQuery($q, $scope);
         });
 
@@ -392,11 +431,14 @@ class DashBoardController extends Controller
             // Lectura: created_at -> fechor_lectura
             $qL = DB::table('estudios_productos as ep')
                 ->join('estudios as e', 'e.id', '=', 'ep.estudio_id')
+                ->join('config_productos as cp', 'cp.id', '=', 'ep.producto_id')
                 ->where('ep.activo', '=', 1)
+                ->where('cp.requi_lectura', '=', 1)
                 ->where('e.prioridad_id', '=', $p->id)
                 ->whereNotNull('ep.fechor_lectura')
                 ->where('ep.fechor_lectura', '>=', $curStart);
             $this->applyScopeToJoinedEstudioQuery($qL, $scope);
+            $this->applyFiltroProductosActivosRequierenLecturaToJoinedEstudioQuery($qL);
 
             $rowL = $qL->selectRaw("
                 COUNT(*) as total,
@@ -417,12 +459,15 @@ class DashBoardController extends Controller
             // Transcripción: fechor_lectura -> fechor_trascrito
             $qT = DB::table('estudios_productos as ep')
                 ->join('estudios as e', 'e.id', '=', 'ep.estudio_id')
+                ->join('config_productos as cp', 'cp.id', '=', 'ep.producto_id')
                 ->where('ep.activo', '=', 1)
+                ->where('cp.requi_lectura', '=', 1)
                 ->where('e.prioridad_id', '=', $p->id)
                 ->whereNotNull('ep.fechor_lectura')
                 ->whereNotNull('ep.fechor_trascrito')
                 ->where('ep.fechor_trascrito', '>=', $curStart);
             $this->applyScopeToJoinedEstudioQuery($qT, $scope);
+            $this->applyFiltroProductosActivosRequierenLecturaToJoinedEstudioQuery($qT);
 
             $rowT = $qT->selectRaw("
                 COUNT(*) as total,
@@ -540,9 +585,12 @@ class DashBoardController extends Controller
 
         $base = DB::table('estudios_productos as ep')
             ->join('estudios as e', 'e.id', '=', 'ep.estudio_id')
-            ->where('ep.activo', '=', 1);
+            ->join('config_productos as cp', 'cp.id', '=', 'ep.producto_id')
+            ->where('ep.activo', '=', 1)
+            ->where('cp.requi_lectura', '=', 1);
 
         $this->applyScopeToJoinedEstudioQuery($base, $scope);
+        $this->applyFiltroProductosActivosRequierenLecturaToJoinedEstudioQuery($base);
 
         // asignado -> leído
         $aLectura = (clone $base)
@@ -581,10 +629,13 @@ class DashBoardController extends Controller
     {
         $q = DB::table('estudios_productos as ep')
             ->join('estudios as e', 'e.id', '=', 'ep.estudio_id')
+            ->join('config_productos as cp', 'cp.id', '=', 'ep.producto_id')
             ->where('ep.activo', '=', 1)
+            ->where('cp.requi_lectura', '=', 1)
             ->whereNull('ep.fechor_lectura');
 
         $this->applyScopeToJoinedEstudioQuery($q, $scope);
+        $this->applyFiltroProductosActivosRequierenLecturaToJoinedEstudioQuery($q);
 
         $rows = $q->selectRaw("
             CASE
@@ -601,7 +652,7 @@ class DashBoardController extends Controller
             ")
             ->get();
 
-        return $rows->map(fn ($r) => ['bucket' => $r->bucket, 'total' => (int) $r->total])->all();
+        return $rows->map(fn($r) => ['bucket' => $r->bucket, 'total' => (int) $r->total])->all();
     }
 
     /**
@@ -613,11 +664,14 @@ class DashBoardController extends Controller
     {
         $q = DB::table('estudios_productos as ep')
             ->join('estudios as e', 'e.id', '=', 'ep.estudio_id')
+            ->join('config_productos as cp', 'cp.id', '=', 'ep.producto_id')
             ->where('ep.activo', '=', 1)
+            ->where('cp.requi_lectura', '=', 1)
             ->whereNotNull('ep.fechor_lectura')
             ->whereNull('ep.fechor_trascrito');
 
         $this->applyScopeToJoinedEstudioQuery($q, $scope);
+        $this->applyFiltroProductosActivosRequierenLecturaToJoinedEstudioQuery($q);
 
         $rows = $q->selectRaw("
             CASE
@@ -634,7 +688,7 @@ class DashBoardController extends Controller
             ")
             ->get();
 
-        return $rows->map(fn ($r) => ['bucket' => $r->bucket, 'total' => (int) $r->total])->all();
+        return $rows->map(fn($r) => ['bucket' => $r->bucket, 'total' => (int) $r->total])->all();
     }
 
     /**
@@ -646,12 +700,15 @@ class DashBoardController extends Controller
     {
         $q = DB::table('estudios as e')
             ->join('estudios_productos as ep', 'ep.estudio_id', '=', 'e.id')
+            ->join('config_productos as cp', 'cp.id', '=', 'ep.producto_id')
             ->join('pacientes as p', 'p.id', '=', 'e.paciente_id')
             ->join('config_sedes as s', 's.id', '=', 'e.sede_id')
             ->where('ep.activo', '=', 1)
+            ->where('cp.requi_lectura', '=', 1)
             ->whereNull('ep.fechor_lectura');
 
         $this->applyScopeToJoinedEstudioQuery($q, $scope);
+        $this->applyFiltroProductosActivosRequierenLecturaToJoinedEstudioQuery($q);
 
         return $q->select([
             'e.id',
@@ -698,13 +755,16 @@ class DashBoardController extends Controller
     {
         $q = DB::table('estudios_productos as ep')
             ->join('estudios as e', 'e.id', '=', 'ep.estudio_id')
+            ->join('config_productos as cp', 'cp.id', '=', 'ep.producto_id')
             ->join('pacientes as p', 'p.id', '=', 'e.paciente_id')
             ->join('config_sedes as s', 's.id', '=', 'e.sede_id')
             ->where('ep.activo', '=', 1)
+            ->where('cp.requi_lectura', '=', 1)
             ->whereNotNull('ep.fechor_lectura')
             ->whereNull('ep.fechor_trascrito');
 
         $this->applyScopeToJoinedEstudioQuery($q, $scope);
+        $this->applyFiltroProductosActivosRequierenLecturaToJoinedEstudioQuery($q);
 
         return $q->select([
             'e.id',
@@ -754,14 +814,16 @@ class DashBoardController extends Controller
 
         $q = DB::table('estudios_productos as ep')
             ->join('estudios as e', 'e.id', '=', 'ep.estudio_id')
+            ->join('config_productos as cp', 'cp.id', '=', 'ep.producto_id')
             ->join('users as u', 'u.id', '=', 'e.medico_id')
             ->where('ep.activo', '=', 1)
+            ->where('cp.requi_lectura', '=', 1)
             ->whereNotNull('ep.fechor_trascrito')
             ->where('ep.fechor_trascrito', '>=', $prevStart)
             ->selectRaw(
-                'e.medico_id as medico_id, u.name as medico, '.
-                'SUM(CASE WHEN ep.fechor_trascrito >= ? THEN 1 ELSE 0 END) as total, '.
-                'SUM(CASE WHEN ep.fechor_trascrito < ? THEN 1 ELSE 0 END) as prev_total',
+                'e.medico_id as medico_id, u.name as medico, ' .
+                    'SUM(CASE WHEN ep.fechor_trascrito >= ? THEN 1 ELSE 0 END) as total, ' .
+                    'SUM(CASE WHEN ep.fechor_trascrito < ? THEN 1 ELSE 0 END) as prev_total',
                 [$curStart, $curStart]
             )
             ->groupBy('e.medico_id', 'u.name')
@@ -769,6 +831,7 @@ class DashBoardController extends Controller
             ->limit(max(1, $limit));
 
         $this->applyScopeToJoinedEstudioQuery($q, $scope);
+        $this->applyFiltroProductosActivosRequierenLecturaToJoinedEstudioQuery($q);
 
         $rows = $q->get();
 
@@ -801,21 +864,24 @@ class DashBoardController extends Controller
 
         $q = DB::table('estudios_productos as ep')
             ->join('estudios as e', 'e.id', '=', 'ep.estudio_id')
+            ->join('config_productos as cp', 'cp.id', '=', 'ep.producto_id')
             ->join('users as u', 'u.id', '=', 'e.medico_id')
             ->where('e.medico_id', '=', $userId)
             ->where('ep.activo', '=', 1)
+            ->where('cp.requi_lectura', '=', 1)
             ->whereNotNull('ep.fechor_trascrito')
             ->where('ep.fechor_trascrito', '>=', $prevStart)
             ->selectRaw(
-                'e.medico_id as medico_id, u.name as medico, '.
-                'SUM(CASE WHEN ep.fechor_trascrito >= ? THEN 1 ELSE 0 END) as total, '.
-                'SUM(CASE WHEN ep.fechor_trascrito < ? THEN 1 ELSE 0 END) as prev_total',
+                'e.medico_id as medico_id, u.name as medico, ' .
+                    'SUM(CASE WHEN ep.fechor_trascrito >= ? THEN 1 ELSE 0 END) as total, ' .
+                    'SUM(CASE WHEN ep.fechor_trascrito < ? THEN 1 ELSE 0 END) as prev_total',
                 [$curStart, $curStart]
             )
             ->groupBy('e.medico_id', 'u.name');
 
         // aplica sede/modalidad si vienen en scope
         $this->applyScopeToJoinedEstudioQuery($q, $scope);
+        $this->applyFiltroProductosActivosRequierenLecturaToJoinedEstudioQuery($q);
 
         $rows = $q->get();
 
@@ -845,6 +911,7 @@ class DashBoardController extends Controller
     {
         $q = Estudio::query()
             ->select(DB::raw('count(mods_in_study) as total'), 'mods_in_study');
+        $this->applyFiltroProductosActivosRequierenLecturaToEstudioQuery($q);
         $this->applyScopeToEstudioQuery($q, $scope);
 
         return $q->groupBy('mods_in_study')
@@ -870,7 +937,12 @@ class DashBoardController extends Controller
             ->groupBy(DB::raw('DATE(fechor_trascrito)'))
             ->orderBy(DB::raw('DATE(fechor_trascrito)'), 'ASC');
 
+        $q->whereHas('producto', function ($productoQ) {
+            $productoQ->where('requi_lectura', '=', 1)
+                ->where('estado', '=', 1);
+        });
         $q->whereHas('estudio', function ($estudioQ) use ($scope) {
+            $this->applyFiltroProductosActivosRequierenLecturaToEstudioQuery($estudioQ);
             $this->applyScopeToEstudioQuery($estudioQ, $scope);
         });
 
@@ -892,6 +964,7 @@ class DashBoardController extends Controller
             ->groupBy(DB::raw('DATE(created_at)'))
             ->orderBy(DB::raw('DATE(created_at)'), 'ASC');
 
+        $this->applyFiltroProductosActivosRequierenLecturaToEstudioQuery($q);
         $this->applyScopeToEstudioQuery($q, $scope);
 
         return $q->get();
@@ -914,7 +987,12 @@ class DashBoardController extends Controller
             ->groupBy(DB::raw('DATE(fechor_lectura)'))
             ->orderBy(DB::raw('DATE(fechor_lectura)'), 'ASC');
 
+        $q->whereHas('producto', function ($productoQ) {
+            $productoQ->where('requi_lectura', '=', 1)
+                ->where('estado', '=', 1);
+        });
         $q->whereHas('estudio', function ($estudioQ) use ($scope) {
+            $this->applyFiltroProductosActivosRequierenLecturaToEstudioQuery($estudioQ);
             $this->applyScopeToEstudioQuery($estudioQ, $scope);
         });
 
@@ -934,6 +1012,7 @@ class DashBoardController extends Controller
         $asignadosQ = DB::table('estudios as e')
             ->whereBetween('e.created_at', [$from, $to]);
         $this->applyScopeToJoinedEstudioQuery($asignadosQ, $scope);
+        $this->applyFiltroProductosActivosRequierenLecturaToJoinedEstudioQuery($asignadosQ);
         $asignados = $asignadosQ
             ->selectRaw('HOUR(e.created_at) as hora, COUNT(*) as total')
             ->groupBy(DB::raw('HOUR(e.created_at)'))
@@ -942,10 +1021,13 @@ class DashBoardController extends Controller
 
         $leidosQ = DB::table('estudios_productos as ep')
             ->join('estudios as e', 'e.id', '=', 'ep.estudio_id')
+            ->join('config_productos as cp', 'cp.id', '=', 'ep.producto_id')
             ->where('ep.activo', '=', 1)
+            ->where('cp.requi_lectura', '=', 1)
             ->whereNotNull('ep.fechor_lectura')
             ->whereBetween('ep.fechor_lectura', [$from, $to]);
         $this->applyScopeToJoinedEstudioQuery($leidosQ, $scope);
+        $this->applyFiltroProductosActivosRequierenLecturaToJoinedEstudioQuery($leidosQ);
         $leidos = $leidosQ
             ->selectRaw('HOUR(ep.fechor_lectura) as hora, COUNT(*) as total')
             ->groupBy(DB::raw('HOUR(ep.fechor_lectura)'))
@@ -954,10 +1036,13 @@ class DashBoardController extends Controller
 
         $transcritosQ = DB::table('estudios_productos as ep')
             ->join('estudios as e', 'e.id', '=', 'ep.estudio_id')
+            ->join('config_productos as cp', 'cp.id', '=', 'ep.producto_id')
             ->where('ep.activo', '=', 1)
+            ->where('cp.requi_lectura', '=', 1)
             ->whereNotNull('ep.fechor_trascrito')
             ->whereBetween('ep.fechor_trascrito', [$from, $to]);
         $this->applyScopeToJoinedEstudioQuery($transcritosQ, $scope);
+        $this->applyFiltroProductosActivosRequierenLecturaToJoinedEstudioQuery($transcritosQ);
         $transcritos = $transcritosQ
             ->selectRaw('HOUR(ep.fechor_trascrito) as hora, COUNT(*) as total')
             ->groupBy(DB::raw('HOUR(ep.fechor_trascrito)'))
@@ -983,14 +1068,16 @@ class DashBoardController extends Controller
 
         $q = DB::table('estudios_productos as ep')
             ->join('estudios as e', 'e.id', '=', 'ep.estudio_id')
+            ->join('config_productos as cp', 'cp.id', '=', 'ep.producto_id')
             ->join('config_sedes as s', 's.id', '=', 'e.sede_id')
             ->where('ep.activo', '=', 1)
+            ->where('cp.requi_lectura', '=', 1)
             ->whereNotNull('ep.fechor_trascrito')
             ->where('ep.fechor_trascrito', '>=', $prevStart)
             ->selectRaw(
-                'e.sede_id as sede_id, s.nom_sede as sede, '.
-                'SUM(CASE WHEN ep.fechor_trascrito >= ? THEN 1 ELSE 0 END) as total, '.
-                'SUM(CASE WHEN ep.fechor_trascrito < ? THEN 1 ELSE 0 END) as prev_total',
+                'e.sede_id as sede_id, s.nom_sede as sede, ' .
+                    'SUM(CASE WHEN ep.fechor_trascrito >= ? THEN 1 ELSE 0 END) as total, ' .
+                    'SUM(CASE WHEN ep.fechor_trascrito < ? THEN 1 ELSE 0 END) as prev_total',
                 [$curStart, $curStart]
             )
             ->groupBy('e.sede_id', 's.nom_sede')
@@ -998,6 +1085,7 @@ class DashBoardController extends Controller
             ->limit(max(1, $limit));
 
         $this->applyScopeToJoinedEstudioQuery($q, $scope);
+        $this->applyFiltroProductosActivosRequierenLecturaToJoinedEstudioQuery($q);
 
         $rows = $q->get();
 
@@ -1031,6 +1119,7 @@ class DashBoardController extends Controller
         $asigQ = DB::table('estudios as e')
             ->where('e.created_at', '>=', $from);
         $this->applyScopeToJoinedEstudioQuery($asigQ, $scope);
+        $this->applyFiltroProductosActivosRequierenLecturaToJoinedEstudioQuery($asigQ);
         $asignados = $asigQ
             ->selectRaw('DATE(e.created_at) as fecha, HOUR(e.created_at) as hora, COUNT(*) as total')
             ->groupBy(DB::raw('DATE(e.created_at)'), DB::raw('HOUR(e.created_at)'))
@@ -1040,10 +1129,13 @@ class DashBoardController extends Controller
 
         $leidosQ = DB::table('estudios_productos as ep')
             ->join('estudios as e', 'e.id', '=', 'ep.estudio_id')
+            ->join('config_productos as cp', 'cp.id', '=', 'ep.producto_id')
             ->where('ep.activo', '=', 1)
+            ->where('cp.requi_lectura', '=', 1)
             ->whereNotNull('ep.fechor_lectura')
             ->where('ep.fechor_lectura', '>=', $from);
         $this->applyScopeToJoinedEstudioQuery($leidosQ, $scope);
+        $this->applyFiltroProductosActivosRequierenLecturaToJoinedEstudioQuery($leidosQ);
         $leidos = $leidosQ
             ->selectRaw('DATE(ep.fechor_lectura) as fecha, HOUR(ep.fechor_lectura) as hora, COUNT(*) as total')
             ->groupBy(DB::raw('DATE(ep.fechor_lectura)'), DB::raw('HOUR(ep.fechor_lectura)'))
@@ -1053,10 +1145,13 @@ class DashBoardController extends Controller
 
         $transQ = DB::table('estudios_productos as ep')
             ->join('estudios as e', 'e.id', '=', 'ep.estudio_id')
+            ->join('config_productos as cp', 'cp.id', '=', 'ep.producto_id')
             ->where('ep.activo', '=', 1)
+            ->where('cp.requi_lectura', '=', 1)
             ->whereNotNull('ep.fechor_trascrito')
             ->where('ep.fechor_trascrito', '>=', $from);
         $this->applyScopeToJoinedEstudioQuery($transQ, $scope);
+        $this->applyFiltroProductosActivosRequierenLecturaToJoinedEstudioQuery($transQ);
         $transcritos = $transQ
             ->selectRaw('DATE(ep.fechor_trascrito) as fecha, HOUR(ep.fechor_trascrito) as hora, COUNT(*) as total')
             ->groupBy(DB::raw('DATE(ep.fechor_trascrito)'), DB::raw('HOUR(ep.fechor_trascrito)'))
