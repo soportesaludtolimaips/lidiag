@@ -10,8 +10,7 @@ class ConfigAdminSaludController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
-        $this->middleware('permission:config.admin.salud.index')->only(['index']);
+        $this->middleware('auth:sanctum')->only(['store', 'update', 'destroy']);
         $this->middleware('permission:config.admin.salud.create')->only(['store']);
         $this->middleware('permission:config.admin.salud.edit')->only(['update']);
         $this->middleware('permission:config.admin.salud.destroy')->only(['destroy']);

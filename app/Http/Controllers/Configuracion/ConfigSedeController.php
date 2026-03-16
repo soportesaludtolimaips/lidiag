@@ -117,7 +117,7 @@ class ConfigSedeController extends Controller
                 Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_rx);
             }
 
-            $nombreEncrip = Str::random(50).".".$archivo->extension();
+            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
 
             $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
             $configSede->plantilla_rx = $nombreEncrip;
@@ -134,7 +134,7 @@ class ConfigSedeController extends Controller
                 Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_ecografia);
             }
 
-            $nombreEncrip = Str::random(50).".".$archivo->extension();
+            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
 
             $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
             $configSede->plantilla_ecografia = $nombreEncrip;
@@ -277,7 +277,7 @@ class ConfigSedeController extends Controller
                 Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_rx);
             }
 
-            $nombreEncrip = Str::random(50).".".$archivo->extension();
+            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
 
             $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
             $configSede->plantilla_rx = $nombreEncrip;
@@ -294,7 +294,7 @@ class ConfigSedeController extends Controller
                 Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_ecografia);
             }
 
-            $nombreEncrip = Str::random(50).".".$archivo->extension();
+            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
 
             $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
             $configSede->plantilla_ecografia = $nombreEncrip;
@@ -303,21 +303,6 @@ class ConfigSedeController extends Controller
         $configSede->update();
 
         return response()->json(['message' => 'El registro se actualizo correctamente.'], 200);
-    }
-
-    /**
-     * Método auxiliar para depuración de carga de archivos (No usado en producción).
-     *
-     * @return mixed Nombre del archivo o null.
-     */
-    public function updateWitchPlantillas(Request $request)
-    {
-        if ($request->hasFile('plantilla')) {
-            $filename = $request->plantilla->getClientOriginalName();
-            info($filename); // log
-        }
-
-        return $filename;
     }
 
     /**

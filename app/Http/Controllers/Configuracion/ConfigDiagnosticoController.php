@@ -11,7 +11,7 @@ class ConfigDiagnosticoController extends Controller
     public function __construct()
     {
         // Catálogo público: solo proteger escrituras
-        $this->middleware('auth')->only(['store', 'update', 'destroy']);
+        $this->middleware('auth:sanctum')->only(['store', 'update', 'destroy']);
         $this->middleware('permission:config.diagnosticos.create')->only(['store']);
         $this->middleware('permission:config.diagnosticos.edit')->only(['update']);
         $this->middleware('permission:config.diagnosticos.destroy')->only(['destroy']);

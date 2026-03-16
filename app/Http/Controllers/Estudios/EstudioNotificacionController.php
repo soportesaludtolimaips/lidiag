@@ -117,7 +117,7 @@ class EstudioNotificacionController extends Controller
      */
     public function notificarEmail($estudio, $archivoReporte)
     {
-        $reportePath = storage_path('app/reporte_lecturas/'.$archivoReporte);
+        $reportePath = storage_path('app/reporte_lecturas/' . $archivoReporte);
         if (! file_exists($reportePath)) {
             return response()->json(['message' => 'No se encontró el reporte PDF para enviar al portal.'], 400);
         }
@@ -139,8 +139,8 @@ class EstudioNotificacionController extends Controller
         @unlink($archivoReporte);
 
         // Obtener las rutas de las imágenes que se enviaron
-        $imagenesAdjuntos = Storage::exists('img_dicom/'.$estudio->study_iuid)
-            ? Storage::files('img_dicom/'.$estudio->study_iuid)
+        $imagenesAdjuntos = Storage::exists('img_dicom/' . $estudio->study_iuid)
+            ? Storage::files('img_dicom/' . $estudio->study_iuid)
             : [];
 
         // Eliminar cada imagen
@@ -149,7 +149,7 @@ class EstudioNotificacionController extends Controller
         }
 
         // Eliminar la carpeta que contiene las imágenes
-        Storage::deleteDirectory('img_dicom/'.$estudio->study_iuid);
+        Storage::deleteDirectory('img_dicom/' . $estudio->study_iuid);
 
         return response()->json(['message' => 'La notificación se generó correctamente.']);
     }
@@ -160,12 +160,12 @@ class EstudioNotificacionController extends Controller
         $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
         $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
 
-        $nomArchivoReporte = $estudio->estudio_producto_id."-".$estudio->num_docu."-".$nombrePaciente.".pdf";
+        $nomArchivoReporte = $estudio->estudio_producto_id . "-" . $estudio->num_docu . "-" . $nombrePaciente . ".pdf";
 
         /**
          * Envio la lectura a Lidiag-reportes para que este diponible para la descarga por parte del paciente
          */
-        $urlApiReportes = rtrim(config('app.URL_API_REPORTES'), '/').'/api/almacenarLectura';
+        $urlApiReportes = rtrim(config('app.URL_API_REPORTES'), '/') . '/api/almacenarLectura';
 
         $secret = env('API_HMAC_SECRET'); // mismo secreto que en lidiag-reportes
         $ts = time();
@@ -182,7 +182,7 @@ class EstudioNotificacionController extends Controller
             'tap_oviyam' => $estudio->tap_oviyam,
         ];
 
-        $reportePath = storage_path('app/reporte_lecturas/'.$nomArchivoReporte);
+        $reportePath = storage_path('app/reporte_lecturas/' . $nomArchivoReporte);
         if (! file_exists($reportePath)) {
             return response()->json(['message' => 'No se encontró el reporte PDF para enviar al portal.'], 400);
         }
@@ -200,8 +200,8 @@ class EstudioNotificacionController extends Controller
         $signature = base64_encode(hash_hmac('sha256', $stringToSign, $secret, true));
 
         try {
-            $response = Http::withoutVerifying()
-                ->acceptJson()
+            // Se elimina withoutVerifying() para producción. Asegurar que el servidor destino tenga SSL válido.
+            $response = Http::acceptJson()
                 ->withHeaders([
                     'X-Timestamp' => (string) $ts,
                     'X-Signature' => $signature,
@@ -279,7 +279,7 @@ class EstudioNotificacionController extends Controller
             $objectUID = $imagen->sop_iuid;
 
             // URL del servicio WADO para la imagen
-            $wadoUrl = "http://".$sedeActual->ip_dcm.":8080/wado?requestType=WADO&studyUID=$study_iuid&seriesUID=$seriesUID&objectUID=$objectUID&contentType=image/jpeg";
+            $wadoUrl = "http://" . $sedeActual->ip_dcm . ":8080/wado?requestType=WADO&studyUID=$study_iuid&seriesUID=$seriesUID&objectUID=$objectUID&contentType=image/jpeg";
 
             // Hacer la solicitud HTTP GET para obtener la imagen
             $response = Http::get($wadoUrl);
@@ -290,10 +290,10 @@ class EstudioNotificacionController extends Controller
                 $imageContent = $response->body();
 
                 // Definir el nombre del archivo
-                $filename = 'imagen_'.$study_iuid.'_'.$seriesUID.'_'.$objectUID.'.jpg';
+                $filename = 'imagen_' . $study_iuid . '_' . $seriesUID . '_' . $objectUID . '.jpg';
 
                 // Guardar la imagen en el directorio 'img_dicom' del storage
-                Storage::put('img_dicom/'.$study_iuid."/".$filename, $imageContent);
+                Storage::put('img_dicom/' . $study_iuid . "/" . $filename, $imageContent);
             } else {
                 // Manejo de errores si alguna imagen no se pudo descargar
                 return response()->json(['error' => 'Error al descargar una de las imágenes'], 500);
