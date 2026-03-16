@@ -776,7 +776,7 @@ export default {
 
                         this.registro.productosEstudio.push(
                             {
-                                checked: true,
+                                checked: false,
                                 id: element.IdProducto,
                                 cod_cups: element.cod_cups,
                                 nom_produc: element.nom_produc
