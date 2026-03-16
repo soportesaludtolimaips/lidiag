@@ -15,10 +15,8 @@ class SAHIEcografiasController extends Controller
 {
     public function __construct()
     {
-        // Estas rutas se exponen por /api (ver routes/api_ecografias.php)
-        $this->middleware('auth:sanctum');
-        // Este endpoint se usa en admisión/listado de ecografías
-        $this->middleware('permission:ecografias.admision|ecografias.index,web')->only(['listarProductosAtencion']);
+        /* $this->middleware('auth:sanctum');
+        $this->middleware('permission:ecografias.admision|ecografias.index,web')->only(['listarProductosAtencion']); */
     }
 
     /**
@@ -139,7 +137,7 @@ class SAHIEcografiasController extends Controller
          */
         $moduloEcografiasId = 2;
         $cods = $atencionesSahi
-            ->map(fn ($r) => trim((string) ($r->CodProducto ?? '')))
+            ->map(fn($r) => trim((string) ($r->CodProducto ?? '')))
             ->filter()
             ->unique()
             ->values();

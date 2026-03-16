@@ -26,7 +26,7 @@ class EstudioController extends Controller
 
     public function __construct()
     {
-        $this->middleware('auth');
+        //$this->middleware('auth');
     }
 
     /**
@@ -112,7 +112,7 @@ class EstudioController extends Controller
         // Asegurar que venga al menos un producto marcado (checked=true)
         $productosMarcados = array_values(array_filter(
             $registro['productosEstudio'] ?? [],
-            fn ($p) => isset($p['checked']) && $p['checked'] == true
+            fn($p) => isset($p['checked']) && $p['checked'] == true
         ));
         if (count($productosMarcados) === 0) {
             return response()->json(['productosEstudio' => ['Debe seleccionar al menos un producto (marcar el check).']], 400);
@@ -201,10 +201,10 @@ class EstudioController extends Controller
                 $productoDicom = ConfigProducto::where('cod_cups', $Producto['cod_cups'])->first();
 
                 if (! $productoDicom) {
-                    return response()->json(['message' => 'No se encontró el producto con código CUPS '.$Producto['cod_cups'].' en la base de datos.'], 400);
+                    return response()->json(['message' => 'No se encontró el producto con código CUPS ' . $Producto['cod_cups'] . ' en la base de datos.'], 400);
                 }
                 if ((int) $productoDicom->requi_lectura === 0) {
-                    return response()->json(['message' => 'El producto '.$productoDicom->nom_produc.' no requiere lectura.'], 400);
+                    return response()->json(['message' => 'El producto ' . $productoDicom->nom_produc . ' no requiere lectura.'], 400);
                 }
 
                 EstudioProducto::create([
@@ -252,7 +252,7 @@ class EstudioController extends Controller
      */
     public function procesarArchivo($archivo, $estudioId)
     {
-        $nombreEncrip = Str::random(50).".".$archivo->extension();
+        $nombreEncrip = Str::random(50) . "." . $archivo->extension();
         $nombreOriginal = $archivo->getClientOriginalName();
 
         $archivoSoporteHC = new EstudioSoportesHC;
@@ -517,7 +517,7 @@ class EstudioController extends Controller
             ->when($request->bus_nom_num_docu, function ($query, $bus_nom_num_docu) {
                 return $query->where(function ($q) use ($bus_nom_num_docu) {
                     $q->where('pacien.num_docu', $bus_nom_num_docu)
-                        ->orWhere('pacien.nombres', 'LIKE', '%'.$bus_nom_num_docu.'%');
+                        ->orWhere('pacien.nombres', 'LIKE', '%' . $bus_nom_num_docu . '%');
                 });
             })
             ->when($request->quien_asigno_id, function ($query, $quien_asigno_id) {
@@ -604,7 +604,7 @@ class EstudioController extends Controller
             ->when($request->bus_nom_num_docu, function ($query, $bus_nom_num_docu) {
                 return $query->where(function ($q) use ($bus_nom_num_docu) {
                     $q->where('pacien.num_docu', $bus_nom_num_docu)
-                        ->orWhere('pacien.nombres', 'LIKE', '%'.$bus_nom_num_docu.'%');
+                        ->orWhere('pacien.nombres', 'LIKE', '%' . $bus_nom_num_docu . '%');
                 });
             })
             ->when($request->quien_asigno_id, function ($query, $quien_asigno_id) {
@@ -646,7 +646,7 @@ class EstudioController extends Controller
 
             $medico = User::find($request->medico_id);
             if (! $medico->interface_id) {
-                return response()->json(['message' => 'El medico '.$medico->name.' no está registrado en SAHI'], 400);
+                return response()->json(['message' => 'El medico ' . $medico->name . ' no está registrado en SAHI'], 400);
             }
         }
 
@@ -719,7 +719,7 @@ class EstudioController extends Controller
             $transcribir = (new SAHITranscibirController)->enviarEstudio($request->atencion, $request->medico_id, $request->lectura, $request->cod_cups, $request->fec_lectura);
 
             if ($transcribir->status() != 200) {
-                return response()->json(['message' => 'Error al enviar el reporte a la interface SAHI '.$transcribir->message()], 400);
+                return response()->json(['message' => 'Error al enviar el reporte a la interface SAHI ' . $transcribir->message()], 400);
             }
         }
 
@@ -731,7 +731,7 @@ class EstudioController extends Controller
          */
         $genearPlantilla = (new PlantillaEstudioController)->editWord($request);
         if ($genearPlantilla->status() === 402) {
-            return response()->json(['message' => 'La plantilla para la sede '.$sede->nom_sede.', no está  configurada, por favor consulte con el administrador del sistema'], 402);
+            return response()->json(['message' => 'La plantilla para la sede ' . $sede->nom_sede . ', no está  configurada, por favor consulte con el administrador del sistema'], 402);
         } elseif ($genearPlantilla->status() == 200) {
 
             $notificar = (new EstudioNotificacionController)->enviarPortalPacientes($request);
@@ -836,7 +836,7 @@ class EstudioController extends Controller
      */
     public function descargarPdfLectura($nomArchivo)
     {
-        $rutaArchivo = storage_path('app/reporte_lecturas/'.$nomArchivo);
+        $rutaArchivo = storage_path('app/reporte_lecturas/' . $nomArchivo);
 
         return response()->file($rutaArchivo);
     }

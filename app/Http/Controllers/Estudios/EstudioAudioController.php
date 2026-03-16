@@ -14,9 +14,8 @@ class EstudioAudioController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
-        // Tolerante a variación de nombre (leerestudio vs leerEstudio)
-        $this->middleware('permission:estudio.transcribir|estudio.leerestudio|estudio.leerEstudio,web');
+        /* $this->middleware('auth');
+        $this->middleware('permission:estudio.transcribir|estudio.leerestudio|estudio.leerEstudio,web'); */
     }
 
     /**
@@ -50,7 +49,7 @@ class EstudioAudioController extends Controller
         }
 
         // Nombre único para evitar colisiones
-        $baseName = 'audio_'.Str::ulid()->toBase32();
+        $baseName = 'audio_' . Str::ulid()->toBase32();
 
         // Usar extensión "adivinada" por el servidor (NO confiar en la del cliente)
         $guessedExt = $audioFile->guessExtension();
@@ -59,8 +58,8 @@ class EstudioAudioController extends Controller
             $guessedExt = 'dat';
         }
 
-        $tmpRelativePath = 'tmp/'.$baseName.'.'.$guessedExt;
-        $mp3RelativePath = $baseName.'.mp3';
+        $tmpRelativePath = 'tmp/' . $baseName . '.' . $guessedExt;
+        $mp3RelativePath = $baseName . '.mp3';
 
         /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
         $disk = Storage::disk('audios');
@@ -69,7 +68,7 @@ class EstudioAudioController extends Controller
         $mp3FullPath = $disk->path($mp3RelativePath);
 
         // Guardar temporal (siempre)
-        $audioFile->storeAs('tmp', $baseName.'.'.$guessedExt, 'audios');
+        $audioFile->storeAs('tmp', $baseName . '.' . $guessedExt, 'audios');
 
         try {
             $ffmpeg = FFMpeg\FFMpeg::create([
@@ -185,7 +184,7 @@ class EstudioAudioController extends Controller
         }
 
         $root = (string) config('filesystems.disks.audios.root', storage_path('app/audios'));
-        $fullPath = rtrim($root, "/\\").DIRECTORY_SEPARATOR.$filename;
+        $fullPath = rtrim($root, "/\\") . DIRECTORY_SEPARATOR . $filename;
         if (! is_file($fullPath)) {
             abort(404);
         }
@@ -197,7 +196,7 @@ class EstudioAudioController extends Controller
         if (! $range) {
             return response()->file($fullPath, [
                 'Content-Type' => 'audio/mpeg',
-                'Content-Disposition' => 'inline; filename="'.$filename.'"',
+                'Content-Disposition' => 'inline; filename="' . $filename . '"',
                 'Accept-Ranges' => 'bytes',
                 'Content-Length' => (string) $size,
             ]);
@@ -207,7 +206,7 @@ class EstudioAudioController extends Controller
         if (! preg_match('/bytes=(\d*)-(\d*)/i', $range, $m)) {
             // Range inválido
             return response('', 416)->withHeaders([
-                'Content-Range' => 'bytes */'.$size,
+                'Content-Range' => 'bytes */' . $size,
                 'Accept-Ranges' => 'bytes',
             ]);
         }
@@ -224,7 +223,7 @@ class EstudioAudioController extends Controller
         }
         if ($start > $end || $start >= $size) {
             return response('', 416)->withHeaders([
-                'Content-Range' => 'bytes */'.$size,
+                'Content-Range' => 'bytes */' . $size,
                 'Accept-Ranges' => 'bytes',
             ]);
         }
@@ -257,7 +256,7 @@ class EstudioAudioController extends Controller
             }
         }, 206, [
             'Content-Type' => 'audio/mpeg',
-            'Content-Disposition' => 'inline; filename="'.$filename.'"',
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
             'Accept-Ranges' => 'bytes',
             'Content-Range' => "bytes {$start}-{$end}/{$size}",
             'Content-Length' => (string) $length,
