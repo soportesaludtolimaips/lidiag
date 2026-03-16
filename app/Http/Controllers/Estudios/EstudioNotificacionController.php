@@ -22,9 +22,9 @@ class EstudioNotificacionController extends Controller
 {
     public function __construct()
     {
-        /* ini_set('max_execution_time', -1);
+        ini_set('max_execution_time', -1);
         $this->middleware('auth:sanctum')->only(['store', 'update', 'destroy']);
-        $this->middleware('permission:estudios.notificar.index'); */
+        $this->middleware('permission:estudios.notificar.index');
     }
 
     /**

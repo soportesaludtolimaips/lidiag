@@ -14,11 +14,11 @@ class StudyController extends Controller
 {
     public function __construct()
     {
-        /* $this->middleware('auth');
+        $this->middleware('auth:sanctum')->only(['store', 'update', 'destroy']);
         $this->middleware('permission:estudio.asignar')->only('store');
         $this->middleware('permission:estudio.transcribir')->only('guardarTranscripcion');
         $this->middleware('permission:estudio.leerEstudio')->only('leerEstudio');
-        $this->middleware('estudios.notificar.index')->only('listarEstudios'); */
+        $this->middleware('estudios.notificar.index')->only('listarEstudios');
     }
 
     /**
@@ -57,7 +57,6 @@ class StudyController extends Controller
         }
 
         $sedeActual = ConfigSede::find($request->sede_id);
-
         // Configuramos la segunda base de datos
         config(['database.connections.mysql_sucursal' => [
             'driver' => 'mysql',
