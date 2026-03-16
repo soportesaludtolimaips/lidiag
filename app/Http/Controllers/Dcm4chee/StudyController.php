@@ -43,6 +43,7 @@ class StudyController extends Controller
             'bus_fehc_ini' => 'nullable|date|required_with:bus_fecha_fin',
             'bus_fecha_fin' => 'nullable|date|required_with:bus_fehc_ini|after_or_equal:bus_fehc_ini',
         ]);
+
         if ($validator->fails()) {
             return response()->json(['message' => 'Datos inválidos', 'errors' => $validator->errors()], 422);
         }

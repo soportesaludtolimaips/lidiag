@@ -676,7 +676,6 @@ class EstudioController extends Controller
             'fechor_trascrito' => $request->input('fechor_trascrito', Carbon::now()->format('Y-m-d H:i:s')),
         ]);
 
-        // return $request;
         /**
          * Actualizo los datos del paciente
          */
