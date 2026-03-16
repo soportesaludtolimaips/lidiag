@@ -14,11 +14,11 @@ class StudyController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        /* $this->middleware('auth');
         $this->middleware('permission:estudio.asignar')->only('store');
         $this->middleware('permission:estudio.transcribir')->only('guardarTranscripcion');
         $this->middleware('permission:estudio.leerEstudio')->only('leerEstudio');
-        $this->middleware('estudios.notificar.index')->only('listarEstudios');
+        $this->middleware('estudios.notificar.index')->only('listarEstudios'); */
     }
 
     /**

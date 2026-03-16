@@ -5,6 +5,7 @@ namespace App\Models\Estudio;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Configuracion\ConfigProducto;
 
 class EstudioProducto extends Model
 {
@@ -27,5 +28,10 @@ class EstudioProducto extends Model
     public function adendums()
     {
         return $this->hasMany(EstudioProductoAdendum::class);
+    }
+
+    public function producto()
+    {
+        return $this->belongsTo(ConfigProducto::class, 'producto_id');
     }
 }
