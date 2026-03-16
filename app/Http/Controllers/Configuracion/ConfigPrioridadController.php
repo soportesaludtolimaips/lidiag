@@ -13,7 +13,7 @@ class ConfigPrioridadController extends Controller
     public function __construct()
     {
         // Catálogo público: solo proteger escrituras
-        $this->middleware('auth')->only(['store', 'update', 'destroy']);
+        $this->middleware('auth:sanctum')->only(['store', 'update', 'destroy']);
         $this->middleware('permission:config.prioridades.create')->only(['store']);
         $this->middleware('permission:config.prioridades.edit')->only(['update']);
         $this->middleware('permission:config.prioridades.destroy')->only(['destroy']);

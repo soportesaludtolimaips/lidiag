@@ -17,6 +17,9 @@ class SecurityHeaders
         /** @var Response $response */
         $response = $next($request);
 
+        // Ocultar versión de PHP/Laravel
+        $response->headers->remove('X-Powered-By');
+
         // Evitar que el navegador "adivine" tipos
         $response->headers->set('X-Content-Type-Options', 'nosniff');
 
@@ -51,6 +54,13 @@ class SecurityHeaders
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         }
 
+        $this->applyCsp($response);
+
+        return $response;
+    }
+
+    protected function applyCsp(Response $response)
+    {
         /**
          * CSP en modo "Report-Only" (no bloquea; solo registra).
          *
@@ -103,9 +113,13 @@ class SecurityHeaders
                 "connect-src " . implode(' ', $connectSrc),
             ]);
 
-            $response->headers->set('Content-Security-Policy-Report-Only', $cspReportOnly);
+            // En Producción real (lidiag.com), deberiamos bloquear (quitar -Report-Only)
+            // Por seguridad actual, mantenemos Report-Only hasta verificar que no rompa Vue/Vite.
+            if (app()->environment('production')) {
+                $response->headers->set('Content-Security-Policy', $cspReportOnly);
+            } else {
+                $response->headers->set('Content-Security-Policy-Report-Only', $cspReportOnly);
+            }
         }
-
-        return $response;
     }
 }

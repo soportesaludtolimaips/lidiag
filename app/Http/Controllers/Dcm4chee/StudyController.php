@@ -15,7 +15,10 @@ class StudyController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('permission:estudio.asignar,web');
+        $this->middleware('permission:estudio.asignar')->only('store');
+        $this->middleware('permission:estudio.transcribir')->only('guardarTranscripcion');
+        $this->middleware('permission:estudio.leerEstudio')->only('leerEstudio');
+        $this->middleware('estudios.notificar.index')->only('listarEstudios');
     }
 
     /**
@@ -98,8 +101,8 @@ class StudyController extends Controller
 
         if ($tieneFechas) {
             // Rango sin DATE() para permitir uso de índice en study_datetime
-            $inicio = $request->bus_fehc_ini.' 00:00:00';
-            $fin = date('Y-m-d', strtotime($request->bus_fecha_fin.' +1 day')).' 00:00:00';
+            $inicio = $request->bus_fehc_ini . ' 00:00:00';
+            $fin = date('Y-m-d', strtotime($request->bus_fecha_fin . ' +1 day')) . ' 00:00:00';
             $query->where('study.study_datetime', '>=', $inicio)
                 ->where('study.study_datetime', '<', $fin);
         }

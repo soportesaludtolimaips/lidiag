@@ -10,12 +10,7 @@ class ConfigPlantillaTipoController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
-
-        // Permisos por acción (Spatie)
-        // `listarActivos` se usa desde el módulo de Ecografías (lectura) para cargar catálogos.
-        // Permitimos acceso también con `ecografias.leer` para roles médicos.
-        $this->middleware('permission:config.plantillas.index')->only(['index', 'show']);
+        $this->middleware('auth:sanctum')->only(['store', 'update', 'destroy']);
         $this->middleware('permission:config.plantillas.index|ecografias.leer')->only(['listarActivos']);
         $this->middleware('permission:config.plantillas.create')->only(['store']);
         $this->middleware('permission:config.plantillas.edit')->only(['update']);
