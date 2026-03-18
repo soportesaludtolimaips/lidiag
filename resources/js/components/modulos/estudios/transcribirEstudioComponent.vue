@@ -177,9 +177,9 @@ ItemUsuario, index
                                                 :disabled="loadingAbrirRegistroId ===
                                                     item.estudio_producto_id
                                                     " @click="
-                                                    actualizar = true;
-                                                mostrarRegistro(item);
-                                                ">
+                                                        actualizar = true;
+                                                    mostrarRegistro(item);
+                                                    ">
                                                 <i v-if="
                                                     loadingAbrirRegistroId ===
                                                     item.estudio_producto_id
@@ -190,12 +190,12 @@ ItemUsuario, index
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
                                                 :disabled="loadingAnularId === item.estudio_producto_id
                                                     " @click="
-                                                    anularAsignacion(
-                                                        item.estudio_producto_id,
-                                                        item.nom_pacien,
-                                                        item.nom_produc
-                                                    )
-                                                    ">
+                                                        anularAsignacion(
+                                                            item.estudio_producto_id,
+                                                            item.nom_pacien,
+                                                            item.nom_produc
+                                                        )
+                                                        ">
                                                 <i v-if="
                                                     loadingAnularId === item.estudio_producto_id
                                                 " class="fa fa-spinner fa-spin"></i>
@@ -429,10 +429,10 @@ ItemUsuario, index
                                                                     ? 'none'
                                                                     : 'auto',
                                                         }" @click="
-                                                                descargaSoportte(
-                                                                    itemArchivo.archivo_encrip
-                                                                )
-                                                                ">
+                                                            descargaSoportte(
+                                                                itemArchivo.archivo_encrip
+                                                            )
+                                                            ">
                                                             <i v-if="
                                                                 loadingDescargaSoporte ===
                                                                 itemArchivo.archivo_encrip
@@ -508,7 +508,6 @@ export default {
         this.$nextTick(() => this.initWysiwyg());
         this.establecerSede();
         this.busqueda.sede_id = sessionStorage.getItem("ST-sede");
-        //this.listarUsuariosYSedes();
 
         await listarUsuariosYSedes(this);
 
@@ -597,9 +596,6 @@ export default {
                     sessionStorage.removeItem("ST-accession");
                     // Lanzar búsqueda
                     this.destroyDataTable();
-                    this.listarPendientesTrascribir();
-                } else {
-                    // comportamiento actual
                     this.listarPendientesTrascribir();
                 }
             } catch (e) {

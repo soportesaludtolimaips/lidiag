@@ -37,26 +37,38 @@ export function alertInfo(title = "Info", text = "", icon = "info") {
  * Confirmación clásica; devuelve Promise<boolean>.
  * Con swal: resuelve true/false según confirmación.
  */
-export function confirmAction({ title = "¿Estás seguro?", text = "", icon = "warning" } = {}) {
+export function confirmAction(options) {
     const swal = getSwal();
-    if (!swal) return Promise.resolve(window.confirm([title, text].filter(Boolean).join("\n")));
-
-    // Compat con sweetalert (swal) “clásico”
     return new Promise((resolve) => {
-        swal({
-            title,
-            text,
-            icon,
-            buttons: true,
-            dangerMode: icon === "warning" || icon === "error",
-        }).then((willDo) => resolve(!!willDo));
+        swal(
+            {
+                title: options.title,
+                text: options.text,
+                type: options.icon || "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Sí, continuar",
+                cancelButtonText: "Cancelar",
+                closeOnConfirm: true,
+            },
+            function (isConfirm) {
+                // <--- SE USA UN CALLBACK COMO SEGUNDO PARÁMETRO
+                resolve(isConfirm);
+            }
+        );
     });
 }
 
 /**
  * Toast uniforme (si la plantilla carga $.toast).
  */
-export function toastMessage({ heading = "Info", text = "", icon = "info", position = "top-right", hideAfter = 3500 } = {}) {
+export function toastMessage({
+    heading = "Info",
+    text = "",
+    icon = "info",
+    position = "top-right",
+    hideAfter = 3500,
+} = {}) {
     const toast = getToast();
     if (!toast) return;
 
@@ -95,7 +107,10 @@ export function handleAxiosErrorToast(error, fallbackMessage = "Ocurrió un erro
         return;
     }
 
-    const msg = error?.response?.data?.message || (typeof error?.response?.data === "string" ? error.response.data : null) || fallbackMessage;
+    const msg =
+        error?.response?.data?.message ||
+        (typeof error?.response?.data === "string" ? error.response.data : null) ||
+        fallbackMessage;
 
     toastMessage({
         heading: "Upss!!!",
