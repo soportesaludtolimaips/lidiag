@@ -702,6 +702,7 @@ class EstudioController extends Controller
         $transcribirEstudios->transcriptor_id = auth()->user()->id;
         $transcribirEstudios->fechor_trascrito = Carbon::now()->format('Y-m-d H:i:s');
         $transcribirEstudios->visto = 1;
+        $transcribirEstudios->save();
 
         /**
          * Si el estudio se va a enviar a Teleradiologia o Trys no se asigna medico porque se asigna en la plataforma de ellos, pero si el estudio se va a enviar a Salud Tolima se asigna el medico que realizo la lectura porque es para que el medico de Salud Tolima pueda identificar quien realizo la lectura del estudio
@@ -709,10 +710,8 @@ class EstudioController extends Controller
         if ($request->destino_estudio === 'Tele Radiologia') {
             $estudio = Estudio::findOrFail($request->id_estudio);
             $estudio->medico_id = $request['medico_id'];
+            $estudio->save();
         }
-
-        // Actualizo el estudio para asignar el medico que realizo la lectura del estudio
-        $estudio->save();
 
         /**
          * Si la sede donde se realizó el estudio tiene interface hago el envio del reporte a la HC del hospital
