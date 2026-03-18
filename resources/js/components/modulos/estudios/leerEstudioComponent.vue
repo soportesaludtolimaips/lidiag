@@ -16,22 +16,13 @@
             </ol>
         </div>
         <div class="col-md-7 align-self-center text-right d-none d-md-block">
-            <i
-                class="fa fa-life-ring model_img img-responsive"
-                data-toggle="modal"
-                data-target=".bs-example-modal-lg"
-            ></i>
+            <i class="fa fa-life-ring model_img img-responsive" data-toggle="modal"
+                data-target=".bs-example-modal-lg"></i>
         </div>
 
         <!-- sample modal content -->
-        <div
-            class="modal fade bs-example-modal-lg"
-            tabindex="-1"
-            role="dialog"
-            aria-labelledby="myLargeModalLabel"
-            aria-hidden="true"
-            style="display: none"
-        >
+        <div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel"
+            aria-hidden="true" style="display: none">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -106,11 +97,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button
-                            type="button"
-                            class="btn btn-danger waves-effect text-left"
-                            data-dismiss="modal"
-                        >
+                        <button type="button" class="btn btn-danger waves-effect text-left" data-dismiss="modal">
                             Close
                         </button>
                     </div>
@@ -134,13 +121,8 @@
                 <div class="card-body">
                     <h4 class="card-title">Listado de mis pendientes por leer</h4>
                     <div class="table-responsive">
-                        <table
-                            id="example23"
-                            ref="dt"
-                            class="table table-bordered table-striped"
-                            cellspacing="0"
-                            width="100%"
-                        >
+                        <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
+                            width="100%">
                             <thead>
                                 <tr>
                                     <th></th>
@@ -155,39 +137,23 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr
-                                    v-for="item in registros"
-                                    :key="item.estudio_producto_id"
-                                    :class="{ 'text-info': item.visto === 1 }"
-                                    :id="'row-' + item.estudio_producto_id"
-                                >
+                                <tr v-for="item in registros" :key="item.estudio_producto_id"
+                                    :class="{ 'text-info': item.visto === 1 }" :id="'row-' + item.estudio_producto_id">
                                     <td width="2%">
-                                        <button
-                                            type="button"
-                                            v-if="item.priori_id == 1"
-                                            class="btn waves-effect waves-light btn-rounded btn-sm btn-danger"
-                                        >
+                                        <button type="button" v-if="item.priori_id == 1"
+                                            class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">
                                             A
                                         </button>
-                                        <button
-                                            type="button"
-                                            v-else-if="item.priori_id == 2"
-                                            class="btn waves-effect waves-light btn-rounded btn-sm btn-warning"
-                                        >
+                                        <button type="button" v-else-if="item.priori_id == 2"
+                                            class="btn waves-effect waves-light btn-rounded btn-sm btn-warning">
                                             M
                                         </button>
-                                        <button
-                                            type="button"
-                                            v-else-if="item.priori_id == 3"
-                                            class="btn waves-effect waves-light btn-rounded btn-sm btn-info"
-                                        >
+                                        <button type="button" v-else-if="item.priori_id == 3"
+                                            class="btn waves-effect waves-light btn-rounded btn-sm btn-info">
                                             B
                                         </button>
-                                        <button
-                                            type="button"
-                                            v-else-if="item.priori_id == 4"
-                                            class="btn waves-effect waves-light btn-rounded btn-sm"
-                                        >
+                                        <button type="button" v-else-if="item.priori_id == 4"
+                                            class="btn waves-effect waves-light btn-rounded btn-sm">
                                             S
                                         </button>
                                     </td>
@@ -207,26 +173,19 @@
                                         {{ item.nom_produc }}
                                     </td>
                                     <td class="text-nowrap">
-                                        <button
-                                            type="button"
+                                        <button type="button"
                                             class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                            :disabled="loadingAbrirId === item.estudio_producto_id"
-                                            @click="
+                                            :disabled="loadingAbrirId === item.estudio_producto_id" @click="
                                                 actualizar = true;
-                                                mostrarRegistro(item);
-                                            "
-                                        >
-                                            <i
-                                                v-if="loadingAbrirId === item.estudio_producto_id"
-                                                class="fa fa-spinner fa-spin"
-                                            ></i>
+                                            mostrarRegistro(item);
+                                            ">
+                                            <i v-if="loadingAbrirId === item.estudio_producto_id"
+                                                class="fa fa-spinner fa-spin"></i>
                                             <i v-else class="fa fa-pencil"></i>
                                         </button>
-                                        <button
-                                            type="button"
+                                        <button type="button"
                                             class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm"
-                                            :disabled="loadingImagenId === item.estudio_producto_id"
-                                            @click="
+                                            :disabled="loadingImagenId === item.estudio_producto_id" @click="
                                                 verImagen(
                                                     item.url_oviyam,
                                                     item.num_docu,
@@ -234,28 +193,19 @@
                                                     item.tap_oviyam,
                                                     item.estudio_producto_id
                                                 )
-                                            "
-                                            title="Ver imagenes"
-                                        >
-                                            <i
-                                                v-if="loadingImagenId === item.estudio_producto_id"
-                                                class="fa fa-spinner fa-spin"
-                                            ></i>
+                                                " title="Ver imagenes">
+                                            <i v-if="loadingImagenId === item.estudio_producto_id"
+                                                class="fa fa-spinner fa-spin"></i>
                                             <i v-else class="fa fa-file-photo-o"></i>
                                         </button>
-                                        <button
-                                            type="button"
+                                        <button type="button"
                                             class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
-                                            :disabled="loadingVistoId === item.estudio_producto_id"
-                                            @click="
+                                            :disabled="loadingVistoId === item.estudio_producto_id" @click="
                                                 actualizar = true;
-                                                visto(item.estudio_producto_id);
-                                            "
-                                        >
-                                            <i
-                                                v-if="loadingVistoId === item.estudio_producto_id"
-                                                class="fa fa-spinner fa-spin"
-                                            ></i>
+                                            visto(item.estudio_producto_id);
+                                            ">
+                                            <i v-if="loadingVistoId === item.estudio_producto_id"
+                                                class="fa fa-spinner fa-spin"></i>
                                             <i v-else class="fa fa-eye"></i>
                                         </button>
                                     </td>
@@ -275,19 +225,12 @@
     <!-- Right sidebar -->
     <!-- ============================================================== -->
     <!-- .right-sidebar -->
-    <div
-        class="right-sidebar"
-        style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%"
-    >
+    <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%">
         <div class="slimscrollright">
             <div class="rpanel-title">
                 {{ tituloModal }}
                 <span @click="btnCerralModalForm()">
-                    <i
-                        class="ti-close right-side-toggle"
-                        id="btnCerralModalForm"
-                        @click="btnCerralModalForm()"
-                    ></i>
+                    <i class="ti-close right-side-toggle" id="btnCerralModalForm" @click="btnCerralModalForm()"></i>
                 </span>
             </div>
             <div class="r-panel-body">
@@ -332,18 +275,9 @@
                                 </h5>
                                 <hr />
 
-                                <input
-                                    type="hidden"
-                                    id="estudio_producto_id"
-                                    name="estudio_producto_id"
-                                    v-model="registro.estudio_producto_id"
-                                />
-                                <input
-                                    type="hidden"
-                                    id="email"
-                                    name="email"
-                                    v-model="registro.email"
-                                />
+                                <input type="hidden" id="estudio_producto_id" name="estudio_producto_id"
+                                    v-model="registro.estudio_producto_id" />
+                                <input type="hidden" id="email" name="email" v-model="registro.email" />
 
                                 <div class="row">
                                     <div class="col-md-5">
@@ -402,15 +336,9 @@
                                 </h5>
                                 <hr />
 
-                                <div
-                                    class="row table-responsive"
-                                    style="height: 150px; overflow-y: scroll"
-                                >
+                                <div class="row table-responsive" style="height: 150px; overflow-y: scroll">
                                     <div class="col-md-12">
-                                        <ul
-                                            v-for="(item, index) in diagnosticosEstudio"
-                                            :key="index"
-                                        >
+                                        <ul v-for="(item, index) in diagnosticosEstudio" :key="index">
                                             <li>{{ item.nom_diagnos }}</li>
                                         </ul>
                                     </div>
@@ -428,32 +356,22 @@
                                     <div class="ml-auto">
                                         <ul class="list-inline text-center">
                                             <li>
-                                                <button
-                                                    type="button"
-                                                    class="btn btn-secondary btn-xs"
-                                                    :disabled="loadingImagenSidebar"
-                                                    @click="
+                                                <button type="button" class="btn btn-secondary btn-xs"
+                                                    :disabled="loadingImagenSidebar" @click="
                                                         verImagen(
                                                             registro.urlOviyam,
                                                             registro.patientId,
                                                             registro.studyUID,
                                                             registro.serverName
                                                         )
-                                                    "
-                                                >
-                                                    <i
-                                                        v-if="loadingImagenSidebar"
-                                                        class="fa fa-spinner fa-spin"
-                                                    ></i>
+                                                        ">
+                                                    <i v-if="loadingImagenSidebar" class="fa fa-spinner fa-spin"></i>
                                                     <i v-else class="fa fa-file-image-o"></i>
                                                 </button>
                                             </li>
                                             <li>
-                                                <a
-                                                    class=""
-                                                    @click="toggleSpeechRecognition"
-                                                    style="width: 30px; height: 30px"
-                                                >
+                                                <a class="" @click="toggleSpeechRecognition"
+                                                    style="width: 30px; height: 30px">
                                                     <img title="Grabadora" :src="microfono" />
                                                 </a>
                                             </li>
@@ -463,18 +381,13 @@
 
                                 <span class="text-danger" v-if="errores.lectura">{{
                                     errores.lectura[0]
-                                }}</span>
+                                    }}</span>
                                 <div class="row">
                                     <div class="col-12">
                                         <div class="form-group">
-                                            <textarea
-                                                v-model="registro.lectura"
-                                                class="form-control"
-                                                rows="15"
-                                                id="lectura"
-                                                style="height: 100%"
-                                                placeholder="Ingrese aquí la lectura del estudio ..."
-                                            ></textarea>
+                                            <textarea v-model="registro.lectura" class="form-control" rows="15"
+                                                id="lectura" style="height: 100%"
+                                                placeholder="Ingrese aquí la lectura del estudio ..."></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -484,25 +397,15 @@
                                         <!-- Nav tabs -->
                                         <ul class="nav nav-tabs" role="tablist">
                                             <li class="nav-item">
-                                                <a
-                                                    class="nav-link active"
-                                                    data-toggle="tab"
-                                                    href="#home8"
-                                                    role="tab"
-                                                >
+                                                <a class="nav-link active" data-toggle="tab" href="#home8" role="tab">
                                                     <h5 class="card-title text-info">
                                                         <i class="fa fa-paperclip"></i> Adjuntos
                                                     </h5>
                                                 </a>
                                             </li>
                                             <li class="nav-item">
-                                                <a
-                                                    class="nav-link"
-                                                    data-toggle="tab"
-                                                    href="#profile8"
-                                                    role="tab"
-                                                    @click="listarAudios()"
-                                                >
+                                                <a class="nav-link" data-toggle="tab" href="#profile8" role="tab"
+                                                    @click="listarAudios()">
                                                     <span>
                                                         <h5 class="card-title text-info">
                                                             <i class="fa fa-file-audio-o"></i>
@@ -523,70 +426,43 @@
                                         </ul>
                                         <!-- Tab panes -->
                                         <div class="tab-content tabcontent-border">
-                                            <div
-                                                class="tab-pane active p-20"
-                                                id="home8"
-                                                role="tabpanel"
-                                            >
-                                                <div
-                                                    class="col-md-8 col-lg-9"
-                                                    v-for="(itemArchivo, index) in soportesHC"
-                                                    :key="index"
-                                                >
-                                                    <a
-                                                        href="javascript:void(0)"
-                                                        :style="{
-                                                            pointerEvents:
-                                                                loadingDescargaSoporte ===
+                                            <div class="tab-pane active p-20" id="home8" role="tabpanel">
+                                                <div class="col-md-8 col-lg-9"
+                                                    v-for="(itemArchivo, index) in soportesHC" :key="index">
+                                                    <a href="javascript:void(0)" :style="{
+                                                        pointerEvents:
+                                                            loadingDescargaSoporte ===
                                                                 itemArchivo.archivo_encrip
-                                                                    ? 'none'
-                                                                    : 'auto',
-                                                        }"
-                                                        @click="
-                                                            descargaSoportte(
-                                                                itemArchivo.archivo_original,
-                                                                itemArchivo.archivo_encrip
-                                                            )
-                                                        "
-                                                    >
-                                                        <i
-                                                            v-if="
-                                                                loadingDescargaSoporte ===
-                                                                itemArchivo.archivo_encrip
-                                                            "
-                                                            class="fa fa-spinner fa-spin"
-                                                        ></i>
+                                                                ? 'none'
+                                                                : 'auto',
+                                                    }" @click="
+                                                        descargaSoportte(
+                                                            itemArchivo.archivo_original,
+                                                            itemArchivo.archivo_encrip
+                                                        )
+                                                        ">
+                                                        <i v-if="
+                                                            loadingDescargaSoporte ===
+                                                            itemArchivo.archivo_encrip
+                                                        " class="fa fa-spinner fa-spin"></i>
                                                         {{ itemArchivo.archivo_original }}
                                                     </a>
                                                 </div>
                                             </div>
-                                            <div
-                                                class="tab-pane p-20"
-                                                id="profile8"
-                                                role="tabpanel"
-                                            >
+                                            <div class="tab-pane p-20" id="profile8" role="tabpanel">
                                                 <div v-if="loadingAudios" class="text-muted">
                                                     <i class="fa fa-spinner fa-spin"></i> Cargando
                                                     audios...
                                                 </div>
-                                                <template
-                                                    v-for="(item, index) in audiosDeEstudio"
-                                                    :key="index"
-                                                >
-                                                    <audio
-                                                        :src="item.url"
-                                                        controls
-                                                        style="height: 15px; width: 100%"
-                                                    ></audio>
+                                                <template v-for="(item, index) in audiosDeEstudio" :key="index">
+                                                    <audio :src="item.url" controls
+                                                        style="height: 15px; width: 100%"></audio>
                                                 </template>
-                                                <div
-                                                    v-if="
-                                                        !loadingAudios &&
-                                                        (!audiosDeEstudio ||
-                                                            audiosDeEstudio.length === 0)
-                                                    "
-                                                    class="text-muted"
-                                                >
+                                                <div v-if="
+                                                    !loadingAudios &&
+                                                    (!audiosDeEstudio ||
+                                                        audiosDeEstudio.length === 0)
+                                                " class="text-muted">
                                                     No hay audios para este estudio.
                                                 </div>
                                             </div>
@@ -597,22 +473,14 @@
                         </div>
 
                         <div class="form-actions mt-3">
-                            <button
-                                type="button"
-                                class="btn btn-success m-r-5"
-                                @click="guardarRegistro()"
-                                :disabled="loadingGuardar"
-                            >
+                            <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
+                                :disabled="loadingGuardar">
                                 <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
                                 <i v-else class="fa fa-check"></i>
                                 Guardar
                             </button>
 
-                            <button
-                                type="button"
-                                class="btn btn-inverse"
-                                @click="btnCerralModalForm()"
-                            >
+                            <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">
                                 Cancel
                             </button>
                         </div>
@@ -687,10 +555,10 @@ export default {
         // Limpieza best-effort: evita streams/timers “zombies”
         try {
             this.teardownDictationFocusHandlers();
-        } catch (e) {}
+        } catch (e) { }
         try {
             this.stopAll();
-        } catch (e) {}
+        } catch (e) { }
     },
     data() {
         return {
@@ -936,7 +804,7 @@ export default {
                     });
                     return;
                 }
-            } catch (e) {}
+            } catch (e) { }
             this.listarMisPendientes();
         },
         setupDictationFocusHandlers() {
@@ -949,12 +817,12 @@ export default {
                     this.wasRecognizingBeforeHide = !!this.recognizing;
                     try {
                         this.pauseRecognition();
-                    } catch (e) {}
+                    } catch (e) { }
                     // Pausar grabación si estaba activa
                     if (this.mediaRecorder && this.mediaRecorder.state === "recording") {
                         try {
                             this.mediaRecorder.pause();
-                        } catch (e) {}
+                        } catch (e) { }
                         this.microfono = "admin-wrap/assets/images/mic.gif";
                     }
                 } else {
@@ -963,11 +831,11 @@ export default {
                         this.wasRecognizingBeforeHide = false;
                         try {
                             this.resumeRecognition();
-                        } catch (e) {}
+                        } catch (e) { }
                         if (this.mediaRecorder && this.mediaRecorder.state === "paused") {
                             try {
                                 this.mediaRecorder.resume();
-                            } catch (e) {}
+                            } catch (e) { }
                             this.microfono = "admin-wrap/assets/images/mic-animate.gif";
                         }
                     }
@@ -978,11 +846,11 @@ export default {
                 this.wasRecognizingBeforeHide = !!this.recognizing;
                 try {
                     this.pauseRecognition();
-                } catch (e) {}
+                } catch (e) { }
                 if (this.mediaRecorder && this.mediaRecorder.state === "recording") {
                     try {
                         this.mediaRecorder.pause();
-                    } catch (e) {}
+                    } catch (e) { }
                     this.microfono = "admin-wrap/assets/images/mic.gif";
                 }
             };
@@ -992,11 +860,11 @@ export default {
                     this.wasRecognizingBeforeHide = false;
                     try {
                         this.resumeRecognition();
-                    } catch (e) {}
+                    } catch (e) { }
                     if (this.mediaRecorder && this.mediaRecorder.state === "paused") {
                         try {
                             this.mediaRecorder.resume();
-                        } catch (e) {}
+                        } catch (e) { }
                         this.microfono = "admin-wrap/assets/images/mic-animate.gif";
                     }
                 }
@@ -1013,17 +881,17 @@ export default {
                         "visibilitychange",
                         this.onVisibilityChangeHandler
                     );
-                } catch (e) {}
+                } catch (e) { }
             }
             if (this.onWindowBlurHandler) {
                 try {
                     window.removeEventListener("blur", this.onWindowBlurHandler);
-                } catch (e) {}
+                } catch (e) { }
             }
             if (this.onWindowFocusHandler) {
                 try {
                     window.removeEventListener("focus", this.onWindowFocusHandler);
-                } catch (e) {}
+                } catch (e) { }
             }
             this.onVisibilityChangeHandler = null;
             this.onWindowBlurHandler = null;
@@ -1296,9 +1164,9 @@ export default {
                 if (this.audioUrl) {
                     try {
                         URL.revokeObjectURL(this.audioUrl);
-                    } catch (e) {}
+                    } catch (e) { }
                 }
-            } catch (e) {}
+            } catch (e) { }
             this.audioChunks = [];
             this.audioBlob = null;
             this.audioUrl = null;
@@ -1321,7 +1189,7 @@ export default {
                     if (typeof onEachMatch === "function") {
                         try {
                             onEachMatch(command);
-                        } catch (e) {}
+                        } catch (e) { }
                     }
                     const fn = commandMap[command];
                     const replacement = typeof fn === "function" ? fn() : String(fn);
@@ -1339,7 +1207,13 @@ export default {
             });
         },
         destroyDataTable() {
-            safeDestroyDataTable(this.$refs.dt || "#example23");
+            try {
+                if ($ && $.fn && $.fn.DataTable && $.fn.dataTable.isDataTable('#example23')) {
+                    $("#example23").DataTable().destroy();
+                }
+            } catch (e) {
+                // No-op
+            }
         },
         getMicErrorToastConfig(error) {
             const name = error && error.name ? String(error.name) : "";
@@ -1419,7 +1293,7 @@ export default {
             if (this.recognitionRestartTimer) {
                 try {
                     clearTimeout(this.recognitionRestartTimer);
-                } catch (e) {}
+                } catch (e) { }
                 this.recognitionRestartTimer = null;
             }
         },
@@ -1465,11 +1339,11 @@ export default {
             if (this.dictation) {
                 try {
                     this.dictation.pause();
-                } catch (e) {}
+                } catch (e) { }
             } else if (this.recognition) {
                 try {
                     this.recognition.stop();
-                } catch (e) {}
+                } catch (e) { }
             }
             this.recognizing = false;
         },
@@ -1508,11 +1382,11 @@ export default {
                 if (this.voiceSession) {
                     try {
                         this.voiceSession.pause();
-                    } catch (e) {}
+                    } catch (e) { }
                 } else {
                     try {
                         this.mediaRecorder.pause();
-                    } catch (e) {}
+                    } catch (e) { }
                     this.pauseRecognition();
                 }
                 this.microfono = "admin-wrap/assets/images/mic.gif";
@@ -1520,11 +1394,11 @@ export default {
                 if (this.voiceSession) {
                     try {
                         this.voiceSession.resume();
-                    } catch (e) {}
+                    } catch (e) { }
                 } else {
                     try {
                         this.mediaRecorder.resume();
-                    } catch (e) {}
+                    } catch (e) { }
                     this.resumeRecognition();
                 }
                 this.microfono = "admin-wrap/assets/images/mic-animate.gif";
@@ -1542,7 +1416,7 @@ export default {
                 if (this.mediaStream && this.mediaStream.getTracks) {
                     try {
                         this.mediaStream.getTracks().forEach((t) => t.stop());
-                    } catch (e) {}
+                    } catch (e) { }
                     this.mediaStream = null;
                 }
                 createAudioRecorderSession({
@@ -1587,19 +1461,19 @@ export default {
                 if (this.voiceSession) {
                     try {
                         this.voiceSession.stopDictation();
-                    } catch (e) {}
+                    } catch (e) { }
                 }
                 if (this.dictation) {
                     try {
                         this.dictation.stop();
-                    } catch (e) {}
+                    } catch (e) { }
                     this.dictation = null;
                 }
                 if (this.recognition) {
                     try {
                         this.recognition.onend = null;
                         this.recognition.onerror = null;
-                    } catch (e) {}
+                    } catch (e) { }
                     // Si se detiene el reconocimiento, pausar también la grabación de audio
                     if (this.mediaRecorder && this.mediaRecorder.state === "recording") {
                         try {
@@ -1614,7 +1488,7 @@ export default {
                     }
                     try {
                         this.recognition.stop();
-                    } catch (e) {}
+                    } catch (e) { }
                 }
                 this.recognizing = false;
                 this.recognitionActive = false;
@@ -1638,7 +1512,7 @@ export default {
                 if (this.voiceSession) {
                     try {
                         this.voiceSession.cleanup();
-                    } catch (e) {}
+                    } catch (e) { }
                     // se recrea en siguiente startRecording
                     this.voiceSession = null;
                 }
@@ -1646,20 +1520,20 @@ export default {
                 if (this.audioSession) {
                     try {
                         this.audioSession.cleanup();
-                    } catch (e) {}
+                    } catch (e) { }
                     this.audioSession = null;
                 } else if (this.mediaStream && this.mediaStream.getTracks) {
                     // fallback legacy
                     try {
                         this.mediaStream.getTracks().forEach((t) => t.stop());
-                    } catch (e) {}
+                    } catch (e) { }
                 }
                 this.mediaStream = null;
                 // Revocar URL de audio si existe
                 if (this.audioUrl) {
                     try {
                         URL.revokeObjectURL(this.audioUrl);
-                    } catch (e) {}
+                    } catch (e) { }
                     this.audioUrl = null;
                 }
                 // Indicadores de estado
@@ -1958,10 +1832,19 @@ export default {
                     stack: 6,
                 });
             } else {
-                if (this.loadingListar) return;
-                this.loadingListar = true;
+                /* if (this.loadingListar) return;
+                this.loadingListar = true; */
                 try {
-                    const res = await axios.post("/api/estudio-listarPendientesMedico", {
+                    const res = await axios.post('/api/estudio-listarPendientesMedico', { id: this.usuarioactual.id, sede_id: this.sede_id });
+                    this.destroyDataTable();
+
+                    this.registros = res.data;
+
+                    this.$nextTick(() => {
+                        this.initDataTable();
+                    });
+
+                    /* const res = await axios.post("/api/estudio-listarPendientesMedico", {
                         id: this.usuarioactual.id,
                         sede_id: this.sede_id,
                     });
@@ -1971,11 +1854,9 @@ export default {
 
                     this.$nextTick(() => {
                         this.initDataTable();
-                    });
+                    }); */
                 } catch (error) {
-                    handleAxiosErrorToast(error, "No fue posible listar los pendientes.");
-                } finally {
-                    this.loadingListar = false;
+                    console.log(error);
                 }
             }
         },
@@ -2036,9 +1917,30 @@ export default {
             if (this.loadingVistoId) return;
             this.loadingVistoId = id;
 
+            const row = document.getElementById("row-" + id);
+
+            // Evitar doble click verificando de forma inmediata si ya tiene la clase
+            if (row && row.classList.contains("text-info")) return;
+
+            // 1. Modificación directa del DOM (Instantáneo y compatible con DataTables)
+            if (row) {
+                row.classList.add("text-info");
+            }
+
+            // 2. Modificación del estado sin disparar la reactividad pesada de $set
+            const idx = this.registros.findIndex((x) => x.estudio_producto_id === id);
+            if (idx !== -1) {
+                this.registros[idx].visto = 1;
+            }
+
             try {
-                await axios.post("/api/marcar-visto/" + id);
-                await this.listarMisPendientes();
+                // 3. Verdadera llamada "fire-and-forget" en segundo plano
+                const marcarVisto = await axios.post("/api/marcar-visto/" + id)
+                    .catch((error) => {
+                        console.error("No fue posible marcar como visto.", error);
+                        // Opcional: Si falla, podríamos revertir la clase
+                        if (row) row.classList.remove("text-info");
+                    });
             } catch (error) {
                 handleAxiosErrorToast(error, "No fue posible marcar como visto.");
             } finally {
@@ -2191,7 +2093,7 @@ export default {
                 if (this.mediaRecorder.state && this.mediaRecorder.state !== "inactive") {
                     try {
                         this.mediaRecorder.stop();
-                    } catch (e) {}
+                    } catch (e) { }
                 }
                 this.mediaRecorder = null;
             }
@@ -2202,13 +2104,13 @@ export default {
             if (this.audioUrl) {
                 try {
                     URL.revokeObjectURL(this.audioUrl);
-                } catch (e) {}
+                } catch (e) { }
                 this.audioUrl = null;
             }
             if (this.emitter && this.emitter.off) {
                 try {
                     this.emitter.off("sedeSeleccionada");
-                } catch (e) {}
+                } catch (e) { }
             }
         } catch (e) {
             // best-effort cleanup
