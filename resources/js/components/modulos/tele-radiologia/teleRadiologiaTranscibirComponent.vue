@@ -367,7 +367,7 @@ ItemUsuario, index
                                     </div>
                                     <span class="text-danger" v-if="errores.lectura">{{
                                         errores.lectura[0]
-                                        }}</span>
+                                    }}</span>
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group" id="medicos-parent">
@@ -675,10 +675,10 @@ export default {
                         hideAfter: 3500,
                         stack: 6,
                     });
-                    /* this.$refs.btnCerrarForm.click();
+                    this.$refs.btnCerrarForm.click();
 
                     this.btnCerralModalForm();
-                    this.limpiar(); */
+                    this.limpiar();
                 } else {
                     $.toast({
                         heading: "Upss!!!",
