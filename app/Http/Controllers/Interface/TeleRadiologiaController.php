@@ -282,10 +282,10 @@ class TeleRadiologiaController extends Controller
                     $nombreArchivo = Str::random(50) . "." . $extension;
 
                     // Guardar en el disco configurado
-                    Storage::disk('firmas_medicos')->put($nombreArchivo, $imgData);
+                    $firmaMedico = Storage::disk('firmas_medicos')->put($nombreArchivo, $imgData);
 
                     // Actualizar el path en el modelo
-                    $medico->firma = $nombreArchivo;
+                    $medico->firma = $firmaMedico;
                 }
             } catch (\Exception $e) {
                 Log::error("Error al sustituir firma del médico {$medico->num_docu}: " . $e->getMessage());
