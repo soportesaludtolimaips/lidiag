@@ -718,7 +718,7 @@ class EstudioController extends Controller
          * Si la sede donde se realizó el estudio tiene interface hago el envio del reporte a la HC del hospital
          */
         if ($sede->interface_software === 'SAHI') {
-            //$transcribir = (new SAHITranscibirController)->enviarEstudio($request->atencion, $request->medico_id, $request->lectura, $request->cod_cups, $request->fec_lectura);
+            $transcribir = (new SAHITranscibirController)->enviarEstudio($request->atencion, $request->medico_id, $request->lectura, $request->cod_cups, $request->fec_lectura);
             /* if ($transcribir->status() != 200) {
                 return response()->json(['message' => 'Error al enviar el reporte a la interface SAHI ' . $transcribir->message()], 400);
             } */
@@ -731,7 +731,6 @@ class EstudioController extends Controller
          * 3. Notificacion por correo electronico
          */
         $genearPlantilla = (new PlantillaEstudioController)->editWord($request);
-        return $genearPlantilla;
         if ($genearPlantilla->status() === 402) {
             return response()->json(['message' => 'La plantilla para la sede ' . $sede->nom_sede . ', no está  configurada, por favor consulte con el administrador del sistema'], 402);
         } elseif ($genearPlantilla->status() == 200) {
