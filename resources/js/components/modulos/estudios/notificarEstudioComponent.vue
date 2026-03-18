@@ -37,76 +37,44 @@
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             <label class="control-label"># de documento </label>
-                                            <input
-                                                type="text"
-                                                id="bus_num_docu"
-                                                name="bus_num_docu"
-                                                v-model="busqueda.bus_num_docu"
-                                                class="form-control"
-                                                placeholder="# de documento de paciente"
-                                                @keyup.enter="buscarStudy()"
-                                            />
+                                            <input type="text" id="bus_num_docu" name="bus_num_docu"
+                                                v-model="busqueda.bus_num_docu" class="form-control"
+                                                placeholder="# de documento de paciente" @keyup.enter="buscarStudy()" />
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label class="control-label"
-                                                >Nombres del paciente</label
-                                            >
-                                            <input
-                                                type="text"
-                                                id="bus_nom"
-                                                name="bus_nom"
-                                                v-model="busqueda.bus_nom"
-                                                class="form-control"
-                                                placeholder="Nombres del paciente"
-                                                @keyup.enter="buscarStudy()"
-                                            />
+                                            <label class="control-label">Nombres del paciente</label>
+                                            <input type="text" id="bus_nom" name="bus_nom" v-model="busqueda.bus_nom"
+                                                class="form-control" placeholder="Nombres del paciente"
+                                                @keyup.enter="buscarStudy()" />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Inicio</label>
-                                            <input
-                                                type="date"
-                                                id="fecha_ini"
-                                                name="fecha_ini"
-                                                v-model="busqueda.bus_fehc_ini"
-                                                class="form-control"
-                                            />
+                                            <input type="date" id="fecha_ini" name="fecha_ini"
+                                                v-model="busqueda.bus_fehc_ini" class="form-control" />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Fin</label>
-                                            <input
-                                                type="date"
-                                                id="fecha_fin"
-                                                name="fecha_fin"
-                                                v-model="busqueda.bus_fecha_fin"
-                                                class="form-control"
-                                            />
+                                            <input type="date" id="fecha_fin" name="fecha_fin"
+                                                v-model="busqueda.bus_fecha_fin" class="form-control" />
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="form-actions mt-3">
-                                    <button
-                                        type="button"
-                                        class="btn btn-success m-r-5"
-                                        @click="buscarStudy()"
-                                        :disabled="loadingBuscar"
-                                    >
+                                    <button type="button" class="btn btn-success m-r-5" @click="buscarStudy()"
+                                        :disabled="loadingBuscar">
                                         <i v-if="loadingBuscar" class="fa fa-spinner fa-spin"></i>
                                         <i v-else class="fa fa-search"></i>
                                         Buscar
                                     </button>
 
-                                    <button
-                                        type="button"
-                                        class="btn btn-inverse"
-                                        @click="btnLimpiar()"
-                                    >
+                                    <button type="button" class="btn btn-inverse" @click="btnLimpiar()">
                                         <i class="fa fa-refresh"></i> Limpiar
                                     </button>
 
@@ -130,13 +98,8 @@
                             de un paciente.
                         </h6>
                         <div class="table-responsive">
-                            <table
-                                id="example23"
-                                ref="dt"
-                                class="table table-bordered table-striped"
-                                cellspacing="0"
-                                width="100%"
-                            >
+                            <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
+                                width="100%">
                                 <thead>
                                     <tr>
                                         <th>Fecha del Estudio</th>
@@ -159,66 +122,39 @@
                                         <td>{{ item.email }}</td>
                                         <td>{{ item.nom_produc }}</td>
                                         <td class="text-nowrap">
-                                            <button
-                                                type="button"
-                                                v-if="
-                                                    permisos.includes(
-                                                        'estudios.reporteLectura.index'
-                                                    )
-                                                "
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
-                                                @click="imprimirReporte(item)"
-                                                title="Imprimir reporte"
-                                                :disabled="
-                                                    loadingImprimirId === item.estudio_producto_id
-                                                "
-                                            >
-                                                <i
-                                                    v-if="
-                                                        loadingImprimirId ===
-                                                        item.estudio_producto_id
-                                                    "
-                                                    class="fa fa-spinner fa-spin"
-                                                ></i>
+                                            <button type="button" v-if="
+                                                permisos.includes(
+                                                    'estudios.reporteLectura.index'
+                                                )
+                                            " class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
+                                                @click="imprimirReporte(item)" title="Imprimir reporte" :disabled="loadingImprimirId === item.estudio_producto_id
+                                                    ">
+                                                <i v-if="
+                                                    loadingImprimirId ===
+                                                    item.estudio_producto_id
+                                                " class="fa fa-spinner fa-spin"></i>
                                                 <i v-else class="fa fa-file-pdf-o"></i>
                                             </button>
-                                            <button
-                                                type="button"
-                                                v-if="permisos.includes('estudios.notificar.index')"
+                                            <button type="button" v-if="permisos.includes('estudios.notificar.index')"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
-                                                :disabled="
-                                                    loadingAbrirId === item.estudio_producto_id
-                                                "
-                                                @click="
-                                                    actualizar = true;
+                                                :disabled="loadingAbrirId === item.estudio_producto_id
+                                                    " @click="
+                                                        actualizar = true;
                                                     mostrarRegistro(item);
-                                                "
-                                                title="Notificar por correo electronico"
-                                            >
-                                                <i
-                                                    v-if="
-                                                        loadingAbrirId === item.estudio_producto_id
-                                                    "
-                                                    class="fa fa-spinner fa-spin"
-                                                ></i>
+                                                    " title="Notificar por correo electronico">
+                                                <i v-if="
+                                                    loadingAbrirId === item.estudio_producto_id
+                                                " class="fa fa-spinner fa-spin"></i>
                                                 <i v-else class="fa fa-envelope-o"></i>
                                             </button>
-                                            <button
-                                                type="button"
-                                                v-if="permisos.includes('estudios.notificar.index')"
+                                            <button type="button" v-if="permisos.includes('estudios.notificar.index')"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
-                                                :disabled="
+                                                :disabled="loadingPortalId === item.estudio_producto_id
+                                                    " @click="enviarPortal(item)"
+                                                title="Enviar al portal de pacientes">
+                                                <i v-if="
                                                     loadingPortalId === item.estudio_producto_id
-                                                "
-                                                @click="enviarPortal(item)"
-                                                title="Enviar al portal de pacientes"
-                                            >
-                                                <i
-                                                    v-if="
-                                                        loadingPortalId === item.estudio_producto_id
-                                                    "
-                                                    class="fa fa-spinner fa-spin"
-                                                ></i>
+                                                " class="fa fa-spinner fa-spin"></i>
                                                 <i v-else class="fa fa-send"></i>
                                             </button>
                                         </td>
@@ -238,19 +174,12 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div
-            class="right-sidebar"
-            style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%"
-        >
+        <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <span>
-                        <i
-                            class="ti-close right-side-toggle"
-                            id="btnCerralModalForm"
-                            @click="btnCerralModalForm()"
-                        ></i>
+                        <i class="ti-close right-side-toggle" id="btnCerralModalForm" @click="btnCerralModalForm()"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
@@ -269,14 +198,9 @@
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label class="control-label"># Documento</label>
-                                                <input
-                                                    type="text"
-                                                    id="num_docu"
-                                                    name="num_docu"
-                                                    v-model="registro.num_docu"
-                                                    class="form-control"
-                                                    placeholder="# de Documento"
-                                                />
+                                                <input type="text" id="num_docu" name="num_docu"
+                                                    v-model="registro.num_docu" class="form-control"
+                                                    placeholder="# de Documento" />
                                                 <span class="text-danger" v-if="errores.num_docu">
                                                     {{ errores.num_docu[0] }}
                                                 </span>
@@ -286,14 +210,9 @@
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <label class="control-label">Nombres</label>
-                                                <input
-                                                    type="text"
-                                                    id="nombres"
-                                                    name="nombres"
-                                                    v-model="registro.nombres"
-                                                    class="form-control"
-                                                    placeholder="Nombres"
-                                                />
+                                                <input type="text" id="nombres" name="nombres"
+                                                    v-model="registro.nombres" class="form-control"
+                                                    placeholder="Nombres" />
                                                 <span class="text-danger" v-if="errores.nombres">
                                                     {{ errores.nombres[0] }}
                                                 </span>
@@ -303,26 +222,16 @@
                                         <div class="col-md-2">
                                             <div class="form-group">
                                                 <label class="control-label">Sexo</label>
-                                                <input
-                                                    type="text"
-                                                    id="sexo"
-                                                    name="sexo"
-                                                    v-model="registro.sexo"
-                                                    class="form-control"
-                                                />
+                                                <input type="text" id="sexo" name="sexo" v-model="registro.sexo"
+                                                    class="form-control" />
                                             </div>
                                         </div>
 
                                         <div class="col-md-2">
                                             <div class="form-group">
                                                 <label class="control-label">Fec. Nacimi</label>
-                                                <input
-                                                    type="date"
-                                                    id="fec_naci"
-                                                    name="fec_naci"
-                                                    v-model="registro.fec_naci"
-                                                    class="form-control"
-                                                />
+                                                <input type="date" id="fec_naci" name="fec_naci"
+                                                    v-model="registro.fec_naci" class="form-control" />
                                             </div>
                                         </div>
                                     </div>
@@ -330,13 +239,8 @@
                                         <div class="col-md-4">
                                             <div class="form-group">
                                                 <label class="control-label">Dirección</label>
-                                                <input
-                                                    type="text"
-                                                    id="direccion"
-                                                    name="direccion"
-                                                    v-model="registro.direccion"
-                                                    class="form-control"
-                                                />
+                                                <input type="text" id="direccion" name="direccion"
+                                                    v-model="registro.direccion" class="form-control" />
                                                 <span class="text-danger" v-if="errores.direccion">
                                                     {{ errores.direccion[0] }}
                                                 </span>
@@ -345,13 +249,8 @@
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label class="control-label">Télefono</label>
-                                                <input
-                                                    type="number"
-                                                    id="telefono"
-                                                    name="telefono"
-                                                    v-model="registro.tel"
-                                                    class="form-control"
-                                                />
+                                                <input type="number" id="telefono" name="telefono"
+                                                    v-model="registro.tel" class="form-control" />
                                                 <span class="text-danger" v-if="errores.tel">
                                                     {{ errores.tel[0] }}
                                                 </span>
@@ -360,16 +259,10 @@
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <label class="control-label">E - Mail</label>
-                                                <input
-                                                    type="email"
-                                                    id="email"
-                                                    name="email"
-                                                    v-model="registro.email"
-                                                    class="form-control"
-                                                />
+                                                <input type="email" id="email" name="email" v-model="registro.email"
+                                                    class="form-control" />
                                                 <span class="text-danger" v-if="errores.email">
-                                                    {{ errores.email[0] }}</span
-                                                >
+                                                    {{ errores.email[0] }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -380,35 +273,22 @@
                                     <hr />
                                     <div class="col-md-12">
                                         <div class="form-group">
-                                            <input
-                                                type="text"
-                                                id="nom_produc"
-                                                name="nom_produc"
-                                                class="form-control"
-                                                v-model="registro.nom_produc"
-                                            />
+                                            <input type="text" id="nom_produc" name="nom_produc" class="form-control"
+                                                v-model="registro.nom_produc" />
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="form-actions mt-3">
-                                <button
-                                    type="button"
-                                    class="btn btn-success m-r-5"
-                                    @click="notificar()"
-                                    :disabled="loadingNotificar"
-                                >
+                                <button type="button" class="btn btn-success m-r-5" @click="notificar()"
+                                    :disabled="loadingNotificar">
                                     <i v-if="loadingNotificar" class="fa fa-spinner fa-spin"></i>
                                     <i v-else class="fa fa-envelope-o"></i>
                                     Notificar
                                 </button>
 
-                                <button
-                                    type="button"
-                                    class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
-                                >
+                                <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">
                                     Cancel
                                 </button>
                             </div>
@@ -427,7 +307,7 @@ import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js
 
 export default {
     props: ["usuarioactual", "permisos"],
-    mounted() {},
+    mounted() { },
     beforeUnmount() {
         this.destroyDataTable();
     },
@@ -555,7 +435,7 @@ export default {
                 });
 
                 const res = await axios.post("/api/edit-word", estudio);
-
+                console.log(res.data)
                 window.open(`/descargar.pdf.lectura/${res.data.plantilla}`, "_blank");
             } catch (error) {
                 this.errores = error.response.data;

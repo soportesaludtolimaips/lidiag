@@ -96,7 +96,7 @@ class PlantillaEstudioController extends Controller
         $templateProcessor->setValue('nombres_medico', $request->nombres_medico);
         $templateProcessor->setValue('reg_medico', $request->reg_medico);
         $templateProcessor->setValue('num_docu_medico', $request->num_docu_medico);
-        return $request->firma_medico;
+
         // Manejar la carga de la imagen
         if ($request->firma_medico) {
             // Insertar la imagen en el archivo de Word
