@@ -385,6 +385,8 @@ class EstudioController extends Controller
         $estudioProducto = EstudioProducto::FindOrFail($id);
         $estudioProducto->visto = 1;
         $estudioProducto->save();
+
+        return response()->json(['message' => 'El estudio se marcó como visto correctamente.'], 200);
     }
 
     /**
