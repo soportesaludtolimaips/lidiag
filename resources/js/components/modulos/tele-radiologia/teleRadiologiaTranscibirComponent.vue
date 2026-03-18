@@ -367,7 +367,7 @@ ItemUsuario, index
                                     </div>
                                     <span class="text-danger" v-if="errores.lectura">{{
                                         errores.lectura[0]
-                                    }}</span>
+                                        }}</span>
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group" id="medicos-parent">
@@ -737,12 +737,6 @@ export default {
                 sessionStorage.getItem("ST-modulo") || (pathname.includes("ecografia") ? "2" : "1");
             const res = await axios.get(`/api/user.listarUsuarios/Transcriptor/${moduloId}`);
             this.quienes_asignaron = res.data;
-
-            /**
-             * Listo los medicos
-             */
-            /* const resMedicos = await axios.get('/user.listarUsuarios/Medico/{moduloId}');
-            this.medicos = resMedicos.data; */
 
             /**
              * Listo las sedes
