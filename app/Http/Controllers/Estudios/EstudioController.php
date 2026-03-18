@@ -707,23 +707,23 @@ class EstudioController extends Controller
          * Si el estudio se va a enviar a Teleradiologia o Trys no se asigna medico porque se asigna en la plataforma de ellos, pero si el estudio se va a enviar a Salud Tolima se asigna el medico que realizo la lectura porque es para que el medico de Salud Tolima pueda identificar quien realizo la lectura del estudio
          */
 
-        if ($request->destino_estudio === 'Tele Radiologia') {
+        /* if ($request->destino_estudio === 'Tele Radiologia') {
             $estudio = Estudio::findOrFail($request->id_estudio);
             $estudio->medico_id = $request['medico_id'];
-        }
+        } */
 
         // Actualizo el estudio para asignar el medico que realizo la lectura del estudio
-        $estudio->save();
+        //$estudio->save();
 
         /**
          * Si la sede donde se realizó el estudio tiene interface hago el envio del reporte a la HC del hospital
          */
-        if ($sede->interface_software === 'SAHI') {
-            $transcribir = (new SAHITranscibirController)->enviarEstudio($request->atencion, $request->medico_id, $request->lectura, $request->cod_cups, $request->fec_lectura);
+        //if ($sede->interface_software === 'SAHI') {
+            //$transcribir = (new SAHITranscibirController)->enviarEstudio($request->atencion, $request->medico_id, $request->lectura, $request->cod_cups, $request->fec_lectura);
             /* if ($transcribir->status() != 200) {
                 return response()->json(['message' => 'Error al enviar el reporte a la interface SAHI ' . $transcribir->message()], 400);
             } */
-        }
+        //}
 
         /**
          * Genero el reporte de la lectura del estudio
@@ -879,6 +879,7 @@ class EstudioController extends Controller
         if ($genearPlantilla->status() == 200) {
             $enviarPortaPaciente = (new EstudioNotificacionController)->enviarPortalPacientes($request);
             $respon = json_decode($enviarPortaPaciente->getContent(), true);
+            return $respon;
             $eliminarReporte = (new PlantillaEstudioController)->eliminarReporte($respon['reportePath']);
 
             return $enviarPortaPaciente;

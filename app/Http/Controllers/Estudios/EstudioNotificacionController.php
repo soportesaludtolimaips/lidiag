@@ -200,8 +200,9 @@ class EstudioNotificacionController extends Controller
         $signature = base64_encode(hash_hmac('sha256', $stringToSign, $secret, true));
 
         try {
-            // Se elimina withoutVerifying() para producción. Asegurar que el servidor destino tenga SSL válido.
-            $response = Http::acceptJson()
+            // Se añade withoutVerifying() para permitir peticiones a IPs locales con certificados autofirmados
+            $response = Http::withoutVerifying()
+                ->acceptJson()
                 ->withHeaders([
                     'X-Timestamp' => (string) $ts,
                     'X-Signature' => $signature,
