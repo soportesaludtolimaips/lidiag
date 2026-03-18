@@ -205,7 +205,7 @@ class TeleRadiologiaController extends Controller
                     'tipo_documento_id' => 1,
                     'nombres' => $d['paciente']['nom_pacien'] ?? null,
                     'sexo' => in_array($sexo, ['M', 'F']) ? $sexo : 'M',
-                    'fec_naci' => $d['paciente']['fec_naci'] ?? null,
+                    //'fec_naci' => $d['paciente']['fec_naci'] ?? null,
                 ]
             );
 
