@@ -435,7 +435,7 @@ export default {
                 });
 
                 const res = await axios.post("/api/edit-word", estudio);
-                console.log(res.data)
+
                 window.open(`/descargar.pdf.lectura/${res.data.plantilla}`, "_blank");
             } catch (error) {
                 this.errores = error.response.data;
