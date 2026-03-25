@@ -67,7 +67,7 @@ class RouteServiceProvider extends ServiceProvider
 
             Route::middleware('api')
                 ->prefix('api')
-                ->group(base_path('routes/OHIF_visor.php'));
+                ->group(base_path('routes/api_OHIF_visor.php'));
 
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
