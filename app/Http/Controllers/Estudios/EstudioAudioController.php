@@ -9,6 +9,9 @@ use FFMpeg\Format\Audio\Mp3;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Codewithkyrian\Whisper\Whisper;
+use function Codewithkyrian\Whisper\readAudio;
+use function Codewithkyrian\Whisper\toTimestamp;
 
 class EstudioAudioController extends Controller
 {
@@ -262,5 +265,52 @@ class EstudioAudioController extends Controller
             'Content-Length' => (string) $length,
             'Cache-Control' => 'private, max-age=0, no-cache',
         ]);
+    }
+
+    public function convertirAudioToText(Request $request)
+    {
+
+        /* $request->validate([
+            'audio_id' => 'required|integer',
+        ]); */
+
+        /* // 1. Buscamos el audio en la base de datos
+        $estudioAudio = EstudioAudio::findOrFail($request->audio_id);
+
+        $disk = Storage::disk('audios');
+        if (!$disk->exists($estudioAudio->audio)) {
+            return response()->json(['success' => false, 'message' => 'Archivo de audio no encontrado.'], 404);
+        }
+
+        $fullPath = $disk->path($estudioAudio->audio); */
+
+        $disk = Storage::disk('audios');
+        $filename = 'audio_01KMJX3GYE8J1P9XRAP31DK6FC.mp3';
+
+        if (!$disk->exists($filename)) {
+            return response()->json(['success' => false, 'message' => 'Archivo de audio no encontrado.'], 404);
+        }
+
+        $fullPath = $disk->path($filename);
+        try {
+            // 2. Cargamos un modelo multilingüe y definimos una ruta limpia en storage
+            $whisper = Whisper::fromPretrained('base', baseDir: storage_path('app/whisper-models'));
+            $audio = readAudio($fullPath);
+            $segments = $whisper->transcribe($audio);
+
+            // 3. Concatenamos los segmentos para formar un solo párrafo de transcripción
+            $fullText = '';
+            foreach ($segments as $segment) {
+                $fullText .= $segment->text . ' ';
+            }
+
+            // 4. Retornamos la transcripción limpia en formato JSON
+            return response()->json([
+                'success' => true,
+                'texto' => trim($fullText)
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error al transcribir el audio: ' . $e->getMessage()], 500);
+        }
     }
 }

@@ -595,7 +595,6 @@ class EstudioController extends Controller
             ->join('users as medi', 'estudios.medico_id', '=', 'medi.id')
             ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
             ->join('config_productos', 'estudios_productos.producto_id', '=', 'config_productos.id')
-            // ->where('estudios_productos.activo', '=', 1)
             ->when($request->bus_fehc_ini && $request->bus_fecha_fin, function ($query) use ($request) {
                 return $query->whereBetween(
                     DB::raw('DATE(estudios.fec_estudio)'),
