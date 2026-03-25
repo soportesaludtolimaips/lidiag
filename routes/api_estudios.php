@@ -82,3 +82,5 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/estudio-buscar-por-numdocu/{numDocu}', [App\Http\Controllers\Estudios\EstudioController::class, 'buscarEstudioPorNumDocu'])
         ->name('api.estudio.buscarEstudioPorNumDocu');
 });
+
+Route::get('/estudios/convertir-audio-a-texto', [\App\Http\Controllers\Estudios\EstudioAudioController::class, 'convertirAudioToText'])->name('api.estudios.convertirAudioToText');
