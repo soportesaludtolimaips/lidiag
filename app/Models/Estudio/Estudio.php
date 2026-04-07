@@ -30,6 +30,7 @@ class Estudio extends Model
         'sede_id',
         'prioridad_id',
         'observaciones',
+        'motivo_examen',
         'atencion',
         'servicio',
         'eps',

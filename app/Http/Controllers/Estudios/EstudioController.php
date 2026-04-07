@@ -179,6 +179,7 @@ class EstudioController extends Controller
                     'quien_registro_id' => auth()->user()->id,
                     'prioridad_id' => $registro['prioridad_id'],
                     'observaciones' => $registro['observaciones'],
+                    'motivo_examen' => $registro['motivo_examen'],
                     'atencion' => $registro['atencion_id'],
                     'servicio' => $servicio,
                     'eps' => $eps,
@@ -303,6 +304,7 @@ class EstudioController extends Controller
             'estudios.sede_id',
             'estudios.prioridad_id',
             'estudios.observaciones',
+            'estudios.motivo_examen',
             'estudios.atencion',
             'estudios.servicio',
             'estudios.eps',
@@ -346,6 +348,7 @@ class EstudioController extends Controller
 
         return response()->json($misPendiente, 200);
     }
+
 
     /**
      * Guarda la lectura realizada por el médico.
@@ -488,19 +491,20 @@ class EstudioController extends Controller
             ->leftJoin('users as medi', 'estudios.medico_id', '=', 'medi.id')
             ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
             ->join('config_productos', 'estudios_productos.producto_id', '=', 'config_productos.id')
-            ->when($request->estudioParaTranscibir, function ($query) {
+            ->when($request->estudioParaTranscibir, function ($query) use ($request) {
                 /**
                  * Si el destino es = Salud Tolima se debe filtrar por los estudios que ya tienen lectura porque para transcribir los medicos ya realizaron la lectura
-                 * Si el destino es diferente a Salud Tolima se deben filtrar los estudios que no tienen lectura porque son los estudios que se van a leer porque vienen de Teleradiologia
+                 * Si el destino es diferente a Salud Tolima se deben filtrar los estudios que no tienen lectura porque son los estudios que vienen de Teleradiologia
+                 * para que se puedan ver si un estudio tiene lectura
                  */
-                $query->whereNotNull('estudios_productos.fechor_lectura');
-                /* $query->where(function ($q) use ($request) {
+                //$query->whereNotNull('estudios_productos.fechor_lectura');
+                $query->where(function ($q) use ($request) {
                     if ($request->destino_estudio === 'Salud Tolima') {
-                        $q->whereNotNull('estudios_productos.fechor_lectura');
-                    } else {
+                        /* $q->whereNull('estudios_productos.fechor_lectura');
+                    } else { */
                         $q->whereNotNull('estudios_productos.fechor_lectura');
                     }
-                }); */
+                });
             })
             ->when($request->bus_fehc_ini && $request->bus_fecha_fin, function ($query) use ($request) {
                 // Si vienen solo fechas (YYYY-MM-DD), incluir el día completo para no excluir por hora
@@ -510,6 +514,7 @@ class EstudioController extends Controller
                 return $query->whereBetween('estudios.fec_estudio', [$inicio, $fin]);
             })
             ->where('estudios_productos.activo', '=', 1)
+            ->where('estudios.estado', '=', 1)
             ->whereNull('estudios_productos.transcriptor_id')
             ->where('estudios.sede_id', $request->sede_id)
             ->where(function ($q) use ($request) {
@@ -717,6 +722,7 @@ class EstudioController extends Controller
          */
         if ($sede->interface_software === 'SAHI') {
             $transcribir = (new SAHITranscibirController)->enviarEstudio($request->atencion, $request->medico_id, $request->lectura, $request->cod_cups, $request->fec_lectura);
+
             /* if ($transcribir->status() != 200) {
                 return response()->json(['message' => 'Error al enviar el reporte a la interface SAHI ' . $transcribir->message()], 400);
             } */

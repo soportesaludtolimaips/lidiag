@@ -59,7 +59,6 @@ app.component("ConfigTipoDocumentoComponent", configTipoDocumento);
 import configConsentimientoInformadoComponent from "./components/modulos/configuracion/configConsentimientoInformadoComponent.vue";
 app.component("ConfigConsentimientoInformadosComponent", configConsentimientoInformadoComponent);
 // Alias en kebab-case (Vue resuelve tags en minúscula en DOM)
-app.component("ConfigConsentimientoInformadosComponent", configConsentimientoInformadoComponent);
 
 /**
  * Estudios
@@ -69,17 +68,6 @@ app.component("AsignarEstudioComponent", AsignarEstudioComponent);
 import leerEstudioComponent from "./components/modulos/estudios/leerEstudioComponent.vue";
 app.component("LeerEstudioComponent", leerEstudioComponent);
 
-/**
- * Otras plataformas
- */
-import OtrasPlataformasAsignarEstudioComponent from "./components/modulos/otras-plataformas/OtrasPlataformasAsignarEstudioComponent.vue";
-app.component("OtrasPlataformasAsignarEstudioComponent", OtrasPlataformasAsignarEstudioComponent);
-
-/* import leerEstudioComponent from "./components/modulos/estudios/audio-texto.vue";
-app.component("leer-estudio-component", leerEstudioComponent); */
-
-import otrasPlataformasComponent from "./components/modulos/estudios/otrasPlataformasComponent.vue";
-app.component("OtrasPlataformasComponent", otrasPlataformasComponent);
 import transcribirEstudioComponent from "./components/modulos/estudios/transcribirEstudioComponent.vue";
 app.component("TranscribirEstudioComponent", transcribirEstudioComponent);
 import notificarEstudioComponent from "./components/modulos/estudios/notificarEstudioComponent.vue";

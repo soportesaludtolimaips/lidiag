@@ -112,11 +112,18 @@ ItemUsuario, index
             <div class="col-12 table-responsive">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Listado de estudios disponibles</h4>
-                        <h6 class="card-subtitle text-info">
-                            Asigne los estudios a los médicos para su respectiva lectura.
-                        </h6>
-                        <div class="table-responsive">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h4 class="card-title">Listado de estudios disponibles</h4>
+                                <h6 class="card-subtitle text-info">Asigne los estudios a los médicos para su respectiva lectura.</h6>
+                            </div>
+                            <div class="text-right">
+                                <span class="badge badge-primary" v-if="contadorRegistros > 0">{{ contadorRegistros }} registro(s)</span>
+                                <span class="badge badge-secondary" v-else>Sin resultados</span>
+                            </div>
+                        </div>
+                        <loading-spinner :visible="loadingBuscar" />
+                        <div class="table-responsive" :class="{ 'd-none': loadingBuscar }">
                             <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
                                 width="100%">
                                 <thead>
@@ -205,6 +212,10 @@ ItemUsuario, index
                                     </tr>
                                 </tbody>
                             </table>
+                            <div v-if="registros.length === 0 && !loadingBuscar" class="text-center py-4 text-muted">
+                                <i class="fa fa-inbox fa-3x mb-3"></i>
+                                <p>No hay estudios para transcribir</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -482,6 +493,7 @@ ItemUsuario, index
 </template>
 
 <script>
+import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { listarUsuariosYSedes } from "../../../helpers/usuarios";
 import {
     safeDestroyDataTable,
@@ -504,6 +516,14 @@ dayjs.extend(timezone);
 
 export default {
     props: ["usuarioactual"],
+    components: {
+        LoadingSpinner,
+    },
+    computed: {
+        contadorRegistros() {
+            return this.registros.length;
+        },
+    },
     async mounted() {
         this.$nextTick(() => this.initWysiwyg());
         this.establecerSede();

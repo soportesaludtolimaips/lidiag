@@ -92,12 +92,18 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Listado de estudios disponibles para notificar</h4>
-                        <h6 class="card-subtitle">
-                            Notifique por correo electrónico el descargue del reporte y de imágenes
-                            de un paciente.
-                        </h6>
-                        <div class="table-responsive">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h4 class="card-title">Listado de estudios disponibles para notificar</h4>
+                                <h6 class="card-subtitle">Notifique por correo electrónico el descargue del reporte y de imágenes de un paciente.</h6>
+                            </div>
+                            <div class="text-right">
+                                <span class="badge badge-primary" v-if="contadorRegistros > 0">{{ contadorRegistros }} registro(s)</span>
+                                <span class="badge badge-secondary" v-else>Sin resultados</span>
+                            </div>
+                        </div>
+                        <loading-spinner :visible="loadingBuscar" />
+                        <div class="table-responsive" :class="{ 'd-none': loadingBuscar }">
                             <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
                                 width="100%">
                                 <thead>
@@ -161,6 +167,10 @@
                                     </tr>
                                 </tbody>
                             </table>
+                            <div v-if="registros.length === 0 && !loadingBuscar" class="text-center py-4 text-muted">
+                                <i class="fa fa-inbox fa-3x mb-3"></i>
+                                <p>No hay estudios para notificar</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -303,10 +313,19 @@
     </div>
 </template>
 <script>
+import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 
 export default {
     props: ["usuarioactual", "permisos"],
+    components: {
+        LoadingSpinner,
+    },
+    computed: {
+        contadorRegistros() {
+            return this.registros.length;
+        },
+    },
     mounted() { },
     beforeUnmount() {
         this.destroyDataTable();
@@ -473,8 +492,8 @@ export default {
                     });
                 }
 
-                /* this.btnCerralModalForm();
-                this.limpiar(); */
+                this.btnCerralModalForm();
+                this.limpiar();
             } catch (e) {
                 const status = e?.response?.status;
                 if (status == 402) {

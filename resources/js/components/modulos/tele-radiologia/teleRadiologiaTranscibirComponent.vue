@@ -142,10 +142,16 @@ ItemUsuario, index
                                         </td>
                                         <td>{{ item.nom_sede }}</td>
                                         <td>{{ item.fec_estudio }}</td>
-                                        <td>{{ item.fechor_lectura }}</td>
+                                        <td>
+
+                                            <span class="label label-success" v-if="item.fechor_lectura != null">Con
+                                                Lectura</span>
+                                            <span class="label label-danger" v-if="item.fechor_lectura === null">Sin
+                                                Lectura</span>
+                                        </td>
                                         <td>{{ formatDate(item.created_at) }}</td>
                                         <td>{{ item.quien_registro }}</td>
-                                        <td>{{ item.medico }}</td>
+                                        <td>{{ item.nombres_medico }}</td>
                                         <td>
                                             # Docu: {{ item.num_docu }} <br />
                                             Nombres: {{ item.nom_pacien }}
@@ -367,7 +373,7 @@ ItemUsuario, index
                                     </div>
                                     <span class="text-danger" v-if="errores.lectura">{{
                                         errores.lectura[0]
-                                        }}</span>
+                                    }}</span>
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group" id="medicos-parent">
@@ -675,10 +681,10 @@ export default {
                         hideAfter: 3500,
                         stack: 6,
                     });
-                    this.$refs.btnCerrarForm.click();
+                    /* this.$refs.btnCerrarForm.click();
 
                     this.btnCerralModalForm();
-                    this.limpiar();
+                    this.limpiar(); */
                 } else {
                     $.toast({
                         heading: "Upss!!!",

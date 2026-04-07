@@ -246,7 +246,7 @@ class TeleRadiologiaController extends Controller
     private function procesarMedicoConFirma(array $medicoData)
     {
         // 1. Buscar o instanciar el médico
-        $medico = User::firstOrNew(['num_docu' => $medicoData['num_docu']]);
+        $medico = User::firstOrNew(['reg_med' => $medicoData['reg_medico']]);
 
         // 2. Actualizar datos básicos
         $medico->name = 'TL ' . ($medicoData['name'] ?? 'Sin Nombre');
