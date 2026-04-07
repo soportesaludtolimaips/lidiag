@@ -1,0 +1,13 @@
+# Consulta 1
+
+* Consulta pra el usuario administrador
+SELECT COUNT(id) FROM `v_dashboard_indicadores_base` WHERE `fechor_lectura` BETWEEN DATE('2026-03-07') AND ('2026-04-07') AND sede_id = 1
+
+Tardo 40 segundo en ejecutarse, despues de haber agregado los indices, tengamos en cuenta que es la consulta para el usuario adminisrtador
+
+* Consulta para el usuario medico
+SELECT COUNT(id) FROM `v_dashboard_indicadores_base` WHERE `fechor_lectura` BETWEEN DATE('2026-03-07') AND ('2026-04-07') AND sede_id = 1 AND medico_id = 36
+Tardo 19 segundos en ejecutarse
+
+
+

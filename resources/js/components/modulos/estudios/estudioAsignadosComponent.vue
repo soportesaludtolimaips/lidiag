@@ -409,7 +409,7 @@ ItemUsuario, index
                                     </div>
                                     <span class="text-danger" v-if="errores.lectura">{{
                                         errores.lectura[0]
-                                        }}</span>
+                                    }}</span>
                                     <div class="row">
                                         <div class="col-12">
                                             <div class="form-group">

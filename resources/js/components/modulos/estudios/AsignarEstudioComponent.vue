@@ -449,42 +449,59 @@
                                     <span class="text-danger" v-if="errores.diagnosticosEstudio">
                                         {{ errores.diagnosticosEstudio[0] }}
                                     </span>
-                                    <!-- <button type="button" class="btn waves-effect waves-light btn-xs btn-info float-right">
-                                        <i class="fa fa-search"></i>
-                                    </button> -->
 
                                     <div class="row">
-                                        <div class="col-md-12" v-if="sedeInterface === false" id="diagnosticos-parent">
-                                            <Select2 :value="diagnosticoSelecciondo" :options="diagnosticoOptions"
-                                                width="100%" :allow-clear="true" :label-fields="['nom_diagnos']"
-                                                :dropdown-parent-selector="'#diagnosticos-parent'"
-                                                @input="onDiagnosticoSelect" />
-                                        </div>
-                                        <div class="col-md-12 table-responsive"
-                                            style="overflow-y: scroll; height: 250px;">
-                                            <table id="myTable" class="table table-bordered table-striped">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Código</th>
-                                                        <th>Diagnostico</th>
-                                                        <th></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr v-for="(item, index) in registro.diagnosticosEstudio"
-                                                        :key="item.id">
-                                                        <td>{{ item.cod_diagnos }}</td>
-                                                        <td>{{ item.nom_diagnos }}</td>
-                                                        <td class="text-nowrap">
-                                                            <button type="button"
-                                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                                @click="quitarDiagnosticoEstudio(index)">
-                                                                <i class="fa fa-trash"></i>
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
+                                        <div class="col-md-12">
+                                            <!-- Nav tabs -->
+                                            <ul class="nav nav-tabs" role="tablist">
+                                                <li class="nav-item">
+                                                    <a class="nav-link active" data-toggle="tab" href="#diagnosticos_hc"
+                                                        role="tab">
+                                                        <h5 class="card-title text-info">
+                                                            <i class="fa fa-paperclip"></i> Adjuntos
+                                                        </h5>
+                                                    </a>
+                                                </li>
+                                                <li class="nav-item">
+                                                    <a class="nav-link" data-toggle="tab" href="#motivo_examen_hc"
+                                                        role="tab">
+                                                        <span>
+                                                            <h5 class="card-title text-info">
+                                                                <i class="fa fa-history"></i> HC
+                                                            </h5>
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                            <!-- Tab panes -->
+                                            <div class="tab-content tabcontent-border">
+                                                <div class="tab-pane active p-20" id="diagnosticos_hc" role="tabpanel">
+                                                    <table id="myTable-diagnos" class="table table-striped">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Código</th>
+                                                                <th>Diagnostico</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr v-for="(item) in registro.diagnosticosEstudio"
+                                                                :key="item.id">
+                                                                <td>{{ item.cod_diagnos }}</td>
+                                                                <td>{{ item.nom_diagnos }}</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                <div class="tab-pane p-20" id="motivo_examen_hc" role="tabpanel">
+                                                    <div class="form-group">
+                                                        <textarea id="motivo_examen" name="motivo_examen"
+                                                            v-model="registro.motivo_examen" class="form-control"
+                                                            placeholder="Ingrese aqi las observaciones del estudio"
+                                                            rows="11"></textarea>
+                                                    </div>
+                                                </div>
+
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -566,7 +583,7 @@ export default {
             registro: {
                 study_pk: "", study_iuid: "", study_datetime: "", study_id: "", accession_no: "", study_desc: "", mods_in_study: "", observaciones: "", medico_id: "", prioridad_id: "",
                 sede_id: sedeActual, quien_registro_id: this.usuarioactual.id, num_docu: "", nombres: "", sexo: "", fec_naci: "", email: "", email_reportar: "", direccion: "", tel: "",
-                productosEstudio: [], diagnosticosEstudio: [], atencion_id: null, destino_estudio: 'Salud Tolima'
+                productosEstudio: [], diagnosticosEstudio: [], atencion_id: null, destino_estudio: 'Salud Tolima', motivo_examen: '',
             },
             soportesHC: { archivo1: null, archivo2: null, archivo3: null }, //Soporte de historia clinica
             busqueda: { sede_id: sedeActual, bus_nom_num_docu: "", bus_fehc_ini: "", bus_fecha_fin: "" },
@@ -781,41 +798,56 @@ export default {
             }
         },
         async interfaceListarProductosDiagnosticos() {
-            /**
-             * Listo los productos de una atención
-             */
-            try {
-                const resProuctos = await axios.get('/api/interface-sahi-listar-listarProductosDiagnosticos/' + this.interfaceAtencionSeleccionada);
 
-                this.registro.productosEstudio = [];
-                if (resProuctos.data.productos.length > 0) {
-                    resProuctos.data.productos.forEach(element => {
+            const resProuctos = await axios.get('/api/interface-sahi-listar-listarProductosDiagnosticos/' + this.interfaceAtencionSeleccionada);
 
-                        this.registro.productosEstudio.push(
-                            {
-                                checked: false,
-                                id: element.IdProducto,
-                                cod_cups: element.cod_cups,
-                                nom_produc: element.nom_produc
-                            }
-                        );
-                    });
-                }
+            this.registro.productosEstudio = [];
+            if (resProuctos.data.productos.length > 0) {
+                resProuctos.data.productos.forEach(element => {
 
-                this.registro.diagnosticosEstudio = [];
-                if (resProuctos.data.diagnosticos.length > 0) {
-                    // Normalizar llaves para el backend (usa cod_diagnos/nom_diagnos)
-                    this.registro.diagnosticosEstudio = resProuctos.data.diagnosticos.map(d => ({
-                        id: d.IdDiagnostico ?? d.id ?? null,
-                        cod_diagnos: d.cod_diagnos,
-                        nom_diagnos: d.nom_diagnos,
-                    }));
-                }
-
-                this.registro.atencion_id = this.interfaceAtencionSeleccionada;
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar productos/diagnósticos de la atención.");
+                    this.registro.productosEstudio.push(
+                        {
+                            checked: false,
+                            id: element.IdProducto,
+                            cod_cups: element.cod_cups,
+                            nom_produc: element.nom_produc
+                        }
+                    );
+                });
             }
+
+            let EnfermedadActualDiagnosticos = "";
+
+            /**
+             * Enfermedad actula
+             */
+            const consultas = resProuctos.data.consultas;
+            EnfermedadActualDiagnosticos = "Enfermedad Actual: ";
+            if (consultas.length > 0) {
+                consultas.map((consultas) => {
+                    EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos}\n ${consultas.DesEnfermedadActual} \n`;
+                });
+            }
+
+            /**
+             * Diagnosticos
+             */
+            const diagnosticos = resProuctos.data.diagnosticos;
+            EnfermedadActualDiagnosticos += `\nDiagnosticos:`;
+            if (diagnosticos.length > 0) {
+                diagnosticos.map((diagnosticos) => {
+                    EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos} \n ${diagnosticos.cod_diagnos} - ${diagnosticos.nom_diagnos}`;
+                });
+            }
+
+            this.registro.motivo_examen = EnfermedadActualDiagnosticos;
+
+            this.registro.diagnosticosEstudio = [];
+            if (resProuctos.data.diagnosticos.length > 0) {
+                this.registro.diagnosticosEstudio = resProuctos.data.diagnosticos;
+            }
+
+            this.registro.atencion_id = this.interfaceAtencionSeleccionada;
         },
         establecerSede() {
             this.registro.sede_id = sessionStorage.getItem('ST-sede');
