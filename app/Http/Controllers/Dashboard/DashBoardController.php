@@ -77,20 +77,11 @@ class DashBoardController extends Controller
 
     protected function getIndicadores(array $scope, int $days): array
     {
-        //$from = Carbon::now()->subDays($days)->startOfDay();
-
-        $now = Carbon::now();
-
         $fechaInicio = Carbon::now()->subDays(30)->startOfDay();
         $fechaFin = Carbon::now()->endOfDay();
 
-        return [
-            'fechaInicio' => $fechaFin->toDateTimeString(),
-            'fechaFin' => $fechaInicio->toDateTimeString(),
-        ];
-
         $baseQuery = DB::table('v_dashboard_indicadores_base')
-            ->where('created_at', '>=', $from);
+            ->whereBetween('created_at', [$fechaInicio, $fechaFin]);
 
         if (!empty($scope['medico_id'])) {
             $baseQuery->where('medico_id', '=', (int) $scope['medico_id']);
@@ -99,12 +90,20 @@ class DashBoardController extends Controller
             $baseQuery->where('sede_id', '=', (int) $scope['sede_id']);
         }
 
-        return [$from];
+        $baseQuery = DB::table('v_dashboard_indicadores_base')
+            ->whereBetween('created_at', [$fechaInicio, $fechaFin]);
 
-        $estudiosAsignados = (int) $baseQuery->clone()->toSql();
+        if (!empty($scope['medico_id'])) {
+            $baseQuery->where('medico_id', '=', (int) $scope['medico_id']);
+        }
+        if (!empty($scope['sede_id'])) {
+            $baseQuery->where('sede_id', '=', (int) $scope['sede_id']);
+        }
+        return [$baseQuery->toSql(), $fechaInicio, $fechaFin];
 
+        $estudiosAsignados = (int) $baseQuery->clone()->count();
         $estudiosLeidos = (int) DB::table('v_dashboard_indicadores_base')
-            ->where('fechor_trascrito', '>=', $from)
+            ->whereBetween('fechor_trascrito', [$fechaInicio, $fechaFin])
             ->when(!empty($scope['medico_id']), fn($q) => $q->where('medico_id', '=', (int) $scope['medico_id']))
             ->when(!empty($scope['sede_id']), fn($q) => $q->where('sede_id', '=', (int) $scope['sede_id']))
             ->count();
