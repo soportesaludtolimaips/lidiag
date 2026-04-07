@@ -87,11 +87,20 @@
             <div class="col-12 table-responsive">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Listado de estudios disponibles</h4>
-                        <h6 class="card-subtitle text-info">Asigne los estudios a los médicos para su respectiva
-                            lectura.
-                        </h6>
-                        <div class="table-responsive">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h4 class="card-title">Listado de estudios disponibles</h4>
+                                <h6 class="card-subtitle text-info">Asigne los estudios a los médicos para su respectiva
+                                    lectura.</h6>
+                            </div>
+                            <div class="text-right">
+                                <span class="badge badge-primary" v-if="contadorRegistros > 0">{{ contadorRegistros }}
+                                    registro(s)</span>
+                                <span class="badge badge-secondary" v-else>Sin resultados</span>
+                            </div>
+                        </div>
+                        <loading-spinner :visible="loadingBuscar" />
+                        <div class="table-responsive" :class="{ 'd-none': loadingBuscar }">
                             <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
                                 width="100%">
                                 <thead>
@@ -503,11 +512,32 @@
 </template>
 
 <script>
+import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { handleAxiosErrorToast } from "@/helpers/alerts";
 
 export default {
     props: ['usuarioactual', 'permisos'],
+    components: {
+        LoadingSpinner,
+    },
+    computed: {
+        contadorRegistros() {
+            return this.registros.length;
+        },
+        diagnosticoOptions() {
+            // Adaptar opciones al Select2 local: usa optionValue='id' y labelFields.
+            return (this.diagnosticos || []).map(d => ({ id: String(d.id), nom_diagnos: d.nom_diagnos }));
+        },
+        productoOptions() {
+            // Opciones para el Select2 local de productos.
+            return (this.productos || []).map(p => ({ id: String(p.id), cod_cups: p.cod_cups, nom_produc: p.nom_produc }));
+        },
+        medicoOptions() {
+            // Opciones para el Select2 local de medicos.
+            return (this.medicos || []).map(p => ({ id: String(p.id), name: p.name }));
+        },
+    },
     mounted() {
         this.registro.email_reportar = "";
         this.listarMedicos();
@@ -559,20 +589,6 @@ export default {
             loadingGuardar: false,
             loadingAbrirRegistroIndex: null,
         };
-    },
-    computed: {
-        diagnosticoOptions() {
-            // Adaptar opciones al Select2 local: usa optionValue='id' y labelFields.
-            return (this.diagnosticos || []).map(d => ({ id: String(d.id), nom_diagnos: d.nom_diagnos }));
-        },
-        productoOptions() {
-            // Opciones para el Select2 local de productos.
-            return (this.productos || []).map(p => ({ id: String(p.id), cod_cups: p.cod_cups, nom_produc: p.nom_produc }));
-        },
-        medicoOptions() {
-            // Opciones para el Select2 local de medicos.
-            return (this.medicos || []).map(p => ({ id: String(p.id), name: p.name }));
-        },
     },
     methods: {
         destroyDataTable() {
@@ -634,6 +650,7 @@ export default {
                         // Asegurar que siempre sea un array (por si llega string JSON)
                         const data = (typeof res.data === "string") ? JSON.parse(res.data) : res.data;
                         this.registros = Array.isArray(data) ? data : [];
+                        console.log("Total de registros:", this.registros.length)
                         this.$nextTick(() => {
                             safeInitDataTable(this.$refs.dt || "#example23", {
                                 dom: "Bfrtip",

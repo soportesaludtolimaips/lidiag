@@ -34,64 +34,61 @@
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-md-6">
+                                <h5 class="mb-2">Mayúsculas</h5>
                                 <ul>
                                     <li>iniciar mayúscula sostenida</li>
                                     <li>iniciar mayúsculas sostenida</li>
-                                    <li>iniciar mayúsculas</li>
-                                    <li>iniciar mayúscula</li>
-                                    <li>mayúsculas sostenida</li>
-                                    <li>mayúscula sostenida</li>
-                                    <li>activar mayúsculas</li>
-                                    <li>activar mayúscula</li>
-                                    <li>habilitar mayúsculas</li>
-                                    <li>habilitar mayúscula</li>
-                                    <li>activare mayúsculas</li>
-                                    <li>activare mayúscula</li>
-                                    <li>desactivar mayúsculas</li>
-                                    <li>desactivar mayúscula</li>
-                                    <li>Deshabilitar mayúsculas</li>
-                                    <li>Deshabilitar mayúscula</li>
-                                    <li>terminar mayúsculas</li>
-                                    <li>terminar mayúscula</li>
-                                    <li>fin mayúsculas</li>
-                                    <li>fin mayúscula</li>
-                                    <li>finaliza mayúsculas</li>
-                                    <li>finaliza mayúscula</li>
-                                    <li>finalizar mayúsculas</li>
-                                    <li>finalizar mayúscula</li>
+                                    <li>iniciar mayúsculas / mayúscula</li>
+                                    <li>activar mayúsculas / mayúscula</li>
+                                    <li>habilitar mayúsculas / mayúscula</li>
+                                    <li>desactivar mayúsculas / mayúscula</li>
+                                    <li>deshabilitar mayúsculas / mayúscula</li>
+                                    <li>terminar mayúsculas / mayúscula</li>
+                                    <li>fin mayúsculas / mayúscula</li>
+                                    <li>finalizar mayúsculas / mayúscula</li>
+                                </ul>
+                                <h5 class="mb-2 mt-3">Saltos de línea</h5>
+                                <ul>
                                     <li>punto aparte</li>
+                                    <li>nuevo párrafo</li>
+                                    <li>nueva sección</li>
+                                    <li>separador</li>
                                     <li>salto de línea</li>
                                     <li>doble salto de línea</li>
+                                    <li>enter / doble enter</li>
+                                    <li>línea en blanco / doble línea en blanco</li>
                                 </ul>
                             </div>
                             <div class="col-md-6">
+                                <h5 class="mb-2">Puntuación</h5>
                                 <ul>
-                                    <li>enter</li>
-                                    <li>doble enter</li>
-                                    <li>línea en blanco</li>
-                                    <li>dar espacio</li>
-                                    <li>un espacio</li>
-                                    <li>dos espacio</li>
-                                    <li>doble espacio</li>
-                                    <li>punto</li>
+                                    <li>punto / punto y seguido / punto seguido</li>
                                     <li>coma</li>
                                     <li>dos puntos</li>
                                     <li>punto y coma</li>
-                                    <li>abrir paréntesis</li>
-                                    <li>cerrar paréntesis</li>
-                                    <li>abrir corchetes</li>
-                                    <li>cerrar corchetes</li>
-                                    <li>abrir llaves</li>
-                                    <li>cerrar llaves</li>
-                                    <li>abrir comillas</li>
-                                    <li>cerrar comillas</li>
-                                    <li>abrir comillas simples</li>
-                                    <li>cerrar comillas simples</li>
+                                    <li>nueva oración</li>
+                                    <li>abrir/cerrar paréntesis</li>
+                                    <li>abrir/cerrar corchetes</li>
+                                    <li>abrir/cerrar llaves</li>
+                                    <li>abrir/cerrar comillas</li>
+                                    <li>abrir/cerrar comillas simples</li>
+                                </ul>
+                                <h5 class="mb-2 mt-3">Símbolos</h5>
+                                <ul>
                                     <li>guion</li>
                                     <li>guion bajo</li>
                                     <li>barra diagonal</li>
                                     <li>barra invertida</li>
-                                    <li>nueva oración</li>
+                                    <li>dar espacio / un espacio / dos espacio / doble espacio</li>
+                                    <li>por ciento (%)</li>
+                                    <li>menos / más / igual</li>
+                                    <li>multiplicar (×) / dividir (÷)</li>
+                                    <li>asterisco / numeral / ampersand / arroba</li>
+                                    <li>dólar / euro</li>
+                                </ul>
+                                <h5 class="mb-2 mt-3">Atajos</h5>
+                                <ul>
+                                    <li><strong>F2</strong> - Iniciar/detener grabación</li>
                                 </ul>
                             </div>
                         </div>
@@ -119,8 +116,21 @@
         <div class="col-12 table-responsive">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="card-title">Listado de mis pendientes por leer</h4>
-                    <div class="table-responsive">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="card-title">Listado de mis pendientes por leer</h4>
+                        <div class="text-right">
+                            <span class="badge badge-danger" v-if="contadorPendientes > 0">{{ contadorPendientes }} pendiente(s)</span>
+                            <span class="badge badge-success" v-else>Sin pendientes</span>
+                            <button v-if="autoRefreshEnabled" class="btn btn-sm btn-outline-secondary ml-2" @click="toggleAutoRefresh" title="Auto-refresh activo">
+                                <i class="fa fa-refresh fa-spin"></i> {{ autoRefreshInterval / 1000 }}s
+                            </button>
+                            <button v-else class="btn btn-sm btn-outline-secondary ml-2" @click="toggleAutoRefresh" title="Activar auto-refresh">
+                                <i class="fa fa-refresh"></i> {{ autoRefreshInterval / 1000 }}s
+                            </button>
+                        </div>
+                    </div>
+                    <loading-spinner :visible="!tablaVisible" />
+                    <div class="table-responsive" v-show="tablaVisible">
                         <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
                             width="100%">
                             <thead>
@@ -178,7 +188,7 @@
                                             :disabled="loadingAbrirId === item.estudio_producto_id" @click="
                                                 actualizar = true;
                                             mostrarRegistro(item);
-                                            ">
+                                            " title="Abrir estudio">
                                             <i v-if="loadingAbrirId === item.estudio_producto_id"
                                                 class="fa fa-spinner fa-spin"></i>
                                             <i v-else class="fa fa-pencil"></i>
@@ -193,7 +203,7 @@
                                                     item.tap_oviyam,
                                                     item.estudio_producto_id
                                                 )
-                                                " title="Ver imagenes">
+                                                " title="Ver imágenes">
                                             <i v-if="loadingImagenId === item.estudio_producto_id"
                                                 class="fa fa-spinner fa-spin"></i>
                                             <i v-else class="fa fa-file-photo-o"></i>
@@ -203,7 +213,7 @@
                                             :disabled="loadingVistoId === item.estudio_producto_id" @click="
                                                 actualizar = true;
                                             visto(item.estudio_producto_id);
-                                            ">
+                                            " title="Marcar como visto">
                                             <i v-if="loadingVistoId === item.estudio_producto_id"
                                                 class="fa fa-spinner fa-spin"></i>
                                             <i v-else class="fa fa-eye"></i>
@@ -212,6 +222,10 @@
                                 </tr>
                             </tbody>
                         </table>
+                        <div v-if="registros.length === 0" class="text-center py-4 text-muted">
+                            <i class="fa fa-inbox fa-3x mb-3"></i>
+                            <p>No hay estudios pendientes</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -312,7 +326,7 @@
                                         <div class="form-group">
                                             <dl>
                                                 <dt>Observaciones</dt>
-                                                <dd>{{ registro.observaciones }}</dd>
+                                                {{ registro.observaciones }}
                                             </dl>
                                         </div>
                                     </div>
@@ -372,8 +386,12 @@
                                             <li>
                                                 <a class="" @click="toggleSpeechRecognition"
                                                     style="width: 30px; height: 30px">
-                                                    <img title="Grabadora" :src="microfono" />
+                                                    <img title="Grabadora" :src="microfono" :class="{'pulse-animation': recording || recognizing}" />
                                                 </a>
+                                                <span v-if="uppercase" class="badge badge-success ml-2" title="Mayúsculas activada">MAYÚS</span>
+                                                <span v-if="recording" class="badge badge-danger ml-2">Grabando</span>
+                                                <span v-if="recognizing && !recording" class="badge badge-warning ml-2">Escuchando</span>
+                                                <span class="text-muted ml-2" style="font-size: 11px">F2</span>
                                             </li>
                                         </ul>
                                     </div>
@@ -381,7 +399,7 @@
 
                                 <span class="text-danger" v-if="errores.lectura">{{
                                     errores.lectura[0]
-                                    }}</span>
+                                }}</span>
                                 <div class="row">
                                     <div class="col-12">
                                         <div class="form-group">
@@ -397,14 +415,15 @@
                                         <!-- Nav tabs -->
                                         <ul class="nav nav-tabs" role="tablist">
                                             <li class="nav-item">
-                                                <a class="nav-link active" data-toggle="tab" href="#home8" role="tab">
+                                                <a class="nav-link active" data-toggle="tab" href="#adjunto_hc"
+                                                    role="tab">
                                                     <h5 class="card-title text-info">
                                                         <i class="fa fa-paperclip"></i> Adjuntos
                                                     </h5>
                                                 </a>
                                             </li>
                                             <li class="nav-item">
-                                                <a class="nav-link" data-toggle="tab" href="#profile8" role="tab"
+                                                <a class="nav-link" data-toggle="tab" href="#audios_hc" role="tab"
                                                     @click="listarAudios()">
                                                     <span>
                                                         <h5 class="card-title text-info">
@@ -414,19 +433,30 @@
                                                     </span>
                                                 </a>
                                             </li>
-                                            <!-- <li class="nav-item">
-                                                <a class="nav-link" data-toggle="tab" href="#profile8" role="tab">
+                                            <li class="nav-item">
+                                                <a class="nav-link" data-toggle="tab" href="#motivo_examen_hc"
+                                                    role="tab">
                                                     <span>
                                                         <h5 class="card-title text-info">
-                                                            <i class="fa fa-file-audio-o"></i> Hisotial
+                                                            <i class="fa fa-history"></i> HC
                                                         </h5>
                                                     </span>
                                                 </a>
-                                            </li> -->
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" data-toggle="tab" href="#history_estudios"
+                                                    role="tab">
+                                                    <span>
+                                                        <h5 class="card-title text-info">
+                                                            <i class="fa fa-history"></i> Historia del estudios
+                                                        </h5>
+                                                    </span>
+                                                </a>
+                                            </li>
                                         </ul>
                                         <!-- Tab panes -->
                                         <div class="tab-content tabcontent-border">
-                                            <div class="tab-pane active p-20" id="home8" role="tabpanel">
+                                            <div class="tab-pane active p-20" id="adjunto_hc" role="tabpanel">
                                                 <div class="col-md-8 col-lg-9"
                                                     v-for="(itemArchivo, index) in soportesHC" :key="index">
                                                     <a href="javascript:void(0)" :style="{
@@ -449,7 +479,7 @@
                                                     </a>
                                                 </div>
                                             </div>
-                                            <div class="tab-pane p-20" id="profile8" role="tabpanel">
+                                            <div class="tab-pane p-20" id="audios_hc" role="tabpanel">
                                                 <div v-if="loadingAudios" class="text-muted">
                                                     <i class="fa fa-spinner fa-spin"></i> Cargando
                                                     audios...
@@ -458,13 +488,52 @@
                                                     <audio :src="item.url" controls
                                                         style="height: 15px; width: 100%"></audio>
                                                 </template>
-                                                <div v-if="
-                                                    !loadingAudios &&
-                                                    (!audiosDeEstudio ||
-                                                        audiosDeEstudio.length === 0)
-                                                " class="text-muted">
+                                                <div v-if="!loadingAudios && (!audiosDeEstudio || audiosDeEstudio.length === 0)"
+                                                    class="text-muted">
                                                     No hay audios para este estudio.
                                                 </div>
+                                            </div>
+                                            <div class="tab-pane p-20" id="motivo_examen_hc" role="tabpanel">
+                                                <div class="form-group">
+                                                    <textarea id="motivo_examen" name="motivo_examen"
+                                                        v-model="registro.motivo_examen" class="form-control"
+                                                        placeholder="Ingrese aqi las observaciones del estudio"
+                                                        rows="11"></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="tab-pane p-20" id="history_estudios" role="tabpanel">
+                                                <table id="example23-1" class="table table-bordered table-striped"
+                                                    cellspacing="0" width="100%">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Fecha del Estudio</th>
+                                                            <th>Fecha de lectura</th>
+                                                            <th>Producto</th>
+                                                            <th></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr v-for="item in historial_estudios"
+                                                            :key="item.estudio_producto_id">
+                                                            <td>{{ item.fec_estudio }}</td>
+                                                            <td>{{ item.fechor_lectura }}</td>
+                                                            <td>{{ item.nom_produc }}</td>
+                                                            <td class="text-nowrap">
+                                                                <button type="button"
+                                                                    class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
+                                                                    @click="imprimirReporte(item)"
+                                                                    title="Imprimir reporte" :disabled="loadingImprimirId === item.estudio_producto_id
+                                                                        ">
+                                                                    <i v-if="
+                                                                        loadingImprimirId ===
+                                                                        item.estudio_producto_id
+                                                                    " class="fa fa-spinner fa-spin"></i>
+                                                                    <i v-else class="fa fa-file-pdf-o"></i>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
                                     </div>
@@ -498,14 +567,14 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import {
-    safeDestroyDataTable,
     safeInitDataTable,
     safeRemoveDataTableRow,
 } from "@/helpers/datatables.js";
 import { handleAxiosErrorToast } from "@/helpers/alerts";
-import medicalTermsRaw from "@/data/terminos_medicos.txt?raw";
-import medicalReplacements from "@/data/medical_replacements.json";
+import { useMedicalDictionary } from "@/composables/useMedicalDictionary";
+import { useVoiceDictation } from "@/composables/useVoiceDictation";
 import {
     createAudioRecorderSession,
     getVoiceAudioConstraints,
@@ -519,19 +588,21 @@ import { createVoiceSession } from "@/helpers/voice/voiceSession";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-// Términos médicos desde archivo (1 término por línea).
-// Soporta comentarios con "#" al inicio de la línea.
-const MEDICAL_TERMS_FROM_TXT = String(medicalTermsRaw || "")
-    .split(/\r?\n/)
-    .map((l) => String(l).trim())
-    .filter((l) => l && !l.startsWith("#"));
-
-const MEDICAL_REPLACEMENTS_FROM_JSON = Array.isArray(medicalReplacements)
-    ? medicalReplacements
-    : [];
-
 export default {
     props: ["usuarioactual", "permisos"],
+    components: {
+        LoadingSpinner,
+    },
+    computed: {
+        contadorPendientes() {
+            return this.registros ? this.registros.length : 0;
+        },
+    },
+    setup() {
+        const medicalDict = useMedicalDictionary();
+        const voiceDictation = useVoiceDictation();
+        return { medicalDict, voiceDictation };
+    },
     mounted() {
         this.establecerSede();
         this.sede_id = sessionStorage.getItem("ST-sede");
@@ -546,7 +617,7 @@ export default {
             this.listarMisPendientes();
         });
 
-        // Estabilidad dictado: pausar/reanudar según foco/pestaña
+        // Estabilidad dictated: pausar/reanudar según foco/pestaña
         this.setupDictationFocusHandlers();
     },
     beforeUnmount() {
@@ -566,6 +637,8 @@ export default {
             registros: [],
             productoEstudio: { cod_produc: "", nom_produc: "" },
             diagnosticosEstudio: [],
+            historial_estudios: [],
+            loadingImprimirId: null,
             soportesHC: [],
             tituloModal: "Nuevo registro",
             registro: {
@@ -575,6 +648,7 @@ export default {
                 accession_no: "",
                 study_desc: "",
                 observaciones: "",
+                motivo_examen: "",
                 num_docu: "",
                 nom_pacien: "",
                 sexo: "",
@@ -591,6 +665,11 @@ export default {
             idRow: null,
             sede_id: null,
             loadingListar: false,
+            tablaVisible: true,
+            autoRefreshEnabled: false,
+            autoRefreshInterval: 30000,
+            autoRefreshTimer: null,
+            searchQuery: "",
             loadingGuardar: false,
             loadingAbrirId: null,
             loadingVistoId: null,
@@ -626,13 +705,8 @@ export default {
             mediaStream: null,
             capitalizeNext: false,
 
-            // Precisión “médica” sin librerías externas: vocab local (diagnósticos/producto)
-            medicalVocabularyMap: {}, // normalized -> canonical
-            medicalVocabularyKeys: [], // normalized keys para fuzzy matching
-            medicalVocabularyIndex: {}, // firstLetter -> length -> array<normalizedKey>
-            _medicalDictCompiled: null,
-
-            // Handlers para foco/visibilidad (se asignan en runtime)
+            // Handlers para foco/visibilidad y teclado
+            onKeydownHandler: null,
             onVisibilityChangeHandler: null,
             onWindowBlurHandler: null,
             onWindowFocusHandler: null,
@@ -739,7 +813,27 @@ export default {
 
             // Comandos de saltos de línea y puntuación
             lineBreakCommands: {
-                "punto aparte": () => ".\n\n",
+                "punto aparte": () => {
+                    this.capitalizeNext = true;
+                    return ".\n\n";
+                },
+                "punto a parte": () => {
+                    this.capitalizeNext = true;
+                    return ".\n\n";
+                },
+                "punto y aparte": () => {
+                    this.capitalizeNext = true;
+                    return ".\n\n";
+                },
+                "nuevo párrafo": () => {
+                    this.capitalizeNext = true;
+                    return "\n\n";
+                },
+                "nueva sección": () => {
+                    this.capitalizeNext = true;
+                    return "\n\n---\n\n";
+                },
+                "separador": () => "\n\n---\n\n",
                 "salto de línea": () => "\n",
                 "doble salto de línea": () => "\n\n",
                 enter: () => "\n",
@@ -784,6 +878,29 @@ export default {
                 "barra diagonal": () => "/",
                 "barra invertida": () => "\\",
                 "nueva oración": () => ". ",
+                // Números y símbolos
+                "por ciento": () => "%",
+                "menos": () => "-",
+                "más": () => "+",
+                "igual": () => "=",
+                "multiplicar": () => "×",
+                "dividir": () => "÷",
+                "asterisco": () => "*",
+                "numeral": () => "#",
+                "ampersand": () => "&",
+                "arroba": () => "@",
+                "dólar": () => "$",
+                "euro": () => "€",
+            },
+
+            // Comandos de formato
+            formatCommands: {
+                "negrita": () => "**",
+                "cerrar negrita": () => "**",
+                "cursiva": () => "_",
+                "cerrar cursiva": () => "_",
+                "subrayado": () => "<u>",
+                "cerrar subrayado": () => "</u>",
             },
         };
     },
@@ -810,6 +927,19 @@ export default {
         setupDictationFocusHandlers() {
             // Evita duplicar listeners si mounted se ejecuta más de una vez
             this.teardownDictationFocusHandlers();
+
+            // Atajo de teclado: F2 para iniciar/detener grabación
+            this.onKeydownHandler = (e) => {
+                if (e.key === "F2" && !e.repeat) {
+                    e.preventDefault();
+                    if (this.recording || this.recognizing) {
+                        this.stopRecording();
+                    } else {
+                        this.startRecording();
+                    }
+                }
+            };
+            window.addEventListener("keydown", this.onKeydownHandler);
 
             this.onVisibilityChangeHandler = () => {
                 // Si se oculta la pestaña, Chrome suele cortar/pausar mic → pausamos nosotros.
@@ -875,6 +1005,11 @@ export default {
             window.addEventListener("focus", this.onWindowFocusHandler);
         },
         teardownDictationFocusHandlers() {
+            if (this.onKeydownHandler) {
+                try {
+                    window.removeEventListener("keydown", this.onKeydownHandler);
+                } catch (e) { }
+            }
             if (this.onVisibilityChangeHandler) {
                 try {
                     document.removeEventListener(
@@ -893,6 +1028,7 @@ export default {
                     window.removeEventListener("focus", this.onWindowFocusHandler);
                 } catch (e) { }
             }
+            this.onKeydownHandler = null;
             this.onVisibilityChangeHandler = null;
             this.onWindowBlurHandler = null;
             this.onWindowFocusHandler = null;
@@ -912,234 +1048,13 @@ export default {
             return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         },
         normalizeWord(text) {
-            // Normaliza para comparar vocabulario: minúsculas + sin tildes + solo letras/números
-            return this.stripDiacritics(String(text))
-                .toLowerCase()
-                .replace(/[^a-z0-9ñ]+/gi, "");
-        },
-        /**
-         * =============================================================
-         *  DICCIONARIO MÉDICO (EDITA AQUÍ) - 100% propio / sin librerías
-         * =============================================================
-         *
-         * - **terms**: lista de términos “canónicos” (los que quieres que aparezcan escritos).
-         *   Se usan para corrección exacta y fuzzy (palabra por palabra).
-         * - **replacements**: reglas de reemplazo tipo RegExp (texto dictado -> normalizado).
-         *
-         * Consejos:
-         * - Mantén `terms` en 50–300 términos frecuentes (diagnósticos, hallazgos, medidas, siglas).
-         * - En `replacements` pon unidades y frases comunes: "milímetros de mercurio" -> "mmHg", "por ciento" -> "%", etc.
-         */
-        getMedicalDictionaryConfig() {
-            return {
-                // 1) Términos médicos canónicos (agrega/edita según tu clínica)
-                terms: [
-                    // Fuente principal (archivo):
-                    // `resources/js/data/terminos_medicos.txt`
-                    ...MEDICAL_TERMS_FROM_TXT,
-
-                    // Extras opcionales (si quieres forzar algunos términos aunque no estén en el .txt)
-                    // "mmHg",
-                    // "mg/dL",
-                ],
-
-                // 2) Reglas de reemplazo (regexString, flags, reemplazo)
-                // Nota: si no sabes regex, puedes copiar y modificar ejemplos.
-                replacements: [
-                    // Fuente principal (archivo):
-                    // `resources/js/data/medical_replacements.json`
-                    ...MEDICAL_REPLACEMENTS_FROM_JSON,
-
-                    // Extras opcionales (si quieres reglas adicionales solo para este componente)
-                    // ["regex", "giu", "reemplazo"],
-                ],
-            };
-        },
-        getMedicalDictionaryCompiled() {
-            // Compila 1 sola vez por instancia (evita crear RegExp en cada resultado)
-            if (this._medicalDictCompiled) return this._medicalDictCompiled;
-
-            const cfg = this.getMedicalDictionaryConfig() || {};
-            const compiled = {
-                terms: Array.isArray(cfg.terms) ? cfg.terms.filter(Boolean) : [],
-                replacements: [],
-            };
-
-            const rules = Array.isArray(cfg.replacements) ? cfg.replacements : [];
-            rules.forEach((rule) => {
-                if (!Array.isArray(rule) || rule.length < 3) return;
-                const [regexString, flags, replacement] = rule;
-                try {
-                    compiled.replacements.push([
-                        new RegExp(String(regexString), String(flags || "")),
-                        String(replacement),
-                    ]);
-                } catch (e) {
-                    // Regla inválida: se ignora (no rompe dictado)
-                }
-            });
-
-            this._medicalDictCompiled = compiled;
-            return compiled;
+            return this.medicalDict.normalizeWord(text);
         },
         rebuildMedicalVocabulary() {
-            const map = {};
-            const addPhrase = (phrase) => {
-                if (!phrase) return;
-                const s = String(phrase).trim();
-                if (!s) return;
-
-                // Guardar frase completa
-                const nFull = this.normalizeWord(s);
-                if (nFull) map[nFull] = s;
-
-                // Guardar tokens individuales (para corrección por palabra)
-                const tokens = s.split(/[\s/,-]+/g).filter(Boolean);
-                tokens.forEach((t) => {
-                    const nt = this.normalizeWord(t);
-                    if (nt && nt.length >= 4 && !map[nt]) map[nt] = t;
-                });
-            };
-
-            // Producto del estudio
-            addPhrase(
-                this.productoEstudio && this.productoEstudio.nom_produc
-                    ? this.productoEstudio.nom_produc
-                    : ""
-            );
-            // Diagnósticos cargados para ese estudio
-            if (Array.isArray(this.diagnosticosEstudio)) {
-                this.diagnosticosEstudio.forEach((d) =>
-                    addPhrase(
-                        d && (d.nom_diagnos || d.nombre || d.descripcion)
-                            ? d.nom_diagnos || d.nombre || d.descripcion
-                            : ""
-                    )
-                );
-            }
-
-            // Términos estáticos (EDITABLES) — se suman al vocab dinámico del estudio
-            const compiled = this.getMedicalDictionaryCompiled();
-            if (compiled && Array.isArray(compiled.terms)) {
-                compiled.terms.forEach((t) => addPhrase(t));
-            }
-
-            this.medicalVocabularyMap = map;
-            const keys = Object.keys(map);
-            this.medicalVocabularyKeys = keys;
-
-            // Index para fuzzy matching (evita recorrer 30k+ términos por token)
-            const index = {};
-            keys.forEach((k) => {
-                if (!k) return;
-                const first = k[0];
-                const len = k.length;
-                if (!index[first]) index[first] = {};
-                if (!index[first][len]) index[first][len] = [];
-                index[first][len].push(k);
-            });
-            this.medicalVocabularyIndex = index;
-        },
-        levenshteinMax(a, b, maxDist = 2) {
-            // Distancia de edición con corte temprano (para fuzzy matching barato)
-            if (a === b) return 0;
-            if (!a || !b) return Math.max(a ? a.length : 0, b ? b.length : 0);
-            const la = a.length;
-            const lb = b.length;
-            if (Math.abs(la - lb) > maxDist) return maxDist + 1;
-
-            // DP optimizado por filas
-            let prev = new Array(lb + 1);
-            let curr = new Array(lb + 1);
-            for (let j = 0; j <= lb; j++) prev[j] = j;
-
-            for (let i = 1; i <= la; i++) {
-                curr[0] = i;
-                let minInRow = curr[0];
-                const ca = a.charCodeAt(i - 1);
-                for (let j = 1; j <= lb; j++) {
-                    const cost = ca === b.charCodeAt(j - 1) ? 0 : 1;
-                    const v = Math.min(
-                        prev[j] + 1, // delete
-                        curr[j - 1] + 1, // insert
-                        prev[j - 1] + cost // replace
-                    );
-                    curr[j] = v;
-                    if (v < minInRow) minInRow = v;
-                }
-                if (minInRow > maxDist) return maxDist + 1; // corte temprano
-                const tmp = prev;
-                prev = curr;
-                curr = tmp;
-            }
-            return prev[lb];
+            // Sin diccionario médico - solo transcripción directa
         },
         applyMedicalCorrections(text) {
-            // Correcciones “propias” (sin APIs externas). Aplicar SOLO a texto final.
-            if (!text) return text;
-            let out = String(text);
-            const wantUpper = !!this.uppercase;
-
-            // Reglas configurables (EDITA AQUÍ en getMedicalDictionaryConfig)
-            const compiled = this.getMedicalDictionaryCompiled();
-            if (compiled && Array.isArray(compiled.replacements)) {
-                compiled.replacements.forEach(([re, rep]) => {
-                    out = out.replace(re, rep);
-                });
-            }
-
-            // Si no hay vocabulario local, solo devuelve normalizado
-            const vocabMap = this.medicalVocabularyMap || {};
-            const vocabKeys = this.medicalVocabularyKeys || [];
-            const vocabIndex = this.medicalVocabularyIndex || {};
-            if (!vocabKeys.length) return wantUpper ? out.toUpperCase() : out;
-
-            // Reemplazo por token (manteniendo puntuación)
-            out = out.replace(/[\p{L}\p{N}]+/gu, (token) => {
-                // No tocar números puros o tokens cortos
-                if (/^\d+$/u.test(token)) return token;
-                if (token.length < 4) return token;
-
-                const n = this.normalizeWord(token);
-                if (!n) return token;
-
-                // Match exacto normalizado
-                if (vocabMap[n]) {
-                    const canonical = vocabMap[n];
-                    return wantUpper ? String(canonical).toUpperCase() : String(canonical);
-                }
-
-                // Fuzzy: buscar candidato cercano (barato)
-                const first = n[0];
-                const bucketByLen = vocabIndex[first] || null;
-                let best = null;
-                let bestDist = 3;
-                if (bucketByLen) {
-                    // Solo longitudes cercanas (±2) para reducir candidatos
-                    for (let L = n.length - 2; L <= n.length + 2; L++) {
-                        const arr = bucketByLen[L];
-                        if (!arr || !arr.length) continue;
-                        for (let i = 0; i < arr.length; i++) {
-                            const k = arr[i];
-                            const d = this.levenshteinMax(n, k, 2);
-                            if (d < bestDist) {
-                                bestDist = d;
-                                best = k;
-                                if (bestDist === 1) break;
-                            }
-                        }
-                        if (bestDist === 1) break;
-                    }
-                }
-                if (best && bestDist <= 2 && vocabMap[best]) {
-                    const canonical = vocabMap[best];
-                    return wantUpper ? String(canonical).toUpperCase() : String(canonical);
-                }
-
-                return token;
-            });
-
-            return wantUpper ? out.toUpperCase() : out;
+            return text;
         },
         prepareVoiceCommands() {
             // Agrega claves sin tildes a los diccionarios de comandos (ej: "mayuscula" -> "mayúscula")
@@ -1157,6 +1072,7 @@ export default {
             addNormalizedKeys(this.uppercaseCommands);
             addNormalizedKeys(this.lineBreakCommands);
             addNormalizedKeys(this.punctuationCommands);
+            addNormalizedKeys(this.formatCommands);
         },
         clearAudioBuffer() {
             // Limpia buffers/urls sin intentar detener nada (para cambios de estudio / reset UI)
@@ -1204,6 +1120,18 @@ export default {
                 dom: "Bfrtip",
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
                 retrieve: true,
+                order: [[0, "asc"]], // Ordenar por primera columna (prioridad)
+                language: {
+                    search: "Buscar:",
+                    lengthMenu: "Mostrar _MENU_ registros",
+                    info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                    paginate: {
+                        first: "Primero",
+                        last: "Último",
+                        next: "Siguiente",
+                        previous: "Anterior",
+                    },
+                },
             });
         },
         destroyDataTable() {
@@ -1555,6 +1483,7 @@ export default {
                     ...this.uppercaseCommands,
                     ...this.lineBreakCommands,
                     ...this.punctuationCommands,
+                    ...this.formatCommands,
                 };
                 const grammarCommands = Object.keys(allCommands);
 
@@ -1569,8 +1498,8 @@ export default {
                         onFinalText: (raw) => {
                             let text = String(raw || "").trim();
                             if (!text) return;
+                            
                             text = this.processCommands(text);
-                            text = this.applyMedicalCorrections(text);
 
                             if (text && String(text).length) {
                                 const suffix = /[ \n]$/.test(text) ? "" : " ";
@@ -1599,14 +1528,35 @@ export default {
                         onError: (e) => {
                             const err = e && e.error ? String(e.error) : "";
                             this.lastRecognitionError = err || null;
+                            console.error('[Voice] Error:', err, e);
                             if (e && e.message === "Silencio repetido") {
                                 $.toast({
                                     heading: "Sin voz detectada",
-                                    text: "No se detecta voz (silencio repetido). Verifica micrófono/entrada y vuelve a iniciar el dictado.",
+                                    text: "No se detecta voz (silencio repetido). Verifica micrófono/entrada y vuelve a iniciar el dictamen.",
                                     position: "top-right",
                                     loaderBg: "#ff6849",
                                     icon: "warning",
                                     hideAfter: 6000,
+                                    stack: 6,
+                                });
+                            } else if (err.includes("not-allowed")) {
+                                $.toast({
+                                    heading: "Micrófono bloqueado",
+                                    text: "Permite el acceso al micrófono en la configuración del navegador.",
+                                    position: "top-right",
+                                    loaderBg: "#ff6849",
+                                    icon: "error",
+                                    hideAfter: 6000,
+                                    stack: 6,
+                                });
+                            } else if (err.includes("no-speech")) {
+                                $.toast({
+                                    heading: "Sin voz",
+                                    text: "No se detectó voz. Intenta de nuevo.",
+                                    position: "top-right",
+                                    loaderBg: "#ff6849",
+                                    icon: "info",
+                                    hideAfter: 4000,
                                     stack: 6,
                                 });
                             }
@@ -1693,30 +1643,25 @@ export default {
                 this.uppercase = false;
             }
 
-            // Asegura sinónimos sin tildes por si el dictado viene sin acentos
             this.prepareVoiceCommands();
 
-            // Procesar comandos de mayúsculas
             text = this.applyCommandMap(text, this.uppercaseCommands);
 
-            // Procesar comandos de saltos de línea
             text = this.applyCommandMap(text, this.lineBreakCommands, {
                 onEachMatch: () => {
                     this.capitalizeNext = true;
                 },
             });
 
-            // Procesar comandos de puntuación y espacios
             text = this.applyCommandMap(text, this.punctuationCommands);
 
-            // Convertir texto a mayúsculas si está activado
+            text = this.applyCommandMap(text, this.formatCommands);
+
             text = this.uppercase ? text.toUpperCase() : text;
 
-            // Aplicar mayúscula en la primera letra del nuevo párrafo
-            // solo cuando un comando de salto de línea haya sido reconocido
             if (this.capitalizeNext) {
                 text = text.replace(/(^|\n)(\s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
-                    this.capitalizeNext = false; // Resetear capitalización tras usarla
+                    this.capitalizeNext = false;
                     return `${start}${spaces}${first.toUpperCase()}`;
                 });
             }
@@ -1832,8 +1777,11 @@ export default {
                     stack: 6,
                 });
             } else {
-                /* if (this.loadingListar) return;
-                this.loadingListar = true; */
+                if (this.loadingListar) return;
+                
+                this.tablaVisible = false;
+                this.loadingListar = true;
+                
                 try {
                     const res = await axios.post('/api/estudio-listarPendientesMedico', { id: this.usuarioactual.id, sede_id: this.sede_id });
                     this.destroyDataTable();
@@ -1842,22 +1790,41 @@ export default {
 
                     this.$nextTick(() => {
                         this.initDataTable();
-                    });
-
-                    /* const res = await axios.post("/api/estudio-listarPendientesMedico", {
-                        id: this.usuarioactual.id,
-                        sede_id: this.sede_id,
-                    });
-                    this.destroyDataTable();
-
-                    this.registros = res.data;
-
-                    this.$nextTick(() => {
-                        this.initDataTable();
-                    }); */
+                        this.tablaVisible = true;
+                    })
                 } catch (error) {
                     console.log(error);
+                } finally {
+                    this.loadingListar = false;
                 }
+            }
+        },
+        toggleAutoRefresh() {
+            if (this.autoRefreshEnabled) {
+                if (this.autoRefreshTimer) {
+                    clearInterval(this.autoRefreshTimer);
+                    this.autoRefreshTimer = null;
+                }
+                this.autoRefreshEnabled = false;
+                $.toast({
+                    heading: "Auto-refresh",
+                    text: "Auto-refresh desactivado",
+                    position: "top-right",
+                    icon: "info",
+                    hideAfter: 2000,
+                });
+            } else {
+                this.autoRefreshTimer = setInterval(() => {
+                    this.listarMisPendientes();
+                }, this.autoRefreshInterval);
+                this.autoRefreshEnabled = true;
+                $.toast({
+                    heading: "Auto-refresh",
+                    text: `Actualizando cada ${this.autoRefreshInterval / 1000} segundos`,
+                    position: "top-right",
+                    icon: "success",
+                    hideAfter: 2000,
+                });
             }
         },
         async guardarRegistro() {
@@ -1914,6 +1881,19 @@ export default {
             }
         },
         async visto(id) {
+            const result = await swal({
+                title: "Marcar como visto",
+                text: "¿Estás seguro de marcar este estudio como visto?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#1e88e5",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Sí, marcar visto",
+                cancelButtonText: "Cancelar",
+            });
+
+            if (!result.value) return;
+
             if (this.loadingVistoId) return;
             this.loadingVistoId = id;
 
@@ -1947,6 +1927,56 @@ export default {
                 this.loadingVistoId = null;
             }
         },
+        async listar_historial_estudios(num_docu) {
+            try {
+
+                const res = await axios.post(
+                    "/api/listar.estudios.notificaciones",
+                    { bus_num_docu: num_docu }
+                );
+
+                if (res.status == 200) {
+                    this.destroyDataTable();
+
+                    this.historial_estudios = res.data;
+
+                    this.$nextTick(() => {
+                        safeInitDataTable(this.$refs.dt || "#example23", {
+                            dom: "Bfrtip",
+                            buttons: ["copy", "csv", "excel", "pdf", "print"],
+                        });
+                    });
+
+                }
+            } catch (error) {
+                console.error(error?.response?.status);
+            } finally {
+                this.loadingBuscar = false;
+            }
+        },
+        async imprimirReporte(estudio) {
+            if (this.loadingImprimirId) return;
+            this.loadingImprimirId = estudio.estudio_producto_id;
+            try {
+                $.toast({
+                    heading: "Ok!!!",
+                    text: "Generando reportes, por favor espere",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "success",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+
+                const res = await axios.post("/api/edit-word", estudio);
+
+                window.open(`/descargar.pdf.lectura/${res.data.plantilla}`, "_blank");
+            } catch (error) {
+                this.errores = error.response.data;
+            } finally {
+                this.loadingImprimirId = null;
+            }
+        },
         async mostrarRegistro(data = {}) {
             if (this.loadingAbrirId !== null) return;
             this.loadingAbrirId = data.estudio_producto_id;
@@ -1966,7 +1996,8 @@ export default {
             this.registro.fec_estudio = data.fec_estudio;
             this.registro.accession_no = data.accession_no;
             this.registro.study_desc = data.study_desc;
-
+            this.registro.observaciones = data.observaciones;
+            this.registro.motivo_examen = data.motivo_examen;
             this.registro.num_docu = data.num_docu;
             this.registro.nom_pacien = data.nom_pacien;
             this.registro.sexo = data.pat_sex;
@@ -1979,6 +2010,8 @@ export default {
 
             this.productoEstudio.cod_produc = data.cod_cups;
             this.productoEstudio.nom_produc = data.nom_produc;
+
+            this.listar_historial_estudios(data.num_docu);
 
             try {
                 const res = await axios.get(
@@ -2120,6 +2153,16 @@ export default {
 </script>
 
 <style scoped>
+.pulse-animation {
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
 .right-sidebar {
     position: fixed;
     right: -100%;

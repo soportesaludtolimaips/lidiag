@@ -63,16 +63,6 @@
                                         </a>
                                     </li>
                                 @endcan
-                                @can('estudio.transcribir')
-                                    <li>
-                                        <a href="{{ route('estudios.transcribir.listar') }}">
-                                            <i class="fa fa-search text-info"></i> Pendientes por transcribir
-                                        </a>
-                                        <a href="{{ route('estudios.teleradiologis.listar') }}">
-                                            <i class="fa fa-search text-info"></i> Tele Radiologia
-                                        </a>
-                                    </li>
-                                @endcan
                                 @canany('estudio.leerEstudio')
                                     <li>
                                         <a href="{{ route('estudios.leer.estudio.listar') }}">

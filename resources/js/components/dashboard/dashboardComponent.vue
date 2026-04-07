@@ -142,7 +142,7 @@
                                             <span v-if="loading">...</span>
                                             <span v-else>{{
                                                 operacion.pendientesTranscripcion
-                                                }}</span>
+                                            }}</span>
                                         </h4>
                                         <small class="text-muted">Pend. transcripción</small>
                                     </div>
@@ -391,10 +391,10 @@
                                     <span v-if="loading">...</span>
                                     <span v-else>{{
                                         formatMin(calidad.tiempos.asignadoALectura?.avgMin)
-                                        }}</span>
+                                    }}</span>
                                 </h3>
                                 <small class="text-muted">muestras: {{ calidad.tiempos.asignadoALectura?.n || 0
-                                    }}</small>
+                                }}</small>
                             </div>
                             <div class="col-6">
                                 <h6 class="text-muted m-b-0">Lectura → Transcrito</h6>
@@ -402,7 +402,7 @@
                                     <span v-if="loading">...</span>
                                     <span v-else>{{
                                         formatMin(calidad.tiempos.lecturaATranscrito?.avgMin)
-                                        }}</span>
+                                    }}</span>
                                 </h3>
                                 <small class="text-muted">muestras:
                                     {{ calidad.tiempos.lecturaATranscrito?.n || 0 }}</small>
@@ -524,7 +524,7 @@
                                             </div>
                                             <small class="text-muted">{{
                                                 row.paciente_num_docu || ""
-                                                }}</small>
+                                            }}</small>
                                         </td>
                                         <td>{{ row.sede || "" }}</td>
                                         <td>{{ row.accession_no || row.study_id || row.id }}</td>
@@ -571,7 +571,7 @@
                                             </div>
                                             <small class="text-muted">{{
                                                 row.paciente_num_docu || ""
-                                                }}</small>
+                                            }}</small>
                                         </td>
                                         <td>{{ row.sede || "" }}</td>
                                         <td>{{ row.accession_no || row.study_id || row.id }}</td>
@@ -761,23 +761,33 @@ export default {
         },
     },
     async mounted() {
+        console.log('Dashboard mounted ejecutándose');
         try {
+            console.log('Iniciando initCharts...');
+            this.initCharts();
+            console.log('Listando sedes...');
+            await this.listarSedes();
+            console.log('Cargando dashboard...');
+            await this.fetchDashboard();
+            console.log('Dashboard cargado completamente');
+        } catch (e) {
             this.initCharts();
             await this.listarSedes();
-        } catch (e) {
-            // Si faltan librerías globales (c3/Morris), igual cargamos datos del dashboard.
-            this.charts = {
-                modalidades: null,
-                resumen: null,
-                transcritos: null,
-                agingLectura: null,
-                agingTranscripcion: null,
-                porHoraHoy: null,
-                porSede: null,
-                slaLectura: null,
-                slaTranscripcion: null,
-            };
+            await this.fetchDashboard();
         }
+        // Si faltan librerías globales (c3/Morris), igual cargamos datos del dashboard.
+        this.charts = {
+            modalidades: null,
+            resumen: null,
+            transcritos: null,
+            agingLectura: null,
+            agingTranscripcion: null,
+            porHoraHoy: null,
+            porSede: null,
+            slaLectura: null,
+            slaTranscripcion: null,
+        };
+
     },
     data() {
         return {
@@ -994,15 +1004,19 @@ export default {
             });
         },
         async fetchDashboard() {
+            console.log('>>> fetchDashboard INICIO <<<');
             this.loading = true;
             this.error = null;
             this.filters.selected.sede_id = this.sedeSeleccionada;
+
+            console.log('>>> Params:', this.days, this.filters.selected.sede_id);
 
             try {
                 const http = window.axios;
                 if (!http) {
                     throw new Error("axios no está disponible en window");
                 }
+
                 const params = {
                     days: this.days,
                     sede_id: this.filters?.selected?.sede_id || undefined,
@@ -1010,10 +1024,21 @@ export default {
                         ? this.filters?.selected?.medico_id || undefined
                         : undefined,
                 };
+
+                console.log('>>> Haciendo petición axios con timeout...');
                 const res = await http.get("/api/reportes.dashboard", {
                     params,
+                    timeout: 30000, // 30 segundos timeout
+                }).catch(err => {
+                    console.log('>>> Error en axios:', err);
+                    console.log('>>> Response:', err.response);
+                    console.log('>>> Message:', err.message);
+                    console.log('>>> Code:', err.code);
+                    throw err;
                 });
+                console.log('>>> Respuesta recibida:', res);
 
+                console.log('resssss: ', res.date)
                 const data = res?.data || {};
 
                 if (data.filters) {
@@ -1050,12 +1075,13 @@ export default {
                 this.reindexHeatmap();
                 this.renderCharts();
             } catch (e) {
+                console.log('Error')
                 this.error = "No fue posible cargar las estadísticas del dashboard.";
                 // opcional: log mínimo para depurar en consola sin ruido
                 // console.error(e);
-            } finally {
+            } /* finally {
                 this.loading = false;
-            }
+            } */
         },
         renderCharts() {
             // Bar (resumen)
@@ -1294,11 +1320,15 @@ export default {
             window.location.href = "/estudios.transcribir.listar";
         },
         async listarSedes() {
+            console.log('Iniciando listarSedes...');
             try {
+                console.log('Haciendo petición axios...');
                 const res = await axios.get("/api/config-sedes/listar/sedes/activas");
+                console.log('Respuesta received:', res);
                 this.sedes = res.data;
+                console.log('Sedes cargadas:', this.sedes);
             } catch (error) {
-                console.log(error);
+                console.log('Error en listarSedes:', error);
             }
         },
     },

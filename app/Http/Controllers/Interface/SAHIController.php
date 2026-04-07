@@ -52,7 +52,9 @@ class SAHIController extends Controller
             ->join('facMovimientoDet', 'facMovimientoDet.IdMovimiento', 'facMovimiento.IdMovimiento')
             ->join('proProducto', 'facMovimientoDet.IdProducto', 'proProducto.IdProducto')
             ->where('facMovimiento.IdDestino', $request->idAtencion)
+            ->where('facMovimientoDet.Cantidad', '>', 0)
             ->whereIn('proProducto.IdGrupo', [44, 190, 225, 243])
+            ->distinct()
             ->get();
 
         $diagnosticos = HceConsulta::select('dx.IdDiagnostico', 'dx.CodCie9 as cod_diagnos', 'dx.NomDiagnostico as nom_diagnos')

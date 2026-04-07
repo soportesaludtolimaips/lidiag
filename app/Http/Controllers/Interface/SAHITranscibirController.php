@@ -129,6 +129,7 @@ class SAHITranscibirController extends Controller
                 'statusText' => "NMédico no encontrado en SAHI"
             ]);
         }
+
         $this->IdUsuario = $this->getUsuario()[0]['IdUsuario'];
         $this->IdPersonal = $this->getUsuario()[0]['IdPersonal'];
         $this->nomMedico = $this->getUsuario()[0]['Nompersonal'] . " " . $this->getUsuario()[0]['ApePersonal'];

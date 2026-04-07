@@ -36,62 +36,38 @@
                                 <div class="row p-t-2">
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label class="control-label"
-                                                >Nombres de paciente o # de documento
+                                            <label class="control-label">Nombres de paciente o # de documento
                                             </label>
-                                            <input
-                                                type="text"
-                                                id="bus_nom_num_docu"
-                                                name="bus_nom_num_docu"
-                                                v-model="busqueda.bus_nom_num_docu"
-                                                class="form-control"
+                                            <input type="text" id="bus_nom_num_docu" name="bus_nom_num_docu"
+                                                v-model="busqueda.bus_nom_num_docu" class="form-control"
                                                 placeholder="Nombres de paciente o # de documento"
-                                                @keyup.enter="buscarStudy()"
-                                            />
+                                                @keyup.enter="buscarStudy()" />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Inicio</label>
-                                            <input
-                                                type="date"
-                                                id="bus_fehc_ini"
-                                                name="bus_fehc_ini"
-                                                v-model="busqueda.bus_fehc_ini"
-                                                class="form-control"
-                                            />
+                                            <input type="date" id="bus_fehc_ini" name="bus_fehc_ini"
+                                                v-model="busqueda.bus_fehc_ini" class="form-control" />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Fin</label>
-                                            <input
-                                                type="date"
-                                                id="bus_fecha_fin"
-                                                name="bus_fecha_fin"
-                                                v-model="busqueda.bus_fecha_fin"
-                                                class="form-control"
-                                            />
+                                            <input type="date" id="bus_fecha_fin" name="bus_fecha_fin"
+                                                v-model="busqueda.bus_fecha_fin" class="form-control" />
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="form-actions mt-3">
-                                    <button
-                                        type="button"
-                                        class="btn btn-success m-r-5"
-                                        @click="buscarStudy()"
-                                        :disabled="loadingBuscar"
-                                    >
+                                    <button type="button" class="btn btn-success m-r-5" @click="buscarStudy()"
+                                        :disabled="loadingBuscar">
                                         <i v-if="loadingBuscar" class="fa fa-spinner fa-spin"></i>
                                         <i v-else class="fa fa-search"></i> Buscar
                                     </button>
 
-                                    <button
-                                        type="button"
-                                        class="btn btn-inverse"
-                                        @click="btnLimpiar()"
-                                    >
+                                    <button type="button" class="btn btn-inverse" @click="btnLimpiar()">
                                         <i class="fa fa-refresh"></i> Limpiar
                                     </button>
                                 </div>
@@ -111,13 +87,8 @@
                             Asigne los estudios a los médicos para su respectiva lectura.
                         </h6>
                         <div class="table-responsive">
-                            <table
-                                id="example23"
-                                ref="dt"
-                                class="table table-bordered table-striped"
-                                cellspacing="0"
-                                width="100%"
-                            >
+                            <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
+                                width="100%">
                                 <thead>
                                     <tr>
                                         <th with="5%">Fecha del Estudio</th>
@@ -129,44 +100,28 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr
-                                        v-for="(item, index) in registros"
-                                        :key="item.study_pk"
-                                        :id="item.study_pk"
-                                        :class="{ 'text-info': item.agendado !== 0 }"
-                                    >
+                                    <tr v-for="(item, index) in registros" :key="item.study_pk" :id="item.study_pk"
+                                        :class="{ 'text-info': item.agendado !== 0 }">
                                         <td>{{ item.study_datetime }}</td>
                                         <td>{{ item.pat_id }}</td>
                                         <td>{{ item.pat_name }}</td>
                                         <td>{{ item.accession_no }}</td>
                                         <td>{{ item.study_desc }}</td>
                                         <td class="text-nowrap">
-                                            <button
-                                                type="button"
+                                            <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
                                                 :disabled="loadingAbrirIndex === index"
-                                                @click="mostrarRegistro(item, index)"
-                                                title="Ordenar estudio"
-                                            >
-                                                <i
-                                                    v-if="loadingAbrirIndex === index"
-                                                    class="fa fa-spinner fa-spin"
-                                                ></i>
+                                                @click="mostrarRegistro(item, index)" title="Ordenar estudio">
+                                                <i v-if="loadingAbrirIndex === index" class="fa fa-spinner fa-spin"></i>
                                                 <i v-else class="fa fa-child"></i>
                                             </button>
-                                            <button
-                                                type="button"
+                                            <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
-                                                :disabled="loadingImagenIndex === index"
-                                                @click="
+                                                :disabled="loadingImagenIndex === index" @click="
                                                     verImagen(item.pat_id, item.study_iuid, index)
-                                                "
-                                                title="Ver imagenes"
-                                            >
-                                                <i
-                                                    v-if="loadingImagenIndex === index"
-                                                    class="fa fa-spinner fa-spin"
-                                                ></i>
+                                                    " title="Ver imagenes">
+                                                <i v-if="loadingImagenIndex === index"
+                                                    class="fa fa-spinner fa-spin"></i>
                                                 <i v-else class="fa fa-file-photo-o"></i>
                                             </button>
                                         </td>
@@ -186,20 +141,13 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div
-            class="right-sidebar"
-            id="right-sidebar"
-            style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%"
-        >
+        <div class="right-sidebar" id="right-sidebar"
+            style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <span>
-                        <i
-                            class="ti-close right-side-toggle"
-                            id="btnCerralModalForm"
-                            @click="cerrarModal()"
-                        ></i>
+                        <i class="ti-close right-side-toggle" id="btnCerralModalForm" @click="cerrarModal()"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
@@ -218,54 +166,34 @@
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label class="control-label"># Documento</label>
-                                                <input
-                                                    type="text"
-                                                    id="num_docu"
-                                                    name="num_docu"
-                                                    v-model="orden.paciente.num_docu"
-                                                    class="form-control"
-                                                    placeholder="# de Documento"
-                                                />
+                                                <input type="text" id="num_docu" name="num_docu"
+                                                    v-model="orden.paciente.num_docu" class="form-control"
+                                                    placeholder="# de Documento" />
                                             </div>
                                         </div>
 
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <label class="control-label">Nombres</label>
-                                                <input
-                                                    type="text"
-                                                    id="nombres"
-                                                    name="nombres"
-                                                    v-model="orden.paciente.nom_pacien"
-                                                    class="form-control"
-                                                    placeholder="Nombres"
-                                                />
+                                                <input type="text" id="nombres" name="nombres"
+                                                    v-model="orden.paciente.nom_pacien" class="form-control"
+                                                    placeholder="Nombres" />
                                             </div>
                                         </div>
 
                                         <div class="col-md-2">
                                             <div class="form-group">
                                                 <label class="control-label">Sexo</label>
-                                                <input
-                                                    type="text"
-                                                    id="sexo"
-                                                    name="sexo"
-                                                    v-model="orden.paciente.sexo"
-                                                    class="form-control"
-                                                />
+                                                <input type="text" id="sexo" name="sexo" v-model="orden.paciente.sexo"
+                                                    class="form-control" />
                                             </div>
                                         </div>
 
                                         <div class="col-md-2">
                                             <div class="form-group">
                                                 <label class="control-label">Fec. Nacimi</label>
-                                                <input
-                                                    type="date"
-                                                    id="fec_naci"
-                                                    name="fec_naci"
-                                                    v-model="orden.paciente.fec_naci"
-                                                    class="form-control"
-                                                />
+                                                <input type="date" id="fec_naci" name="fec_naci"
+                                                    v-model="orden.paciente.fec_naci" class="form-control" />
                                             </div>
                                         </div>
                                     </div>
@@ -273,37 +201,22 @@
                                         <div class="col-md-4">
                                             <div class="form-group">
                                                 <label class="control-label">Dirección</label>
-                                                <input
-                                                    type="text"
-                                                    id="direccion"
-                                                    name="direccion"
-                                                    v-model="orden.paciente.direccion"
-                                                    class="form-control"
-                                                />
+                                                <input type="text" id="direccion" name="direccion"
+                                                    v-model="orden.paciente.direccion" class="form-control" />
                                             </div>
                                         </div>
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label class="control-label">Télefono</label>
-                                                <input
-                                                    type="number"
-                                                    id="telefono"
-                                                    name="telefono"
-                                                    v-model="orden.paciente.tel"
-                                                    class="form-control"
-                                                />
+                                                <input type="number" id="telefono" name="telefono"
+                                                    v-model="orden.paciente.tel" class="form-control" />
                                             </div>
                                         </div>
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <label class="control-label">E - Mail</label>
-                                                <input
-                                                    type="email"
-                                                    id="email"
-                                                    name="email"
-                                                    v-model="orden.paciente.email"
-                                                    class="form-control"
-                                                />
+                                                <input type="email" id="email" name="email"
+                                                    v-model="orden.paciente.email" class="form-control" />
                                             </div>
                                         </div>
                                     </div>
@@ -313,62 +226,32 @@
                                     </h5>
                                     <hr />
 
-                                    <input
-                                        type="hidden"
-                                        id="study_pk"
-                                        name="study_pk"
-                                        v-model="orden.study_pk"
-                                    />
-                                    <input
-                                        type="hidden"
-                                        id="study_iuid"
-                                        name="study_iuid"
-                                        v-model="orden.study_iuid"
-                                    />
-                                    <input
-                                        type="hidden"
-                                        id="study_id"
-                                        name="study_id"
-                                        v-model="orden.study_id"
-                                    />
+                                    <input type="hidden" id="study_pk" name="study_pk" v-model="orden.study_pk" />
+                                    <input type="hidden" id="study_iuid" name="study_iuid" v-model="orden.study_iuid" />
+                                    <input type="hidden" id="study_id" name="study_id" v-model="orden.study_id" />
 
                                     <div class="row">
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <label class="control-label">Descripción</label>
-                                                <input
-                                                    type="text"
-                                                    id="study_desc"
-                                                    name="study_desc"
-                                                    v-model="orden.study_desc"
-                                                    class="form-control"
-                                                />
+                                                <input type="text" id="study_desc" name="study_desc"
+                                                    v-model="orden.study_desc" class="form-control" />
                                             </div>
                                         </div>
 
                                         <div class="col-md-4">
                                             <div class="form-group">
                                                 <label class="control-label">Detalle</label>
-                                                <input
-                                                    type="text"
-                                                    id="accession_no"
-                                                    name="accession_no"
-                                                    v-model="orden.accession_no"
-                                                    class="form-control"
-                                                />
+                                                <input type="text" id="accession_no" name="accession_no"
+                                                    v-model="orden.accession_no" class="form-control" />
                                             </div>
                                         </div>
 
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label class="control-label">Fecha</label>
-                                                <input
-                                                    type="text"
-                                                    id="study_datetime"
-                                                    name="study_datetime"
-                                                    v-model="orden.fec_estudio"
-                                                    class="form-control"
-                                                />
+                                                <input type="text" id="study_datetime" name="study_datetime"
+                                                    v-model="orden.fec_estudio" class="form-control" />
                                             </div>
                                         </div>
                                     </div>
@@ -376,14 +259,9 @@
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <label class="control-label">Observaciones</label>
-                                                <input
-                                                    type="text"
-                                                    id="observaciones"
-                                                    name="observaciones"
-                                                    v-model="orden.observaciones"
-                                                    class="form-control"
-                                                    placeholder="Ingrese aqi las observaciones del estudio"
-                                                />
+                                                <input type="text" id="observaciones" name="observaciones"
+                                                    v-model="orden.observaciones" class="form-control"
+                                                    placeholder="Ingrese aqi las observaciones del estudio" />
                                             </div>
                                         </div>
                                     </div>
@@ -396,34 +274,19 @@
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
-                                                <input
-                                                    type="file"
-                                                    class="form-control"
-                                                    id="exampleInputFile1"
-                                                    aria-describedby="fileHelp"
-                                                    @change="obtenerArchivo1"
-                                                    accept=".pdf,.doc,.docx"
-                                                />
+                                                <input type="file" class="form-control" id="exampleInputFile1"
+                                                    aria-describedby="fileHelp" @change="obtenerArchivo1"
+                                                    accept=".pdf,.doc,.docx" />
                                             </div>
                                             <div class="form-group">
-                                                <input
-                                                    type="file"
-                                                    class="form-control"
-                                                    id="exampleInputFile2"
-                                                    aria-describedby="fileHelp"
-                                                    @change="obtenerArchivo2"
-                                                    accept=".pdf,.doc,.docx"
-                                                />
+                                                <input type="file" class="form-control" id="exampleInputFile2"
+                                                    aria-describedby="fileHelp" @change="obtenerArchivo2"
+                                                    accept=".pdf,.doc,.docx" />
                                             </div>
                                             <div class="form-group">
-                                                <input
-                                                    type="file"
-                                                    class="form-control"
-                                                    id="exampleInputFile3"
-                                                    aria-describedby="fileHelp"
-                                                    @change="obtenerArchivo3"
-                                                    accept=".pdf,.doc,.docx"
-                                                />
+                                                <input type="file" class="form-control" id="exampleInputFile3"
+                                                    aria-describedby="fileHelp" @change="obtenerArchivo3"
+                                                    accept=".pdf,.doc,.docx" />
                                             </div>
                                         </div>
                                     </div>
@@ -437,30 +300,18 @@
                                         <div class="col-md-4">
                                             <div class="form-group">
                                                 <label class="control-label">Prioridad</label>
-                                                <select
-                                                    v-model="orden.priori.id"
-                                                    name="prioridad_id"
-                                                    id="prioridad_id"
-                                                    class="form-control custom-select"
-                                                    @change="establecerPrioridad"
-                                                >
-                                                    <option
-                                                        v-for="(
-                                                            ItemPrioridad, index
-                                                        ) in prioridades"
-                                                        :key="index"
-                                                        :value="ItemPrioridad.id"
-                                                    >
+                                                <select v-model="orden.priori.id" name="prioridad_id" id="prioridad_id"
+                                                    class="form-control custom-select" @change="establecerPrioridad">
+                                                    <option v-for="(
+ItemPrioridad, index
+                                                        ) in prioridades" :key="index" :value="ItemPrioridad.id">
                                                         {{ ItemPrioridad.nom_priori }} -
                                                         {{ ItemPrioridad.tiempo }}
                                                         {{ ItemPrioridad.tipo_tiempo }}
                                                         {{ ItemPrioridad.observacion }}
                                                     </option>
                                                 </select>
-                                                <span
-                                                    class="text-danger"
-                                                    v-if="errores.prioridad_id"
-                                                >
+                                                <span class="text-danger" v-if="errores.prioridad_id">
                                                     {{ errores.prioridad_id[0] }}
                                                 </span>
                                             </div>
@@ -469,20 +320,15 @@
                                         <div class="col-md-4" v-if="sedeInterface === true">
                                             <div class="form-group">
                                                 <label class="control-label">Atención</label>
-                                                <select
-                                                    v-model="interfaceAtencionSeleccionada"
+                                                <select v-model="interfaceAtencionSeleccionada"
                                                     name="interfaceAtencionSeleccionada"
                                                     id="interfaceAtencionSeleccionada"
                                                     class="form-control custom-select"
-                                                    @change="interfaceListarProductosDiagnosticos()"
-                                                >
-                                                    <option
-                                                        v-for="(
-                                                            ItemAtencion, index
-                                                        ) in interfaceAtenciones"
-                                                        :key="index"
-                                                        :value="ItemAtencion.IdAtencion"
-                                                    >
+                                                    @change="interfaceListarProductosDiagnosticos()">
+                                                    <option v-for="(
+ItemAtencion, index
+                                                        ) in interfaceAtenciones" :key="index"
+                                                        :value="ItemAtencion.IdAtencion">
                                                         {{ ItemAtencion.IdAtencion }} -
                                                         {{ ItemAtencion.FecIngreso }}
                                                     </option>
@@ -501,28 +347,15 @@
                                         {{ errores.productosEstudio[0] }}
                                     </span>
                                     <div class="row">
-                                        <div
-                                            class="col-md-12"
-                                            v-if="sedeInterface === false"
-                                            id="productos-parent"
-                                        >
-                                            <Select2
-                                                :value="productoSelecciondo"
-                                                :options="productoOptions"
-                                                width="100%"
-                                                :allow-clear="true"
+                                        <div class="col-md-12" v-if="sedeInterface === false" id="productos-parent">
+                                            <Select2 :value="productoSelecciondo" :options="productoOptions"
+                                                width="100%" :allow-clear="true"
                                                 :dropdown-parent-selector="'#productos-parent'"
-                                                @input="onProductoSelect"
-                                            />
+                                                @input="onProductoSelect" />
                                         </div>
-                                        <div
-                                            class="col-md-12 table-responsive"
-                                            style="overflow-y: scroll; height: 250px"
-                                        >
-                                            <table
-                                                id="myTable"
-                                                class="table table-bordered table-striped"
-                                            >
+                                        <div class="col-md-12 table-responsive"
+                                            style="overflow-y: scroll; height: 250px">
+                                            <table id="myTable" class="table table-bordered table-striped">
                                                 <thead>
                                                     <tr>
                                                         <th></th>
@@ -532,47 +365,35 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <tr
-                                                        v-for="(item, index) in productosInterface"
-                                                        :key="item.id"
-                                                    >
+                                                    <tr v-for="(item, index) in productosInterface" :key="item.id">
                                                         <td>
-                                                            <input
-                                                                type="checkbox"
-                                                                class="iCheck-helper"
+                                                            <input type="checkbox" class="iCheck-helper"
                                                                 :id="`flat-checkbox-producto-interface-${index}`"
-                                                                data-checkbox="icheckbox_flat-red"
-                                                                :checked="
-                                                                    orden.producto.some(
-                                                                        (p) =>
-                                                                            p.cod_cups ==
-                                                                            item.cod_cups
-                                                                    )
-                                                                "
-                                                                @change="
-                                                                    guardarProductosEstudio(
-                                                                        item.id,
-                                                                        item.cod_cups,
-                                                                        item.nom_produc
-                                                                    )
-                                                                "
-                                                            />
+                                                                data-checkbox="icheckbox_flat-red" :checked="orden.producto.some(
+                                                                    (p) =>
+                                                                        p.cod_cups ==
+                                                                        item.cod_cups
+                                                                )
+                                                                    " @change="
+                                                                        guardarProductosEstudio(
+                                                                            item.id,
+                                                                            item.cod_cups,
+                                                                            item.nom_produc
+                                                                        )
+                                                                        " />
                                                             <label
-                                                                :for="`flat-checkbox-producto-interface-${index}`"
-                                                            ></label>
+                                                                :for="`flat-checkbox-producto-interface-${index}`"></label>
                                                         </td>
                                                         <td>{{ item.cod_cups }}</td>
                                                         <td>{{ item.nom_produc }}</td>
                                                         <td class="text-nowrap">
-                                                            <button
-                                                                type="button"
+                                                            <button type="button"
                                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
                                                                 @click="
                                                                     quitarProductoEstudio(
                                                                         item.cod_cups
                                                                     )
-                                                                "
-                                                            >
+                                                                    ">
                                                                 <i class="fa fa-trash"></i>
                                                             </button>
                                                         </td>
@@ -591,14 +412,10 @@
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
-                                                <textarea
-                                                    id="motivo_examen"
-                                                    name="motivo_examen"
-                                                    v-model="orden.motivo_examen"
-                                                    class="form-control"
+                                                <textarea id="motivo_examen" name="motivo_examen"
+                                                    v-model="orden.motivo_examen" class="form-control"
                                                     placeholder="Ingrese aqi las observaciones del estudio"
-                                                    rows="11"
-                                                ></textarea>
+                                                    rows="11"></textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -606,21 +423,13 @@
                             </div>
 
                             <div class="form-actions mt-3">
-                                <button
-                                    type="button"
-                                    class="btn btn-success m-r-5"
-                                    @click="guardarRegistro()"
-                                    :disabled="loadingGuardar"
-                                >
+                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
+                                    :disabled="loadingGuardar">
                                     <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
                                     <i v-else class="fa fa-check"></i> Guardar
                                 </button>
 
-                                <button
-                                    type="button"
-                                    class="btn btn-inverse"
-                                    @click="cerrarModal()"
-                                >
+                                <button type="button" class="btn btn-inverse" @click="cerrarModal()">
                                     Cancel
                                 </button>
                             </div>
@@ -696,7 +505,7 @@ export default {
                 accession_no: "",
                 study_desc: "",
                 mods_in_study: "",
-                observaciones: "PRUEBA PRODUCCION",
+                observaciones: "",
                 paciente: {
                     tipo_docu: "CC",
                     num_docu: "",
@@ -1036,7 +845,7 @@ export default {
         async interfaceListarProductosDiagnosticos() {
             const resProuctos = await axios.get(
                 "/api/interface-sahi-listar-listarProductosDiagnosticos/" +
-                    this.interfaceAtencionSeleccionada
+                this.interfaceAtencionSeleccionada
             );
             this.productosInterface = resProuctos.data.productos;
 
