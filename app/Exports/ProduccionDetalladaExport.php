@@ -12,6 +12,7 @@ use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
+use Termwind\Components\Raw;
 
 class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithColumnWidths, WithCustomStartCell
 {
@@ -71,7 +72,10 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
                 'transcrip.name as transcriptor',
                 'estudios.eps',
                 'estudios.contrato',
-                'estudios.plan'
+                'estudios.plan',
+                DB::raw("(SELECT GROUP_CONCAT('- ', nom_diagnos SEPARATOR '\n')
+                            FROM estudios_diagnosticos
+                            WHERE estudio_id = estudios.id) as diagnosticos")
             )
             ->get();
         return $estudios;
@@ -94,6 +98,7 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
             'Nombre Paciente',
             'Código CUPS',
             'Nombre Producto',
+            'Diagnostico',
             'Transcriptor',
             'EPS',
             'Contrato',
@@ -117,6 +122,7 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
             $estudio->nombres ?? 'N/A',
             $estudio->cod_cups ?? 'N/A',
             $estudio->nom_produc ?? 'N/A',
+            $estudio->diagnosticos ?? 'N/A',
             $estudio->transcriptor ?? 'N/A',
             $estudio->eps ?? 'N/A',
             $estudio->contrato ?? 'N/A',
@@ -192,10 +198,12 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
             'K' => 30,
             'L' => 12,
             'M' => 30,
-            'N' => 25,
-            'O' => 35,
+            'N' => 30,
+            'O' => 25,
             'P' => 35,
             'Q' => 35,
+            'R' => 35,
+            'S' => 35,
         ];
     }
 
