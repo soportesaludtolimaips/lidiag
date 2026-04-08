@@ -119,12 +119,15 @@
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h4 class="card-title">Listado de mis pendientes por leer</h4>
                         <div class="text-right">
-                            <span class="badge badge-danger" v-if="contadorPendientes > 0">{{ contadorPendientes }} pendiente(s)</span>
+                            <span class="badge badge-danger" v-if="contadorPendientes > 0">{{ contadorPendientes }}
+                                pendiente(s)</span>
                             <span class="badge badge-success" v-else>Sin pendientes</span>
-                            <button v-if="autoRefreshEnabled" class="btn btn-sm btn-outline-secondary ml-2" @click="toggleAutoRefresh" title="Auto-refresh activo">
+                            <button v-if="autoRefreshEnabled" class="btn btn-sm btn-outline-secondary ml-2"
+                                @click="toggleAutoRefresh" title="Auto-refresh activo">
                                 <i class="fa fa-refresh fa-spin"></i> {{ autoRefreshInterval / 1000 }}s
                             </button>
-                            <button v-else class="btn btn-sm btn-outline-secondary ml-2" @click="toggleAutoRefresh" title="Activar auto-refresh">
+                            <button v-else class="btn btn-sm btn-outline-secondary ml-2" @click="toggleAutoRefresh"
+                                title="Activar auto-refresh">
                                 <i class="fa fa-refresh"></i> {{ autoRefreshInterval / 1000 }}s
                             </button>
                         </div>
@@ -386,11 +389,14 @@
                                             <li>
                                                 <a class="" @click="toggleSpeechRecognition"
                                                     style="width: 30px; height: 30px">
-                                                    <img title="Grabadora" :src="microfono" :class="{'pulse-animation': recording || recognizing}" />
+                                                    <img title="Grabadora" :src="microfono"
+                                                        :class="{ 'pulse-animation': recording || recognizing }" />
                                                 </a>
-                                                <span v-if="uppercase" class="badge badge-success ml-2" title="Mayúsculas activada">MAYÚS</span>
+                                                <span v-if="uppercase" class="badge badge-success ml-2"
+                                                    title="Mayúsculas activada">MAYÚS</span>
                                                 <span v-if="recording" class="badge badge-danger ml-2">Grabando</span>
-                                                <span v-if="recognizing && !recording" class="badge badge-warning ml-2">Escuchando</span>
+                                                <span v-if="recognizing && !recording"
+                                                    class="badge badge-warning ml-2">Escuchando</span>
                                                 <span class="text-muted ml-2" style="font-size: 11px">F2</span>
                                             </li>
                                         </ul>
@@ -399,7 +405,7 @@
 
                                 <span class="text-danger" v-if="errores.lectura">{{
                                     errores.lectura[0]
-                                }}</span>
+                                    }}</span>
                                 <div class="row">
                                     <div class="col-12">
                                         <div class="form-group">
@@ -1498,7 +1504,7 @@ export default {
                         onFinalText: (raw) => {
                             let text = String(raw || "").trim();
                             if (!text) return;
-                            
+
                             text = this.processCommands(text);
 
                             if (text && String(text).length) {
@@ -1778,10 +1784,10 @@ export default {
                 });
             } else {
                 if (this.loadingListar) return;
-                
+
                 this.tablaVisible = false;
                 this.loadingListar = true;
-                
+
                 try {
                     const res = await axios.post('/api/estudio-listarPendientesMedico', { id: this.usuarioactual.id, sede_id: this.sede_id });
                     this.destroyDataTable();
@@ -1881,19 +1887,6 @@ export default {
             }
         },
         async visto(id) {
-            const result = await swal({
-                title: "Marcar como visto",
-                text: "¿Estás seguro de marcar este estudio como visto?",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#1e88e5",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "Sí, marcar visto",
-                cancelButtonText: "Cancelar",
-            });
-
-            if (!result.value) return;
-
             if (this.loadingVistoId) return;
             this.loadingVistoId = id;
 
@@ -2158,9 +2151,17 @@ export default {
 }
 
 @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 .right-sidebar {
