@@ -75,7 +75,8 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
                 'estudios.plan',
                 DB::raw("(SELECT GROUP_CONCAT('- ', nom_diagnos SEPARATOR '\n')
                             FROM estudios_diagnosticos
-                            WHERE estudio_id = estudios.id) as diagnosticos")
+                            WHERE estudio_id = estudios.id) as diagnosticos"),
+                'estudios_productos.lectura'
             )
             ->get();
         return $estudios;
@@ -102,7 +103,8 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
             'Transcriptor',
             'EPS',
             'Contrato',
-            'Plan'
+            'Plan',
+            'Lectura'
         ];
     }
 
@@ -127,6 +129,7 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
             $estudio->eps ?? 'N/A',
             $estudio->contrato ?? 'N/A',
             $estudio->plan ?? 'N/A',
+            $estudio->lectura ?? 'N/A',
 
         ];
     }
@@ -135,7 +138,7 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
     {
         // Agrega el encabezado personalizado
         $sheet->setCellValue('A1', 'Salud Tolima - Reporte de Producción');
-        $sheet->mergeCells('A1:Q1'); // A1 to P1 to include the new column
+        $sheet->mergeCells('A1:S1'); // A1 to P1 to include the new column
         $sheet->getStyle('A1')->applyFromArray([
             'font' => [
                 'bold' => true,
@@ -152,7 +155,7 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
         ]);
 
         // Establece el estilo para el encabezado de los datos
-        $sheet->getStyle('A3:Q3')->applyFromArray([
+        $sheet->getStyle('A3:S3')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'color' => ['rgb' => 'FFFFFF'],
@@ -167,7 +170,7 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
         ]);
 
         // Establece bordes para todas las celdas de datos
-        $sheet->getStyle('A4:Q' . ($sheet->getHighestRow()))->applyFromArray([
+        $sheet->getStyle('A4:S' . ($sheet->getHighestRow()))->applyFromArray([
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
@@ -204,6 +207,7 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
             'Q' => 35,
             'R' => 35,
             'S' => 35,
+            'T' => 50,
         ];
     }
 
