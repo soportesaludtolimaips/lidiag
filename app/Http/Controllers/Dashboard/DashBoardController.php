@@ -52,6 +52,7 @@ class DashBoardController extends Controller
     protected function buildDashboardPayload(Request $request, array $scope, int $days, bool $isAdmin, int $userId): array
     {
         $indicadores = $this->getIndicadores($scope, $days);
+
         return $indicadores;
         \Log::info('Indicadores:', $indicadores);
 
@@ -83,34 +84,35 @@ class DashBoardController extends Controller
         $baseQuery = DB::table('v_dashboard_indicadores_base')
             ->whereBetween('created_at', [$fechaInicio, $fechaFin]);
 
-        if (!empty($scope['medico_id'])) {
+        if (! empty($scope['medico_id'])) {
             $baseQuery->where('medico_id', '=', (int) $scope['medico_id']);
         }
-        if (!empty($scope['sede_id'])) {
+        if (! empty($scope['sede_id'])) {
             $baseQuery->where('sede_id', '=', (int) $scope['sede_id']);
         }
 
         $baseQuery = DB::table('v_dashboard_indicadores_base')
             ->whereBetween('created_at', [$fechaInicio, $fechaFin]);
 
-        if (!empty($scope['medico_id'])) {
+        if (! empty($scope['medico_id'])) {
             $baseQuery->where('medico_id', '=', (int) $scope['medico_id']);
         }
-        if (!empty($scope['sede_id'])) {
+        if (! empty($scope['sede_id'])) {
             $baseQuery->where('sede_id', '=', (int) $scope['sede_id']);
         }
+
         return [$baseQuery->toSql(), $fechaInicio, $fechaFin];
 
         $estudiosAsignados = (int) $baseQuery->clone()->count();
         $estudiosLeidos = (int) DB::table('v_dashboard_indicadores_base')
             ->whereBetween('fechor_trascrito', [$fechaInicio, $fechaFin])
-            ->when(!empty($scope['medico_id']), fn($q) => $q->where('medico_id', '=', (int) $scope['medico_id']))
-            ->when(!empty($scope['sede_id']), fn($q) => $q->where('sede_id', '=', (int) $scope['sede_id']))
+            ->when(! empty($scope['medico_id']), fn ($q) => $q->where('medico_id', '=', (int) $scope['medico_id']))
+            ->when(! empty($scope['sede_id']), fn ($q) => $q->where('sede_id', '=', (int) $scope['sede_id']))
             ->count();
         $estudiosPorTranscribir = (int) DB::table('v_dashboard_indicadores_base')
             ->whereNull('fechor_trascrito')
-            ->when(!empty($scope['medico_id']), fn($q) => $q->where('medico_id', '=', (int) $scope['medico_id']))
-            ->when(!empty($scope['sede_id']), fn($q) => $q->where('sede_id', '=', (int) $scope['sede_id']))
+            ->when(! empty($scope['medico_id']), fn ($q) => $q->where('medico_id', '=', (int) $scope['medico_id']))
+            ->when(! empty($scope['sede_id']), fn ($q) => $q->where('sede_id', '=', (int) $scope['sede_id']))
             ->count();
 
         return [
@@ -128,41 +130,41 @@ class DashBoardController extends Controller
 
         $asignadosHoy = (int) DB::table('v_dashboard_operacion_hoy_base')
             ->whereBetween('fecha_creacion', [$from, $to])
-            ->when(!empty($scope['medico_id']), fn($q) => $q->where('medico_id', '=', (int) $scope['medico_id']))
-            ->when(!empty($scope['sede_id']), fn($q) => $q->where('sede_id', '=', (int) $scope['sede_id']))
+            ->when(! empty($scope['medico_id']), fn ($q) => $q->where('medico_id', '=', (int) $scope['medico_id']))
+            ->when(! empty($scope['sede_id']), fn ($q) => $q->where('sede_id', '=', (int) $scope['sede_id']))
             ->count();
 
         $pendientesLectura = (int) DB::table('v_dashboard_operacion_hoy_base')
             ->whereNull('fechor_lectura')
-            ->when(!empty($scope['medico_id']), fn($q) => $q->where('medico_id', '=', (int) $scope['medico_id']))
-            ->when(!empty($scope['sede_id']), fn($q) => $q->where('sede_id', '=', (int) $scope['sede_id']))
+            ->when(! empty($scope['medico_id']), fn ($q) => $q->where('medico_id', '=', (int) $scope['medico_id']))
+            ->when(! empty($scope['sede_id']), fn ($q) => $q->where('sede_id', '=', (int) $scope['sede_id']))
             ->count();
 
         $pendientesLecturaHoy = (int) DB::table('v_dashboard_operacion_hoy_base')
             ->whereNull('fechor_lectura')
             ->whereBetween('fecha_creacion', [$from, $to])
-            ->when(!empty($scope['medico_id']), fn($q) => $q->where('medico_id', '=', (int) $scope['medico_id']))
-            ->when(!empty($scope['sede_id']), fn($q) => $q->where('sede_id', '=', (int) $scope['sede_id']))
+            ->when(! empty($scope['medico_id']), fn ($q) => $q->where('medico_id', '=', (int) $scope['medico_id']))
+            ->when(! empty($scope['sede_id']), fn ($q) => $q->where('sede_id', '=', (int) $scope['sede_id']))
             ->count();
 
         $leidosHoy = (int) DB::table('v_dashboard_operacion_hoy_base')
             ->whereNotNull('fechor_lectura')
             ->whereBetween('fechor_lectura', [$from, $to])
-            ->when(!empty($scope['medico_id']), fn($q) => $q->where('medico_id', '=', (int) $scope['medico_id']))
-            ->when(!empty($scope['sede_id']), fn($q) => $q->where('sede_id', '=', (int) $scope['sede_id']))
+            ->when(! empty($scope['medico_id']), fn ($q) => $q->where('medico_id', '=', (int) $scope['medico_id']))
+            ->when(! empty($scope['sede_id']), fn ($q) => $q->where('sede_id', '=', (int) $scope['sede_id']))
             ->count();
 
         $pendientesTranscripcion = (int) DB::table('v_dashboard_operacion_hoy_base')
             ->whereNull('fechor_trascrito')
-            ->when(!empty($scope['medico_id']), fn($q) => $q->where('medico_id', '=', (int) $scope['medico_id']))
-            ->when(!empty($scope['sede_id']), fn($q) => $q->where('sede_id', '=', (int) $scope['sede_id']))
+            ->when(! empty($scope['medico_id']), fn ($q) => $q->where('medico_id', '=', (int) $scope['medico_id']))
+            ->when(! empty($scope['sede_id']), fn ($q) => $q->where('sede_id', '=', (int) $scope['sede_id']))
             ->count();
 
         $transcritosHoy = (int) DB::table('v_dashboard_operacion_hoy_base')
             ->whereNotNull('fechor_trascrito')
             ->whereBetween('fechor_trascrito', [$from, $to])
-            ->when(!empty($scope['medico_id']), fn($q) => $q->where('medico_id', '=', (int) $scope['medico_id']))
-            ->when(!empty($scope['sede_id']), fn($q) => $q->where('sede_id', '=', (int) $scope['sede_id']))
+            ->when(! empty($scope['medico_id']), fn ($q) => $q->where('medico_id', '=', (int) $scope['medico_id']))
+            ->when(! empty($scope['sede_id']), fn ($q) => $q->where('sede_id', '=', (int) $scope['sede_id']))
             ->count();
 
         return [
@@ -208,9 +210,10 @@ class DashBoardController extends Controller
     protected function isAdministrador(): bool
     {
         $user = auth()->user();
-        if (!$user) {
+        if (! $user) {
             return false;
         }
+
         return $user->hasRole('Administrador');
     }
 }

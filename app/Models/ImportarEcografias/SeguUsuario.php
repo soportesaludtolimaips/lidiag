@@ -7,8 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class SeguUsuario extends Model
 {
     protected $connection = 'mysql_importar_dicom';
+
     protected $table = 'segu_usuarios';
+
     protected $primaryKey = 'id_usua';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -19,7 +22,7 @@ class SeguUsuario extends Model
         'contra',
         'tipo_usua',
         'acti',
-        'id_sahi'
+        'id_sahi',
     ];
 
     public function personal()

@@ -10,7 +10,9 @@ use App\Models\Interface\Sahi\facFacturaDet;
 use App\Models\Interface\Sahi\FacMovimiento;
 use App\Models\Interface\Sahi\FacMovimientoDet;
 use App\Models\Interface\Sahi\HceConsulta;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class SAHIController extends Controller
@@ -26,7 +28,7 @@ class SAHIController extends Controller
      * Lista las atenciones (ingresos) de un paciente.
      *
      * @param  Request  $request  Número de documento del paciente (`numDocu`).
-     * @return \Illuminate\Http\JsonResponse Lista de atenciones.
+     * @return JsonResponse Lista de atenciones.
      */
     public function listarAtenciones(Request $request)
     {
@@ -44,7 +46,7 @@ class SAHIController extends Controller
      * Lista productos facturados y diagnósticos asociados a una atención.
      *
      * @param  Request  $request  ID de la atención (`idAtencion`).
-     * @return \Illuminate\Http\JsonResponse Objeto con listas de `productos` y `diagnosticos`.
+     * @return JsonResponse Objeto con listas de `productos` y `diagnosticos`.
      */
     public function listarProductosDiagnosticos(Request $request)
     {
@@ -73,7 +75,7 @@ class SAHIController extends Controller
      * Busca los datos de la EPS, Plan y Contrato de una atención.
      *
      * @param  int  $idAtencion  ID de la atención.
-     * @return \Illuminate\Support\Collection Datos de facturación y contrato.
+     * @return Collection Datos de facturación y contrato.
      */
     public function buscarEpsPlanContrato($idAtencion)
     {
@@ -108,7 +110,7 @@ class SAHIController extends Controller
      * de Lidiag para determinar el estado de la ecografía si existe.
      *
      * @param  Request  $request  ID de la atención (`bus_nom_num_docu`).
-     * @return \Illuminate\Http\JsonResponse Lista combinada de productos con estado.
+     * @return JsonResponse Lista combinada de productos con estado.
      */
     public function listarProductosAtencion(Request $request)
     {
@@ -220,7 +222,7 @@ class SAHIController extends Controller
      * Obtiene el estado de las ecografías en Lidiag para una atención.
      *
      * @param  int  $atencionId  ID de la atención.
-     * @return \Illuminate\Support\Collection Colección de estados.
+     * @return Collection Colección de estados.
      */
     private function obtenerDatosLidiag($atencionId)
     {

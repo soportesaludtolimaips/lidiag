@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\HelpDesk\HelpDeskAdjunto;
 use App\Models\HelpDesk\HelpDeskTicketHistorial;
 use App\Models\HelpDesk\HelpDeskTickets;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -35,7 +36,7 @@ class HelpDeskAdjuntosController extends Controller
         ]);
 
         $saved = [];
-        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        /** @var FilesystemAdapter $disk */
         $disk = Storage::disk('files_help_desk');
         foreach ((array) $request->file('files') as $file) {
             $original = $file->getClientOriginalName();
@@ -74,7 +75,7 @@ class HelpDeskAdjuntosController extends Controller
         $ticket = HelpDeskTickets::query()->findOrFail($adjunto->ticket_id);
         $this->assertCanSeeTicket($ticket, $request);
 
-        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        /** @var FilesystemAdapter $disk */
         $disk = Storage::disk('files_help_desk');
 
         if (! $disk->exists($adjunto->path)) {
@@ -99,7 +100,7 @@ class HelpDeskAdjuntosController extends Controller
 
         // Borrar archivo físico (best-effort)
         try {
-            /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+            /** @var FilesystemAdapter $disk */
             $disk = Storage::disk('files_help_desk');
             $disk->delete($adjunto->path);
         } catch (\Throwable $e) {

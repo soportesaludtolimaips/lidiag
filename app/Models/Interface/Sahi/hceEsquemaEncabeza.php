@@ -15,7 +15,7 @@ class hceEsquemaEncabeza extends Model
 
     protected $fillable = [
         'IdEsquemaEncabezado', 'IdEsquema',  'idEncabezadoPadre', 'ValEsquemaConsecutivo', 'valDetConsecutivo', 'IdUbicacion', 'idAtencion',  'ValUltimoNroRegistro',
-        'IndActivado', 'IndHabilitado',  'IdUsuarioR', 'FecRegistro', 'IdProductoR', 'NomProducto', 'CodProducto', 'IdEstudio'
+        'IndActivado', 'IndHabilitado',  'IdUsuarioR', 'FecRegistro', 'IdProductoR', 'NomProducto', 'CodProducto', 'IdEstudio',
     ];
 
     public $timestamps = false;

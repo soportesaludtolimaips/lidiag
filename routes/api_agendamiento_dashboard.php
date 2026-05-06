@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Agenda\AgendaDisponibilidaController;
+use App\Http\Controllers\Agenda\AgendaDisponibilidaDetalleController;
 use App\Http\Controllers\Dashboard\DashBoardController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,11 +19,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     /*
      * Agendamiento API Endpoints
      */
-    Route::resource('agenda-disponibilidad', App\Http\Controllers\Agenda\AgendaDisponibilidaController::class)
+    Route::resource('agenda-disponibilidad', AgendaDisponibilidaController::class)
         ->names('api.agenda.disponibilidad')
         ->except(['create', 'edit', '']);
 
-    Route::resource('agenda-detalle', App\Http\Controllers\Agenda\AgendaDisponibilidaDetalleController::class)
+    Route::resource('agenda-detalle', AgendaDisponibilidaDetalleController::class)
         ->names('api.agenda.detalle')
         ->except(['create', 'edit', 'update']);
 

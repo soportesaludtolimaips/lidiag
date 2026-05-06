@@ -9,6 +9,7 @@ use App\Models\Configuracion\ConfigProducto;
 use App\Models\Ecografias\Ecografia;
 use App\Models\Ecografias\EcografiaProducto;
 use App\Models\General\Paciente;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -34,7 +35,7 @@ class EcografiaController extends Controller
      * 4. Retorna la colección de ecografías en formato JSON.
      *
      * @param  Request  $request  Filtros de búsqueda (bus_nom_num_docu, bus_fehc_ini, bus_fehc_fin).
-     * @return \Illuminate\Http\JsonResponse Lista de ecografías.
+     * @return JsonResponse Lista de ecografías.
      */
     public function index(Request $request)
     {
@@ -67,7 +68,7 @@ class EcografiaController extends Controller
      * 4. Retorna los resultados filtrados.
      *
      * @param  Request  $request  Criterios de búsqueda (bus_nom_num_docu, bus_fehc_ini, bus_fehc_fin).
-     * @return \Illuminate\Http\JsonResponse Lista detallada de ecografías con productos.
+     * @return JsonResponse Lista detallada de ecografías con productos.
      */
     public function filtarEcografias(Request $request)
     {
@@ -124,7 +125,7 @@ class EcografiaController extends Controller
      * 6. Retorna respuesta exitosa con los datos creados.
      *
      * @param  Request  $request  Datos completos de la admisión (paciente, cita, productos).
-     * @return \Illuminate\Http\JsonResponse Confirmación de creación o error.
+     * @return JsonResponse Confirmación de creación o error.
      */
     public function store(Request $request)
     {
@@ -251,7 +252,7 @@ class EcografiaController extends Controller
      * 2. Retorna el objeto ecografía o error 404.
      *
      * @param  int  $id  ID de la ecografía.
-     * @return \Illuminate\Http\JsonResponse Datos de la ecografía.
+     * @return JsonResponse Datos de la ecografía.
      */
     public function show($id)
     {
@@ -273,7 +274,7 @@ class EcografiaController extends Controller
      *
      * @param  EcografiaRequest  $request  Datos a actualizar.
      * @param  int  $id  ID de la ecografía.
-     * @return \Illuminate\Http\JsonResponse Datos actualizados.
+     * @return JsonResponse Datos actualizados.
      */
     public function update(EcografiaRequest $request, $id)
     {
@@ -296,7 +297,7 @@ class EcografiaController extends Controller
      * 3. Retorna mensaje de éxito.
      *
      * @param  int  $id  ID de la ecografía.
-     * @return \Illuminate\Http\JsonResponse Confirmación.
+     * @return JsonResponse Confirmación.
      */
     public function destroy($id)
     {
@@ -320,7 +321,7 @@ class EcografiaController extends Controller
      * 4. Guarda los cambios.
      *
      * @param  int  $id  ID de la ecografía.
-     * @return \Illuminate\Http\JsonResponse Confirmación.
+     * @return JsonResponse Confirmación.
      */
     public function anularEcografia($id)
     {

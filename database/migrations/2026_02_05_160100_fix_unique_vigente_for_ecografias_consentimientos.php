@@ -22,7 +22,7 @@ return new class extends Migration
         Schema::table('ecografias_consentimientos', function (Blueprint $table) {
             try {
                 $table->dropUnique('uq_ecog_consent_vigente');
-            } catch (\Throwable $t) {
+            } catch (Throwable $t) {
             }
             $table->unique(['ecografia_producto_id', 'vigente_key'], 'uq_ecog_consent_vigente_key');
         });
@@ -33,11 +33,11 @@ return new class extends Migration
         Schema::table('ecografias_consentimientos', function (Blueprint $table) {
             try {
                 $table->dropUnique('uq_ecog_consent_vigente_key');
-            } catch (\Throwable $t) {
+            } catch (Throwable $t) {
             }
             try {
                 $table->dropIndex('ix_ecog_consent_vigente_key');
-            } catch (\Throwable $t) {
+            } catch (Throwable $t) {
             }
             if (Schema::hasColumn('ecografias_consentimientos', 'vigente_key')) {
                 $table->dropColumn('vigente_key');
@@ -45,7 +45,7 @@ return new class extends Migration
 
             try {
                 $table->unique(['ecografia_producto_id', 'vigente'], 'uq_ecog_consent_vigente');
-            } catch (\Throwable $t) {
+            } catch (Throwable $t) {
             }
         });
     }

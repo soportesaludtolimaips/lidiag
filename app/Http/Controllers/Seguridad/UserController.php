@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Seguridad;
 use App\Http\Controllers\Controller;
 use App\Models\Configuracion\ConfigModulo;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -28,7 +31,7 @@ class UserController extends Controller
      * Lista todos los usuarios con sus módulos y roles.
      *
      * @param  Request  $request  Parámetros de filtrado (no utilizados actualmente).
-     * @return \Illuminate\Http\JsonResponse Lista de usuarios.
+     * @return JsonResponse Lista de usuarios.
      */
     public function index(Request $request)
     {
@@ -42,7 +45,7 @@ class UserController extends Controller
      *
      * @param  string  $tipo_user  Nombre del rol (ej: 'Médico').
      * @param  int  $modulo  ID del módulo.
-     * @return \Illuminate\Support\Collection Lista de usuarios.
+     * @return Collection Lista de usuarios.
      */
     public function listarUsuarios($tipo_user, $modulo)
     {
@@ -64,7 +67,7 @@ class UserController extends Controller
      * Muestra un usuario específico con sus roles.
      *
      * @param  int  $id  ID del usuario.
-     * @return \Illuminate\Http\JsonResponse Datos del usuario, roles disponibles y roles asignados.
+     * @return JsonResponse Datos del usuario, roles disponibles y roles asignados.
      */
     public function show($id)
     {
@@ -94,7 +97,7 @@ class UserController extends Controller
      * Actualiza el estado activo/inactivo de un usuario.
      *
      * @param  Request  $request  ID y nuevo estado del usuario.
-     * @return \Illuminate\Http\JsonResponse Confirmación.
+     * @return JsonResponse Confirmación.
      */
     public function estadoUsuario(Request $request, $idUsua = null)
     {
@@ -117,7 +120,7 @@ class UserController extends Controller
      * Crea un nuevo usuario con validación, asignación de roles, módulos y archivos (firma/avatar).
      *
      * @param  Request  $request  Datos del usuario, archivos de firma y avatar.
-     * @return \Illuminate\Http\JsonResponse Confirmación o errores de validación.
+     * @return JsonResponse Confirmación o errores de validación.
      */
     public function store(Request $request)
     {
@@ -246,7 +249,7 @@ class UserController extends Controller
      * Actualiza un usuario existente con validación, sincronización de roles, módulos y archivos.
      *
      * @param  Request  $request  Datos actualizados del usuario.
-     * @return \Illuminate\Http\JsonResponse Confirmación o errores de validación.
+     * @return JsonResponse Confirmación o errores de validación.
      */
     public function update(Request $request)
     {
@@ -375,7 +378,7 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy(User $user)
     {
@@ -436,7 +439,7 @@ class UserController extends Controller
      * Lista usuarios asociados a un módulo específico.
      *
      * @param  int  $moduloId  ID del módulo.
-     * @return \Illuminate\Http\JsonResponse Lista de usuarios del módulo.
+     * @return JsonResponse Lista de usuarios del módulo.
      */
     public function usuariosPorModulo($moduloId)
     {

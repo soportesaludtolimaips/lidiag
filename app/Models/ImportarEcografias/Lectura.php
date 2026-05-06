@@ -7,8 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class Lectura extends Model
 {
     protected $connection = 'mysql_importar_dicom';
+
     protected $table = 'lecturas';
+
     protected $primaryKey = 'id_lectura';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -23,7 +26,7 @@ class Lectura extends Model
         'opinion',
         'fechor_lectura',
         'acti',
-        'envio_sahi'
+        'envio_sahi',
     ];
 
     public function paciente()

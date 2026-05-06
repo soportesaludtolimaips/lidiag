@@ -11,5 +11,5 @@ class EstudioDiagnostico extends Model
 
     protected $table = 'estudios_diagnosticos';
 
-    protected $fillable  = ['estudio_id', 'cod_diagnos', 'nom_diagnos'];
+    protected $fillable = ['estudio_id', 'cod_diagnos', 'nom_diagnos'];
 }

@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Reportes;
 
-use App\Exports\ProduccionDetalladaExport;
 use App\Exports\ProduccionDetalladaEcografiasExport;
+use App\Exports\ProduccionDetalladaExport;
 use App\Http\Controllers\Controller;
-use App\Models\Estudio\Estudio;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ReporteProduccion extends Controller
 {
@@ -21,9 +21,14 @@ class ReporteProduccion extends Controller
 
     private function normalizeNullable($value)
     {
-        if ($value === null) return null;
+        if ($value === null) {
+            return null;
+        }
         $v = is_string($value) ? trim($value) : $value;
-        if ($v === '' || $v === '0' || $v === 0 || $v === 'null') return null;
+        if ($v === '' || $v === '0' || $v === 0 || $v === 'null') {
+            return null;
+        }
+
         return $v;
     }
 
@@ -33,8 +38,8 @@ class ReporteProduccion extends Controller
      * Permite generar reportes para 'Rx' o 'Ecografia', filtrando por fechas,
      * sede, usuario que asignó y médico.
      *
-     * @param Request $resquest Filtros: `fechaIni`, `fechaFin`, `sedeId`, `quien_asigno`, `medico`, `tipo`.
-     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse Archivo Excel descargable.
+     * @param  Request  $resquest  Filtros: `fechaIni`, `fechaFin`, `sedeId`, `quien_asigno`, `medico`, `tipo`.
+     * @return BinaryFileResponse Archivo Excel descargable.
      */
     public function reporteProduccionDetallado(Request $resquest)
     {
@@ -57,7 +62,7 @@ class ReporteProduccion extends Controller
         }
 
         $fechaInicio = $resquest->fechaIni;
-        $fechaFin    = $resquest->fechaFin;
+        $fechaFin = $resquest->fechaFin;
 
         $sedeId = $this->normalizeNullable($resquest->sedeId);
         $quienAsignoId = $this->normalizeNullable($resquest->quien_asigno);
@@ -105,10 +110,10 @@ class ReporteProduccion extends Controller
         return $estudios;  */
 
         if ($resquest->tipo === 'Rx') {
-            return Excel::download(new ProduccionDetalladaExport($fechaInicio, $fechaFin, $sedeId, $quienAsignoId, $medicoId),  'produccion lecturas de imagenes diagnosticas.xlsx');
+            return Excel::download(new ProduccionDetalladaExport($fechaInicio, $fechaFin, $sedeId, $quienAsignoId, $medicoId), 'produccion lecturas de imagenes diagnosticas.xlsx');
         }
         if ($resquest->tipo === 'Ecografia') {
-            return Excel::download(new ProduccionDetalladaEcografiasExport($fechaInicio, $fechaFin, $sedeId, $quienAsignoId, $medicoId),  'produccion lecturas de ecografias.xlsx');
+            return Excel::download(new ProduccionDetalladaEcografiasExport($fechaInicio, $fechaFin, $sedeId, $quienAsignoId, $medicoId), 'produccion lecturas de ecografias.xlsx');
         }
 
         return response()->json(['message' => 'Tipo de reporte inválido.'], 422);

@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Configuracion;
 
 use App\Http\Controllers\Controller;
-use App\Models\Configuracion\ConfigAdminSalud;
 use App\Http\Requests\Configuracion\ConfigAdminSaludRequest;
+use App\Models\Configuracion\ConfigAdminSalud;
+use Illuminate\Http\JsonResponse;
 
 class ConfigAdminSaludController extends Controller
 {
@@ -19,49 +20,53 @@ class ConfigAdminSaludController extends Controller
     /**
      * Lista todas las Administradoras de Salud (EPS).
      *
-     * @return \Illuminate\Http\JsonResponse Lista de administradoras de salud.
+     * @return JsonResponse Lista de administradoras de salud.
      */
     public function index()
     {
         $admin_salud = ConfigAdminSalud::all();
+
         return response()->json($admin_salud);
     }
 
     /**
      * Crea una nueva Administradora de Salud.
      *
-     * @param  ConfigAdminSaludRequest  $request Datos de la administradora.
-     * @param  ConfigAdminSalud  $configAdminSalud Instancia del modelo (inyección de dependencia vacía).
-     * @return \Illuminate\Http\JsonResponse Confirmación de creación.
+     * @param  ConfigAdminSaludRequest  $request  Datos de la administradora.
+     * @param  ConfigAdminSalud  $configAdminSalud  Instancia del modelo (inyección de dependencia vacía).
+     * @return JsonResponse Confirmación de creación.
      */
     public function store(ConfigAdminSaludRequest $request, ConfigAdminSalud $configAdminSalud)
     {
         $configAdminSalud->create($request->all());
+
         return response()->json(['message' => 'Registro creado satisfactoriamente.']);
     }
 
     /**
      * Actualiza una Administradora de Salud.
      *
-     * @param  ConfigAdminSaludRequest  $request Datos actualizados.
-     * @param  ConfigAdminSalud  $configAdminSalud Instancia a actualizar.
-     * @return \Illuminate\Http\JsonResponse Confirmación de actualización.
+     * @param  ConfigAdminSaludRequest  $request  Datos actualizados.
+     * @param  ConfigAdminSalud  $configAdminSalud  Instancia a actualizar.
+     * @return JsonResponse Confirmación de actualización.
      */
     public function update(ConfigAdminSaludRequest $request, ConfigAdminSalud $configAdminSalud)
     {
         $configAdminSalud->update($request->all());
+
         return response()->json(['message' => 'Registro actualizado correctamente.']);
     }
 
     /**
      * Elimina una Administradora de Salud.
      *
-     * @param  ConfigAdminSalud  $configAdminSalud Instancia a eliminar.
-     * @return \Illuminate\Http\JsonResponse Confirmación de eliminación.
+     * @param  ConfigAdminSalud  $configAdminSalud  Instancia a eliminar.
+     * @return JsonResponse Confirmación de eliminación.
      */
     public function destroy(ConfigAdminSalud $configAdminSalud)
     {
         $configAdminSalud->delete();
+
         return response()->json(['message' => 'Registro eliminado correctamente.']);
     }
 }

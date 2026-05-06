@@ -3,7 +3,6 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -12,7 +11,11 @@ use Illuminate\Queue\SerializesModels;
 class ReportarLectura extends Mailable
 {
     use Queueable, SerializesModels;
-    protected $estudio, $nomArchivoReporte;
+
+    protected $estudio;
+
+    protected $nomArchivoReporte;
+
     /**
      * Create a new message instance.
      *
@@ -27,7 +30,7 @@ class ReportarLectura extends Mailable
     /**
      * Get the message envelope.
      *
-     * @return \Illuminate\Mail\Mailables\Envelope
+     * @return Envelope
      */
     public function envelope()
     {
@@ -44,7 +47,7 @@ class ReportarLectura extends Mailable
     /**
      * Get the message content definition.
      *
-     * @return \Illuminate\Mail\Mailables\Content
+     * @return Content
      */
     public function content()
     {
@@ -61,6 +64,6 @@ class ReportarLectura extends Mailable
      */
     public function attachments()
     {
-        return [public_path('reporte_lecturas/' . $this->nomArchivoReporte)];
+        return [public_path('reporte_lecturas/'.$this->nomArchivoReporte)];
     }
 }

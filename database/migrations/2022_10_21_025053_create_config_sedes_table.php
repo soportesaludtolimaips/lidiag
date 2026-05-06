@@ -26,8 +26,8 @@ return new class extends Migration
             $table->string('password_oviyam', 20)->nullable();
             $table->string('url_oviyam', 100)->nullable();
             $table->string('tap_oviyam', 100)->nullable();
-            //$table->string('plantilla', 150)->nullable();
-            $table->string('interface_software', 30)->nullable(); //Interface del software de HC del hospital
+            // $table->string('plantilla', 150)->nullable();
+            $table->string('interface_software', 30)->nullable(); // Interface del software de HC del hospital
             $table->enum('interface_driver', ['mysql', 'pgsql', 'sqlsrv'])->nullable();
             $table->string('interface_host', 15)->nullable();
             $table->integer('interface_port')->nullable();

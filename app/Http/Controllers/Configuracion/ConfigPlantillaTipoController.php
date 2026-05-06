@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Configuracion;
 
 use App\Http\Controllers\Controller;
 use App\Models\Configuracion\ConfigPlantillaTipo;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ConfigPlantillaTipoController extends Controller
@@ -20,7 +21,7 @@ class ConfigPlantillaTipoController extends Controller
     /**
      * Lista todos los tipos de plantillas.
      *
-     * @return \Illuminate\Http\JsonResponse Lista de tipos de plantillas.
+     * @return JsonResponse Lista de tipos de plantillas.
      */
     public function index()
     {
@@ -36,7 +37,7 @@ class ConfigPlantillaTipoController extends Controller
      * 3. Retorna el tipo creado.
      *
      * @param  Request  $request  Datos del tipo de plantilla.
-     * @return \Illuminate\Http\JsonResponse Datos del tipo creado.
+     * @return JsonResponse Datos del tipo creado.
      */
     public function store(Request $request)
     {
@@ -62,7 +63,7 @@ class ConfigPlantillaTipoController extends Controller
      * Muestra un tipo de plantilla específico.
      *
      * @param  int  $id  ID del tipo de plantilla.
-     * @return \Illuminate\Http\JsonResponse Datos del tipo de plantilla.
+     * @return JsonResponse Datos del tipo de plantilla.
      */
     public function show($id)
     {
@@ -80,7 +81,7 @@ class ConfigPlantillaTipoController extends Controller
      *
      * @param  Request  $request  Datos a actualizar.
      * @param  int  $id  ID del tipo de plantilla.
-     * @return \Illuminate\Http\JsonResponse Datos actualizados.
+     * @return JsonResponse Datos actualizados.
      */
     public function update(Request $request, $id)
     {
@@ -105,7 +106,7 @@ class ConfigPlantillaTipoController extends Controller
      * Elimina un tipo de plantilla.
      *
      * @param  int  $id  ID del tipo de plantilla.
-     * @return \Illuminate\Http\JsonResponse Respuesta vacía (204).
+     * @return JsonResponse Respuesta vacía (204).
      */
     public function destroy($id)
     {
@@ -118,7 +119,7 @@ class ConfigPlantillaTipoController extends Controller
     /**
      * Lista los tipos de plantillas activos.
      *
-     * @return \Illuminate\Http\JsonResponse Lista de tipos activos.
+     * @return JsonResponse Lista de tipos activos.
      */
     public function listarActivos()
     {

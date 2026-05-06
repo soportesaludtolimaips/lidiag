@@ -9,7 +9,6 @@ class ASI_USUA extends Model
 {
     use HasFactory;
 
-
     protected $connection = 'sqlsrv';
 
     protected $table = 'ASI_USUA';

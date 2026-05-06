@@ -7,6 +7,7 @@ use App\Models\Configuracion\ConfigSede;
 use App\Models\Ecografias\EcografiaProducto;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -36,7 +37,7 @@ class PlantillaEcografiaController extends Controller
      * 7. Elimina el .docx temporal y retorna la URL del PDF.
      *
      * @param  Request  $request  Datos del estudio, paciente, médico y contenido del reporte.
-     * @return \Illuminate\Http\JsonResponse Retorna la URL del PDF generado o un mensaje de error.
+     * @return JsonResponse Retorna la URL del PDF generado o un mensaje de error.
      */
     public function editWord(Request $request)
     {
@@ -172,7 +173,7 @@ class PlantillaEcografiaController extends Controller
      * Ejecuta el comando de sistema para la conversión.
      *
      * @param  string  $nomPlantilla  Nombre base del archivo (sin extensión) ubicado en storage/app/reporte_lecturas/
-     * @return string|\Illuminate\Http\JsonResponse Retorna un JSON con la URL pública del PDF o un error.
+     * @return string|JsonResponse Retorna un JSON con la URL pública del PDF o un error.
      */
     public function convertDocxToPdf(string $nomPlantilla): bool
     {

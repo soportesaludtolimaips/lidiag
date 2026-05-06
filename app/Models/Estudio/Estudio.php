@@ -2,13 +2,12 @@
 
 namespace App\Models\Estudio;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
 use App\Models\Configuracion\ConfigPrioridad;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\General\Paciente;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Estudio extends Model
 {
@@ -39,7 +38,7 @@ class Estudio extends Model
         'estado',
         'destino_estudio',
         'destino_estudio_id',
-        'created_at'
+        'created_at',
     ];
 
     public function paciente()

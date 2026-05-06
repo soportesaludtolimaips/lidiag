@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Estudios;
 
 use App\Http\Controllers\Controller;
 use App\Models\Configuracion\ConfigSede;
-use Illuminate\Http\Request;
-use PhpOffice\PhpWord\TemplateProcessor;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use PhpOffice\PhpWord\Element\TextRun;
-
+use PhpOffice\PhpWord\TemplateProcessor;
 
 class PlantillaEstudioController extends Controller
 {
@@ -25,8 +25,8 @@ class PlantillaEstudioController extends Controller
      * 7. Convierte el .docx a PDF usando `convertDocxToPdf`.
      * 8. Elimina el .docx temporal.
      *
-     * @param Request $request Datos del estudio y lectura.
-     * @return \Illuminate\Http\JsonResponse Confirmación con nombre del PDF o error.
+     * @param  Request  $request  Datos del estudio y lectura.
+     * @return JsonResponse Confirmación con nombre del PDF o error.
      */
     public function editWord(Request $request)
     {
@@ -34,12 +34,12 @@ class PlantillaEstudioController extends Controller
          * Buscarmos la sede para saber cual es la plantilla
          */
         $sede = ConfigSede::find($request->sede_id);
-        if (!$sede->plantilla) {
-            return response()->json(['message' => 'La plantilla para la sede ' . $sede->nom_sede . ' no está  configurada, por favor consulte con el administrador del sistema'], 402);
+        if (! $sede->plantilla) {
+            return response()->json(['message' => 'La plantilla para la sede '.$sede->nom_sede.' no está  configurada, por favor consulte con el administrador del sistema'], 402);
         }
 
         // Ruta del archivo de plantilla
-        $filePath = storage_path('app/plantillas_lecturas/' . $sede->plantilla);
+        $filePath = storage_path('app/plantillas_lecturas/'.$sede->plantilla);
 
         // Cargar el archivo de plantilla
         $templateProcessor = new TemplateProcessor($filePath);
@@ -69,7 +69,7 @@ class PlantillaEstudioController extends Controller
         }
 
         // Crear un TextRun para manejar el texto enriquecido
-        $textRun = new TextRun();
+        $textRun = new TextRun;
 
         // Agregar el texto con el formato necesario
         foreach (explode("\n", $request->lectura) as $line) {
@@ -101,16 +101,16 @@ class PlantillaEstudioController extends Controller
         if ($request->firma_medico) {
             // Insertar la imagen en el archivo de Word
             $templateProcessor->setImageValue('firma_medico', [
-                'path' => storage_path('app/' . $request->firma_medico),
+                'path' => storage_path('app/'.$request->firma_medico),
                 'width' => 100,
                 'height' => 100,
-                'ratio' => false
+                'ratio' => false,
             ]);
         }
 
         // Ruta para guardar el archivo editado
-        $nomArchivo = $request->estudio_producto_id . "-" . $request->num_docu . "-" . $nombrePaciente;
-        $outputPath = storage_path('app/reporte_lecturas/' . $nomArchivo . '.docx');
+        $nomArchivo = $request->estudio_producto_id."-".$request->num_docu."-".$nombrePaciente;
+        $outputPath = storage_path('app/reporte_lecturas/'.$nomArchivo.'.docx');
         $templateProcessor->saveAs($outputPath);
 
         $plantillaPdf = $this->convertDocxToPdf($nomArchivo);
@@ -121,7 +121,7 @@ class PlantillaEstudioController extends Controller
             return response()->json(
                 [
                     'messaje' => 'Plantilla creada correctament',
-                    'plantilla' => $nomArchivo . ".pdf",
+                    'plantilla' => $nomArchivo.".pdf",
                 ],
                 200
             );
@@ -134,25 +134,26 @@ class PlantillaEstudioController extends Controller
     /**
      * Convierte un archivo Word (.docx) a PDF usando unoconv.
      *
-     * @param string $nomPlantilla Nombre base del archivo (sin extensión).
+     * @param  string  $nomPlantilla  Nombre base del archivo (sin extensión).
      * @return string|null Ruta del archivo PDF generado o null si falla.
      */
-    function convertDocxToPdf($nomPlantilla): bool
+    public function convertDocxToPdf($nomPlantilla): bool
     {
         // Rutas de los archivos de entrada y salida
-        $sourceFile = storage_path('app/reporte_lecturas/' . $nomPlantilla . '.docx');
-        $destinationFile = storage_path('app/reporte_lecturas/' . $nomPlantilla . '.pdf');
+        $sourceFile = storage_path('app/reporte_lecturas/'.$nomPlantilla.'.docx');
+        $destinationFile = storage_path('app/reporte_lecturas/'.$nomPlantilla.'.pdf');
 
         // Comando para convertir el archivo .docx a PDF utilizando unoconv
-        $command = escapeshellcmd('C:\unoconv\unoconv -f pdf -o ' . escapeshellarg($destinationFile) . ' ' . escapeshellarg($sourceFile));
+        $command = escapeshellcmd('C:\unoconv\unoconv -f pdf -o '.escapeshellarg($destinationFile).' '.escapeshellarg($sourceFile));
 
         // Ejecutar el comando
         $output = shell_exec($command);
 
         // Verificar si la conversión fue exitosa
-        if (!file_exists($destinationFile)) {
+        if (! file_exists($destinationFile)) {
             // Registrar el error
-            \Log::error('Error converting DOCX to PDF: ' . $output);
+            \Log::error('Error converting DOCX to PDF: '.$output);
+
             return false;
         }
 

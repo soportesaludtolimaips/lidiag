@@ -10,8 +10,11 @@ class Series extends Model
     use HasFactory;
 
     protected $connection = 'mysql_sucursal';
+
     protected $table = 'series';
+
     protected $primaryKey = 'pk'; // Asumiendo que 'pk' es la clave primaria de la tabla series
+
     public $timestamps = false;
 
     public function study()

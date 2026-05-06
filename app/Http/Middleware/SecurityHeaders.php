@@ -109,8 +109,8 @@ class SecurityHeaders
                 "img-src 'self' data: https:",
                 "font-src 'self' data: https:",
                 "style-src 'self' 'unsafe-inline' https:",
-                "script-src " . implode(' ', $scriptSrc),
-                "connect-src " . implode(' ', $connectSrc),
+                "script-src ".implode(' ', $scriptSrc),
+                "connect-src ".implode(' ', $connectSrc),
             ]);
 
             // En Producción real (lidiag.com), deberiamos bloquear (quitar -Report-Only)

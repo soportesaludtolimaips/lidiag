@@ -38,14 +38,22 @@
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label>Quien asigno</label>
-                                            <select v-model="busqueda.quien_asigno_id" name="quien_asigno_id"
-                                                id="quien_asigno_id" class="form-control custom-select">
+                                            <select
+                                                v-model="busqueda.quien_asigno_id"
+                                                name="quien_asigno_id"
+                                                id="quien_asigno_id"
+                                                class="form-control custom-select"
+                                            >
                                                 <option value="">
                                                     ...::: Todos los usuarios :::...
                                                 </option>
-                                                <option v-for="(
-ItemUsuario, index
-                                                    ) in quienes_asignaron" :key="index" :value="ItemUsuario.id">
+                                                <option
+                                                    v-for="(
+                                                        ItemUsuario, index
+                                                    ) in quienes_asignaron"
+                                                    :key="index"
+                                                    :value="ItemUsuario.id"
+                                                >
                                                     {{ ItemUsuario.name }}
                                                 </option>
                                             </select>
@@ -54,13 +62,20 @@ ItemUsuario, index
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label>Medicos</label>
-                                            <select v-model="busqueda.medico_id" name="medico_id" id="medico_id"
-                                                class="form-control custom-select">
+                                            <select
+                                                v-model="busqueda.medico_id"
+                                                name="medico_id"
+                                                id="medico_id"
+                                                class="form-control custom-select"
+                                            >
                                                 <option value="" selected>
                                                     ...::: Todos los medicos :::...
                                                 </option>
-                                                <option v-for="(ItemUsuario, index) in medicos" :key="index"
-                                                    :value="ItemUsuario.id">
+                                                <option
+                                                    v-for="(ItemUsuario, index) in medicos"
+                                                    :key="index"
+                                                    :value="ItemUsuario.id"
+                                                >
                                                     {{ ItemUsuario.name }}
                                                 </option>
                                             </select>
@@ -68,36 +83,61 @@ ItemUsuario, index
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label class="control-label">Nombres o # documento</label>
-                                            <input type="text" id="bus_nom_num_docu" name="bus_nom_num_docu"
-                                                v-model="busqueda.bus_nom_num_docu" class="form-control"
-                                                placeholder="Nombres de paciente o # de documento" />
+                                            <label class="control-label"
+                                                >Nombres o # documento</label
+                                            >
+                                            <input
+                                                type="text"
+                                                id="bus_nom_num_docu"
+                                                name="bus_nom_num_docu"
+                                                v-model="busqueda.bus_nom_num_docu"
+                                                class="form-control"
+                                                placeholder="Nombres de paciente o # de documento"
+                                            />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Inicio</label>
-                                            <input type="date" id="bus_fehc_ini" name="bus_fehc_ini"
-                                                v-model="busqueda.bus_fehc_ini" class="form-control" />
+                                            <input
+                                                type="date"
+                                                id="bus_fehc_ini"
+                                                name="bus_fehc_ini"
+                                                v-model="busqueda.bus_fehc_ini"
+                                                class="form-control"
+                                            />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label class="control-label">Fecha Fin</label>
-                                            <input type="date" id="fecha_fin" name="fecha_fin"
-                                                v-model="busqueda.bus_fecha_fin" class="form-control" />
+                                            <input
+                                                type="date"
+                                                id="fecha_fin"
+                                                name="fecha_fin"
+                                                v-model="busqueda.bus_fecha_fin"
+                                                class="form-control"
+                                            />
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="form-actions mt-3">
-                                    <button type="button" class="btn btn-success m-r-5" :disabled="loadingBuscar"
-                                        @click="listarPendientesTrascribir()">
+                                    <button
+                                        type="button"
+                                        class="btn btn-success m-r-5"
+                                        :disabled="loadingBuscar"
+                                        @click="listarPendientesTrascribir()"
+                                    >
                                         <i v-if="loadingBuscar" class="fa fa-spinner fa-spin"></i>
                                         <i v-else class="fa fa-search"></i>
                                         Buscar
                                     </button>
-                                    <button type="button" class="btn btn-inverse" @click="btnLimpiar()">
+                                    <button
+                                        type="button"
+                                        class="btn btn-inverse"
+                                        @click="btnLimpiar()"
+                                    >
                                         <i class="fa fa-refresh"></i> Limpiar
                                     </button>
                                 </div>
@@ -115,50 +155,74 @@ ItemUsuario, index
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div>
                                 <h4 class="card-title">Listado de estudios disponibles</h4>
-                                <h6 class="card-subtitle text-info">Asigne los estudios a los médicos para su respectiva lectura.</h6>
+                                <h6 class="card-subtitle text-info">
+                                    Asigne los estudios a los médicos para su respectiva lectura.
+                                </h6>
                             </div>
                             <div class="text-right">
-                                <span class="badge badge-primary" v-if="contadorRegistros > 0">{{ contadorRegistros }} registro(s)</span>
+                                <span class="badge badge-primary" v-if="contadorRegistros > 0"
+                                    >{{ contadorRegistros }} registro(s)</span
+                                >
                                 <span class="badge badge-secondary" v-else>Sin resultados</span>
                             </div>
                         </div>
                         <loading-spinner :visible="loadingBuscar" />
                         <div class="table-responsive" :class="{ 'd-none': loadingBuscar }">
-                            <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
-                                width="100%">
+                            <table
+                                id="example23"
+                                ref="dt"
+                                class="table table-bordered table-striped"
+                                cellspacing="0"
+                                width="100%"
+                            >
                                 <thead>
                                     <tr>
                                         <th></th>
                                         <th>Sede</th>
                                         <th>Toma</th>
-                                        <th with="50%">Lectura</th>
+                                        <th width="50%">Lectura</th>
                                         <th>Asignación</th>
                                         <th>Quien Asigno</th>
-                                        <th with="50%">Medico</th>
-                                        <th with="50%">Paciente</th>
+                                        <th width="50%">Medico</th>
+                                        <th width="50%">Paciente</th>
                                         <th>Detalle</th>
                                         <th>Producto</th>
                                         <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="item in registros" :key="item.estudio_producto_id"
-                                        :id="'row-' + item.estudio_producto_id">
+                                    <tr
+                                        v-for="item in registros"
+                                        :key="item.estudio_producto_id"
+                                        :id="'row-' + item.estudio_producto_id"
+                                    >
                                         <td>
-                                            <button type="button" v-if="item.priori_id == 1"
-                                                class="btn waves-effect waves-light btn-rounded btn-sm btn-danger">
+                                            <button
+                                                type="button"
+                                                v-if="item.priori_id == 1"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm btn-danger"
+                                            >
                                                 A
                                             </button>
-                                            <button type="button" v-else-if="item.priori_id == 2"
-                                                class="btn waves-effect waves-light btn-rounded btn-sm btn-warning">
+                                            <button
+                                                type="button"
+                                                v-else-if="item.priori_id == 2"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm btn-warning"
+                                            >
                                                 M
                                             </button>
-                                            <button type="button" v-else-if="item.priori_id == 3"
-                                                class="btn waves-effect waves-light btn-rounded btn-sm btn-info">
+                                            <button
+                                                type="button"
+                                                v-else-if="item.priori_id == 3"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm btn-info"
+                                            >
                                                 B
                                             </button>
-                                            <button type="button" v-else-if="item.priori_id == 4"
-                                                class="btn waves-effect waves-light btn-rounded btn-sm">
+                                            <button
+                                                type="button"
+                                                v-else-if="item.priori_id == 4"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm"
+                                            >
                                                 S
                                             </button>
                                         </td>
@@ -179,40 +243,57 @@ ItemUsuario, index
                                         </td>
                                         <td>{{ item.nom_produc }}</td>
                                         <td class="text-nowrap">
-                                            <button type="button"
+                                            <button
+                                                type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                :disabled="loadingAbrirRegistroId ===
-                                                    item.estudio_producto_id
-                                                    " @click="
-                                                        actualizar = true;
-                                                    mostrarRegistro(item);
-                                                    ">
-                                                <i v-if="
+                                                :disabled="
                                                     loadingAbrirRegistroId ===
                                                     item.estudio_producto_id
-                                                " class="fa fa-spinner fa-spin"></i>
+                                                "
+                                                @click="
+                                                    actualizar = true;
+                                                    mostrarRegistro(item);
+                                                "
+                                            >
+                                                <i
+                                                    v-if="
+                                                        loadingAbrirRegistroId ===
+                                                        item.estudio_producto_id
+                                                    "
+                                                    class="fa fa-spinner fa-spin"
+                                                ></i>
                                                 <i v-else class="fa fa-pencil"></i>
                                             </button>
-                                            <button type="button"
+                                            <button
+                                                type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
-                                                :disabled="loadingAnularId === item.estudio_producto_id
-                                                    " @click="
-                                                        anularAsignacion(
-                                                            item.estudio_producto_id,
-                                                            item.nom_pacien,
-                                                            item.nom_produc
-                                                        )
-                                                        ">
-                                                <i v-if="
+                                                :disabled="
                                                     loadingAnularId === item.estudio_producto_id
-                                                " class="fa fa-spinner fa-spin"></i>
+                                                "
+                                                @click="
+                                                    anularAsignacion(
+                                                        item.estudio_producto_id,
+                                                        item.nom_pacien,
+                                                        item.nom_produc
+                                                    )
+                                                "
+                                            >
+                                                <i
+                                                    v-if="
+                                                        loadingAnularId === item.estudio_producto_id
+                                                    "
+                                                    class="fa fa-spinner fa-spin"
+                                                ></i>
                                                 <i v-else class="fa fa-eraser"></i>
                                             </button>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
-                            <div v-if="registros.length === 0 && !loadingBuscar" class="text-center py-4 text-muted">
+                            <div
+                                v-if="registros.length === 0 && !loadingBuscar"
+                                class="text-center py-4 text-muted"
+                            >
                                 <i class="fa fa-inbox fa-3x mb-3"></i>
                                 <p>No hay estudios para transcribir</p>
                             </div>
@@ -229,12 +310,19 @@ ItemUsuario, index
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%">
+        <div
+            class="right-sidebar"
+            style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%"
+        >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <span @click="btnCerralModalForm()">
-                        <i class="ti-close right-side-toggle" id="btnCerralModalForm" @click="btnCerralModalForm()"></i>
+                        <i
+                            class="ti-close right-side-toggle"
+                            id="btnCerralModalForm"
+                            @click="btnCerralModalForm()"
+                        ></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
@@ -278,8 +366,13 @@ ItemUsuario, index
                                         <div class="col-md-4">
                                             <div class="form-group">
                                                 <label class="control-label">Dirección</label>
-                                                <input type="text" id="direccion" name="direccion"
-                                                    v-model="registro.direccion" class="form-control" />
+                                                <input
+                                                    type="text"
+                                                    id="direccion"
+                                                    name="direccion"
+                                                    v-model="registro.direccion"
+                                                    class="form-control"
+                                                />
                                                 <span class="text-danger" v-if="errores.direccion">
                                                     {{ errores.direccion[0] }}
                                                 </span>
@@ -288,8 +381,13 @@ ItemUsuario, index
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label class="control-label">Télefono</label>
-                                                <input type="number" id="telefono" name="telefono"
-                                                    v-model="registro.tel" class="form-control" />
+                                                <input
+                                                    type="number"
+                                                    id="telefono"
+                                                    name="telefono"
+                                                    v-model="registro.tel"
+                                                    class="form-control"
+                                                />
                                                 <span class="text-danger" v-if="errores.tel">
                                                     {{ errores.tel[0] }}
                                                 </span>
@@ -298,10 +396,16 @@ ItemUsuario, index
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <label class="control-label">E - Mail</label>
-                                                <input type="email" id="email" name="email" v-model="registro.email"
-                                                    class="form-control" />
+                                                <input
+                                                    type="email"
+                                                    id="email"
+                                                    name="email"
+                                                    v-model="registro.email"
+                                                    class="form-control"
+                                                />
                                                 <span class="text-danger" v-if="errores.email">
-                                                    {{ errores.email[0] }}</span>
+                                                    {{ errores.email[0] }}</span
+                                                >
                                             </div>
                                         </div>
                                     </div>
@@ -311,9 +415,18 @@ ItemUsuario, index
                                     </h5>
                                     <hr />
 
-                                    <input type="hidden" id="estudio_producto_id" name="estudio_producto_id"
-                                        v-model="registro.estudio_producto_id" />
-                                    <input type="hidden" id="email" name="email" v-model="registro.email" />
+                                    <input
+                                        type="hidden"
+                                        id="estudio_producto_id"
+                                        name="estudio_producto_id"
+                                        v-model="registro.estudio_producto_id"
+                                    />
+                                    <input
+                                        type="hidden"
+                                        id="email"
+                                        name="email"
+                                        v-model="registro.email"
+                                    />
 
                                     <div class="row">
                                         <div class="col-md-5">
@@ -346,10 +459,17 @@ ItemUsuario, index
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
-                                                <label class="control-label">Reportar al Email</label>
-                                                <input type="text" id="email_reportar" name="email_reportar"
-                                                    v-model="registro.email_reportar" class="form-control"
-                                                    placeholder="Ingrese aqi el email a reportar" />
+                                                <label class="control-label"
+                                                    >Reportar al Email</label
+                                                >
+                                                <input
+                                                    type="text"
+                                                    id="email_reportar"
+                                                    name="email_reportar"
+                                                    v-model="registro.email_reportar"
+                                                    class="form-control"
+                                                    placeholder="Ingrese aqi el email a reportar"
+                                                />
                                             </div>
 
                                             <div class="form-group">
@@ -384,9 +504,14 @@ ItemUsuario, index
                                             <hr />
                                         </div>
                                         <div class="col-3">
-                                            <div class="col-md-7 align-self-center text-right d-none d-md-block">
-                                                <button type="button" class="btn btn-secondary btn-xs"
-                                                    @click="verImagen()">
+                                            <div
+                                                class="col-md-7 align-self-center text-right d-none d-md-block"
+                                            >
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-secondary btn-xs"
+                                                    @click="verImagen()"
+                                                >
                                                     <i class="fa fa-file-image-o"></i>
                                                 </button>
                                             </div>
@@ -394,13 +519,18 @@ ItemUsuario, index
                                     </div>
                                     <span class="text-danger" v-if="errores.lectura">{{
                                         errores.lectura[0]
-                                        }}</span>
+                                    }}</span>
                                     <div class="row">
                                         <div class="col-12">
                                             <div class="form-group">
-                                                <textarea v-model="registro.lectura" class="form-control" rows="20"
-                                                    id="lectura" style="height: 100%"
-                                                    placeholder="Ingrese aquí la lectura del estudio ..."></textarea>
+                                                <textarea
+                                                    v-model="registro.lectura"
+                                                    class="form-control"
+                                                    rows="20"
+                                                    id="lectura"
+                                                    style="height: 100%"
+                                                    placeholder="Ingrese aquí la lectura del estudio ..."
+                                                ></textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -410,15 +540,24 @@ ItemUsuario, index
                                             <!-- Nav tabs -->
                                             <ul class="nav nav-tabs" role="tablist">
                                                 <li class="nav-item">
-                                                    <a class="nav-link active" data-toggle="tab" href="#home8"
-                                                        role="tab">
+                                                    <a
+                                                        class="nav-link active"
+                                                        data-toggle="tab"
+                                                        href="#home8"
+                                                        role="tab"
+                                                    >
                                                         <h5 class="card-title text-info">
                                                             <i class="fa fa-paperclip"></i> Adjuntos
                                                         </h5>
                                                     </a>
                                                 </li>
                                                 <li class="nav-item">
-                                                    <a class="nav-link" data-toggle="tab" href="#profile8" role="tab">
+                                                    <a
+                                                        class="nav-link"
+                                                        data-toggle="tab"
+                                                        href="#profile8"
+                                                        role="tab"
+                                                    >
                                                         <span>
                                                             <h5 class="card-title text-info">
                                                                 <i class="fa fa-file-audio-o"></i>
@@ -430,36 +569,60 @@ ItemUsuario, index
                                             </ul>
                                             <!-- Tab panes -->
                                             <div class="tab-content tabcontent-border">
-                                                <div class="tab-pane active p-20" id="home8" role="tabpanel">
-                                                    <div class="col-md-8 col-lg-9"
-                                                        v-for="(itemArchivo, index) in soportesHC" :key="index">
-                                                        <a href="javascript:void(0)" :style="{
-                                                            pointerEvents:
-                                                                loadingDescargaSoporte ===
+                                                <div
+                                                    class="tab-pane active p-20"
+                                                    id="home8"
+                                                    role="tabpanel"
+                                                >
+                                                    <div
+                                                        class="col-md-8 col-lg-9"
+                                                        v-for="(itemArchivo, index) in soportesHC"
+                                                        :key="index"
+                                                    >
+                                                        <a
+                                                            href="javascript:void(0)"
+                                                            :style="{
+                                                                pointerEvents:
+                                                                    loadingDescargaSoporte ===
                                                                     itemArchivo.archivo_encrip
-                                                                    ? 'none'
-                                                                    : 'auto',
-                                                        }" @click="
-                                                            descargaSoportte(
-                                                                itemArchivo.archivo_encrip
-                                                            )
-                                                            ">
-                                                            <i v-if="
-                                                                loadingDescargaSoporte ===
-                                                                itemArchivo.archivo_encrip
-                                                            " class="fa fa-spinner fa-spin"></i>
+                                                                        ? 'none'
+                                                                        : 'auto',
+                                                            }"
+                                                            @click="
+                                                                descargaSoportte(
+                                                                    itemArchivo.archivo_encrip
+                                                                )
+                                                            "
+                                                        >
+                                                            <i
+                                                                v-if="
+                                                                    loadingDescargaSoporte ===
+                                                                    itemArchivo.archivo_encrip
+                                                                "
+                                                                class="fa fa-spinner fa-spin"
+                                                            ></i>
                                                             {{ itemArchivo.archivo_original }}
                                                         </a>
                                                     </div>
                                                 </div>
-                                                <div class="tab-pane p-20" id="profile8" role="tabpanel">
+                                                <div
+                                                    class="tab-pane p-20"
+                                                    id="profile8"
+                                                    role="tabpanel"
+                                                >
                                                     <div v-if="loadingAudios" class="text-muted">
                                                         <i class="fa fa-spinner fa-spin"></i>
                                                         Cargando audios...
                                                     </div>
-                                                    <template v-for="(item, index) in audiosDeEstudio" :key="index">
-                                                        <audio :src="item.url" controls
-                                                            style="height: 15px; width: 100%"></audio>
+                                                    <template
+                                                        v-for="(item, index) in audiosDeEstudio"
+                                                        :key="index"
+                                                    >
+                                                        <audio
+                                                            :src="item.url"
+                                                            controls
+                                                            style="height: 15px; width: 100%"
+                                                        ></audio>
                                                     </template>
                                                 </div>
                                             </div>
@@ -469,15 +632,23 @@ ItemUsuario, index
                             </div>
 
                             <div class="form-actions mt-3">
-                                <button type="button" class="btn btn-success m-r-5" :disabled="loadingGuardar"
-                                    @click="guardarRegistro()">
+                                <button
+                                    type="button"
+                                    class="btn btn-success m-r-5"
+                                    :disabled="loadingGuardar"
+                                    @click="guardarRegistro()"
+                                >
                                     <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
                                     <i v-else class="fa fa-check"></i>
                                     Guardar
                                 </button>
 
-                                <button type="button" class="btn btn-inverse" ref="btnCerrarForm"
-                                    @click="btnCerralModalForm()">
+                                <button
+                                    type="button"
+                                    class="btn btn-inverse"
+                                    ref="btnCerrarForm"
+                                    @click="btnCerralModalForm()"
+                                >
                                     Cancel
                                 </button>
                             </div>
@@ -526,12 +697,10 @@ export default {
     },
     async mounted() {
         this.$nextTick(() => this.initWysiwyg());
-        this.establecerSede();
         this.busqueda.sede_id = sessionStorage.getItem("ST-sede");
 
-        await listarUsuariosYSedes(this);
+        await listarUsuariosYSedes(this, { moduloId: "1" });
 
-        // Prefill desde dashboard (drill-down)
         this.applyDashboardPrefill();
 
         this.emitter.on("sedeSeleccionada", (data) => {
@@ -634,7 +803,7 @@ export default {
                     if ($el.prevAll(".wysihtml5-toolbar").length) return;
                     $el.wysihtml5({ stylesheets: ["/lib/css/wysiwyg-color.css"] });
                 });
-            } catch (e) { }
+            } catch (e) {}
         },
         destroyDataTable() {
             safeDestroyDataTable(this.$refs.dt || "#example23");
@@ -779,27 +948,6 @@ export default {
                 this.loadingGuardar = false;
             }
         },
-        async listarUsuariosYSedes() {
-            /**
-             * Lisato los transcriptores
-             */
-            const pathname = String(window?.location?.pathname || "").toLowerCase();
-            const moduloId =
-                sessionStorage.getItem("ST-modulo") || (pathname.includes("ecografia") ? "2" : "1");
-            const res = await axios.get(`/api/user.listarUsuarios/Transcriptor/${moduloId}`);
-            this.quienes_asignaron = res.data;
-
-            /**
-             * Listo los medicos
-             */
-            const resMedicos = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
-            this.medicos = resMedicos.data;
-
-            /**
-             * Listo las sedes
-             */
-            this.busqueda.sede_id = sessionStorage.getItem("ST-sede");
-        },
         descargaSoportte(nomArchivoEncriptado) {
             if (this.loadingDescargaSoporte) return;
             this.loadingDescargaSoporte = nomArchivoEncriptado;
@@ -847,7 +995,7 @@ export default {
                                 this.$refs.dt || "#example23",
                                 "#row-" + idProductoEstudio
                             );
-                        } catch (e) { }
+                        } catch (e) {}
                         this.registros.splice(idx, 1);
                     }
                     alertSuccess("Anulado!", "El producto se anulo correctamente.", "success");
@@ -870,10 +1018,10 @@ export default {
             });
             window.open(`${base}?${params.toString()}`, "_blank");
         },
-        async listarAudios() {
+        async listarAudios(estudioProductoId) {
             this.loadingAudios = true;
             try {
-                const res = await axios.get("/api/listar-audios-estudio/" + this.id);
+                const res = await axios.get("/api/listar-audios-estudio/" + estudioProductoId);
                 this.audiosDeEstudio = res.data;
             } catch (e) {
                 handleAxiosErrorToast(e, "No fue posible listar audios.");
@@ -887,12 +1035,12 @@ export default {
             this.registros = [];
         },
         formatDate(timestamp) {
-            // Convertir el timestamp UTC a la zona horaria local y formatear
             return dayjs.utc(timestamp).local().format("YYYY-MM-DD HH:mm:ss");
         },
         async mostrarRegistro(data = {}) {
             if (this.loadingAbrirRegistroId !== null) return;
             this.loadingAbrirRegistroId = data.estudio_producto_id;
+
             try {
                 const date = new Date();
                 const fechaActual =
@@ -935,7 +1083,6 @@ export default {
                 this.registro.nombres_medico = data.nombres_medico;
                 this.registro.firma_medico = data.firma_medico;
                 this.registro.lectura = `Atención: ${data.atencion}\nFecha y Hora del estudio: ${data.fec_estudio}\nFecha y Hora de transcripción: ${fechaActual}\n\n${data.nom_produc}\n\n${data.lectura}`;
-
                 this.datosImagen.urlOviyam = data.url_oviyam;
                 this.datosImagen.patientId = data.num_docu;
                 this.datosImagen.studyUID = data.study_iuid;
@@ -959,7 +1106,8 @@ export default {
                 this.soportesHC = resSoportesHC.data;
 
                 this.audiosDeEstudio = [];
-                this.listarAudios();
+                this.listarAudios(this.registro.estudio_producto_id);
+
                 this.btnCerralModalForm();
                 this.errores = {};
             } catch (error) {
@@ -982,11 +1130,6 @@ export default {
             $(".right-sidebar").toggleClass("shw-rside");
 
             this.audiosDeEstudio = [];
-        },
-    },
-    computed: {
-        estiloPrioridad: function () {
-            this.tipoPrioridad;
         },
     },
 };

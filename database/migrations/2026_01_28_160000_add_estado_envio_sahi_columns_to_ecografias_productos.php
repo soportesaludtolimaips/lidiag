@@ -75,7 +75,7 @@ return new class extends Migration
                 // dropIndex por nombre automático puede variar; intentamos el default (col name)
                 try {
                     $table->dropIndex(['estado_envio_sahi']);
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                 }
                 $table->dropColumn('estado_envio_sahi');
             }

@@ -25,7 +25,7 @@ return new class extends Migration
             // Quitar unique anterior (bloqueaba múltiples históricos)
             try {
                 $table->dropUnique('uq_consent_plantilla_vigente');
-            } catch (\Throwable $t) {
+            } catch (Throwable $t) {
                 // ignore
             }
             $table->unique(['config_modulo_id', 'producto_id', 'vigente_key'], 'uq_consent_plantilla_vigente_key');
@@ -37,11 +37,11 @@ return new class extends Migration
         Schema::table('consentimiento_plantillas', function (Blueprint $table) {
             try {
                 $table->dropUnique('uq_consent_plantilla_vigente_key');
-            } catch (\Throwable $t) {
+            } catch (Throwable $t) {
             }
             try {
                 $table->dropIndex('ix_consent_plantilla_vigente_key');
-            } catch (\Throwable $t) {
+            } catch (Throwable $t) {
             }
             if (Schema::hasColumn('consentimiento_plantillas', 'vigente_key')) {
                 $table->dropColumn('vigente_key');
@@ -50,7 +50,7 @@ return new class extends Migration
             // Restaurar el unique anterior (no recomendado, pero para rollback)
             try {
                 $table->unique(['config_modulo_id', 'producto_id', 'vigente'], 'uq_consent_plantilla_vigente');
-            } catch (\Throwable $t) {
+            } catch (Throwable $t) {
             }
         });
     }

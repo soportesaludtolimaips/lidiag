@@ -1,0 +1,143 @@
+{
+  "version": 1,
+  "skills": {
+    "create-adaptable-composable": {
+      "source": "vuejs-ai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/create-adaptable-composable/SKILL.md",
+      "computedHash": "3d044f8c43ddaee6a58ab28acc9d6315775aed150c3a9ab059d2714768be5bec"
+    },
+    "eloquent-best-practices": {
+      "source": "iserter/laravel-claude-agents",
+      "sourceType": "github",
+      "skillPath": "skills/eloquent-best-practices/SKILL.md",
+      "computedHash": "9ac1268798ae480224524bd7541de58d9bed5f0d5e2c8914f4a61dee23e5f244"
+    },
+    "laravel-11-12-app-guidelines": {
+      "source": "thienanblog/awesome-ai-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/laravel-11-12-app-guidelines/SKILL.md",
+      "computedHash": "609d456c9d92ca136589a0d89cc60e76b1619731521892a5f707f58589fc2473"
+    },
+    "laravel-best-practices": {
+      "source": "laravel/boost",
+      "sourceType": "github",
+      "skillPath": ".ai/laravel/skill/laravel-best-practices/SKILL.md",
+      "computedHash": "25fc9fb19f8d784bd1a010977f19ba0a033aac98deb473d719033d575d2d6d40"
+    },
+    "laravel-patterns": {
+      "source": "affaan-m/everything-claude-code",
+      "sourceType": "github",
+      "skillPath": "skills/laravel-patterns/SKILL.md",
+      "computedHash": "2e6eef44bf27bc5c8070e3454d10b586d60ecd71808a5bc756f3d7c50f3473a3"
+    },
+    "laravel-permission-development": {
+      "source": "spatie/laravel-permission",
+      "sourceType": "github",
+      "skillPath": "resources/boost/skills/laravel-permission-development/SKILL.md",
+      "computedHash": "d9c7992cd16e18d8cddc60c71d7fa9294421d3ef0a58eb8d9218fceb39c8e28b"
+    },
+    "laravel-security-audit": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "skillPath": "skills/laravel-security-audit/SKILL.md",
+      "computedHash": "6cc0dbf736685e39e1c230ea6333fd2b402a0a6f1b48c2ea88ff8964df8be327"
+    },
+    "laravel-specialist": {
+      "source": "jeffallan/claude-skills",
+      "sourceType": "github",
+      "skillPath": "skills/laravel-specialist/SKILL.md",
+      "computedHash": "3fb2841e7b0e05d64484970fdbb03063327d904c270b2e46b9217b18863132ca"
+    },
+    "laravel:documentation-best-practices": {
+      "source": "jpcaparas/superpowers-laravel",
+      "sourceType": "github",
+      "skillPath": "skills/documentation-best-practices/SKILL.md",
+      "computedHash": "bb977a58e96abde27fa1d922ecba7da814c35a6852c67be29f36319685f7d5db"
+    },
+    "laravel:migrations-and-factories": {
+      "source": "jpcaparas/superpowers-laravel",
+      "sourceType": "github",
+      "skillPath": "skills/migrations-and-factories/SKILL.md",
+      "computedHash": "dd352e1ae367bb4d625ece72a2f1e3a3f5d138770c9bad8eb09be14c27f5bdac"
+    },
+    "laravel:performance-caching": {
+      "source": "jpcaparas/superpowers-laravel",
+      "sourceType": "github",
+      "skillPath": "skills/performance-caching/SKILL.md",
+      "computedHash": "08af3d013ca97417042a25e51a32252af3d5c9a8ba5a23f865f419127e5a40f7"
+    },
+    "laravel:policies-and-authorization": {
+      "source": "jpcaparas/superpowers-laravel",
+      "sourceType": "github",
+      "skillPath": "skills/policies-and-authorization/SKILL.md",
+      "computedHash": "485279b30857b1ea4f306e2224efbe03139a292be75cfedecc3588a58042cc5e"
+    },
+    "laravel:quality-checks": {
+      "source": "jpcaparas/superpowers-laravel",
+      "sourceType": "github",
+      "skillPath": "skills/quality-checks/SKILL.md",
+      "computedHash": "0b5da76b16e10c36aea1ea3ca7491391a4d265831eb8f313e9ccb93cf0c2c425"
+    },
+    "laravel:rate-limiting": {
+      "source": "jpcaparas/superpowers-laravel",
+      "sourceType": "github",
+      "skillPath": "skills/rate-limiting-and-throttle/SKILL.md",
+      "computedHash": "b777ea32447d8e496a21b4401837fe1b2002a2bc0c3de43bedab4d242adf1ee4"
+    },
+    "laravel:routes-best-practices": {
+      "source": "jpcaparas/superpowers-laravel",
+      "sourceType": "github",
+      "skillPath": "skills/routes-best-practices/SKILL.md",
+      "computedHash": "1ce684981d6d01f29e836f58cde97f16559aedebaf1596edf7acc5a78a1c3029"
+    },
+    "tiny-vue-skill": {
+      "source": "opentiny/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/tiny-vue-skill/SKILL.md",
+      "computedHash": "cf2845e3edb9585887b1331adeb3604bb6ea60988007a125279cca213ae8403e"
+    },
+    "vue": {
+      "source": "antfu/skills",
+      "sourceType": "github",
+      "skillPath": "skills/vue/SKILL.md",
+      "computedHash": "f72b54618560c53d65740515ded5bb833750c4574dbe961fd21f022bd2b31a74"
+    },
+    "vue-application-structure": {
+      "source": "aj-geddes/useful-ai-prompts",
+      "sourceType": "github",
+      "skillPath": "skills/vue-application-structure/SKILL.md",
+      "computedHash": "d3c4313dcd443ca1804bb18503f7c7e750c2e1f059d9f08f452db91c0a6164bd"
+    },
+    "vue-best-practices": {
+      "source": "hyf0/vue-skills",
+      "sourceType": "github",
+      "skillPath": "skills/vue-best-practices/SKILL.md",
+      "computedHash": "21132f6c11c765bd11d0d6ad081122dd858630073e2123b651e58f17b399b131"
+    },
+    "vue-expert-js": {
+      "source": "jeffallan/claude-skills",
+      "sourceType": "github",
+      "skillPath": "skills/vue-expert-js/SKILL.md",
+      "computedHash": "61e74e4b37e9a569ffd066bd2e7446be33a3d4cdf0dedee4ecd7ef4be1188a02"
+    },
+    "vue-options-api-best-practices": {
+      "source": "vuejs-ai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/vue-options-api-best-practices/SKILL.md",
+      "computedHash": "4c613ef2a6d5fd5599e6aa58f24bb6460a9f0903f389cf71bad3a71400dbad20"
+    },
+    "vue-router-best-practices": {
+      "source": "antfu/skills",
+      "sourceType": "github",
+      "skillPath": "skills/vue-router-best-practices/SKILL.md",
+      "computedHash": "405d377ebeef773b240f31902dfb204095d4bcc945e8a4c2f4b560062c032fbb"
+    },
+    "vueuse-functions": {
+      "source": "antfu/skills",
+      "sourceType": "github",
+      "skillPath": "skills/vueuse-functions/SKILL.md",
+      "computedHash": "5189e448e981e42e2153c1b5e8d19e51b01e642c2357ab0f2892c4d8b50ba2b5"
+    }
+  }
+}

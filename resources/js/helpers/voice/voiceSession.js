@@ -12,7 +12,7 @@ export function createVoiceSession({
     enableDictation = true,
     // Audio
     constraints = getVoiceAudioConstraints(),
-    mimeType = "audio/webm;codecs=opus",
+    mimeType = "audio/wav",
     audioBitsPerSecond = 64000,
 
     // Dictado

@@ -15,7 +15,7 @@ class hceEsquemasdeAte extends Model
 
     protected $fillable = [
         'IdEsquemadeAtencion', 'IdEsquema', 'IdAtencion', 'IdUbicacion',  'idTraslado', 'IdMedico',
-        'FecEsquema', 'IndHabilitado', 'IndActivado', 'FecCerrado', 'IdUsuarioR'
+        'FecEsquema', 'IndHabilitado', 'IndActivado', 'FecCerrado', 'IdUsuarioR',
     ];
 
     public $timestamps = false;

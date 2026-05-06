@@ -29,7 +29,7 @@ export function isGetUserMediaSupported() {
 
 export async function createAudioRecorderSession({
     constraints = getVoiceAudioConstraints(),
-    mimeType = "audio/webm;codecs=opus",
+    mimeType = "audio/wav",
     audioBitsPerSecond = 64000,
 } = {}) {
     if (!isGetUserMediaSupported()) {

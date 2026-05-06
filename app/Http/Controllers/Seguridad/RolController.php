@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Seguridad;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Seguridad\RolAgregarRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
@@ -24,7 +25,7 @@ class RolController extends Controller
     /**
      * Lista todos los roles y permisos del sistema.
      *
-     * @return \Illuminate\Http\JsonResponse Array con roles y permisos.
+     * @return JsonResponse Array con roles y permisos.
      */
     public function index()
     {
@@ -38,7 +39,7 @@ class RolController extends Controller
      * Crea un nuevo rol y le asigna los permisos seleccionados.
      *
      * @param  RolAgregarRequest  $request  Datos del rol y permisos.
-     * @return \Illuminate\Http\JsonResponse Confirmación.
+     * @return JsonResponse Confirmación.
      */
     public function store(RolAgregarRequest $request)
     {
@@ -81,7 +82,7 @@ class RolController extends Controller
      * Muestra un rol específico junto con sus permisos asignados y la lista total de permisos.
      *
      * @param  int  $id  ID del rol.
-     * @return \Illuminate\Http\JsonResponse Datos del rol, permisos y permisos asignados.
+     * @return JsonResponse Datos del rol, permisos y permisos asignados.
      */
     public function show($id)
     {
@@ -105,7 +106,7 @@ class RolController extends Controller
      *
      * @param  Request  $request  Datos actualizados del rol.
      * @param  int  $id  ID del rol.
-     * @return \Illuminate\Http\JsonResponse Confirmación.
+     * @return JsonResponse Confirmación.
      */
     public function update(Request $request, $id)
     {
@@ -152,7 +153,7 @@ class RolController extends Controller
      * Elimina un rol.
      *
      * @param  Rol  $rol  Instancia del rol a eliminar.
-     * @return \Illuminate\Http\JsonResponse Confirmación.
+     * @return JsonResponse Confirmación.
      */
     public function destroy($id)
     {

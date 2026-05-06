@@ -9,7 +9,6 @@ class GeneralPersonal extends Model
 {
     use HasFactory;
 
-
     protected $connection = 'mysql_importar_dicom';
 
     protected $table = 'general_personal';

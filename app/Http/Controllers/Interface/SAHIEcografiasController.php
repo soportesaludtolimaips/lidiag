@@ -8,6 +8,7 @@ use App\Models\Consentimientos\ConsentimientoPlantilla;
 use App\Models\Consentimientos\EcografiaConsentimiento;
 use App\Models\Interface\Sahi\facFacturaDet;
 use App\Models\Interface\Sahi\FacMovimientoDet;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -26,7 +27,7 @@ class SAHIEcografiasController extends Controller
      * de productos relacionados con ecografías y devuelve la lista unificada.
      *
      * @param  Request  $request  ID de la atención (`bus_nom_num_docu`).
-     * @return \Illuminate\Http\JsonResponse Lista de productos de ecografía.
+     * @return JsonResponse Lista de productos de ecografía.
      */
     public function listarProductosAtencion(Request $request)
     {
@@ -137,7 +138,7 @@ class SAHIEcografiasController extends Controller
          */
         $moduloEcografiasId = 2;
         $cods = $atencionesSahi
-            ->map(fn($r) => trim((string) ($r->CodProducto ?? '')))
+            ->map(fn ($r) => trim((string) ($r->CodProducto ?? '')))
             ->filter()
             ->unique()
             ->values();

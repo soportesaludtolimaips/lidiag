@@ -15,7 +15,7 @@ return new class extends Migration
     public function up(): void
     {
         if (Schema::hasTable('ecografias') && Schema::hasColumn('ecografias', 'atencion_id')) {
-            if (!$this->indexExists('ecografias', 'idx_ecografias_atencion_id')) {
+            if (! $this->indexExists('ecografias', 'idx_ecografias_atencion_id')) {
                 Schema::table('ecografias', function (Blueprint $table) {
                     $table->index('atencion_id', 'idx_ecografias_atencion_id');
                 });
@@ -27,7 +27,7 @@ return new class extends Migration
             && Schema::hasColumn('ecografias_productos', 'ecografia_id')
             && Schema::hasColumn('ecografias_productos', 'producto_id')
         ) {
-            if (!$this->indexExists('ecografias_productos', 'idx_ecoprod_ecografia_producto')) {
+            if (! $this->indexExists('ecografias_productos', 'idx_ecoprod_ecografia_producto')) {
                 Schema::table('ecografias_productos', function (Blueprint $table) {
                     $table->index(['ecografia_id', 'producto_id'], 'idx_ecoprod_ecografia_producto');
                 });
@@ -63,8 +63,9 @@ return new class extends Migration
                  LIMIT 1",
                 [$db, $table, $indexName]
             );
-            return !empty($rows);
-        } catch (\Throwable $e) {
+
+            return ! empty($rows);
+        } catch (Throwable $e) {
             return false;
         }
     }

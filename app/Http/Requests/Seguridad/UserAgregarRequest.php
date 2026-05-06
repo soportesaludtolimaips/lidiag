@@ -30,7 +30,7 @@ class UserAgregarRequest extends FormRequest
             'registro.num_docu' => 'required|string|max:20',
             'registro.reg_med' => 'nullable|string|max:20',
             'registro.name' => 'required|string|max:50',
-            'registro.email' => 'required|email|max:255|unique:users,email,' . $userId,
+            'registro.email' => 'required|email|max:255|unique:users,email,'.$userId,
             'registro.tel' => 'nullable|string|max:50',
             'registro.facebook' => 'nullable|string|max:100',
             'registro.twitter' => 'nullable|string|max:100',

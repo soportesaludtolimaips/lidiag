@@ -7,6 +7,7 @@ public/hot
 public_html/hot
 storage/logs/*.log
 storage/*.key
+storage/app
 
 .env
 Homestead.yaml
@@ -14,8 +15,6 @@ Homestead.json
 /.vagrant
 .phpunit.result.cache
 
-/vendor/
-node_modules/
 storage/phpstan/cache/PHPStan
 
 # Vite build output (no versionar artefactos)
@@ -34,5 +33,9 @@ public/files_help_desk
 public/firmas_consntimientos
 public/files_consentimientos
 
+/.agents
+/.cursor
+/.vscode
 
+/tests
 

@@ -8,6 +8,7 @@ use App\Mail\ReportarLectura;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\Dcm4chee\Instance;
 use App\Models\Estudio\Estudio;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
@@ -30,7 +31,7 @@ class EstudioNotificacionController extends Controller
      * Lista los estudios que ya tienen transcripción y están activos, listos para notificar.
      *
      * @param  Request  $request  Filtros por número de documento (`bus_num_docu`) o nombre (`bus_nom`).
-     * @return \Illuminate\Http\JsonResponse Lista de estudios.
+     * @return JsonResponse Lista de estudios.
      */
     public function listarEstudios(Request $request)
     {
@@ -112,11 +113,11 @@ class EstudioNotificacionController extends Controller
      * 4. Limpia archivos temporales (PDF e imágenes).
      *
      * @param  object  $estudio  Objeto con datos del estudio y paciente.
-     * @return \Illuminate\Http\JsonResponse Confirmación.
+     * @return JsonResponse Confirmación.
      */
     public function notificarEmail($estudio, $archivoReporte)
     {
-        $reportePath = storage_path('app/reporte_lecturas/' . $archivoReporte);
+        $reportePath = storage_path('app/reporte_lecturas/'.$archivoReporte);
         if (! file_exists($reportePath)) {
             return response()->json(['message' => 'No se encontró el reporte PDF para enviar al portal.'], 400);
         }
@@ -138,8 +139,8 @@ class EstudioNotificacionController extends Controller
         @unlink($archivoReporte);
 
         // Obtener las rutas de las imágenes que se enviaron
-        $imagenesAdjuntos = Storage::exists('img_dicom/' . $estudio->study_iuid)
-            ? Storage::files('img_dicom/' . $estudio->study_iuid)
+        $imagenesAdjuntos = Storage::exists('img_dicom/'.$estudio->study_iuid)
+            ? Storage::files('img_dicom/'.$estudio->study_iuid)
             : [];
 
         // Eliminar cada imagen
@@ -148,7 +149,7 @@ class EstudioNotificacionController extends Controller
         }
 
         // Eliminar la carpeta que contiene las imágenes
-        Storage::deleteDirectory('img_dicom/' . $estudio->study_iuid);
+        Storage::deleteDirectory('img_dicom/'.$estudio->study_iuid);
 
         return response()->json(['message' => 'La notificación se generó correctamente.']);
     }
@@ -159,12 +160,12 @@ class EstudioNotificacionController extends Controller
         $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
         $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
 
-        $nomArchivoReporte = $estudio->estudio_producto_id . "-" . $estudio->num_docu . "-" . $nombrePaciente . ".pdf";
+        $nomArchivoReporte = $estudio->estudio_producto_id."-".$estudio->num_docu."-".$nombrePaciente.".pdf";
 
         /**
          * Envio la lectura a Lidiag-reportes para que este diponible para la descarga por parte del paciente
          */
-        $urlApiReportes = rtrim(config('app.URL_API_REPORTES'), '/') . '/api/almacenarLectura';
+        $urlApiReportes = rtrim(config('app.URL_API_REPORTES'), '/').'/api/almacenarLectura';
 
         $secret = env('API_HMAC_SECRET'); // mismo secreto que en lidiag-reportes
         $ts = time();
@@ -181,7 +182,7 @@ class EstudioNotificacionController extends Controller
             'tap_oviyam' => $estudio->tap_oviyam,
         ];
 
-        $reportePath = storage_path('app/reporte_lecturas/' . $nomArchivoReporte);
+        $reportePath = storage_path('app/reporte_lecturas/'.$nomArchivoReporte);
         if (! file_exists($reportePath)) {
             return response()->json(['message' => 'No se encontró el reporte PDF para enviar al portal.'], 400);
         }
@@ -239,7 +240,7 @@ class EstudioNotificacionController extends Controller
      *
      * @param  int  $sedeId  ID de la sede.
      * @param  string  $study_iuid  UID del estudio.
-     * @return \Illuminate\Http\JsonResponse Resultado de la descarga.
+     * @return JsonResponse Resultado de la descarga.
      */
     public static function descargaImgDicom($sedeId, $study_iuid)
     {
@@ -279,7 +280,7 @@ class EstudioNotificacionController extends Controller
             $objectUID = $imagen->sop_iuid;
 
             // URL del servicio WADO para la imagen
-            $wadoUrl = "http://" . $sedeActual->ip_dcm . ":8080/wado?requestType=WADO&studyUID=$study_iuid&seriesUID=$seriesUID&objectUID=$objectUID&contentType=image/jpeg";
+            $wadoUrl = "http://".$sedeActual->ip_dcm.":8080/wado?requestType=WADO&studyUID=$study_iuid&seriesUID=$seriesUID&objectUID=$objectUID&contentType=image/jpeg";
 
             // Hacer la solicitud HTTP GET para obtener la imagen
             $response = Http::get($wadoUrl);
@@ -290,10 +291,10 @@ class EstudioNotificacionController extends Controller
                 $imageContent = $response->body();
 
                 // Definir el nombre del archivo
-                $filename = 'imagen_' . $study_iuid . '_' . $seriesUID . '_' . $objectUID . '.jpg';
+                $filename = 'imagen_'.$study_iuid.'_'.$seriesUID.'_'.$objectUID.'.jpg';
 
                 // Guardar la imagen en el directorio 'img_dicom' del storage
-                Storage::put('img_dicom/' . $study_iuid . "/" . $filename, $imageContent);
+                Storage::put('img_dicom/'.$study_iuid."/".$filename, $imageContent);
             } else {
                 // Manejo de errores si alguna imagen no se pudo descargar
                 return response()->json(['error' => 'Error al descargar una de las imágenes'], 500);
@@ -309,7 +310,7 @@ class EstudioNotificacionController extends Controller
      *
      * @param  string  $numeroTelefono  Número de destino.
      * @param  string  $mensaje  Cuerpo del mensaje.
-     * @return \Illuminate\Http\JsonResponse Resultado del envío.
+     * @return JsonResponse Resultado del envío.
      */
     public function enviarMensajeWhatsApp($numeroTelefono, $mensaje)
     {

@@ -2,10 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
-
 
 class PermisosAgendamientoSeeder extends Seeder
 {
@@ -14,10 +12,10 @@ class PermisosAgendamientoSeeder extends Seeder
      */
     public function run(): void
     {
-        Permission::create(['name' => 'agendamiento.disponibilidad.index'])->assignRole(['Administrador', 'Transcriptor']); //Ver otras plataformas
-        Permission::create(['name' => 'agendamiento.disponibilidad.create'])->assignRole(['Administrador', 'Transcriptor']); //Ver otras plataformas
-        Permission::create(['name' => 'agendamiento.disponibilidad.delete'])->assignRole(['Administrador', 'Transcriptor']); //Ver otras plataformas
-        Permission::create(['name' => 'agendamiento.disponibilidad.update'])->assignRole(['Administrador', 'Transcriptor']); //Ver otras plataformas
+        Permission::create(['name' => 'agendamiento.disponibilidad.index'])->assignRole(['Administrador', 'Transcriptor']); // Ver otras plataformas
+        Permission::create(['name' => 'agendamiento.disponibilidad.create'])->assignRole(['Administrador', 'Transcriptor']); // Ver otras plataformas
+        Permission::create(['name' => 'agendamiento.disponibilidad.delete'])->assignRole(['Administrador', 'Transcriptor']); // Ver otras plataformas
+        Permission::create(['name' => 'agendamiento.disponibilidad.update'])->assignRole(['Administrador', 'Transcriptor']); // Ver otras plataformas
 
         Permission::create(['name' => 'agendamiento.solicitudes.index'])->assignRole(['Administrador', 'Transcriptor']);
         Permission::create(['name' => 'agendamiento.solicitudes.create'])->assignRole(['Administrador', 'Transcriptor']);

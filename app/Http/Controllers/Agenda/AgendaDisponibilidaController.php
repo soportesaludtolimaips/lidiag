@@ -114,7 +114,7 @@ class AgendaDisponibilidaController extends Controller
     {
         $disponibilidad = AgendaDisponibilida::with(['sede', 'servicio'])->find($id);
 
-        if (!$disponibilidad) {
+        if (! $disponibilidad) {
             return response()->json(['error' => 'Disponibilidad no encontrada.'], 404);
         }
 
@@ -128,7 +128,7 @@ class AgendaDisponibilidaController extends Controller
     {
         $disponibilidad = AgendaDisponibilida::find($id);
 
-        if (!$disponibilidad) {
+        if (! $disponibilidad) {
             return response()->json(['error' => 'Disponibilidad no encontrada.'], 404);
         }
 
@@ -196,11 +196,12 @@ class AgendaDisponibilidaController extends Controller
 
         $disponibilidad = AgendaDisponibilida::find($id);
 
-        if (!$disponibilidad) {
+        if (! $disponibilidad) {
             return response()->json(['error' => 'Disponibilidad no encontrada.'], 404);
         }
 
         $disponibilidad->delete();
+
         return response()->json(['message' => 'Disponibilidad eliminada correctamente.']);
     }
 }
