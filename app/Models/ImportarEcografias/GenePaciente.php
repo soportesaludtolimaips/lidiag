@@ -7,8 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class GenePaciente extends Model
 {
     protected $connection = 'mysql_importar_dicom';
+
     protected $table = 'gene_pacientes';
+
     protected $primaryKey = 'id_pacien';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -26,7 +29,7 @@ class GenePaciente extends Model
         'dir',
         'tel',
         'cel',
-        'e_mail'
+        'e_mail',
     ];
 
     // --- Relaciones ---

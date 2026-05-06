@@ -7,8 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class GenePersonal extends Model
 {
     protected $connection = 'mysql_importar_dicom';
+
     protected $table = 'gene_personal';
+
     protected $primaryKey = 'id_personal';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -27,7 +30,7 @@ class GenePersonal extends Model
         'e_mail',
         'id_sahi',
         'tipo_personal',
-        'acti'
+        'acti',
     ];
 
     public function tipoDocumento()

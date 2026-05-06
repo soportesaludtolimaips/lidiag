@@ -12,7 +12,7 @@ class EstudioAudio extends Model
 
     protected $table = 'estudios_audios';
 
-    protected $fillable = ['audio'];
+    protected $fillable = ['audio', 'estudio_id', 'estudio_producto_id'];
 
     protected $appends = ['url'];
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Configuracion;
 
 use App\Http\Controllers\Controller;
 use App\Models\Configuracion\ConfigTipoDocumento;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ConfigTipoDocumentoController extends Controller
@@ -20,19 +21,20 @@ class ConfigTipoDocumentoController extends Controller
     /**
      * Lista todos los tipos de documento.
      *
-     * @return \Illuminate\Http\JsonResponse Lista de tipos de documento.
+     * @return JsonResponse Lista de tipos de documento.
      */
     public function index()
     {
         $tiposDocumento = ConfigTipoDocumento::all();
+
         return response()->json($tiposDocumento);
     }
 
     /**
      * Crea un nuevo tipo de documento.
      *
-     * @param  Request  $request Datos del tipo de documento.
-     * @return \Illuminate\Http\JsonResponse Datos del registro creado.
+     * @param  Request  $request  Datos del tipo de documento.
+     * @return JsonResponse Datos del registro creado.
      */
     public function store(Request $request)
     {
@@ -42,32 +44,34 @@ class ConfigTipoDocumentoController extends Controller
             'estado' => 'nullable|boolean',
         ]);
         $tipoDocumento = ConfigTipoDocumento::create($request->all());
+
         return response()->json($tipoDocumento);
     }
 
     /**
      * Muestra un tipo de documento específico.
      *
-     * @param  int  $id ID del tipo de documento.
-     * @return \Illuminate\Http\JsonResponse Datos del tipo de documento o error 404.
+     * @param  int  $id  ID del tipo de documento.
+     * @return JsonResponse Datos del tipo de documento o error 404.
      */
     public function show($id)
     {
         $tipoDocumento = ConfigTipoDocumento::find($id);
-        if (!$tipoDocumento) {
+        if (! $tipoDocumento) {
             return response()->json([
-                'message' => 'Tipo de documento no encontrado'
+                'message' => 'Tipo de documento no encontrado',
             ], 404);
         }
+
         return response()->json($tipoDocumento);
     }
 
     /**
      * Actualiza un tipo de documento.
      *
-     * @param  Request  $request Datos a actualizar.
-     * @param  int  $id ID del tipo de documento.
-     * @return \Illuminate\Http\JsonResponse Datos actualizados o error 404.
+     * @param  Request  $request  Datos a actualizar.
+     * @param  int  $id  ID del tipo de documento.
+     * @return JsonResponse Datos actualizados o error 404.
      */
     public function update(Request $request, $id)
     {
@@ -77,46 +81,48 @@ class ConfigTipoDocumentoController extends Controller
             'estado' => 'nullable|boolean',
         ]);
         $tipoDocumento = ConfigTipoDocumento::find($id);
-        if (!$tipoDocumento) {
+        if (! $tipoDocumento) {
             return response()->json([
-                'message' => 'Tipo de documento no encontrado'
+                'message' => 'Tipo de documento no encontrado',
             ], 404);
         }
 
         $tipoDocumento->update($request->all());
+
         return response()->json($tipoDocumento);
     }
 
     /**
      * Elimina un tipo de documento.
      *
-     * @param  int  $id ID del tipo de documento.
-     * @return \Illuminate\Http\JsonResponse Confirmación de eliminación o error 404.
+     * @param  int  $id  ID del tipo de documento.
+     * @return JsonResponse Confirmación de eliminación o error 404.
      */
     public function destroy($id)
     {
         $tipoDocumento = ConfigTipoDocumento::find($id);
-        if (!$tipoDocumento) {
+        if (! $tipoDocumento) {
             return response()->json([
-                'message' => 'Tipo de documento no encontrado'
+                'message' => 'Tipo de documento no encontrado',
             ], 404);
         }
 
         $tipoDocumento->delete();
 
         return response()->json([
-            'message' => 'Tipo de documento eliminado'
+            'message' => 'Tipo de documento eliminado',
         ]);
     }
 
     /**
      * Lista los tipos de documento activos.
      *
-     * @return \Illuminate\Http\JsonResponse Lista de tipos de documento activos.
+     * @return JsonResponse Lista de tipos de documento activos.
      */
     public function listarActivos()
     {
         $tiposDocumento = ConfigTipoDocumento::where('estado', 1)->get();
+
         return response()->json($tiposDocumento);
     }
 }

@@ -13,20 +13,27 @@ use App\Models\Interface\Sahi\hceEsquemasdeAte;
 use App\Models\Interface\Sahi\ProProducto;
 use App\Models\Interface\Sahi\sisTabla;
 use App\Models\User;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class SAHITranscibirController extends Controller
 {
     private $idAtencion;
+
     private $idMedico;
+
     private $IdUsuario;
+
     private $IdPersonal;
+
     private $nomMedico;
+
     private $reporteEstudio;
+
     private $codCups;
+
     private $fecHorLectura;
-    private $messageArray = array();
+
+    private $messageArray = [];
 
     public function __construct($idAtencion = null, $idMedico = null, $reporteEstudio = null, $codCups = null, $fecHorLectura = null)
     {
@@ -37,22 +44,21 @@ class SAHITranscibirController extends Controller
         $this->fecHorLectura = $fecHorLectura;
     }
 
-    //Set log message
+    // Set log message
     private function logMessage($message)
     {
         $this->messageArray[] = $message;
     }
 
-    //retrieve the message
+    // retrieve the message
     public function getMessages()
     {
         return $this->messageArray;
     }
 
-
     public function pr($arrData)
     {
-        //print_r($arrData);
+        // print_r($arrData);
         return $arrData;
     }
 
@@ -104,12 +110,12 @@ class SAHITranscibirController extends Controller
      *    - `hceEsquemaDetMemo`: Detalle del reporte (texto).
      *    - `hceEsquemaDetProc`: Detalle del médico y producto.
      *
-     * @param int|null $idAtencion ID de la atención.
-     * @param int|null $idMedico ID del médico.
-     * @param string|null $reporteEstudio Texto del reporte.
-     * @param string|null $codCups Código CUPS del producto.
-     * @param string|null $fecHorLectura Fecha y hora de lectura.
-     * @return \Illuminate\Http\JsonResponse Resultado de la transacción.
+     * @param  int|null  $idAtencion  ID de la atención.
+     * @param  int|null  $idMedico  ID del médico.
+     * @param  string|null  $reporteEstudio  Texto del reporte.
+     * @param  string|null  $codCups  Código CUPS del producto.
+     * @param  string|null  $fecHorLectura  Fecha y hora de lectura.
+     * @return JsonResponse Resultado de la transacción.
      */
     public function enviarEstudio($idAtencion = null, $idMedico = null, $reporteEstudio = null, $codCups = null, $fecHorLectura = null)
     {
@@ -122,26 +128,26 @@ class SAHITranscibirController extends Controller
         /**
          * Establecer los datos del medico por medio del ID del usuario
          */
-        if (!$this->idMedico) {
+        if (! $this->idMedico) {
             return response()->json([
                 'message' => 'El médico no se encuentra registrado en SAHI, por favor consulte con el administrador del sistema.',
                 'status' => 307,
-                'statusText' => "NMédico no encontrado en SAHI"
+                'statusText' => "NMédico no encontrado en SAHI",
             ]);
         }
 
         $this->IdUsuario = $this->getUsuario()[0]['IdUsuario'];
         $this->IdPersonal = $this->getUsuario()[0]['IdPersonal'];
-        $this->nomMedico = $this->getUsuario()[0]['Nompersonal'] . " " . $this->getUsuario()[0]['ApePersonal'];
+        $this->nomMedico = $this->getUsuario()[0]['Nompersonal']." ".$this->getUsuario()[0]['ApePersonal'];
 
         /**
          * Busco la ubicación actual de la atención
          */
         $ubucacionActual = $this->getUbicacionActual()[0]['IdUbicacionActual'];
-        if (!$ubucacionActual) {
+        if (! $ubucacionActual) {
             return response()->json([
                 'message' => 'No se pudo obtener la ubicación actual de la atención.',
-                'status' => 205
+                'status' => 205,
             ]);
         }
 
@@ -211,6 +217,7 @@ class SAHITranscibirController extends Controller
             ->firstOrFail();
         $esquema->Consecutivo = $esquema->Consecutivo + 1;
         $esquema->save();
+
         return $esquema->Consecutivo;
     }
 
@@ -219,12 +226,13 @@ class SAHITranscibirController extends Controller
         $encavezadoPadre = HceEsquema::where('IdEsquema', 149)
             ->firstOrFail();
         $encavezadoPadre->IdConsecutivoEsq = $encavezadoPadre->IdConsecutivoEsq + 1;
+
         return $encavezadoPadre;
     }
 
     private function storeEsquemaEncabeza($conseEsquemaEncavezado1, $conseEsquemaEncavezado2, $ubucacionActual)
     {
-        $esquemaEncavezado = new hceEsquemaEncabeza();
+        $esquemaEncavezado = new hceEsquemaEncabeza;
         $esquemaEncavezado->IdEsquemaEncabezado = $conseEsquemaEncavezado2;
         $esquemaEncavezado->IdEsquema = '149';
         $esquemaEncavezado->idEncabezadoPadre = $conseEsquemaEncavezado1;
@@ -248,7 +256,7 @@ class SAHITranscibirController extends Controller
 
     private function storeEsquemaAtencion($conseEsquemaEncavezado, $ubucacionActual)
     {
-        $esquemAtenicon = new hceEsquemasdeAte();
+        $esquemAtenicon = new hceEsquemasdeAte;
         $esquemAtenicon->IdEsquemadeAtencion = $conseEsquemaEncavezado;
         $esquemAtenicon->IdEsquema = 149;
         $esquemAtenicon->IdAtencion = $this->idAtencion;
@@ -256,7 +264,7 @@ class SAHITranscibirController extends Controller
         $esquemAtenicon->idTraslado = 1;
         $esquemAtenicon->IdMedico = $this->IdPersonal;
         $esquemAtenicon->FecEsquema = $this->fecHorLectura;
-        $esquemAtenicon->IndHabilitado =  1;
+        $esquemAtenicon->IndHabilitado = 1;
         $esquemAtenicon->IndActivado = 1;
         $esquemAtenicon->FecCerrado = $this->fecHorLectura;
         $esquemAtenicon->IdUsuarioR = $this->IdUsuario;
@@ -267,7 +275,7 @@ class SAHITranscibirController extends Controller
 
     private function storeEsquemaMemo($conseEsquemaEncavezado, $ubucacionActual)
     {
-        $esquemaMemo = new hceEsquemaDetMemo();
+        $esquemaMemo = new hceEsquemaDetMemo;
         $esquemaMemo->IdMemo = 1;
         $esquemaMemo->IdEsquemaEncabezado = $conseEsquemaEncavezado;
         $esquemaMemo->DesMemo = $this->reporteEstudio;
@@ -278,7 +286,7 @@ class SAHITranscibirController extends Controller
 
     private function storeMedico($conseEsquemaEncavezado)
     {
-        $medico = new hceEsquemaDetProc();
+        $medico = new hceEsquemaDetProc;
         $medico->IdDetalleValor = 1;
         $medico->IdEsquemaEncabezado = $conseEsquemaEncavezado;
         $medico->ValNroRegistro = 1;
@@ -318,7 +326,7 @@ class SAHITranscibirController extends Controller
             ->firstOrFail();
 
         if ($productoSAHI) {
-            $producto = new hceEsquemaDetProc();
+            $producto = new hceEsquemaDetProc;
             $producto->IdDetalleValor = 1;
             $producto->IdEsquemaEncabezado = $conseEsquemaEncavezado;
             $producto->ValNroRegistro = 1;
@@ -349,6 +357,7 @@ class SAHITranscibirController extends Controller
             return $producto;
         } else {
             $this->logMessage('El producto no se encontró en SAHI');
+
             return false;
         }
     }
@@ -363,7 +372,7 @@ class SAHITranscibirController extends Controller
             return response()->json([
                 'message' => 'Hace falta  configurar el Id médico que se encuentra registrado en SAHI, por favor consulte con el administrador del sistema.',
                 'status' => 307,
-                'statusText' => "Médico si Id"
+                'statusText' => "Médico si Id",
             ]);
         }
 
@@ -385,7 +394,7 @@ class SAHITranscibirController extends Controller
             ->where('idAtencion', $this->idAtencion)
             ->get();
 
-        if (!$ubicacion) {
+        if (! $ubicacion) {
             return false;
         } else {
             return $ubicacion;

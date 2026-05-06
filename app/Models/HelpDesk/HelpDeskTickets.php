@@ -2,6 +2,8 @@
 
 namespace App\Models\HelpDesk;
 
+use App\Models\Configuracion\ConfigSede;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -45,22 +47,22 @@ class HelpDeskTickets extends Model
 
     public function sede()
     {
-        return $this->belongsTo(\App\Models\Configuracion\ConfigSede::class, 'sedes_id');
+        return $this->belongsTo(ConfigSede::class, 'sedes_id');
     }
 
     public function solicitante()
     {
-        return $this->belongsTo(\App\Models\User::class, 'quien_registra_id');
+        return $this->belongsTo(User::class, 'quien_registra_id');
     }
 
     public function asignado()
     {
-        return $this->belongsTo(\App\Models\User::class, 'quien_atiende_id');
+        return $this->belongsTo(User::class, 'quien_atiende_id');
     }
 
     public function solucionador()
     {
-        return $this->belongsTo(\App\Models\User::class, 'quien_soluciona_id');
+        return $this->belongsTo(User::class, 'quien_soluciona_id');
     }
 
     public function categoria()

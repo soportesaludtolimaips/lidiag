@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Illuminate\Contracts\Support\Renderable;
+use Illuminate\View\View;
 
 class HomeController extends Controller
 {
@@ -19,12 +20,12 @@ class HomeController extends Controller
     /**
      * Show the application dashboard.
      *
-     * @return \Illuminate\Contracts\Support\Renderable
+     * @return Renderable
      */
     /**
      * Renderiza la vista principal del dashboard.
      *
-     * @return \Illuminate\View\View Vista home.
+     * @return View Vista home.
      */
     public function index()
     {

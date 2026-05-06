@@ -5,8 +5,8 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
-use Spatie\Permission\PermissionRegistrar;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
 class AuditPermissions extends Command
 {
@@ -44,12 +44,13 @@ class AuditPermissions extends Command
 
             if ($rows->isEmpty()) {
                 $this->error("No existe en BD: {$find}");
+
                 return Command::FAILURE;
             }
 
             $this->info("Encontrado en BD ({$rows->count()}): {$find}");
             foreach ($rows as $row) {
-                $this->line('- guard: ' . $row->guard_name);
+                $this->line('- guard: '.$row->guard_name);
             }
 
             return Command::SUCCESS;
@@ -58,13 +59,13 @@ class AuditPermissions extends Command
         $dbPermissions = Permission::query()
             ->where('guard_name', $guard)
             ->pluck('name')
-            ->map(fn($p) => trim((string) $p))
+            ->map(fn ($p) => trim((string) $p))
             ->filter()
             ->unique()
             ->values();
 
         $usedPermissions = collect($this->collectUsedPermissions())
-            ->map(fn($p) => trim((string) $p))
+            ->map(fn ($p) => trim((string) $p))
             ->filter()
             ->unique()
             ->values();
@@ -76,22 +77,23 @@ class AuditPermissions extends Command
 
         $this->info("Guard: {$guard}");
         $this->line('-----------------------------');
-        $this->line('Permisos detectados en código: ' . $usedPermissions->count());
-        $this->line('Permisos existentes en BD:     ' . $dbPermissions->count());
+        $this->line('Permisos detectados en código: '.$usedPermissions->count());
+        $this->line('Permisos existentes en BD:     '.$dbPermissions->count());
         $this->newLine();
 
         if (count($missingInDb) === 0) {
             $this->info('OK: No hay permisos usados en código que falten en BD.');
         } else {
-            $this->error('FALTANTES EN BD (usados en código): ' . count($missingInDb));
+            $this->error('FALTANTES EN BD (usados en código): '.count($missingInDb));
             foreach ($missingInDb as $perm) {
                 $suggestions = $this->suggestSimilar($perm, $dbPermissions);
                 if ($suggestions->isEmpty()) {
                     $this->line("- {$perm}");
+
                     continue;
                 }
 
-                $this->line("- {$perm}  (quizás: " . $suggestions->implode(', ') . ')');
+                $this->line("- {$perm}  (quizás: ".$suggestions->implode(', ').')');
             }
         }
 
@@ -100,13 +102,13 @@ class AuditPermissions extends Command
             if (count($unusedInCode) === 0) {
                 $this->info('No hay permisos en BD que no se usen en código.');
             } else {
-                $this->warn('EN BD PERO NO USADOS EN CÓDIGO: ' . count($unusedInCode));
+                $this->warn('EN BD PERO NO USADOS EN CÓDIGO: '.count($unusedInCode));
                 foreach ($unusedInCode as $perm) {
                     $this->line("- {$perm}");
                 }
             }
         } else {
-            $this->line('Permisos en BD no usados en código: ' . count($unusedInCode) . ' (usa --show-unused para listarlos)');
+            $this->line('Permisos en BD no usados en código: '.count($unusedInCode).' (usa --show-unused para listarlos)');
         }
 
         if ($this->option('fail') && count($missingInDb) > 0) {
@@ -164,12 +166,13 @@ class AuditPermissions extends Command
         $files = [];
 
         foreach ($paths as $path) {
-            if (!$path || !File::exists($path)) {
+            if (! $path || ! File::exists($path)) {
                 continue;
             }
 
             if (File::isFile($path)) {
                 $files[] = $path;
+
                 continue;
             }
 
@@ -180,7 +183,7 @@ class AuditPermissions extends Command
 
             foreach (File::allFiles($path) as $file) {
                 $ext = strtolower($file->getExtension());
-                if (!in_array($ext, ['php', 'blade.php', 'js', 'vue'], true)) {
+                if (! in_array($ext, ['php', 'blade.php', 'js', 'vue'], true)) {
                     // "blade.php" llega como ext "php"; por eso filtramos también por nombre abajo.
                     // Este filtro por extensión solo descarta lo claramente irrelevante.
                 }
@@ -266,8 +269,8 @@ class AuditPermissions extends Command
     {
         $perms = [];
 
-        $regex = '/' . preg_quote($fnName, '/') . '\(\s*\[([\s\S]*?)\]\s*\)/m';
-        if (!preg_match_all($regex, $content, $m)) {
+        $regex = '/'.preg_quote($fnName, '/').'\(\s*\[([\s\S]*?)\]\s*\)/m';
+        if (! preg_match_all($regex, $content, $m)) {
             return $perms;
         }
 
@@ -320,10 +323,11 @@ class AuditPermissions extends Command
         return $haystack
             ->map(function (string $candidate) use ($needle) {
                 $distance = levenshtein($needle, $candidate);
+
                 return ['name' => $candidate, 'distance' => $distance];
             })
             ->sortBy('distance')
-            ->filter(fn(array $x) => $x['distance'] <= 3)
+            ->filter(fn (array $x) => $x['distance'] <= 3)
             ->take(3)
             ->pluck('name')
             ->values();

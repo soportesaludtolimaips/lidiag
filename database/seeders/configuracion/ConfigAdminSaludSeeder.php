@@ -3,9 +3,7 @@
 namespace Database\Seeders\configuracion;
 
 use App\Models\Configuracion\ConfigAdminSalud;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-
 
 class ConfigAdminSaludSeeder extends Seeder
 {

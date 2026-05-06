@@ -40,10 +40,12 @@ class ResetPermissionCacheSafe extends Command
             // Eso NO es un error real; lo único preocupante sería una excepción (permisos/driver roto).
             $forgot = (bool) $cache->forget($key);
 
-            $this->info("OK: cache de permisos reseteado (store={$store}, key={$key}, deleted=" . ($forgot ? 'true' : 'false') . ').');
+            $this->info("OK: cache de permisos reseteado (store={$store}, key={$key}, deleted=".($forgot ? 'true' : 'false').').');
+
             return Command::SUCCESS;
         } catch (\Throwable $e) {
-            $this->error("Error reseteando cache de permisos (store={$store}, key={$key}): " . $e->getMessage());
+            $this->error("Error reseteando cache de permisos (store={$store}, key={$key}): ".$e->getMessage());
+
             return Command::FAILURE;
         }
     }

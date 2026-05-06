@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Ecografias;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Ecografias\EcografiaProductoRequest;
 use App\Models\Ecografias\EcografiaProducto;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class EcografiaProductoController extends Controller
@@ -16,11 +17,12 @@ class EcografiaProductoController extends Controller
      * 1. Consulta el modelo EcografiaProducto con sus relaciones (ecografia, medico, producto).
      * 2. Retorna la colección en formato JSON.
      *
-     * @return \Illuminate\Http\JsonResponse Lista de productos de ecografías.
+     * @return JsonResponse Lista de productos de ecografías.
      */
     public function index()
     {
         $ecografiaProductos = EcografiaProducto::with(['ecografia.medico', 'productos'])->get();
+
         return response()->json($ecografiaProductos);
     }
 
@@ -39,12 +41,13 @@ class EcografiaProductoController extends Controller
      * 1. Crea el registro usando los datos validados del request.
      * 2. Retorna confirmación y los datos creados.
      *
-     * @param EcografiaProductoRequest $request Datos del producto a crear.
-     * @return \Illuminate\Http\JsonResponse Datos del producto creado.
+     * @param  EcografiaProductoRequest  $request  Datos del producto a crear.
+     * @return JsonResponse Datos del producto creado.
      */
     public function store(EcografiaProductoRequest $request)
     {
         $ecografiaProducto = EcografiaProducto::create($request->validated());
+
         return response()->json(['success' => true, 'data' => $ecografiaProducto], 201);
     }
 
@@ -55,12 +58,13 @@ class EcografiaProductoController extends Controller
      * 1. Busca el producto por ID incluyendo relaciones.
      * 2. Retorna el objeto o error 404.
      *
-     * @param int $id ID del producto de ecografía.
-     * @return \Illuminate\Http\JsonResponse Datos del producto.
+     * @param  int  $id  ID del producto de ecografía.
+     * @return JsonResponse Datos del producto.
      */
     public function show($id)
     {
         $ecografiaProducto = EcografiaProducto::with(['ecografia.medico', 'productos'])->findOrFail($id);
+
         return response()->json($ecografiaProducto);
     }
 
@@ -80,14 +84,15 @@ class EcografiaProductoController extends Controller
      * 2. Actualiza con los datos validados.
      * 3. Retorna confirmación.
      *
-     * @param EcografiaProductoRequest $request Datos a actualizar.
-     * @param int $id ID del producto de ecografía.
-     * @return \Illuminate\Http\JsonResponse Datos actualizados.
+     * @param  EcografiaProductoRequest  $request  Datos a actualizar.
+     * @param  int  $id  ID del producto de ecografía.
+     * @return JsonResponse Datos actualizados.
      */
     public function update(EcografiaProductoRequest $request, $id)
     {
         $ecografiaProducto = EcografiaProducto::findOrFail($id);
         $ecografiaProducto->update($request->validated());
+
         return response()->json(['success' => true, 'data' => $ecografiaProducto]);
     }
 
@@ -99,13 +104,14 @@ class EcografiaProductoController extends Controller
      * 2. Elimina el registro.
      * 3. Retorna mensaje de éxito.
      *
-     * @param int $id ID del producto de ecografía.
-     * @return \Illuminate\Http\JsonResponse Confirmación.
+     * @param  int  $id  ID del producto de ecografía.
+     * @return JsonResponse Confirmación.
      */
     public function destroy($id)
     {
         $ecografiaProducto = EcografiaProducto::findOrFail($id);
         $ecografiaProducto->delete();
+
         return response()->json(['success' => true, 'message' => 'Producto de ecografía eliminado correctamente']);
     }
 }

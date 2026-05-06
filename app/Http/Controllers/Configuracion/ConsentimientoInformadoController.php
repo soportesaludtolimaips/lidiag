@@ -27,10 +27,11 @@ class ConsentimientoInformadoController extends Controller
         $consentimientoInformados = ConsentimientoInformado::with(['producto', 'sede', 'usuarioCrea'])
             ->orderByDesc('id')
             ->get();
+
         return response()->json([
             'status' => 'success',
             'message' => 'Consentimiento Informado listado correctamente',
-            'data' => $consentimientoInformados
+            'data' => $consentimientoInformados,
         ]);
     }
 
@@ -50,7 +51,7 @@ class ConsentimientoInformadoController extends Controller
         $path = null;
         if ($request->hasFile('archivo')) {
             $file = $request->file('archivo');
-            $name = Str::random(40) . '.' . $file->getClientOriginalExtension();
+            $name = Str::random(40).'.'.$file->getClientOriginalExtension();
             $path = $file->storeAs('consentimiento_informado', $name, 'public');
         }
 
@@ -66,7 +67,7 @@ class ConsentimientoInformadoController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Consentimiento Informado creado correctamente',
-            'data' => $consentimientoInformado->load(['producto', 'sede', 'usuarioCrea'])
+            'data' => $consentimientoInformado->load(['producto', 'sede', 'usuarioCrea']),
         ], 201);
     }
 
@@ -77,7 +78,7 @@ class ConsentimientoInformadoController extends Controller
     {
         $consentimientoInformado = ConsentimientoInformado::with(['producto', 'sede', 'usuarioCrea'])->find($id);
 
-        if (!$consentimientoInformado) {
+        if (! $consentimientoInformado) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Consentimiento Informado no encontrado',
@@ -87,7 +88,7 @@ class ConsentimientoInformadoController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Consentimiento Informado obtenido correctamente',
-            'data' => $consentimientoInformado
+            'data' => $consentimientoInformado,
         ]);
     }
 
@@ -98,7 +99,7 @@ class ConsentimientoInformadoController extends Controller
     {
         $consentimientoInformado = ConsentimientoInformado::find($id);
 
-        if (!$consentimientoInformado) {
+        if (! $consentimientoInformado) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Consentimiento Informado no encontrado',
@@ -120,7 +121,7 @@ class ConsentimientoInformadoController extends Controller
                 Storage::disk('public')->delete($path);
             }
             $file = $request->file('archivo');
-            $name = Str::random(40) . '.' . $file->getClientOriginalExtension();
+            $name = Str::random(40).'.'.$file->getClientOriginalExtension();
             $path = $file->storeAs('consentimiento_informado', $name, 'public');
         }
 
@@ -135,7 +136,7 @@ class ConsentimientoInformadoController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Consentimiento Informado actualizado correctamente',
-            'data' => $consentimientoInformado->load(['producto', 'sede', 'usuarioCrea'])
+            'data' => $consentimientoInformado->load(['producto', 'sede', 'usuarioCrea']),
         ]);
     }
 
@@ -146,7 +147,7 @@ class ConsentimientoInformadoController extends Controller
     {
         $consentimientoInformado = ConsentimientoInformado::find($id);
 
-        if (!$consentimientoInformado) {
+        if (! $consentimientoInformado) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Consentimiento Informado no encontrado',
@@ -171,10 +172,11 @@ class ConsentimientoInformadoController extends Controller
             ->where('estado', true)
             ->orderByDesc('id')
             ->get();
+
         return response()->json([
             'status' => 'success',
             'message' => 'Consentimiento Informado listado correctamente',
-            'data' => $consentimientoInformados
+            'data' => $consentimientoInformados,
         ]);
     }
 }

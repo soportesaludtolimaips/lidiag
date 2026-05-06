@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Configuracion;
 
 use App\Http\Controllers\Controller;
 use App\Models\Configuracion\ConfigPlantilla;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ConfigPlantillaController extends Controller
@@ -20,7 +21,7 @@ class ConfigPlantillaController extends Controller
     /**
      * Lista todas las plantillas de lectura.
      *
-     * @return \Illuminate\Http\JsonResponse Lista de plantillas con relaciones (tipo, médico).
+     * @return JsonResponse Lista de plantillas con relaciones (tipo, médico).
      */
     public function index()
     {
@@ -38,7 +39,7 @@ class ConfigPlantillaController extends Controller
      * 3. Retorna la plantilla creada.
      *
      * @param  Request  $request  Datos de la plantilla.
-     * @return \Illuminate\Http\JsonResponse Datos de la plantilla creada.
+     * @return JsonResponse Datos de la plantilla creada.
      */
     public function store(Request $request)
     {
@@ -73,7 +74,7 @@ class ConfigPlantillaController extends Controller
      * Muestra una plantilla específica.
      *
      * @param  int  $id  ID de la plantilla.
-     * @return \Illuminate\Http\JsonResponse Datos de la plantilla.
+     * @return JsonResponse Datos de la plantilla.
      */
     public function show($id)
     {
@@ -91,7 +92,7 @@ class ConfigPlantillaController extends Controller
      *
      * @param  Request  $request  Datos a actualizar.
      * @param  int  $id  ID de la plantilla.
-     * @return \Illuminate\Http\JsonResponse Datos actualizados.
+     * @return JsonResponse Datos actualizados.
      */
     public function update(Request $request, $id)
     {
@@ -122,7 +123,7 @@ class ConfigPlantillaController extends Controller
      * Elimina una plantilla.
      *
      * @param  int  $id  ID de la plantilla.
-     * @return \Illuminate\Http\JsonResponse Respuesta vacía (204).
+     * @return JsonResponse Respuesta vacía (204).
      */
     public function destroy($id)
     {
@@ -135,7 +136,7 @@ class ConfigPlantillaController extends Controller
     /**
      * Lista las plantillas activas.
      *
-     * @return \Illuminate\Http\JsonResponse Lista de plantillas activas.
+     * @return JsonResponse Lista de plantillas activas.
      */
     public function listarActivos()
     {

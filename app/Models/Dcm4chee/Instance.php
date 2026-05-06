@@ -10,8 +10,11 @@ class Instance extends Model
     use HasFactory;
 
     protected $connection = 'mysql_sucursal';
+
     protected $table = 'instance';
+
     protected $primaryKey = 'pk'; // Asumiendo que 'pk' es la clave primaria de la tabla instance
+
     public $timestamps = false;
 
     public function series()

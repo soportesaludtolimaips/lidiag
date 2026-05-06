@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Consentimientos\ConsentimientoPlantilla;
 use App\Models\Consentimientos\EcografiaConsentimiento;
 use App\Models\Ecografias\EcografiaProducto;
+use Carbon\Carbon;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -411,7 +413,7 @@ class EcografiaConsentimientosController extends Controller
         $baseName = "Consentimiento_{$numDoc}_{$cod}.pdf";
         $filename = $this->makeUniquePdfFilename($baseName);
 
-        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        /** @var FilesystemAdapter $disk */
         $disk = Storage::disk('files_consentimientos');
         $disk->put($filename, $output);
 
@@ -433,7 +435,7 @@ class EcografiaConsentimientosController extends Controller
         $prefix = 'files_consentimientos/';
         $rel = str_starts_with($consent->pdf_path, $prefix) ? substr($consent->pdf_path, strlen($prefix)) : $consent->pdf_path;
 
-        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        /** @var FilesystemAdapter $disk */
         $disk = Storage::disk('files_consentimientos');
 
         if (! $disk->exists($rel)) {
@@ -461,7 +463,7 @@ class EcografiaConsentimientosController extends Controller
             ->get();
 
         $zipName = 'consentimientos_'.now()->format('Ymd_His').'_'.Str::random(8).'.zip';
-        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        /** @var FilesystemAdapter $disk */
         $disk = Storage::disk('files_consentimientos');
 
         $zipRel = $zipName;
@@ -499,7 +501,7 @@ class EcografiaConsentimientosController extends Controller
         $edad = null;
         if ($p?->fec_naci) {
             try {
-                $edad = \Carbon\Carbon::parse($p->fec_naci)->age;
+                $edad = Carbon::parse($p->fec_naci)->age;
             } catch (\Throwable $t) {
                 $edad = null;
             }

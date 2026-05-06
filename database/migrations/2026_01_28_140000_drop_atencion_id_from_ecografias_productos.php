@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('ecografias_productos')) {
+        if (! Schema::hasTable('ecografias_productos')) {
             return;
         }
 
-        if (!Schema::hasColumn('ecografias_productos', 'atencion_id')) {
+        if (! Schema::hasColumn('ecografias_productos', 'atencion_id')) {
             return;
         }
 
@@ -26,7 +26,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (!Schema::hasTable('ecografias_productos')) {
+        if (! Schema::hasTable('ecografias_productos')) {
             return;
         }
 

@@ -6,8 +6,8 @@ use App\Models\User;
 use Illuminate\Console\Command;
 use Spatie\Permission\Exceptions\PermissionDoesNotExist;
 use Spatie\Permission\Guard;
-use Spatie\Permission\PermissionRegistrar;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
 class CheckUserPermission extends Command
 {
@@ -34,13 +34,14 @@ class CheckUserPermission extends Command
 
         if ($search !== '') {
             $q = User::query()
-                ->where('name', 'like', '%' . $search . '%')
-                ->orWhere('email', 'like', '%' . $search . '%');
+                ->where('name', 'like', '%'.$search.'%')
+                ->orWhere('email', 'like', '%'.$search.'%');
 
             $users = $q->limit(25)->get(['id', 'name', 'email']);
 
             if ($users->isEmpty()) {
                 $this->warn("Sin resultados para --search={$search}");
+
                 return Command::SUCCESS;
             }
 
@@ -48,12 +49,14 @@ class CheckUserPermission extends Command
             foreach ($users as $u) {
                 $this->line("- id={$u->id}  name=\"{$u->name}\"  email=\"{$u->email}\"");
             }
+
             return Command::SUCCESS;
         }
 
         $identifier = $this->argument('user');
-        if (!$identifier) {
+        if (! $identifier) {
             $this->error('Debes pasar {user} (id/email/nombre exacto) o usar --search=');
+
             return Command::FAILURE;
         }
 
@@ -61,35 +64,36 @@ class CheckUserPermission extends Command
         if (is_numeric($identifier)) {
             $user = User::query()->find((int) $identifier);
         }
-        if (!$user) {
+        if (! $user) {
             $user = User::query()
                 ->where('email', (string) $identifier)
                 ->orWhere('name', (string) $identifier)
                 ->first();
         }
 
-        if (!$user) {
+        if (! $user) {
             $this->error("No encontré usuario: {$identifier}");
+
             return Command::FAILURE;
         }
 
         $this->info("Usuario: id={$user->id}  name=\"{$user->name}\"  email=\"{$user->email}\"");
 
         $roles = $user->getRoleNames()->values();
-        $this->line('Roles (' . $roles->count() . '): ' . ($roles->isEmpty() ? '—' : $roles->implode(', ')));
+        $this->line('Roles ('.$roles->count().'): '.($roles->isEmpty() ? '—' : $roles->implode(', ')));
 
         $directPerms = $user->getDirectPermissions()->pluck('name')->sort()->values();
-        $this->line('Permisos directos (' . $directPerms->count() . '): ' . ($directPerms->isEmpty() ? '—' : $directPerms->implode(', ')));
+        $this->line('Permisos directos ('.$directPerms->count().'): '.($directPerms->isEmpty() ? '—' : $directPerms->implode(', ')));
 
         $allPerms = $user->getAllPermissions()->pluck('name')->sort()->values();
-        $this->line('Permisos efectivos (roles+directos) (' . $allPerms->count() . ').');
+        $this->line('Permisos efectivos (roles+directos) ('.$allPerms->count().').');
 
-        if (!empty($perms)) {
+        if (! empty($perms)) {
             $this->newLine();
             $possibleGuards = Guard::getNames($user)->values();
             $defaultGuard = Guard::getDefaultName($user);
-            $this->line('Guards usuario: posibles=' . ($possibleGuards->isEmpty() ? '—' : $possibleGuards->implode(', ')) . '  default=' . $defaultGuard);
-            $this->line('Spatie cache: key=' . PermissionRegistrar::$cacheKey . '  forget=' . ($forgot ? 'OK' : 'NO/FAIL'));
+            $this->line('Guards usuario: posibles='.($possibleGuards->isEmpty() ? '—' : $possibleGuards->implode(', ')).'  default='.$defaultGuard);
+            $this->line('Spatie cache: key='.PermissionRegistrar::$cacheKey.'  forget='.($forgot ? 'OK' : 'NO/FAIL'));
 
             $this->newLine();
             $this->info('Chequeo de permisos:');

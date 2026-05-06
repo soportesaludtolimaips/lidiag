@@ -2,9 +2,8 @@
 
 namespace Database\Seeders\Seguridad;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\User;
+use Illuminate\Database\Seeder;
 
 class UserSeeder extends Seeder
 {
@@ -63,11 +62,6 @@ class UserSeeder extends Seeder
         User::create(['num_docu' => '74083005', 'reg_med' => '', 'name' => 'JOSÉ RODRIGO AGUIRRE VARGAS', 'email' => 'rodrigoxp72@hotmail.com', 'password' => bcrypt('123456')])->assignRole('Medico');
         User::create(['num_docu' => '52080801', 'reg_med' => '52080801', 'name' => 'TL NORMA LUCIA CORTES MORALES', 'email' => 'NORCOR01@tl.com', 'password' => bcrypt('123456')])->assignRole('Medico');
         User::create(['num_docu' => '0000006', 'reg_med' => '', 'name' => 'ESTADISTICA ESTADISTICA', 'email' => 'estadistica@estadistica.com', 'password' => bcrypt('123456')])->assignRole('Medico');
-
-
-
-
-
 
         User::create(['num_docu' => '1054546111', 'reg_med' => '', 'name' => 'Erika Viviana Popayán Linares', 'email' => 'transcripcionsaludtolimadorada@gmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');
         User::create(['num_docu' => '1054554781', 'reg_med' => '', 'name' => 'Luisa Fernanda Pérez conde', 'email' => 'Perezconde_1991@hotmail.com', 'password' => bcrypt('123456')])->assignRole('Administrativo');

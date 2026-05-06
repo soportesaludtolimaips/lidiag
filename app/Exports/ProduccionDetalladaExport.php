@@ -2,24 +2,29 @@
 
 namespace App\Exports;
 
-use App\Models\Estudio\Estudio;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
-use Maatwebsite\Excel\Concerns\WithCustomStartCell;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Collection;
-use Termwind\Components\Raw;
 
-class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithColumnWidths, WithCustomStartCell
+class ProduccionDetalladaExport implements FromCollection, WithColumnWidths, WithCustomStartCell, WithHeadings, WithMapping, WithStyles
 {
     protected $fechaInicio;
+
     protected $fechaFin;
+
     protected $sedeId;
+
     protected $quienAsignoId;
+
     protected $medicoId;
 
     public function __construct($fechaInicio, $fechaFin, $sedeId, $quienAsignoId, $medicoId)
@@ -79,8 +84,9 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
                 'estudios_productos.lectura'
             )
             ->get();
+
         return $estudios;
-        //return new Collection($estudios);
+        // return new Collection($estudios);
     }
 
     public function headings(): array
@@ -104,7 +110,7 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
             'EPS',
             'Contrato',
             'Plan',
-            'Lectura'
+            'Lectura',
         ];
     }
 
@@ -146,11 +152,11 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
                 'size' => 14,
             ],
             'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'fillType' => Fill::FILL_SOLID,
                 'startColor' => ['rgb' => '1A2274'],
             ],
             'alignment' => [
-                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
             ],
         ]);
 
@@ -161,19 +167,19 @@ class ProduccionDetalladaExport implements FromCollection, WithHeadings, WithMap
                 'color' => ['rgb' => 'FFFFFF'],
             ],
             'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'fillType' => Fill::FILL_SOLID,
                 'startColor' => ['rgb' => '1A2274'],
             ],
             'alignment' => [
-                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
             ],
         ]);
 
         // Establece bordes para todas las celdas de datos
-        $sheet->getStyle('A4:S' . ($sheet->getHighestRow()))->applyFromArray([
+        $sheet->getStyle('A4:S'.($sheet->getHighestRow()))->applyFromArray([
             'borders' => [
                 'allBorders' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'borderStyle' => Border::BORDER_THIN,
                     'color' => ['rgb' => '000000'],
                 ],
             ],

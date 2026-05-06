@@ -7,15 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 class ConfigProducto extends Model
 {
     protected $connection = 'mysql_importar_dicom';
+
     protected $table = 'config_productos';
+
     protected $primaryKey = 'id_produc';
+
     public $timestamps = false;
 
     protected $fillable = [
         'cod_produc',
         'nom_produc',
         'val_soat',
-        'acti'
+        'acti',
     ];
 
     public function lecturas()

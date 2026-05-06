@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Ecografias\Ecografia;
 use App\Models\Ecografias\EcografiaProducto;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -29,7 +30,7 @@ class ecografiaLecturaController extends Controller
      *
      * @param  Request  $request  Datos de la lectura (texto, opinion, accion).
      * @param  int  $id  ID de la ecografía.
-     * @return \Illuminate\Http\JsonResponse Confirmación de guardado.
+     * @return JsonResponse Confirmación de guardado.
      */
     public function leer(Request $request, $id)
     {
@@ -90,7 +91,7 @@ class ecografiaLecturaController extends Controller
      * 4. Retorna la lista de ecografías pendientes.
      *
      * @param  int  $idMedico  ID del médico.
-     * @return \Illuminate\Http\JsonResponse Lista de ecografías pendientes.
+     * @return JsonResponse Lista de ecografías pendientes.
      */
     public function listarPendientesPorLectura($idMedico)
     {

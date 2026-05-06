@@ -7,6 +7,7 @@ use App\Models\Configuracion\ConfigSede;
 use App\Models\Dcm4chee\Study;
 use App\Models\Estudio\Estudio;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 
@@ -33,7 +34,7 @@ class StudyController extends Controller
      *
      * @param  Request  $request  Filtros: `sede_id`, `bus_nom_num_docu`, `bus_fehc_ini`, `bus_fecha_fin`.
      * @param  Study  $study  Modelo de estudio DCM4CHEE.
-     * @return \Illuminate\Http\Response Lista de estudios en formato JSON.
+     * @return Response Lista de estudios en formato JSON.
      */
     public function listarEstudios(Request $request, Study $study)
     {
@@ -108,8 +109,8 @@ class StudyController extends Controller
 
         if ($tieneFechas) {
             // Rango sin DATE() para permitir uso de índice en study_datetime
-            $inicio = $request->bus_fehc_ini . ' 00:00:00';
-            $fin = date('Y-m-d', strtotime($request->bus_fecha_fin . ' +1 day')) . ' 00:00:00';
+            $inicio = $request->bus_fehc_ini.' 00:00:00';
+            $fin = date('Y-m-d', strtotime($request->bus_fecha_fin.' +1 day')).' 00:00:00';
             $query->where('study.study_datetime', '>=', $inicio)
                 ->where('study.study_datetime', '<', $fin);
         }

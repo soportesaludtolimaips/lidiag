@@ -10,6 +10,7 @@ use App\Models\Estudio\EstudioProducto;
 use App\Models\Estudio\EstudioProductoAdendum;
 use App\Models\General\Paciente;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -55,7 +56,7 @@ class TeleRadiologiaController extends Controller
      * Envía una orden a la API externa de Teleradiología.
      *
      * @param  Request  $request  Datos de la orden.
-     * @return \Illuminate\Http\JsonResponse Respuesta de la API externa o error.
+     * @return JsonResponse Respuesta de la API externa o error.
      */
     public function enviarOrdenTeleRadiologia(Request $request)
     {
@@ -121,12 +122,12 @@ class TeleRadiologiaController extends Controller
      * fechor_lectura, lectura, medico{reg_medico,num_docu,name,firma_medico}, tipo_resultado.
      *
      * @param  Request  $request  Datos de la lectura.
-     * @return \Illuminate\Http\JsonResponse Respuesta de confirmación.
+     * @return JsonResponse Respuesta de confirmación.
      */
     public function recibirLectura(Request $request)
     {
         // 1. Logs iniciales para depuración
-        Log::info('RAW CONTENT: ' . $request->getContent());
+        Log::info('RAW CONTENT: '.$request->getContent());
 
         // 2. Procesamiento de Encoding y JSON (ISO-8859-1 a UTF-8)
         $rawContent = $request->getContent();
@@ -167,7 +168,7 @@ class TeleRadiologiaController extends Controller
             $estudio = Estudio::where('study_iuid', $d['study_iuid'])->first();
 
             if (! $estudio) {
-                return response()->json(['message' => 'Estudio no encontrado con IUID: ' . $d['study_iuid']], 404);
+                return response()->json(['message' => 'Estudio no encontrado con IUID: '.$d['study_iuid']], 404);
             }
 
             // 6. Buscar el producto específico del estudio (CUPS)
@@ -205,7 +206,7 @@ class TeleRadiologiaController extends Controller
                     'tipo_documento_id' => 1,
                     'nombres' => $d['paciente']['nom_pacien'] ?? null,
                     'sexo' => in_array($sexo, ['M', 'F']) ? $sexo : 'M',
-                    //'fec_naci' => $d['paciente']['fec_naci'] ?? null,
+                    // 'fec_naci' => $d['paciente']['fec_naci'] ?? null,
                 ]
             );
 
@@ -227,7 +228,7 @@ class TeleRadiologiaController extends Controller
                 'medico' => $medico->name,
             ], 200);
         } catch (\Exception $e) {
-            Log::error("Error crítico en recibirLectura: " . $e->getMessage());
+            Log::error("Error crítico en recibirLectura: ".$e->getMessage());
 
             return response()->json([
                 'message' => 'Error interno del servidor.',
@@ -241,7 +242,7 @@ class TeleRadiologiaController extends Controller
      * y gestiona la firma en base64 si está presente.
      *
      * @param  array  $medicoData  Datos provenientes del JSON
-     * @return \App\Models\User
+     * @return User
      */
     private function procesarMedicoConFirma(array $medicoData)
     {
@@ -249,11 +250,11 @@ class TeleRadiologiaController extends Controller
         $medico = User::firstOrNew(['reg_med' => $medicoData['reg_medico']]);
 
         // 2. Actualizar datos básicos
-        $medico->name = 'TL ' . ($medicoData['name'] ?? 'Sin Nombre');
+        $medico->name = 'TL '.($medicoData['name'] ?? 'Sin Nombre');
         $medico->reg_med = $medicoData['reg_medico'] ?? $medico->reg_med;
 
         if (! $medico->exists) {
-            $medico->email = $medicoData['num_docu'] . '@teleradiologia.com';
+            $medico->email = $medicoData['num_docu'].'@teleradiologia.com';
             $medico->password = bcrypt('password');
         }
 
@@ -279,18 +280,18 @@ class TeleRadiologiaController extends Controller
                     }
 
                     // Generar nombre aleatorio de 50 caracteres
-                    $nombreArchivo = Str::random(50) . "." . $extension;
+                    $nombreArchivo = Str::random(50).".".$extension;
 
                     // Guardar en el disco configurado
                     $guardadoExitoso = Storage::disk('firmas_medicos')->put($nombreArchivo, $imgData);
 
                     if ($guardadoExitoso) {
                         // Actualizar el path en el modelo
-                        $medico->firma = 'firmas_medicos/' . $nombreArchivo;
+                        $medico->firma = 'firmas_medicos/'.$nombreArchivo;
                     }
                 }
             } catch (\Exception $e) {
-                Log::error("Error al sustituir firma del médico {$medico->num_docu}: " . $e->getMessage());
+                Log::error("Error al sustituir firma del médico {$medico->num_docu}: ".$e->getMessage());
             }
         }
 

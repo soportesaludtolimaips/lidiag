@@ -12,6 +12,7 @@ class UserModulo extends Model
     use HasFactory;
 
     protected $table = 'users_modulos';
+
     protected $fillable = [
         'user_id',
         'modulo_id',

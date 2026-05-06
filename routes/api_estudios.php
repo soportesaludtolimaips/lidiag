@@ -1,5 +1,13 @@
 <?php
 
+use App\Http\Controllers\Dcm4chee\StudyController;
+use App\Http\Controllers\Estudios\EstudioAudioController;
+use App\Http\Controllers\Estudios\EstudioController;
+use App\Http\Controllers\Estudios\EstudioDiagnosticoController;
+use App\Http\Controllers\Estudios\EstudioNotificacionController;
+use App\Http\Controllers\Estudios\EstudioProductoController;
+use App\Http\Controllers\Estudios\EstudioSoporteHCController;
+use App\Http\Controllers\Estudios\PlantillaEstudioController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,71 +24,69 @@ Route::middleware(['auth:sanctum'])->group(function () {
     /*
      * Estudios API Endpoints
      */
-    Route::post('/study.listarEstudios', [App\Http\Controllers\Dcm4chee\StudyController::class, 'listarEstudios'])
+    Route::post('/study.listarEstudios', [StudyController::class, 'listarEstudios'])
         ->name('api.study.listarEstudios');
 
-    Route::resource('/estudios', App\Http\Controllers\Estudios\EstudioController::class)
+    Route::resource('/estudios', EstudioController::class)
         ->names('api.estudios')
         ->except(['create', 'show']);
 
-    Route::get('/study-listar-diagnostico-por-estudio', [App\Http\Controllers\Estudios\EstudioController::class, 'listarDiagnosticoPorEstudio'])
+    Route::get('/study-listar-diagnostico-por-estudio', [EstudioController::class, 'listarDiagnosticoPorEstudio'])
         ->name('api.study.listar.diagnostico.por.estudio');
 
-    Route::resource('/estudios-productos', App\Http\Controllers\Estudios\EstudioProductoController::class)
+    Route::resource('/estudios-productos', EstudioProductoController::class)
         ->names('api.estudios.productos');
 
-    Route::resource('/estudios-diagnosticos', App\Http\Controllers\Estudios\EstudioDiagnosticoController::class)
+    Route::resource('/estudios-diagnosticos', EstudioDiagnosticoController::class)
         ->names('api.estudios.diagnosticos');
 
-    Route::get('/listar-soportes-hc-estudio', [App\Http\Controllers\Estudios\EstudioSoporteHCController::class, 'listarSoportesHistoriaClinicaPorPorEstudio'])
+    Route::get('/listar-soportes-hc-estudio', [EstudioSoporteHCController::class, 'listarSoportesHistoriaClinicaPorPorEstudio'])
         ->name('api.study.listar.soporte.hc.estudio');
 
     // Descarga de soportes HC desde frontend Vue (blob). (equivalente a web.php)
-    Route::get('/descarga-soportes-hc/{nomArchivoEncriptadote}', [App\Http\Controllers\Estudios\EstudioSoporteHCController::class, 'descargarSoporte'])
+    Route::get('/descarga-soportes-hc/{nomArchivoEncriptadote}', [EstudioSoporteHCController::class, 'descargarSoporte'])
         ->name('api.study.descarga.soporte.hc');
 
-    Route::post('/listar.estudios.notificaciones', [App\Http\Controllers\Estudios\EstudioNotificacionController::class, 'listarEstudios'])
+    Route::post('/listar.estudios.notificaciones', [EstudioNotificacionController::class, 'listarEstudios'])
         ->name('api.listar.estudios.notificaciones');
 
-    Route::post('/notificar.email', [App\Http\Controllers\Estudios\EstudioController::class, 'notificarEmail'])
+    Route::post('/notificar.email', [EstudioController::class, 'notificarEmail'])
         ->name('api.notificar.email');
 
-    Route::post('/enviar-portal-pacientes', [App\Http\Controllers\Estudios\EstudioController::class, 'enviarPortalPacientes'])
+    Route::post('/enviar-portal-pacientes', [EstudioController::class, 'enviarPortalPacientes'])
         ->name('api.enviar.portal.pacientes');
 
-    Route::post('/marcar-visto/{id}', [App\Http\Controllers\Estudios\EstudioController::class, 'marcarEstudioVisto'])
+    Route::post('/marcar-visto/{id}', [EstudioController::class, 'marcarEstudioVisto'])
         ->name('api.estudios.marcarEstudioVisto');
 
-    Route::post('/edit-word', [App\Http\Controllers\Estudios\PlantillaEstudioController::class, 'editWord']);
+    Route::post('/edit-word', [PlantillaEstudioController::class, 'editWord']);
 
-    Route::post('/estudio-leerEstudio', [App\Http\Controllers\Estudios\EstudioController::class, 'leerEstudio'])
+    Route::post('/estudio-leerEstudio', [EstudioController::class, 'leerEstudio'])
         ->name('api.estudio.leerEstudio');
 
-    Route::post('/upload-audio', [App\Http\Controllers\Estudios\EstudioAudioController::class, 'uploadAudio']);
+    Route::post('/upload-audio', [EstudioAudioController::class, 'uploadAudio']);
 
-    Route::get('/listar-audios-estudio/{estudio_id}', [App\Http\Controllers\Estudios\EstudioAudioController::class, 'listarAudiosPorEstudio'])
+    Route::get('/listar-audios-estudio/{estudio_producto_id}', [EstudioAudioController::class, 'listarAudiosPorEstudio'])
         ->name('api.listarAudiosPorEstudio');
 
-    Route::post('/estudio-listarPendientesTrascribir', [App\Http\Controllers\Estudios\EstudioController::class, 'listarPendientesTrascribir'])
+    Route::post('/estudio-listarPendientesTrascribir', [EstudioController::class, 'listarPendientesTrascribir'])
         ->name('api.estudio.listarPendientesTrascribir');
 
-    Route::post('/estudio-listarEstudiosAsignados', [App\Http\Controllers\Estudios\EstudioController::class, 'listarEstudiosAsignados'])
+    Route::post('/estudio-listarEstudiosAsignados', [EstudioController::class, 'listarEstudiosAsignados'])
         ->name('api.estudio.listarEstudiosAsignados');
 
-    Route::post('/estudio-guardarTranscripcion', [App\Http\Controllers\Estudios\EstudioController::class, 'guardarTranscripcion'])
+    Route::post('/estudio-guardarTranscripcion', [EstudioController::class, 'guardarTranscripcion'])
         ->name('api.estudio.guardarTranscripcion');
 
-    Route::post('/estudio-anular-asignacion', [App\Http\Controllers\Estudios\EstudioController::class, 'anularAsignacion'])
+    Route::post('/estudio-anular-asignacion', [EstudioController::class, 'anularAsignacion'])
         ->name('api.estudio.anularAsignacion');
 
-    Route::post('/estudio-listarPendientesMedico', [App\Http\Controllers\Estudios\EstudioController::class, 'listarPendientesMedico'])
+    Route::post('/estudio-listarPendientesMedico', [EstudioController::class, 'listarPendientesMedico'])
         ->name('api.estudio.listarPendientesMedico');
 
-    Route::get('/estudio-listarPendientesPorLeerTranscribir', [App\Http\Controllers\Estudios\EstudioController::class, 'penditesPorLeerTranscribir'])
+    Route::get('/estudio-listarPendientesPorLeerTranscribir', [EstudioController::class, 'penditesPorLeerTranscribir'])
         ->name('api.estudio.listarPendientesPorLeerTranscribir');
 
-    Route::get('/estudio-buscar-por-numdocu/{numDocu}', [App\Http\Controllers\Estudios\EstudioController::class, 'buscarEstudioPorNumDocu'])
+    Route::get('/estudio-buscar-por-numdocu/{numDocu}', [EstudioController::class, 'buscarEstudioPorNumDocu'])
         ->name('api.estudio.buscarEstudioPorNumDocu');
 });
-
-Route::get('/estudios/convertir-audio-a-texto', [\App\Http\Controllers\Estudios\EstudioAudioController::class, 'convertirAudioToText'])->name('api.estudios.convertirAudioToText');

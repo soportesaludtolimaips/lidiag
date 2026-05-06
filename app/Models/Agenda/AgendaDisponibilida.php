@@ -2,6 +2,8 @@
 
 namespace App\Models\Agenda;
 
+use App\Models\Configuracion\ConfigModulo;
+use App\Models\Configuracion\ConfigSede;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -29,11 +31,11 @@ class AgendaDisponibilida extends Model
 
     public function sede()
     {
-        return $this->belongsTo(\App\Models\Configuracion\ConfigSede::class, 'sede_id');
+        return $this->belongsTo(ConfigSede::class, 'sede_id');
     }
 
     public function servicio()
     {
-        return $this->belongsTo(\App\Models\Configuracion\ConfigModulo::class, 'servicio_id');
+        return $this->belongsTo(ConfigModulo::class, 'servicio_id');
     }
 }

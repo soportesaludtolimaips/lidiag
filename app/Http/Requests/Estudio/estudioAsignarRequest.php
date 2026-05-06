@@ -47,7 +47,7 @@ class estudioAsignarRequest extends FormRequest
             'medico_id.required' => 'Te hizo falta el médico.',
             'prioridad_id.required' => 'Te hizo falta la prioridad.',
             'productosEstudio.required' => 'Te hizo falta almenos un producto.',
-            'diagnosticosEstudio.required' => 'Te hizo falta almenos un diagnostico.'
+            'diagnosticosEstudio.required' => 'Te hizo falta almenos un diagnostico.',
         ];
     }
 }

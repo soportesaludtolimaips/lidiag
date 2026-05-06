@@ -2,23 +2,28 @@
 
 namespace App\Exports;
 
-use App\Models\Estudio\Estudio;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
-use Maatwebsite\Excel\Concerns\WithCustomStartCell;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Collection;
 
-class ProduccionDetalladaEcografiasExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithColumnWidths, WithCustomStartCell
+class ProduccionDetalladaEcografiasExport implements FromCollection, WithColumnWidths, WithCustomStartCell, WithHeadings, WithMapping, WithStyles
 {
     protected $fechaInicio;
+
     protected $fechaFin;
+
     protected $sedeId;
+
     protected $quienAsignoId;
+
     protected $medicoId;
 
     public function __construct($fechaInicio, $fechaFin, $sedeId, $quienAsignoId, $medicoId)
@@ -37,12 +42,13 @@ class ProduccionDetalladaEcografiasExport implements FromCollection, WithHeading
 
         $ecografias = DB::table('view_reporte_ecografias')
             ->when($this->fechaInicio, fn ($q) => $q->whereBetween(DB::raw('DATE(fechor_lectura)'), [$this->fechaInicio, $this->fechaFin]))
-            //->when($sedeId, fn ($q) => $q->where('sede_id', $sedeId))
+            // ->when($sedeId, fn ($q) => $q->where('sede_id', $sedeId))
             ->when($this->quienAsignoId, fn ($q) => $q->where('usua_regis_id', $this->quienAsignoId))
             ->when($this->medicoId, fn ($q) => $q->where('medico_id', $this->medicoId))
-            ->select('id', 'fec_cita_sahi', 'fec_regis_cita_sahi', 'fechor_lectura', 'atencion_id', 'quien_registro', 'medico', 'documento_paciente', 
-                    'nombre_paciente', 'cod_cups', 'nom_produc', 'eps', 'contrato', 'plan', 'quien_ordena', 'lectura', 'opinion')
+            ->select('id', 'fec_cita_sahi', 'fec_regis_cita_sahi', 'fechor_lectura', 'atencion_id', 'quien_registro', 'medico', 'documento_paciente',
+                'nombre_paciente', 'cod_cups', 'nom_produc', 'eps', 'contrato', 'plan', 'quien_ordena', 'lectura', 'opinion')
             ->get();
+
         return $ecografias;
     }
 
@@ -65,7 +71,7 @@ class ProduccionDetalladaEcografiasExport implements FromCollection, WithHeading
             'Plan',
             'Quien Ordena',
             'Lectura',
-            'Opinión'
+            'Opinión',
         ];
     }
 
@@ -104,11 +110,11 @@ class ProduccionDetalladaEcografiasExport implements FromCollection, WithHeading
                 'size' => 14,
             ],
             'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'fillType' => Fill::FILL_SOLID,
                 'startColor' => ['rgb' => '1A2274'],
             ],
             'alignment' => [
-                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
             ],
         ]);
 
@@ -119,19 +125,19 @@ class ProduccionDetalladaEcografiasExport implements FromCollection, WithHeading
                 'color' => ['rgb' => 'FFFFFF'],
             ],
             'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'fillType' => Fill::FILL_SOLID,
                 'startColor' => ['rgb' => '1A2274'],
             ],
             'alignment' => [
-                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
             ],
         ]);
 
         // Establece bordes para todas las celdas de datos
-        $sheet->getStyle('A4:Q' . ($sheet->getHighestRow()))->applyFromArray([
+        $sheet->getStyle('A4:Q'.($sheet->getHighestRow()))->applyFromArray([
             'borders' => [
                 'allBorders' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'borderStyle' => Border::BORDER_THIN,
                     'color' => ['rgb' => '000000'],
                 ],
             ],

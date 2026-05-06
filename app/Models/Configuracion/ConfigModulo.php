@@ -2,7 +2,6 @@
 
 namespace App\Models\Configuracion;
 
-use App\Models\Seguridad\UserModulos;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

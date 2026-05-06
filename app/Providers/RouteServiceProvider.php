@@ -88,7 +88,7 @@ class RouteServiceProvider extends ServiceProvider
         // Limita intentos de login por email+IP para mitigar brute force
         RateLimiter::for('login', function (Request $request) {
             $email = (string) $request->input('email');
-            $key = mb_strtolower($email) . '|' . $request->ip();
+            $key = mb_strtolower($email).'|'.$request->ip();
 
             return Limit::perMinute(10)->by($key);
         });

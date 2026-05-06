@@ -10,6 +10,7 @@ class ConfigSede extends Model
     use HasFactory;
 
     protected $table = 'config_sedes';
+
     protected $fillable = [
         'nom_sede',
         'email_repor',
@@ -35,6 +36,6 @@ class ConfigSede extends Model
         'interface_username',
         'interface_password',
         'plantilla',
-        'plantilla_ecografia'
+        'plantilla_ecografia',
     ];
 }

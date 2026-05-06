@@ -1,14 +1,32 @@
 <?php
 
-use App\Http\Controllers\Dashboard\DashBoardController;
 use App\Http\Controllers\OHIF_visor\OhifVisorController;
 use Illuminate\Support\Facades\Route;
 
-// Fíjate en el orden: dicom -> {sedeId} -> studies -> {study_iuid} -> metadata
+// Rutas OHIF Viewer - QIDO/WADO
+// QIDO-RS: buscar estudios
+Route::get('/qido/studies', [OhifVisorController::class, 'qidoStudies']);
+
+// QIDO-RS: buscar series de un estudio (también usada por WADO)
+Route::get('/wado/studies/{studyUID}/series', [OhifVisorController::class, 'qidoSeries']);
+
+// QIDO-RS: buscar instances de una serie
+Route::get('/wado/studies/{studyUID}/series/{seriesUID}/instances', [OhifVisorController::class, 'qidoInstances']);
+
+// WADO-RS: recuperar instancia (imagen DICOM)
+Route::get('/wado/studies/{studyUID}/series/{seriesUID}/instances/{objectUID}', [OhifVisorController::class, 'wadoRetrieve']);
+
+// WADO-RS: recuperar frames (para OHIF)
+Route::get('/wado/studies/{studyUID}/series/{seriesUID}/instances/{objectUID}/frames/{frameNumber}', [OhifVisorController::class, 'wadoRetrieve']);
+
+// WADO-URI: recuperar imagen (alternativo)
+Route::get('/wado', [OhifVisorController::class, 'wadoUri']);
+
+// OHIF Metadata route
+Route::get('/wado/studies/{studyUID}/metadata', [OhifVisorController::class, 'getOhifMetadataOhif']);
+Route::get('/wado/studies/{studyUID}/series/{seriesUID}/metadata', [OhifVisorController::class, 'getOhifMetadataOhif']);
+
+// Originales
 Route::get('/dicom/{sedeId}/studies/{study_iuid}/metadata', [OhifVisorController::class, 'getOhifMetadata']);
-
-// Y la ruta de descarga (BulkData)
 Route::get('/dicom/download', [OhifVisorController::class, 'downloadDicom'])->name('dicom.download');
-
-// Ruta para listar estudios: https://lidiag.test/api/dicom/{sedeId}/studies
 Route::get('/dicom/{sedeId}/studies', [OhifVisorController::class, 'listStudies']);

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Ecografias\EcografiaConsentimientosController;
 use App\Http\Controllers\Estudios\EstudioAudioController;
 use App\Http\Controllers\Estudios\EstudioController;
 use App\Http\Controllers\Estudios\EstudioSoporteHCController;
@@ -154,10 +155,10 @@ Route::view('/config-consentimientos-plantillas', 'modulos.ecografias.consentimi
  */
 Route::view('/firma/consentimiento-ecografia/{token}', 'modulos.ecografias.firma-consentimiento')
     ->name('ecografias.consentimientos.firma.paciente.view');
-Route::get('/firma/consentimiento-ecografia/{token}/info', [App\Http\Controllers\Ecografias\EcografiaConsentimientosController::class, 'infoPorToken'])
+Route::get('/firma/consentimiento-ecografia/{token}/info', [EcografiaConsentimientosController::class, 'infoPorToken'])
     ->name('ecografias.consentimientos.firma.paciente.info')
     ->middleware(['throttle:60,1']);
-Route::post('/firma/consentimiento-ecografia/{token}/firmar', [App\Http\Controllers\Ecografias\EcografiaConsentimientosController::class, 'firmarPacientePorToken'])
+Route::post('/firma/consentimiento-ecografia/{token}/firmar', [EcografiaConsentimientosController::class, 'firmarPacientePorToken'])
     ->name('ecografias.consentimientos.firma.paciente.post')
     ->middleware(['throttle:20,1']);
 

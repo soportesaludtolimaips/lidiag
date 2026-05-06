@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Configuracion;
 
 use App\Http\Controllers\Controller;
 use App\Models\Configuracion\ConfigSede;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -31,7 +32,7 @@ class ConfigSedeController extends Controller
     /**
      * Lista todas las sedes ordenadas alfabéticamente.
      *
-     * @return \Illuminate\Http\JsonResponse Lista de sedes.
+     * @return JsonResponse Lista de sedes.
      */
     public function index()
     {
@@ -53,7 +54,7 @@ class ConfigSedeController extends Controller
      *
      * @param  Request  $request  Datos de la sede y archivos.
      * @param  ConfigSede  $configsede  Instancia vacía (no usada).
-     * @return \Illuminate\Http\JsonResponse Confirmación de creación o errores de validación.
+     * @return JsonResponse Confirmación de creación o errores de validación.
      */
     public function store(Request $request, ConfigSede $configsede)
     {
@@ -117,7 +118,7 @@ class ConfigSedeController extends Controller
                 Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_rx);
             }
 
-            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+            $nombreEncrip = Str::random(50).".".$archivo->extension();
 
             $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
             $configSede->plantilla_rx = $nombreEncrip;
@@ -134,7 +135,7 @@ class ConfigSedeController extends Controller
                 Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_ecografia);
             }
 
-            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+            $nombreEncrip = Str::random(50).".".$archivo->extension();
 
             $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
             $configSede->plantilla_ecografia = $nombreEncrip;
@@ -191,7 +192,7 @@ class ConfigSedeController extends Controller
     /**
      * Lista solo las sedes activas.
      *
-     * @return \Illuminate\Http\JsonResponse Lista de sedes activas.
+     * @return JsonResponse Lista de sedes activas.
      */
     public function listarSedesActivas()
     {
@@ -212,7 +213,7 @@ class ConfigSedeController extends Controller
      * 6. Guarda los cambios.
      *
      * @param  Request  $request  Datos actualizados y archivos.
-     * @return \Illuminate\Http\JsonResponse Confirmación de actualización o errores.
+     * @return JsonResponse Confirmación de actualización o errores.
      */
     public function update(Request $request)
     {
@@ -277,7 +278,7 @@ class ConfigSedeController extends Controller
                 Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_rx);
             }
 
-            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+            $nombreEncrip = Str::random(50).".".$archivo->extension();
 
             $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
             $configSede->plantilla_rx = $nombreEncrip;
@@ -294,7 +295,7 @@ class ConfigSedeController extends Controller
                 Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_ecografia);
             }
 
-            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+            $nombreEncrip = Str::random(50).".".$archivo->extension();
 
             $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
             $configSede->plantilla_ecografia = $nombreEncrip;
@@ -309,7 +310,7 @@ class ConfigSedeController extends Controller
      * Elimina una sede.
      *
      * @param  ConfigSede  $configSede  Instancia a eliminar.
-     * @return \Illuminate\Http\JsonResponse Confirmación de eliminación.
+     * @return JsonResponse Confirmación de eliminación.
      */
     public function destroy(ConfigSede $configSede)
     {

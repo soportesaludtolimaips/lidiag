@@ -2,19 +2,14 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Configuracion\ConfigPlantilla as PlantillaDestino;
+use App\Models\Configuracion\ConfigPlantillaTipo as PlantillaTipoDestino;
+use App\Models\ImportarEcografias\ConfigPlantillaDetalle as PlantillaDetalleOrigen;
+use App\Models\ImportarEcografias\ConfigPlantillaTipo as PlantillaTipoOrigen;
+use App\Models\ImportarEcografias\GenePersonal as PersonalOrigen;
+use App\Models\User as UserDestino;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
-
-use App\Models\ImportarEcografias\SeguUsuario as UserOrigen;
-use App\Models\ImportarEcografias\GenePersonal as PersonalOrigen;
-use App\Models\ImportarEcografias\ConfigPlantillaTipo as PlantillaTipoOrigen;
-use App\Models\ImportarEcografias\ConfigPlantillaDetalle as PlantillaDetalleOrigen;
-
-use App\Models\User as UserDestino;
-use App\Models\Configuracion\ConfigPlantillaTipo as PlantillaTipoDestino;
-use App\Models\Configuracion\ConfigPlantilla as PlantillaDestino;
 
 class SyncUsuarios extends Command
 {
@@ -59,19 +54,19 @@ class SyncUsuarios extends Command
 
         foreach ($users as $user) {
             $this->info("Sincronizando usuario: {$user->num_docu} - {$user->nom_usua} - {$user->pri_nom} {$user->pri_ape}");
-            
+
             $userDestino = UserDestino::where('num_docu', $user->num_docu)->first();
-            if(!$userDestino){
-            
-                $userDestino = new UserDestino();
+            if (! $userDestino) {
+
+                $userDestino = new UserDestino;
                 $userDestino->num_docu = $user->num_docu;
                 $userDestino->password = Hash::make('123456'); // Contraseña por defecto
-                $userDestino->name = trim($user->pri_nom . ' ' . $user->pri_ape);
+                $userDestino->name = trim($user->pri_nom.' '.$user->pri_ape);
                 $userDestino->reg_med = $user->num_regis;
 
                 $email = trim($user->e_mail);
                 if (empty($email)) {
-                    $email = $user->num_docu . '@placeholder.com';
+                    $email = $user->num_docu.'@placeholder.com';
                 }
                 $userDestino->email = $email;
 
@@ -82,7 +77,7 @@ class SyncUsuarios extends Command
                 ($userDestino->tipo_usua == 2) ? $userDestino->assignRole('Medico Ecografias') : $userDestino->assignRole('Administrativo');
                 $userDestino->modulos()->sync(2);
             }
-            //$this->syncUser($user);
+            // $this->syncUser($user);
         }
     }
 
@@ -94,10 +89,10 @@ class SyncUsuarios extends Command
 
         foreach ($plantillaOrigen as $plantilla) {
             $this->info("Sincronizando plantilla: {$plantilla->nom_tipo}");
-            
+
             $plantillaDestinoTipo = PlantillaTipoDestino::where('nom_tipo', $plantilla->nom_tipo)->first();
-            if(!$plantillaDestinoTipo){
-                $plantillaDestinoTipo = new PlantillaTipoDestino();
+            if (! $plantillaDestinoTipo) {
+                $plantillaDestinoTipo = new PlantillaTipoDestino;
                 $plantillaDestinoTipo->nom_tipo = $plantilla->nom_tipo;
                 $plantillaDestinoTipo->save();
 
@@ -113,16 +108,17 @@ class SyncUsuarios extends Command
                      * Peronal origen
                      */
                     $personalDestino = UserDestino::where('num_docu', $personalOrigen->num_docu)->first();
-                        //$this->info('Detalle de la plantilla: ' . $plantillaDetalle);
-                        //exit;
+                    // $this->info('Detalle de la plantilla: ' . $plantillaDetalle);
+                    // exit;
                     /**
                      * Plantilla detalle destino
                      */
-                    if(!$personalDestino){
+                    if (! $personalDestino) {
                         $this->info("Personal no encontrado: {$personalOrigen}");
+
                         continue;
                     }
-                    $plantillaDestinoDetalle = new PlantillaDestino();
+                    $plantillaDestinoDetalle = new PlantillaDestino;
                     $plantillaDestinoDetalle->plantilla_tipo_id = $plantillaDestinoTipo->id;
                     $plantillaDestinoDetalle->medico_id = $personalDestino->id;
                     $plantillaDestinoDetalle->nom_plantilla = $plantillaDetalle->nom_plantilla;

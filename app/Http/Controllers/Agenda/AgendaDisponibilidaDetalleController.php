@@ -25,6 +25,7 @@ class AgendaDisponibilidaDetalleController extends Controller
     public function index()
     {
         $agendaDisponibilidaDetalle = AgendaDisponibilidaDetalle::all();
+
         return response()->json([$agendaDisponibilidaDetalle]);
     }
 
@@ -68,7 +69,7 @@ class AgendaDisponibilidaDetalleController extends Controller
     {
         $agendaDisponibilidaDetalle = AgendaDisponibilidaDetalle::find($id);
 
-        if (!$agendaDisponibilidaDetalle) {
+        if (! $agendaDisponibilidaDetalle) {
             return response()->json(['error' => 'Detalle de disponibilidad no encontrado.'], 404);
         }
 
@@ -82,11 +83,12 @@ class AgendaDisponibilidaDetalleController extends Controller
     {
         $agendaDisponibilidaDetalle = AgendaDisponibilidaDetalle::find($id);
 
-        if (!$agendaDisponibilidaDetalle) {
+        if (! $agendaDisponibilidaDetalle) {
             return response()->json(['error' => 'Detalle de disponibilidad no encontrado.'], 404);
         }
 
         $agendaDisponibilidaDetalle->delete();
+
         return response()->json(['message' => 'Detalle de disponibilidad eliminado correctamente.']);
     }
 }

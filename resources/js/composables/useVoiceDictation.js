@@ -5,7 +5,7 @@ export function useVoiceDictation({
     lang = "es-ES",
     audioBitsPerSecond = 64000,
     maxNoSpeechRetries = 6,
-    mimeType = "audio/webm;codecs=opus",
+    mimeType = "audio/wav",
 } = {}) {
     let voiceSession = null;
 
@@ -40,7 +40,7 @@ export function useVoiceDictation({
         "punto aparte": () => ({ type: "lineBreak", value: ".\n\n", capitalizeNext: true }),
         "nuevo párrafo": () => ({ type: "lineBreak", value: "\n\n", capitalizeNext: true }),
         "nueva sección": () => ({ type: "lineBreak", value: "\n\n---\n\n", capitalizeNext: true }),
-        "separador": () => ({ type: "lineBreak", value: "\n\n---\n\n" }),
+        separador: () => ({ type: "lineBreak", value: "\n\n---\n\n" }),
         "salto de línea": () => ({ type: "lineBreak", value: "\n" }),
         "doble salto de línea": () => ({ type: "lineBreak", value: "\n\n" }),
         enter: () => ({ type: "lineBreak", value: "\n" }),
@@ -90,7 +90,7 @@ export function useVoiceDictation({
     };
 
     const formatCommands = {
-        "negrita": () => ({ type: "format", value: "**" }),
+        negrita: () => ({ type: "format", value: "**" }),
         "cerrar negrita": () => ({ type: "format", value: "**" }),
         cursiva: () => ({ type: "format", value: "_" }),
         "cerrar cursiva": () => ({ type: "format", value: "_" }),
@@ -100,7 +100,9 @@ export function useVoiceDictation({
 
     function stripDiacritics(text) {
         try {
-            return String(text).normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            return String(text)
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "");
         } catch (e) {
             return String(text);
         }
@@ -132,10 +134,7 @@ export function useVoiceDictation({
         const keys = Object.keys(commandMap).sort((a, b) => b.length - a.length);
         keys.forEach((command) => {
             const escaped = escapeRegExp(command);
-            const re = new RegExp(
-                `(^|[^\\p{L}\\p{N}_])(${escaped})(?=$|[^\\p{L}\\p{N}_])`,
-                "giu"
-            );
+            const re = new RegExp(`(^|[^\\p{L}\\p{N}_])(${escaped})(?=$|[^\\p{L}\\p{N}_])`, "giu");
             text = text.replace(re, (match, prefix) => {
                 const fn = commandMap[command];
                 const result = typeof fn === "function" ? fn() : String(fn);
@@ -176,10 +175,10 @@ export function useVoiceDictation({
     function getAllCommands() {
         prepareVoiceCommands();
         return {
-            uppercaseCommands,
-            lineBreakCommands,
-            punctuationCommands,
-            formatCommands,
+            uppercase: uppercaseCommands,
+            lineBreak: lineBreakCommands,
+            punctuation: punctuationCommands,
+            format: formatCommands,
             all: {
                 ...uppercaseCommands,
                 ...lineBreakCommands,

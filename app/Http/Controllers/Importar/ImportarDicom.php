@@ -22,8 +22,6 @@ use App\Models\Importar\StudyDicom;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\DB;
-
 
 class ImportarDicom extends Controller
 {
@@ -35,31 +33,30 @@ class ImportarDicom extends Controller
         $sedeActual = ConfigSede::find(1);
 
         $agendas = Agenda::orderBy('fechor_regis', 'ASC')
-            //->where('study_pk', '=', 141573)
-            //->where('id_agenda', '=', 110373)
-            //->where('fechor_regis', '>', '2024-04-22 12:25:13')
-            //->whereRaw("DATE(fechor_regis) BETWEEN '2024-04-20' AND '2024-05-16'")
+            // ->where('study_pk', '=', 141573)
+            // ->where('id_agenda', '=', 110373)
+            // ->where('fechor_regis', '>', '2024-04-22 12:25:13')
+            // ->whereRaw("DATE(fechor_regis) BETWEEN '2024-04-20' AND '2024-05-16'")
 
-            //->limit(10)
+            // ->limit(10)
             ->get();
-        //return $agendas;
+        // return $agendas;
         $i = 0;
 
         foreach ($agendas as $agenda) {
 
             $i++;
-            echo "Importando el estudio " . $agenda . "<br><br>Total de estudios: " . $i . "<br><br><br>";
+            echo "Importando el estudio ".$agenda."<br><br>Total de estudios: ".$i."<br><br><br>";
 
             /**
              * INICIO LAS BUSQUEDAS EN LA APLICACION DICOM
              */
-
             Config::set('database.default', 'mysql_importar_dicom');
             $studyDicom = StudyDicom::where('pk', '=', $agenda->study_pk)
                 ->get();
 
             echo '*********************************** studyDicom ************************************* <br />';
-            echo '$studyDicom: ' . $studyDicom . "<br>";
+            echo '$studyDicom: '.$studyDicom."<br>";
             echo '************************************************************************ <br /><br />';
 
             /**
@@ -68,10 +65,10 @@ class ImportarDicom extends Controller
             $agendaProductosDicom = AgendaProducto::where('id_agenda', '=', $agenda->id_agenda)
                 ->get();
             echo '*********************************** agendaProductosDicom ************************************* <br />';
-            echo '$studyDicom: ' . $agendaProductosDicom . "<br>";
+            echo '$studyDicom: '.$agendaProductosDicom."<br>";
             echo '************************************************************************ <br /><br />';
 
-            //return "<br /><br /> Termino";
+            // return "<br /><br /> Termino";
             /**
              * Busco los diagnosticos en Dicom
              */
@@ -109,7 +106,7 @@ class ImportarDicom extends Controller
                 ['num_docu' => $pacienteDicom[0]->pat_id],
                 [
                     'num_docu' => $pacienteDicom[0]->pat_id,
-                    'nombres' =>  str_replace('^^^', '', $pacienteDicom[0]->pat_name)
+                    'nombres' => str_replace('^^^', '', $pacienteDicom[0]->pat_name),
                 ]
             );
 
@@ -120,9 +117,9 @@ class ImportarDicom extends Controller
                 ['num_docu' => $quienAgendoDicom[0]->num_docu],
                 [
                     'num_docu' => $quienAgendoDicom[0]->num_docu,
-                    'name' => $quienAgendoDicom[0]->nom . " " . $quienAgendoDicom[0]->ape,
+                    'name' => $quienAgendoDicom[0]->nom." ".$quienAgendoDicom[0]->ape,
                     'email' => $quienAgendoDicom[0]->e_mail,
-                    'password' =>  bcrypt('123456')
+                    'password' => bcrypt('123456'),
                 ]
             );
 
@@ -134,11 +131,11 @@ class ImportarDicom extends Controller
 
             if ($medicoLidiag->count() <= 0) {
 
-                $medicoLidiag  = new User();
+                $medicoLidiag = new User;
                 $medicoLidiag->num_docu = $medicoDicom[0]->num_docu;
                 $medicoLidiag->reg_med = $medicoDicom[0]->reg_med;
-                $medicoLidiag->name = $medicoDicom[0]->nom . ' ' . $medicoDicom[0]->ape;
-                $medicoLidiag->email = $medicoDicom[0]->nom . $medicoDicom[0]->ape . "st.com";
+                $medicoLidiag->name = $medicoDicom[0]->nom.' '.$medicoDicom[0]->ape;
+                $medicoLidiag->email = $medicoDicom[0]->nom.$medicoDicom[0]->ape."st.com";
                 $medicoLidiag->password = bcrypt('123456');
                 $medicoLidiag->save();
                 $medicoLidiag->assignRole('Medico');
@@ -151,7 +148,7 @@ class ImportarDicom extends Controller
             /**
              * Busco el estudios en Dcm4chee para extraer datos complementarios para Lidiag
              */
-            //Configuramos la segunda base de datos
+            // Configuramos la segunda base de datos
             config(['database.connections.mysql_sucursal' => [
                 'driver' => 'mysql',
                 'host' => env('DB_SUCURSAL_HOST', $sedeActual->ip_dcm),
@@ -163,7 +160,7 @@ class ImportarDicom extends Controller
                 'collation' => env('DB_SUCURSAL_collation', 'latin1_swedish_ci'),
             ]]);
 
-            //Aplicamos la nueva configuracion de bade datos
+            // Aplicamos la nueva configuracion de bade datos
             Config::set('database.default', 'mysql_sucursal');
             $studyDcm = Study::select('pk', 'patient_fk', 'study_iuid', 'study_id', 'study_datetime', 'study_desc', 'mods_in_study')
                 ->where('pk', '=', $agenda->study_pk)
@@ -181,7 +178,7 @@ class ImportarDicom extends Controller
              */
             Config::set('database.default', 'mysql');
 
-            $estudio = new Estudio();
+            $estudio = new Estudio;
             $estudio->study_pk = $agenda->study_pk;
             $estudio->study_iuid = $studyDicom[0]->study_iuid;
             $estudio->study_id = $studyDicom[0]->study_id;
@@ -189,7 +186,7 @@ class ImportarDicom extends Controller
             $estudio->accession_no = $studyDicom[0]->accession_no;
             $estudio->study_desc = mb_convert_encoding($studyDicom[0]->study_desc, 'UTF-8', 'ISO-8859-1');
             $estudio->mods_in_study = $mods_in_study;
-            //$estudio->email_reporta = $agenda->;
+            // $estudio->email_reporta = $agenda->;
             $estudio->paciente_id = $pacienteLidiag->id;
             $estudio->medico_id = $medicoParaInsertar;
             $estudio->quien_registro_id = $userQuienAgendoLidiag->id;
@@ -197,7 +194,7 @@ class ImportarDicom extends Controller
             $estudio->prioridad_id = $agenda->id_prioridad;
             $estudio->observaciones = $agenda->observaciones;
             $estudio->atencion = $agenda->id_atencion;
-            //$estudio->servicio = $agenda->;
+            // $estudio->servicio = $agenda->;
             $estudio->eps = $agenda->eps;
             $estudio->contrato = $agenda->plan_contrato;
             $estudio->plan = $agenda->plan_contrato;
@@ -218,14 +215,14 @@ class ImportarDicom extends Controller
                     ['cod_diagnos' => $diagnosticoDicom[0]->cod_diag],
                     [
                         'cod_diagnos' => $diagnosticoDicom[0]->cod_diag,
-                        'nom_diagnos' => $diagnosticoDicom[0]->nom_diag
+                        'nom_diagnos' => $diagnosticoDicom[0]->nom_diag,
                     ]
                 );
 
                 /**
                  * Relaciono el diagnostico con el estudio
                  */
-                $diganosEstudio = new EstudioDiagnostico();
+                $diganosEstudio = new EstudioDiagnostico;
                 $diganosEstudio->estudio_id = $estudio->id;
                 $diganosEstudio->cod_diagnos = $diagnosticoDicom[0]->cod_diag;
                 $diganosEstudio->nom_diagnos = trim($diagnosticoDicom[0]->nom_diag);
@@ -243,7 +240,7 @@ class ImportarDicom extends Controller
                 $configProductoDicom = ConfigProductoDicom::where('id_produc', '=', $produc->id_produc)
                     ->get();
                 echo '****************************** configProductoDicom ****************************************** <br />';
-                echo '$configProductoDicom: ' . $configProductoDicom . "<br>";
+                echo '$configProductoDicom: '.$configProductoDicom."<br>";
                 echo '************************************************************************ <br /><br />';
 
                 /**
@@ -254,7 +251,7 @@ class ImportarDicom extends Controller
                     ->get();
 
                 echo '****************************** productoDicom ****************************************** <br />';
-                echo '$productoDicom: ' . $productoDicom . "<br>";
+                echo '$productoDicom: '.$productoDicom."<br>";
                 echo '************************************************************************ <br /><br />';
 
                 /**
@@ -265,7 +262,7 @@ class ImportarDicom extends Controller
                         ->get();
 
                     echo '****************************** quienTranscribioDicom ****************************************** <br />';
-                    echo '$quienTranscribioDicom: ' . $quienTranscribioDicom . "<br>";
+                    echo '$quienTranscribioDicom: '.$quienTranscribioDicom."<br>";
                     echo '************************************************************************ <br /><br />';
 
                     /**
@@ -300,7 +297,7 @@ class ImportarDicom extends Controller
                 /**
                  * Relaciono el producto con el estudio
                  */
-                $prdoctoEstudio = new EstudioProducto();
+                $prdoctoEstudio = new EstudioProducto;
                 $prdoctoEstudio->estudio_id = $estudio->id;
                 $prdoctoEstudio->producto_id = $configProductoLidiag->id;
                 $prdoctoEstudio->transcriptor_id = $idTranscriptor;
@@ -322,12 +319,13 @@ class ImportarDicom extends Controller
 
         $fechaHoraFinEjecucion = Carbon::now();
         echo "<br><br><br><br><br><br>";
-        echo 'Inicio: ' . $fechaHoraIniEjecucion . "<br>";
-        echo 'Fin: ' . $fechaHoraFinEjecucion . "<br>";
+        echo 'Inicio: '.$fechaHoraIniEjecucion."<br>";
+        echo 'Fin: '.$fechaHoraFinEjecucion."<br>";
 
         // Puedes imprimir o registrar el tiempo
         echo "Tiempo de ejecución: $executionTime segundos";
         echo "Tiempo de ejecución en minutos: $executionTimeInMinutes minutos";
-        return "<br><br><br><br>La importacion termno con exito\n Total de estudios importador: " . $i;
+
+        return "<br><br><br><br>La importacion termno con exito\n Total de estudios importador: ".$i;
     }
 }

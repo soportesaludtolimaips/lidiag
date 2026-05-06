@@ -2,9 +2,8 @@
 
 namespace Database\Seeders\configuracion;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\Configuracion\ConfigDiagnostico;
+use Illuminate\Database\Seeder;
 
 class ConfigDiagnosticoSeeder extends Seeder
 {

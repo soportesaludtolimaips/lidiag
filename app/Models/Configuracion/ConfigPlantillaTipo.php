@@ -12,7 +12,7 @@ class ConfigPlantillaTipo extends Model
     protected $table = 'config_plantillas_tipos'; // Nombre de la tabla
 
     protected $fillable = [
-        //'producto_id',
+        // 'producto_id',
         'nom_tipo',
         'estado',
     ];

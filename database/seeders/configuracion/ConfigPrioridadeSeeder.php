@@ -3,7 +3,6 @@
 namespace Database\Seeders\configuracion;
 
 use App\Models\Configuracion\ConfigPrioridad;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class ConfigPrioridadeSeeder extends Seeder

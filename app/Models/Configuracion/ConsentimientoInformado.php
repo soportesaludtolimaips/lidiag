@@ -2,6 +2,7 @@
 
 namespace App\Models\Configuracion;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -30,6 +31,6 @@ class ConsentimientoInformado extends Model
 
     public function usuarioCrea()
     {
-        return $this->belongsTo(\App\Models\User::class, 'usuario_crea_id');
+        return $this->belongsTo(User::class, 'usuario_crea_id');
     }
 }

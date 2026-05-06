@@ -2,10 +2,10 @@
 
 namespace App\Models\Estudio;
 
+use App\Models\Configuracion\ConfigProducto;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Configuracion\ConfigProducto;
 
 class EstudioProducto extends Model
 {

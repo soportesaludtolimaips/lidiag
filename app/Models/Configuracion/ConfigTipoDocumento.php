@@ -14,7 +14,7 @@ class ConfigTipoDocumento extends Model
     protected $fillable = [
         'codigo',
         'tipo_documento',
-        'estado'
+        'estado',
     ];
 
     public function pacientes()
