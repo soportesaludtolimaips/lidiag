@@ -514,7 +514,7 @@ class EstudioController extends Controller
                 $inicio = Carbon::parse($request->bus_fehc_ini)->startOfDay()->format('Y-m-d H:i:s');
                 $fin = Carbon::parse($request->bus_fecha_fin)->endOfDay()->format('Y-m-d H:i:s');
 
-                return $query->whereBetween('estudios.fec_estudio', [$inicio, $fin]);
+                return $query->whereBetween('estudios.created_at', [$inicio, $fin]);
             })
             ->where('estudios_productos.activo', '=', 1)
             ->where('estudios.estado', '=', 1)
