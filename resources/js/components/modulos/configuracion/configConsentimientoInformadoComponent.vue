@@ -142,7 +142,7 @@
                                     <div class="form-group">
                                         <div class="checkbox checkbox-success">
                                             <input type="checkbox" id="estado" name="estado" v-model="registro.estado"
-                                                :checked="registro.estado" value="1">
+                                                :true-value="1" :false-value="0">
                                             <label for="estado"> Activo </label>
                                         </div>
                                     </div>

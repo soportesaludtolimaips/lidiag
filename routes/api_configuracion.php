@@ -8,8 +8,10 @@ use App\Http\Controllers\Configuracion\ConfigPlantillaTipoController;
 use App\Http\Controllers\Configuracion\ConfigPrioridadController;
 use App\Http\Controllers\Configuracion\ConfigProductoController;
 use App\Http\Controllers\Configuracion\ConfigSedeController;
+use App\Http\Controllers\Configuracion\ConfigServicioCitasController;
 use App\Http\Controllers\Configuracion\ConfigTipoDocumentoController;
 use App\Http\Controllers\Configuracion\ConsentimientoInformadoController;
+use App\Http\Controllers\Configuracion\ServicioProductoController;
 use App\Http\Controllers\Consentimientos\ConsentimientoPlantillasController;
 use Illuminate\Support\Facades\Route;
 
@@ -110,4 +112,22 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('/consentimientos-plantillas/producto/{productoId}/versions', [ConsentimientoPlantillasController::class, 'versions'])
         ->name('api.consentimientos.plantillas.versions');
+
+    // Servicio de Citas
+    Route::resource('/config-servicio-citas', ConfigServicioCitasController::class)
+        ->names('api.config.servicio.citas')
+        ->except(['create', 'edit']);
+
+    // Servicio Citas <-> Productos
+    Route::get('/servicio-producto', [ServicioProductoController::class, 'index'])
+        ->name('api.config.servicio.producto.index');
+
+    Route::post('/servicio-producto', [ServicioProductoController::class, 'store'])
+        ->name('api.config.servicio.producto.store');
+
+    Route::delete('/servicio-producto/{id}', [ServicioProductoController::class, 'destroy'])
+        ->name('api.config.servicio.producto.destroy');
+
+    Route::get('/servicio-producto/productos-no-vinculados', [ServicioProductoController::class, 'productosNoVinculados'])
+        ->name('api.config.servicio.producto.no_vinculados');
 });

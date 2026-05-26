@@ -9,5 +9,9 @@ class ConfigDiagnostico extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['cod_diagnos', 'nom_diagnos'];
+    protected $fillable = ['cod_diagnos', 'nom_diagnos', 'estado'];
+
+    protected $casts = [
+        'estado' => 'boolean',
+    ];
 }

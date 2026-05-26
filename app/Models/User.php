@@ -32,6 +32,7 @@ class User extends Authenticatable
         'password',
         'imagen_perfil',
         'interface_id',
+        'estado',
     ];
 
     /**
@@ -51,6 +52,9 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'estado' => 'boolean',
     ];
 
     public function paciente()

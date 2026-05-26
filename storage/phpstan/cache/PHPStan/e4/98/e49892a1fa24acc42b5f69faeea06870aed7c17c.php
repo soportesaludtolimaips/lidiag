@@ -2,6 +2,6 @@
 
 // variadic-method-App\Exports\ProduccionDetalladaEcografiasExport-__construct-C:\laragon\www\lidiag\app\Exports\ProduccionDetalladaEcografiasExport.php
 return \PHPStan\Cache\CacheItem::__set_state(array(
-   'variableKey' => '1764335629-v4',
+   'variableKey' => '1778081684-v4',
    'data' => false,
 ));

@@ -41,6 +41,13 @@ class Estudio extends Model
         'created_at',
     ];
 
+    protected $guarded = ['*'];
+
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
     public function paciente()
     {
         return $this->belongsTo(Paciente::class);

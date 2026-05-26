@@ -72,7 +72,7 @@
                                 <select class="form-control custom-select" style="width: 100%; height: 36px"
                                     v-model="datosReporte.sedeId" id="sedes" name="sedes">
                                     <option value="0">...::: Todas las sedes :::...</option>
-                                    <option v-for="ItemSede in sedes" v-bind:key="ItemSede" v-bind:value="ItemSede.id">
+                                    <option v-for="ItemSede in sedes" :key="ItemSede" :value="ItemSede.id">
                                         {{ ItemSede.nom_sede }}
                                     </option>
                                 </select>

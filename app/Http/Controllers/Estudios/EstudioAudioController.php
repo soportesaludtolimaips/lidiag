@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Estudios;
 
 use App\Http\Controllers\Controller;
 use App\Models\Estudio\EstudioAudio;
+use App\Services\TranscripcionService;
 use FFMpeg;
 use FFMpeg\Format\Audio\Mp3;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class EstudioAudioController extends Controller
@@ -113,17 +115,15 @@ class EstudioAudioController extends Controller
     }
 
     /**
-     * Lista los archivos de audio asociados a un estudio.
+     * Lista los archivos de audio asociados a un estudio/producto.
      */
-    public function listarAudiosPorEstudio(Request $request)
+    public function listarAudiosPorEstudio(int $estudio_producto_id)
     {
-        $estudioProductoId = (int) $request->estudio_producto_id;
-
-        if (! $estudioProductoId || $estudioProductoId < 1) {
-            return response()->json(['error' => 'Invalid ID', 'received' => $request->estudio_producto_id], 400);
+        if (! $estudio_producto_id || $estudio_producto_id < 1) {
+            return response()->json(['error' => 'Invalid ID', 'received' => $estudio_producto_id], 400);
         }
 
-        $audios = EstudioAudio::where('estudio_producto_id', $estudioProductoId)->get();
+        $audios = EstudioAudio::where('estudio_producto_id', $estudio_producto_id)->get();
 
         return response()->json($audios);
     }
@@ -216,5 +216,179 @@ class EstudioAudioController extends Controller
             'Content-Length' => (string) $length,
             'Cache-Control' => 'private, max-age=0, no-cache',
         ]);
+    }
+
+    /**
+     * Carga un archivo de audio y lo transcribe automaticamente.
+     */
+    public function cargarAudioTranscribir(Request $request, TranscripcionService $transcripcionService)
+    {
+        $request->validate([
+            'audio' => ['required', 'file', 'max:102400'],
+            'estudio_id' => ['required', 'integer'],
+            'estudio_producto_id' => ['required', 'integer'],
+        ]);
+
+        if (! $request->hasFile('audio')) {
+            return response()->json(['success' => false, 'message' => 'No se proporciono un archivo de audio'], 400);
+        }
+
+        $audioFile = $request->file('audio');
+        if (! $audioFile || ! $audioFile->isValid()) {
+            return response()->json(['success' => false, 'message' => 'Archivo de audio invalido'], 400);
+        }
+
+        $originalName = $audioFile->getClientOriginalName();
+        $extension = strtolower($audioFile->getClientOriginalExtension());
+        $allowedExtensions = ['mp3', 'wav', 'm4a', 'webm', 'ogg', 'flac'];
+
+        if (! in_array($extension, $allowedExtensions)) {
+            return response()->json([
+                'success' => false,
+                'message' => "Formato no soportado: {$extension}. Permitidos: " . implode(', ', $allowedExtensions),
+            ], 400);
+        }
+
+        $tamano = $audioFile->getSize();
+        $estudioProductoId = (int) $request->estudio_producto_id;
+        $estudioId = (int) $request->estudio_id;
+        $usuarioId = auth()->id();
+
+        $baseName = 'cargado_' . Str::ulid()->toBase32();
+        $mp3RelativePath = $baseName . '.mp3';
+
+        /** @var FilesystemAdapter $disk */
+        $disk = Storage::disk('audios');
+
+        $tmpRelativePath = 'tmp/' . $baseName . '.' . $extension;
+        $audioFile->storeAs('tmp', basename($tmpRelativePath), 'audios');
+
+        $tmpFullPath = $disk->path($tmpRelativePath);
+        $mp3FullPath = $disk->path($mp3RelativePath);
+
+        try {
+            $ffmpeg = FFMpeg\FFMpeg::create([
+                'ffmpeg.binaries' => env('FFMPEG_BINARIES', 'C:/ffmpeg/bin/ffmpeg.exe'),
+                'ffprobe.binaries' => env('FFPROBE_BINARIES', 'C:/ffmpeg/bin/ffprobe.exe'),
+                'timeout' => (int) env('FFMPEG_TIMEOUT', 3600),
+                'ffmpeg.threads' => (int) env('FFMPEG_THREADS', 12),
+            ]);
+
+            try {
+                $streams = $ffmpeg->getFFProbe()->streams($tmpFullPath);
+                $audioStreams = $streams->audios();
+                if (! $audioStreams || $audioStreams->count() < 1) {
+                    return response()->json(['success' => false, 'message' => 'El archivo no contiene audio valido'], 400);
+                }
+
+                $formatInfo = $ffmpeg->getFFProbe()->format($tmpFullPath);
+                $duracion = (int) $formatInfo->get('duration');
+            } catch (\Exception $e) {
+                return response()->json(['success' => false, 'message' => 'No se pudo procesar el audio'], 400);
+            }
+
+            $format = new Mp3;
+            $format->setAudioCodec('libmp3lame');
+            $format->setAudioKiloBitrate((int) env('AUDIO_MP3_KBPS', 64));
+
+            $audio = $ffmpeg->open($tmpFullPath);
+            $audio->save($format, $mp3FullPath);
+
+            if (! file_exists($mp3FullPath) || filesize($mp3FullPath) < 1024) {
+                return response()->json(['success' => false, 'message' => 'Error al convertir el audio.'], 500);
+            }
+
+            Log::info('Audio cargado, iniciando transcripcion', [
+                'estudio_producto_id' => $estudioProductoId,
+                'archivo' => $originalName,
+            ]);
+
+            $transcripcion = $transcripcionService->transcribir($tmpFullPath);
+
+            Log::info('Transcripcion completada', [
+                'longitud_texto' => strlen($transcripcion['texto']),
+            ]);
+
+            $estudioAudio = new EstudioAudio;
+            $estudioAudio->estudio_id = $estudioId;
+            $estudioAudio->estudio_producto_id = $estudioProductoId;
+            $estudioAudio->audio = $mp3RelativePath;
+            $estudioAudio->tipo = 'cargado';
+            $estudioAudio->nombre_original = $originalName;
+            $estudioAudio->formato = $extension;
+            $estudioAudio->duracion = $duracion;
+            $estudioAudio->tamano = $tamano;
+            $estudioAudio->usuario_id = $usuarioId;
+            $estudioAudio->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Audio cargado y transcrito exitosamente',
+                'audio_id' => $estudioAudio->id,
+                'transcripcion' => $transcripcion['texto'],
+                'duracion' => $duracion,
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Error en carga/transcripcion de audio', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error procesando el audio: ' . $e->getMessage(),
+            ], 500);
+        } finally {
+            try {
+                $disk->delete($tmpRelativePath);
+            } catch (\Exception $e) {
+            }
+        }
+    }
+
+    /**
+     * Elimina un audio cargado y su archivo.
+     */
+    public function eliminarAudioCargado(int $id)
+    {
+        try {
+            $estudioAudio = EstudioAudio::findOrFail($id);
+
+            if ($estudioAudio->tipo !== 'cargado') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Solo se pueden eliminar audios cargados, no grabados',
+                ], 403);
+            }
+
+            $disk = Storage::disk('audios');
+            if ($estudioAudio->audio && $disk->exists($estudioAudio->audio)) {
+                $disk->delete($estudioAudio->audio);
+            }
+
+            $estudioAudio->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Audio eliminado correctamente',
+            ], 200);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Audio no encontrado',
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('Error eliminando audio cargado', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error eliminando el audio',
+            ], 500);
+        }
     }
 }

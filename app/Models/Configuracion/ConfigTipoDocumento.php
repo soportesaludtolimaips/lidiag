@@ -17,6 +17,10 @@ class ConfigTipoDocumento extends Model
         'estado',
     ];
 
+    protected $casts = [
+        'estado' => 'boolean',
+    ];
+
     public function pacientes()
     {
         return $this->hasMany(Paciente::class);

@@ -15,6 +15,15 @@ class EstudioProducto extends Model
 
     protected $fillable = ['estudio_id', 'producto_id', 'transcriptor_id', 'cod_cups', 'nom_produc', 'fechor_lectura', 'lectura', 'fechor_trascrito', 'medico_ordena', 'visible'];
 
+    protected $guarded = ['*'];
+
+    protected $casts = [
+        'fechor_lectura' => 'datetime',
+        'fechor_trascrito' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
     public function estudio()
     {
         return $this->belongsTo(Estudio::class, 'estudio_id');

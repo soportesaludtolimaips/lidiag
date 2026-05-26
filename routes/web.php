@@ -203,6 +203,10 @@ Route::view('/config-tipos-plantillas.listar', 'modulos.configuracion.config-tip
     ->name('config.tipos.plantillas.listar')
     ->middleware(['auth', 'permission:config.plantillas.index']);
 
+Route::view('/config-servicio-producto', 'modulos.configuracion.config-servicio-producto')
+    ->name('config.servicio.producto')
+    ->middleware(['auth', 'permission:config.productos.index']);
+
 Route::view('/config-tipos-documentos-listar', 'modulos.configuracion.config-tipos-documentos')
     ->name('config.tipos.documentos.listar')
     ->middleware(['auth', 'permission:config.tipo.documento.index']);
@@ -259,6 +263,17 @@ Route::view('/agenda', 'modulos.agenda.index')
 Route::view('/agenda-disponibilidad', 'modulos.agenda.disponibilidad')
     ->name('agenda.disponibilidad.index')
     ->middleware(['auth', 'permission:agendamiento.disponibilidad.index|agenda.index']);
+
+/**
+ * Citas
+ */
+Route::view('/citas', 'modulos.citas.index')
+    ->name('citas.index')
+    ->middleware(['auth', 'permission:citas.index']);
+
+Route::view('/citas/gestion', 'modulos.citas.gestion')
+    ->name('citas.gestion')
+    ->middleware(['auth', 'permission:citas.index']);
 
 /* Route::get('/{optional?}', function () {
     return view('layouts.app');

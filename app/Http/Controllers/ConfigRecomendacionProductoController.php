@@ -2,16 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Citas\Cita;
+use App\Models\Configuracion\ConfigRecomendacionProducto;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 
-class CitaController extends Controller
+class ConfigRecomendacionProductoController extends Controller
 {
     /**
      * Display a listing of the resource.
-     *
-     * @return Response
      */
     public function index()
     {
@@ -20,8 +17,6 @@ class CitaController extends Controller
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return Response
      */
     public function create()
     {
@@ -30,8 +25,6 @@ class CitaController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @return Response
      */
     public function store(Request $request)
     {
@@ -40,40 +33,32 @@ class CitaController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @return Response
      */
-    public function show(Cita $cita)
+    public function show(ConfigRecomendacionProducto $configRecomendacionProducto)
     {
         //
     }
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @return Response
      */
-    public function edit(Cita $cita)
+    public function edit(ConfigRecomendacionProducto $configRecomendacionProducto)
     {
         //
     }
 
     /**
      * Update the specified resource in storage.
-     *
-     * @return Response
      */
-    public function update(Request $request, Cita $cita)
+    public function update(Request $request, ConfigRecomendacionProducto $configRecomendacionProducto)
     {
         //
     }
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @return Response
      */
-    public function destroy(Cita $cita)
+    public function destroy(ConfigRecomendacionProducto $configRecomendacionProducto)
     {
         //
     }

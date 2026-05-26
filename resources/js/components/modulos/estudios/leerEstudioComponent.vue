@@ -490,14 +490,154 @@
                                                     <i class="fa fa-spinner fa-spin"></i> Cargando
                                                     audios...
                                                 </div>
-                                                <template v-for="(item, index) in audiosDeEstudio" :key="index">
-                                                    <audio :src="item.url" controls
-                                                        style="height: 15px; width: 100%"></audio>
+
+                                                <template v-if="!loadingAudios">
+                                                    <!-- FILA 1: Audios de la Lectura -->
+                                                    <div class="row mb-3">
+                                                        <div class="col-12">
+                                                            <h5 class="text-primary">
+                                                                <i class="fa fa-headphones"></i> Audios de la Lectura
+                                                            </h5>
+                                                            <hr>
+                                                            <div v-if="audiosDeEstudio && audiosDeEstudio.length > 0">
+                                                                <div v-for="(item, index) in audiosDeEstudio" :key="item.id || index"
+                                                                    class="audio-item mb-2 p-2 border rounded">
+                                                                    <div class="d-flex align-items-center">
+                                                                        <span class="badge mr-2"
+                                                                            :class="item.tipo === 'cargado' ? 'badge-info' : 'badge-success'"
+                                                                            style="min-width: 70px;">
+                                                                            <i :class="item.tipo === 'cargado' ? 'fa fa-upload' : 'fa fa-microphone'"></i>
+                                                                            {{ item.tipo === 'cargado' ? 'Cargado' : 'Grabado' }}
+                                                                        </span>
+                                                                        <audio :src="item.url" controls
+                                                                            style="height: 30px; flex: 1;"></audio>
+                                                                        <button v-if="item.tipo === 'cargado'"
+                                                                            type="button"
+                                                                            class="btn btn-danger btn-sm ml-2"
+                                                                            @click="eliminarAudioCargado(item.id)"
+                                                                            :disabled="eliminandoAudioId === item.id"
+                                                                            title="Eliminar audio">
+                                                                            <i v-if="eliminandoAudioId === item.id"
+                                                                                class="fa fa-spinner fa-spin"></i>
+                                                                            <i v-else class="fa fa-trash"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                    <small class="text-muted" v-if="item.nombre_original">
+                                                                        {{ item.nombre_original }}
+                                                                        <span v-if="item.duracion">({{ formatDuracion(item.duracion) }})</span>
+                                                                    </small>
+                                                                </div>
+                                                            </div>
+                                                            <div v-else class="text-muted">
+                                                                No hay audios para este estudio.
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- FILA 2: Cargar Audios para Transcribir -->
+                                                    <div class="row">
+                                                        <div class="col-12">
+                                                            <h5 class="text-primary">
+                                                                <i class="fa fa-file-audio-o"></i> Cargar Audios para Transcribir
+                                                            </h5>
+                                                            <hr>
+
+                                                            <!-- Zona de carga -->
+                                                            <div class="form-group">
+                                                                <label for="audioFileInput" class="btn btn-outline-primary btn-block">
+                                                                    <i class="fa fa-upload"></i> Seleccionar Archivos de Audio
+                                                                </label>
+                                                                <input type="file" id="audioFileInput"
+                                                                    ref="audioFileInput"
+                                                                    multiple
+                                                                    accept=".mp3,.wav,.m4a,.webm,.ogg,.flac"
+                                                                    @change="handleAudioFileSelect"
+                                                                    style="display: none;">
+                                                                <small class="text-muted">
+                                                                    Formatos: mp3, wav, m4a, webm, ogg | Maximo: 100MB
+                                                                </small>
+                                                            </div>
+
+                                                            <!-- Lista de audios cargados pendientes -->
+                                                            <div v-if="audiosCargadosPendientes.length > 0" class="mt-3">
+                                                                <h6>Audios cargados:</h6>
+
+                                                                <!-- Selector de modo de transcripcion -->
+                                                                <div class="form-group">
+                                                                    <label class="font-weight-bold">Modo de transcripcion:</label>
+                                                                    <div class="custom-control custom-radio custom-control-inline">
+                                                                        <input type="radio" id="modoReemplazar"
+                                                                            name="modoTranscripcion"
+                                                                            value="reemplazar"
+                                                                            v-model="modoTranscripcion"
+                                                                            class="custom-control-input">
+                                                                        <label class="custom-control-label" for="modoReemplazar">
+                                                                            Reemplazar texto actual
+                                                                        </label>
+                                                                    </div>
+                                                                    <div class="custom-control custom-radio custom-control-inline">
+                                                                        <input type="radio" id="modoAgregar"
+                                                                            name="modoTranscripcion"
+                                                                            value="agregar"
+                                                                            v-model="modoTranscripcion"
+                                                                            class="custom-control-input">
+                                                                        <label class="custom-control-label" for="modoAgregar">
+                                                                            Agregar al texto actual
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+
+                                                                <!-- Lista con checkboxes -->
+                                                                <div v-for="(audio, index) in audiosCargadosPendientes" :key="audio.id"
+                                                                    class="audio-pendiente-item mb-2 p-2 border rounded">
+                                                                    <div class="d-flex align-items-center">
+                                                                        <div class="custom-control custom-checkbox mr-2">
+                                                                            <input type="checkbox"
+                                                                                :id="'check-audio-' + audio.id"
+                                                                                :value="audio.id"
+                                                                                v-model="audioSeleccionados"
+                                                                                class="custom-control-input">
+                                                                            <label :for="'check-audio-' + audio.id"
+                                                                                class="custom-control-label">
+                                                                                {{ audio.nombre_original || 'Audio ' + (index + 1) }}
+                                                                            </label>
+                                                                        </div>
+                                                                        <span class="badge badge-secondary ml-auto">
+                                                                            {{ audio.transcripcion_estado || 'Pendiente' }}
+                                                                        </span>
+                                                                    </div>
+                                                                    <audio v-if="audio.url" :src="audio.url" controls
+                                                                        style="height: 25px; width: 100%; margin-top: 5px;"></audio>
+                                                                </div>
+
+                                                                <!-- Boton de transcribir -->
+                                                                <button type="button"
+                                                                    class="btn btn-primary btn-block mt-3"
+                                                                    @click="transcribirAudiosSeleccionados"
+                                                                    :disabled="transcribiendo || audioSeleccionados.length === 0">
+                                                                    <i v-if="transcribiendo" class="fa fa-spinner fa-spin"></i>
+                                                                    <i v-else class="fa fa-file-text-o"></i>
+                                                                    {{ transcribiendo ? 'Transcribiendo...' : 'Transcribir Seleccionados (' + audioSeleccionados.length + ')' }}
+                                                                </button>
+
+                                                                <!-- Progreso -->
+                                                                <div v-if="transcribiendo" class="mt-2">
+                                                                    <div class="progress">
+                                                                        <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                                                            role="progressbar"
+                                                                            :style="{ width: progresoTranscripcion + '%' }">
+                                                                            {{ progresoTranscripcion }}%
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div v-else class="text-muted mt-3">
+                                                                No hay audios cargados pendientes de transcripcion.
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </template>
-                                                <div v-if="!loadingAudios && (!audiosDeEstudio || audiosDeEstudio.length === 0)"
-                                                    class="text-muted">
-                                                    No hay audios para este estudio.
-                                                </div>
                                             </div>
                                             <div class="tab-pane p-20" id="motivo_examen_hc" role="tabpanel">
                                                 <div class="form-group">
@@ -684,6 +824,15 @@ export default {
             loadingImagenSidebar: false,
             loadingAudios: false,
             audiosDeEstudio: [],
+
+            // Audios cargados para transcripcion
+            audiosCargadosPendientes: [],
+            audioSeleccionados: [],
+            modoTranscripcion: "agregar",
+            transcribiendo: false,
+            progresoTranscripcion: 0,
+            eliminandoAudioId: null,
+            cargandoAudios: false,
 
             /**
              * Variables para convertir de voz a texto y grabacion de audio
@@ -1771,6 +1920,245 @@ export default {
                 this.loadingAudios = false;
             }
         },
+
+        async handleAudioFileSelect(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            const maxSize = 100 * 1024 * 1024;
+            const allowedTypes = [
+                "audio/mpeg",
+                "audio/wav",
+                "audio/x-wav",
+                "audio/mp4",
+                "audio/webm",
+                "audio/ogg",
+                "audio/x-flac",
+                "audio/flac",
+            ];
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+
+                if (file.size > maxSize) {
+                    $.toast({
+                        heading: "Upsss!!!",
+                        text: `El archivo "${file.name}" excede el tamano maximo de 100MB`,
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "warning",
+                        hideAfter: 5000,
+                        stack: 6,
+                    });
+                    continue;
+                }
+
+                await this.uploadAudioFile(file);
+            }
+
+            event.target.value = "";
+        },
+
+        async uploadAudioFile(file) {
+            if (!this.registro.estudio_producto_id) {
+                $.toast({
+                    heading: "Upsss!!!",
+                    text: "No hay un estudio seleccionado",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "warning",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+                return;
+            }
+
+            this.cargandoAudios = true;
+
+            const formData = new FormData();
+            formData.append("audio", file);
+            formData.append("estudio_id", this.id);
+            formData.append("estudio_producto_id", this.registro.estudio_producto_id);
+
+            try {
+                const res = await axios.post("/api/cargar-audio-transcribir", formData, {
+                    headers: { "Content-Type": "multipart/form-data" },
+                    timeout: 300000,
+                });
+
+                if (res.data && res.data.success) {
+                    this.audiosCargadosPendientes.push({
+                        id: res.data.audio_id,
+                        nombre_original: file.name,
+                        url: null,
+                        transcripcion_estado: "Transcrito",
+                        transcripcion: res.data.transcripcion,
+                        duracion: res.data.duracion,
+                    });
+
+                    $.toast({
+                        heading: "Ok!!!",
+                        text: `Audio "${file.name}" cargado y transcrito exitosamente`,
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "success",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+
+                    await this.listarAudios();
+                } else {
+                    throw new Error(res.data.message || "Error al cargar el audio");
+                }
+            } catch (error) {
+                const msg =
+                    error.response && error.response.data && error.response.data.message
+                        ? error.response.data.message
+                        : "Error al cargar y transcribir el audio";
+
+                $.toast({
+                    heading: "Upsss!!!",
+                    text: msg,
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "error",
+                    hideAfter: 5000,
+                    stack: 6,
+                });
+            } finally {
+                this.cargandoAudios = false;
+            }
+        },
+
+        async transcribirAudiosSeleccionados() {
+            if (this.audioSeleccionados.length === 0) return;
+
+            this.transcribiendo = true;
+            this.progresoTranscripcion = 0;
+
+            const total = this.audioSeleccionados.length;
+            let procesados = 0;
+            let textoCompleto = "";
+
+            try {
+                for (const audioId of this.audioSeleccionados) {
+                    const audio = this.audiosCargadosPendientes.find((a) => a.id === audioId);
+                    if (!audio || !audio.transcripcion) continue;
+
+                    audio.transcripcion_estado = "Procesando...";
+
+                    if (textoCompleto.length > 0) {
+                        textoCompleto += "\n\n--- ";
+                        textoCompleto += audio.nombre_original || "Audio";
+                        textoCompleto += " ---\n\n";
+                    }
+
+                    textoCompleto += audio.transcripcion;
+                    procesados++;
+                    this.progresoTranscripcion = Math.round((procesados / total) * 100);
+                    audio.transcripcion_estado = "Completado";
+                }
+
+                this.insertarTranscripcion(textoCompleto);
+
+                $.toast({
+                    heading: "Ok!!!",
+                    text: `Transcripcion completada: ${procesados} audio(s) procesados`,
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "success",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+
+                this.audioSeleccionados = [];
+            } catch (error) {
+                $.toast({
+                    heading: "Upsss!!!",
+                    text: "Error al transcribir audios",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "error",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+            } finally {
+                this.transcribiendo = false;
+                this.progresoTranscripcion = 0;
+            }
+        },
+
+        insertarTranscripcion(texto) {
+            if (!texto) return;
+
+            if (this.modoTranscripcion === "reemplazar") {
+                this.registro.lectura = texto;
+            } else {
+                if (this.registro.lectura && this.registro.lectura.trim().length > 0) {
+                    this.registro.lectura += "\n\n" + texto;
+                } else {
+                    this.registro.lectura = texto;
+                }
+            }
+        },
+
+        async eliminarAudioCargado(audioId) {
+            if (!confirm("¿Estas seguro de eliminar este audio?")) return;
+
+            this.eliminandoAudioId = audioId;
+
+            try {
+                const res = await axios.delete("/api/eliminar-audio-cargado/" + audioId);
+
+                if (res.data && res.data.success) {
+                    this.audiosCargadosPendientes = this.audiosCargadosPendientes.filter(
+                        (a) => a.id !== audioId
+                    );
+                    this.audioSeleccionados = this.audioSeleccionados.filter(
+                        (id) => id !== audioId
+                    );
+
+                    $.toast({
+                        heading: "Ok!!!",
+                        text: "Audio eliminado correctamente",
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "success",
+                        hideAfter: 3500,
+                        stack: 6,
+                    });
+
+                    await this.listarAudios();
+                } else {
+                    throw new Error(res.data.message || "Error al eliminar");
+                }
+            } catch (error) {
+                const msg =
+                    error.response && error.response.data && error.response.data.message
+                        ? error.response.data.message
+                        : "Error al eliminar el audio";
+
+                $.toast({
+                    heading: "Upsss!!!",
+                    text: msg,
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "error",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+            } finally {
+                this.eliminandoAudioId = null;
+            }
+        },
+
+        formatDuracion(segundos) {
+            if (!segundos) return "0:00";
+            const mins = Math.floor(segundos / 60);
+            const secs = Math.floor(segundos % 60);
+            return `${mins}:${secs.toString().padStart(2, "0")}`;
+        },
+
         async listarMisPendientes() {
             if (sessionStorage.getItem("ST-sede") == null) {
                 $.toast({

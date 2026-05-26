@@ -12,21 +12,42 @@ class EstudioAudio extends Model
 
     protected $table = 'estudios_audios';
 
-    protected $fillable = ['audio', 'estudio_id', 'estudio_producto_id'];
+    protected $fillable = [
+        'audio',
+        'estudio_id',
+        'estudio_producto_id',
+        'tipo',
+        'nombre_original',
+        'formato',
+        'duracion',
+        'tamano',
+        'usuario_id',
+    ];
+
+    protected $guarded = ['*'];
+
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 
     protected $appends = ['url'];
 
-    /**
-     * Obtiene la URL pública del audio
-     */
+    public function estudioProducto()
+    {
+        return $this->belongsTo(EstudioProducto::class, 'estudio_producto_id');
+    }
+
+    public function estudio()
+    {
+        return $this->belongsTo(Estudio::class, 'estudio_id');
+    }
+
     public function getUrlAttribute()
     {
         return Storage::disk('audios')->url($this->audio);
     }
 
-    /**
-     * Obtiene la ruta completa del archivo en storage
-     */
     public function getFullPathAttribute()
     {
         return Storage::disk('audios')->path($this->audio);

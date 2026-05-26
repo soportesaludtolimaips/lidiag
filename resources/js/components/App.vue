@@ -43,7 +43,7 @@
             <!-- Container fluid  -->
             <!-- ============================================================== -->
             <div class="container-fluid">
-                <router-view :usuario="usuario" :sucursualActual="sucursualActual"></router-view>
+                <router-view :usuario="usuario" :sucursual-actual="sucursualActual"></router-view>
             </div>
             <!-- ============================================================== -->
             <!-- End Container fluid  -->

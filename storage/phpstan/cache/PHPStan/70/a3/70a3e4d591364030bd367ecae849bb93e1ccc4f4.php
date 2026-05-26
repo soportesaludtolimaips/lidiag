@@ -2,6 +2,6 @@
 
 // variadic-method-App\Http\Controllers\Interface\SAHITranscibirController-storeEsquemaMemo-C:\laragon\www\lidiag\app\Http\Controllers\Interface\SAHITranscibirController.php
 return \PHPStan\Cache\CacheItem::__set_state(array(
-   'variableKey' => '1764342679-v4',
+   'variableKey' => '1778081690-v4',
    'data' => false,
 ));

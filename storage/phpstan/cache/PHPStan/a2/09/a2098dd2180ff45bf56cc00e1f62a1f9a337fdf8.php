@@ -48,7 +48,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\HtmlStringable.php' => 
     array (
-      0 => 'ce387d2957d3941be1b6d89cdae95839c5777012',
+      0 => '45eb8e104d4acf1ebc95e05c370fd5dcea38feab',
       1 => 
       array (
         0 => 'nette\\htmlstringable',
@@ -63,7 +63,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\Iterators\\CachingIterator.php' => 
     array (
-      0 => '8ede3eb30477857df181d56d95922babd8103d36',
+      0 => 'cca47ef3533b6b3959e2a39e9eed95970f70e0c6',
       1 => 
       array (
         0 => 'nette\\iterators\\cachingiterator',
@@ -89,7 +89,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\Iterators\\Mapper.php' => 
     array (
-      0 => 'c0ec5f53c56b99e228cea2e591bfb432a580892c',
+      0 => '74c0b6a74ea5329f9f684e4a44bc9731819db997',
       1 => 
       array (
         0 => 'nette\\iterators\\mapper',
@@ -105,7 +105,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\SmartObject.php' => 
     array (
-      0 => '0f5e5f1ec5f84bccd662014e33e0986208747efc',
+      0 => '37cfd057a166c4ef33f0323e4cc527eada4aa2d9',
       1 => 
       array (
         0 => 'nette\\smartobject',
@@ -125,7 +125,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\StaticClass.php' => 
     array (
-      0 => 'e71f66de9e14185c7bf4c060ebc089026a872b5d',
+      0 => '8d29eebab49984f70a09cb1703c25ee723c345f9',
       1 => 
       array (
         0 => 'nette\\staticclass',
@@ -140,7 +140,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\Translator.php' => 
     array (
-      0 => '8290eb3f9a53dd09c63a7f2ed5d369639068185b',
+      0 => 'cc58c5b49a822e8d6e4c365d7544ffe387c37874',
       1 => 
       array (
         0 => 'nette\\localization\\translator',
@@ -155,7 +155,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\Utils\\ArrayHash.php' => 
     array (
-      0 => '0e7852213f84b0cfcf8d5da5ec993153c2e12cd0',
+      0 => '3121fdd351a8ad6120f570e02fcc6b4de32f3f9c',
       1 => 
       array (
         0 => 'nette\\utils\\arrayhash',
@@ -176,7 +176,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\Utils\\ArrayList.php' => 
     array (
-      0 => '95d74d5f682c96a917c97eac43a5fca3139536f8',
+      0 => '721397898559ed0eda1383d97dd97a715f999594',
       1 => 
       array (
         0 => 'nette\\utils\\arraylist',
@@ -198,7 +198,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\Utils\\Arrays.php' => 
     array (
-      0 => '78a9acd1a74bd16bdc6d12ba0c7269a48d3723b7',
+      0 => '5e5f2223ddd6fa3bddeadc3ca9ad002582019248',
       1 => 
       array (
         0 => 'nette\\utils\\',
@@ -243,7 +243,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\Utils\\Callback.php' => 
     array (
-      0 => 'e35cbfe851dd02c41f56f9abd6bb48986e39524f',
+      0 => 'b72e8077c596a3698ddc8843933ab4bd0585b0f7',
       1 => 
       array (
         0 => 'nette\\utils\\callback',
@@ -263,7 +263,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\Utils\\DateTime.php' => 
     array (
-      0 => 'e3eca47f284282e7dfeca6ed109e834d0d41ee13',
+      0 => '13cf0fb71f805defd33dfc06edc2f9879357487c',
       1 => 
       array (
         0 => 'nette\\utils\\datetime',
@@ -308,7 +308,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\Utils\\FileInfo.php' => 
     array (
-      0 => 'c17f951b04504c2315b827198ea6e58cfebf5404',
+      0 => '0b43daed4610f501eaacd00f3e440733dfba567a',
       1 => 
       array (
         0 => 'nette\\utils\\fileinfo',
@@ -327,7 +327,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\Utils\\FileSystem.php' => 
     array (
-      0 => 'bb56a2e73cc0f9403816ca0d53504f83502a1db1',
+      0 => '6ed09df3d0fe7e42423a4e950682613ab401a1c4',
       1 => 
       array (
         0 => 'nette\\utils\\filesystem',
@@ -356,7 +356,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\Utils\\Finder.php' => 
     array (
-      0 => '8b1b34aed4019818c6ceb0b65c109e34dcb89b43',
+      0 => 'f0a43d7585e1b3356e9eae51f9d4729f8d0c28a9',
       1 => 
       array (
         0 => 'nette\\utils\\',
@@ -422,7 +422,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\Utils\\Helpers.php' => 
     array (
-      0 => '3f71aeb157eaa397e6444eae96d954e25f11f9a2',
+      0 => 'd827fa5fc53dbedeacdd75e0fa2d84a755b790f5',
       1 => 
       array (
         0 => 'nette\\utils\\helpers',
@@ -443,7 +443,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\Utils\\Html.php' => 
     array (
-      0 => 'e586db5743c06acceb7e00ab375d3d851043baea',
+      0 => 'eea90599d7fd7d31e079980d42d43c3026ef81d7',
       1 => 
       array (
         0 => 'nette\\utils\\',
@@ -503,7 +503,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\Utils\\Image.php' => 
     array (
-      0 => '8844ff4646b9fe6531e31dae4227b249aacaa6f9',
+      0 => 'ffb34f693f646b3d1b648d274f7cee0374e9286b',
       1 => 
       array (
         0 => 'nette\\utils\\',
@@ -547,7 +547,8 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
         33 => 'nette\\utils\\ispercent',
         34 => 'nette\\utils\\__serialize',
         35 => 'nette\\utils\\resolvecolor',
-        36 => 'nette\\utils\\ensureextension',
+        36 => 'nette\\utils\\normalizecolor',
+        37 => 'nette\\utils\\ensureextension',
       ),
       3 => 
       array (
@@ -556,7 +557,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\Utils\\ImageColor.php' => 
     array (
-      0 => 'a23d46bb47787c71accdefbd1100e6fd370583fc',
+      0 => '03f5fb2b72727194b13a6fd4cfae9dfc5d07b6b0',
       1 => 
       array (
         0 => 'nette\\utils\\imagecolor',
@@ -590,7 +591,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\Utils\\Iterables.php' => 
     array (
-      0 => '2d0161447e5238f8745eb3856bb4a1ce05db444b',
+      0 => 'b5674343ef5fd281c75d82d2cff76d57af1d1ea3',
       1 => 
       array (
         0 => 'nette\\utils\\iterables',
@@ -660,7 +661,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\Utils\\Paginator.php' => 
     array (
-      0 => 'a03076b5671cd149f45deea0e05f54d86f0b1a37',
+      0 => '94b28b40a51992d34cf72acc8aa0444aff224947',
       1 => 
       array (
         0 => 'nette\\utils\\paginator',
@@ -708,7 +709,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\Utils\\Reflection.php' => 
     array (
-      0 => '54271fc343dc47de1ddf66acb050cbae03005eea',
+      0 => '53b65d9c08751773a76055b3671045bccc3d4871',
       1 => 
       array (
         0 => 'nette\\utils\\',
@@ -735,7 +736,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\Utils\\ReflectionMethod.php' => 
     array (
-      0 => '8c547da0e832823d060b6d97c5a74dbf4a86255e',
+      0 => '4966068ef425c590152aeb9460f9aa355f518303',
       1 => 
       array (
         0 => 'nette\\utils\\reflectionmethod',
@@ -751,7 +752,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\Utils\\Strings.php' => 
     array (
-      0 => '441f53749df192267901abebea2231462e3bfc52',
+      0 => '6049d5043e8d25051bcf68ea6169b3047c14e965',
       1 => 
       array (
         0 => 'nette\\utils\\strings',
@@ -803,7 +804,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\Utils\\Type.php' => 
     array (
-      0 => 'a63bcc99e01b06db807325c34f0d8985ec9572f2',
+      0 => '390e19527e9832016986f5bbe234f51eb14bfa93',
       1 => 
       array (
         0 => 'nette\\utils\\type',
@@ -838,7 +839,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\nette\\utils\\src\\Utils\\Validators.php' => 
     array (
-      0 => 'd5737d9aafd2716b601887ed1b1f6a6e5eb1cbae',
+      0 => '521ae21b4e44eafe5dca7951eed3a9516e3e8a3a',
       1 => 
       array (
         0 => 'nette\\utils\\validators',

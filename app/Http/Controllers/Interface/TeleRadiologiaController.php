@@ -60,6 +60,10 @@ class TeleRadiologiaController extends Controller
      */
     public function enviarOrdenTeleRadiologia(Request $request)
     {
+        return response()->json([
+            'message' => 'Endpoint en desarrollo. Use /estudios para crear el estudio localmente.',
+        ], 200);
+
         try {
             $validator = Validator::make($request->all(), [
                 'orden' => 'required|array',
@@ -127,7 +131,7 @@ class TeleRadiologiaController extends Controller
     public function recibirLectura(Request $request)
     {
         // 1. Logs iniciales para depuración
-        Log::info('RAW CONTENT: '.$request->getContent());
+        Log::info('RAW CONTENT: ' . $request->getContent());
 
         // 2. Procesamiento de Encoding y JSON (ISO-8859-1 a UTF-8)
         $rawContent = $request->getContent();
@@ -168,7 +172,7 @@ class TeleRadiologiaController extends Controller
             $estudio = Estudio::where('study_iuid', $d['study_iuid'])->first();
 
             if (! $estudio) {
-                return response()->json(['message' => 'Estudio no encontrado con IUID: '.$d['study_iuid']], 404);
+                return response()->json(['message' => 'Estudio no encontrado con IUID: ' . $d['study_iuid']], 404);
             }
 
             // 6. Buscar el producto específico del estudio (CUPS)
@@ -228,7 +232,7 @@ class TeleRadiologiaController extends Controller
                 'medico' => $medico->name,
             ], 200);
         } catch (\Exception $e) {
-            Log::error("Error crítico en recibirLectura: ".$e->getMessage());
+            Log::error("Error crítico en recibirLectura: " . $e->getMessage());
 
             return response()->json([
                 'message' => 'Error interno del servidor.',
@@ -250,11 +254,11 @@ class TeleRadiologiaController extends Controller
         $medico = User::firstOrNew(['reg_med' => $medicoData['reg_medico']]);
 
         // 2. Actualizar datos básicos
-        $medico->name = 'TL '.($medicoData['name'] ?? 'Sin Nombre');
+        $medico->name = 'TL ' . ($medicoData['name'] ?? 'Sin Nombre');
         $medico->reg_med = $medicoData['reg_medico'] ?? $medico->reg_med;
 
         if (! $medico->exists) {
-            $medico->email = $medicoData['num_docu'].'@teleradiologia.com';
+            $medico->email = $medicoData['num_docu'] . '@teleradiologia.com';
             $medico->password = bcrypt('password');
         }
 
@@ -280,18 +284,18 @@ class TeleRadiologiaController extends Controller
                     }
 
                     // Generar nombre aleatorio de 50 caracteres
-                    $nombreArchivo = Str::random(50).".".$extension;
+                    $nombreArchivo = Str::random(50) . "." . $extension;
 
                     // Guardar en el disco configurado
                     $guardadoExitoso = Storage::disk('firmas_medicos')->put($nombreArchivo, $imgData);
 
                     if ($guardadoExitoso) {
                         // Actualizar el path en el modelo
-                        $medico->firma = 'firmas_medicos/'.$nombreArchivo;
+                        $medico->firma = 'firmas_medicos/' . $nombreArchivo;
                     }
                 }
             } catch (\Exception $e) {
-                Log::error("Error al sustituir firma del médico {$medico->num_docu}: ".$e->getMessage());
+                Log::error("Error al sustituir firma del médico {$medico->num_docu}: " . $e->getMessage());
             }
         }
 

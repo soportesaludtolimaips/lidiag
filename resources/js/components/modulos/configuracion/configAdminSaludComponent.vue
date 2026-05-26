@@ -150,7 +150,7 @@
                                     <div class="form-group">
                                         <div class="checkbox checkbox-success">
                                             <input type="checkbox" id="estado" name="estado" v-model="registro.estado"
-                                                :checked="registro.estado" value="1">
+                                                :true-value="1" :false-value="0">
                                             <label for="estado"> Activo </label>
                                         </div>
                                     </div>
@@ -199,7 +199,7 @@ export default {
         return {
             id: 0,
             registros: [],
-            registro: { cod_admin_salud: '', nit_admin_salud: '', nom_admin_salud: '', estado: 0 },
+            registro: { cod_admin_salud: '', nit_admin_salud: '', nom_admin_salud: '', estado: true },
             tituloModal: 'Nuevo registro',
             actualizar: false,
             errores: {},
@@ -298,13 +298,13 @@ export default {
             }
         },
         mostrarRegistro(data = {}) {
-            if (this.actualizar == true) {
+            if (this.actualizar) {
                 this.tituloModal = "Actualizar el registro: " + data.nom_admin_salud;
                 this.id = data.id;
                 this.registro.cod_admin_salud = data.cod_admin_salud;
                 this.registro.nit_admin_salud = data.nit_admin_salud;
                 this.registro.nom_admin_salud = data.nom_admin_salud;
-                this.registro.estado = data.estado;
+                this.registro.estado = Boolean(data.estado);
             } else {
                 this.actualizar = false;
                 this.tituloModal = "Nuevo registro";
@@ -312,7 +312,7 @@ export default {
                 this.registro.cod_admin_salud = "";
                 this.registro.nit_admin_salud = "";
                 this.registro.nom_admin_salud = "";
-                this.registro.estado = 1;
+                this.registro.estado = true;
             }
 
             this.btnCerralModalForm();

@@ -120,8 +120,8 @@
                                         <select class="form-control custom-select" style="width: 100%; height: 36px"
                                             v-model="registro.medico_id" name="medico_id">
                                             <option>Seleccione el médico</option>
-                                            <option v-for="ItemMedico in medicos" v-bind:key="ItemMedico"
-                                                v-bind:value="ItemMedico.id">
+                                            <option v-for="ItemMedico in medicos" :key="ItemMedico"
+                                                :value="ItemMedico.id">
                                                 {{ ItemMedico.name }}
                                             </option>
                                             <span class="text-danger" v-if="errores.nom_plantilla">{{
@@ -137,7 +137,7 @@
                                             v-model="registro.plantilla_tipo_id" name="plantilla_tipo_id">
                                             <option>Seleccione el médico</option>
                                             <option v-for="ItemTipoPlantilla in tiposPlantillas"
-                                                v-bind:key="ItemTipoPlantilla" v-bind:value="ItemTipoPlantilla.id">
+                                                :key="ItemTipoPlantilla" :value="ItemTipoPlantilla.id">
                                                 {{ ItemTipoPlantilla.nom_tipo }}
                                             </option>
                                         </select>
@@ -171,7 +171,7 @@
                                     <div class="form-group">
                                         <div class="checkbox checkbox-success">
                                             <input type="checkbox" id="estado" name="estado" v-model="registro.estado"
-                                                :checked="registro.estado" value="1">
+                                                :true-value="1" :false-value="0">
                                             <label for="estado"> Activo </label>
                                         </div>
                                     </div>
@@ -222,7 +222,7 @@ export default {
         return {
             id: 0,
             registros: [],
-            registro: { plantilla_tipo_id: '', medico_id: '', nom_plantilla: '', plantilla: '', opinion: '', estado: 1 },
+            registro: { plantilla_tipo_id: '', medico_id: '', nom_plantilla: '', plantilla: '', opinion: '', estado: true },
             tituloModal: 'Nuevo registro',
             actualizar: false,
             errores: {},
@@ -354,7 +354,7 @@ export default {
                 this.registro.nom_plantilla = data.nom_plantilla;
                 this.registro.plantilla = data.plantilla;
                 this.registro.opinion = data.opinion;
-                this.registro.estado = data.estado;
+                this.registro.estado = Boolean(data.estado);
             } else {
                 this.actualizar = false;
                 this.tituloModal = "Nuevo registro";
@@ -364,7 +364,7 @@ export default {
                 this.registro.nom_plantilla = "";
                 this.registro.plantilla = "";
                 this.registro.opinion = "";
-                this.registro.estado = 1;
+                this.registro.estado = true;
             }
 
             this.btnCerralModalForm();

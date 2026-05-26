@@ -139,8 +139,8 @@
                                                 type="checkbox"
                                                 id="activo"
                                                 v-model="registro.activo"
-                                                :checked="registro.activo"
-                                                value="1"
+                                                :true-value="1"
+                                                :false-value="0"
                                             />
                                             <label for="activo"> Activo </label>
                                         </div>

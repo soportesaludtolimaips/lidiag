@@ -36,4 +36,16 @@ return [
         'whatsapp_number' => env('TWILIO_WHATSAPP_NUMBER'),
     ],
 
+    'whatsapp' => [
+        'token' => env('META_WHATSAPP_TOKEN'),
+        'phone_number_id' => env('META_WHATSAPP_PHONE_ID'),
+        'business_account_id' => env('META_WHATSAPP_BUSINESS_ID'),
+        'app_secret' => env('META_WHATSAPP_APP_SECRET'),
+    ],
+
+    'transcriptor' => [
+        'url' => env('TRANSCRIPTOR_SERVICE_URL', 'http://localhost:8001'),
+        'timeout' => env('TRANSCRIPTOR_TIMEOUT', 300),
+    ],
+
 ];

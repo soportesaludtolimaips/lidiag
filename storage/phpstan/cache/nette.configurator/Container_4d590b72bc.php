@@ -8,7 +8,7 @@
 
 declare(strict_types=1);
 
-class Container_4d590b72bc extends _PHPStan_b22655c3f\Nette\DI\Container
+class Container_4d590b72bc extends _PHPStan_8c66d8255\Nette\DI\Container
 {
 	protected $tags = [
 		'phpstan.parser.richParserNodeVisitor' => [
@@ -519,11 +519,11 @@ class Container_4d590b72bc extends _PHPStan_b22655c3f\Nette\DI\Container
 		'phpstan.collector' => ['0565' => true, '0566' => true, '0567' => true, '0568' => true, '0569' => true],
 	];
 
-	protected $types = ['container' => '_PHPStan_b22655c3f\Nette\DI\Container'];
+	protected $types = ['container' => '_PHPStan_8c66d8255\Nette\DI\Container'];
 	protected $aliases = [];
 
 	protected $wiring = [
-		'_PHPStan_b22655c3f\Nette\DI\Container' => [['container']],
+		'_PHPStan_8c66d8255\Nette\DI\Container' => [['container']],
 		'PHPStan\Rules\Rule' => [
 			[
 				'0134',

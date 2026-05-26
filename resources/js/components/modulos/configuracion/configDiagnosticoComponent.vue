@@ -137,7 +137,7 @@
                                     <div class="form-group">
                                         <div class="checkbox checkbox-success">
                                             <input type="checkbox" id="estado" name="estado" v-model="registro.estado"
-                                                :checked="registro.estado" value="1">
+                                                :true-value="1" :false-value="0">
                                             <label for="estado"> Activo </label>
                                         </div>
                                     </div>
@@ -187,7 +187,7 @@ export default {
         return {
             id: 0,
             registros: [],
-            registro: { cod_diagnos: '', nom_diagnos: '', estado: 0 },
+            registro: { cod_diagnos: '', nom_diagnos: '', estado: true },
             tituloModal: 'Nuevo registro',
             actualizar: false,
             errores: {},
@@ -290,20 +290,19 @@ export default {
             }
         },
         mostrarRegistro(data = {}) {
-            if (this.actualizar == true) {
+            if (this.actualizar) {
                 this.tituloModal = "Actualizar el registro: " + data.nom_diagnos;
                 this.id = data.id;
                 this.registro.cod_diagnos = data.cod_diagnos;
                 this.registro.nom_diagnos = data.nom_diagnos;
-                this.registro.estado = data.estado;
-
+                this.registro.estado = Boolean(data.estado);
             } else {
                 this.actualizar = false;
                 this.tituloModal = "Nuevo registro";
                 this.id = 0;
                 this.registro.cod_diagnos = "";
                 this.registro.nom_diagnos = "";
-                this.registro.estado = 1;
+                this.registro.estado = true;
             }
         },
         limpiar() {
@@ -312,7 +311,7 @@ export default {
             this.id = 0;
             this.registro.cod_diagnos = "";
             this.registro.nom_diagnos = "";
-            this.registro.estado = 1;
+            this.registro.estado = true;
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);

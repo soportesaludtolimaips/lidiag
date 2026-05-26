@@ -138,7 +138,7 @@
                                     <div class="form-group">
                                         <div class="checkbox checkbox-success">
                                             <input type="checkbox" id="estado" name="estado" v-model="registro.estado"
-                                                :checked="registro.estado" value="1">
+                                                :true-value="1" :false-value="0">
                                             <label for="estado"> Activo </label>
                                         </div>
                                     </div>
@@ -188,7 +188,7 @@ export default {
         return {
             id: 0,
             registros: [],
-            registro: { codigo: '', tipo_documento: '', estado: 0 },
+            registro: { codigo: '', tipo_documento: '', estado: true },
             tituloModal: 'Nuevo registro',
             actualizar: false,
             errores: {},
@@ -291,20 +291,19 @@ export default {
             }
         },
         mostrarRegistro(data = {}) {
-            if (this.actualizar == true) {
+            if (this.actualizar) {
                 this.tituloModal = "Actualizar el registro: " + (data.tipo_documento || '');
                 this.id = data.id;
                 this.registro.codigo = data.codigo;
                 this.registro.tipo_documento = data.tipo_documento;
-                this.registro.estado = data.estado;
-
+                this.registro.estado = Boolean(data.estado);
             } else {
                 this.actualizar = false;
                 this.tituloModal = "Nuevo registro";
                 this.id = 0;
                 this.registro.codigo = "";
                 this.registro.tipo_documento = "";
-                this.registro.estado = 1;
+                this.registro.estado = true;
             }
         },
         limpiar() {
@@ -313,7 +312,7 @@ export default {
             this.id = 0;
             this.registro.codigo = "";
             this.registro.tipo_documento = "";
-            this.registro.estado = 1;
+            this.registro.estado = true;
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);

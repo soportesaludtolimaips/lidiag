@@ -2,6 +2,6 @@
 
 // variadic-method-App\Models\Consentimientos\EcografiaConsentimiento-sede-C:\laragon\www\lidiag\app\Models\Consentimientos\EcografiaConsentimiento.php
 return \PHPStan\Cache\CacheItem::__set_state(array(
-   'variableKey' => '1770321911-v4',
+   'variableKey' => '1770999554-v4',
    'data' => false,
 ));

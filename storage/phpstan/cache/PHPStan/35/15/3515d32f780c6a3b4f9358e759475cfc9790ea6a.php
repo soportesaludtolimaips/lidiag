@@ -11550,7 +11550,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\phpunit\\phpunit\\src\\Runner\\PhptTestCase.php' => 
     array (
-      0 => 'ec2b7fcc74f39f4c9b4b9dc40832a65b72fe9770',
+      0 => '08ea1931b09ab0e834e7754a307dd86a0f74e0d5',
       1 => 
       array (
         0 => 'phpunit\\runner\\phpttestcase',
@@ -11587,6 +11587,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
         27 => 'phpunit\\runner\\getcleandiffline',
         28 => 'phpunit\\runner\\getlocationhint',
         29 => 'phpunit\\runner\\settings',
+        30 => 'phpunit\\runner\\ensurecoveragefiledoesnotexist',
       ),
       3 => 
       array (
@@ -12460,7 +12461,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     'C:\\laragon\\www\\lidiag\\vendor\\phpunit\\phpunit\\src\\Runner\\Version.php' => 
     array (
-      0 => '7fffb1b4cb70dcaf73ffd784449232da5d336eda',
+      0 => '582cbf58725761f3fdf7558ae4ec8461b7baf152',
       1 => 
       array (
         0 => 'phpunit\\runner\\version',
@@ -16506,6 +16507,20 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
         0 => 'phpunit\\util\\preparestring',
         1 => 'phpunit\\util\\converttoutf8',
         2 => 'phpunit\\util\\isutf8',
+      ),
+      3 => 
+      array (
+      ),
+    ),
+    'C:\\laragon\\www\\lidiag\\vendor\\phpunit\\phpunit\\src\\Runner\\Exception\\CodeCoverageFileExistsException.php' => 
+    array (
+      0 => '335d52046efc12d8f103319370084255bfc77dfc',
+      1 => 
+      array (
+        0 => 'phpunit\\runner\\codecoveragefileexistsexception',
+      ),
+      2 => 
+      array (
       ),
       3 => 
       array (

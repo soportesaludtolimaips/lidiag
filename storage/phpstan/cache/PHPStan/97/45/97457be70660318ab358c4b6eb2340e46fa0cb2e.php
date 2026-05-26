@@ -2,6 +2,6 @@
 
 // variadic-method-App\Models\ImportarEcografias\Lectura-eps-C:\laragon\www\lidiag\app\Models\ImportarEcografias\Lectura.php
 return \PHPStan\Cache\CacheItem::__set_state(array(
-   'variableKey' => '1763751631-v4',
+   'variableKey' => '1778081692-v4',
    'data' => false,
 ));

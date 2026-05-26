@@ -51,3 +51,6 @@ require __DIR__.'/api_OHIF_visor.php';
 
 // Ruta de prueba directa - SIN middleware
 Route::get('/test-ohif', [OhifVisorController::class, 'qidoStudies']);
+
+// Rutas de Citas
+require __DIR__.'/api_citas.php';

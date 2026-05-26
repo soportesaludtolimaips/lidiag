@@ -2,6 +2,6 @@
 
 // variadic-method-Illuminate\Contracts\Routing\ResponseFactory-download-C:\laragon\www\lidiag\vendor\composer\..\laravel\framework\src\Illuminate\Contracts\Routing\ResponseFactory.php
 return \PHPStan\Cache\CacheItem::__set_state(array(
-   'variableKey' => '1764354042-v4',
+   'variableKey' => '1771164727-v4',
    'data' => false,
 ));
