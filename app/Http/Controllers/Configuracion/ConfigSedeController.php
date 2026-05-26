@@ -114,13 +114,13 @@ class ConfigSedeController extends Controller
         if ($request->hasFile('plantilla_rx')) {
             $archivo = $request->plantilla_rx;
 
-            if (! is_null($configSede->plantilla_rx) && Storage::disk('plantilla_rxs_lecturas')->exists($configSede->plantilla_rx)) {
-                Storage::disk('plantilla_rxs_lecturas')->delete($configSede->plantilla_rx);
+            if (! is_null($configSede->plantilla_rx) && Storage::disk('plantillas_lecturas')->exists($configSede->plantilla_rx)) {
+                Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_rx);
             }
 
             $nombreEncrip = Str::random(50).".".$archivo->extension();
 
-            $archivo->storeAs('plantilla_rxs_lecturas', $nombreEncrip);
+            $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
             $configSede->plantilla_rx = $nombreEncrip;
         }
 
@@ -131,13 +131,13 @@ class ConfigSedeController extends Controller
 
             $archivo = $request->plantilla_rx_ecografia;
 
-            if (! is_null($configSede->plantilla_rx_ecografia) && Storage::disk('plantilla_rxs_lecturas')->exists($configSede->plantilla_rx_ecografia)) {
-                Storage::disk('plantilla_rxs_lecturas')->delete($configSede->plantilla_rx_ecografia);
+            if (! is_null($configSede->plantilla_rx_ecografia) && Storage::disk('plantillas_lecturas')->exists($configSede->plantilla_rx_ecografia)) {
+                Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_rx_ecografia);
             }
 
             $nombreEncrip = Str::random(50).".".$archivo->extension();
 
-            $archivo->storeAs('plantilla_rxs_lecturas', $nombreEncrip);
+            $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
             $configSede->plantilla_rx_ecografia = $nombreEncrip;
         }
 
@@ -274,13 +274,13 @@ class ConfigSedeController extends Controller
         if ($request->hasFile('plantilla_rx')) {
             $archivo = $request->plantilla_rx;
 
-            if (! is_null($configSede->plantilla_rx) && Storage::disk('plantilla_rxs_lecturas')->exists($configSede->plantilla_rx)) {
-                Storage::disk('plantilla_rxs_lecturas')->delete($configSede->plantilla_rx);
+            if (! is_null($configSede->plantilla_rx) && Storage::disk('plantillas_lecturas')->exists($configSede->plantilla_rx)) {
+                Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_rx);
             }
 
             $nombreEncrip = Str::random(50).".".$archivo->extension();
 
-            $archivo->storeAs('plantilla_rxs_lecturas', $nombreEncrip);
+            $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
             $configSede->plantilla_rx = $nombreEncrip;
         }
 
@@ -291,13 +291,13 @@ class ConfigSedeController extends Controller
 
             $archivo = $request->plantilla_rx_ecografia;
 
-            if (! is_null($configSede->plantilla_rx_ecografia) && Storage::disk('plantilla_rxs_lecturas')->exists($configSede->plantilla_rx_ecografia)) {
-                Storage::disk('plantilla_rxs_lecturas')->delete($configSede->plantilla_rx_ecografia);
+            if (! is_null($configSede->plantilla_rx_ecografia) && Storage::disk('plantillas_lecturas')->exists($configSede->plantilla_rx_ecografia)) {
+                Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_rx_ecografia);
             }
 
             $nombreEncrip = Str::random(50).".".$archivo->extension();
 
-            $archivo->storeAs('plantilla_rxs_lecturas', $nombreEncrip);
+            $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
             $configSede->plantilla_rx_ecografia = $nombreEncrip;
         }
 
