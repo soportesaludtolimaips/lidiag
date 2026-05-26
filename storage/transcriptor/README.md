@@ -8,7 +8,7 @@ Servicio HTTP local para transcribir archivos de audio a texto usando **OpenAI W
 
 - Windows Server 2022 o superior
 - Python 3.10, 3.11 o 3.12 instalado
-- FFmpeg instalado y agregado al PATH del sistema
+- FFmpeg instalado (en `C:\ffmpeg\bin` o cualquier ruta accesible)
 - Minimo 4GB RAM libre
 - Proyecto Lidiag clonado en `C:\laragon\www\lidiag`
 - Conexion a internet para descargar dependencias
@@ -39,15 +39,12 @@ Servicio HTTP local para transcribir archivos de audio a texto usando **OpenAI W
 1. Descargar FFmpeg desde https://ffmpeg.org/download.html
    - Elegir la version para Windows (ej: `ffmpeg-release-full.7z`)
 2. Extraer el contenido en `C:\ffmpeg`
-3. Agregar `C:\ffmpeg\bin` al PATH del sistema:
-   - Abrir **"Editar las variables de entorno del sistema"**
-   - En **"Variables del sistema"** seleccionar `Path` → **Editar**
-   - Click **"Nuevo"** y pegar: `C:\ffmpeg\bin`
-   - Aceptar todo
-4. Cerrar y reabrir cmd, verificar:
+3. Verificar que existe el ejecutable:
    ```cmd
-   ffmpeg -version
+   dir C:\ffmpeg\bin\ffmpeg.exe
    ```
+
+> **Nota:** No es necesario agregar FFmpeg al PATH del sistema. El servicio lo detecta automaticamente en `C:\ffmpeg\bin\ffmpeg.exe` y lo agrega al PATH del proceso.
 
 ### Paso 3: Ubicar el proyecto
 
@@ -321,6 +318,27 @@ netstat -ano | findstr 8001
 
 Si hay otro proceso usando el puerto, cambiar el puerto en `main.py` (linea `uvicorn.run(...)`) y actualizar la variable `TRANSCRIPTOR_SERVICE_URL` en el `.env` de Laravel.
 
+### Error: `[WinError 2] El sistema no puede encontrar el archivo especificado`
+
+Ocurre cuando FFmpeg no es encontrado por el proceso de Python o por Whisper internamente.
+
+**Causas posibles:**
+
+1. FFmpeg no esta instalado en ninguna ruta esperada
+2. FFmpeg no esta en `C:\ffmpeg\bin\ffmpeg.exe`
+
+**Solucion:** El servicio busca FFmpeg automaticamente en:
+- El PATH del sistema
+- `C:\ffmpeg\bin\ffmpeg.exe`
+- `C:\ffmpeg\ffmpeg.exe`
+
+Si FFmpeg esta en otra ruta, editar `whisper_service.py` y agregar la ruta en `_find_ffmpeg()`.
+
+Para verificar que el servicio encuentra FFmpeg, revisar el log al iniciar:
+```
+FFmpeg encontrado en: C:/ffmpeg/bin/ffmpeg.exe
+```
+
 ### Error: "CUDA out of memory"
 
 El servicio usa CPU por defecto. Si el servidor tiene GPU NVIDIA, editar `whisper_service.py`:
@@ -348,6 +366,14 @@ Verifica que el servicio esta activo.
 
 ```json
 {"status":"ok","model_loaded":true}
+```
+
+### GET /debug
+
+Diagnostico del servicio. Muestra version de Python, ruta de FFmpeg, PATH, etc.
+
+```json
+{"python":"3.12.x","ffmpeg_path":"C:/ffmpeg/bin/ffmpeg.exe","ffmpeg_ok":true,"model_loaded":true,...}
 ```
 
 ### POST /transcribir
@@ -385,11 +411,13 @@ En `config/services.php`:
 
 | Archivo | Descripcion |
 |---------|-------------|
-| `main.py` | Servicio FastAPI con endpoints HTTP |
-| `whisper_service.py` | Carga y ejecuta el modelo Whisper |
+| `main.py` | Servicio FastAPI con endpoints HTTP (`/health`, `/debug`, `/transcribir`) |
+| `whisper_service.py` | Carga y ejecuta el modelo Whisper. Detecta FFmpeg automaticamente y lo agrega al PATH |
 | `requirements.txt` | Lista de dependencias Python |
 | `start.bat` | Inicia el servicio manualmente (cmd) |
 | `install.bat` | Instala todas las dependencias |
 | `iniciar_servicio.bat` | Script para el Programador de Tareas |
-| `servicio.log` | Log de ejecucion del servicio |
+| `servicio.log` | Log de ejecucion del servicio (se crea automaticamente al iniciar) |
+| `uploads/` | Directorio temporal para archivos de audio recibidos |
+| `test_audio.mp3` | Audio de prueba para verificar la transcripcion |
 | `README.md` | Este documento |

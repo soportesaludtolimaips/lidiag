@@ -1,0 +1,58 @@
+Cambios realizados:
+- Servicio Python (FastAPI + Whisper) en storage/transcriptor/ — transcripción local por IA, modelo "base", optimizado para CPU
+- Los audios se cargan y transcriben en un solo paso desde el módulo de lectura
+- La transcripción se guarda en base de datos (estudios_audios.transcripcion) y puede insertarse en la lectura con un clic
+- Reproductor de audio embebido en la interfaz
+- Soporta formatos: mp3, wav, m4a, webm, ogg, flac (máx 100MB)
+
+Beneficio: Los médicos pueden dictar sus lecturas por audio y obtener texto automáticamente, reduciendo tiempo de transcripción.
+
+1. Transcripción automática de audios con Whisper (IA local)
+Se implementó un servicio de transcripción de voz a texto utilizando Whisper (modelo de IA de OpenAI) corriendo 100% en local — sin costos recurrentes ni dependencia de internet.
+¿Qué permite?
+- El médico puede cargar archivos de audio (mp3, wav, m4a, webm, ogg, flac) directamente desde el formulario de lectura
+- El audio se transcribe automáticamente al momento de la carga
+- La transcripción puede insertarse en la lectura del estudio con un solo clic
+- Soporta múltiples audios por estudio, con selección individual o masiva
+Tecnología usada: FastAPI + Whisper (modelo "base") + FFmpeg
+
+2. Reproductor de audio integrado
+Cada audio cargado cuenta con un reproductor funcional, permitiendo al médico escuchar el audio directamente desde el formulario antes o después de la transcripción.
+
+3. Visualización de audios para transcriptores
+Los transcriptores ahora pueden ver y reproducir los audios que los médicos cargaron, junto con el texto transcrito, directamente desde su formulario de transcripción.
+
+4. Mejoras UX en el módulo de lectura
+- Tarjetas de audio rediseñadas con información clara (nombre, duración, tamaño, estado)
+- Botón "Transcribir" individual por cada audio
+- Indicador visual de estado (Transcrito, Procesando, Pendiente, Error)
+- Limpieza automática al cambiar de estudio
+- Corrección de bug en envío de motivo de examen en tele-radiología
+
+5. Infraestructura
+- Servicio Python independiente (puerto 8001) que puede iniciarse/detenerse sin afectar el sistema principal
+- Almacenamiento persistente de audios convertidos a MP3
+- Las transcripciones se guardan en base de datos para consulta posterior Impacto esperado
+- Reducción del tiempo de dictado: el médico habla y la transcripción se genera automáticamente
+- Mayor precisión: Whisper ofrece alta precisión en español
+- Sin costos operativos: modelo local, no requiere API de terceros
+- Flujo completo: el transcriptor puede validar audio vs texto transcrito
+
+6. Preproducción de audios por estudio
+- Se cambio el flujo de la relación de audios por estudio a productos
+
+7. Corrección Bug: Estudios marcados como "asignados" sin estarlo (El Líbano)
+Problema: Al buscar estudios en la sede El Líbano desde el módulo "Asignar Estudios", todos aparecían con texto azul (como si ya estuvieran asignados a lectura) sin haberse asignado realmente.
+Diagnóstico: Se agregó logging en el backend y se confirmó que la lógica de filtrado por sede (sede_id) funcionaba correctamente. El bug era intermitente del lado del frontend (DataTables/caché).
+Solución: Se depuró y verificó que el filtro por sede está correctamente implementado. El comportamiento ahora es correcto: solo se marcan en azul los estudios que realmente existen en la tabla de asignaciones.
+
+8. Corrección: Búsqueda sin filtro de fecha mostraba registros de años anteriores
+Problema: En el módulo "Transcribir Estudios", al buscar sin especificar rango de fechas, el sistema retornaba TODOS los registros sin importar el año (mostrando estudios de 2025 estando en 2026).
+Causa: El filtro de fecha en el backend solo se aplicaba cuando el usuario ingresaba ambas fechas (inicio y fin). Sin fechas, no había ningún límite temporal.
+Solución: Se estableció filtro por defecto al año actual (2026-01-01 hasta hoy) tanto en la carga inicial del componente como al limpiar la búsqueda. El usuario puede cambiar las fechas manualmente si necesita ver registros anteriores.
+
+9. Otras correcciones menores
+- Scroll horizontal duplicado corregido en panel lateral derecho
+- Bug en teleRadiologiaEnviarEstudioComponent: copia explícita de motivo_examen antes del POST
+- Filtro de audios por estudio_producto_id (producto) en lugar de estudio_id (estudio)
+- Limpieza automática de URLs blob al cambiar de estudio (libera memoria)
