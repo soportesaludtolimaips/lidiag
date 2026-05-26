@@ -2,38 +2,90 @@
 
 Servicio HTTP local para transcribir archivos de audio a texto usando **OpenAI Whisper** (modelo `base`) ejecutandose en CPU.
 
-## Requisitos
+---
+
+## Requisitos del servidor
 
 - Windows Server 2022 o superior
 - Python 3.10, 3.11 o 3.12 instalado
 - FFmpeg instalado y agregado al PATH del sistema
 - Minimo 4GB RAM libre
-- NSSM (Non-Sucking Service Manager) para servicio permanente
+- Proyecto Lidiag clonado en `C:\laragon\www\lidiag`
+- Conexion a internet para descargar dependencias
 
-## Instalacion
+---
 
-### 1. Instalar Python
+## Paso a paso completo
 
-Descargar desde https://www.python.org/downloads/
+### Paso 1: Instalar Python
 
-> **Importante:** Durante la instalacion marcar **"Add Python to PATH"**.
-> Si ya hay otro Python instalado (ej: LibreOffice), se debe usar la ruta completa del Python correcto.
-
-### 2. Instalar FFmpeg
-
-1. Descargar desde https://ffmpeg.org/download.html
-2. Extraer los binarios (ej: `C:\ffmpeg\bin\`)
-3. Agregar al PATH del sistema:
+1. Descargar Python 3.12 desde https://www.python.org/downloads/
+2. Ejecutar el instalador
+3. **IMPORTANTE:** En la primera pantalla marcar **"Add Python to PATH"**
+4. Seleccionar **"Install Now"** (instalacion por defecto)
+5. Al terminar, abrir **cmd** y verificar:
+   ```cmd
+   python --version
    ```
-   C:\ffmpeg\bin
+   Debe mostrar algo como: `Python 3.12.x`
+
+> **Nota:** Si ya hay otro Python instalado (ej: el que viene con LibreOffice), el comando `python` podria apuntar al equivocado. En ese caso, usar siempre la ruta completa:
+> ```
+> C:\Users\Administrador\AppData\Local\Programs\Python\Python312\python.exe
+> ```
+
+### Paso 2: Instalar FFmpeg
+
+1. Descargar FFmpeg desde https://ffmpeg.org/download.html
+   - Elegir la version para Windows (ej: `ffmpeg-release-full.7z`)
+2. Extraer el contenido en `C:\ffmpeg`
+3. Agregar `C:\ffmpeg\bin` al PATH del sistema:
+   - Abrir **"Editar las variables de entorno del sistema"**
+   - En **"Variables del sistema"** seleccionar `Path` → **Editar**
+   - Click **"Nuevo"** y pegar: `C:\ffmpeg\bin`
+   - Aceptar todo
+4. Cerrar y reabrir cmd, verificar:
+   ```cmd
+   ffmpeg -version
    ```
-4. Verificar: `ffmpeg -version`
 
-### 3. Instalar NSSM (para servicio Windows)
+### Paso 3: Ubicar el proyecto
 
-Descargar desde https://nssm.cc/ y agregar al PATH o copiar `nssm.exe` a `C:\Windows\System32\`.
+El proyecto debe estar en `C:\laragon\www\lidiag`. Si no, clonarlo:
 
-### 4. Instalar dependencias Python
+```cmd
+cd /d C:\laragon\www\lidiag
+```
+
+(Los comandos de los pasos siguientes asumen esta ruta.)
+
+### Paso 4: Configurar la ruta de Python en los scripts
+
+Abrir el archivo `C:\laragon\www\lidiag\storage\transcriptor\iniciar_servicio.bat`
+
+Verificar que la linea `set PYTHON_EXE=` tenga la ruta correcta de Python. Debe verse asi:
+
+```bat
+set PYTHON_EXE=C:\Users\Administrador\AppData\Local\Programs\Python\Python312\python.exe
+```
+
+Si tu Python esta en otra ruta, ajustarla.
+
+**Para saber donde esta Python:**
+
+```cmd
+where python
+```
+
+Si muestra `C:\Users\Administrador\AppData\Local\Programs\Python\Python312\python.exe`, esa es la ruta correcta.
+
+Si muestra otra cosa (ej: `C:\Program Files\LibreOffice\program\python.exe`), el Python correcto esta en:
+
+```cmd
+dir C:\Users\Administrador\AppData\Local\Programs\Python\Python312\python.exe
+```
+
+### Paso 5: Instalar las dependencias Python
 
 Abrir **cmd como Administrador** y ejecutar:
 
@@ -42,45 +94,108 @@ cd /d C:\laragon\www\lidiag\storage\transcriptor
 install.bat
 ```
 
-O manualmente:
+Esto instalara automaticamente:
+
+- `fastapi` - Framework web para el servicio HTTP
+- `uvicorn` - Servidor ASGI para ejecutar FastAPI
+- `openai-whisper` - Modelo de transcripcion de OpenAI
+- `python-multipart` - Soporte para subida de archivos
+- `torch` - PyTorch (motor de Whisper)
+- `torchaudio` - Audio para PyTorch
+- `numpy` - Computacion numerica
+- `ffmpeg-python` - Bindings de FFmpeg para Python
+
+**Si install.bat falla**, instalar manualmente:
 
 ```cmd
 cd /d C:\laragon\www\lidiag\storage\transcriptor
-"C:\ruta\a\python.exe" -m pip install wheel
-"C:\ruta\a\python.exe" -m pip install --no-build-isolation -r requirements.txt
+"C:\Users\Administrador\AppData\Local\Programs\Python\Python312\python.exe" -m pip install wheel
+"C:\Users\Administrador\AppData\Local\Programs\Python\Python312\python.exe" -m pip install --no-build-isolation -r requirements.txt
 ```
 
-> **Nota:** Reemplazar `C:\ruta\a\python.exe` con la ruta real de Python en el servidor.
-> Ejemplo: `C:\Users\Administrador\AppData\Local\Programs\Python\Python312\python.exe`
->
-> Se usa `--no-build-isolation` para que openai-whisper pueda compilarse correctamente con el `setuptools` del sistema.
+El flag `--no-build-isolation` es necesario para que openai-whisper se compile usando el `setuptools` del sistema.
 
-### 5. Verificar instalacion
+### Paso 6: Verificar que las dependencias se instalaron bien
+
+```cmd
+"C:\Users\Administrador\AppData\Local\Programs\Python\Python312\python.exe" -c "import fastapi; import whisper; print('Todo OK')"
+```
+
+Debe mostrar: `Todo OK`
+
+### Paso 7: Probar el servicio manualmente
 
 ```cmd
 cd /d C:\laragon\www\lidiag\storage\transcriptor
-"C:\ruta\a\python.exe" -c "import fastapi, whisper; print('OK')"
+"C:\Users\Administrador\AppData\Local\Programs\Python\Python312\python.exe" main.py
 ```
 
-## Uso
-
-### Prueba manual
+Dejar esta ventana abierta. Abrir **otra ventana de cmd** y verificar:
 
 ```cmd
-cd /d C:\laragon\www\lidiag\storage\transcriptor
-start.bat
+curl http://localhost:8001/health
 ```
 
-O directamente:
+Debe responder:
+```json
+{"status":"ok","model_loaded":true}
+```
+
+Si responde correctamente, volver a la primera ventana y presionar **Ctrl+C** para detener el servicio.
+
+### Paso 8: Configurar el servicio permanente (Programador de Tareas)
+
+Para que el servicio arranque automaticamente al encender el servidor, sin necesidad de que ningun usuario inicie sesion:
+
+**8.1** Verificar que existe el archivo `C:\laragon\www\lidiag\storage\transcriptor\iniciar_servicio.bat`
+con el siguiente contenido:
+
+```bat
+@echo off
+set PYTHON_EXE=C:\Users\Administrador\AppData\Local\Programs\Python\Python312\python.exe
+set LOG_FILE=C:\laragon\www\lidiag\storage\transcriptor\servicio.log
+
+echo %date% %time% - Iniciando servicio... >> %LOG_FILE%
+
+cd /d C:\laragon\www\lidiag\storage\transcriptor
+if %errorlevel% neq 0 (
+    echo %date% %time% - ERROR: No se pudo cambiar al directorio >> %LOG_FILE%
+    exit /b 1
+)
+
+"%PYTHON_EXE%" main.py >> %LOG_FILE% 2>&1
+if %errorlevel% neq 0 (
+    echo %date% %time% - ERROR: Codigo %errorlevel% >> %LOG_FILE%
+    exit /b 1
+)
+```
+
+**8.2** En **cmd como Administrador**, registrar la tarea:
 
 ```cmd
-cd /d C:\laragon\www\lidiag\storage\transcriptor
-"C:\ruta\a\python.exe" main.py
+schtasks /create /tn "LidiagTranscriptor" /tr "C:\laragon\www\lidiag\storage\transcriptor\iniciar_servicio.bat" /sc onstart /ru Administrador /rl highest /f
 ```
 
-El servicio quedara disponible en: `http://localhost:8001`
+> **IMPORTANTE:** Usar `/ru Administrador` (el usuario que tiene Python instalado).
+> NO usar `/ru SYSTEM` porque el usuario SYSTEM no tiene acceso a la carpeta `AppData` del usuario.
 
-### Verificar que responde
+**8.3** Verificar que la tarea se creo:
+
+```cmd
+schtasks /query /tn "LidiagTranscriptor"
+```
+
+Debe mostrar: `Estado: Listo`
+
+### Paso 9: Iniciar el servicio
+
+```cmd
+schtasks /run /tn "LidiagTranscriptor"
+```
+
+Esperar 5-10 segundos (Whisper tarda en cargar el modelo la primera vez).
+
+### Paso 10: Verificar que el servicio esta corriendo
 
 ```cmd
 curl http://localhost:8001/health
@@ -88,96 +203,177 @@ curl http://localhost:8001/health
 
 Respuesta esperada:
 ```json
-{"status": "ok", "model_loaded": true}
+{"status":"ok","model_loaded":true}
 ```
 
-### Instalar como servicio Windows (produccion)
-
-Con NSSM, para que arranque automaticamente con el sistema:
+Si no responde, revisar el log:
 
 ```cmd
-nssm install LidiagTranscriptor
-nssm set LidiagTranscriptor Application "C:\ruta\a\python.exe"
-nssm set LidiagTranscriptor ApplicationParameters main.py
-nssm set LidiagTranscriptor AppDirectory "C:\laragon\www\lidiag\storage\transcriptor"
-nssm set LidiagTranscriptor DisplayName "Lidiag - Servicio de Transcripcion de Audio"
-nssm set LidiagTranscriptor Start SERVICE_AUTO_START
-nssm start LidiagTranscriptor
+type C:\laragon\www\lidiag\storage\transcriptor\servicio.log
 ```
 
-Ejemplo con rutas reales:
+### Paso 11: Probar la transcripcion desde Laravel
+
+1. Abrir el modulo de **Transcribir Estudios** en Lidiag
+2. Seleccionar un estudio pendiente
+3. Subir un archivo de audio
+4. El sistema debe transcribir el audio a texto automaticamente
+
+---
+
+## Comandos utiles para el dia a dia
+
+### Verificar que el servicio esta activo
 
 ```cmd
-nssm install LidiagTranscriptor
-nssm set LidiagTranscriptor Application "C:\Users\Administrador\AppData\Local\Programs\Python\Python312\python.exe"
-nssm set LidiagTranscriptor ApplicationParameters main.py
-nssm set LidiagTranscriptor AppDirectory "C:\laragon\www\lidiag\storage\transcriptor"
-nssm start LidiagTranscriptor
+curl http://localhost:8001/health
 ```
 
-### Verificar estado del servicio
+### Ver logs del servicio
 
 ```cmd
-nssm status LidiagTranscriptor
-nssm list
+type C:\laragon\www\lidiag\storage\transcriptor\servicio.log
 ```
 
-### Detener / Reiniciar servicio
+### Detener el servicio
 
 ```cmd
-nssm stop LidiagTranscriptor
-nssm restart LidiagTranscriptor
+schtasks /end /tn "LidiagTranscriptor"
 ```
 
-### Desinstalar servicio
+### Iniciar el servicio (despues de detenerlo)
 
 ```cmd
-nssm stop LidiagTranscriptor
-nssm remove LidiagTranscriptor confirm
+schtasks /run /tn "LidiagTranscriptor"
 ```
 
-## Endpoints
+### Ver el estado de la tarea programada
+
+```cmd
+schtasks /query /tn "LidiagTranscriptor"
+```
+
+### Verificar que puerto 8001 esta ocupado
+
+```cmd
+netstat -ano | findstr 8001
+```
+
+---
+
+## Solucion de problemas
+
+### Error: `python` no encontrado o apunta a LibreOffice
+
+```
+where python
+```
+
+Si muestra `C:\Program Files\LibreOffice\program\python.exe`, usar la ruta completa del Python 3.12:
+
+```cmd
+"C:\Users\Administrador\AppData\Local\Programs\Python\Python312\python.exe"
+```
+
+### Error: `No module named 'fastapi'` al ejecutar main.py
+
+Las dependencias se instalaron con un Python distinto al que ejecuta el servicio.
+
+**Solucion:** Usar el mismo ejecutable para instalar y ejecutar:
+
+```cmd
+"C:\Users\Administrador\AppData\Local\Programs\Python\Python312\python.exe" -m pip install --no-build-isolation -r requirements.txt
+"C:\Users\Administrador\AppData\Local\Programs\Python\Python312\python.exe" main.py
+```
+
+### Error: `No module named 'pkg_resources'` al instalar dependencias
+
+Ocurre con versiones modernas de `setuptools` (72+) que eliminaron `pkg_resources`.
+
+**Solucion:** Usar `--no-build-isolation`:
+
+```cmd
+pip install --no-build-isolation -r requirements.txt
+```
+
+### Error: La tarea programada no inicia el servicio
+
+1. Verificar el log:
+   ```cmd
+   type C:\laragon\www\lidiag\storage\transcriptor\servicio.log
+   ```
+2. Verificar que `PYTHON_EXE` en `iniciar_servicio.bat` tenga la ruta correcta
+3. Verificar que la tarea se creo con `Administrador` y no con `SYSTEM`:
+   ```cmd
+   schtasks /query /tn "LidiagTranscriptor" /v | findstr "Usuario"
+   ```
+4. Si es SYSTEM, eliminar y recrear:
+   ```cmd
+   schtasks /delete /tn "LidiagTranscriptor" /f
+   schtasks /create /tn "LidiagTranscriptor" /tr "C:\laragon\www\lidiag\storage\transcriptor\iniciar_servicio.bat" /sc onstart /ru Administrador /rl highest /f
+   ```
+
+### Error: Puerto 8001 ocupado
+
+```cmd
+netstat -ano | findstr 8001
+```
+
+Si hay otro proceso usando el puerto, cambiar el puerto en `main.py` (linea `uvicorn.run(...)`) y actualizar la variable `TRANSCRIPTOR_SERVICE_URL` en el `.env` de Laravel.
+
+### Error: "CUDA out of memory"
+
+El servicio usa CPU por defecto. Si el servidor tiene GPU NVIDIA, editar `whisper_service.py`:
+
+```python
+model = whisper.load_model(self.model_size, device="cuda")
+```
+
+### El servicio consume mucha RAM
+
+El modelo `base` usa ~1GB RAM. Si el servidor tiene poca memoria, cambiarlo a `tiny`:
+
+En `main.py`:
+```python
+whisper_service = WhisperTranscriptionService(model_size="tiny")
+```
+
+---
+
+## Endpoints del servicio
 
 ### GET /health
 
-Verifica que el servicio esta activo y el modelo cargado.
+Verifica que el servicio esta activo.
 
 ```json
-{
-  "status": "ok",
-  "model_loaded": true
-}
+{"status":"ok","model_loaded":true}
 ```
 
 ### POST /transcribir
 
-Transcribe un archivo de audio a texto.
+Transcribe un audio a texto.
 
-**Request**: `multipart/form-data` con campo `file`
+- **Request:** `multipart/form-data` con campo `file`
+- **Formatos:** mp3, wav, m4a, webm, ogg, flac
+- **Tamaño maximo:** 100MB
+- **Response:**
+  ```json
+  {"texto":"texto transcrito","duracion":45.2,"idioma":"es"}
+  ```
 
-**Response**:
-```json
-{
-  "texto": "Texto transcrito del audio...",
-  "duracion": 45.2,
-  "idioma": "es"
-}
-```
-
-**Formatos soportados**: mp3, wav, m4a, webm, ogg, flac
-**Tamano maximo**: 100MB
-**Timeout**: 300 segundos (5 minutos)
+---
 
 ## Integracion con Laravel
 
-En `.env` del proyecto Laravel:
+En `C:\laragon\www\lidiag\.env`:
 
 ```
 TRANSCRIPTOR_SERVICE_URL=http://localhost:8001
 TRANSCRIPTOR_TIMEOUT=300
 ```
 
-Variables en `config/services.php`:
+En `config/services.php`:
 ```php
 'transcriptor' => [
     'url' => env('TRANSCRIPTOR_SERVICE_URL', 'http://localhost:8001'),
@@ -185,84 +381,15 @@ Variables en `config/services.php`:
 ],
 ```
 
-## Troubleshooting
-
-### Python no encontrado
-
-```cmd
-where python
-```
-
-Si apunta a otro Python (ej: LibreOffice), usar la ruta completa del Python correcto.
-
-### FFmpeg no encontrado
-
-```cmd
-ffmpeg -version
-```
-
-Si no aparece, verificar que la carpeta `bin` de FFmpeg este en el PATH del sistema.
-
-### ModuleNotFoundError: No module named 'fastapi'
-
-Las dependencias se instalaron con un Python distinto al que ejecuta el servicio.
-
-**Solucion:** Usar siempre el mismo ejecutable:
-```cmd
-"C:\ruta\a\python.exe" -m pip install --no-build-isolation -r requirements.txt
-"C:\ruta\a\python.exe" main.py
-```
-
-### pkg_resources not found / error compilando openai-whisper
-
-Ocurre con `setuptools` 72+ que eliminaron `pkg_resources`.
-
-**Soluciones:**
-1. Usar `pip install --no-build-isolation -r requirements.txt` (recomendado)
-2. O instalar `setuptools==69.5.1` antes de instalar dependencias
-
-### El servicio no responde / Puerto ocupado
-
-```cmd
-netstat -ano | findstr 8001
-```
-
-Si el puerto 8001 esta ocupado por otro proceso, detenerlo o cambiar el puerto en `main.py`.
-
-### "CUDA out of memory"
-
-El servicio usa CPU por defecto. Si tiene GPU NVIDIA, editar `whisper_service.py`:
-
-```python
-# Cambiar de:
-model = whisper.load_model(self.model_size, device="cpu")
-# a:
-model = whisper.load_model(self.model_size, device="cuda")
-```
-
-### El modelo Whisper consume mucha RAM
-
-El modelo `base` usa ~1GB RAM. Si el servidor tiene recursos limitados, usar el modelo `tiny`:
-
-En `main.py`:
-```python
-whisper_service = WhisperTranscriptionService(model_size="tiny")
-```
-
-### Ver logs del servicio
-
-```cmd
-nssm set LidiagTranscriptor AppStdout "C:\laragon\www\lidiag\storage\transcriptor\logs\stdout.log"
-nssm set LidiagTranscriptor AppStderr "C:\laragon\www\lidiag\storage\transcriptor\logs\stderr.log"
-```
-
 ## Archivos del proyecto
 
 | Archivo | Descripcion |
 |---------|-------------|
-| `main.py` | Servicio FastAPI, endpoints HTTP |
-| `whisper_service.py` | Wrapper del modelo Whisper (carga, transcripcion) |
-| `requirements.txt` | Dependencias Python |
-| `start.bat` | Script para iniciar el servicio manualmente |
-| `install.bat` | Script para instalar dependencias |
+| `main.py` | Servicio FastAPI con endpoints HTTP |
+| `whisper_service.py` | Carga y ejecuta el modelo Whisper |
+| `requirements.txt` | Lista de dependencias Python |
+| `start.bat` | Inicia el servicio manualmente (cmd) |
+| `install.bat` | Instala todas las dependencias |
+| `iniciar_servicio.bat` | Script para el Programador de Tareas |
+| `servicio.log` | Log de ejecucion del servicio |
 | `README.md` | Este documento |
