@@ -127,7 +127,7 @@ class StudyController extends Controller
             ->where('sede_id', $request->sede_id)
             ->whereIn('study_pk', $studyPks)
             ->pluck('study_pk')
-            ->flip(); // set rápido
+            ->flip();
 
         // Marcar agendado y convertir strings latin1 -> utf8 si aplica
         foreach ($resultados as $row) {
