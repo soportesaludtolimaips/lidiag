@@ -16,8 +16,8 @@ class PlantillaEstudioController extends Controller
      * Genera un documento Word con la lectura del estudio y lo convierte a PDF.
      *
      * Flujo del proceso:
-     * 1. Busca la plantilla asociada a la sede.
-     * 2. Carga la plantilla Word con `TemplateProcessor`.
+     * 1. Busca la plantilla_rx asociada a la sede.
+     * 2. Carga la plantilla_rx Word con `TemplateProcessor`.
      * 3. Reemplaza variables simples (paciente, fechas, médico, producto).
      * 4. Procesa el texto de la lectura (negritas para títulos clave).
      * 5. Inserta la firma del médico si existe.
@@ -31,17 +31,17 @@ class PlantillaEstudioController extends Controller
     public function editWord(Request $request)
     {
         /**
-         * Buscarmos la sede para saber cual es la plantilla
+         * Buscarmos la sede para saber cual es la plantilla_rx
          */
         $sede = ConfigSede::find($request->sede_id);
         if (! $sede->plantilla_rx) {
-            return response()->json(['message' => 'La plantilla para la sede '.$sede->nom_sede.' no está  configurada, por favor consulte con el administrador del sistema'], 402);
+            return response()->json(['message' => 'La plantilla_rx para la sede '.$sede->nom_sede.' no está  configurada, por favor consulte con el administrador del sistema'], 402);
         }
 
-        // Ruta del archivo de plantilla
-        $filePath = storage_path('app/plantillas_lecturas/'.$sede->plantilla_rx);
+        // Ruta del archivo de plantilla_rx
+        $filePath = storage_path('app/plantilla_rxs_lecturas/'.$sede->plantilla_rx);
 
-        // Cargar el archivo de plantilla
+        // Cargar el archivo de plantilla_rx
         $templateProcessor = new TemplateProcessor($filePath);
         // Obtener datos desde la solicitud
         $nombrePaciente = str_replace('^^^', '', $request->nom_pacien);
@@ -85,7 +85,7 @@ class PlantillaEstudioController extends Controller
             $textRun->addTextBreak();
         }
 
-        // Usar setComplexValue para insertar el TextRun en la plantilla
+        // Usar setComplexValue para insertar el TextRun en la plantilla_rx
         $templateProcessor->setComplexValue('lectura', $textRun);
 
         $templateProcessor->setValue('nom_sede', $request->nom_sede);
@@ -113,21 +113,21 @@ class PlantillaEstudioController extends Controller
         $outputPath = storage_path('app/reporte_lecturas/'.$nomArchivo.'.docx');
         $templateProcessor->saveAs($outputPath);
 
-        $plantillaPdf = $this->convertDocxToPdf($nomArchivo);
-        if ($plantillaPdf === true) {
+        $plantilla_rxPdf = $this->convertDocxToPdf($nomArchivo);
+        if ($plantilla_rxPdf === true) {
 
             unlink($outputPath);
 
             return response()->json(
                 [
                     'messaje' => 'Plantilla creada correctament',
-                    'plantilla' => $nomArchivo.".pdf",
+                    'plantilla_rx' => $nomArchivo.".pdf",
                 ],
                 200
             );
         } else {
             // Mantener compatibilidad: error 400 con mensaje claro
-            return response()->json(['message' => 'No fue posible convertir la plantilla a PDF'], 400);
+            return response()->json(['message' => 'No fue posible convertir la plantilla_rx a PDF'], 400);
         }
     }
 

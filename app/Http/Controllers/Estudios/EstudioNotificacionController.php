@@ -73,7 +73,7 @@ class EstudioNotificacionController extends Controller
             'config_sedes.nom_sede',
             'config_sedes.url_oviyam',
             'config_sedes.tap_oviyam',
-            'config_sedes.plantilla'
+            'config_sedes.plantilla_rx'
         )
             ->join('estudios_productos', 'estudios_productos.estudio_id', '=', 'estudios.id')
             ->join('pacientes', 'estudios.paciente_id', '=', 'pacientes.id')
