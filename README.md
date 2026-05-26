@@ -31,6 +31,7 @@ En Windows + Laragon, el proyecto está pensado para el vhost **`lidiag.test`** 
 -   **Integraciones**: HIS/SAHI (SQL Server), PACS Dcm4chee, Twilio (WhatsApp), generación de PDF/Excel (DomPDF / Maatwebsite Excel)
 -   **Autenticación API**: `auth:sanctum` (Sanctum stateful para SPA)
 -   **Multimedia**: FFmpeg (conversión/compresión de audios a MP3)
+-   **Transcripción de voz a texto**: Whisper (OpenAI) + FastAPI (servicio Python local, puerto 8001)
 -   **Conversión Word→PDF** (según flujos): LibreOffice + `unoconv`
 
 ## Arquitectura y Flujo de Datos
@@ -231,7 +232,80 @@ El sistema utiliza varios servicios de terceros configurados en el archivo `.env
     #### Almacenamiento de audios (disk `audios`)
 
     -   El endpoint de subida convierte cualquier formato válido a MP3 y guarda el archivo final en el disk `audios`.
+    -   Los audios se asocian a `estudio_producto_id` (producto), no a `estudio_id` (estudio). Cada producto puede tener múltiples audios (grabados o cargados).
+    -   La transcripción del audio se persiste en la columna `transcripcion` de la tabla `estudios_audios`.
     -   Asegúrese de que exista el subdirectorio `tmp/` dentro del disk `audios` (se usa para temporales durante la conversión).
+    -   **Reproducción**: Usar la ruta `/audios/{filename}` (controlador `EstudioAudioController@stream`).
+    -   **Limpieza**: Al abrir un nuevo estudio, los audios cargados en sesión se limpian automáticamente (incluyendo blob URLs).
+
+-   **Transcripción automática (Whisper + FastAPI)**:
+
+    Servicio Python en `storage/transcriptor/` que transcribe audios usando Whisper de OpenAI.
+
+    #### Arquitectura
+
+    ```mermaid
+    graph LR
+        Frontend[Vue - leerEstudioComponent] -->|Sube audio| Laravel[Laravel Controller]
+        Laravel -->|POST /transcribir| FastAPI[FastAPI :8001]
+        FastAPI --> Whisper[Whisper model 'base']
+        Whisper -->|texto| FastAPI
+        FastAPI -->|transcripción| Laravel
+        Laravel -->|guarda en BD| MySQL[(estudios_audios.transcripcion)]
+        Laravel -->|response| Frontend
+    ```
+
+    #### Flujo
+
+    1. El médico sube un archivo de audio (mp3, wav, m4a, webm, ogg, flac) desde el formulario de lectura.
+    2. Laravel recibe el archivo, lo convierte a MP3 con FFmpeg y lo envía al servicio Python.
+    3. FastAPI recibe el audio, lo transcribe con Whisper (modelo base, CPU) y devuelve el texto.
+    4. Laravel guarda el audio y la transcripción en `estudios_audios`.
+    5. El frontend muestra la transcripción y permite insertarla en la lectura con un clic.
+
+    #### Instalación (Windows / producción)
+
+    1. Instalar Python 3.10+ y pip.
+    2. Ir al directorio del servicio:
+       ```bash
+       cd storage/transcriptor
+       ```
+    3. Instalar dependencias:
+       ```bash
+       pip install -r requirements.txt
+       ```
+       O ejecutar `install.bat`.
+    4. Iniciar el servicio:
+       ```bash
+       python main.py
+       ```
+       O ejecutar `start.bat`. El servicio queda escuchando en `http://localhost:8001`.
+
+    #### Configuración en `.env`
+
+    ```ini
+    TRANSCRIPTOR_SERVICE_URL=http://localhost:8001
+    TRANSCRIPTOR_TIMEOUT=300
+    ```
+
+    El timeout debe ser suficiente para audios largos (Whisper en CPU puede demorar).
+
+    #### Endpoints del servicio
+
+    | Método | Ruta | Descripción |
+    |--------|------|-------------|
+    | GET | `/health` | Health check |
+    | POST | `/transcribir` | Recibe `file` (multipart), devuelve `{"texto": "..."}` |
+
+    #### Variables de entorno del servicio (opcional)
+
+    En `storage/transcriptor/.env` (o variables del sistema):
+
+    ```ini
+    WHISPER_MODEL=base               # tiny, base, small, medium, large
+    WHISPER_DEVICE=cpu               # cpu o cuda
+    WHISPER_COMPUTE_TYPE=int8        # int8, float16, float32
+    ```
 
 -   **AWS S3 (Opcional)**:
     -   Configurado para el almacenamiento escalable de documentos adjuntos o respaldos de informes, si se habilita en el entorno.
@@ -240,8 +314,12 @@ El sistema utiliza varios servicios de terceros configurados en el archivo `.env
     -   Usado en flujos de generación de reportes a partir de plantillas Word (por ejemplo, en `PlantillaEstudioController`).
     -   En este repositorio hay utilidades en `Documentos/` relacionadas con `unoconv`. En producción normalmente se instala LibreOffice y se expone `unoconv` en PATH (o se ajusta el comando/ruta).
 
--   **Speech-to-text (Google Cloud Speech) (Frontend)**:
-    -   Dependencia en `package.json` (`@google-cloud/speech`), usada en el flujo de transcripción del módulo de estudios.
+-   **Speech-to-text (Whisper + FastAPI)**:
+    -   Servicio Python independiente (`storage/transcriptor/`) que expone un endpoint HTTP en el puerto 8001.
+    -   Recibe archivos de audio desde Laravel, los transcribe usando Whisper (modelo base, CPU) y devuelve el texto.
+    -   Configuración: `TRANSCRIPTOR_SERVICE_URL` (por defecto `http://localhost:8001`).
+    -   Instalación: `cd storage/transcriptor && pip install -r requirements.txt`
+    -   Inicio: `python main.py` (o ejecutar `start.bat` en Windows).
 
 -   **Servicio externo de reportes (`URL_API_REPORTES`, `PASSWORD_API_REPORTES`)**:
     -   Variables usadas por flujos de notificación/reportes (revisar `.env` en cada entorno).
@@ -281,6 +359,13 @@ A continuación, una guía rápida de las ubicaciones clave en el código fuente
     -   `resources/js/app.js`: entrypoint donde se registra Vue y se registran componentes globales por pantalla/módulo.
     -   Comunicación entre componentes: event bus con `mitt` (`app.config.globalProperties.emitter`).
     -   Utilidades de fechas: `dayjs` con plugins UTC/timezone (expuesto como `window.dayjs`).
+
+-   **Servicio de transcripción Whisper**:
+    -   `storage/transcriptor/`: Servicio Python FastAPI + Whisper para transcripción de voz a texto.
+    -   `storage/transcriptor/main.py`: Servidor FastAPI.
+    -   `storage/transcriptor/whisper_service.py`: Lógica de transcripción.
+    -   `storage/transcriptor/start.bat` / `install.bat`: Scripts para Windows.
+    -   **Requiere**: Python 3.10+, pip. Se inicia independientemente del servidor web (puerto 8001).
 
 -   **Storage / discos públicos**:
     -   Definición de discos y symlinks: `config/filesystems.php`.
@@ -506,6 +591,7 @@ Además de `APP_*`, las variables más importantes que suelen requerir ajuste so
 -   **Twilio (WhatsApp)**: `TWILIO_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_NUMBER`
 -   **Servicio externo de reportes**: `URL_API_REPORTES`, `PASSWORD_API_REPORTES`
 -   **FFmpeg/FFprobe (audios)**: `FFMPEG_BINARIES`, `FFPROBE_BINARIES` (ver sección de FFmpeg arriba)
+-   **Transcripción Whisper**: `TRANSCRIPTOR_SERVICE_URL`, `TRANSCRIPTOR_TIMEOUT` (ver sección de transcripción abajo)
 
 > Nota: este repositorio incluye `.env.example` como referencia. **No uses credenciales reales** allí (y evita subir secretos al repositorio). Si vas a compartir/publicar el proyecto, revisa y sanitiza `.env.example` para que solo tenga placeholders.
 
@@ -563,7 +649,15 @@ En Laragon, normalmente accederás por tu vhost, por ejemplo `https://lidiag.tes
     -   Escritura sobre el disk `audios` y su subcarpeta `tmp/`.
 -   Revise el log en `storage/logs/laravel.log` para ver el detalle del error devuelto por FFmpeg/FFprobe.
 
-**5. Word → PDF falla (unoconv / LibreOffice)**
+**5. La transcripción de audios no funciona (Whisper/FastAPI)**
+
+-   Verifique que el servicio Python esté corriendo: `curl http://localhost:8001/health` (debe responder `{"status": "ok"}`).
+-   Revise los logs de Laravel (`storage/logs/laravel.log`) y los logs del servicio Python (salida estándar).
+-   Confirme `TRANSCRIPTOR_SERVICE_URL` en `.env` (por defecto `http://localhost:8001`).
+-   Si Whisper se demora mucho, aumente `TRANSCRIPTOR_TIMEOUT` en `.env`.
+-   En Windows, ejecute `storage/transcriptor/start.bat` para iniciar el servicio manualmente.
+
+**6. Word → PDF falla (unoconv / LibreOffice)**
 
 -   Confirma que LibreOffice esté instalado y que `unoconv` sea ejecutable por el usuario del servicio (Apache/Nginx/CLI).
 -   Si el comando no existe en el servidor, instala `unoconv` o ajusta el mecanismo de conversión en los controladores de plantillas.

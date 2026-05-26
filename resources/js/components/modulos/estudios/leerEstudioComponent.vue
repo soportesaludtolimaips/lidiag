@@ -242,8 +242,8 @@
     <!-- Right sidebar -->
     <!-- ============================================================== -->
     <!-- .right-sidebar -->
-    <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%">
-        <div class="slimscrollright">
+    <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; height: 100%">
+        <div class="slimscrollright" style="overflow-x: hidden;">
             <div class="rpanel-title">
                 {{ tituloModal }}
                 <span @click="btnCerralModalForm()">
@@ -560,7 +560,6 @@
 
                                                             <!-- Lista de audios cargados pendientes -->
                                                             <div v-if="audiosCargadosPendientes.length > 0" class="mt-3">
-                                                                <h6>Audios cargados:</h6>
 
                                                                 <!-- Selector de modo de transcripcion -->
                                                                 <div class="form-group">
@@ -587,30 +586,71 @@
                                                                     </div>
                                                                 </div>
 
-                                                                <!-- Lista con checkboxes -->
+                                                                <!-- Tarjetas de audio -->
                                                                 <div v-for="(audio, index) in audiosCargadosPendientes" :key="audio.id"
-                                                                    class="audio-pendiente-item mb-2 p-2 border rounded">
-                                                                    <div class="d-flex align-items-center">
-                                                                        <div class="custom-control custom-checkbox mr-2">
-                                                                            <input type="checkbox"
-                                                                                :id="'check-audio-' + audio.id"
-                                                                                :value="audio.id"
-                                                                                v-model="audioSeleccionados"
-                                                                                class="custom-control-input">
-                                                                            <label :for="'check-audio-' + audio.id"
-                                                                                class="custom-control-label">
+                                                                    class="card mb-2 shadow-sm">
+                                                                    <div class="card-body p-2">
+                                                                        <div class="d-flex align-items-center mb-1">
+                                                                            <div class="custom-control custom-checkbox mr-2">
+                                                                                <input type="checkbox"
+                                                                                    :id="'check-audio-' + audio.id"
+                                                                                    :value="audio.id"
+                                                                                    v-model="audioSeleccionados"
+                                                                                    class="custom-control-input">
+                                                                                <label :for="'check-audio-' + audio.id"
+                                                                                    class="custom-control-label"></label>
+                                                                            </div>
+                                                                            <i class="fa fa-file-audio-o text-muted mr-1"></i>
+                                                                            <strong class="mr-2 text-truncate" style="max-width: 180px;"
+                                                                                :title="audio.nombre_original">
                                                                                 {{ audio.nombre_original || 'Audio ' + (index + 1) }}
-                                                                            </label>
+                                                                            </strong>
+                                                                            <span class="badge mr-1"
+                                                                                :class="badgeClaseEstado(audio.transcripcion_estado)">
+                                                                                {{ audio.transcripcion_estado || 'Pendiente' }}
+                                                                            </span>
+                                                                            <small class="text-muted mr-1" v-if="audio.duracion">
+                                                                                <i class="fa fa-clock-o"></i>
+                                                                                {{ formatDuracion(audio.duracion) }}
+                                                                            </small>
+                                                                            <small class="text-muted" v-if="audio.tamano">
+                                                                                {{ formatSize(audio.tamano) }}
+                                                                            </small>
                                                                         </div>
-                                                                        <span class="badge badge-secondary ml-auto">
-                                                                            {{ audio.transcripcion_estado || 'Pendiente' }}
-                                                                        </span>
+
+                                                                        <div class="d-flex align-items-center" style="min-width: 0;">
+                                                                            <audio :src="obtenerAudioUrl(audio)" controls
+                                                                                style="height: 30px; flex: 1; min-width: 0; max-width: 100%;"></audio>
+                                                                            <button type="button"
+                                                                                class="btn btn-sm btn-outline-primary ml-1"
+                                                                                style="white-space: nowrap;"
+                                                                                @click="insertarAudioIndividual(audio)"
+                                                                                :disabled="transcribiendo"
+                                                                                title="Transcribir este audio a la lectura">
+                                                                                <i class="fa fa-file-text-o"></i>
+                                                                                Transcribir
+                                                                            </button>
+                                                                            <button type="button"
+                                                                                class="btn btn-sm btn-outline-danger ml-1"
+                                                                                @click="eliminarAudioCargado(audio.id)"
+                                                                                :disabled="eliminandoAudioId === audio.id"
+                                                                                title="Eliminar audio">
+                                                                                <i v-if="eliminandoAudioId === audio.id"
+                                                                                    class="fa fa-spinner fa-spin"></i>
+                                                                                <i v-else class="fa fa-trash"></i>
+                                                                            </button>
+                                                                        </div>
+
+                                                                        <div v-if="audio.transcripcion" class="bg-light rounded p-1 mt-1"
+                                                                            style="font-size: 0.8rem; max-height: 40px; overflow: hidden;">
+                                                                            {{ previewTranscripcion(audio.transcripcion, 120) }}
+                                                                            <span v-if="audio.transcripcion.length > 120"
+                                                                                class="text-primary small">...</span>
+                                                                        </div>
                                                                     </div>
-                                                                    <audio v-if="audio.url" :src="audio.url" controls
-                                                                        style="height: 25px; width: 100%; margin-top: 5px;"></audio>
                                                                 </div>
 
-                                                                <!-- Boton de transcribir -->
+                                                                <!-- Boton de transcribir batch -->
                                                                 <button type="button"
                                                                     class="btn btn-primary btn-block mt-3"
                                                                     @click="transcribirAudiosSeleccionados"
@@ -1907,11 +1947,11 @@ export default {
             if (this.loadingAudios) return;
             this.loadingAudios = true;
             try {
-                if (!this.id) {
+                if (!this.registro.estudio_producto_id) {
                     this.audiosDeEstudio = [];
                     return;
                 }
-                const res = await axios.get("/api/listar-audios-estudio/" + this.id);
+                const res = await axios.get("/api/listar-audios-estudio/" + this.registro.estudio_producto_id);
                 this.audiosDeEstudio = res.data;
             } catch (e) {
                 handleAxiosErrorToast(e, "No fue posible listar audios.");
@@ -1953,13 +1993,14 @@ export default {
                     continue;
                 }
 
-                await this.uploadAudioFile(file);
+                const blobUrl = URL.createObjectURL(file);
+                await this.uploadAudioFile(file, blobUrl);
             }
 
             event.target.value = "";
         },
 
-        async uploadAudioFile(file) {
+        async uploadAudioFile(file, blobUrl) {
             if (!this.registro.estudio_producto_id) {
                 $.toast({
                     heading: "Upsss!!!",
@@ -1990,10 +2031,12 @@ export default {
                     this.audiosCargadosPendientes.push({
                         id: res.data.audio_id,
                         nombre_original: file.name,
-                        url: null,
+                        _blobUrl: blobUrl || null,
+                        serverUrl: res.data.audio_file ? '/audios/' + res.data.audio_file : null,
                         transcripcion_estado: "Transcrito",
                         transcripcion: res.data.transcripcion,
                         duracion: res.data.duracion,
+                        tamano: file.size,
                     });
 
                     $.toast({
@@ -2111,6 +2154,10 @@ export default {
                 const res = await axios.delete("/api/eliminar-audio-cargado/" + audioId);
 
                 if (res.data && res.data.success) {
+                    const audioEliminado = this.audiosCargadosPendientes.find((a) => a.id === audioId);
+                    if (audioEliminado && audioEliminado._blobUrl) {
+                        URL.revokeObjectURL(audioEliminado._blobUrl);
+                    }
                     this.audiosCargadosPendientes = this.audiosCargadosPendientes.filter(
                         (a) => a.id !== audioId
                     );
@@ -2157,6 +2204,63 @@ export default {
             const mins = Math.floor(segundos / 60);
             const secs = Math.floor(segundos % 60);
             return `${mins}:${secs.toString().padStart(2, "0")}`;
+        },
+
+        insertarAudioIndividual(audio) {
+            if (!audio || !audio.transcripcion) return;
+            this.insertarTranscripcion(audio.transcripcion);
+            $.toast({
+                heading: "Ok!!!",
+                text: `Transcripcion de "${audio.nombre_original || 'Audio'}" insertada en la lectura`,
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "success",
+                hideAfter: 3000,
+                stack: 6,
+            });
+        },
+
+        obtenerAudioUrl(audio) {
+            if (audio._blobUrl) return audio._blobUrl;
+            if (audio.serverUrl) return audio.serverUrl;
+            return null;
+        },
+
+        previewTranscripcion(texto, maxLen) {
+            if (!texto) return "";
+            if (texto.length <= maxLen) return texto;
+            return texto.substring(0, maxLen);
+        },
+
+        badgeClaseEstado(estado) {
+            const map = {
+                "Transcrito": "badge-success",
+                "Completado": "badge-success",
+                "Procesando...": "badge-warning",
+                "Pendiente": "badge-secondary",
+                "Error": "badge-danger",
+            };
+            return map[estado] || "badge-secondary";
+        },
+
+        formatSize(bytes) {
+            if (!bytes || bytes === 0) return "0 B";
+            const units = ["B", "KB", "MB", "GB"];
+            const i = Math.floor(Math.log(bytes) / Math.log(1024));
+            const val = (bytes / Math.pow(1024, i)).toFixed(i > 0 ? 1 : 0);
+            return val + " " + units[i];
+        },
+
+        limpiarAudiosCargados() {
+            for (const audio of this.audiosCargadosPendientes) {
+                if (audio._blobUrl) {
+                    try { URL.revokeObjectURL(audio._blobUrl); } catch (e) { }
+                }
+            }
+            this.audiosCargadosPendientes = [];
+            this.audioSeleccionados = [];
+            this.progresoTranscripcion = 0;
+            this.transcribiendo = false;
         },
 
         async listarMisPendientes() {
@@ -2368,6 +2472,7 @@ export default {
             this.uppercase = false;
             this.capitalizeNext = false;
             this.audiosDeEstudio = [];
+            this.limpiarAudiosCargados();
 
             this.tituloModal =
                 "Lectura de paciente: " + data.nom_pacien + "Producto: \n" + data.nom_produc;
@@ -2525,6 +2630,13 @@ export default {
                 try {
                     this.emitter.off("sedeSeleccionada");
                 } catch (e) { }
+            }
+            if (this.audiosCargadosPendientes) {
+                for (const audio of this.audiosCargadosPendientes) {
+                    if (audio._blobUrl) {
+                        try { URL.revokeObjectURL(audio._blobUrl); } catch (e) { }
+                    }
+                }
             }
         } catch (e) {
             // best-effort cleanup

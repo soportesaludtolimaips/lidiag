@@ -22,6 +22,7 @@ class EstudioAudio extends Model
         'duracion',
         'tamano',
         'usuario_id',
+        'transcripcion',
     ];
 
     protected $guarded = ['*'];
