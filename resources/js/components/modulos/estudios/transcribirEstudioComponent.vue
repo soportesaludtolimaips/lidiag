@@ -745,6 +745,10 @@ export default {
         this.destroyDataTable();
     },
     data() {
+        const hoy = new Date();
+        const yearActual = hoy.getFullYear();
+        const fechaDefectoIni = yearActual + '-01-01';
+        const fechaDefectoFin = hoy.toISOString().slice(0, 10);
         return {
             id: 0,
             diagnosticosEstudio: [],
@@ -789,8 +793,8 @@ export default {
                 medico_id: "",
                 sede_id: "",
                 bus_nom_num_docu: "",
-                bus_fehc_ini: "",
-                bus_fecha_fin: "",
+                bus_fehc_ini: fechaDefectoIni,
+                bus_fecha_fin: fechaDefectoFin,
                 destino_estudio: "Salud Tolima",
             },
             datosImagen: { urlOviyam: "", patientId: "", studyUID: "", serverName: "" },
@@ -841,11 +845,13 @@ export default {
             safeDestroyDataTable(this.$refs.dt || "#example23");
         },
         btnLimpiar() {
+            const hoy = new Date();
+            const yearActual = hoy.getFullYear();
             this.busqueda.quien_asigno_id = "";
             this.busqueda.medico_id = "";
             this.busqueda.bus_nom_num_docu = "";
-            this.busqueda.bus_fehc_ini = "";
-            this.busqueda.bus_fecha_fin = "";
+            this.busqueda.bus_fehc_ini = yearActual + '-01-01';
+            this.busqueda.bus_fecha_fin = hoy.toISOString().slice(0, 10);
             this.errores = {};
             this.destroyDataTable();
             this.registros = [];
