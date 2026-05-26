@@ -22,6 +22,7 @@ class WhisperTranscriptionService:
         self.model_size = model_size
         self.model = None
         self.ffmpeg_path = self._find_ffmpeg()
+        self._ensure_ffmpeg_in_path()
 
     def _find_ffmpeg(self) -> str:
         """Busca ffmpeg en el PATH o en rutas comunes de instalacion."""
@@ -43,6 +44,15 @@ class WhisperTranscriptionService:
 
         logger.warning("FFmpeg no encontrado. El servicio fallara al transcribir.")
         return "ffmpeg"
+
+    def _ensure_ffmpeg_in_path(self):
+        """Agrega el directorio de FFmpeg al PATH para que Whisper lo encuentre internamente."""
+        ffmpeg_dir = os.path.dirname(self.ffmpeg_path)
+        if ffmpeg_dir and os.path.isdir(ffmpeg_dir):
+            current_path = os.environ.get("PATH", "")
+            if ffmpeg_dir not in current_path.split(os.pathsep):
+                os.environ["PATH"] = ffmpeg_dir + os.pathsep + current_path
+                logger.info(f"FFmpeg agregado al PATH: {ffmpeg_dir}")
 
     @property
     def ffmpeg_ok(self) -> bool:
