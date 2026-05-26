@@ -71,14 +71,39 @@ php artisan sync-usuarios              # SAHI users + ecografía templates
 ## Integrations (verify `.env`)
 
 - **FFmpeg**: `FFMPEG_BINARIES`, `FFPROBE_BINARIES` (Windows paths with `/`)
-- **Twilio**: `TWILIO_*` for WhatsApp
+- **Twilio**: `TWILIO_*` for WhatsApp (legacy)
+- **Meta WhatsApp Cloud API**: `META_WHATSAPP_TOKEN`, `META_WHATSAPP_PHONE_ID`, `META_WHATSAPP_APP_SECRET`, `META_WHATSAPP_BUSINESS_ID`
 - **SAHI (SQL Server)**: `DB_*_SQLSRV` for HIS integration
 - **Whisper.php**: AI transcription (`codewithkyrian/whisper.php`)
 - **Google Cloud Speech**: `GOOGLE_APPLICATION_CREDENTIALS` for voice-to-text
 - **PDF/Word**: DomPDF, PhpWord, Maatwebsite Excel
 - **Multiple MySQL connections**: `DB_*_2`, `DB_IMPORTAR_*` configs
 
-## Gotchas
+## Citas + WhatsApp Bot
+
+The bot flow is: `servicio → documento →orden → autorización → confirmar`
+
+### Endpoints
+- `/api/citas` - Full CRUD
+- `/api/citas/servicios` - List servicios
+- `/api/citas/webhook` - Meta WhatsApp webhook
+- `/api/citas/test/enviar` - Test endpoint
+
+### Commands
+```bash
+php artisan citas:notificar  # Daily at 8am - sends reminders
+```
+
+### Tables
+- `citas` - Appointment records
+- `config_servicio_citas` - Services list
+- `config_servicio_cita_producto` - Service-Product pivot
+- `whatsapp_conversations` - Bot conversation state
+
+### WhatsApp Flow States
+`inicio → seleccionar_servicio → pedir_documento → pedir_orden → pedir_autorizacion → confirmar_solicitud`
+
+### Gotchas
 
 1. **Vite SSL**: `vite.config.js` hardcoded to `lidiag.test` with Laragon certs (`C:/laragon/etc/ssl/`)
 2. **Sanctum 401**: Ensure `APP_URL` matches host and domain is in `SANCTUM_STATEFUL_DOMAINS`
@@ -87,6 +112,8 @@ php artisan sync-usuarios              # SAHI users + ecografía templates
 5. **Dictation**: Press F2 key to start/stop dictation in leerEstudioComponent
 6. **Browser cache**: Hard refresh (Ctrl+Shift+R) after build to clear stale JS
 7. **Vuetify custom elements**: `<md-linedivider>` needs explicit registration in vite.config.js compilerOptions
+8. **Meta WhatsApp locked**: If error 131031 "Business Account locked", unlock in Meta Business Manager
+9. **ConfigSede plantilla**: Field was renamed from `plantilla` to `plantilla_rx`
 
 ## Skills
 

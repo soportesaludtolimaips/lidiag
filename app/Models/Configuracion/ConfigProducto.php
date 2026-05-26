@@ -12,6 +12,14 @@ class ConfigProducto extends Model
 
     protected $fillable = ['cod_cups',  'nom_produc', 'porcen', 'val_produc', 'requi_lectura', 'tipo_oral', 'tipo_venoso', 'factura', 'estado'];
 
+    protected $casts = [
+        'requi_lectura' => 'boolean',
+        'tipo_oral' => 'boolean',
+        'tipo_venoso' => 'boolean',
+        'factura' => 'boolean',
+        'estado' => 'boolean',
+    ];
+
     public function consentimientoInformado()
     {
         return $this->hasMany(ConsentimientoInformado::class);
@@ -20,5 +28,10 @@ class ConfigProducto extends Model
     public function estudioProductos()
     {
         return $this->hasMany(EstudioProducto::class, 'producto_id');
+    }
+
+    public function recomendacionProducto()
+    {
+        return $this->hasOne(ConfigRecomendacionProducto::class, 'producto_id');
     }
 }

@@ -14,9 +14,12 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // Reconciliación de envíos SAHI atascados (requiere cron en servidor)
         $schedule->command('ecografias:sahi-reconcile --minutes=10 --limit=200')
             ->everyTenMinutes()
+            ->withoutOverlapping();
+
+        $schedule->command('citas:notificar')
+            ->dailyAt('08:00')
             ->withoutOverlapping();
     }
 

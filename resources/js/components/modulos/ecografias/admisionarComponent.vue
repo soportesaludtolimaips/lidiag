@@ -1450,10 +1450,6 @@ export default {
                 (x) => x.CodLegal !== codProduc
             );
         },
-        btnCerralModalForm() {
-            $(".right-sidebar").slideDown(50);
-            $(".right-sidebar").toggleClass("shw-rside");
-        },
     },
 };
 </script>

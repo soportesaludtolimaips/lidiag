@@ -26,6 +26,13 @@ class ConfigProductoRequest extends FormRequest
         return [
             'cod_cups' => 'required|min:2|max:20',
             'nom_produc' => 'required|min:2|max:200',
+            'porcen' => 'nullable|numeric|min:0|max:100',
+            'val_produc' => 'nullable|numeric|min:0',
+            'requi_lectura' => 'nullable|boolean',
+            'tipo_oral' => 'nullable|boolean',
+            'tipo_venoso' => 'nullable|boolean',
+            'factura' => 'nullable|boolean',
+            'estado' => 'nullable|boolean',
         ];
     }
 

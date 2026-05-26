@@ -3,36 +3,21 @@
     "file": "assets/1-CgDQBIJ4.jpg",
     "src": "resources/js/admin-wrap/assets/images/users/1.jpg"
   },
-  "resources/js/admin-wrap/assets/images/users/2.jpg": {
-    "file": "assets/2-DMFZtrha.jpg",
-    "src": "resources/js/admin-wrap/assets/images/users/2.jpg"
-  },
-  "resources/js/admin-wrap/assets/images/users/3.jpg": {
-    "file": "assets/3-CD2iRlOE.jpg",
-    "src": "resources/js/admin-wrap/assets/images/users/3.jpg"
-  },
-  "resources/js/admin-wrap/assets/images/users/4.jpg": {
-    "file": "assets/4-D4ORcFYB.jpg",
-    "src": "resources/js/admin-wrap/assets/images/users/4.jpg"
-  },
   "resources/js/admin-wrap/assets/images/users/avatar_default.png": {
     "file": "assets/avatar_default-upCfBzQ-.png",
     "src": "resources/js/admin-wrap/assets/images/users/avatar_default.png"
   },
   "resources/js/app.js": {
-    "file": "assets/app-BQRejaSB.js",
+    "file": "assets/app-BcihvN7h.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "css": [
-      "assets/app-BXG1bvhv.css"
+      "assets/app-BlkNxN77.css"
     ],
     "assets": [
       "assets/avatar_default-upCfBzQ-.png",
-      "assets/1-CgDQBIJ4.jpg",
-      "assets/2-DMFZtrha.jpg",
-      "assets/3-CD2iRlOE.jpg",
-      "assets/4-D4ORcFYB.jpg"
+      "assets/1-CgDQBIJ4.jpg"
     ]
   }
 }

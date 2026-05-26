@@ -69,6 +69,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/listar-audios-estudio/{estudio_producto_id}', [EstudioAudioController::class, 'listarAudiosPorEstudio'])
         ->name('api.listarAudiosPorEstudio');
 
+    Route::post('/cargar-audio-transcribir', [EstudioAudioController::class, 'cargarAudioTranscribir'])
+        ->name('api.cargarAudioTranscribir');
+
+    Route::delete('/eliminar-audio-cargado/{id}', [EstudioAudioController::class, 'eliminarAudioCargado'])
+        ->name('api.eliminarAudioCargado');
+
+    Route::get('/stream-audio/{filename}', [EstudioAudioController::class, 'stream'])
+        ->name('api.streamAudio');
+
     Route::post('/estudio-listarPendientesTrascribir', [EstudioController::class, 'listarPendientesTrascribir'])
         ->name('api.estudio.listarPendientesTrascribir');
 

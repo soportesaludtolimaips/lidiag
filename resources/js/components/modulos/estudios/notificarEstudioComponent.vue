@@ -144,10 +144,8 @@
                                             <button type="button" v-if="permisos.includes('estudios.notificar.index')"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
                                                 :disabled="loadingAbrirId === item.estudio_producto_id
-                                                    " @click="
-                                                        actualizar = true;
-                                                    mostrarRegistro(item);
-                                                    " title="Notificar por correo electronico">
+                                                    " @click="mostrarRegistro(item)"
+                                                title="Notificar por correo electronico">
                                                 <i v-if="
                                                     loadingAbrirId === item.estudio_producto_id
                                                 " class="fa fa-spinner fa-spin"></i>
@@ -350,8 +348,6 @@ export default {
             busqueda: { bus_num_docu: "", bus_nom: "", bus_fehc_ini: "", bus_fecha_fin: "" },
             errores: {},
             erroresBusqueda: {},
-            imageUrl: "",
-            imageBlob: null,
             loadingBuscar: false,
             loadingNotificar: false,
             loadingImprimirId: null,
@@ -375,6 +371,7 @@ export default {
         async buscarStudy() {
             if (this.loadingBuscar) return;
             this.loadingBuscar = true;
+            this.registros = [];
             try {
                 if (
                     this.busqueda.bus_num_docu == "" &&
@@ -400,7 +397,7 @@ export default {
                     if (res.status == 200) {
                         this.destroyDataTable();
 
-                        this.registros = res.data;
+                        this.registros = res.data || [];
 
                         this.$nextTick(() => {
                             safeInitDataTable(this.$refs.dt || "#example23", {
@@ -421,6 +418,8 @@ export default {
                     }
                 }
             } catch (error) {
+                this.registros = [];
+
                 const status = error?.response?.status;
                 if (status == 500) {
                     $.toast({
@@ -572,62 +571,9 @@ export default {
                 }
             }
         },
-        async btnTraerImagenes() {
-            try {
-                const username = "admin "; // Reemplaza con tu nombre de usuario
-                const password = "admin"; // Reemplaza con tu contraseña
-                await this.loginDcm(username, password); // Realiza el inicio de sesión
-
-                const studyInstanceUID =
-                    "1.3.51.0.7.11205627247.29189.59722.44357.20490.54522.12135";
-                const seriesInstanceUID =
-                    "1.3.51.0.7.1993270954.51192.42060.33917.35145.4208.43461";
-                const sopInstanceUID = "1.3.51.0.7.12605602729.42708.61000.39179.45802.51819.19455";
-
-                const response = await this.getImage(
-                    studyInstanceUID,
-                    seriesInstanceUID,
-                    sopInstanceUID
-                );
-                this.imageBlob = response.data;
-                this.imageUrl = URL.createObjectURL(this.imageBlob);
-                this.downloadImage();
-            } catch (error) {
-                console.error("Error loading image:", error);
-            }
-        },
-        loginDcm(username, password) {
-            const API_URL = "http://10.35.47.3:8080/dcm4chee-web3";
-            return axios.post(
-                `${API_URL}/login`,
-                {
-                    username: username,
-                    password: password,
-                },
-                {
-                    withCredentials: true, // Esto permite el uso de cookies
-                }
-            );
-        },
-        getImage(studyInstanceUID, seriesInstanceUID, sopInstanceUID) {
-            const API_URL = "http://10.35.47.3:8080/dcm4chee-web3";
-            return axios.get(
-                `${API_URL}/studies/${studyInstanceUID}/series/${seriesInstanceUID}/instances/${sopInstanceUID}/frames/1`,
-                {
-                    responseType: "blob",
-                    withCredentials: true, // Esto permite el uso de cookies
-                }
-            );
-        },
-        downloadImage() {
-            if (this.imageBlob) {
-                const link = document.createElement("a");
-                link.href = this.imageUrl;
-                link.download = "dicom_image.dcm";
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
+        btnCerralModalForm() {
+            $(".right-sidebar").slideDown(50);
+            $(".right-sidebar").toggleClass("shw-rside");
         },
         mostrarRegistro(data = {}) {
             if (this.loadingAbrirId) return;
@@ -657,10 +603,6 @@ export default {
             this.registro.tel = data.tel;
             this.registro.nom_produc = data.nom_produc;
             this.registro.id_producto_lectura = data.id;
-        },
-        btnCerralModalForm() {
-            $(".right-sidebar").slideDown(50);
-            $(".right-sidebar").toggleClass("shw-rside");
         },
         limpiar() {
             this.registro.num_docu = "";

@@ -43,6 +43,8 @@ class HelpDeskTickets extends Model
         'fechor_sol_quien_registr' => 'datetime',
         'fechor_sol_quien_soluciona' => 'datetime',
         'deleted_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     public function sede()

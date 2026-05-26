@@ -26,6 +26,7 @@ class ConfigDiagnosticoRequest extends FormRequest
         return [
             'cod_diagnos' => 'required|min:2|max:20',
             'nom_diagnos' => 'required|min:2|max:200',
+            'estado' => 'nullable|boolean',
         ];
     }
 

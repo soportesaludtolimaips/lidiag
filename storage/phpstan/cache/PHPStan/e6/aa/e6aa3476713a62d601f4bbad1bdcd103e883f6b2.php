@@ -2,6 +2,6 @@
 
 // variadic-method-App\Models\HelpDesk\HelpDeskTickets-asignado-C:\laragon\www\lidiag\app\Models\HelpDesk\HelpDeskTickets.php
 return \PHPStan\Cache\CacheItem::__set_state(array(
-   'variableKey' => '1770307949-v4',
+   'variableKey' => '1778084285-v4',
    'data' => false,
 ));

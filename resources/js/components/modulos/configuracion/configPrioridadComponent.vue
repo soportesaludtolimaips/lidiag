@@ -146,7 +146,7 @@
                                     <div class="form-group">
                                         <div class="checkbox checkbox-success">
                                             <input type="checkbox" id="estado" name="estado" v-model="registro.estado"
-                                                :checked="registro.estado" value="1">
+                                                :true-value="1" :false-value="0">
                                             <label for="estado"> Activo </label>
                                         </div>
                                     </div>
@@ -196,7 +196,7 @@ export default {
         return {
             id: 0,
             registros: [],
-            registro: { nom_priori: '', nivel: 0, tiempo: 0, estado: 0 },
+            registro: { nom_priori: '', nivel: 0, tiempo: 0, estado: true },
             tituloModal: 'Nuevo registro',
             actualizar: false,
             errores: {},
@@ -293,20 +293,22 @@ export default {
             }
         },
         mostrarRegistro(data = {}) {
-            if (this.actualizar == true) {
+            if (this.actualizar) {
                 this.tituloModal = "Actualizar el registro: " + data.nivel;
                 this.id = data.id;
                 this.registro.nom_priori = data.nom_priori;
                 this.registro.nivel = data.nivel;
-                this.registro.estado = data.estado;
+                this.registro.tiempo = data.tiempo || 0;
+                this.registro.estado = Boolean(data.estado);
                 $('#btnCerralModalForm').click();
             } else {
                 this.actualizar = false;
                 this.tituloModal = "Nuevo registro";
                 this.id = 0;
                 this.registro.nom_priori = "";
-                this.registro.nivel = "";
-                this.registro.estado = 1;
+                this.registro.nivel = 0;
+                this.registro.tiempo = 0;
+                this.registro.estado = true;
                 $('#btnCerralModalForm').click();
             }
         },

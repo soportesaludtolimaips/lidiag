@@ -35,7 +35,11 @@ class ConfigSede extends Model
         'interface_database',
         'interface_username',
         'interface_password',
-        'plantilla',
+        'plantilla_rx',
         'plantilla_ecografia',
+    ];
+
+    protected $casts = [
+        'estado' => 'boolean',
     ];
 }

@@ -34,12 +34,12 @@ class PlantillaEstudioController extends Controller
          * Buscarmos la sede para saber cual es la plantilla
          */
         $sede = ConfigSede::find($request->sede_id);
-        if (! $sede->plantilla) {
+        if (! $sede->plantilla_rx) {
             return response()->json(['message' => 'La plantilla para la sede '.$sede->nom_sede.' no está  configurada, por favor consulte con el administrador del sistema'], 402);
         }
 
         // Ruta del archivo de plantilla
-        $filePath = storage_path('app/plantillas_lecturas/'.$sede->plantilla);
+        $filePath = storage_path('app/plantillas_lecturas/'.$sede->plantilla_rx);
 
         // Cargar el archivo de plantilla
         $templateProcessor = new TemplateProcessor($filePath);

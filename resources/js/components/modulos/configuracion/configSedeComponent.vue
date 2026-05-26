@@ -330,7 +330,7 @@
                                     <div class="form-group">
                                         <div class="checkbox checkbox-success">
                                             <input type="checkbox" id="estado" name="estado" v-model="registro.estado"
-                                                :checked="registro.estado" value="1">
+                                                :true-value="1" :false-value="0">
                                             <label for="estado"> Activo </label>
                                         </div>
                                     </div>
@@ -379,7 +379,7 @@ export default {
             id: 0,
             registros: [],
             registro: {
-                id: null, nom_sede: '', email_repor: '', ip_dcm: '', bd_dcm: '', puerto_dcm: '', usuario_dcm: '', password_dcm: '', usuario_oviyam: '', password_oviyam: '', url_oviyam: '', tap_oviyam: '', estado: 0
+                id: null, nom_sede: '', email_repor: '', ip_dcm: '', bd_dcm: '', puerto_dcm: '', usuario_dcm: '', password_dcm: '', usuario_oviyam: '', password_oviyam: '', url_oviyam: '', tap_oviyam: '', estado: true
             },
             tituloModal: 'Nuevo registro',
             actualizar: false,
@@ -496,9 +496,9 @@ export default {
         obtenerPlantillaEcografia(e) {
             this.plantillaEcografia = e.target.files[0];
         },
-        mostrarRegistro(data = {}) {
+mostrarRegistro(data = {}) {
 
-            if (this.actualizar == true) {
+            if (this.actualizar) {
                 this.tituloModal = "Actualizar el registro: " + data.nom_sede;
                 this.registro.id = data.id;
                 this.registro.nom_sede = data.nom_sede;
@@ -512,8 +512,8 @@ export default {
                 this.registro.password_oviyam = data.password_oviyam;
                 this.registro.url_oviyam = data.url_oviyam;
                 this.registro.tap_oviyam = data.tap_oviyam;
-                this.registro.plantilla = data.plantilla;
-                this.registro.estado = data.estado;
+                this.registro.plantilla = data.plantilla_rx;
+                this.registro.estado = Boolean(data.estado);
 
                 $('#btnCerralModalForm').click();
                 this.errores = [];
@@ -534,7 +534,7 @@ export default {
                 this.registro.url_oviyam = "";
                 this.registro.tap_oviyam = "";
                 this.registro.plantilla = "";
-                this.registro.estado = 1;
+                this.registro.estado = true;
 
                 $('#btnCerralModalForm').click();
                 this.errores = [];
@@ -555,7 +555,7 @@ export default {
             this.registro.password_oviyam = "";
             this.registro.url_oviyam = "";
             this.registro.plantilla = "";
-            this.registro.estado = 1;
+            this.registro.estado = true;
 
             $('#btnCerralModalForm').click();
             this.errores = [];

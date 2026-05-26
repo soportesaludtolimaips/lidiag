@@ -29,10 +29,10 @@ class ConfigSedeRequest extends FormRequest
             'bd_dcm' => 'required|min:2|max:30',
             'puerto_dcm' => 'required|min:2|max:5',
             'usuario_dcm' => 'required|min:2|max:20',
-            // 'password_dcm' => 'required|min:2|max:15',
             'usuario_oviyam' => 'required|min:2|max:20',
             'password_oviyam' => 'required|min:2|max:10',
             'url_oviyam' => 'required|min:10|max:100',
+            'estado' => 'nullable|boolean',
         ];
     }
 

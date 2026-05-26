@@ -497,6 +497,7 @@ export default {
                 atencion_id: null,
                 destino_estudio: "Tele Radiologia",
                 destino_estudio_id: null,
+                motivo_examen: null,
             },
             orden: {
                 study_pk: "",
@@ -697,15 +698,18 @@ export default {
                 this.registro.tel = this.orden.paciente.tel;
                 this.registro.direccion = this.orden.paciente.direccion;
                 this.registro.email = this.orden.paciente.email;
+                this.registro.motivo_examen = this.orden.motivo_examen;
 
                 const resOrdenTele = await axios.post("/api/tele-radiologia-enviar-orden", {
                     orden: this.orden,
                 });
+
                 const confirmation =
                     resOrdenTele?.data?.confirmation ??
                     resOrdenTele?.data?.data?.confirmation ??
                     resOrdenTele?.data?.id ??
                     null;
+
                 if (resOrdenTele.status == 201 || resOrdenTele.status == 200) {
                     //Asigno el id de la orden de tele radiologia al estudio
                     this.registro.destino_estudio_id = confirmation;
@@ -729,6 +733,7 @@ export default {
                     const resEstudio = await axios.post("/api/estudios", formData, {
                         headers: { "Content-Type": "multipart/form-data" },
                     });
+
                     if (resEstudio.status == 200) {
                         $.toast({
                             heading: "Ok!!!",
@@ -742,8 +747,8 @@ export default {
                     }
                 }
 
-                /* this.btnCerralModalForm();
-                this.limpiar(); */
+                this.btnCerralModalForm();
+                this.limpiar();
             } catch (error) {
                 if (error.response) {
                     this.errores = error.response.data;
@@ -874,6 +879,7 @@ export default {
             }
 
             this.orden.motivo_examen = EnfermedadActualDiagnosticos;
+            this.registro.motivo_examen = EnfermedadActualDiagnosticos;
 
             this.registro.diagnosticosEstudio = [];
             if (resProuctos.data.diagnosticos.length > 0) {

@@ -1,10 +1,10 @@
 <?php declare(strict_types = 1);
 
 return [
-	'lastFullAnalysisTime' => 1770667398,
+	'lastFullAnalysisTime' => 1778087070,
 	'meta' => array (
   'cacheVersion' => 'v12-linesToIgnore',
-  'phpstanVersion' => '1.12.32',
+  'phpstanVersion' => '1.12.33',
   'phpVersion' => 80326,
   'projectConfig' => '{conditionalTags: {Larastan\\Larastan\\Rules\\NoEnvCallsOutsideOfConfigRule: {phpstan.rules.rule: %noEnvCallsOutsideOfConfig%}, Larastan\\Larastan\\Rules\\NoModelMakeRule: {phpstan.rules.rule: %noModelMake%}, Larastan\\Larastan\\Rules\\NoUnnecessaryCollectionCallRule: {phpstan.rules.rule: %noUnnecessaryCollectionCall%}, Larastan\\Larastan\\Rules\\OctaneCompatibilityRule: {phpstan.rules.rule: %checkOctaneCompatibility%}, Larastan\\Larastan\\Rules\\UnusedViewsRule: {phpstan.rules.rule: %checkUnusedViews%}, Larastan\\Larastan\\Rules\\ModelAppendsRule: {phpstan.rules.rule: %checkModelAppends%}, Larastan\\Larastan\\ReturnTypes\\Helpers\\EnvFunctionDynamicFunctionReturnTypeExtension: {phpstan.broker.dynamicFunctionReturnTypeExtension: %generalizeEnvReturnType%}, Larastan\\Larastan\\ReturnTypes\\Helpers\\ConfigFunctionDynamicFunctionReturnTypeExtension: {phpstan.broker.dynamicFunctionReturnTypeExtension: %checkConfigTypes%}, Larastan\\Larastan\\ReturnTypes\\ConfigGetDynamicMethodReturnTypeExtension: {phpstan.broker.dynamicMethodReturnTypeExtension: %checkConfigTypes%}}, parameters: {universalObjectCratesClasses: [Illuminate\\Http\\Request, Illuminate\\Support\\Optional], earlyTerminatingFunctionCalls: [abort, dd], excludePaths: {analyseAndScan: [*.blade.php], analyse: []}, mixinExcludeClasses: [Eloquent], bootstrapFiles: [C:\\laragon\\www\\lidiag\\vendor\\larastan\\larastan\\bootstrap.php], checkOctaneCompatibility: false, noEnvCallsOutsideOfConfig: false, noModelMake: true, noUnnecessaryCollectionCall: true, noUnnecessaryCollectionCallOnly: [], noUnnecessaryCollectionCallExcept: [], squashedMigrationsPath: [], databaseMigrationsPath: [], disableMigrationScan: false, disableSchemaScan: false, configDirectories: [], viewDirectories: [], checkModelProperties: false, checkPhpDocMissingReturn: false, checkUnusedViews: false, checkModelAppends: false, generalizeEnvReturnType: false, checkConfigTypes: false, level: 5, paths: [C:\\laragon\\www\\lidiag\\app], tmpDir: C:\\laragon\\www\\lidiag\\storage\\phpstan}, rules: [Larastan\\Larastan\\Rules\\UselessConstructs\\NoUselessWithFunctionCallsRule, Larastan\\Larastan\\Rules\\UselessConstructs\\NoUselessValueFunctionCallsRule, Larastan\\Larastan\\Rules\\DeferrableServiceProviderMissingProvidesRule, Larastan\\Larastan\\Rules\\ConsoleCommand\\UndefinedArgumentOrOptionRule], services: [{class: Larastan\\Larastan\\Methods\\RelationForwardsCallsExtension, tags: [phpstan.broker.methodsClassReflectionExtension]}, {class: Larastan\\Larastan\\Methods\\ModelForwardsCallsExtension, tags: [phpstan.broker.methodsClassReflectionExtension]}, {class: Larastan\\Larastan\\Methods\\EloquentBuilderForwardsCallsExtension, tags: [phpstan.broker.methodsClassReflectionExtension]}, {class: Larastan\\Larastan\\Methods\\HigherOrderTapProxyExtension, tags: [phpstan.broker.methodsClassReflectionExtension]}, {class: Larastan\\Larastan\\Methods\\HigherOrderCollectionProxyExtension, tags: [phpstan.broker.methodsClassReflectionExtension]}, {class: Larastan\\Larastan\\Methods\\StorageMethodsClassReflectionExtension, tags: [phpstan.broker.methodsClassReflectionExtension]}, {class: Larastan\\Larastan\\Methods\\Extension, tags: [phpstan.broker.methodsClassReflectionExtension]}, {class: Larastan\\Larastan\\Methods\\ModelFactoryMethodsClassReflectionExtension, tags: [phpstan.broker.methodsClassReflectionExtension]}, {class: Larastan\\Larastan\\Methods\\RedirectResponseMethodsClassReflectionExtension, tags: [phpstan.broker.methodsClassReflectionExtension]}, {class: Larastan\\Larastan\\Methods\\MacroMethodsClassReflectionExtension, tags: [phpstan.broker.methodsClassReflectionExtension]}, {class: Larastan\\Larastan\\Methods\\ViewWithMethodsClassReflectionExtension, tags: [phpstan.broker.methodsClassReflectionExtension]}, {class: Larastan\\Larastan\\Properties\\ModelAccessorExtension, tags: [phpstan.broker.propertiesClassReflectionExtension]}, {class: Larastan\\Larastan\\Properties\\ModelPropertyExtension, tags: [phpstan.broker.propertiesClassReflectionExtension]}, {class: Larastan\\Larastan\\Properties\\HigherOrderCollectionProxyPropertyExtension, tags: [phpstan.broker.propertiesClassReflectionExtension]}, {class: Larastan\\Larastan\\Types\\RelationDynamicMethodReturnTypeExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\Types\\ModelRelationsDynamicMethodReturnTypeExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\HigherOrderTapProxyExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\ContainerArrayAccessDynamicMethodReturnTypeExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension], arguments: {className: Illuminate\\Contracts\\Container\\Container}}, {class: Larastan\\Larastan\\ReturnTypes\\ContainerArrayAccessDynamicMethodReturnTypeExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension], arguments: {className: Illuminate\\Container\\Container}}, {class: Larastan\\Larastan\\ReturnTypes\\ContainerArrayAccessDynamicMethodReturnTypeExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension], arguments: {className: Illuminate\\Foundation\\Application}}, {class: Larastan\\Larastan\\ReturnTypes\\ContainerArrayAccessDynamicMethodReturnTypeExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension], arguments: {className: Illuminate\\Contracts\\Foundation\\Application}}, {class: Larastan\\Larastan\\Properties\\ModelRelationsExtension, tags: [phpstan.broker.propertiesClassReflectionExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\ModelOnlyDynamicMethodReturnTypeExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\ModelFactoryDynamicStaticMethodReturnTypeExtension, tags: [phpstan.broker.dynamicStaticMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\ModelDynamicStaticMethodReturnTypeExtension, tags: [phpstan.broker.dynamicStaticMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\AppMakeDynamicReturnTypeExtension, tags: [phpstan.broker.dynamicStaticMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\AuthExtension, tags: [phpstan.broker.dynamicStaticMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\GuardDynamicStaticMethodReturnTypeExtension, tags: [phpstan.broker.dynamicStaticMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\AuthManagerExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\DateExtension, tags: [phpstan.broker.dynamicStaticMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\GuardExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\RequestFileExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\RequestRouteExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\RequestUserExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\EloquentBuilderExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\RelationCollectionExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\ModelFindExtension, tags: [phpstan.broker.dynamicStaticMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\BuilderModelFindExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\TestCaseExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\Support\\CollectionHelper}, {class: Larastan\\Larastan\\ReturnTypes\\Helpers\\AuthExtension, tags: [phpstan.broker.dynamicFunctionReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\Helpers\\CollectExtension, tags: [phpstan.broker.dynamicFunctionReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\Helpers\\NowAndTodayExtension, tags: [phpstan.broker.dynamicFunctionReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\Helpers\\ResponseExtension, tags: [phpstan.broker.dynamicFunctionReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\Helpers\\ValidatorExtension, tags: [phpstan.broker.dynamicFunctionReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\CollectionFilterRejectDynamicReturnTypeExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\CollectionWhereNotNullDynamicReturnTypeExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\NewModelQueryDynamicMethodReturnTypeExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\FactoryDynamicMethodReturnTypeExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\Types\\AbortIfFunctionTypeSpecifyingExtension, tags: [phpstan.typeSpecifier.functionTypeSpecifyingExtension], arguments: {methodName: abort, negate: false}}, {class: Larastan\\Larastan\\Types\\AbortIfFunctionTypeSpecifyingExtension, tags: [phpstan.typeSpecifier.functionTypeSpecifyingExtension], arguments: {methodName: abort, negate: true}}, {class: Larastan\\Larastan\\Types\\AbortIfFunctionTypeSpecifyingExtension, tags: [phpstan.typeSpecifier.functionTypeSpecifyingExtension], arguments: {methodName: throw, negate: false}}, {class: Larastan\\Larastan\\Types\\AbortIfFunctionTypeSpecifyingExtension, tags: [phpstan.typeSpecifier.functionTypeSpecifyingExtension], arguments: {methodName: throw, negate: true}}, {class: Larastan\\Larastan\\ReturnTypes\\Helpers\\AppExtension, tags: [phpstan.broker.dynamicFunctionReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\Helpers\\ValueExtension, tags: [phpstan.broker.dynamicFunctionReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\Helpers\\StrExtension, tags: [phpstan.broker.dynamicFunctionReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\Helpers\\TapExtension, tags: [phpstan.broker.dynamicFunctionReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\StorageDynamicStaticMethodReturnTypeExtension, tags: [phpstan.broker.dynamicStaticMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\Types\\GenericEloquentCollectionTypeNodeResolverExtension, tags: [phpstan.phpDoc.typeNodeResolverExtension]}, {class: Larastan\\Larastan\\Types\\ViewStringTypeNodeResolverExtension, tags: [phpstan.phpDoc.typeNodeResolverExtension]}, {class: Larastan\\Larastan\\Rules\\OctaneCompatibilityRule}, {class: Larastan\\Larastan\\Rules\\NoEnvCallsOutsideOfConfigRule, arguments: {configDirectories: %configDirectories%}}, {class: Larastan\\Larastan\\Rules\\NoModelMakeRule}, {class: Larastan\\Larastan\\Rules\\NoUnnecessaryCollectionCallRule, arguments: {onlyMethods: %noUnnecessaryCollectionCallOnly%, excludeMethods: %noUnnecessaryCollectionCallExcept%}}, {class: Larastan\\Larastan\\Rules\\ModelAppendsRule}, {class: Larastan\\Larastan\\Types\\GenericEloquentBuilderTypeNodeResolverExtension, tags: [phpstan.phpDoc.typeNodeResolverExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\AppEnvironmentReturnTypeExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension], arguments: {class: Illuminate\\Foundation\\Application}}, {class: Larastan\\Larastan\\ReturnTypes\\AppEnvironmentReturnTypeExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension], arguments: {class: Illuminate\\Contracts\\Foundation\\Application}}, {class: Larastan\\Larastan\\ReturnTypes\\AppFacadeEnvironmentReturnTypeExtension, tags: [phpstan.broker.dynamicStaticMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\Types\\ModelProperty\\ModelPropertyTypeNodeResolverExtension, tags: [phpstan.phpDoc.typeNodeResolverExtension], arguments: {active: %checkModelProperties%}}, {class: Larastan\\Larastan\\Types\\RelationParserHelper, arguments: {parser: @currentPhpVersionSimpleDirectParser}}, {class: Larastan\\Larastan\\Properties\\MigrationHelper, arguments: {databaseMigrationPath: %databaseMigrationsPath%, disableMigrationScan: %disableMigrationScan%, parser: @currentPhpVersionSimpleDirectParser, reflectionProvider: @reflectionProvider}}, {class: Larastan\\Larastan\\Properties\\SquashedMigrationHelper, arguments: {schemaPaths: %squashedMigrationsPath%, disableSchemaScan: %disableSchemaScan%}}, {class: Larastan\\Larastan\\Properties\\ModelCastHelper}, {class: Larastan\\Larastan\\Properties\\ModelPropertyHelper}, {class: Larastan\\Larastan\\Rules\\ModelRuleHelper}, {class: Larastan\\Larastan\\Methods\\BuilderHelper, arguments: {checkProperties: %checkModelProperties%}}, {class: Larastan\\Larastan\\Rules\\RelationExistenceRule, tags: [phpstan.rules.rule]}, {class: Larastan\\Larastan\\Rules\\CheckDispatchArgumentTypesCompatibleWithClassConstructorRule, arguments: {dispatchableClass: Illuminate\\Foundation\\Bus\\Dispatchable}, tags: [phpstan.rules.rule]}, {class: Larastan\\Larastan\\Rules\\CheckDispatchArgumentTypesCompatibleWithClassConstructorRule, arguments: {dispatchableClass: Illuminate\\Foundation\\Events\\Dispatchable}, tags: [phpstan.rules.rule]}, {class: Larastan\\Larastan\\Properties\\Schema\\MySqlDataTypeToPhpTypeConverter}, {class: Larastan\\Larastan\\LarastanStubFilesExtension, tags: [phpstan.stubFilesExtension]}, {class: Larastan\\Larastan\\Rules\\UnusedViewsRule}, {class: Larastan\\Larastan\\Collectors\\UsedViewFunctionCollector, tags: [phpstan.collector]}, {class: Larastan\\Larastan\\Collectors\\UsedEmailViewCollector, tags: [phpstan.collector]}, {class: Larastan\\Larastan\\Collectors\\UsedViewMakeCollector, tags: [phpstan.collector]}, {class: Larastan\\Larastan\\Collectors\\UsedViewFacadeMakeCollector, tags: [phpstan.collector]}, {class: Larastan\\Larastan\\Collectors\\UsedRouteFacadeViewCollector, tags: [phpstan.collector]}, {class: Larastan\\Larastan\\Collectors\\UsedViewInAnotherViewCollector, arguments: {parser: @currentPhpVersionSimpleDirectParser}}, {class: Larastan\\Larastan\\Support\\ViewFileHelper, arguments: {viewDirectories: %viewDirectories%}}, {class: Larastan\\Larastan\\ReturnTypes\\ApplicationMakeDynamicReturnTypeExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\ContainerMakeDynamicReturnTypeExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\ConsoleCommand\\ArgumentDynamicReturnTypeExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\ConsoleCommand\\HasArgumentDynamicReturnTypeExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\ConsoleCommand\\OptionDynamicReturnTypeExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\ConsoleCommand\\HasOptionDynamicReturnTypeExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\TranslatorGetReturnTypeExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\LangGetReturnTypeExtension, tags: [phpstan.broker.dynamicStaticMethodReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\TransHelperReturnTypeExtension, tags: [phpstan.broker.dynamicFunctionReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\DoubleUnderscoreHelperReturnTypeExtension, tags: [phpstan.broker.dynamicFunctionReturnTypeExtension]}, {class: Larastan\\Larastan\\ReturnTypes\\AppMakeHelper}, {class: Larastan\\Larastan\\Internal\\ConsoleApplicationResolver}, {class: Larastan\\Larastan\\Internal\\ConsoleApplicationHelper}, {class: Larastan\\Larastan\\Support\\HigherOrderCollectionProxyHelper}, {class: Larastan\\Larastan\\ReturnTypes\\Helpers\\ConfigFunctionDynamicFunctionReturnTypeExtension}, {class: Larastan\\Larastan\\ReturnTypes\\ConfigGetDynamicMethodReturnTypeExtension}, {class: Larastan\\Larastan\\Support\\ConfigParser, arguments: {parser: @currentPhpVersionSimpleDirectParser, configPaths: %configDirectories%}}, {class: Larastan\\Larastan\\ReturnTypes\\Helpers\\EnvFunctionDynamicFunctionReturnTypeExtension}, {class: Larastan\\Larastan\\ReturnTypes\\FormRequestSafeDynamicMethodReturnTypeExtension, tags: [phpstan.broker.dynamicMethodReturnTypeExtension]}]}',
   'analysedPaths' => 
@@ -16,7 +16,7 @@ return [
   ),
   'composerLocks' => 
   array (
-    'C:/laragon/www/lidiag/composer.lock' => 'efca7f95fa6f051cc631caf796de3a3c2bfc4843',
+    'C:/laragon/www/lidiag/composer.lock' => '6d7153951f1bcd92dfe5a9afff8588758fb8c883',
   ),
   'composerInstalled' => 
   array (
@@ -43,6 +43,30 @@ return [
           'reference' => '99f76ffa36cce3b70a4a6abce41dba15ca2e84cb',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../carbonphp/carbon-doctrine-types',
+          'aliases' => 
+          array (
+          ),
+          'dev_requirement' => false,
+        ),
+        'codewithkyrian/platform-package-installer' => 
+        array (
+          'pretty_version' => '1.1.4',
+          'version' => '1.1.4.0',
+          'reference' => '5f1b64d1d38b0e3f57668d7994a26e7a03beb1e4',
+          'type' => 'composer-plugin',
+          'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../codewithkyrian/platform-package-installer',
+          'aliases' => 
+          array (
+          ),
+          'dev_requirement' => false,
+        ),
+        'codewithkyrian/whisper.php' => 
+        array (
+          'pretty_version' => '1.1.0',
+          'version' => '1.1.0.0',
+          'reference' => '84272cd6593586c2336b19a66d3f258d62bfc755',
+          'type' => 'platform-package',
+          'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../codewithkyrian/whisper.php',
           'aliases' => 
           array (
           ),
@@ -126,9 +150,9 @@ return [
         ),
         'dompdf/dompdf' => 
         array (
-          'pretty_version' => 'v3.1.4',
-          'version' => '3.1.4.0',
-          'reference' => 'db712c90c5b9868df3600e64e68da62e78a34623',
+          'pretty_version' => 'v3.1.5',
+          'version' => '3.1.5.0',
+          'reference' => 'f11ead23a8a76d0ff9bbc6c7c8fd7e05ca328496',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../dompdf/dompdf',
           'aliases' => 
@@ -282,9 +306,9 @@ return [
         ),
         'guzzlehttp/psr7' => 
         array (
-          'pretty_version' => '2.8.0',
-          'version' => '2.8.0.0',
-          'reference' => '21dc724a0583619cd1652f673303492272778051',
+          'pretty_version' => '2.9.0',
+          'version' => '2.9.0.0',
+          'reference' => '7d0ed42f28e42d61352a7a79de682e5e67fec884',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../guzzlehttp/psr7',
           'aliases' => 
@@ -333,7 +357,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/broadcasting' => 
@@ -341,7 +365,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/bus' => 
@@ -349,7 +373,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/cache' => 
@@ -357,7 +381,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/collections' => 
@@ -365,7 +389,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/conditionable' => 
@@ -373,7 +397,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/config' => 
@@ -381,7 +405,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/console' => 
@@ -389,7 +413,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/container' => 
@@ -397,7 +421,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/contracts' => 
@@ -405,7 +429,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/cookie' => 
@@ -413,7 +437,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/database' => 
@@ -421,7 +445,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/encryption' => 
@@ -429,7 +453,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/events' => 
@@ -437,7 +461,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/filesystem' => 
@@ -445,7 +469,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/hashing' => 
@@ -453,7 +477,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/http' => 
@@ -461,7 +485,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/log' => 
@@ -469,7 +493,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/macroable' => 
@@ -477,7 +501,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/mail' => 
@@ -485,7 +509,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/notifications' => 
@@ -493,7 +517,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/pagination' => 
@@ -501,7 +525,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/pipeline' => 
@@ -509,7 +533,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/process' => 
@@ -517,7 +541,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/queue' => 
@@ -525,7 +549,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/redis' => 
@@ -533,7 +557,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/routing' => 
@@ -541,7 +565,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/session' => 
@@ -549,7 +573,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/support' => 
@@ -557,7 +581,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/testing' => 
@@ -565,7 +589,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/translation' => 
@@ -573,7 +597,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/validation' => 
@@ -581,7 +605,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'illuminate/view' => 
@@ -589,7 +613,7 @@ return [
           'dev_requirement' => false,
           'replaced' => 
           array (
-            0 => 'v10.50.0',
+            0 => '10.50.2',
           ),
         ),
         'kodova/hamcrest-php' => 
@@ -614,9 +638,9 @@ return [
         ),
         'laravel/framework' => 
         array (
-          'pretty_version' => 'v10.50.0',
-          'version' => '10.50.0.0',
-          'reference' => 'fc41c8ceb4d4a55b23d4030ef4ed86383e4b2bc3',
+          'pretty_version' => '10.50.2',
+          'version' => '10.50.2.0',
+          'reference' => '3ff39b7a9b83e633383ec9b019827ed54b6d38bc',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../laravel/framework',
           'aliases' => 
@@ -626,9 +650,9 @@ return [
         ),
         'laravel/pint' => 
         array (
-          'pretty_version' => 'v1.27.0',
-          'version' => '1.27.0.0',
-          'reference' => 'c67b4195b75491e4dfc6b00b1c78b68d86f54c90',
+          'pretty_version' => 'v1.29.1',
+          'version' => '1.29.1.0',
+          'reference' => '0770e9b7fafd50d4586881d456d6eb41c9247a80',
           'type' => 'project',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../laravel/pint',
           'aliases' => 
@@ -650,9 +674,9 @@ return [
         ),
         'laravel/sail' => 
         array (
-          'pretty_version' => 'v1.52.0',
-          'version' => '1.52.0.0',
-          'reference' => '64ac7d8abb2dbcf2b76e61289451bae79066b0b3',
+          'pretty_version' => 'v1.58.0',
+          'version' => '1.58.0.0',
+          'reference' => '2e5e968138ca52ed87d712449697a8364d73b466',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../laravel/sail',
           'aliases' => 
@@ -686,9 +710,9 @@ return [
         ),
         'laravel/tinker' => 
         array (
-          'pretty_version' => 'v2.11.0',
-          'version' => '2.11.0.0',
-          'reference' => '3d34b97c9a1747a81a3fde90482c092bd8b66468',
+          'pretty_version' => 'v2.11.1',
+          'version' => '2.11.1.0',
+          'reference' => 'c9f80cc835649b5c1842898fb043f8cc098dd741',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../laravel/tinker',
           'aliases' => 
@@ -698,9 +722,9 @@ return [
         ),
         'laravel/ui' => 
         array (
-          'pretty_version' => 'v4.6.1',
-          'version' => '4.6.1.0',
-          'reference' => '7d6ffa38d79f19c9b3e70a751a9af845e8f41d88',
+          'pretty_version' => 'v4.6.3',
+          'version' => '4.6.3.0',
+          'reference' => 'ff27db15416c1ed8ad9848f5692e47595dd5de27',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../laravel/ui',
           'aliases' => 
@@ -710,9 +734,9 @@ return [
         ),
         'league/commonmark' => 
         array (
-          'pretty_version' => '2.8.0',
-          'version' => '2.8.0.0',
-          'reference' => '4efa10c1e56488e658d10adf7b7b7dcd19940bfb',
+          'pretty_version' => '2.8.2',
+          'version' => '2.8.2.0',
+          'reference' => '59fb075d2101740c337c7216e3f32b36c204218b',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../league/commonmark',
           'aliases' => 
@@ -734,9 +758,9 @@ return [
         ),
         'league/flysystem' => 
         array (
-          'pretty_version' => '3.31.0',
-          'version' => '3.31.0.0',
-          'reference' => '1717e0b3642b0df65ecb0cc89cdd99fa840672ff',
+          'pretty_version' => '3.33.0',
+          'version' => '3.33.0.0',
+          'reference' => '570b8871e0ce693764434b29154c54b434905350',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../league/flysystem',
           'aliases' => 
@@ -770,9 +794,9 @@ return [
         ),
         'maatwebsite/excel' => 
         array (
-          'pretty_version' => '3.1.67',
-          'version' => '3.1.67.0',
-          'reference' => 'e508e34a502a3acc3329b464dad257378a7edb4d',
+          'pretty_version' => '3.1.69',
+          'version' => '3.1.69.0',
+          'reference' => 'ae5d65b7c9a2fac43bff4d44f796ac95d7a8e760',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../maatwebsite/excel',
           'aliases' => 
@@ -782,9 +806,9 @@ return [
         ),
         'maennchen/zipstream-php' => 
         array (
-          'pretty_version' => '3.2.1',
-          'version' => '3.2.1.0',
-          'reference' => '682f1098a8fddbaf43edac2306a691c7ad508ec5',
+          'pretty_version' => '3.2.2',
+          'version' => '3.2.2.0',
+          'reference' => '77bebeb4c6c340bb3c11c843b2cffd8bbfde4d5e',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../maennchen/zipstream-php',
           'aliases' => 
@@ -886,9 +910,9 @@ return [
         ),
         'nette/schema' => 
         array (
-          'pretty_version' => 'v1.3.3',
-          'version' => '1.3.3.0',
-          'reference' => '2befc2f42d7c715fd9d95efc31b1081e5d765004',
+          'pretty_version' => 'v1.3.5',
+          'version' => '1.3.5.0',
+          'reference' => 'f0ab1a3cda782dbc5da270d28545236aa80c4002',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../nette/schema',
           'aliases' => 
@@ -898,9 +922,9 @@ return [
         ),
         'nette/utils' => 
         array (
-          'pretty_version' => 'v4.1.1',
-          'version' => '4.1.1.0',
-          'reference' => 'c99059c0315591f1a0db7ad6002000288ab8dc72',
+          'pretty_version' => 'v4.1.3',
+          'version' => '4.1.3.0',
+          'reference' => 'bb3ea637e3d131d72acc033cfc2746ee893349fe',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../nette/utils',
           'aliases' => 
@@ -994,9 +1018,9 @@ return [
         ),
         'phpoffice/phpspreadsheet' => 
         array (
-          'pretty_version' => '1.30.2',
-          'version' => '1.30.2.0',
-          'reference' => '09cdde5e2f078b9a3358dd217e2c8cb4dac84be2',
+          'pretty_version' => '1.30.4',
+          'version' => '1.30.4.0',
+          'reference' => '02970383cc12e7bf0bc0707ea6e2e8ed23a7aec9',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../phpoffice/phpspreadsheet',
           'aliases' => 
@@ -1030,9 +1054,9 @@ return [
         ),
         'phpstan/phpstan' => 
         array (
-          'pretty_version' => '1.12.32',
-          'version' => '1.12.32.0',
-          'reference' => '2770dcdf5078d0b0d53f94317e06affe88419aa8',
+          'pretty_version' => '1.12.33',
+          'version' => '1.12.33.0',
+          'reference' => '37982d6fc7cbb746dda7773530cda557cdf119e1',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../phpstan/phpstan',
           'aliases' => 
@@ -1102,9 +1126,9 @@ return [
         ),
         'phpunit/phpunit' => 
         array (
-          'pretty_version' => '10.5.61',
-          'version' => '10.5.61.0',
-          'reference' => 'bd265b671a63b87e85a8155f885b6fbb41ee505b',
+          'pretty_version' => '10.5.63',
+          'version' => '10.5.63.0',
+          'reference' => '33198268dad71e926626b618f3ec3966661e4d90',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../phpunit/phpunit',
           'aliases' => 
@@ -1295,9 +1319,9 @@ return [
         ),
         'psy/psysh' => 
         array (
-          'pretty_version' => 'v0.12.18',
-          'version' => '0.12.18.0',
-          'reference' => 'ddff0ac01beddc251786fe70367cd8bbdb258196',
+          'pretty_version' => 'v0.12.22',
+          'version' => '0.12.22.0',
+          'reference' => '3be75d5b9244936dd4ac62ade2bfb004d13acf0f',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../psy/psysh',
           'aliases' => 
@@ -1351,9 +1375,9 @@ return [
         ),
         'sabberworm/php-css-parser' => 
         array (
-          'pretty_version' => 'v9.1.0',
-          'version' => '9.1.0.0',
-          'reference' => '1b363fdbdc6dd0ca0f4bf98d3a4d7f388133f1fb',
+          'pretty_version' => 'v9.3.0',
+          'version' => '9.3.0.0',
+          'reference' => '88dbd0f7f91abbfe4402d0a3071e9ff4d81ed949',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../sabberworm/php-css-parser',
           'aliases' => 
@@ -1567,9 +1591,9 @@ return [
         ),
         'symfony/cache' => 
         array (
-          'pretty_version' => 'v7.4.4',
-          'version' => '7.4.4.0',
-          'reference' => '67ca35eaa52dd9c1f07a42d459b5a2544dd29b34',
+          'pretty_version' => 'v7.4.9',
+          'version' => '7.4.9.0',
+          'reference' => '3860fa12a5013b48d445909c6ea07f870e10ba7c',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/cache',
           'aliases' => 
@@ -1599,9 +1623,9 @@ return [
         ),
         'symfony/console' => 
         array (
-          'pretty_version' => 'v6.4.32',
-          'version' => '6.4.32.0',
-          'reference' => '0bc2199c6c1f05276b05956f1ddc63f6d7eb5fc3',
+          'pretty_version' => 'v6.4.37',
+          'version' => '6.4.37.0',
+          'reference' => '7bbcaf3fdb1e18fa42a7f0b84a10d091c10548f5',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/console',
           'aliases' => 
@@ -1611,9 +1635,9 @@ return [
         ),
         'symfony/css-selector' => 
         array (
-          'pretty_version' => 'v7.4.0',
-          'version' => '7.4.0.0',
-          'reference' => 'ab862f478513e7ca2fe9ec117a6f01a8da6e1135',
+          'pretty_version' => 'v7.4.9',
+          'version' => '7.4.9.0',
+          'reference' => 'b75663ed96cf4756e28e3105476f220f92886cc4',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/css-selector',
           'aliases' => 
@@ -1635,9 +1659,9 @@ return [
         ),
         'symfony/error-handler' => 
         array (
-          'pretty_version' => 'v6.4.32',
-          'version' => '6.4.32.0',
-          'reference' => '8c18400784fcb014dc73c8d5601a9576af7f8ad4',
+          'pretty_version' => 'v6.4.36',
+          'version' => '6.4.36.0',
+          'reference' => '2ea68f0e1835ad6a126f93bbc14cd236c10ab361',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/error-handler',
           'aliases' => 
@@ -1647,9 +1671,9 @@ return [
         ),
         'symfony/event-dispatcher' => 
         array (
-          'pretty_version' => 'v7.4.4',
-          'version' => '7.4.4.0',
-          'reference' => 'dc2c0eba1af673e736bb851d747d266108aea746',
+          'pretty_version' => 'v7.4.9',
+          'version' => '7.4.9.0',
+          'reference' => 'e4a2e29753c7801f7a8340e066cfa788f3bc8101',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/event-dispatcher',
           'aliases' => 
@@ -1679,9 +1703,9 @@ return [
         ),
         'symfony/finder' => 
         array (
-          'pretty_version' => 'v6.4.32',
-          'version' => '6.4.32.0',
-          'reference' => '3ec24885c1d9ababbb9c8f63bb42fea3c8c9b6de',
+          'pretty_version' => 'v6.4.34',
+          'version' => '6.4.34.0',
+          'reference' => '9590e86be1d1c57bfbb16d0dd040345378c20896',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/finder',
           'aliases' => 
@@ -1691,9 +1715,9 @@ return [
         ),
         'symfony/http-foundation' => 
         array (
-          'pretty_version' => 'v6.4.32',
-          'version' => '6.4.32.0',
-          'reference' => 'a7c652d0d0a6be8fbf9dead2e36f31e46c482adf',
+          'pretty_version' => 'v6.4.35',
+          'version' => '6.4.35.0',
+          'reference' => 'cffffd0a2c037117b742b4f8b379a22a2a33f6d2',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/http-foundation',
           'aliases' => 
@@ -1703,9 +1727,9 @@ return [
         ),
         'symfony/http-kernel' => 
         array (
-          'pretty_version' => 'v6.4.32',
-          'version' => '6.4.32.0',
-          'reference' => 'e40d93fce00d928a553ba0f323da4b3f8506f858',
+          'pretty_version' => 'v6.4.36',
+          'version' => '6.4.36.0',
+          'reference' => '4087ec02119de450e9ebb60806d69c6bb8c6e468',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/http-kernel',
           'aliases' => 
@@ -1715,9 +1739,9 @@ return [
         ),
         'symfony/mailer' => 
         array (
-          'pretty_version' => 'v6.4.31',
-          'version' => '6.4.31.0',
-          'reference' => '8835f93333474780fda1b987cae37e33c3e026ca',
+          'pretty_version' => 'v6.4.34',
+          'version' => '6.4.34.0',
+          'reference' => '01b846f48e53ee4096692a383637a1fa4d577301',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/mailer',
           'aliases' => 
@@ -1727,9 +1751,9 @@ return [
         ),
         'symfony/mime' => 
         array (
-          'pretty_version' => 'v6.4.32',
-          'version' => '6.4.32.0',
-          'reference' => '7409686879ca36c09fc970a5fa8ff6e93504dba4',
+          'pretty_version' => 'v6.4.37',
+          'version' => '6.4.37.0',
+          'reference' => '330077bc7fbe314758aff62834b758d06ac6d260',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/mime',
           'aliases' => 
@@ -1739,9 +1763,9 @@ return [
         ),
         'symfony/polyfill-ctype' => 
         array (
-          'pretty_version' => 'v1.33.0',
-          'version' => '1.33.0.0',
-          'reference' => 'a3cc8b044a6ea513310cbd48ef7333b384945638',
+          'pretty_version' => 'v1.37.0',
+          'version' => '1.37.0.0',
+          'reference' => '141046a8f9477948ff284fa65be2095baafb94f2',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/polyfill-ctype',
           'aliases' => 
@@ -1751,9 +1775,9 @@ return [
         ),
         'symfony/polyfill-intl-grapheme' => 
         array (
-          'pretty_version' => 'v1.33.0',
-          'version' => '1.33.0.0',
-          'reference' => '380872130d3a5dd3ace2f4010d95125fde5d5c70',
+          'pretty_version' => 'v1.37.0',
+          'version' => '1.37.0.0',
+          'reference' => '4864388bfbd3001ce88e234fab652acd91fdc57e',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/polyfill-intl-grapheme',
           'aliases' => 
@@ -1763,8 +1787,8 @@ return [
         ),
         'symfony/polyfill-intl-idn' => 
         array (
-          'pretty_version' => 'v1.33.0',
-          'version' => '1.33.0.0',
+          'pretty_version' => 'v1.37.0',
+          'version' => '1.37.0.0',
           'reference' => '9614ac4d8061dc257ecc64cba1b140873dce8ad3',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/polyfill-intl-idn',
@@ -1775,8 +1799,8 @@ return [
         ),
         'symfony/polyfill-intl-normalizer' => 
         array (
-          'pretty_version' => 'v1.33.0',
-          'version' => '1.33.0.0',
+          'pretty_version' => 'v1.37.0',
+          'version' => '1.37.0.0',
           'reference' => '3833d7255cc303546435cb650316bff708a1c75c',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/polyfill-intl-normalizer',
@@ -1787,9 +1811,9 @@ return [
         ),
         'symfony/polyfill-mbstring' => 
         array (
-          'pretty_version' => 'v1.33.0',
-          'version' => '1.33.0.0',
-          'reference' => '6d857f4d76bd4b343eac26d6b539585d2bc56493',
+          'pretty_version' => 'v1.37.0',
+          'version' => '1.37.0.0',
+          'reference' => '6a21eb99c6973357967f6ce3708cd55a6bec6315',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/polyfill-mbstring',
           'aliases' => 
@@ -1799,9 +1823,9 @@ return [
         ),
         'symfony/polyfill-php80' => 
         array (
-          'pretty_version' => 'v1.33.0',
-          'version' => '1.33.0.0',
-          'reference' => '0cc9dd0f17f61d8131e7df6b84bd344899fe2608',
+          'pretty_version' => 'v1.37.0',
+          'version' => '1.37.0.0',
+          'reference' => 'dfb55726c3a76ea3b6459fcfda1ec2d80a682411',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/polyfill-php80',
           'aliases' => 
@@ -1811,9 +1835,9 @@ return [
         ),
         'symfony/polyfill-php83' => 
         array (
-          'pretty_version' => 'v1.33.0',
-          'version' => '1.33.0.0',
-          'reference' => '17f6f9a6b1735c0f163024d959f700cfbc5155e5',
+          'pretty_version' => 'v1.37.0',
+          'version' => '1.37.0.0',
+          'reference' => '3600c2cb22399e25bb226e4a135ce91eeb2a6149',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/polyfill-php83',
           'aliases' => 
@@ -1823,9 +1847,9 @@ return [
         ),
         'symfony/polyfill-uuid' => 
         array (
-          'pretty_version' => 'v1.33.0',
-          'version' => '1.33.0.0',
-          'reference' => '21533be36c24be3f4b1669c4725c7d1d2bab4ae2',
+          'pretty_version' => 'v1.37.0',
+          'version' => '1.37.0.0',
+          'reference' => '26dfec253c4cf3e51b541b52ddf7e42cb0908e94',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/polyfill-uuid',
           'aliases' => 
@@ -1835,9 +1859,9 @@ return [
         ),
         'symfony/process' => 
         array (
-          'pretty_version' => 'v6.4.32',
-          'version' => '6.4.32.0',
-          'reference' => 'c593135be689b21e6164b1e8f6f5dbf1506b065c',
+          'pretty_version' => 'v6.4.33',
+          'version' => '6.4.33.0',
+          'reference' => 'c46e854e79b52d07666e43924a20cb6dc546644e',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/process',
           'aliases' => 
@@ -1847,9 +1871,9 @@ return [
         ),
         'symfony/routing' => 
         array (
-          'pretty_version' => 'v6.4.32',
-          'version' => '6.4.32.0',
-          'reference' => '0dc6253e864e71b486e8ba4970a56ab849106ebe',
+          'pretty_version' => 'v6.4.37',
+          'version' => '6.4.37.0',
+          'reference' => '48035d186798d27d375d95aad37db8fe097e4048',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/routing',
           'aliases' => 
@@ -1871,9 +1895,9 @@ return [
         ),
         'symfony/string' => 
         array (
-          'pretty_version' => 'v7.4.4',
-          'version' => '7.4.4.0',
-          'reference' => '1c4b10461bf2ec27537b5f36105337262f5f5d6f',
+          'pretty_version' => 'v7.4.8',
+          'version' => '7.4.8.0',
+          'reference' => '114ac57257d75df748eda23dd003878080b8e688',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/string',
           'aliases' => 
@@ -1883,9 +1907,9 @@ return [
         ),
         'symfony/translation' => 
         array (
-          'pretty_version' => 'v6.4.32',
-          'version' => '6.4.32.0',
-          'reference' => 'd6cc8e2fdd484f2f41d25938b0e8e3915de3cfbc',
+          'pretty_version' => 'v6.4.34',
+          'version' => '6.4.34.0',
+          'reference' => 'd07d117db41341511671b0a1a2be48f2772189ce',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/translation',
           'aliases' => 
@@ -1927,9 +1951,9 @@ return [
         ),
         'symfony/var-dumper' => 
         array (
-          'pretty_version' => 'v6.4.32',
-          'version' => '6.4.32.0',
-          'reference' => '131fc9915e0343052af5ed5040401b481ca192aa',
+          'pretty_version' => 'v6.4.36',
+          'version' => '6.4.36.0',
+          'reference' => '7c8ad9ce4faf6c8a99948e70ce02b601a0439782',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/var-dumper',
           'aliases' => 
@@ -1939,9 +1963,9 @@ return [
         ),
         'symfony/var-exporter' => 
         array (
-          'pretty_version' => 'v7.4.0',
-          'version' => '7.4.0.0',
-          'reference' => '03a60f169c79a28513a78c967316fbc8bf17816f',
+          'pretty_version' => 'v7.4.9',
+          'version' => '7.4.9.0',
+          'reference' => '22e03a49c95ef054a43601cd159b222bfab1c701',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/var-exporter',
           'aliases' => 
@@ -1951,21 +1975,21 @@ return [
         ),
         'symfony/yaml' => 
         array (
-          'pretty_version' => 'v7.4.1',
-          'version' => '7.4.1.0',
-          'reference' => '24dd4de28d2e3988b311751ac49e684d783e2345',
+          'pretty_version' => 'v7.4.8',
+          'version' => '7.4.8.0',
+          'reference' => 'c58fdf7b3d6c2995368264c49e4e8b05bcff2883',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../symfony/yaml',
           'aliases' => 
           array (
           ),
-          'dev_requirement' => true,
+          'dev_requirement' => false,
         ),
         'thecodingmachine/safe' => 
         array (
-          'pretty_version' => 'v3.3.0',
-          'version' => '3.3.0.0',
-          'reference' => '2cdd579eeaa2e78e51c7509b50cc9fb89a956236',
+          'pretty_version' => 'v3.4.0',
+          'version' => '3.4.0.0',
+          'reference' => '705683a25bacf0d4860c7dea4d7947bfd09eea19',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../thecodingmachine/safe',
           'aliases' => 
@@ -1997,18 +2021,6 @@ return [
           ),
           'dev_requirement' => false,
         ),
-        'twilio/sdk' => 
-        array (
-          'pretty_version' => '8.10.1',
-          'version' => '8.10.1.0',
-          'reference' => '84fc8e4b2b5ff32d20e73b17718b13e5ed56bc8c',
-          'type' => 'library',
-          'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../twilio/sdk',
-          'aliases' => 
-          array (
-          ),
-          'dev_requirement' => false,
-        ),
         'vlucas/phpdotenv' => 
         array (
           'pretty_version' => 'v5.6.3',
@@ -2023,9 +2035,9 @@ return [
         ),
         'voku/portable-ascii' => 
         array (
-          'pretty_version' => '2.0.3',
-          'version' => '2.0.3.0',
-          'reference' => 'b1d923f88091c6bf09699efcd7c8a1b1bfd7351d',
+          'pretty_version' => '2.1.1',
+          'version' => '2.1.1.0',
+          'reference' => '8e1051fe39379367aecf014f41744ce7539a856f',
           'type' => 'library',
           'install_path' => 'C:\\laragon\\www\\lidiag\\vendor\\composer/../voku/portable-ascii',
           'aliases' => 
@@ -2047,49 +2059,50 @@ return [
   'phpExtensions' => 
   array (
     0 => 'Core',
-    1 => 'PDO',
-    2 => 'Phar',
-    3 => 'Reflection',
-    4 => 'SPL',
-    5 => 'SimpleXML',
-    6 => 'bcmath',
-    7 => 'calendar',
-    8 => 'ctype',
-    9 => 'curl',
-    10 => 'date',
-    11 => 'dom',
-    12 => 'exif',
-    13 => 'fileinfo',
-    14 => 'filter',
-    15 => 'ftp',
-    16 => 'gd',
-    17 => 'hash',
-    18 => 'iconv',
-    19 => 'intl',
-    20 => 'json',
-    21 => 'libxml',
-    22 => 'mbstring',
-    23 => 'mysqli',
-    24 => 'mysqlnd',
-    25 => 'openssl',
-    26 => 'pcre',
-    27 => 'pdo_mysql',
-    28 => 'pdo_sqlite',
-    29 => 'pdo_sqlsrv',
-    30 => 'random',
-    31 => 'readline',
-    32 => 'session',
-    33 => 'sodium',
-    34 => 'sqlite3',
-    35 => 'sqlsrv',
-    36 => 'standard',
-    37 => 'tokenizer',
-    38 => 'xml',
-    39 => 'xmlreader',
-    40 => 'xmlwriter',
-    41 => 'xsl',
-    42 => 'zip',
-    43 => 'zlib',
+    1 => 'FFI',
+    2 => 'PDO',
+    3 => 'Phar',
+    4 => 'Reflection',
+    5 => 'SPL',
+    6 => 'SimpleXML',
+    7 => 'bcmath',
+    8 => 'calendar',
+    9 => 'ctype',
+    10 => 'curl',
+    11 => 'date',
+    12 => 'dom',
+    13 => 'exif',
+    14 => 'fileinfo',
+    15 => 'filter',
+    16 => 'ftp',
+    17 => 'gd',
+    18 => 'hash',
+    19 => 'iconv',
+    20 => 'intl',
+    21 => 'json',
+    22 => 'libxml',
+    23 => 'mbstring',
+    24 => 'mysqli',
+    25 => 'mysqlnd',
+    26 => 'openssl',
+    27 => 'pcre',
+    28 => 'pdo_mysql',
+    29 => 'pdo_sqlite',
+    30 => 'pdo_sqlsrv',
+    31 => 'random',
+    32 => 'readline',
+    33 => 'session',
+    34 => 'sodium',
+    35 => 'sqlite3',
+    36 => 'sqlsrv',
+    37 => 'standard',
+    38 => 'tokenizer',
+    39 => 'xml',
+    40 => 'xmlreader',
+    41 => 'xmlwriter',
+    42 => 'xsl',
+    43 => 'zip',
+    44 => 'zlib',
   ),
   'stubFiles' => 
   array (
@@ -2105,12 +2118,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Call to an undefined static method Illuminate\\Support\\Facades\\File::isAbsolutePath().',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\AuditPermissions.php',
-       'line' => 139,
+       'line' => 141,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\AuditPermissions.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 139,
+       'nodeLine' => 141,
        'nodeType' => 'PhpParser\\Node\\Expr\\StaticCall',
        'identifier' => 'staticMethod.notFound',
        'metadata' => 
@@ -2143,12 +2156,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'personal\' is not found in App\\Models\\ImportarEcografias\\SeguUsuario model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 73,
+       'line' => 68,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 73,
+       'nodeLine' => 68,
        'nodeType' => 'PhpParser\\Node\\Expr\\StaticCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -2159,12 +2172,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\SeguUsuario::$personal.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 82,
+       'line' => 77,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 82,
+       'nodeLine' => 77,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -2175,12 +2188,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\SeguUsuario::$login.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 105,
+       'line' => 102,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 105,
+       'nodeLine' => 102,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -2191,12 +2204,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\ConfigEps::$cod_eps.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 133,
+       'line' => 130,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 133,
+       'nodeLine' => 130,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -2207,12 +2220,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\ConfigEps::$cod_eps.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 141,
+       'line' => 139,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 141,
+       'nodeLine' => 139,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -2223,12 +2236,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\ConfigEps::$nom_eps.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 142,
+       'line' => 140,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 142,
+       'nodeLine' => 140,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -2239,12 +2252,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Property App\\Models\\Configuracion\\ConfigAdminSalud::$estado (bool) does not accept int.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 144,
+       'line' => 142,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 144,
+       'nodeLine' => 142,
        'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
        'identifier' => 'assign.propertyType',
        'metadata' => 
@@ -2255,12 +2268,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\ConfigEps::$cod_eps.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 147,
+       'line' => 145,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 147,
+       'nodeLine' => 145,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -2271,12 +2284,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\ConfigProducto::$cod_produc.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 168,
+       'line' => 166,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 168,
+       'nodeLine' => 166,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -2287,12 +2300,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\ConfigProducto::$cod_produc.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 176,
+       'line' => 175,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 176,
+       'nodeLine' => 175,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -2303,12 +2316,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\ConfigProducto::$val_soat.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 178,
+       'line' => 177,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 178,
+       'nodeLine' => 177,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -2317,62 +2330,62 @@ return [
     )),
     11 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Property App\\Models\\Configuracion\\ConfigProducto::$estado (bool) does not accept int.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 179,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 179,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'assign.propertyType',
-       'metadata' => 
-      array (
-      ),
-    )),
-    12 => 
-    \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\ConfigProducto::$cod_produc.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 182,
+       'line' => 181,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 182,
+       'nodeLine' => 181,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
       array (
       ),
     )),
-    13 => 
+    12 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'paciente\' is not found in App\\Models\\ImportarEcografias\\Lectura model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 202,
+       'line' => 201,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 202,
+       'nodeLine' => 201,
        'nodeType' => 'PhpParser\\Node\\Expr\\StaticCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
       array (
       ),
     )),
-    14 => 
+    13 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\Lectura::$medico.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 209,
+       'line' => 208,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 209,
+       'nodeLine' => 208,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    14 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\Lectura::$usuarioRegistrador.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
+       'line' => 245,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 245,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -2381,46 +2394,46 @@ return [
     )),
     15 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\Lectura::$usuarioRegistrador.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 246,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 246,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    16 => 
-    \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Variable $medico might not be defined.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 250,
+       'line' => 249,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 250,
+       'nodeLine' => 249,
        'nodeType' => 'PhpParser\\Node\\Expr\\Variable',
        'identifier' => 'variable.undefined',
        'metadata' => 
       array (
       ),
     )),
-    17 => 
+    16 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\Lectura::$paciente.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 254,
+       'line' => 253,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 254,
+       'nodeLine' => 253,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    17 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\Lectura::$eps.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
+       'line' => 319,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 319,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -2429,46 +2442,46 @@ return [
     )),
     18 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\Lectura::$eps.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 309,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 309,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    19 => 
-    \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Property App\\Models\\Ecografias\\Ecografia::$estado (\'ANULADO\'|\'EN PROCESO\'|\'LEIDO\') does not accept 1.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 315,
+       'line' => 325,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 315,
+       'nodeLine' => 325,
        'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
        'identifier' => 'assign.propertyType',
        'metadata' => 
       array (
       ),
     )),
-    20 => 
+    19 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\Lectura::$id_atencion.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 316,
+       'line' => 326,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 316,
+       'nodeLine' => 326,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    20 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\Lectura::$fechor_lectura.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
+       'line' => 327,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 327,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -2479,12 +2492,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\Lectura::$fechor_lectura.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 317,
+       'line' => 328,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 317,
+       'nodeLine' => 328,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -2493,30 +2506,14 @@ return [
     )),
     22 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\Lectura::$fechor_lectura.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 318,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 318,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    23 => 
-    \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Unreachable statement - code above always terminates.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-       'line' => 328,
+       'line' => 338,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 328,
+       'nodeLine' => 338,
        'nodeType' => 'PHPStan\\Node\\UnreachableStatementNode',
        'identifier' => 'deadCode.unreachable',
        'metadata' => 
@@ -2530,12 +2527,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\GenePersonal::$nom_usua.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'line' => 61,
+       'line' => 56,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 61,
+       'nodeLine' => 56,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -2546,12 +2543,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\GenePersonal::$num_docu.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'line' => 61,
+       'line' => 56,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 61,
+       'nodeLine' => 56,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -2562,12 +2559,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\GenePersonal::$pri_ape.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'line' => 61,
+       'line' => 56,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 61,
+       'nodeLine' => 56,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -2578,12 +2575,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\GenePersonal::$pri_nom.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'line' => 61,
+       'line' => 56,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 61,
+       'nodeLine' => 56,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -2594,12 +2591,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\GenePersonal::$num_docu.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'line' => 63,
+       'line' => 58,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 63,
+       'nodeLine' => 58,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -2609,6 +2606,70 @@ return [
     5 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\GenePersonal::$num_docu.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
+       'line' => 62,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 62,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    6 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\GenePersonal::$pri_ape.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
+       'line' => 64,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 64,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    7 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\GenePersonal::$pri_nom.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
+       'line' => 64,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 64,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    8 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\GenePersonal::$num_regis.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
+       'line' => 65,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 65,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    9 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\GenePersonal::$e_mail.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
        'line' => 67,
        'canBeIgnored' => true,
@@ -2622,73 +2683,41 @@ return [
       array (
       ),
     )),
-    6 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\GenePersonal::$pri_ape.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'line' => 69,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 69,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    7 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\GenePersonal::$pri_nom.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'line' => 69,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 69,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    8 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\GenePersonal::$num_regis.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'line' => 70,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 70,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    9 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\GenePersonal::$e_mail.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'line' => 72,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 72,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
     10 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\GenePersonal::$num_docu.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
+       'line' => 69,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 69,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    11 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\GenePersonal::$id_sahi.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
+       'line' => 73,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 73,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    12 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\GenePersonal::$acti.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
        'line' => 74,
        'canBeIgnored' => true,
@@ -2702,48 +2731,16 @@ return [
       array (
       ),
     )),
-    11 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\GenePersonal::$id_sahi.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'line' => 78,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 78,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    12 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\GenePersonal::$acti.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'line' => 79,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 79,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
     13 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\User::$tipo_usua.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'line' => 82,
+       'line' => 77,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 82,
+       'nodeLine' => 77,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -2751,6 +2748,38 @@ return [
       ),
     )),
     14 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\ConfigPlantillaTipo::$nom_tipo.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
+       'line' => 91,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 91,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    15 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\ConfigPlantillaTipo::$nom_tipo.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
+       'line' => 93,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 93,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    16 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\ConfigPlantillaTipo::$nom_tipo.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
@@ -2766,41 +2795,25 @@ return [
       array (
       ),
     )),
-    15 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\ConfigPlantillaTipo::$nom_tipo.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'line' => 98,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 98,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    16 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\ConfigPlantillaTipo::$nom_tipo.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'line' => 101,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 101,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
     17 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\ConfigPlantillaDetalle::$id_personal.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
+       'line' => 105,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 105,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    18 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\GenePersonal::$num_docu.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
        'line' => 110,
        'canBeIgnored' => true,
@@ -2814,32 +2827,16 @@ return [
       array (
       ),
     )),
-    18 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\GenePersonal::$num_docu.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'line' => 115,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 115,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
     19 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\ConfigPlantillaDetalle::$nom_plantilla.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'line' => 128,
+       'line' => 124,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 128,
+       'nodeLine' => 124,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -2850,12 +2847,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\ConfigPlantillaDetalle::$detalle.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'line' => 129,
+       'line' => 125,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 129,
+       'nodeLine' => 125,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -2866,12 +2863,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\ConfigPlantillaDetalle::$opinion.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'line' => 130,
+       'line' => 126,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 130,
+       'nodeLine' => 126,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -2882,14 +2879,33 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\ImportarEcografias\\ConfigPlantillaDetalle::$acti.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-       'line' => 131,
+       'line' => 127,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 131,
+       'nodeLine' => 127,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+  ),
+  'C:\\laragon\\www\\lidiag\\app\\Helpers\\Helpers.php' => 
+  array (
+    0 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Strict comparison using === between string and false will always evaluate to false.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Helpers\\Helpers.php',
+       'line' => 31,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Helpers\\Helpers.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Because the type is coming from a PHPDoc, you can turn off this check by setting <fg=cyan>treatPhpDocTypesAsCertain: false</> in your <fg=cyan>%configurationFile%</>.',
+       'nodeLine' => 31,
+       'nodeType' => 'PhpParser\\Node\\Expr\\BinaryOp\\Identical',
+       'identifier' => 'identical.alwaysFalse',
        'metadata' => 
       array (
       ),
@@ -2968,12 +2984,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method App\\Http\\Controllers\\Auth\\LoginController::login() should return Illuminate\\Http\\RedirectResponse but returns Illuminate\\Http\\JsonResponse.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\LoginController.php',
-       'line' => 33,
+       'line' => 36,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\LoginController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 33,
+       'nodeLine' => 36,
        'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
        'identifier' => 'return.type',
        'metadata' => 
@@ -2984,12 +3000,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method App\\Http\\Controllers\\Auth\\LoginController::login() should return Illuminate\\Http\\RedirectResponse but returns Illuminate\\Http\\JsonResponse.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\LoginController.php',
-       'line' => 44,
+       'line' => 47,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\LoginController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 44,
+       'nodeLine' => 47,
        'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
        'identifier' => 'return.type',
        'metadata' => 
@@ -3000,12 +3016,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method App\\Http\\Controllers\\Auth\\LoginController::logout() should return Illuminate\\Http\\JsonResponse but returns Illuminate\\Http\\RedirectResponse.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\LoginController.php',
-       'line' => 75,
+       'line' => 78,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\LoginController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 75,
+       'nodeLine' => 78,
        'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
        'identifier' => 'return.type',
        'metadata' => 
@@ -3019,12 +3035,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method App\\Http\\Controllers\\CitaController::index() should return Illuminate\\Http\\Response but return statement is missing.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\CitaController.php',
-       'line' => 17,
+       'line' => 18,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\CitaController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 17,
+       'nodeLine' => 18,
        'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
        'identifier' => 'return.missing',
        'metadata' => 
@@ -3035,12 +3051,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method App\\Http\\Controllers\\CitaController::create() should return Illuminate\\Http\\Response but return statement is missing.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\CitaController.php',
-       'line' => 27,
+       'line' => 28,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\CitaController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 27,
+       'nodeLine' => 28,
        'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
        'identifier' => 'return.missing',
        'metadata' => 
@@ -3067,12 +3083,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method App\\Http\\Controllers\\CitaController::show() should return Illuminate\\Http\\Response but return statement is missing.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\CitaController.php',
-       'line' => 49,
+       'line' => 48,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\CitaController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 49,
+       'nodeLine' => 48,
        'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
        'identifier' => 'return.missing',
        'metadata' => 
@@ -3083,12 +3099,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method App\\Http\\Controllers\\CitaController::edit() should return Illuminate\\Http\\Response but return statement is missing.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\CitaController.php',
-       'line' => 60,
+       'line' => 58,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\CitaController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 60,
+       'nodeLine' => 58,
        'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
        'identifier' => 'return.missing',
        'metadata' => 
@@ -3099,12 +3115,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method App\\Http\\Controllers\\CitaController::update() should return Illuminate\\Http\\Response but return statement is missing.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\CitaController.php',
-       'line' => 72,
+       'line' => 68,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\CitaController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 72,
+       'nodeLine' => 68,
        'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
        'identifier' => 'return.missing',
        'metadata' => 
@@ -3115,12 +3131,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method App\\Http\\Controllers\\CitaController::destroy() should return Illuminate\\Http\\Response but return statement is missing.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\CitaController.php',
-       'line' => 83,
+       'line' => 78,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\CitaController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 83,
+       'nodeLine' => 78,
        'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
        'identifier' => 'return.missing',
        'metadata' => 
@@ -3134,12 +3150,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'medico\' is not found in App\\Models\\Configuracion\\ConfigPlantilla model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigPlantillaController.php',
-       'line' => 29,
+       'line' => 28,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigPlantillaController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 29,
+       'nodeLine' => 28,
        'nodeType' => 'PhpParser\\Node\\Expr\\StaticCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -3150,12 +3166,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'plantillaTipo\' is not found in App\\Models\\Configuracion\\ConfigPlantilla model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigPlantillaController.php',
-       'line' => 29,
+       'line' => 28,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigPlantillaController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 29,
+       'nodeLine' => 28,
        'nodeType' => 'PhpParser\\Node\\Expr\\StaticCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -3201,12 +3217,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Configuracion\\ConfigSede::$plantilla_rx.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigSedeController.php',
-       'line' => 116,
+       'line' => 117,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigSedeController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 116,
+       'nodeLine' => 117,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -3217,12 +3233,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Configuracion\\ConfigSede::$plantilla_rx.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigSedeController.php',
-       'line' => 123,
+       'line' => 124,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigSedeController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 123,
+       'nodeLine' => 124,
        'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -3233,12 +3249,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'PHPDoc tag @param references unknown parameter: $configsede',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigSedeController.php',
-       'line' => 153,
+       'line' => 155,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigSedeController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 153,
+       'nodeLine' => 155,
        'nodeType' => 'PhpParser\\Node\\Stmt\\ClassMethod',
        'identifier' => 'parameter.notFound',
        'metadata' => 
@@ -3249,12 +3265,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method App\\Http\\Controllers\\Configuracion\\ConfigSedeController::buscarPorId() should return App\\Models\\Configuracion\\ConfigSede but returns Illuminate\\Http\\JsonResponse.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigSedeController.php',
-       'line' => 172,
+       'line' => 174,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigSedeController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 172,
+       'nodeLine' => 174,
        'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
        'identifier' => 'return.type',
        'metadata' => 
@@ -3265,12 +3281,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method App\\Http\\Controllers\\Configuracion\\ConfigSedeController::buscarPorId() should return App\\Models\\Configuracion\\ConfigSede but returns Illuminate\\Http\\JsonResponse.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigSedeController.php',
-       'line' => 176,
+       'line' => 178,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigSedeController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 176,
+       'nodeLine' => 178,
        'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
        'identifier' => 'return.type',
        'metadata' => 
@@ -3281,12 +3297,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method App\\Http\\Controllers\\Configuracion\\ConfigSedeController::buscarPorId() should return App\\Models\\Configuracion\\ConfigSede but returns Illuminate\\Http\\JsonResponse.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigSedeController.php',
-       'line' => 183,
+       'line' => 185,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigSedeController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 183,
+       'nodeLine' => 185,
        'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
        'identifier' => 'return.type',
        'metadata' => 
@@ -3297,12 +3313,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Configuracion\\ConfigSede|Illuminate\\Database\\Eloquent\\Collection<int, App\\Models\\Configuracion\\ConfigSede>::$plantilla_rx.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigSedeController.php',
-       'line' => 274,
+       'line' => 277,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigSedeController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 274,
+       'nodeLine' => 277,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -3313,30 +3329,14 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Configuracion\\ConfigSede|Illuminate\\Database\\Eloquent\\Collection<int, App\\Models\\Configuracion\\ConfigSede>::$plantilla_rx.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigSedeController.php',
-       'line' => 281,
+       'line' => 284,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigSedeController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 281,
+       'nodeLine' => 284,
        'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
        'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    8 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Variable $filename might not be defined.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigSedeController.php',
-       'line' => 319,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigSedeController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 319,
-       'nodeType' => 'PhpParser\\Node\\Expr\\Variable',
-       'identifier' => 'variable.undefined',
        'metadata' => 
       array (
       ),
@@ -3396,12 +3396,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'producto\' is not found in App\\Models\\Configuracion\\ConsentimientoInformado model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConsentimientoInformadoController.php',
-       'line' => 78,
+       'line' => 79,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConsentimientoInformadoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 78,
+       'nodeLine' => 79,
        'nodeType' => 'PhpParser\\Node\\Expr\\StaticCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -3412,12 +3412,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'sede\' is not found in App\\Models\\Configuracion\\ConsentimientoInformado model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConsentimientoInformadoController.php',
-       'line' => 78,
+       'line' => 79,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConsentimientoInformadoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 78,
+       'nodeLine' => 79,
        'nodeType' => 'PhpParser\\Node\\Expr\\StaticCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -3428,12 +3428,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'usuarioCrea\' is not found in App\\Models\\Configuracion\\ConsentimientoInformado model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConsentimientoInformadoController.php',
-       'line' => 78,
+       'line' => 79,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConsentimientoInformadoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 78,
+       'nodeLine' => 79,
        'nodeType' => 'PhpParser\\Node\\Expr\\StaticCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -3444,12 +3444,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'producto\' is not found in App\\Models\\Configuracion\\ConsentimientoInformado model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConsentimientoInformadoController.php',
-       'line' => 170,
+       'line' => 171,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConsentimientoInformadoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 170,
+       'nodeLine' => 171,
        'nodeType' => 'PhpParser\\Node\\Expr\\StaticCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -3460,12 +3460,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'sede\' is not found in App\\Models\\Configuracion\\ConsentimientoInformado model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConsentimientoInformadoController.php',
-       'line' => 170,
+       'line' => 171,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConsentimientoInformadoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 170,
+       'nodeLine' => 171,
        'nodeType' => 'PhpParser\\Node\\Expr\\StaticCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -3479,12 +3479,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'producto\' is not found in App\\Models\\Consentimientos\\ConsentimientoPlantilla model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Consentimientos\\ConsentimientoPlantillasController.php',
-       'line' => 40,
+       'line' => 38,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Consentimientos\\ConsentimientoPlantillasController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 40,
+       'nodeLine' => 38,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -3495,12 +3495,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'usuarioCrea\' is not found in App\\Models\\Consentimientos\\ConsentimientoPlantilla model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Consentimientos\\ConsentimientoPlantillasController.php',
-       'line' => 40,
+       'line' => 38,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Consentimientos\\ConsentimientoPlantillasController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 40,
+       'nodeLine' => 38,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -3511,12 +3511,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'producto\' is not found in App\\Models\\Consentimientos\\ConsentimientoPlantilla model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Consentimientos\\ConsentimientoPlantillasController.php',
-       'line' => 49,
+       'line' => 47,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Consentimientos\\ConsentimientoPlantillasController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 49,
+       'nodeLine' => 47,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -3527,12 +3527,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'producto\' is not found in App\\Models\\Consentimientos\\ConsentimientoPlantilla model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Consentimientos\\ConsentimientoPlantillasController.php',
-       'line' => 60,
+       'line' => 58,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Consentimientos\\ConsentimientoPlantillasController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 60,
+       'nodeLine' => 58,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -3543,12 +3543,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'usuarioCrea\' is not found in App\\Models\\Consentimientos\\ConsentimientoPlantilla model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Consentimientos\\ConsentimientoPlantillasController.php',
-       'line' => 60,
+       'line' => 58,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Consentimientos\\ConsentimientoPlantillasController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 60,
+       'nodeLine' => 58,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -3557,30 +3557,14 @@ return [
     )),
     5 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Anonymous function has an unused use $current.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Consentimientos\\ConsentimientoPlantillasController.php',
-       'line' => 130,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Consentimientos\\ConsentimientoPlantillasController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 130,
-       'nodeType' => 'PhpParser\\Node\\Expr\\Closure',
-       'identifier' => 'closure.unusedUse',
-       'metadata' => 
-      array (
-      ),
-    )),
-    6 => 
-    \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'usuarioCrea\' is not found in App\\Models\\Consentimientos\\ConsentimientoPlantilla model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Consentimientos\\ConsentimientoPlantillasController.php',
-       'line' => 164,
+       'line' => 165,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Consentimientos\\ConsentimientoPlantillasController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 164,
+       'nodeLine' => 165,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -3592,336 +3576,32 @@ return [
   array (
     0 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Relation \'estudio\' is not found in App\\Models\\Estudio\\EstudioProducto model.',
+       'message' => 'Unreachable statement - code above always terminates.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'line' => 261,
+       'line' => 57,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 261,
-       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
-       'identifier' => 'larastan.relationExistence',
+       'nodeLine' => 57,
+       'nodeType' => 'PHPStan\\Node\\UnreachableStatementNode',
+       'identifier' => 'deadCode.unreachable',
        'metadata' => 
       array (
       ),
     )),
     1 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Relation \'estudio\' is not found in App\\Models\\Estudio\\EstudioProducto model.',
+       'message' => 'Unreachable statement - code above always terminates.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'line' => 277,
+       'line' => 106,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 277,
-       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
-       'identifier' => 'larastan.relationExistence',
-       'metadata' => 
-      array (
-      ),
-    )),
-    2 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Relation \'estudio\' is not found in App\\Models\\Estudio\\EstudioProducto model.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'line' => 293,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 293,
-       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
-       'identifier' => 'larastan.relationExistence',
-       'metadata' => 
-      array (
-      ),
-    )),
-    3 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Relation \'estudio\' is not found in App\\Models\\Estudio\\EstudioProducto model.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'line' => 315,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 315,
-       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
-       'identifier' => 'larastan.relationExistence',
-       'metadata' => 
-      array (
-      ),
-    )),
-    4 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Relation \'estudio\' is not found in App\\Models\\Estudio\\EstudioProducto model.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'line' => 321,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 321,
-       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
-       'identifier' => 'larastan.relationExistence',
-       'metadata' => 
-      array (
-      ),
-    )),
-    5 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Relation \'estudio\' is not found in App\\Models\\Estudio\\EstudioProducto model.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'line' => 329,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 329,
-       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
-       'identifier' => 'larastan.relationExistence',
-       'metadata' => 
-      array (
-      ),
-    )),
-    6 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Relation \'estudio\' is not found in App\\Models\\Estudio\\EstudioProducto model.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'line' => 337,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 337,
-       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
-       'identifier' => 'larastan.relationExistence',
-       'metadata' => 
-      array (
-      ),
-    )),
-    7 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\Dashboard\\DashBoardController::getPendientesLecturaTop() should return Illuminate\\Support\\Collection<int, object> but returns Illuminate\\Support\\Collection<int, stdClass>.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'line' => 652,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Template type TValue on class Illuminate\\Support\\Collection is not covariant. Learn more: <fg=cyan>https://phpstan.org/blog/whats-up-with-template-covariant</>',
-       'nodeLine' => 652,
-       'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
-       'identifier' => 'return.type',
-       'metadata' => 
-      array (
-      ),
-    )),
-    8 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\Dashboard\\DashBoardController::getPendientesTranscripcionTop() should return Illuminate\\Support\\Collection<int, object> but returns Illuminate\\Support\\Collection<int, stdClass>.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'line' => 705,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Template type TValue on class Illuminate\\Support\\Collection is not covariant. Learn more: <fg=cyan>https://phpstan.org/blog/whats-up-with-template-covariant</>',
-       'nodeLine' => 705,
-       'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
-       'identifier' => 'return.type',
-       'metadata' => 
-      array (
-      ),
-    )),
-    9 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\Dashboard\\DashBoardController::getRankingMedicosTranscritos() should return Illuminate\\Support\\Collection<int, object> but returns Illuminate\\Support\\Collection<int, array{medico_id: int, medico: string, total: int, prev_total: int, delta: int, deltaPct: float|null}>.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'line' => 771,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 771,
-       'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
-       'identifier' => 'return.type',
-       'metadata' => 
-      array (
-      ),
-    )),
-    10 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\Dashboard\\DashBoardController::getRankingUsuarioTranscritos() should return Illuminate\\Support\\Collection<int, object> but returns Illuminate\\Support\\Collection<int, array{medico_id: int, medico: string, total: int, prev_total: int, delta: int, deltaPct: float|null}>.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'line' => 817,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 817,
-       'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
-       'identifier' => 'return.type',
-       'metadata' => 
-      array (
-      ),
-    )),
-    11 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\Dashboard\\DashBoardController::getTopModalidades() should return Illuminate\\Support\\Collection<int, object> but returns Illuminate\\Database\\Eloquent\\Collection<int, App\\Models\\Estudio\\Estudio>.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'line' => 844,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Template type TValue on class Illuminate\\Support\\Collection is not covariant. Learn more: <fg=cyan>https://phpstan.org/blog/whats-up-with-template-covariant</>',
-       'nodeLine' => 844,
-       'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
-       'identifier' => 'return.type',
-       'metadata' => 
-      array (
-      ),
-    )),
-    12 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Relation \'estudio\' is not found in App\\Models\\Estudio\\EstudioProducto model.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'line' => 867,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 867,
-       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
-       'identifier' => 'larastan.relationExistence',
-       'metadata' => 
-      array (
-      ),
-    )),
-    13 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\Dashboard\\DashBoardController::getTranscritosPorDia() should return Illuminate\\Support\\Collection<int, object> but returns Illuminate\\Database\\Eloquent\\Collection<int, App\\Models\\Estudio\\EstudioProducto>.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'line' => 871,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Template type TValue on class Illuminate\\Support\\Collection is not covariant. Learn more: <fg=cyan>https://phpstan.org/blog/whats-up-with-template-covariant</>',
-       'nodeLine' => 871,
-       'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
-       'identifier' => 'return.type',
-       'metadata' => 
-      array (
-      ),
-    )),
-    14 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\Dashboard\\DashBoardController::getAsignadosPorDia() should return Illuminate\\Support\\Collection<int, object> but returns Illuminate\\Database\\Eloquent\\Collection<int, App\\Models\\Estudio\\Estudio>.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'line' => 891,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Template type TValue on class Illuminate\\Support\\Collection is not covariant. Learn more: <fg=cyan>https://phpstan.org/blog/whats-up-with-template-covariant</>',
-       'nodeLine' => 891,
-       'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
-       'identifier' => 'return.type',
-       'metadata' => 
-      array (
-      ),
-    )),
-    15 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Relation \'estudio\' is not found in App\\Models\\Estudio\\EstudioProducto model.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'line' => 911,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 911,
-       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
-       'identifier' => 'larastan.relationExistence',
-       'metadata' => 
-      array (
-      ),
-    )),
-    16 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\Dashboard\\DashBoardController::getLeidosPorDia() should return Illuminate\\Support\\Collection<int, object> but returns Illuminate\\Database\\Eloquent\\Collection<int, App\\Models\\Estudio\\EstudioProducto>.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'line' => 915,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Template type TValue on class Illuminate\\Support\\Collection is not covariant. Learn more: <fg=cyan>https://phpstan.org/blog/whats-up-with-template-covariant</>',
-       'nodeLine' => 915,
-       'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
-       'identifier' => 'return.type',
-       'metadata' => 
-      array (
-      ),
-    )),
-    17 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\Dashboard\\DashBoardController::getEventosPorHoraHoy() should return array<string, Illuminate\\Support\\Collection<int, object>> but returns array{asignados: Illuminate\\Support\\Collection<int, stdClass>, leidos: Illuminate\\Support\\Collection<int, stdClass>, transcritos: Illuminate\\Support\\Collection<int, stdClass>}.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'line' => 961,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Template type TValue on class Illuminate\\Support\\Collection is not covariant. Learn more: <fg=cyan>https://phpstan.org/blog/whats-up-with-template-covariant</>',
-       'nodeLine' => 961,
-       'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
-       'identifier' => 'return.type',
-       'metadata' => 
-      array (
-      ),
-    )),
-    18 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\Dashboard\\DashBoardController::getTranscritosPorSede() should return Illuminate\\Support\\Collection<int, object> but returns Illuminate\\Support\\Collection<int, array{sede_id: int, sede: string, total: int, prev_total: int, delta: int, deltaPct: float|null}>.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'line' => 998,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 998,
-       'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
-       'identifier' => 'return.type',
-       'metadata' => 
-      array (
-      ),
-    )),
-    19 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\Dashboard\\DashBoardController::getHeatmap7d() should return array<string, Illuminate\\Support\\Collection<int, object>> but returns array{days: int<1, 31>, asignados: Illuminate\\Support\\Collection<int, stdClass>, leidos: Illuminate\\Support\\Collection<int, stdClass>, transcritos: Illuminate\\Support\\Collection<int, stdClass>}.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'line' => 1060,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Template type TValue on class Illuminate\\Support\\Collection is not covariant. Learn more: <fg=cyan>https://phpstan.org/blog/whats-up-with-template-covariant</>',
-       'nodeLine' => 1060,
-       'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
-       'identifier' => 'return.type',
-       'metadata' => 
-      array (
-      ),
-    )),
-    20 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property Illuminate\\Database\\Eloquent\\Model::$name.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'line' => 1080,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 1080,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
+       'nodeLine' => 106,
+       'nodeType' => 'PHPStan\\Node\\UnreachableStatementNode',
+       'identifier' => 'deadCode.unreachable',
        'metadata' => 
       array (
       ),
@@ -3933,12 +3613,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method App\\Http\\Controllers\\Dcm4chee\\StudyController::listarEstudios() should return Illuminate\\Http\\Response but returns Illuminate\\Http\\JsonResponse.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dcm4chee\\StudyController.php',
-       'line' => 46,
+       'line' => 56,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dcm4chee\\StudyController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 46,
+       'nodeLine' => 56,
        'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
        'identifier' => 'return.type',
        'metadata' => 
@@ -3947,31 +3627,31 @@ return [
     )),
     1 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property Illuminate\\Database\\Eloquent\\Model::$agendado.',
+       'message' => 'Method App\\Http\\Controllers\\Dcm4chee\\StudyController::listarEstudios() should return Illuminate\\Http\\Response but returns Illuminate\\Http\\JsonResponse.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dcm4chee\\StudyController.php',
-       'line' => 111,
+       'line' => 62,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dcm4chee\\StudyController.php',
        'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 111,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
+       'tip' => NULL,
+       'nodeLine' => 62,
+       'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
+       'identifier' => 'return.type',
        'metadata' => 
       array (
       ),
     )),
     2 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property Illuminate\\Database\\Eloquent\\Model::$study_pk.',
+       'message' => 'Access to an undefined property Illuminate\\Database\\Eloquent\\Model::$agendado.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dcm4chee\\StudyController.php',
-       'line' => 111,
+       'line' => 134,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dcm4chee\\StudyController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 111,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'nodeLine' => 134,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
        'identifier' => 'property.notFound',
        'metadata' => 
       array (
@@ -3979,14 +3659,30 @@ return [
     )),
     3 => 
     \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property Illuminate\\Database\\Eloquent\\Model::$study_pk.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dcm4chee\\StudyController.php',
+       'line' => 134,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dcm4chee\\StudyController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 134,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    4 => 
+    \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method App\\Http\\Controllers\\Dcm4chee\\StudyController::listarEstudios() should return Illuminate\\Http\\Response but returns Illuminate\\Http\\JsonResponse.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dcm4chee\\StudyController.php',
-       'line' => 119,
+       'line' => 142,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dcm4chee\\StudyController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 119,
+       'nodeLine' => 142,
        'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
        'identifier' => 'return.type',
        'metadata' => 
@@ -4000,12 +3696,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'ecografiaProducto\' is not found in App\\Models\\Consentimientos\\EcografiaConsentimiento model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
-       'line' => 40,
+       'line' => 41,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 40,
+       'nodeLine' => 41,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -4016,12 +3712,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'ecografiaProducto\' is not found in App\\Models\\Consentimientos\\EcografiaConsentimiento model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
-       'line' => 57,
+       'line' => 58,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 57,
+       'nodeLine' => 58,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -4032,12 +3728,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'ecografiaProducto\' is not found in App\\Models\\Consentimientos\\EcografiaConsentimiento model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
-       'line' => 76,
+       'line' => 77,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 76,
+       'nodeLine' => 77,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -4047,22 +3743,6 @@ return [
     3 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Consentimientos\\EcografiaConsentimiento::$ecografiaProducto.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
-       'line' => 106,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 106,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    4 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Consentimientos\\EcografiaConsentimiento::$producto.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
        'line' => 107,
        'canBeIgnored' => true,
@@ -4076,16 +3756,32 @@ return [
       array (
       ),
     )),
+    4 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Consentimientos\\EcografiaConsentimiento::$producto.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
+       'line' => 108,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 108,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
     5 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'ecografia\' is not found in App\\Models\\Ecografias\\EcografiaProducto model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
-       'line' => 149,
+       'line' => 150,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 149,
+       'nodeLine' => 150,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -4096,12 +3792,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'producto\' is not found in App\\Models\\Ecografias\\EcografiaProducto model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
-       'line' => 149,
+       'line' => 150,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 149,
+       'nodeLine' => 150,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -4112,12 +3808,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Offset \'error\' on array{error: bool, consentimiento: App\\Models\\Consentimientos\\EcografiaConsentimiento, url: string, expires_at: Illuminate\\Support\\Carbon}|array{error: bool, status: int, message: string} in isset() always exists and is not nullable.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
-       'line' => 226,
+       'line' => 228,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 226,
+       'nodeLine' => 228,
        'nodeType' => 'PhpParser\\Node\\Expr\\Isset_',
        'identifier' => 'isset.offset',
        'metadata' => 
@@ -4128,12 +3824,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'ecografiaProducto\' is not found in App\\Models\\Consentimientos\\EcografiaConsentimiento model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
-       'line' => 320,
+       'line' => 322,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 320,
+       'nodeLine' => 322,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -4144,12 +3840,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'ecografiaProducto\' is not found in App\\Models\\Consentimientos\\EcografiaConsentimiento model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
-       'line' => 386,
+       'line' => 389,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 386,
+       'nodeLine' => 389,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -4160,12 +3856,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Consentimientos\\EcografiaConsentimiento::$ecografiaProducto.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
-       'line' => 406,
+       'line' => 409,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 406,
+       'nodeLine' => 409,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -4176,12 +3872,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Consentimientos\\EcografiaConsentimiento::$ecografiaProducto.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
-       'line' => 492,
+       'line' => 495,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 492,
+       'nodeLine' => 495,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -4192,12 +3888,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Consentimientos\\EcografiaConsentimiento::$ecografiaProducto.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
-       'line' => 493,
+       'line' => 496,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 493,
+       'nodeLine' => 496,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -4208,12 +3904,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Consentimientos\\EcografiaConsentimiento::$ecografiaProducto.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
-       'line' => 494,
+       'line' => 497,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 494,
+       'nodeLine' => 497,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -4224,12 +3920,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Consentimientos\\EcografiaConsentimiento::$producto.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
-       'line' => 495,
+       'line' => 498,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 495,
+       'nodeLine' => 498,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -4387,12 +4083,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'paciente\' is not found in App\\Models\\Ecografias\\Ecografia model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaController.php',
-       'line' => 93,
+       'line' => 94,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 93,
+       'nodeLine' => 94,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -4483,12 +4179,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Negated boolean expression is always false.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaController.php',
-       'line' => 304,
+       'line' => 305,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaController.php',
        'traitFilePath' => NULL,
        'tip' => 'Because the type is coming from a PHPDoc, you can turn off this check by setting <fg=cyan>treatPhpDocTypesAsCertain: false</> in your <fg=cyan>%configurationFile%</>.',
-       'nodeLine' => 304,
+       'nodeLine' => 305,
        'nodeType' => 'PhpParser\\Node\\Expr\\BooleanNot',
        'identifier' => 'booleanNot.alwaysFalse',
        'metadata' => 
@@ -4499,12 +4195,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Negated boolean expression is always false.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaController.php',
-       'line' => 327,
+       'line' => 329,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaController.php',
        'traitFilePath' => NULL,
        'tip' => 'Because the type is coming from a PHPDoc, you can turn off this check by setting <fg=cyan>treatPhpDocTypesAsCertain: false</> in your <fg=cyan>%configurationFile%</>.',
-       'nodeLine' => 327,
+       'nodeLine' => 329,
        'nodeType' => 'PhpParser\\Node\\Expr\\BooleanNot',
        'identifier' => 'booleanNot.alwaysFalse',
        'metadata' => 
@@ -4518,12 +4214,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'ecografia\' is not found in App\\Models\\Ecografias\\EcografiaProducto model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaProductoController.php',
-       'line' => 23,
+       'line' => 24,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaProductoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 23,
+       'nodeLine' => 24,
        'nodeType' => 'PhpParser\\Node\\Expr\\StaticCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -4534,12 +4230,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'ecografia\' is not found in App\\Models\\Ecografias\\EcografiaProducto model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaProductoController.php',
-       'line' => 63,
+       'line' => 66,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaProductoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 63,
+       'nodeLine' => 66,
        'nodeType' => 'PhpParser\\Node\\Expr\\StaticCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -4585,12 +4281,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'PHPDoc tag @return with type Illuminate\\Http\\JsonResponse|string is incompatible with native type bool.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\PlantillaEcografiaController.php',
-       'line' => 177,
+       'line' => 178,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\PlantillaEcografiaController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 177,
+       'nodeLine' => 178,
        'nodeType' => 'PhpParser\\Node\\Stmt\\ClassMethod',
        'identifier' => 'return.phpDocType',
        'metadata' => 
@@ -4604,12 +4300,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'adminSalud\' is not found in App\\Models\\Ecografias\\Ecografia model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\ecografiaLecturaController.php',
-       'line' => 108,
+       'line' => 106,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\ecografiaLecturaController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 108,
+       'nodeLine' => 106,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -4620,12 +4316,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'medico\' is not found in App\\Models\\Ecografias\\Ecografia model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\ecografiaLecturaController.php',
-       'line' => 108,
+       'line' => 106,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\ecografiaLecturaController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 108,
+       'nodeLine' => 106,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -4636,12 +4332,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'paciente\' is not found in App\\Models\\Ecografias\\Ecografia model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\ecografiaLecturaController.php',
-       'line' => 108,
+       'line' => 106,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\ecografiaLecturaController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 108,
+       'nodeLine' => 106,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -4652,12 +4348,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'usuarioRegistrador\' is not found in App\\Models\\Ecografias\\Ecografia model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\ecografiaLecturaController.php',
-       'line' => 108,
+       'line' => 106,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\ecografiaLecturaController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 108,
+       'nodeLine' => 106,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -4671,46 +4367,14 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Negated boolean expression is always false.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioAudioController.php',
-       'line' => 85,
+       'line' => 68,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioAudioController.php',
        'traitFilePath' => NULL,
        'tip' => 'Because the type is coming from a PHPDoc, you can turn off this check by setting <fg=cyan>treatPhpDocTypesAsCertain: false</> in your <fg=cyan>%configurationFile%</>.',
-       'nodeLine' => 85,
+       'nodeLine' => 68,
        'nodeType' => 'PhpParser\\Node\\Expr\\BooleanNot',
        'identifier' => 'booleanNot.alwaysFalse',
-       'metadata' => 
-      array (
-      ),
-    )),
-    1 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Left side of && is always true.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioAudioController.php',
-       'line' => 155,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioAudioController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 155,
-       'nodeType' => 'PHPStan\\Node\\BooleanAndNode',
-       'identifier' => 'booleanAnd.leftAlwaysTrue',
-       'metadata' => 
-      array (
-      ),
-    )),
-    2 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\Estudios\\EstudioAudioController::stream() should return Illuminate\\Http\\Response|Symfony\\Component\\HttpFoundation\\BinaryFileResponse but returns Symfony\\Component\\HttpFoundation\\StreamedResponse.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioAudioController.php',
-       'line' => 231,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioAudioController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 231,
-       'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
-       'identifier' => 'return.type',
        'metadata' => 
       array (
       ),
@@ -4722,12 +4386,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'PHPDoc tag @param references unknown parameter: $estudio',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
-       'line' => 277,
+       'line' => 285,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 277,
+       'nodeLine' => 285,
        'nodeType' => 'PhpParser\\Node\\Stmt\\ClassMethod',
        'identifier' => 'parameter.notFound',
        'metadata' => 
@@ -4738,12 +4402,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Property App\\Models\\Estudio\\EstudioProducto::$visto (bool|null) does not accept int.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
-       'line' => 383,
+       'line' => 392,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 383,
+       'nodeLine' => 392,
        'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
        'identifier' => 'assign.propertyType',
        'metadata' => 
@@ -4752,16 +4416,16 @@ return [
     )),
     2 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Unreachable statement - code above always terminates.',
+       'message' => 'Method App\\Http\\Controllers\\Estudios\\EstudioController::marcarEstudioVisto() with return type void returns Illuminate\\Http\\JsonResponse but should not return anything.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
-       'line' => 725,
+       'line' => 395,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 725,
-       'nodeType' => 'PHPStan\\Node\\UnreachableStatementNode',
-       'identifier' => 'deadCode.unreachable',
+       'nodeLine' => 395,
+       'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
+       'identifier' => 'return.void',
        'metadata' => 
       array (
       ),
@@ -4770,14 +4434,46 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\General\\Paciente::$lecturas.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
-       'line' => 778,
+       'line' => 809,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 778,
+       'nodeLine' => 809,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    4 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Unreachable statement - code above always terminates.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
+       'line' => 873,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 873,
+       'nodeType' => 'PHPStan\\Node\\UnreachableStatementNode',
+       'identifier' => 'deadCode.unreachable',
+       'metadata' => 
+      array (
+      ),
+    )),
+    5 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Unreachable statement - code above always terminates.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
+       'line' => 889,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 889,
+       'nodeType' => 'PHPStan\\Node\\UnreachableStatementNode',
+       'identifier' => 'deadCode.unreachable',
        'metadata' => 
       array (
       ),
@@ -4789,12 +4485,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method App\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController::index() should return Illuminate\\Http\\Response but return statement is missing.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
-       'line' => 18,
+       'line' => 19,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 18,
+       'nodeLine' => 19,
        'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
        'identifier' => 'return.missing',
        'metadata' => 
@@ -4805,12 +4501,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method App\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController::create() should return Illuminate\\Http\\Response but return statement is missing.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
-       'line' => 28,
+       'line' => 29,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 28,
+       'nodeLine' => 29,
        'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
        'identifier' => 'return.missing',
        'metadata' => 
@@ -4837,12 +4533,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Parameter $estudioDiagnostico of method App\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController::show() has invalid type App\\Models\\Estudios\\EstudioDiagnostico.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
-       'line' => 48,
+       'line' => 47,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 48,
+       'nodeLine' => 47,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'class.notFound',
        'metadata' => 
@@ -4851,39 +4547,39 @@ return [
     )),
     4 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Parameter $estudioDiagnostico of method App\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController::show() has invalid type App\\Models\\Estudios\\EstudioDiagnostico.',
+       'message' => 'Method App\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController::show() should return Illuminate\\Http\\Response but return statement is missing.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
-       'line' => 48,
+       'line' => 49,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 48,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'class.notFound',
+       'nodeLine' => 49,
+       'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
+       'identifier' => 'return.missing',
        'metadata' => 
       array (
       ),
     )),
     5 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController::show() should return Illuminate\\Http\\Response but return statement is missing.',
+       'message' => 'Parameter $estudioDiagnostico of method App\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController::edit() has invalid type App\\Models\\Estudios\\EstudioDiagnostico.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
-       'line' => 50,
+       'line' => 57,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 50,
-       'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
-       'identifier' => 'return.missing',
+       'nodeLine' => 57,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'class.notFound',
        'metadata' => 
       array (
       ),
     )),
     6 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Parameter $estudioDiagnostico of method App\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController::edit() has invalid type App\\Models\\Estudios\\EstudioDiagnostico.',
+       'message' => 'Method App\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController::edit() should return Illuminate\\Http\\Response but return statement is missing.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
        'line' => 59,
        'canBeIgnored' => true,
@@ -4891,150 +4587,118 @@ return [
        'traitFilePath' => NULL,
        'tip' => NULL,
        'nodeLine' => 59,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'class.notFound',
+       'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
+       'identifier' => 'return.missing',
        'metadata' => 
       array (
       ),
     )),
     7 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Parameter $estudioDiagnostico of method App\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController::edit() has invalid type App\\Models\\Estudios\\EstudioDiagnostico.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
-       'line' => 59,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 59,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'class.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    8 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController::edit() should return Illuminate\\Http\\Response but return statement is missing.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
-       'line' => 61,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 61,
-       'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
-       'identifier' => 'return.missing',
-       'metadata' => 
-      array (
-      ),
-    )),
-    9 => 
-    \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'PHPDoc tag @param references unknown parameter: $estudioDiagnostico',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
-       'line' => 71,
+       'line' => 68,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 71,
+       'nodeLine' => 68,
        'nodeType' => 'PhpParser\\Node\\Stmt\\ClassMethod',
        'identifier' => 'parameter.notFound',
        'metadata' => 
       array (
       ),
     )),
-    10 => 
+    8 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Parameter $lecturaDiagnostico of method App\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController::update() has invalid type App\\Models\\Estudios\\EstudioDiagnostico.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
-       'line' => 71,
+       'line' => 68,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 71,
+       'nodeLine' => 68,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'class.notFound',
        'metadata' => 
       array (
       ),
     )),
-    11 => 
+    9 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method App\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController::update() should return Illuminate\\Http\\Response but return statement is missing.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
-       'line' => 73,
+       'line' => 70,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 73,
+       'nodeLine' => 70,
        'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
        'identifier' => 'return.missing',
        'metadata' => 
       array (
       ),
     )),
-    12 => 
+    10 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'PHPDoc tag @param for parameter $lecturaDiagnostico with type App\\Models\\Estudios\\EstudioDiagnostico is not subtype of native type App\\Http\\Controllers\\Estudios\\LecturaDiagnostico.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
-       'line' => 82,
+       'line' => 79,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 82,
+       'nodeLine' => 79,
        'nodeType' => 'PhpParser\\Node\\Stmt\\ClassMethod',
        'identifier' => 'parameter.phpDocType',
        'metadata' => 
       array (
       ),
     )),
-    13 => 
+    11 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Parameter $lecturaDiagnostico of method App\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController::destroy() has invalid type App\\Http\\Controllers\\Estudios\\LecturaDiagnostico.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
-       'line' => 82,
+       'line' => 79,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 82,
+       'nodeLine' => 79,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'class.notFound',
        'metadata' => 
       array (
       ),
     )),
-    14 => 
+    12 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Parameter $lecturaDiagnostico of method App\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController::destroy() has invalid type App\\Models\\Estudios\\EstudioDiagnostico.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
-       'line' => 82,
+       'line' => 79,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 82,
+       'nodeLine' => 79,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'class.notFound',
        'metadata' => 
       array (
       ),
     )),
-    15 => 
+    13 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method App\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController::destroy() should return Illuminate\\Http\\Response but return statement is missing.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
-       'line' => 84,
+       'line' => 81,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 84,
+       'nodeLine' => 81,
        'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
        'identifier' => 'return.missing',
        'metadata' => 
@@ -5046,30 +4710,30 @@ return [
   array (
     0 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Instance::$series_iuid.',
+       'message' => 'Dead catch - Exception is never thrown in the try block.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioNotificacionController.php',
-       'line' => 346,
+       'line' => 232,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioNotificacionController.php',
        'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 346,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
+       'tip' => NULL,
+       'nodeLine' => 232,
+       'nodeType' => 'PHPStan\\Node\\CatchWithUnthrownExceptionNode',
+       'identifier' => 'catch.neverThrown',
        'metadata' => 
       array (
       ),
     )),
     1 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Instance::$sop_iuid.',
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Instance::$series_iuid.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioNotificacionController.php',
-       'line' => 347,
+       'line' => 279,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioNotificacionController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 347,
+       'nodeLine' => 279,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -5078,32 +4742,48 @@ return [
     )),
     2 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\Estudios\\EstudioNotificacionController::descargaImgDicom() should return Illuminate\\Http\\JsonResponse but returns string.',
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Instance::$sop_iuid.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioNotificacionController.php',
-       'line' => 351,
+       'line' => 280,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioNotificacionController.php',
        'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 351,
-       'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
-       'identifier' => 'return.type',
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 280,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
        'metadata' => 
       array (
       ),
     )),
     3 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Unreachable statement - code above always terminates.',
+       'message' => 'Instantiated class Twilio\\Rest\\Client not found.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioNotificacionController.php',
-       'line' => 354,
+       'line' => 319,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioNotificacionController.php',
        'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 354,
-       'nodeType' => 'PHPStan\\Node\\UnreachableStatementNode',
-       'identifier' => 'deadCode.unreachable',
+       'tip' => 'Learn more at https://phpstan.org/user-guide/discovering-symbols',
+       'nodeLine' => 319,
+       'nodeType' => 'PhpParser\\Node\\Expr\\New_',
+       'identifier' => 'class.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    4 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to property $messages on an unknown class Twilio\\Rest\\Client.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioNotificacionController.php',
+       'line' => 333,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioNotificacionController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more at https://phpstan.org/user-guide/discovering-symbols',
+       'nodeLine' => 333,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'class.notFound',
        'metadata' => 
       array (
       ),
@@ -5113,30 +4793,30 @@ return [
   array (
     0 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Call to static method where() on an unknown class App\\Models\\Estudios\\EstudioProducto.',
+       'message' => 'PHPDoc tag @param for parameter $estudioProducto with type App\\Models\\Estudios\\EstudioProducto is not subtype of native type App\\Models\\Estudio\\EstudioProducto.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
-       'line' => 20,
+       'line' => 47,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
        'traitFilePath' => NULL,
-       'tip' => 'Learn more at https://phpstan.org/user-guide/discovering-symbols',
-       'nodeLine' => 20,
-       'nodeType' => 'PhpParser\\Node\\Expr\\StaticCall',
-       'identifier' => 'class.notFound',
+       'tip' => NULL,
+       'nodeLine' => 47,
+       'nodeType' => 'PhpParser\\Node\\Stmt\\ClassMethod',
+       'identifier' => 'parameter.phpDocType',
        'metadata' => 
       array (
       ),
     )),
     1 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Parameter $estudioProducto of method App\\Http\\Controllers\\Estudios\\EstudioProductoController::store() has invalid type App\\Models\\Estudios\\EstudioProducto.',
+       'message' => 'Parameter $estudioProducto of method App\\Http\\Controllers\\Estudios\\EstudioProductoController::update() has invalid type App\\Models\\Estudios\\EstudioProducto.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
-       'line' => 31,
+       'line' => 47,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 31,
+       'nodeLine' => 47,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'class.notFound',
        'metadata' => 
@@ -5145,46 +4825,46 @@ return [
     )),
     2 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Parameter $estudioProducto of method App\\Http\\Controllers\\Estudios\\EstudioProductoController::store() has invalid type App\\Models\\Estudios\\EstudioProducto.',
+       'message' => 'Method App\\Http\\Controllers\\Estudios\\EstudioProductoController::update() should return Illuminate\\Http\\Response but return statement is missing.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
-       'line' => 31,
+       'line' => 49,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 31,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'class.notFound',
+       'nodeLine' => 49,
+       'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
+       'identifier' => 'return.missing',
        'metadata' => 
       array (
       ),
     )),
     3 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Call to method create() on an unknown class App\\Models\\Estudios\\EstudioProducto.',
+       'message' => 'PHPDoc tag @param for parameter $estudioProducto with type App\\Models\\Estudios\\EstudioProducto is not subtype of native type App\\Models\\Estudio\\EstudioProducto.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
-       'line' => 33,
+       'line' => 58,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
        'traitFilePath' => NULL,
-       'tip' => 'Learn more at https://phpstan.org/user-guide/discovering-symbols',
-       'nodeLine' => 33,
-       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
-       'identifier' => 'class.notFound',
+       'tip' => NULL,
+       'nodeLine' => 58,
+       'nodeType' => 'PhpParser\\Node\\Stmt\\ClassMethod',
+       'identifier' => 'parameter.phpDocType',
        'metadata' => 
       array (
       ),
     )),
     4 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Parameter $estudioProducto of method App\\Http\\Controllers\\Estudios\\EstudioProductoController::update() has invalid type App\\Models\\Estudios\\EstudioProducto.',
+       'message' => 'Parameter $estudioProducto of method App\\Http\\Controllers\\Estudios\\EstudioProductoController::destroy() has invalid type App\\Models\\Estudios\\EstudioProducto.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
-       'line' => 44,
+       'line' => 58,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 44,
+       'nodeLine' => 58,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'class.notFound',
        'metadata' => 
@@ -5193,78 +4873,14 @@ return [
     )),
     5 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Parameter $estudioProducto of method App\\Http\\Controllers\\Estudios\\EstudioProductoController::update() has invalid type App\\Models\\Estudios\\EstudioProducto.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
-       'line' => 44,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 44,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'class.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    6 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\Estudios\\EstudioProductoController::update() should return Illuminate\\Http\\Response but return statement is missing.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
-       'line' => 46,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 46,
-       'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
-       'identifier' => 'return.missing',
-       'metadata' => 
-      array (
-      ),
-    )),
-    7 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Parameter $estudioProducto of method App\\Http\\Controllers\\Estudios\\EstudioProductoController::destroy() has invalid type App\\Models\\Estudios\\EstudioProducto.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
-       'line' => 55,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 55,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'class.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    8 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Parameter $estudioProducto of method App\\Http\\Controllers\\Estudios\\EstudioProductoController::destroy() has invalid type App\\Models\\Estudios\\EstudioProducto.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
-       'line' => 55,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 55,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'class.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    9 => 
-    \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method App\\Http\\Controllers\\Estudios\\EstudioProductoController::destroy() should return Illuminate\\Http\\Response but return statement is missing.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
-       'line' => 57,
+       'line' => 60,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 57,
+       'nodeLine' => 60,
        'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
        'identifier' => 'return.missing',
        'metadata' => 
@@ -5286,121 +4902,6 @@ return [
        'nodeLine' => 140,
        'nodeType' => 'PhpParser\\Node\\Stmt\\ClassMethod',
        'identifier' => 'return.phpDocType',
-       'metadata' => 
-      array (
-      ),
-    )),
-  ),
-  'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDeskTicketsController.php' => 
-  array (
-    0 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\HelpDeskTicketsController::index() should return Illuminate\\Http\\Response but return statement is missing.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDeskTicketsController.php',
-       'line' => 17,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDeskTicketsController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 17,
-       'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
-       'identifier' => 'return.missing',
-       'metadata' => 
-      array (
-      ),
-    )),
-    1 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\HelpDeskTicketsController::create() should return Illuminate\\Http\\Response but return statement is missing.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDeskTicketsController.php',
-       'line' => 27,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDeskTicketsController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 27,
-       'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
-       'identifier' => 'return.missing',
-       'metadata' => 
-      array (
-      ),
-    )),
-    2 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\HelpDeskTicketsController::store() should return Illuminate\\Http\\Response but return statement is missing.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDeskTicketsController.php',
-       'line' => 38,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDeskTicketsController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 38,
-       'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
-       'identifier' => 'return.missing',
-       'metadata' => 
-      array (
-      ),
-    )),
-    3 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\HelpDeskTicketsController::show() should return Illuminate\\Http\\Response but return statement is missing.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDeskTicketsController.php',
-       'line' => 49,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDeskTicketsController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 49,
-       'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
-       'identifier' => 'return.missing',
-       'metadata' => 
-      array (
-      ),
-    )),
-    4 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\HelpDeskTicketsController::edit() should return Illuminate\\Http\\Response but return statement is missing.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDeskTicketsController.php',
-       'line' => 60,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDeskTicketsController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 60,
-       'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
-       'identifier' => 'return.missing',
-       'metadata' => 
-      array (
-      ),
-    )),
-    5 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\HelpDeskTicketsController::update() should return Illuminate\\Http\\Response but return statement is missing.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDeskTicketsController.php',
-       'line' => 72,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDeskTicketsController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 72,
-       'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
-       'identifier' => 'return.missing',
-       'metadata' => 
-      array (
-      ),
-    )),
-    6 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\HelpDeskTicketsController::destroy() should return Illuminate\\Http\\Response but return statement is missing.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDeskTicketsController.php',
-       'line' => 83,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDeskTicketsController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 83,
-       'nodeType' => 'PHPStan\\Node\\ExecutionEndNode',
-       'identifier' => 'return.missing',
        'metadata' => 
       array (
       ),
@@ -5527,12 +5028,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$study_pk.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 58,
+       'line' => 55,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 58,
+       'nodeLine' => 55,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -5543,12 +5044,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$id_agenda.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 68,
+       'line' => 65,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 68,
+       'nodeLine' => 65,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -5559,12 +5060,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$id_agenda.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 78,
+       'line' => 75,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 78,
+       'nodeLine' => 75,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -5575,12 +5076,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\StudyDicom::$patient_fk.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 84,
+       'line' => 81,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 84,
+       'nodeLine' => 81,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -5591,12 +5092,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$id_medico.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 91,
+       'line' => 88,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 91,
+       'nodeLine' => 88,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -5607,12 +5108,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$id_quien_agendo.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 97,
+       'line' => 94,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 97,
+       'nodeLine' => 94,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -5622,6 +5123,38 @@ return [
     6 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\PacienteDicom::$pat_id.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'line' => 106,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 106,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    7 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Importar\\PacienteDicom::$pat_id.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'line' => 108,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 108,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    8 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Importar\\PacienteDicom::$pat_name.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'line' => 109,
        'canBeIgnored' => true,
@@ -5635,41 +5168,41 @@ return [
       array (
       ),
     )),
-    7 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\PacienteDicom::$pat_id.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 111,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 111,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    8 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\PacienteDicom::$pat_name.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 112,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 112,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
     9 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\GeneralPersonal::$num_docu.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'line' => 117,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 117,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    10 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Importar\\GeneralPersonal::$num_docu.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'line' => 119,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 119,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    11 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Importar\\GeneralPersonal::$ape.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'line' => 120,
        'canBeIgnored' => true,
@@ -5683,48 +5216,16 @@ return [
       array (
       ),
     )),
-    10 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\GeneralPersonal::$num_docu.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 122,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 122,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    11 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\GeneralPersonal::$ape.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 123,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 123,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
     12 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\GeneralPersonal::$nom.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 123,
+       'line' => 120,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 123,
+       'nodeLine' => 120,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -5735,12 +5236,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\GeneralPersonal::$e_mail.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 124,
+       'line' => 121,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 124,
+       'nodeLine' => 121,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -5751,12 +5252,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\GeneralPersonal::$num_docu.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 132,
+       'line' => 129,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 132,
+       'nodeLine' => 129,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -5766,6 +5267,70 @@ return [
     15 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\GeneralPersonal::$num_docu.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'line' => 135,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 135,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    16 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Importar\\GeneralPersonal::$reg_med.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'line' => 136,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 136,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    17 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Importar\\GeneralPersonal::$ape.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'line' => 137,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 137,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    18 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Importar\\GeneralPersonal::$nom.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'line' => 137,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 137,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    19 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Importar\\GeneralPersonal::$ape.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'line' => 138,
        'canBeIgnored' => true,
@@ -5779,80 +5344,16 @@ return [
       array (
       ),
     )),
-    16 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\GeneralPersonal::$reg_med.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 139,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 139,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    17 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\GeneralPersonal::$ape.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 140,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 140,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    18 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\GeneralPersonal::$nom.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 140,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 140,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    19 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\GeneralPersonal::$ape.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 141,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 141,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
     20 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\GeneralPersonal::$nom.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 141,
+       'line' => 138,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 141,
+       'nodeLine' => 138,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -5863,12 +5364,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$study_pk.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 169,
+       'line' => 166,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 169,
+       'nodeLine' => 166,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -5879,12 +5380,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Study::$mods_in_study.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 174,
+       'line' => 171,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 174,
+       'nodeLine' => 171,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -5894,6 +5395,54 @@ return [
     23 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$study_pk.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'line' => 182,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 182,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    24 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Importar\\StudyDicom::$study_iuid.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'line' => 183,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 183,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    25 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Importar\\StudyDicom::$study_id.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'line' => 184,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 184,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    26 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Importar\\StudyDicom::$study_datetime.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'line' => 185,
        'canBeIgnored' => true,
@@ -5907,9 +5456,9 @@ return [
       array (
       ),
     )),
-    24 => 
+    27 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\StudyDicom::$study_iuid.',
+       'message' => 'Access to an undefined property App\\Models\\Importar\\StudyDicom::$accession_no.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'line' => 186,
        'canBeIgnored' => true,
@@ -5923,9 +5472,9 @@ return [
       array (
       ),
     )),
-    25 => 
+    28 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\StudyDicom::$study_id.',
+       'message' => 'Access to an undefined property App\\Models\\Importar\\StudyDicom::$study_desc.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'line' => 187,
        'canBeIgnored' => true,
@@ -5939,64 +5488,16 @@ return [
       array (
       ),
     )),
-    26 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\StudyDicom::$study_datetime.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 188,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 188,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    27 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\StudyDicom::$accession_no.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 189,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 189,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    28 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\StudyDicom::$study_desc.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 190,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 190,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
     29 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$id_prioridad.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 197,
+       'line' => 194,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 197,
+       'nodeLine' => 194,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -6006,6 +5507,38 @@ return [
     30 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$observaciones.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'line' => 195,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 195,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    31 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$id_atencion.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'line' => 196,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 196,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    32 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$eps.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'line' => 198,
        'canBeIgnored' => true,
@@ -6019,9 +5552,9 @@ return [
       array (
       ),
     )),
-    31 => 
+    33 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$id_atencion.',
+       'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$plan_contrato.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'line' => 199,
        'canBeIgnored' => true,
@@ -6035,9 +5568,25 @@ return [
       array (
       ),
     )),
-    32 => 
+    34 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$eps.',
+       'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$plan_contrato.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'line' => 200,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 200,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    35 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$acti.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'line' => 201,
        'canBeIgnored' => true,
@@ -6051,9 +5600,9 @@ return [
       array (
       ),
     )),
-    33 => 
+    36 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$plan_contrato.',
+       'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$fechor_regis.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'line' => 202,
        'canBeIgnored' => true,
@@ -6067,9 +5616,9 @@ return [
       array (
       ),
     )),
-    34 => 
+    37 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$plan_contrato.',
+       'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$fechor_regis.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'line' => 203,
        'canBeIgnored' => true,
@@ -6083,64 +5632,16 @@ return [
       array (
       ),
     )),
-    35 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$acti.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 204,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 204,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    36 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$fechor_regis.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 205,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 205,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    37 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$fechor_regis.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 206,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 206,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
     38 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\AgendaDiagnostico::$id_diag.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 214,
+       'line' => 211,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 214,
+       'nodeLine' => 211,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -6150,6 +5651,38 @@ return [
     39 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\ConfigDiagnosticoDicom::$cod_diag.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'line' => 215,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 215,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    40 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Importar\\ConfigDiagnosticoDicom::$cod_diag.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'line' => 217,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 217,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    41 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Importar\\ConfigDiagnosticoDicom::$nom_diag.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'line' => 218,
        'canBeIgnored' => true,
@@ -6163,48 +5696,16 @@ return [
       array (
       ),
     )),
-    40 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\ConfigDiagnosticoDicom::$cod_diag.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 220,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 220,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    41 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\ConfigDiagnosticoDicom::$nom_diag.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 221,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 221,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
     42 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\ConfigDiagnosticoDicom::$cod_diag.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 230,
+       'line' => 227,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 230,
+       'nodeLine' => 227,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -6215,12 +5716,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\ConfigDiagnosticoDicom::$nom_diag.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 231,
+       'line' => 228,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 231,
+       'nodeLine' => 228,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -6231,12 +5732,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\AgendaProducto::$id_produc.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 243,
+       'line' => 240,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 243,
+       'nodeLine' => 240,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -6247,12 +5748,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$id_agenda.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 252,
+       'line' => 249,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 252,
+       'nodeLine' => 249,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -6263,12 +5764,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\AgendaProducto::$id_produc.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 253,
+       'line' => 250,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 253,
+       'nodeLine' => 250,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -6279,12 +5780,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\AgendaProducto::$id_transcriptor.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 263,
+       'line' => 260,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 263,
+       'nodeLine' => 260,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -6295,12 +5796,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\GeneralPersonal::$num_docu.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 278,
+       'line' => 275,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 278,
+       'nodeLine' => 275,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -6308,6 +5809,38 @@ return [
       ),
     )),
     49 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Importar\\AgendaProducto::$nom_produc.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'line' => 289,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 289,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    50 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Importar\\AgendaProducto::$cod_cups.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'line' => 291,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 291,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    51 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\AgendaProducto::$nom_produc.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
@@ -6323,48 +5856,16 @@ return [
       array (
       ),
     )),
-    50 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\AgendaProducto::$cod_cups.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 294,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 294,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    51 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\AgendaProducto::$nom_produc.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 295,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 295,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
     52 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\AgendaProducto::$requi_lectura.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 296,
+       'line' => 293,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 296,
+       'nodeLine' => 293,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -6374,6 +5875,54 @@ return [
     53 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Importar\\AgendaProducto::$fechor_lectura.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'line' => 306,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 306,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    54 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Importar\\AgendaProducto::$lectura.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'line' => 307,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 307,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    55 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Importar\\AgendaProducto::$fechor_trascrito.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'line' => 308,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 308,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    56 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$acti.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
        'line' => 309,
        'canBeIgnored' => true,
@@ -6387,54 +5936,6 @@ return [
       array (
       ),
     )),
-    54 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\AgendaProducto::$lectura.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 310,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 310,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    55 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\AgendaProducto::$fechor_trascrito.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 311,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 311,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    56 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Importar\\Agenda::$acti.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'line' => 312,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 312,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIController.php' => 
   array (
@@ -6442,12 +5943,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Parameter #1 $query of method Illuminate\\Database\\Eloquent\\Builder<App\\Models\\Interface\\Sahi\\facFacturaDet>::union() expects Closure|Illuminate\\Database\\Eloquent\\Builder<App\\Models\\Interface\\Sahi\\facFacturaDet>|Illuminate\\Database\\Query\\Builder, Illuminate\\Database\\Eloquent\\Builder<App\\Models\\Interface\\Sahi\\FacMovimientoDet> given.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIController.php',
-       'line' => 196,
+       'line' => 200,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 196,
+       'nodeLine' => 200,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'argument.type',
        'metadata' => 
@@ -6458,12 +5959,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$estado_ecografia.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIController.php',
-       'line' => 206,
+       'line' => 210,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 206,
+       'nodeLine' => 210,
        'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -6474,12 +5975,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$estado_ecografia.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIController.php',
-       'line' => 208,
+       'line' => 212,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 208,
+       'nodeLine' => 212,
        'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -6493,12 +5994,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Parameter #1 $query of method Illuminate\\Database\\Eloquent\\Builder<App\\Models\\Interface\\Sahi\\facFacturaDet>::union() expects Closure|Illuminate\\Database\\Eloquent\\Builder<App\\Models\\Interface\\Sahi\\facFacturaDet>|Illuminate\\Database\\Query\\Builder, Illuminate\\Database\\Eloquent\\Builder<App\\Models\\Interface\\Sahi\\FacMovimientoDet> given.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
-       'line' => 129,
+       'line' => 123,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 129,
+       'nodeLine' => 123,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'argument.type',
        'metadata' => 
@@ -6509,12 +6010,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$quien_ordeno.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
-       'line' => 134,
+       'line' => 128,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 134,
+       'nodeLine' => 128,
        'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -6524,6 +6025,54 @@ return [
     2 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$estado_ecografia.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
+       'line' => 198,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 198,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    3 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$ecografia_producto_id.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
+       'line' => 201,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 201,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    4 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$estado_envio_sahi.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
+       'line' => 202,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 202,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    5 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$fechor_envio_sahi.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
        'line' => 203,
        'canBeIgnored' => true,
@@ -6537,9 +6086,41 @@ return [
       array (
       ),
     )),
-    3 => 
+    6 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$ecografia_producto_id.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$error_envio_sahi.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
+       'line' => 204,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 204,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    7 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$sahi_esquema_149.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
+       'line' => 205,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 205,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    8 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$sahi_esquema_150.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
        'line' => 206,
        'canBeIgnored' => true,
@@ -6553,89 +6134,73 @@ return [
       array (
       ),
     )),
-    4 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$estado_envio_sahi.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
-       'line' => 207,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 207,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    5 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$fechor_envio_sahi.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
-       'line' => 208,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 208,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    6 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$error_envio_sahi.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
-       'line' => 209,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 209,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    7 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$sahi_esquema_149.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
-       'line' => 210,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 210,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    8 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$sahi_esquema_150.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
-       'line' => 211,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 211,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
     9 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$config_producto_id.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
+       'line' => 213,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 213,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    10 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$tiene_plantilla_consentimiento.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
+       'line' => 214,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 214,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    11 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$consentimiento_id.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
+       'line' => 216,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 216,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    12 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$consentimiento_estado.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
+       'line' => 217,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 217,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    13 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$consentimiento_bloquea.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
        'line' => 218,
        'canBeIgnored' => true,
@@ -6649,92 +6214,12 @@ return [
       array (
       ),
     )),
-    10 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$tiene_plantilla_consentimiento.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
-       'line' => 219,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 219,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    11 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$consentimiento_id.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
-       'line' => 221,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 221,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    12 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$consentimiento_estado.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
-       'line' => 222,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 222,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    13 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\facFacturaDet::$consentimiento_bloquea.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
-       'line' => 223,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 223,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php' => 
   array (
     0 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Offset \'ok\' on array{ok: bool, status: int, message: string, data?: array} on left side of ?? always exists and is not nullable.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 116,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 116,
-       'nodeType' => 'PhpParser\\Node\\Expr\\BinaryOp\\Coalesce',
-       'identifier' => 'nullCoalesce.offset',
-       'metadata' => 
-      array (
-      ),
-    )),
-    1 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Offset \'status\' on *NEVER* on left side of ?? always exists and is not nullable.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 117,
        'canBeIgnored' => true,
@@ -6748,25 +6233,25 @@ return [
       array (
       ),
     )),
-    2 => 
+    1 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Offset \'message\' on *NEVER* on left side of ?? always exists and is not nullable.',
+       'message' => 'Offset \'status\' on *NEVER* on left side of ?? always exists and is not nullable.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 119,
+       'line' => 118,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 119,
+       'nodeLine' => 118,
        'nodeType' => 'PhpParser\\Node\\Expr\\BinaryOp\\Coalesce',
        'identifier' => 'nullCoalesce.offset',
        'metadata' => 
       array (
       ),
     )),
-    3 => 
+    2 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Offset \'data\' on *NEVER* on left side of ?? always exists and is not nullable.',
+       'message' => 'Offset \'message\' on *NEVER* on left side of ?? always exists and is not nullable.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 121,
        'canBeIgnored' => true,
@@ -6780,16 +6265,32 @@ return [
       array (
       ),
     )),
-    4 => 
+    3 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Offset \'message\' on array{ok: bool, status: int, message: string, data?: array} on left side of ?? always exists and is not nullable.',
+       'message' => 'Offset \'data\' on *NEVER* on left side of ?? always exists and is not nullable.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 126,
+       'line' => 123,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 126,
+       'nodeLine' => 123,
+       'nodeType' => 'PhpParser\\Node\\Expr\\BinaryOp\\Coalesce',
+       'identifier' => 'nullCoalesce.offset',
+       'metadata' => 
+      array (
+      ),
+    )),
+    4 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Offset \'message\' on array{ok: bool, status: int, message: string, data?: array} on left side of ?? always exists and is not nullable.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 128,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 128,
        'nodeType' => 'PhpParser\\Node\\Expr\\BinaryOp\\Coalesce',
        'identifier' => 'nullCoalesce.offset',
        'metadata' => 
@@ -6800,12 +6301,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'ecografia\' is not found in App\\Models\\Ecografias\\EcografiaProducto model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 151,
+       'line' => 153,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 151,
+       'nodeLine' => 153,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -6816,12 +6317,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Ecografias\\EcografiaProducto::$ecografia.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 210,
+       'line' => 215,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 210,
+       'nodeLine' => 215,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -6832,12 +6333,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Comparison operation ">" between int<1, max> and 0 is always true.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 262,
+       'line' => 272,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'traitFilePath' => NULL,
        'tip' => 'Because the type is coming from a PHPDoc, you can turn off this check by setting <fg=cyan>treatPhpDocTypesAsCertain: false</> in your <fg=cyan>%configurationFile%</>.',
-       'nodeLine' => 262,
+       'nodeLine' => 272,
        'nodeType' => 'PhpParser\\Node\\Expr\\BinaryOp\\Greater',
        'identifier' => 'greater.alwaysTrue',
        'metadata' => 
@@ -6848,12 +6349,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\ASI_USUA::$IdUsuario.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 288,
+       'line' => 299,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 288,
+       'nodeLine' => 299,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -6864,12 +6365,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\ASI_USUA::$IdPersonal.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 289,
+       'line' => 300,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 289,
+       'nodeLine' => 300,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -6880,12 +6381,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\Atencion::$IdUbicacionActual.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 296,
+       'line' => 307,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 296,
+       'nodeLine' => 307,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -6896,12 +6397,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\ProProducto::$IdProducto.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 379,
+       'line' => 392,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 379,
+       'nodeLine' => 392,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -6912,12 +6413,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\ProProducto::$NomProducto.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 380,
+       'line' => 393,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 380,
+       'nodeLine' => 393,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -6928,12 +6429,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\ProProducto::$CodLegal.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 381,
+       'line' => 394,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 381,
+       'nodeLine' => 394,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -6944,12 +6445,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Offset \'ok\' on array{ok: bool, status: int, message: string, data?: array{IdEsquemaEncabezado149: int, IdEsquemaEncabezado150: int, IdAtencion: mixed, IdProductos: non-empty-array<int, mixed>, already_exists: bool, existing_map: non-empty-array<int, array{IdEsquemaEncabezado149: int, IdEsquemaEncabezado150: int}>}|array{IdEsquemaEncabezado149: int, IdEsquemaEncabezado150: int, IdAtencion: mixed, IdProductos: non-empty-array<int, mixed>, ProductosCount: int, already_exists: bool}} on left side of ?? always exists and is not nullable.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 400,
+       'line' => 413,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 400,
+       'nodeLine' => 413,
        'nodeType' => 'PhpParser\\Node\\Expr\\BinaryOp\\Coalesce',
        'identifier' => 'nullCoalesce.offset',
        'metadata' => 
@@ -6960,12 +6461,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Offset \'status\' on *NEVER* on left side of ?? always exists and is not nullable.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 401,
+       'line' => 414,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 401,
+       'nodeLine' => 414,
        'nodeType' => 'PhpParser\\Node\\Expr\\BinaryOp\\Coalesce',
        'identifier' => 'nullCoalesce.offset',
        'metadata' => 
@@ -6976,12 +6477,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Offset \'message\' on *NEVER* on left side of ?? always exists and is not nullable.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 402,
+       'line' => 415,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 402,
+       'nodeLine' => 415,
        'nodeType' => 'PhpParser\\Node\\Expr\\BinaryOp\\Coalesce',
        'identifier' => 'nullCoalesce.offset',
        'metadata' => 
@@ -6992,12 +6493,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Variable $existingMap in empty() always exists and is not falsy.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 416,
+       'line' => 430,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 416,
+       'nodeLine' => 430,
        'nodeType' => 'PhpParser\\Node\\Expr\\Empty_',
        'identifier' => 'empty.variable',
        'metadata' => 
@@ -7008,12 +6509,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Offset \'message\' on array{ok: bool, status: int, message: string, data?: array{IdEsquemaEncabezado149: int, IdEsquemaEncabezado150: int, IdAtencion: mixed, IdProductos: non-empty-array<int, mixed>, already_exists: bool, existing_map: non-empty-array<int, array{IdEsquemaEncabezado149: int, IdEsquemaEncabezado150: int}>}|array{IdEsquemaEncabezado149: int, IdEsquemaEncabezado150: int, IdAtencion: mixed, IdProductos: non-empty-array<int, mixed>, ProductosCount: int, already_exists: bool}} on left side of ?? always exists and is not nullable.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 440,
+       'line' => 455,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 440,
+       'nodeLine' => 455,
        'nodeType' => 'PhpParser\\Node\\Expr\\BinaryOp\\Coalesce',
        'identifier' => 'nullCoalesce.offset',
        'metadata' => 
@@ -7024,12 +6525,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\sisTabla::$Consecutivo.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 480,
+       'line' => 498,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 480,
+       'nodeLine' => 498,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -7039,102 +6540,6 @@ return [
     20 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\sisTabla::$Consecutivo.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 480,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 480,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    21 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\HceEsquema::$IdConsecutivoEsq.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 488,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 488,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    22 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\HceEsquema::$IdConsecutivoEsq.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 488,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 488,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    23 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdEsquemaEncabezado.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 495,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 495,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    24 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdEsquema.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 496,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 496,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    25 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$idEncabezadoPadre.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 497,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 497,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    26 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$ValEsquemaConsecutivo.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 498,
        'canBeIgnored' => true,
@@ -7148,137 +6553,25 @@ return [
       array (
       ),
     )),
-    27 => 
+    21 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$valDetConsecutivo.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\HceEsquema::$IdConsecutivoEsq.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 499,
+       'line' => 507,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 499,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'nodeLine' => 507,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
       array (
       ),
     )),
-    28 => 
+    22 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdUbicacion.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 500,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 500,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    29 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$idAtencion.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 501,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 501,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    30 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$ValUltimoNroRegistro.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 502,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 502,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    31 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IndActivado.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 503,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 503,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    32 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IndHabilitado.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 504,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 504,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    33 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdUsuarioR.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 505,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 505,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    34 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$FecRegistro.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 506,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 506,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    35 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdProductoR.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\HceEsquema::$IdConsecutivoEsq.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 507,
        'canBeIgnored' => true,
@@ -7292,57 +6585,73 @@ return [
       array (
       ),
     )),
-    36 => 
+    23 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$NomProducto.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdEsquemaEncabezado.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 508,
+       'line' => 514,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 508,
+       'nodeLine' => 514,
        'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
        'identifier' => 'property.notFound',
        'metadata' => 
       array (
       ),
     )),
-    37 => 
+    24 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$CodProducto.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdEsquema.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 509,
+       'line' => 515,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 509,
+       'nodeLine' => 515,
        'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
        'identifier' => 'property.notFound',
        'metadata' => 
       array (
       ),
     )),
-    38 => 
+    25 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdEstudio.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$idEncabezadoPadre.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 510,
+       'line' => 516,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 510,
+       'nodeLine' => 516,
        'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
        'identifier' => 'property.notFound',
        'metadata' => 
       array (
       ),
     )),
-    39 => 
+    26 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdEsquemadeAtencion.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$ValEsquemaConsecutivo.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 517,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 517,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    27 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$valDetConsecutivo.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 518,
        'canBeIgnored' => true,
@@ -7356,9 +6665,9 @@ return [
       array (
       ),
     )),
-    40 => 
+    28 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdEsquema.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdUbicacion.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 519,
        'canBeIgnored' => true,
@@ -7372,9 +6681,9 @@ return [
       array (
       ),
     )),
-    41 => 
+    29 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdAtencion.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$idAtencion.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 520,
        'canBeIgnored' => true,
@@ -7388,9 +6697,9 @@ return [
       array (
       ),
     )),
-    42 => 
+    30 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdUbicacion.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$ValUltimoNroRegistro.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 521,
        'canBeIgnored' => true,
@@ -7404,9 +6713,9 @@ return [
       array (
       ),
     )),
-    43 => 
+    31 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$idTraslado.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IndActivado.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 522,
        'canBeIgnored' => true,
@@ -7420,9 +6729,9 @@ return [
       array (
       ),
     )),
-    44 => 
+    32 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdMedico.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IndHabilitado.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 523,
        'canBeIgnored' => true,
@@ -7436,9 +6745,9 @@ return [
       array (
       ),
     )),
-    45 => 
+    33 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$FecEsquema.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdUsuarioR.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 524,
        'canBeIgnored' => true,
@@ -7452,9 +6761,9 @@ return [
       array (
       ),
     )),
-    46 => 
+    34 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IndHabilitado.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$FecRegistro.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 525,
        'canBeIgnored' => true,
@@ -7468,9 +6777,9 @@ return [
       array (
       ),
     )),
-    47 => 
+    35 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IndActivado.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdProductoR.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 526,
        'canBeIgnored' => true,
@@ -7484,9 +6793,9 @@ return [
       array (
       ),
     )),
-    48 => 
+    36 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$FecCerrado.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$NomProducto.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 527,
        'canBeIgnored' => true,
@@ -7500,9 +6809,9 @@ return [
       array (
       ),
     )),
-    49 => 
+    37 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdUsuarioR.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$CodProducto.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 528,
        'canBeIgnored' => true,
@@ -7516,41 +6825,25 @@ return [
       array (
       ),
     )),
-    50 => 
+    38 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetMemo::$IdMemo.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdEstudio.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 536,
+       'line' => 529,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 536,
+       'nodeLine' => 529,
        'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
        'identifier' => 'property.notFound',
        'metadata' => 
       array (
       ),
     )),
-    51 => 
+    39 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetMemo::$IdEsquemaEncabezado.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 537,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 537,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    52 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetMemo::$DesMemo.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdEsquemadeAtencion.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 538,
        'canBeIgnored' => true,
@@ -7564,9 +6857,121 @@ return [
       array (
       ),
     )),
-    53 => 
+    40 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdDetalleValor.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdEsquema.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 539,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 539,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    41 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdAtencion.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 540,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 540,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    42 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdUbicacion.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 541,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 541,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    43 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$idTraslado.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 542,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 542,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    44 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdMedico.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 543,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 543,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    45 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$FecEsquema.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 544,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 544,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    46 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IndHabilitado.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 545,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 545,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    47 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IndActivado.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 546,
        'canBeIgnored' => true,
@@ -7580,9 +6985,9 @@ return [
       array (
       ),
     )),
-    54 => 
+    48 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdEsquemaEncabezado.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$FecCerrado.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 547,
        'canBeIgnored' => true,
@@ -7596,9 +7001,9 @@ return [
       array (
       ),
     )),
-    55 => 
+    49 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValNroRegistro.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdUsuarioR.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 548,
        'canBeIgnored' => true,
@@ -7612,137 +7017,9 @@ return [
       array (
       ),
     )),
-    56 => 
+    50 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar1.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 549,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 549,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    57 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar2.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 550,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 550,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    58 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar3.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 551,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 551,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    59 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar4.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 552,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 552,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    60 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar5.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 553,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 553,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    61 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar6.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 554,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 554,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    62 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar7.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 555,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 555,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    63 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar8.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 556,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 556,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    64 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar9.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetMemo::$IdMemo.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 557,
        'canBeIgnored' => true,
@@ -7756,9 +7033,9 @@ return [
       array (
       ),
     )),
-    65 => 
+    51 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar10.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetMemo::$IdEsquemaEncabezado.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 558,
        'canBeIgnored' => true,
@@ -7772,9 +7049,9 @@ return [
       array (
       ),
     )),
-    66 => 
+    52 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar11.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetMemo::$DesMemo.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 559,
        'canBeIgnored' => true,
@@ -7788,137 +7065,9 @@ return [
       array (
       ),
     )),
-    67 => 
+    53 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar12.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 560,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 560,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    68 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar13.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 561,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 561,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    69 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar14.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 562,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 562,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    70 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar15.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 563,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 563,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    71 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar16.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 564,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 564,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    72 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar17.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 565,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 565,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    73 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar18.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 566,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 566,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    74 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar19.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 567,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 567,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    75 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar20.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdDetalleValor.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 568,
        'canBeIgnored' => true,
@@ -7932,9 +7081,9 @@ return [
       array (
       ),
     )),
-    76 => 
+    54 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdUsuarioR.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdEsquemaEncabezado.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 569,
        'canBeIgnored' => true,
@@ -7948,9 +7097,9 @@ return [
       array (
       ),
     )),
-    77 => 
+    55 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$FecRegistro.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValNroRegistro.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 570,
        'canBeIgnored' => true,
@@ -7964,9 +7113,121 @@ return [
       array (
       ),
     )),
-    78 => 
+    56 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdDetalleValor.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar1.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 571,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 571,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    57 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar2.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 572,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 572,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    58 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar3.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 573,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 573,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    59 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar4.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 574,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 574,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    60 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar5.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 575,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 575,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    61 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar6.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 576,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 576,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    62 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar7.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 577,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 577,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    63 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar8.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 578,
        'canBeIgnored' => true,
@@ -7980,9 +7241,9 @@ return [
       array (
       ),
     )),
-    79 => 
+    64 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdEsquemaEncabezado.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar9.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 579,
        'canBeIgnored' => true,
@@ -7996,9 +7257,9 @@ return [
       array (
       ),
     )),
-    80 => 
+    65 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValNroRegistro.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar10.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 580,
        'canBeIgnored' => true,
@@ -8012,9 +7273,9 @@ return [
       array (
       ),
     )),
-    81 => 
+    66 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar1.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar11.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 581,
        'canBeIgnored' => true,
@@ -8028,9 +7289,9 @@ return [
       array (
       ),
     )),
-    82 => 
+    67 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar2.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar12.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 582,
        'canBeIgnored' => true,
@@ -8044,9 +7305,9 @@ return [
       array (
       ),
     )),
-    83 => 
+    68 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar3.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar13.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 583,
        'canBeIgnored' => true,
@@ -8060,9 +7321,9 @@ return [
       array (
       ),
     )),
-    84 => 
+    69 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar4.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar14.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 584,
        'canBeIgnored' => true,
@@ -8076,9 +7337,9 @@ return [
       array (
       ),
     )),
-    85 => 
+    70 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar5.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar15.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 585,
        'canBeIgnored' => true,
@@ -8092,9 +7353,9 @@ return [
       array (
       ),
     )),
-    86 => 
+    71 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar6.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar16.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 586,
        'canBeIgnored' => true,
@@ -8108,9 +7369,9 @@ return [
       array (
       ),
     )),
-    87 => 
+    72 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar7.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar17.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 587,
        'canBeIgnored' => true,
@@ -8124,9 +7385,9 @@ return [
       array (
       ),
     )),
-    88 => 
+    73 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar8.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar18.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 588,
        'canBeIgnored' => true,
@@ -8140,9 +7401,9 @@ return [
       array (
       ),
     )),
-    89 => 
+    74 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar9.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar19.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 589,
        'canBeIgnored' => true,
@@ -8156,9 +7417,9 @@ return [
       array (
       ),
     )),
-    90 => 
+    75 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar10.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar20.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 590,
        'canBeIgnored' => true,
@@ -8172,9 +7433,9 @@ return [
       array (
       ),
     )),
-    91 => 
+    76 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar11.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdUsuarioR.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 591,
        'canBeIgnored' => true,
@@ -8188,9 +7449,9 @@ return [
       array (
       ),
     )),
-    92 => 
+    77 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar12.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$FecRegistro.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 592,
        'canBeIgnored' => true,
@@ -8204,137 +7465,9 @@ return [
       array (
       ),
     )),
-    93 => 
+    78 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar13.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 593,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 593,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    94 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar14.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 594,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 594,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    95 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar15.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 595,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 595,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    96 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar16.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 596,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 596,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    97 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar17.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 597,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 597,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    98 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar18.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 598,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 598,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    99 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar19.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 599,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 599,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    100 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar20.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'line' => 600,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 600,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    101 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdUsuarioR.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdDetalleValor.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 601,
        'canBeIgnored' => true,
@@ -8348,9 +7481,9 @@ return [
       array (
       ),
     )),
-    102 => 
+    79 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$FecRegistro.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdEsquemaEncabezado.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
        'line' => 602,
        'canBeIgnored' => true,
@@ -8364,6 +7497,374 @@ return [
       array (
       ),
     )),
+    80 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValNroRegistro.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 603,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 603,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    81 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar1.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 604,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 604,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    82 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar2.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 605,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 605,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    83 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar3.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 606,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 606,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    84 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar4.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 607,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 607,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    85 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar5.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 608,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 608,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    86 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar6.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 609,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 609,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    87 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar7.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 610,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 610,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    88 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar8.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 611,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 611,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    89 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar9.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 612,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 612,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    90 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar10.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 613,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 613,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    91 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar11.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 614,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 614,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    92 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar12.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 615,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 615,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    93 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar13.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 616,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 616,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    94 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar14.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 617,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 617,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    95 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar15.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 618,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 618,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    96 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar16.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 619,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 619,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    97 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar17.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 620,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 620,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    98 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar18.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 621,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 621,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    99 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar19.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 622,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 622,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    100 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar20.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 623,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 623,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    101 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdUsuarioR.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 624,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 624,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    102 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$FecRegistro.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'line' => 625,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 625,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php' => 
   array (
@@ -8371,12 +7872,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\sisTabla::$Consecutivo.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 211,
+       'line' => 218,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 211,
+       'nodeLine' => 218,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -8387,12 +7888,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\sisTabla::$Consecutivo.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 211,
+       'line' => 218,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 211,
+       'nodeLine' => 218,
        'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -8403,12 +7904,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\HceEsquema::$IdConsecutivoEsq.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 220,
+       'line' => 228,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 220,
+       'nodeLine' => 228,
        'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -8418,38 +7919,6 @@ return [
     3 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\HceEsquema::$IdConsecutivoEsq.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 220,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 220,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    4 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdEsquemaEncabezado.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 227,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 227,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    5 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdEsquema.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 228,
        'canBeIgnored' => true,
@@ -8463,121 +7932,9 @@ return [
       array (
       ),
     )),
-    6 => 
+    4 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$idEncabezadoPadre.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 229,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 229,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    7 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$ValEsquemaConsecutivo.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 230,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 230,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    8 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$valDetConsecutivo.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 231,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 231,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    9 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdUbicacion.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 232,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 232,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    10 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$idAtencion.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 233,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 233,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    11 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$ValUltimoNroRegistro.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 234,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 234,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    12 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IndActivado.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 235,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 235,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    13 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IndHabilitado.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdEsquemaEncabezado.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 236,
        'canBeIgnored' => true,
@@ -8591,9 +7948,9 @@ return [
       array (
       ),
     )),
-    14 => 
+    5 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdUsuarioR.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdEsquema.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 237,
        'canBeIgnored' => true,
@@ -8607,9 +7964,9 @@ return [
       array (
       ),
     )),
-    15 => 
+    6 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$FecRegistro.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$idEncabezadoPadre.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 238,
        'canBeIgnored' => true,
@@ -8623,9 +7980,9 @@ return [
       array (
       ),
     )),
-    16 => 
+    7 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdProductoR.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$ValEsquemaConsecutivo.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 239,
        'canBeIgnored' => true,
@@ -8639,9 +7996,9 @@ return [
       array (
       ),
     )),
-    17 => 
+    8 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$NomProducto.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$valDetConsecutivo.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 240,
        'canBeIgnored' => true,
@@ -8655,9 +8012,9 @@ return [
       array (
       ),
     )),
-    18 => 
+    9 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$CodProducto.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdUbicacion.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 241,
        'canBeIgnored' => true,
@@ -8671,9 +8028,9 @@ return [
       array (
       ),
     )),
-    19 => 
+    10 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdEstudio.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$idAtencion.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 242,
        'canBeIgnored' => true,
@@ -8687,9 +8044,137 @@ return [
       array (
       ),
     )),
-    20 => 
+    11 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdEsquemadeAtencion.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$ValUltimoNroRegistro.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 243,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 243,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    12 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IndActivado.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 244,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 244,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    13 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IndHabilitado.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 245,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 245,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    14 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdUsuarioR.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 246,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 246,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    15 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$FecRegistro.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 247,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 247,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    16 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdProductoR.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 248,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 248,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    17 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$NomProducto.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 249,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 249,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    18 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$CodProducto.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 250,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 250,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    19 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaEncabeza::$IdEstudio.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 251,
        'canBeIgnored' => true,
@@ -8703,137 +8188,9 @@ return [
       array (
       ),
     )),
-    21 => 
+    20 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdEsquema.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 252,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 252,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    22 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdAtencion.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 253,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 253,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    23 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdUbicacion.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 254,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 254,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    24 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$idTraslado.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 255,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 255,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    25 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdMedico.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 256,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 256,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    26 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$FecEsquema.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 257,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 257,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    27 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IndHabilitado.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 258,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 258,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    28 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IndActivado.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 259,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 259,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    29 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$FecCerrado.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdEsquemadeAtencion.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 260,
        'canBeIgnored' => true,
@@ -8847,9 +8204,9 @@ return [
       array (
       ),
     )),
-    30 => 
+    21 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdUsuarioR.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdEsquema.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 261,
        'canBeIgnored' => true,
@@ -8863,9 +8220,137 @@ return [
       array (
       ),
     )),
-    31 => 
+    22 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetMemo::$IdMemo.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdAtencion.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 262,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 262,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    23 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdUbicacion.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 263,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 263,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    24 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$idTraslado.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 264,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 264,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    25 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdMedico.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 265,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 265,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    26 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$FecEsquema.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 266,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 266,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    27 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IndHabilitado.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 267,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 267,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    28 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IndActivado.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 268,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 268,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    29 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$FecCerrado.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 269,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 269,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    30 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemasdeAte::$IdUsuarioR.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 270,
        'canBeIgnored' => true,
@@ -8879,16 +8364,32 @@ return [
       array (
       ),
     )),
-    32 => 
+    31 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetMemo::$IdEsquemaEncabezado.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetMemo::$IdMemo.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 271,
+       'line' => 279,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 271,
+       'nodeLine' => 279,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    32 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetMemo::$IdEsquemaEncabezado.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 280,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 280,
        'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
        'identifier' => 'property.notFound',
        'metadata' => 
@@ -8898,22 +8399,6 @@ return [
     33 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetMemo::$DesMemo.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 272,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 272,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    34 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdDetalleValor.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 281,
        'canBeIgnored' => true,
@@ -8927,137 +8412,9 @@ return [
       array (
       ),
     )),
-    35 => 
+    34 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdEsquemaEncabezado.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 282,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 282,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    36 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValNroRegistro.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 283,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 283,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    37 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar1.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 284,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 284,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    38 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar2.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 285,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 285,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    39 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar3.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 286,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 286,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    40 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar4.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 287,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 287,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    41 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar5.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 288,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 288,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    42 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar6.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 289,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 289,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    43 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar7.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdDetalleValor.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 290,
        'canBeIgnored' => true,
@@ -9071,9 +8428,9 @@ return [
       array (
       ),
     )),
-    44 => 
+    35 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar8.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdEsquemaEncabezado.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 291,
        'canBeIgnored' => true,
@@ -9087,9 +8444,9 @@ return [
       array (
       ),
     )),
-    45 => 
+    36 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar9.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValNroRegistro.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 292,
        'canBeIgnored' => true,
@@ -9103,9 +8460,9 @@ return [
       array (
       ),
     )),
-    46 => 
+    37 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar10.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar1.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 293,
        'canBeIgnored' => true,
@@ -9119,9 +8476,9 @@ return [
       array (
       ),
     )),
-    47 => 
+    38 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar11.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar2.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 294,
        'canBeIgnored' => true,
@@ -9135,9 +8492,9 @@ return [
       array (
       ),
     )),
-    48 => 
+    39 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar12.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar3.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 295,
        'canBeIgnored' => true,
@@ -9151,9 +8508,9 @@ return [
       array (
       ),
     )),
-    49 => 
+    40 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar13.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar4.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 296,
        'canBeIgnored' => true,
@@ -9167,9 +8524,9 @@ return [
       array (
       ),
     )),
-    50 => 
+    41 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar14.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar5.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 297,
        'canBeIgnored' => true,
@@ -9183,9 +8540,9 @@ return [
       array (
       ),
     )),
-    51 => 
+    42 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar15.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar6.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 298,
        'canBeIgnored' => true,
@@ -9199,9 +8556,9 @@ return [
       array (
       ),
     )),
-    52 => 
+    43 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar16.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar7.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 299,
        'canBeIgnored' => true,
@@ -9215,9 +8572,9 @@ return [
       array (
       ),
     )),
-    53 => 
+    44 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar17.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar8.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 300,
        'canBeIgnored' => true,
@@ -9231,9 +8588,9 @@ return [
       array (
       ),
     )),
-    54 => 
+    45 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar18.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar9.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 301,
        'canBeIgnored' => true,
@@ -9247,9 +8604,9 @@ return [
       array (
       ),
     )),
-    55 => 
+    46 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar19.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar10.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 302,
        'canBeIgnored' => true,
@@ -9263,9 +8620,9 @@ return [
       array (
       ),
     )),
-    56 => 
+    47 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar20.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar11.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 303,
        'canBeIgnored' => true,
@@ -9279,9 +8636,9 @@ return [
       array (
       ),
     )),
-    57 => 
+    48 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdUsuarioR.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar12.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 304,
        'canBeIgnored' => true,
@@ -9295,9 +8652,9 @@ return [
       array (
       ),
     )),
-    58 => 
+    49 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$FecRegistro.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar13.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 305,
        'canBeIgnored' => true,
@@ -9311,16 +8668,160 @@ return [
       array (
       ),
     )),
+    50 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar14.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 306,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 306,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    51 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar15.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 307,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 307,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    52 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar16.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 308,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 308,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    53 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar17.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 309,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 309,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    54 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar18.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 310,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 310,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    55 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar19.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 311,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 311,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    56 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar20.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 312,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 312,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    57 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdUsuarioR.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 313,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 313,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    58 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$FecRegistro.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 314,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 314,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
     59 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'If condition is always true.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 319,
+       'line' => 328,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'traitFilePath' => NULL,
        'tip' => 'Because the type is coming from a PHPDoc, you can turn off this check by setting <fg=cyan>treatPhpDocTypesAsCertain: false</> in your <fg=cyan>%configurationFile%</>.',
-       'nodeLine' => 319,
+       'nodeLine' => 328,
        'nodeType' => 'PhpParser\\Node\\Stmt\\If_',
        'identifier' => 'if.alwaysTrue',
        'metadata' => 
@@ -9330,198 +8831,6 @@ return [
     60 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdDetalleValor.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 321,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 321,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    61 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdEsquemaEncabezado.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 322,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 322,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    62 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValNroRegistro.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 323,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 323,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    63 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\ProProducto::$IdProducto.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 324,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 324,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    64 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar1.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 324,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 324,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    65 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\ProProducto::$NomProducto.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 325,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 325,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    66 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar2.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 325,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 325,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    67 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\ProProducto::$CodLegal.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 326,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 326,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    68 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar3.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 326,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 326,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    69 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar4.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 327,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 327,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    70 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar5.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 328,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 328,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    71 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar6.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 329,
-       'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 329,
-       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
-       'identifier' => 'property.notFound',
-       'metadata' => 
-      array (
-      ),
-    )),
-    72 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar7.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 330,
        'canBeIgnored' => true,
@@ -9535,9 +8844,9 @@ return [
       array (
       ),
     )),
-    73 => 
+    61 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar8.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdEsquemaEncabezado.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 331,
        'canBeIgnored' => true,
@@ -9551,9 +8860,9 @@ return [
       array (
       ),
     )),
-    74 => 
+    62 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar9.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValNroRegistro.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 332,
        'canBeIgnored' => true,
@@ -9567,9 +8876,25 @@ return [
       array (
       ),
     )),
-    75 => 
+    63 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar10.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\ProProducto::$IdProducto.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 333,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 333,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    64 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar1.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 333,
        'canBeIgnored' => true,
@@ -9583,9 +8908,25 @@ return [
       array (
       ),
     )),
-    76 => 
+    65 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar11.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\ProProducto::$NomProducto.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 334,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 334,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    66 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar2.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 334,
        'canBeIgnored' => true,
@@ -9599,9 +8940,25 @@ return [
       array (
       ),
     )),
-    77 => 
+    67 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar12.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\ProProducto::$CodLegal.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 335,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 335,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    68 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar3.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 335,
        'canBeIgnored' => true,
@@ -9615,9 +8972,9 @@ return [
       array (
       ),
     )),
-    78 => 
+    69 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar13.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar4.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 336,
        'canBeIgnored' => true,
@@ -9631,9 +8988,9 @@ return [
       array (
       ),
     )),
-    79 => 
+    70 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar14.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar5.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 337,
        'canBeIgnored' => true,
@@ -9647,9 +9004,9 @@ return [
       array (
       ),
     )),
-    80 => 
+    71 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar15.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar6.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 338,
        'canBeIgnored' => true,
@@ -9663,9 +9020,9 @@ return [
       array (
       ),
     )),
-    81 => 
+    72 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar16.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar7.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 339,
        'canBeIgnored' => true,
@@ -9679,9 +9036,9 @@ return [
       array (
       ),
     )),
-    82 => 
+    73 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar17.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar8.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 340,
        'canBeIgnored' => true,
@@ -9695,9 +9052,9 @@ return [
       array (
       ),
     )),
-    83 => 
+    74 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar18.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar9.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 341,
        'canBeIgnored' => true,
@@ -9711,9 +9068,9 @@ return [
       array (
       ),
     )),
-    84 => 
+    75 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar19.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar10.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 342,
        'canBeIgnored' => true,
@@ -9727,9 +9084,9 @@ return [
       array (
       ),
     )),
-    85 => 
+    76 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar20.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar11.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 343,
        'canBeIgnored' => true,
@@ -9743,9 +9100,9 @@ return [
       array (
       ),
     )),
-    86 => 
+    77 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdUsuarioR.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar12.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 344,
        'canBeIgnored' => true,
@@ -9759,9 +9116,9 @@ return [
       array (
       ),
     )),
-    87 => 
+    78 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$FecRegistro.',
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar13.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'line' => 345,
        'canBeIgnored' => true,
@@ -9775,16 +9132,160 @@ return [
       array (
       ),
     )),
+    79 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar14.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 346,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 346,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    80 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar15.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 347,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 347,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    81 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar16.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 348,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 348,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    82 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar17.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 349,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 349,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    83 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar18.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 350,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 350,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    84 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar19.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 351,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 351,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    85 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$ValVarChar20.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 352,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 352,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    86 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$IdUsuarioR.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 353,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 353,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    87 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Interface\\Sahi\\hceEsquemaDetProc::$FecRegistro.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'line' => 354,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 354,
+       'nodeType' => 'PHPStan\\Node\\PropertyAssignNode',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
     88 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'If condition is always true.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 374,
+       'line' => 384,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'traitFilePath' => NULL,
        'tip' => 'Because the type is coming from a PHPDoc, you can turn off this check by setting <fg=cyan>treatPhpDocTypesAsCertain: false</> in your <fg=cyan>%configurationFile%</>.',
-       'nodeLine' => 374,
+       'nodeLine' => 384,
        'nodeType' => 'PhpParser\\Node\\Stmt\\If_',
        'identifier' => 'if.alwaysTrue',
        'metadata' => 
@@ -9795,12 +9296,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Negated boolean expression is always false.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-       'line' => 387,
+       'line' => 397,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
        'traitFilePath' => NULL,
        'tip' => 'Because the type is coming from a PHPDoc, you can turn off this check by setting <fg=cyan>treatPhpDocTypesAsCertain: false</> in your <fg=cyan>%configurationFile%</>.',
-       'nodeLine' => 387,
+       'nodeLine' => 397,
        'nodeType' => 'PhpParser\\Node\\Expr\\BooleanNot',
        'identifier' => 'booleanNot.alwaysFalse',
        'metadata' => 
@@ -9808,36 +9309,580 @@ return [
       ),
     )),
   ),
-  'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\TeleRadiologiaController.php' => 
+  'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php' => 
   array (
     0 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\Interface\\TeleRadiologiaController::enviarOrdenTeleRadiologia() should return Illuminate\\Http\\JsonResponse but returns Illuminate\\Http\\Request.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\TeleRadiologiaController.php',
-       'line' => 55,
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Instance::$modality.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 40,
        'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\TeleRadiologiaController.php',
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
        'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 55,
-       'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
-       'identifier' => 'return.type',
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 40,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
        'metadata' => 
       array (
       ),
     )),
     1 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Unreachable statement - code above always terminates.',
-       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\TeleRadiologiaController.php',
-       'line' => 56,
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Instance::$study_iuid.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 42,
        'canBeIgnored' => true,
-       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\TeleRadiologiaController.php',
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 42,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    2 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Instance::$series_iuid.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 43,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 43,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    3 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Instance::$sop_iuid.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 44,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 44,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    4 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Instance::$inst_no.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 47,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 47,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    5 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Instance::$series_iuid.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 50,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 50,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    6 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Instance::$sop_iuid.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 50,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 50,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    7 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Instance::$study_iuid.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 50,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 50,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    8 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Instance::$study_iuid.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 98,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 98,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    9 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Instance::$series_iuid.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 99,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 99,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    10 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Instance::$sop_iuid.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 100,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 100,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    11 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Instance::$study_iuid.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 106,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 106,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    12 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Instance::$series_iuid.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 107,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 107,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    13 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Instance::$sop_iuid.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 108,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 108,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    14 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method App\\Http\\Controllers\\OHIF_visor\\OhifVisorController::conectarSede() is unused.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 120,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 56,
+       'nodeLine' => 15,
+       'nodeType' => 'PHPStan\\Node\\ClassMethodsNode',
+       'identifier' => 'method.unused',
+       'metadata' => 
+      array (
+      ),
+    )),
+    15 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Call to an undefined method App\\Http\\Controllers\\OHIF_visor\\OhifVisorController::getStudiesForSede().',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 148,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 148,
+       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
+       'identifier' => 'method.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    16 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Unreachable statement - code above always terminates.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 149,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 149,
        'nodeType' => 'PHPStan\\Node\\UnreachableStatementNode',
        'identifier' => 'deadCode.unreachable',
+       'metadata' => 
+      array (
+      ),
+    )),
+    17 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property Illuminate\\Database\\Eloquent\\Collection<int, App\\Models\\Configuracion\\ConfigSede>::$ip_dcm.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 196,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 196,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    18 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Relation \'patient\' is not found in App\\Models\\Dcm4chee\\Study model.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 219,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 219,
+       'nodeType' => 'PhpParser\\Node\\Expr\\StaticCall',
+       'identifier' => 'larastan.relationExistence',
+       'metadata' => 
+      array (
+      ),
+    )),
+    19 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Relation \'series\' is not found in App\\Models\\Dcm4chee\\Study model.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 219,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 219,
+       'nodeType' => 'PhpParser\\Node\\Expr\\StaticCall',
+       'identifier' => 'larastan.relationExistence',
+       'metadata' => 
+      array (
+      ),
+    )),
+    20 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Study::$study_datetime.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 241,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 241,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    21 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Study::$mods_in_study.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 243,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 243,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    22 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Study::$study_iuid.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 247,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 247,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    23 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Study::$series.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 254,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 254,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    24 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Study::$num_instances.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 255,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 255,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    25 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Study::$study_iuid.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 257,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 257,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    26 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Study::$series.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 264,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 264,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    27 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Study::$num_instances.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 265,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 265,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    28 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Relation \'study\' is not found in App\\Models\\Dcm4chee\\Series model.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 281,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 281,
+       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
+       'identifier' => 'larastan.relationExistence',
+       'metadata' => 
+      array (
+      ),
+    )),
+    29 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Relation \'study\' is not found in App\\Models\\Dcm4chee\\Series model.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 281,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 281,
+       'nodeType' => 'PhpParser\\Node\\Expr\\StaticCall',
+       'identifier' => 'larastan.relationExistence',
+       'metadata' => 
+      array (
+      ),
+    )),
+    30 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Series::$series_iuid.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 291,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 291,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    31 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Series::$series_no.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 292,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 292,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    32 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Series::$modality.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 293,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 293,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    33 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Series::$num_instances.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 294,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 294,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    34 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Instance::$sop_iuid.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 323,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 323,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    35 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Dcm4chee\\Instance::$inst_no.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'line' => 324,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 324,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
        'metadata' => 
       array (
       ),
@@ -9849,12 +9894,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method App\\Http\\Controllers\\Reportes\\ReporteProduccion::reporteProduccionDetallado() should return Symfony\\Component\\HttpFoundation\\BinaryFileResponse but returns Illuminate\\Http\\JsonResponse.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Reportes\\ReporteProduccion.php',
-       'line' => 56,
+       'line' => 61,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Reportes\\ReporteProduccion.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 56,
+       'nodeLine' => 61,
        'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
        'identifier' => 'return.type',
        'metadata' => 
@@ -9865,12 +9910,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method App\\Http\\Controllers\\Reportes\\ReporteProduccion::reporteProduccionDetallado() should return Symfony\\Component\\HttpFoundation\\BinaryFileResponse but returns Illuminate\\Http\\JsonResponse.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Reportes\\ReporteProduccion.php',
-       'line' => 114,
+       'line' => 119,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Reportes\\ReporteProduccion.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 114,
+       'nodeLine' => 119,
        'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
        'identifier' => 'return.type',
        'metadata' => 
@@ -9884,12 +9929,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'PHPDoc tag @param references unknown parameter: $rol',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\RolController.php',
-       'line' => 123,
+       'line' => 158,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\RolController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 123,
+       'nodeLine' => 158,
        'nodeType' => 'PhpParser\\Node\\Stmt\\ClassMethod',
        'identifier' => 'parameter.notFound',
        'metadata' => 
@@ -9903,12 +9948,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'modulos\' is not found in App\\Models\\User model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php',
-       'line' => 36,
+       'line' => 38,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 36,
+       'nodeLine' => 38,
        'nodeType' => 'PhpParser\\Node\\Expr\\StaticCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -9919,12 +9964,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Relation \'modulos\' is not found in App\\Models\\User model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php',
-       'line' => 50,
+       'line' => 53,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 50,
+       'nodeLine' => 53,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'larastan.relationExistence',
        'metadata' => 
@@ -9933,32 +9978,32 @@ return [
     )),
     2 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property Illuminate\\Database\\Eloquent\\Model::$id.',
+       'message' => 'Method App\\Http\\Controllers\\Seguridad\\UserController::listarUsuarios() should return Illuminate\\Support\\Collection but returns Illuminate\\Http\\JsonResponse.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php',
-       'line' => 85,
+       'line' => 63,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php',
        'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 85,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
+       'tip' => NULL,
+       'nodeLine' => 63,
+       'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
+       'identifier' => 'return.type',
        'metadata' => 
       array (
       ),
     )),
     3 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method App\\Http\\Controllers\\Seguridad\\UserController::destroy() should return Illuminate\\Http\\Response but returns Illuminate\\Http\\JsonResponse.',
+       'message' => 'Access to an undefined property Illuminate\\Database\\Eloquent\\Model::$id.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php',
-       'line' => 383,
+       'line' => 90,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php',
        'traitFilePath' => NULL,
-       'tip' => NULL,
-       'nodeLine' => 383,
-       'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
-       'identifier' => 'return.type',
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 90,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
        'metadata' => 
       array (
       ),
@@ -9967,12 +10012,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method App\\Http\\Controllers\\Seguridad\\UserController::destroy() should return Illuminate\\Http\\Response but returns Illuminate\\Http\\JsonResponse.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php',
-       'line' => 423,
+       'line' => 387,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 423,
+       'nodeLine' => 387,
        'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
        'identifier' => 'return.type',
        'metadata' => 
@@ -9981,46 +10026,62 @@ return [
     )),
     5 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Relation \'usuarios\' is not found in App\\Models\\Configuracion\\ConfigModulo model.',
+       'message' => 'Method App\\Http\\Controllers\\Seguridad\\UserController::destroy() should return Illuminate\\Http\\Response but returns Illuminate\\Http\\JsonResponse.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php',
-       'line' => 434,
+       'line' => 435,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 434,
-       'nodeType' => 'PhpParser\\Node\\Expr\\StaticCall',
-       'identifier' => 'larastan.relationExistence',
+       'nodeLine' => 435,
+       'nodeType' => 'PhpParser\\Node\\Stmt\\Return_',
+       'identifier' => 'return.type',
        'metadata' => 
       array (
       ),
     )),
     6 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Access to an undefined property App\\Models\\Configuracion\\ConfigModulo::$usuarios.',
+       'message' => 'Relation \'usuarios\' is not found in App\\Models\\Configuracion\\ConfigModulo model.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php',
-       'line' => 440,
+       'line' => 446,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php',
        'traitFilePath' => NULL,
-       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
-       'nodeLine' => 440,
-       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
-       'identifier' => 'property.notFound',
+       'tip' => NULL,
+       'nodeLine' => 446,
+       'nodeType' => 'PhpParser\\Node\\Expr\\StaticCall',
+       'identifier' => 'larastan.relationExistence',
        'metadata' => 
       array (
       ),
     )),
     7 => 
     \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Access to an undefined property App\\Models\\Configuracion\\ConfigModulo::$usuarios.',
+       'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php',
+       'line' => 452,
+       'canBeIgnored' => true,
+       'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php',
+       'traitFilePath' => NULL,
+       'tip' => 'Learn more: <fg=cyan>https://phpstan.org/blog/solving-phpstan-access-to-undefined-property</>',
+       'nodeLine' => 452,
+       'nodeType' => 'PhpParser\\Node\\Expr\\PropertyFetch',
+       'identifier' => 'property.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    8 => 
+    \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Ternary operator condition is always true.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php',
-       'line' => 514,
+       'line' => 528,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php',
        'traitFilePath' => NULL,
        'tip' => 'Because the type is coming from a PHPDoc, you can turn off this check by setting <fg=cyan>treatPhpDocTypesAsCertain: false</> in your <fg=cyan>%configurationFile%</>.',
-       'nodeLine' => 514,
+       'nodeLine' => 528,
        'nodeType' => 'PhpParser\\Node\\Expr\\Ternary',
        'identifier' => 'ternary.alwaysTrue',
        'metadata' => 
@@ -10110,12 +10171,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Class App\\Models\\ImportarEcografias\\ConfigDepar not found.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Models\\ImportarEcografias\\GenePersonal.php',
-       'line' => 40,
+       'line' => 43,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Models\\ImportarEcografias\\GenePersonal.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more at https://phpstan.org/user-guide/discovering-symbols',
-       'nodeLine' => 40,
+       'nodeLine' => 43,
        'nodeType' => 'PhpParser\\Node\\Expr\\ClassConstFetch',
        'identifier' => 'class.notFound',
        'metadata' => 
@@ -10126,12 +10187,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Class App\\Models\\ImportarEcografias\\ConfigMuni not found.',
        'file' => 'C:\\laragon\\www\\lidiag\\app\\Models\\ImportarEcografias\\GenePersonal.php',
-       'line' => 45,
+       'line' => 48,
        'canBeIgnored' => true,
        'filePath' => 'C:\\laragon\\www\\lidiag\\app\\Models\\ImportarEcografias\\GenePersonal.php',
        'traitFilePath' => NULL,
        'tip' => 'Learn more at https://phpstan.org/user-guide/discovering-symbols',
-       'nodeLine' => 45,
+       'nodeLine' => 48,
        'nodeType' => 'PhpParser\\Node\\Expr\\ClassConstFetch',
        'identifier' => 'class.notFound',
        'metadata' => 
@@ -10169,56 +10230,77 @@ return [
 	'dependencies' => array (
   'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\AuditPermissions.php' => 
   array (
-    'fileHash' => 'e9fa7e69bdb1e93eab81ed2219d17b0b48347f20',
+    'fileHash' => 'bdfcfbac914ee74546dece02c9a0c52d38d2222f',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\CheckUserPermission.php' => 
   array (
-    'fileHash' => '62ce8179c0ed9516135c549e69644c2d200e31da',
+    'fileHash' => 'd8051062664bd16a428e08e483ffdb4f5d85dba1',
+    'dependentFiles' => 
+    array (
+    ),
+  ),
+  'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\EcografiasNormalizeEstadosCommand.php' => 
+  array (
+    'fileHash' => '8380d493267322b36fb4e308a3ab1fef7cba2604',
+    'dependentFiles' => 
+    array (
+    ),
+  ),
+  'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\EcografiasSahiReconcileCommand.php' => 
+  array (
+    'fileHash' => '63ef1f422ffaf661653232df3a5097c5d6d5df09',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\ResetPermissionCacheSafe.php' => 
   array (
-    'fileHash' => '66e95b74ba409dc4d6ad1108b0d9d84e5d498228',
+    'fileHash' => 'af473d1277ed2d184937c9547847d65e396ed3ef',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php' => 
   array (
-    'fileHash' => '028764c75062d08b70677743a2edab4f55323b27',
+    'fileHash' => '94d7ce531e1f322c8f0ee03a6c3516dcac5ae601',
+    'dependentFiles' => 
+    array (
+    ),
+  ),
+  'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncMissingPermissions.php' => 
+  array (
+    'fileHash' => 'da9dd4a079191bfac0adf452d205b73c65fe4745',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php' => 
   array (
-    'fileHash' => 'b0c2da5f09a901b46011462d346141e7dda55630',
+    'fileHash' => 'a65f99681638645ec5e193c055b5743006373828',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Console\\Kernel.php' => 
   array (
-    'fileHash' => '78fad2c4ea17ec7d907bf5e292e835babe4b9f8a',
+    'fileHash' => '7d8be9da61ac7eb54c2dc012f2c8e99e4af2d8b6',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Exceptions\\Handler.php' => 
   array (
-    'fileHash' => 'ae852f99b0e82665d7a4dbc3a58b338acefb940e',
+    'fileHash' => '576da08c2060f4cc6832a9a1a53d30dc4ce3bbdc',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Exports\\HelpDeskTicketsDetalladoExport.php' => 
   array (
-    'fileHash' => '06918b09fcdc983413077ff5250161a054d70269',
+    'fileHash' => '50b0d3830d21d8fc9b69f98374c343e1c333da72',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskReportesController.php',
@@ -10226,7 +10308,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Exports\\ProduccionDetalladaEcografiasExport.php' => 
   array (
-    'fileHash' => '5920700b3fe9aa03c12f73ab7b4c4ee86ffbb174',
+    'fileHash' => 'a4c79ad520e9f6daab8b030426640424ad54d9b2',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Reportes\\ReporteProduccion.php',
@@ -10234,7 +10316,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Exports\\ProduccionDetalladaExport.php' => 
   array (
-    'fileHash' => '32167d4dc6fe780cf41a383adc0f742b7b697d3d',
+    'fileHash' => 'ec0bb075ebf8a1df44df61cda8b905695016633b',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Reportes\\ReporteProduccion.php',
@@ -10242,7 +10324,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Helpers\\Helpers.php' => 
   array (
-    'fileHash' => '0c8b9513d77c4250d3071c6103781acd355df081',
+    'fileHash' => '295e8e374a61a496e0e6b1b2319145ee5fc35da0',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskAdjuntosController.php',
@@ -10250,215 +10332,191 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Agenda\\AgendaDisponibilidaController.php' => 
   array (
-    'fileHash' => 'b2ed702c95d4114b34de165faf7ba59a4533f4aa',
+    'fileHash' => '52959fbd8945270f040fa039ba030a9b329eea14',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Agenda\\AgendaDisponibilidaDetalleController.php' => 
   array (
-    'fileHash' => '51d300ccae778ae95b3ee20c6795e7d8a70f3ec2',
-    'dependentFiles' => 
-    array (
-    ),
-  ),
-  'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\ConfirmPasswordController.php' => 
-  array (
-    'fileHash' => '03e9fb7b0bfaa02f0848b6ff5f6802b6b50ccfdb',
-    'dependentFiles' => 
-    array (
-    ),
-  ),
-  'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\ForgotPasswordController.php' => 
-  array (
-    'fileHash' => 'beaffa8d63ea5cac76e82c3cbf6ed0ab88d861b6',
+    'fileHash' => 'f84a876095be770133681ab0ed89462f2356fc92',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\LoginController.php' => 
   array (
-    'fileHash' => '67b43ee6d51ea83654cd829bb597fb82f8a6e843',
-    'dependentFiles' => 
-    array (
-    ),
-  ),
-  'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\RegisterController.php' => 
-  array (
-    'fileHash' => '893ed95b62d15cbf282f4c356587dc5714e746f7',
+    'fileHash' => '9af7c4e406ba42596543417243419160d3402bd6',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\ResetPasswordController.php' => 
   array (
-    'fileHash' => '6ad1932ec0edb2ed48305d4fddb03aa22a641daf',
+    'fileHash' => '1ebfcccdf6511e89f353f0a587e39de447e60ece',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\VerificationController.php' => 
   array (
-    'fileHash' => '3ccf02c5deb2f4b485ba8e5b3a22680d376367ca',
+    'fileHash' => 'dd18e90b094b9df5905ca13d2fd577ba4313f092',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\CitaController.php' => 
   array (
-    'fileHash' => '72d7a336d8efbbd6244702d2dc7c8a492ddaa1ef',
+    'fileHash' => '1f69f7c8ad1b7252a519186d651910b390442109',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigAdminSaludController.php' => 
   array (
-    'fileHash' => '3c70fdf03d1b074d8bd7fc1195937b43e99dce7c',
+    'fileHash' => '44681b27fe43ff0da493f047793bf242a22e3b34',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigDiagnosticoController.php' => 
   array (
-    'fileHash' => '2833e5ea9e870d1db49e2b6228d6b47d53b61240',
+    'fileHash' => '9a307b5cae631298a939843d6b674dfc440ec59c',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigModulosController.php' => 
   array (
-    'fileHash' => 'cd46e111adb725acf7d98a64a65bed0aa306bf96',
+    'fileHash' => 'ae001b92f00e2d91b7aef26faf0728f543a5596b',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigPlantillaController.php' => 
   array (
-    'fileHash' => '1746eb2155bd3e2e09cac28bbfe71e70680410a0',
+    'fileHash' => 'f0d09a2f35a544772c8a466f8036d7a36404c75e',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigPlantillaTipoController.php' => 
   array (
-    'fileHash' => '62e366262830ee2b7093fdc62dd77467f6a71e22',
+    'fileHash' => 'c5160e926d847bdc94ffc0ce07780fc013a23018',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigPrioridadController.php' => 
   array (
-    'fileHash' => 'cf817c635f54a94365553cc20bc4d2e7697fc707',
+    'fileHash' => '4c252f54bda8d77cdd0745c14dc4e602e2918246',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigProductoController.php' => 
   array (
-    'fileHash' => '7a40363097d6172a47ebb1dd716f7d142a293e14',
+    'fileHash' => '1214da4f4a673427b8a0992d36a87ab55f6134c3',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigSedeController.php' => 
   array (
-    'fileHash' => 'f9f5f6284757ad1833803ed9099460afe853373b',
+    'fileHash' => '047b76e43b83e2c269b4857ead941af972cb19fb',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigTipoDocumentoController.php' => 
   array (
-    'fileHash' => 'af6d5cf72718f9e75e7189f4e4055310a573f7c6',
+    'fileHash' => '51f771806854b148f3e69200db1f0a13bd8f7170',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConsentimientoInformadoController.php' => 
   array (
-    'fileHash' => 'ceca910cb1dc7a79ac6d9a6689b95c07780d337c',
+    'fileHash' => '5a5b268e1be723a2423bd51d66ef217b83392f7b',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Consentimientos\\ConsentimientoPlantillasController.php' => 
   array (
-    'fileHash' => '2b333294d50575f3eedfdfc1f834362568506b27',
+    'fileHash' => '5ca395ba139e2520bf0e788e311ef5e117cf08b9',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Controller.php' => 
   array (
-    'fileHash' => 'a50d138d3089c140d3cbc9877c52e1556098a8bf',
+    'fileHash' => '13bddc3dd3192f7c416428851a8e647002f48b11',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Agenda\\AgendaDisponibilidaController.php',
       1 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Agenda\\AgendaDisponibilidaDetalleController.php',
-      2 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\ConfirmPasswordController.php',
-      3 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\ForgotPasswordController.php',
-      4 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\LoginController.php',
-      5 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\RegisterController.php',
-      6 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\ResetPasswordController.php',
-      7 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\VerificationController.php',
-      8 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\CitaController.php',
-      9 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigAdminSaludController.php',
-      10 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigDiagnosticoController.php',
-      11 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigModulosController.php',
-      12 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigPlantillaController.php',
-      13 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigPlantillaTipoController.php',
-      14 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigPrioridadController.php',
-      15 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigProductoController.php',
-      16 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigSedeController.php',
-      17 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigTipoDocumentoController.php',
-      18 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConsentimientoInformadoController.php',
-      19 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Consentimientos\\ConsentimientoPlantillasController.php',
-      20 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-      21 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dcm4chee\\StudyController.php',
-      22 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
-      23 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaController.php',
-      24 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaProductoController.php',
-      25 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\PlantillaEcografiaController.php',
-      26 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\ecografiaLecturaController.php',
-      27 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioAudioController.php',
-      28 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
-      29 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
-      30 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioNotificacionController.php',
-      31 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
-      32 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioSoporteHCController.php',
-      33 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\PlantillaEstudioController.php',
-      34 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDeskTicketsController.php',
-      35 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskAdjuntosController.php',
-      36 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskCategoriasController.php',
-      37 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskEstadosController.php',
-      38 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskNotificacionesController.php',
-      39 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskPrioridadesController.php',
-      40 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskReportesController.php',
-      41 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskTicketsController.php',
-      42 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskUsuariosController.php',
-      43 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HomeController.php',
-      44 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-      45 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIController.php',
-      46 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
-      47 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-      48 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-      49 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\TeleRadiologiaController.php',
-      50 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Reportes\\ReporteProduccion.php',
-      51 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Reportes\\ResporteLecturaController.php',
-      52 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\RolController.php',
-      53 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php',
+      2 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\LoginController.php',
+      3 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\ResetPasswordController.php',
+      4 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\VerificationController.php',
+      5 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\CitaController.php',
+      6 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigAdminSaludController.php',
+      7 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigDiagnosticoController.php',
+      8 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigModulosController.php',
+      9 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigPlantillaController.php',
+      10 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigPlantillaTipoController.php',
+      11 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigPrioridadController.php',
+      12 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigProductoController.php',
+      13 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigSedeController.php',
+      14 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigTipoDocumentoController.php',
+      15 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConsentimientoInformadoController.php',
+      16 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Consentimientos\\ConsentimientoPlantillasController.php',
+      17 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
+      18 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dcm4chee\\StudyController.php',
+      19 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
+      20 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaController.php',
+      21 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaProductoController.php',
+      22 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\PlantillaEcografiaController.php',
+      23 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\ecografiaLecturaController.php',
+      24 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioAudioController.php',
+      25 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
+      26 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php',
+      27 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioNotificacionController.php',
+      28 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
+      29 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioSoporteHCController.php',
+      30 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\PlantillaEstudioController.php',
+      31 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskAdjuntosController.php',
+      32 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskCategoriasController.php',
+      33 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskEstadosController.php',
+      34 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskNotificacionesController.php',
+      35 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskPrioridadesController.php',
+      36 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskReportesController.php',
+      37 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskTicketsController.php',
+      38 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskUsuariosController.php',
+      39 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HomeController.php',
+      40 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+      41 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIController.php',
+      42 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php',
+      43 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+      44 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+      45 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\TeleRadiologiaController.php',
+      46 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+      47 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Reportes\\ReporteProduccion.php',
+      48 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Reportes\\ResporteLecturaController.php',
+      49 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\RolController.php',
+      50 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php',
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php' => 
   array (
-    'fileHash' => 'ddc0cbe17a4078b5a8ad04aa63c2d2d8a0595d39',
+    'fileHash' => '7a1c1a27f9d5cb9dbcb64dd49e02b1fc67a2546a',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dcm4chee\\StudyController.php' => 
   array (
-    'fileHash' => '2dc99d28453301a2b9801d5dee1730063fde8c37',
+    'fileHash' => 'b7de3bb4cf0b30eb67e6ca5ec8da61bb65b826b3',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\TeleRadiologiaController.php',
@@ -10466,28 +10524,28 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php' => 
   array (
-    'fileHash' => 'cafb91bb8ba24147350749ab8dd3faa4f97af169',
+    'fileHash' => '5ce34131de3279044ff8f32bb7d7c121dbd8103d',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaController.php' => 
   array (
-    'fileHash' => '806a87a46f4f62b4fc05c854b8beeebf0dae6c47',
+    'fileHash' => 'f94ef9898826bb6274bcbc05e4cafe6a14edcadc',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaProductoController.php' => 
   array (
-    'fileHash' => '5ba2f94c3ce08d3d6fe2ec62b2589624422470c6',
+    'fileHash' => 'a0efa031c14196330dbfcdc734b0ac6ea350d3ab',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\PlantillaEcografiaController.php' => 
   array (
-    'fileHash' => '9cd43b372248d95743e5f48461a81aafbb7a127f',
+    'fileHash' => 'ee0bc01db659601463ce3fab84de299b5cd3eb01',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaController.php',
@@ -10495,35 +10553,35 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\ecografiaLecturaController.php' => 
   array (
-    'fileHash' => '002aa8bfff631d3a0fdf14332eb5ba2445357a12',
+    'fileHash' => '73a4fc8a524392a6a7644d846df7c416dc96bc7e',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioAudioController.php' => 
   array (
-    'fileHash' => '37290c431e335bd2793c4e85a9755c5cf62de9e9',
+    'fileHash' => '209cd2d60feac625b7659ec26848da6e93984bfd',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php' => 
   array (
-    'fileHash' => 'e3c71ab4ee5dd8e062a30023a62a6d89d76cdc70',
+    'fileHash' => '7f894d500019a732524de44f0ddb9d249ef5dc40',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioDiagnosticoController.php' => 
   array (
-    'fileHash' => 'bf26e5e750f70329ce00c019dd5a04d4b8f5f8af',
+    'fileHash' => '5c8f390ccaeca63ea8286a23ae72a25213c40c6d',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioNotificacionController.php' => 
   array (
-    'fileHash' => 'c6bf05700a4488f56db947a5053d678929c7fa9b',
+    'fileHash' => '5fcde552bfbc55adb5a1fbe057ea2c08fced5291',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
@@ -10531,106 +10589,99 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php' => 
   array (
-    'fileHash' => '46e1ff2197ab3f102f662b479a4aa6e002c8be84',
+    'fileHash' => '8d299959423e6c302d4f37de3867a03519ad35fb',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioSoporteHCController.php' => 
   array (
-    'fileHash' => '0da436b076e569d6c683a9472d15dd92e4cb66f5',
+    'fileHash' => 'fe6b8028bdd0c7e5f3095564994a87f45aeed6d5',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\PlantillaEstudioController.php' => 
   array (
-    'fileHash' => 'f192a720a3ef80326bfecae1f435c735413f6aeb',
+    'fileHash' => '7fd3a004d41f53fae843c5343b7cca3ea688be97',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
     ),
   ),
-  'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDeskTicketsController.php' => 
-  array (
-    'fileHash' => 'c16b132018b31e77787287c59f6d657455565adc',
-    'dependentFiles' => 
-    array (
-    ),
-  ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskAdjuntosController.php' => 
   array (
-    'fileHash' => '31594a694453dd37fc1819ea1b2080cf9d1a95ca',
+    'fileHash' => 'e2782217395ccf38ed414175cc13dcf23e6967e0',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskCategoriasController.php' => 
   array (
-    'fileHash' => 'fdc024da7a288e5efb67272216fae49b3260d39e',
+    'fileHash' => '4f19e6834802f223704a254ad90ec1175efa8d55',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskEstadosController.php' => 
   array (
-    'fileHash' => '41983d6b12b56979cc7a2fbce1f2218cad68f6c1',
+    'fileHash' => '0849de7625ea8437858e983339c2e7cf72c8847b',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskNotificacionesController.php' => 
   array (
-    'fileHash' => '387cd1624139b96a28a4bc6197711e437b3b897e',
+    'fileHash' => 'e34baceda3859f10a8c68aabcae0b9e1ec313d79',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskPrioridadesController.php' => 
   array (
-    'fileHash' => '57fd7b878b392bb2cb4ec70aa7e64438cea935bf',
+    'fileHash' => '0dbd0933e18f26830f5157d461535263be9695dd',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskReportesController.php' => 
   array (
-    'fileHash' => '08fb9a8c7009fd74297621f178f3ea853a10cad4',
+    'fileHash' => '51a9f4fe5a742a8bf6787d9f86b1648b16e159c1',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskTicketsController.php' => 
   array (
-    'fileHash' => '6e392d3da99eb871e77e87fba6a4a8b05e99ee4b',
+    'fileHash' => '33492c97d2bf97c6dc11905ccaeff2ffb3921edf',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskUsuariosController.php' => 
   array (
-    'fileHash' => 'e7ab15f39eb80ef27b2b400d4fd116c9fa05dc42',
+    'fileHash' => '5c32d173e27de731362cf70caa402ad49cb122c4',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HomeController.php' => 
   array (
-    'fileHash' => '70c0360b65be73f2fdb15b3b39fd1712260e889a',
+    'fileHash' => 'e7ffe3d7d0c004f233de171fcfb15a953b22016e',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php' => 
   array (
-    'fileHash' => '13b3861c3cb636bcac1daa19eff2a2b902438c40',
+    'fileHash' => '685f642575a7fcd6bb2520583a132f694d086b3b',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIController.php' => 
   array (
-    'fileHash' => '3b6ae6d453961e88d6293569c7135f29366cede8',
+    'fileHash' => '5a64d3bdd589d9043baa2ebc7ed713e7fc2fdf58',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
@@ -10638,21 +10689,21 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasController.php' => 
   array (
-    'fileHash' => '4da113f5c5a0e94f81bf827035d88153b91cf9d5',
+    'fileHash' => '886df3ed15a029904dac7a7da2d5395650e7322e',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php' => 
   array (
-    'fileHash' => '58491c16944d1dc1c62dad7941e855dc2adef148',
+    'fileHash' => 'ad713a27600575c073e0cab6daabd072b369140c',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php' => 
   array (
-    'fileHash' => 'a7d7e73e5d79a575dc79db886aba5eda2060341d',
+    'fileHash' => '441a3203a2c81eddb113afacd7a158d146ec4154',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
@@ -10660,49 +10711,56 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\TeleRadiologiaController.php' => 
   array (
-    'fileHash' => '8be715873ba8f185fe4da9667b3b00088b3a6e74',
+    'fileHash' => '5de059d665c2baa01d39c8dbd9cd93510868317f',
+    'dependentFiles' => 
+    array (
+    ),
+  ),
+  'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php' => 
+  array (
+    'fileHash' => '9c14cacc8da9d216aa67436d270d352877d489ee',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Reportes\\ReporteProduccion.php' => 
   array (
-    'fileHash' => '7b6b461ea9bc3b3b6a7fe42a834a3e85f3ab323a',
+    'fileHash' => '96289393f5a39fcc759d1c0a7ac26d992e65961a',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Reportes\\ResporteLecturaController.php' => 
   array (
-    'fileHash' => 'ba1ba3e811e04bac1c0cd66fb00dbda1e086b657',
+    'fileHash' => '8f523ba8dc4dc8a18bf812e2152d2c1225115738',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\RolController.php' => 
   array (
-    'fileHash' => '0b079c9004dd5c036a7367260a12fccc2ab5bb99',
+    'fileHash' => '75174d01f1a7b5b813296fcb3f0b31039fb9c85a',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php' => 
   array (
-    'fileHash' => '40d849fd02361bef066747fd1ac65d90dfa08483',
+    'fileHash' => '14fcc162557dc9e65acd818d34604d346a4dc90d',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Kernel.php' => 
   array (
-    'fileHash' => '476dce794f46bfd00abef2315ac4f64ff7f25dbf',
+    'fileHash' => '3f30fcdcc83a417739559e67990f490be040c6eb',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Middleware\\Authenticate.php' => 
   array (
-    'fileHash' => 'ebec0108e9c6ef22e9452fcf590495c6ad98e714',
+    'fileHash' => '17e7647be366fb5eeaab40ca6f637bf750ea805d',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Kernel.php',
@@ -10710,7 +10768,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Middleware\\EncryptCookies.php' => 
   array (
-    'fileHash' => 'f8bcd4bf2e94001d2ec97bfd85d38da7fcb243e3',
+    'fileHash' => 'fcbbfaae9d7ac781cd043ee7ce2ee66800d075ee',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Kernel.php',
@@ -10718,7 +10776,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Middleware\\PreventRequestsDuringMaintenance.php' => 
   array (
-    'fileHash' => '8038e862ca3ea2ab956946c9080184f3863d6c4f',
+    'fileHash' => '3f1cc28f08b8a3a8bbd1495e187fc197110cdab1',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Kernel.php',
@@ -10726,7 +10784,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Middleware\\RedirectIfAuthenticated.php' => 
   array (
-    'fileHash' => 'c1388418a80468034085914800df99265ed3df28',
+    'fileHash' => 'cecdac28fbc6dafc3c82b2529897b0a7f723c2d6',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Kernel.php',
@@ -10734,7 +10792,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Middleware\\SecurityHeaders.php' => 
   array (
-    'fileHash' => '59201b230c059ceab4690546f2af3be6e4a49e05',
+    'fileHash' => '3721cbbd4a53547e91784e76b0bf466000ba4603',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Kernel.php',
@@ -10742,7 +10800,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Middleware\\TrimStrings.php' => 
   array (
-    'fileHash' => 'fdaae8a7cd5cd7937e37ed2129d5095ecd672e8c',
+    'fileHash' => 'fdae9e792d68b2827446435ff17d6848726a1e81',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Kernel.php',
@@ -10750,14 +10808,14 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Middleware\\TrustHosts.php' => 
   array (
-    'fileHash' => '0c45fbb4f1f8fde88b00736cde6e0a144dbfe2c0',
+    'fileHash' => '09cac94cf92d79c951b51470ac0dcb8d600e222b',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Middleware\\TrustProxies.php' => 
   array (
-    'fileHash' => '359f3ad6a1c8a9fc15f6011d610ba1ce43c3eef9',
+    'fileHash' => '4c915478c380e43a2889f66130fe95f9b90ca5f0',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Kernel.php',
@@ -10765,7 +10823,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Middleware\\ValidateSignature.php' => 
   array (
-    'fileHash' => '826d99ab126be32f1d39d3377dc45dff85e5e076',
+    'fileHash' => 'ef66937ccd20e6a189479dcc98e564cc72d4c92c',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Kernel.php',
@@ -10773,7 +10831,15 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Middleware\\VerifyCsrfToken.php' => 
   array (
-    'fileHash' => '1d5e46a0e7c318b6b52ce83f4f60c13575a62f89',
+    'fileHash' => 'f40416cadebf79cecb5ffaa1d7bed8d360f8addd',
+    'dependentFiles' => 
+    array (
+      0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Kernel.php',
+    ),
+  ),
+  'C:\\laragon\\www\\lidiag\\app\\Http\\Middleware\\VerifyTeleRadiologiaHmac.php' => 
+  array (
+    'fileHash' => '75cb91c05fbf8d9de60d04c7cb757c3cb94dc230',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Kernel.php',
@@ -10781,7 +10847,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Requests\\Autenticacion\\loginRequest.php' => 
   array (
-    'fileHash' => 'a5b95d6b9c5a8574ff8c73760b0ad37b0c8cb771',
+    'fileHash' => '34d872e7bedc02779850ec25b17779fc66ebba45',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\LoginController.php',
@@ -10789,7 +10855,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Requests\\Configuracion\\ConfigAdminSaludRequest.php' => 
   array (
-    'fileHash' => 'fd789fd0e7e914a714fa850a799b431b0d678814',
+    'fileHash' => 'bdaa7cbe626e7e3c7f8839636f250dc759dc7bdc',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigAdminSaludController.php',
@@ -10797,7 +10863,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Requests\\Configuracion\\ConfigDiagnosticoRequest.php' => 
   array (
-    'fileHash' => '9284853185020761891667cc3dfcbfb53e8ef8e4',
+    'fileHash' => '5747294789733bf277056154019503e2caba8a33',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigDiagnosticoController.php',
@@ -10805,7 +10871,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Requests\\Configuracion\\ConfigPrioridadRequest.php' => 
   array (
-    'fileHash' => 'e5fca443cd66d17200b024d54d78959051ef2ead',
+    'fileHash' => '6142ec52c207c1d811a97ce499ce33198fe16a27',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigPrioridadController.php',
@@ -10813,7 +10879,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Requests\\Configuracion\\ConfigProductoRequest.php' => 
   array (
-    'fileHash' => 'd13e5dddb171aa8002e8ac66a0adcff2ba4b4084',
+    'fileHash' => '88989b153dcda010e3686cdb94758c8106524dd5',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigProductoController.php',
@@ -10821,14 +10887,14 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Requests\\Configuracion\\ConfigSedeRequest.php' => 
   array (
-    'fileHash' => 'f66ab626c1b9bf99a755322eb5f24dcdbb426fc8',
+    'fileHash' => 'a5f79bf6cd23059fd04dc06219feeef859d382b3',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Requests\\Ecografias\\EcografiaProductoRequest.php' => 
   array (
-    'fileHash' => 'b691c8074c5aaae069253b7adfbcea98a09d532f',
+    'fileHash' => 'c6581d02c7da9859ca205a0d347fd1dd66461c4c',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaProductoController.php',
@@ -10836,7 +10902,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Requests\\Ecografias\\EcografiaRequest.php' => 
   array (
-    'fileHash' => 'd3c6ad49867e0e6cdb3a11ca9dd86d3fd7c9c287',
+    'fileHash' => '68a942b8fab87751ff2c5d733d320b6f468488b6',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaController.php',
@@ -10844,28 +10910,28 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Requests\\Estudio\\estudioAsignarRequest.php' => 
   array (
-    'fileHash' => 'eb367ff211ef70d8b2a3e9b8cdfcf36f52e20766',
+    'fileHash' => '79beb9805bb9e5eae1c64d056d4e35d744c9bff0',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Requests\\Estudio\\estudioLeerRequest.php' => 
   array (
-    'fileHash' => '35975ee890ab7635763b5fa55e70601613c990ec',
+    'fileHash' => '4cc759a5ab3227c75e899e9b3fff1bacd64a05e8',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Requests\\Seguridad\\RolActualizarRequest.php' => 
   array (
-    'fileHash' => 'a3944be01239d38af894f6acaae99377d833e2ba',
+    'fileHash' => '1f7f48292f9860e2cd2ae69b270b6a4490c34e65',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Requests\\Seguridad\\RolAgregarRequest.php' => 
   array (
-    'fileHash' => '1ebc2459d4a02b509817020f4fe33b3e608b6d32',
+    'fileHash' => 'ec53c54870256a7ecd8a6d2aeced927172b84719',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\RolController.php',
@@ -10873,21 +10939,21 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Requests\\Seguridad\\UserAgregarRequest.php' => 
   array (
-    'fileHash' => '9195627d3778c2d34776e1b982a7b6e11cdc0f74',
+    'fileHash' => '04ec7e4e7dbeed9a7cb965a6d44485cd95ba26b2',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Mail\\NotificacionAsignacionDeLectura.php' => 
   array (
-    'fileHash' => 'cafa07f17de8cf70cad518eb7d20f8a47d1c41be',
+    'fileHash' => '59c61c626b6968a86f1c422aee1131d9cb96977f',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Mail\\NotificacionDeLectura.php' => 
   array (
-    'fileHash' => '02786de0b5ce2b074f8f7514ba0d81419e54c2a7',
+    'fileHash' => 'cd7cd3572b6bef33fc433895b523e6c5347e2454',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioNotificacionController.php',
@@ -10895,7 +10961,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Mail\\ReportarLectura.php' => 
   array (
-    'fileHash' => 'a62555e281e498cbd289a5ee6a978f6990a9f223',
+    'fileHash' => '2025a2f8ceeb684265d161ce63a671b16def9da4',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioNotificacionController.php',
@@ -10903,7 +10969,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Agenda\\AgendaDisponibilida.php' => 
   array (
-    'fileHash' => 'a1b8f3ab1b4b47feb7cba5e83f8a956d1f0832da',
+    'fileHash' => 'e28bbce1d7b4ca203f425e535c8a1e48439c7f29',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Agenda\\AgendaDisponibilidaController.php',
@@ -10922,14 +10988,14 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Agendamiento\\AgendamientoCita.php' => 
   array (
-    'fileHash' => 'b37fa7a8307171e1e42f4afb50d89aacdb9ae80d',
+    'fileHash' => 'c0e70dcf30c484de586ffffa948c9063405b3d12',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Citas\\Cita.php' => 
   array (
-    'fileHash' => '6bec3f005774488f264cb27508416a1adbdd85f4',
+    'fileHash' => '26199cfdb6cfd6108ed8f0e013d3db741feeb294',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\CitaController.php',
@@ -10937,7 +11003,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Configuracion\\ConfigAdminSalud.php' => 
   array (
-    'fileHash' => '5564c585a31d58b0d178b5e72ef5dfcc340b3529',
+    'fileHash' => 'ef0d4847d5a041fe9395fd06789f0022ce558b54',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
@@ -10948,7 +11014,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Configuracion\\ConfigDiagnostico.php' => 
   array (
-    'fileHash' => '9baf15ee64c19704d73213f1b78e96259634bea8',
+    'fileHash' => 'ef5e92d45cde39d42c6abbab957d1f88209c46bd',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigDiagnosticoController.php',
@@ -10957,7 +11023,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Configuracion\\ConfigModulo.php' => 
   array (
-    'fileHash' => '0c8387b46848ede9ce12d10c3829eec98afd9cbb',
+    'fileHash' => '370d17ce2039b4207f1f0ac715970c286184a029',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigModulosController.php',
@@ -10971,7 +11037,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Configuracion\\ConfigPlantilla.php' => 
   array (
-    'fileHash' => '9bb8d6c56053aaaea789ea15383e381756df3681',
+    'fileHash' => '6cfe86a1277ddd48d4ee1fd6f969ee19f8f39173',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
@@ -10980,7 +11046,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Configuracion\\ConfigPlantillaTipo.php' => 
   array (
-    'fileHash' => '3c61a016a8f7b27d7ec8f3532999404487aaf324',
+    'fileHash' => 'b72ff0c695044ff3678e045a0dd371208bf47d6b',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
@@ -10990,7 +11056,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Configuracion\\ConfigPrioridad.php' => 
   array (
-    'fileHash' => '18015952cde1cc7477233e089c1115a16933df16',
+    'fileHash' => '8c56765f0e17f1579c71fa6f8d3f03cce8c59bbd',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigPrioridadController.php',
@@ -10999,7 +11065,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Configuracion\\ConfigProducto.php' => 
   array (
-    'fileHash' => '87bd35996389b6ebc13c1ba046254f848f8918c2',
+    'fileHash' => 'c0b400dd0950764a6278349b0b3cf0031b3e7c38',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
@@ -11013,11 +11079,12 @@ return [
       8 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Consentimientos\\ConsentimientoPlantilla.php',
       9 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Consentimientos\\EcografiaConsentimiento.php',
       10 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Ecografias\\EcografiaProducto.php',
+      11 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Estudio\\EstudioProducto.php',
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Configuracion\\ConfigSede.php' => 
   array (
-    'fileHash' => 'b8b1fc0fd0ec751b385ed5472f431c1cd26f6d82',
+    'fileHash' => 'd89a6b58260136b25bc6a003c43d03d3bc823136',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigSedeController.php',
@@ -11028,16 +11095,17 @@ return [
       5 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\PlantillaEstudioController.php',
       6 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskTicketsController.php',
       7 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-      8 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Agenda\\AgendaDisponibilida.php',
-      9 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Configuracion\\ConsentimientoInformado.php',
-      10 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Consentimientos\\EcografiaConsentimiento.php',
-      11 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Estudio\\Estudio.php',
-      12 => 'C:\\laragon\\www\\lidiag\\app\\Models\\HelpDesk\\HelpDeskTickets.php',
+      8 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+      9 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Agenda\\AgendaDisponibilida.php',
+      10 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Configuracion\\ConsentimientoInformado.php',
+      11 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Consentimientos\\EcografiaConsentimiento.php',
+      12 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Estudio\\Estudio.php',
+      13 => 'C:\\laragon\\www\\lidiag\\app\\Models\\HelpDesk\\HelpDeskTickets.php',
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Configuracion\\ConfigTipoDocumento.php' => 
   array (
-    'fileHash' => 'b1278f454be5f9df62a881221d57f9815d7b351d',
+    'fileHash' => '37c8572ce5e3557f4cfe18f566e0aba0f04022de',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConfigTipoDocumentoController.php',
@@ -11045,7 +11113,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Configuracion\\ConsentimientoInformado.php' => 
   array (
-    'fileHash' => '1476e6f452264c92e85165100168f6c958b0776e',
+    'fileHash' => '8f049c29c7b8f94ffd97fdda8e0d130807a859bc',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Configuracion\\ConsentimientoInformadoController.php',
@@ -11054,7 +11122,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Consentimientos\\ConsentimientoPlantilla.php' => 
   array (
-    'fileHash' => 'd49d35e0948acadb38562f5a4e395b420eb5b4e7',
+    'fileHash' => '0f050af64aa383fd3e2549cd19d51bc6e1e230bd',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Consentimientos\\ConsentimientoPlantillasController.php',
@@ -11065,7 +11133,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Consentimientos\\EcografiaConsentimiento.php' => 
   array (
-    'fileHash' => '0d422d6934f6cfb1188d995e9aa92a25fd1e8b9b',
+    'fileHash' => '8381107daeabd912e8d8d90899a1ae21d1647d1c',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
@@ -11074,16 +11142,17 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Dcm4chee\\Instance.php' => 
   array (
-    'fileHash' => '0b2d065bc18f68406f0195d2033248e20f277e09',
+    'fileHash' => '1745d68cf0793a52289cb046afa306e8b71999c6',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioNotificacionController.php',
-      1 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Dcm4chee\\Series.php',
+      1 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+      2 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Dcm4chee\\Series.php',
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Dcm4chee\\Patient.php' => 
   array (
-    'fileHash' => '56af216c3f2b2fde772388938d3684d8a615ed37',
+    'fileHash' => '70f760798461cec2cab3a6befe05a5ea88062920',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Dcm4chee\\Study.php',
@@ -11091,28 +11160,30 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Dcm4chee\\Series.php' => 
   array (
-    'fileHash' => 'c46a313c445a91c5bd90d3752752746fd4cd0b7a',
+    'fileHash' => '8838e7c1150c82b57c3492a85b92b5368ca6323e',
     'dependentFiles' => 
     array (
-      0 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Dcm4chee\\Instance.php',
-      1 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Dcm4chee\\Study.php',
+      0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+      1 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Dcm4chee\\Instance.php',
+      2 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Dcm4chee\\Study.php',
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Dcm4chee\\Study.php' => 
   array (
-    'fileHash' => '0a2e7f41b05c887e94f0c2ed8d0f81bcce32d076',
+    'fileHash' => '5c0accad1cf9a2260e067d093cdb6303a818a723',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dcm4chee\\StudyController.php',
       1 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
       2 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\TeleRadiologiaController.php',
-      3 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Dcm4chee\\Patient.php',
-      4 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Dcm4chee\\Series.php',
+      3 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php',
+      4 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Dcm4chee\\Patient.php',
+      5 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Dcm4chee\\Series.php',
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Ecografias\\Ecografia.php' => 
   array (
-    'fileHash' => '4aec64fdfe21a035ac8259cc24deb484b8050077',
+    'fileHash' => '07e2760f417070cc9bb56f612574a03961b13a96',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
@@ -11125,39 +11196,39 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Ecografias\\EcografiaProducto.php' => 
   array (
-    'fileHash' => 'e7a4f3a07fa93ce48690ffa06d942fabf0f0c2ab',
+    'fileHash' => '1a8f5eda610abc4561122e606fdc7cbbf5693d1c',
     'dependentFiles' => 
     array (
-      0 => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
-      1 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
-      2 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaController.php',
-      3 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaProductoController.php',
-      4 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\PlantillaEcografiaController.php',
-      5 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\ecografiaLecturaController.php',
-      6 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
-      7 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Consentimientos\\EcografiaConsentimiento.php',
-      8 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Ecografias\\Ecografia.php',
+      0 => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\EcografiasSahiReconcileCommand.php',
+      1 => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
+      2 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
+      3 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaController.php',
+      4 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaProductoController.php',
+      5 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\PlantillaEcografiaController.php',
+      6 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\ecografiaLecturaController.php',
+      7 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
+      8 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Consentimientos\\EcografiaConsentimiento.php',
+      9 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Ecografias\\Ecografia.php',
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Estudio\\Estudio.php' => 
   array (
-    'fileHash' => 'ae01ad6dfae34e4f24dec97123df9b57eda784b4',
+    'fileHash' => 'f20d9f20cdd76152a72118bb0f424f53e84d7175',
     'dependentFiles' => 
     array (
-      0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-      1 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dcm4chee\\StudyController.php',
-      2 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
-      3 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioNotificacionController.php',
-      4 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-      5 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\TeleRadiologiaController.php',
-      6 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Estudio\\EstudioProducto.php',
-      7 => 'C:\\laragon\\www\\lidiag\\app\\Models\\General\\Paciente.php',
-      8 => 'C:\\laragon\\www\\lidiag\\app\\Models\\User.php',
+      0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dcm4chee\\StudyController.php',
+      1 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
+      2 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioNotificacionController.php',
+      3 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+      4 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\TeleRadiologiaController.php',
+      5 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Estudio\\EstudioProducto.php',
+      6 => 'C:\\laragon\\www\\lidiag\\app\\Models\\General\\Paciente.php',
+      7 => 'C:\\laragon\\www\\lidiag\\app\\Models\\User.php',
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Estudio\\EstudioAudio.php' => 
   array (
-    'fileHash' => '22f8893c283ed8f89fb59cfcfdabcbcfaea844ec',
+    'fileHash' => 'a0de628456e26d0e9c20bad37a01a911a5c2c73e',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioAudioController.php',
@@ -11165,7 +11236,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Estudio\\EstudioDiagnostico.php' => 
   array (
-    'fileHash' => '34616677f8ef15fa19bc293cf1eaaa661a7bd275',
+    'fileHash' => 'dd7cd51bf26ef22bb746dc1b422ca08b05b31c1d',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
@@ -11175,19 +11246,30 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Estudio\\EstudioProducto.php' => 
   array (
-    'fileHash' => 'c06cc4ff9f842c2d7ff66fe93d5b48b4c7c63daf',
+    'fileHash' => '426334476ce944398aac773aac247cb964e30207',
     'dependentFiles' => 
     array (
-      0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-      1 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
+      0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
+      1 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioProductoController.php',
       2 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
       3 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\TeleRadiologiaController.php',
-      4 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Estudio\\Estudio.php',
+      4 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Configuracion\\ConfigProducto.php',
+      5 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Estudio\\Estudio.php',
+      6 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Estudio\\EstudioProductoAdendum.php',
+    ),
+  ),
+  'C:\\laragon\\www\\lidiag\\app\\Models\\Estudio\\EstudioProductoAdendum.php' => 
+  array (
+    'fileHash' => 'fd86d7bf1015b32777592c92fe57b1a1349d2d93',
+    'dependentFiles' => 
+    array (
+      0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\TeleRadiologiaController.php',
+      1 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Estudio\\EstudioProducto.php',
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Estudio\\EstudioSoportesHC.php' => 
   array (
-    'fileHash' => 'd04a21cf248e813999830b1ea80e42b1d6240801',
+    'fileHash' => '63ab7a1c9775a816c001e310c1158dc099ac8681',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
@@ -11196,22 +11278,21 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\General\\Paciente.php' => 
   array (
-    'fileHash' => 'cb19825f56f2e5855801c8594aed1c55f507e169',
+    'fileHash' => 'c17c11bd589d64eb1acee1bfd196a7220cda58b6',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
       1 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaController.php',
       2 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
-      3 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioNotificacionController.php',
-      4 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-      5 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\TeleRadiologiaController.php',
-      6 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Ecografias\\Ecografia.php',
-      7 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Estudio\\Estudio.php',
+      3 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+      4 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\TeleRadiologiaController.php',
+      5 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Ecografias\\Ecografia.php',
+      6 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Estudio\\Estudio.php',
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\HelpDesk\\HelpDeskAdjunto.php' => 
   array (
-    'fileHash' => '4c7ecc63dc046644c12d2e0ee13e23c6ce886411',
+    'fileHash' => '2ba9030db15e23b610f120a7ecbf07c99fc4c831',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskAdjuntosController.php',
@@ -11221,7 +11302,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\HelpDesk\\HelpDeskCategoria.php' => 
   array (
-    'fileHash' => '9c9e4217dc4c1d53275bd606ea0e4de55215306c',
+    'fileHash' => '1f9034e1034223fdf1c3f9bd37fd24e337173aa8',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskCategoriasController.php',
@@ -11230,7 +11311,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\HelpDesk\\HelpDeskEstado.php' => 
   array (
-    'fileHash' => '510c6f39c6dd59a2ca6c72db713d47dddda9cae8',
+    'fileHash' => '68c2e4c7aceb638ff53d3d7e1c4c51006099eff6',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskEstadosController.php',
@@ -11240,7 +11321,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\HelpDesk\\HelpDeskFolioCounter.php' => 
   array (
-    'fileHash' => 'ddc174bab7e2105a558ea62dc4aef701baaef02a',
+    'fileHash' => 'bb33f1a7bdf01de64b26a2864be928be6113f09a',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskTicketsController.php',
@@ -11248,7 +11329,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\HelpDesk\\HelpDeskPrioridad.php' => 
   array (
-    'fileHash' => 'ecd2b0dc4b3eca4f0eac83b7fcf018cd5ae4641d',
+    'fileHash' => '8d7832e9da4344ff23921e770594b27e5bb25aca',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskPrioridadesController.php',
@@ -11257,7 +11338,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\HelpDesk\\HelpDeskTicketHistorial.php' => 
   array (
-    'fileHash' => 'f06ae93ee8838f21589271e3e6e485a628bb0c23',
+    'fileHash' => 'ecfb4c3e640c71f19aaa5ab13dc8758227091983',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskAdjuntosController.php',
@@ -11268,19 +11349,18 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\HelpDesk\\HelpDeskTickets.php' => 
   array (
-    'fileHash' => '07eb5f0929c3cfbe3734d9c8c8e96e964bdc6748',
+    'fileHash' => '0420a0035f3e7f2a8fbc4e27b9884914e194d904',
     'dependentFiles' => 
     array (
-      0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDeskTicketsController.php',
-      1 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskAdjuntosController.php',
-      2 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskTicketsController.php',
-      3 => 'C:\\laragon\\www\\lidiag\\app\\Models\\HelpDesk\\HelpDeskAdjunto.php',
-      4 => 'C:\\laragon\\www\\lidiag\\app\\Models\\HelpDesk\\HelpDeskTicketHistorial.php',
+      0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskAdjuntosController.php',
+      1 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskTicketsController.php',
+      2 => 'C:\\laragon\\www\\lidiag\\app\\Models\\HelpDesk\\HelpDeskAdjunto.php',
+      3 => 'C:\\laragon\\www\\lidiag\\app\\Models\\HelpDesk\\HelpDeskTicketHistorial.php',
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\ImportarEcografias\\ConfigEps.php' => 
   array (
-    'fileHash' => 'a14250e558fb6e55733a9c92287b6ca320235324',
+    'fileHash' => 'b7e1a42f50083f6bc30e9ead5ce1cc0d54770caf',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
@@ -11289,7 +11369,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\ImportarEcografias\\ConfigPlantillaDetalle.php' => 
   array (
-    'fileHash' => '9eeb7b90bf95b167bf537b9290acbb7085ef3930',
+    'fileHash' => '849d7dc9e43e175a89ce293af1ea7ec131b8d142',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
@@ -11299,7 +11379,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\ImportarEcografias\\ConfigPlantillaTipo.php' => 
   array (
-    'fileHash' => '031012bc347c56a86f43e09d91a380df87e05357',
+    'fileHash' => 'e6574645f5533827cd833167e198770b1d3002b7',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
@@ -11308,7 +11388,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\ImportarEcografias\\ConfigProducto.php' => 
   array (
-    'fileHash' => '6ad3b44b41fa8e49f1105553ab497baa3dbaa9e3',
+    'fileHash' => '9ebc1cf6e70a301aa1d2505cea9f7b53ccf1a79e',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
@@ -11317,7 +11397,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\ImportarEcografias\\ConfigTipoDocumento.php' => 
   array (
-    'fileHash' => '46ee49af896162aab6c7139dd9afd7bcfbe5424d',
+    'fileHash' => '9a16bc017da8813f02dffff59939a96f9f7fef67',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Models\\ImportarEcografias\\GenePaciente.php',
@@ -11326,7 +11406,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\ImportarEcografias\\GenePaciente.php' => 
   array (
-    'fileHash' => 'cb120e5e596ed2077f8d28ff87bcaa462610ca14',
+    'fileHash' => 'c9c65e94f651a0e4b59d3cf74aa3100b98784192',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Models\\ImportarEcografias\\ConfigTipoDocumento.php',
@@ -11335,7 +11415,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\ImportarEcografias\\GenePersonal.php' => 
   array (
-    'fileHash' => 'fdf3228f42d99f08a4a3c89c6b49250417bcedb2',
+    'fileHash' => '846e652f14810922c7d5aa10947bdcdcac66262f',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
@@ -11345,7 +11425,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\ImportarEcografias\\Lectura.php' => 
   array (
-    'fileHash' => '07c617f61e1dc3850a0baa134fb32140a1e88404',
+    'fileHash' => 'aa0e334729ed5c12990e8f946e9915cab18843bc',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
@@ -11356,14 +11436,14 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\ImportarEcografias\\LecturaProducto.php' => 
   array (
-    'fileHash' => '2ba5e8178c26af78de89330ce2f319c6162a4c62',
+    'fileHash' => '9387ba89c6c2427bd9d731209e072ece60b27f47',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\ImportarEcografias\\SeguUsuario.php' => 
   array (
-    'fileHash' => 'e09f250dd5dc545fe3489d6c8d4e4a13cef3d6c3',
+    'fileHash' => '0bbc614f9b32c13bf4321e7413f821cc96480aba',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
@@ -11373,7 +11453,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Importar\\Agenda.php' => 
   array (
-    'fileHash' => '953106f8795c9b388e4725b01bca73f83d8e5ab0',
+    'fileHash' => 'f11bd4b9e8a32cb35102d2ff07128fd66e58e3af',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
@@ -11381,7 +11461,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Importar\\AgendaDiagnostico.php' => 
   array (
-    'fileHash' => '2b06bb66f0375e3d1ed5cd7229a91b3219b8e92e',
+    'fileHash' => '7b43ef24b0083987a0fa50d8e7236bda3fd565c9',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
@@ -11389,7 +11469,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Importar\\AgendaProducto.php' => 
   array (
-    'fileHash' => '5ea5efe4f4cb79cf870ee96dcf4832b57dcc9ed7',
+    'fileHash' => 'd24379eaeed5f36bf8782f71afc855c6d273ecc7',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
@@ -11397,7 +11477,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Importar\\ConfigDiagnosticoDicom.php' => 
   array (
-    'fileHash' => '1e713355c8c75949ddd7e8c42c71cde61583e752',
+    'fileHash' => '23d4a042f042fa9132fd3565cd30ee273a7a40da',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
@@ -11405,7 +11485,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Importar\\ConfigProductoDicom.php' => 
   array (
-    'fileHash' => '39feef8576fc4d14f79b1af9abb0ccc73510f35b',
+    'fileHash' => '66bd0ccdbe4b2e71fc14fe14424a2e7d1276d399',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
@@ -11413,7 +11493,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Importar\\GeneralPersonal.php' => 
   array (
-    'fileHash' => 'a1996550e1bb5c9884e60ba1ce596f38c0eade45',
+    'fileHash' => '57483a7e94e19caf6a40c7a62f82db4d744f9c73',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
@@ -11421,7 +11501,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Importar\\PacienteDicom.php' => 
   array (
-    'fileHash' => '7248e37b6229a5516a08f43863c8a511a9ee422e',
+    'fileHash' => '61aa93fd9b812866b6f6247d4aea82da93f61875',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
@@ -11429,7 +11509,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Importar\\StudyDicom.php' => 
   array (
-    'fileHash' => '9c9987cf46eefbd02f1af043c6bf5fb8d7233e98',
+    'fileHash' => '8eee1501e40f057d6e36e3b1addbd86b8b37b226',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
@@ -11437,7 +11517,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Interface\\Sahi\\ASI_USUA.php' => 
   array (
-    'fileHash' => '598b56635f4008374a6bf29f95b0569797a6f80a',
+    'fileHash' => 'beaa21499214172c17c7537954c97fd4a1e5a83e',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
@@ -11446,7 +11526,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Interface\\Sahi\\Atencion.php' => 
   array (
-    'fileHash' => 'd7a825b7b01abd2b8c2fc6c25c54e353985b56bd',
+    'fileHash' => '1af9f5c7574feb70898aeca3014d89637df4bf9d',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIController.php',
@@ -11458,7 +11538,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Interface\\Sahi\\FacFactura.php' => 
   array (
-    'fileHash' => '5fd2107816c9363ea2697f1766c2bacc92357bf3',
+    'fileHash' => '914607004d38fbd60a1be590721f8f93463881b9',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIController.php',
@@ -11466,7 +11546,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Interface\\Sahi\\FacMovimiento.php' => 
   array (
-    'fileHash' => '5d15ded8f04f829af9d1c889233eba0d1c851b3d',
+    'fileHash' => '2ad140f4010097944eec79b5231dd9f19a28449d',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIController.php',
@@ -11474,7 +11554,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Interface\\Sahi\\FacMovimientoDet.php' => 
   array (
-    'fileHash' => '9551214cda0d0243415639fb93e093534f8002e5',
+    'fileHash' => 'a4bbd7d8b0fdf27abab0b3eff79ed54064cc2fd4',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIController.php',
@@ -11483,14 +11563,14 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Interface\\Sahi\\GenTipoDoc.php' => 
   array (
-    'fileHash' => '870cbc13dd9a2fa96039d2903a1ddb24311b80a7',
+    'fileHash' => 'da1a431dcab095726fdf7791f66b7612ffa92aff',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Interface\\Sahi\\HceConsulta.php' => 
   array (
-    'fileHash' => 'c753f9ec4ca0caa67b13e83d79945d0a2c65077b',
+    'fileHash' => '788aa96856cbd5680b54fcc6f9fb7d0b0c066d33',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIController.php',
@@ -11498,7 +11578,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Interface\\Sahi\\HceEsquema.php' => 
   array (
-    'fileHash' => 'c239fa099713a829045423d20f5bf776c7337b09',
+    'fileHash' => 'd50d6c8d9e397ed6d68b94296e531786a4957393',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
@@ -11507,7 +11587,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Interface\\Sahi\\Paciente.php' => 
   array (
-    'fileHash' => '8618b374aab2ab89c2f30a4f7e504758a9969ac2',
+    'fileHash' => '2b76f7fb96169dc0bde7bdd9a9e7a7197f8c430d',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Interface\\Sahi\\Atencion.php',
@@ -11515,7 +11595,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Interface\\Sahi\\ProProducto.php' => 
   array (
-    'fileHash' => '0dd6818e919e548e89e9124378d521af6f8226ee',
+    'fileHash' => 'c0fd741f734084e238feb9b5564322560c81a090',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
@@ -11524,7 +11604,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Interface\\Sahi\\facFacturaDet.php' => 
   array (
-    'fileHash' => 'b6cb778e4eeffd8ace69af5b2b47f2f567a47dc3',
+    'fileHash' => 'ca5a2bf5e12e85a862afe1b6b61b3ed8765cb4b5',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIController.php',
@@ -11533,7 +11613,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Interface\\Sahi\\hceEsquemaDetMemo.php' => 
   array (
-    'fileHash' => '2cff9d4060d73a12c7243c1cb18f4b08e1c4b9a4',
+    'fileHash' => '62f31f37e435e646e3bce8765ea8f940313f9aa0',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
@@ -11542,7 +11622,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Interface\\Sahi\\hceEsquemaDetProc.php' => 
   array (
-    'fileHash' => '28d907c689816a5ac80f3779a47c55aeb328ce33',
+    'fileHash' => '5e281e6bc0e76c1856cc15a1a0b76018120112eb',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
@@ -11551,7 +11631,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Interface\\Sahi\\hceEsquemaEncabeza.php' => 
   array (
-    'fileHash' => '8e54e0ef3025e04c6da905ad74f32a0fb42a655b',
+    'fileHash' => '65d9090362e4d81b27f71d4888174d81aa9240e9',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
@@ -11560,7 +11640,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Interface\\Sahi\\hceEsquemasdeAte.php' => 
   array (
-    'fileHash' => '0a55d5c43b9500817834ec1689fb27543efc9378',
+    'fileHash' => '15ee73df8fd220ec4d4b547f4fef4a066870c4a7',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
@@ -11569,7 +11649,7 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Interface\\Sahi\\sisTabla.php' => 
   array (
-    'fileHash' => '4f0177245db4062671b466473c89e204ffe2ed26',
+    'fileHash' => '242a0c6187eda00e05dad87ce94f008ef1739d29',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHIEcografiasEnviarController.php',
@@ -11578,102 +11658,107 @@ return [
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Seguridad\\Rol.php' => 
   array (
-    'fileHash' => '03b58df71b6fe8f47dafd0960bed9275494415e4',
+    'fileHash' => '68e0f66f8625314909273d1537b7c7d76c98362d',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\Seguridad\\UserModulo.php' => 
   array (
-    'fileHash' => 'cbab8f0845567c5753c988d20809881c8f76c579',
+    'fileHash' => 'f725bf334c9bf64caacdeb038558ab1407331de1',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Models\\User.php' => 
   array (
-    'fileHash' => 'aff376ec077082b29b3ea8d36075f4510d01c31f',
+    'fileHash' => 'a7f8ded38674fe723a6741f4ea8d240c67a1fb0d',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\CheckUserPermission.php',
       1 => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncDicomEcografias.php',
       2 => 'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncUsuarios.php',
-      3 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\RegisterController.php',
-      4 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Consentimientos\\ConsentimientoPlantillasController.php',
-      5 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
-      6 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
-      7 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\PlantillaEcografiaController.php',
-      8 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\ecografiaLecturaController.php',
-      9 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
-      10 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskAdjuntosController.php',
-      11 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskNotificacionesController.php',
-      12 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskTicketsController.php',
-      13 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskUsuariosController.php',
-      14 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
-      15 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
-      16 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\TeleRadiologiaController.php',
-      17 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php',
-      18 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Configuracion\\ConfigModulo.php',
-      19 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Configuracion\\ConfigPlantilla.php',
-      20 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Configuracion\\ConsentimientoInformado.php',
-      21 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Consentimientos\\ConsentimientoPlantilla.php',
-      22 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Consentimientos\\EcografiaConsentimiento.php',
-      23 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Ecografias\\Ecografia.php',
-      24 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Estudio\\Estudio.php',
-      25 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Estudio\\EstudioProducto.php',
-      26 => 'C:\\laragon\\www\\lidiag\\app\\Models\\HelpDesk\\HelpDeskAdjunto.php',
-      27 => 'C:\\laragon\\www\\lidiag\\app\\Models\\HelpDesk\\HelpDeskTicketHistorial.php',
-      28 => 'C:\\laragon\\www\\lidiag\\app\\Models\\HelpDesk\\HelpDeskTickets.php',
-      29 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Seguridad\\UserModulo.php',
+      3 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Consentimientos\\ConsentimientoPlantillasController.php',
+      4 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Dashboard\\DashBoardController.php',
+      5 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\EcografiaConsentimientosController.php',
+      6 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\PlantillaEcografiaController.php',
+      7 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Ecografias\\ecografiaLecturaController.php',
+      8 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Estudios\\EstudioController.php',
+      9 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskAdjuntosController.php',
+      10 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskNotificacionesController.php',
+      11 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskTicketsController.php',
+      12 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskUsuariosController.php',
+      13 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Importar\\ImportarDicom.php',
+      14 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\SAHITranscibirController.php',
+      15 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Interface\\TeleRadiologiaController.php',
+      16 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Seguridad\\UserController.php',
+      17 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Configuracion\\ConfigModulo.php',
+      18 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Configuracion\\ConfigPlantilla.php',
+      19 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Configuracion\\ConsentimientoInformado.php',
+      20 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Consentimientos\\ConsentimientoPlantilla.php',
+      21 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Consentimientos\\EcografiaConsentimiento.php',
+      22 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Ecografias\\Ecografia.php',
+      23 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Estudio\\Estudio.php',
+      24 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Estudio\\EstudioProducto.php',
+      25 => 'C:\\laragon\\www\\lidiag\\app\\Models\\HelpDesk\\HelpDeskAdjunto.php',
+      26 => 'C:\\laragon\\www\\lidiag\\app\\Models\\HelpDesk\\HelpDeskTicketHistorial.php',
+      27 => 'C:\\laragon\\www\\lidiag\\app\\Models\\HelpDesk\\HelpDeskTickets.php',
+      28 => 'C:\\laragon\\www\\lidiag\\app\\Models\\Seguridad\\UserModulo.php',
+      29 => 'C:\\laragon\\www\\lidiag\\app\\Policies\\UserPolicy.php',
       30 => 'C:\\laragon\\www\\lidiag\\app\\Providers\\RouteServiceProvider.php',
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Notifications\\HelpDesk\\HelpDeskTicketNotification.php' => 
   array (
-    'fileHash' => '30317271a2edb8774d45a5dfee2f742670502399',
+    'fileHash' => 'bcd3f73bb2cc6c3656ce5e7605093d89e65c7823',
     'dependentFiles' => 
     array (
       0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDesk\\HelpDeskTicketsController.php',
     ),
   ),
+  'C:\\laragon\\www\\lidiag\\app\\Policies\\UserPolicy.php' => 
+  array (
+    'fileHash' => '67d0d09662be2cb58a30d127a9d994f804a2aff5',
+    'dependentFiles' => 
+    array (
+    ),
+  ),
   'C:\\laragon\\www\\lidiag\\app\\Providers\\AppServiceProvider.php' => 
   array (
-    'fileHash' => '5dc6ebed59ae9411e870e97858309d50e7cdbddc',
+    'fileHash' => 'c79b6eeb966a0bafeb92224154821b5b37787363',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Providers\\AuthServiceProvider.php' => 
   array (
-    'fileHash' => '7a4146f7916204b3204d2791cd4ce078ffafccbc',
+    'fileHash' => '846578501ba6a808627be70848cbeafaa492c681',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Providers\\BroadcastServiceProvider.php' => 
   array (
-    'fileHash' => 'c90be5149758ee3f5aa10a4ca990346709877ebd',
+    'fileHash' => 'bae58bde4982baaf3929a3f53e0e6f2ad34bb50e',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Providers\\EventServiceProvider.php' => 
   array (
-    'fileHash' => '6951b57ffdb580b2f5ed19c59f279d14df12a352',
+    'fileHash' => 'dbbbb958761a0c9cba799b54e3036c0d3d027932',
     'dependentFiles' => 
     array (
     ),
   ),
   'C:\\laragon\\www\\lidiag\\app\\Providers\\RouteServiceProvider.php' => 
   array (
-    'fileHash' => '0f6658d2b500707978bd502cccc3f59492bbe114',
+    'fileHash' => 'b5629d37c333bc40ca385e91285b215ca280c4a3',
     'dependentFiles' => 
     array (
-      0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\ConfirmPasswordController.php',
-      1 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\RegisterController.php',
-      2 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\ResetPasswordController.php',
-      3 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\VerificationController.php',
-      4 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Middleware\\RedirectIfAuthenticated.php',
+      0 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\ResetPasswordController.php',
+      1 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\VerificationController.php',
+      2 => 'C:\\laragon\\www\\lidiag\\app\\Http\\Middleware\\RedirectIfAuthenticated.php',
     ),
   ),
 ),
@@ -11717,8 +11802,8 @@ return [
               'command' => 'Illuminate\\Console\\Command',
               'collection' => 'Illuminate\\Support\\Collection',
               'file' => 'Illuminate\\Support\\Facades\\File',
-              'permissionregistrar' => 'Spatie\\Permission\\PermissionRegistrar',
               'permission' => 'Spatie\\Permission\\Models\\Permission',
+              'permissionregistrar' => 'Spatie\\Permission\\PermissionRegistrar',
             ),
              'constUses' => 
             array (
@@ -11752,8 +11837,8 @@ return [
               'command' => 'Illuminate\\Console\\Command',
               'collection' => 'Illuminate\\Support\\Collection',
               'file' => 'Illuminate\\Support\\Facades\\File',
-              'permissionregistrar' => 'Spatie\\Permission\\PermissionRegistrar',
               'permission' => 'Spatie\\Permission\\Models\\Permission',
+              'permissionregistrar' => 'Spatie\\Permission\\PermissionRegistrar',
             ),
              'constUses' => 
             array (
@@ -11832,8 +11917,8 @@ return [
               'command' => 'Illuminate\\Console\\Command',
               'permissiondoesnotexist' => 'Spatie\\Permission\\Exceptions\\PermissionDoesNotExist',
               'guard' => 'Spatie\\Permission\\Guard',
-              'permissionregistrar' => 'Spatie\\Permission\\PermissionRegistrar',
               'permission' => 'Spatie\\Permission\\Models\\Permission',
+              'permissionregistrar' => 'Spatie\\Permission\\PermissionRegistrar',
             ),
              'constUses' => 
             array (
@@ -11855,6 +11940,193 @@ return [
             0 => 'description',
           ),
            'phpDoc' => NULL,
+           'type' => NULL,
+           'public' => false,
+           'private' => false,
+           'static' => false,
+           'readonly' => false,
+           'attributes' => 
+          array (
+          ),
+        )),
+        2 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'handle',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'int',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+      ),
+       'attributes' => 
+      array (
+      ),
+    )),
+  ),
+  'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\EcografiasNormalizeEstadosCommand.php' => 
+  array (
+    0 => 
+    \PHPStan\Dependency\ExportedNode\ExportedClassNode::__set_state(array(
+       'name' => 'App\\Console\\Commands\\EcografiasNormalizeEstadosCommand',
+       'phpDoc' => NULL,
+       'abstract' => false,
+       'final' => false,
+       'extends' => 'Illuminate\\Console\\Command',
+       'implements' => 
+      array (
+      ),
+       'usedTraits' => 
+      array (
+      ),
+       'traitUseAdaptations' => 
+      array (
+      ),
+       'statements' => 
+      array (
+        0 => 
+        \PHPStan\Dependency\ExportedNode\ExportedPropertiesNode::__set_state(array(
+           'names' => 
+          array (
+            0 => 'signature',
+          ),
+           'phpDoc' => NULL,
+           'type' => NULL,
+           'public' => false,
+           'private' => false,
+           'static' => false,
+           'readonly' => false,
+           'attributes' => 
+          array (
+          ),
+        )),
+        1 => 
+        \PHPStan\Dependency\ExportedNode\ExportedPropertiesNode::__set_state(array(
+           'names' => 
+          array (
+            0 => 'description',
+          ),
+           'phpDoc' => NULL,
+           'type' => NULL,
+           'public' => false,
+           'private' => false,
+           'static' => false,
+           'readonly' => false,
+           'attributes' => 
+          array (
+          ),
+        )),
+        2 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'handle',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'int',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+      ),
+       'attributes' => 
+      array (
+      ),
+    )),
+  ),
+  'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\EcografiasSahiReconcileCommand.php' => 
+  array (
+    0 => 
+    \PHPStan\Dependency\ExportedNode\ExportedClassNode::__set_state(array(
+       'name' => 'App\\Console\\Commands\\EcografiasSahiReconcileCommand',
+       'phpDoc' => NULL,
+       'abstract' => false,
+       'final' => false,
+       'extends' => 'Illuminate\\Console\\Command',
+       'implements' => 
+      array (
+      ),
+       'usedTraits' => 
+      array (
+      ),
+       'traitUseAdaptations' => 
+      array (
+      ),
+       'statements' => 
+      array (
+        0 => 
+        \PHPStan\Dependency\ExportedNode\ExportedPropertiesNode::__set_state(array(
+           'names' => 
+          array (
+            0 => 'signature',
+          ),
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * The name and signature of the console command.
+     *
+     * Uso:
+     * - php artisan ecografias:sahi-reconcile --minutes=10 --limit=200
+     */',
+             'namespace' => 'App\\Console\\Commands',
+             'uses' => 
+            array (
+              'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
+              'command' => 'Illuminate\\Console\\Command',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'log' => 'Illuminate\\Support\\Facades\\Log',
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'type' => NULL,
+           'public' => false,
+           'private' => false,
+           'static' => false,
+           'readonly' => false,
+           'attributes' => 
+          array (
+          ),
+        )),
+        1 => 
+        \PHPStan\Dependency\ExportedNode\ExportedPropertiesNode::__set_state(array(
+           'names' => 
+          array (
+            0 => 'description',
+          ),
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * The console command description.
+     */',
+             'namespace' => 'App\\Console\\Commands',
+             'uses' => 
+            array (
+              'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
+              'command' => 'Illuminate\\Console\\Command',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'log' => 'Illuminate\\Support\\Facades\\Log',
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
            'type' => NULL,
            'public' => false,
            'private' => false,
@@ -12034,24 +12306,19 @@ return [
              'namespace' => 'App\\Console\\Commands',
              'uses' => 
             array (
-              'command' => 'Illuminate\\Console\\Command',
-              'hash' => 'Illuminate\\Support\\Facades\\Hash',
-              'log' => 'Illuminate\\Support\\Facades\\Log',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-              'seguusuario' => 'App\\Models\\ImportarEcografias\\SeguUsuario',
-              'genepersonal' => 'App\\Models\\ImportarEcografias\\GenePersonal',
-              'configeps' => 'App\\Models\\ImportarEcografias\\ConfigEps',
-              'sourceconfigproducto' => 'App\\Models\\ImportarEcografias\\ConfigProducto',
-              'lectura' => 'App\\Models\\ImportarEcografias\\Lectura',
-              'genepaciente' => 'App\\Models\\ImportarEcografias\\GenePaciente',
-              'sourceconfigtipodocumento' => 'App\\Models\\ImportarEcografias\\ConfigTipoDocumento',
-              'user' => 'App\\Models\\User',
               'configadminsalud' => 'App\\Models\\Configuracion\\ConfigAdminSalud',
               'targetconfigproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
               'ecografia' => 'App\\Models\\Ecografias\\Ecografia',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
               'paciente' => 'App\\Models\\General\\Paciente',
-              'targetconfigtipodocumento' => 'App\\Models\\Configuracion\\ConfigTipoDocumento',
+              'configeps' => 'App\\Models\\ImportarEcografias\\ConfigEps',
+              'sourceconfigproducto' => 'App\\Models\\ImportarEcografias\\ConfigProducto',
+              'lectura' => 'App\\Models\\ImportarEcografias\\Lectura',
+              'seguusuario' => 'App\\Models\\ImportarEcografias\\SeguUsuario',
+              'user' => 'App\\Models\\User',
+              'command' => 'Illuminate\\Console\\Command',
+              'hash' => 'Illuminate\\Support\\Facades\\Hash',
+              'log' => 'Illuminate\\Support\\Facades\\Log',
             ),
              'constUses' => 
             array (
@@ -12082,24 +12349,19 @@ return [
              'namespace' => 'App\\Console\\Commands',
              'uses' => 
             array (
-              'command' => 'Illuminate\\Console\\Command',
-              'hash' => 'Illuminate\\Support\\Facades\\Hash',
-              'log' => 'Illuminate\\Support\\Facades\\Log',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-              'seguusuario' => 'App\\Models\\ImportarEcografias\\SeguUsuario',
-              'genepersonal' => 'App\\Models\\ImportarEcografias\\GenePersonal',
-              'configeps' => 'App\\Models\\ImportarEcografias\\ConfigEps',
-              'sourceconfigproducto' => 'App\\Models\\ImportarEcografias\\ConfigProducto',
-              'lectura' => 'App\\Models\\ImportarEcografias\\Lectura',
-              'genepaciente' => 'App\\Models\\ImportarEcografias\\GenePaciente',
-              'sourceconfigtipodocumento' => 'App\\Models\\ImportarEcografias\\ConfigTipoDocumento',
-              'user' => 'App\\Models\\User',
               'configadminsalud' => 'App\\Models\\Configuracion\\ConfigAdminSalud',
               'targetconfigproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
               'ecografia' => 'App\\Models\\Ecografias\\Ecografia',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
               'paciente' => 'App\\Models\\General\\Paciente',
-              'targetconfigtipodocumento' => 'App\\Models\\Configuracion\\ConfigTipoDocumento',
+              'configeps' => 'App\\Models\\ImportarEcografias\\ConfigEps',
+              'sourceconfigproducto' => 'App\\Models\\ImportarEcografias\\ConfigProducto',
+              'lectura' => 'App\\Models\\ImportarEcografias\\Lectura',
+              'seguusuario' => 'App\\Models\\ImportarEcografias\\SeguUsuario',
+              'user' => 'App\\Models\\User',
+              'command' => 'Illuminate\\Console\\Command',
+              'hash' => 'Illuminate\\Support\\Facades\\Hash',
+              'log' => 'Illuminate\\Support\\Facades\\Log',
             ),
              'constUses' => 
             array (
@@ -12127,24 +12389,19 @@ return [
              'namespace' => 'App\\Console\\Commands',
              'uses' => 
             array (
-              'command' => 'Illuminate\\Console\\Command',
-              'hash' => 'Illuminate\\Support\\Facades\\Hash',
-              'log' => 'Illuminate\\Support\\Facades\\Log',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-              'seguusuario' => 'App\\Models\\ImportarEcografias\\SeguUsuario',
-              'genepersonal' => 'App\\Models\\ImportarEcografias\\GenePersonal',
-              'configeps' => 'App\\Models\\ImportarEcografias\\ConfigEps',
-              'sourceconfigproducto' => 'App\\Models\\ImportarEcografias\\ConfigProducto',
-              'lectura' => 'App\\Models\\ImportarEcografias\\Lectura',
-              'genepaciente' => 'App\\Models\\ImportarEcografias\\GenePaciente',
-              'sourceconfigtipodocumento' => 'App\\Models\\ImportarEcografias\\ConfigTipoDocumento',
-              'user' => 'App\\Models\\User',
               'configadminsalud' => 'App\\Models\\Configuracion\\ConfigAdminSalud',
               'targetconfigproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
               'ecografia' => 'App\\Models\\Ecografias\\Ecografia',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
               'paciente' => 'App\\Models\\General\\Paciente',
-              'targetconfigtipodocumento' => 'App\\Models\\Configuracion\\ConfigTipoDocumento',
+              'configeps' => 'App\\Models\\ImportarEcografias\\ConfigEps',
+              'sourceconfigproducto' => 'App\\Models\\ImportarEcografias\\ConfigProducto',
+              'lectura' => 'App\\Models\\ImportarEcografias\\Lectura',
+              'seguusuario' => 'App\\Models\\ImportarEcografias\\SeguUsuario',
+              'user' => 'App\\Models\\User',
+              'command' => 'Illuminate\\Console\\Command',
+              'hash' => 'Illuminate\\Support\\Facades\\Hash',
+              'log' => 'Illuminate\\Support\\Facades\\Log',
             ),
              'constUses' => 
             array (
@@ -12157,6 +12414,82 @@ return [
            'final' => false,
            'static' => false,
            'returnType' => NULL,
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+      ),
+       'attributes' => 
+      array (
+      ),
+    )),
+  ),
+  'C:\\laragon\\www\\lidiag\\app\\Console\\Commands\\SyncMissingPermissions.php' => 
+  array (
+    0 => 
+    \PHPStan\Dependency\ExportedNode\ExportedClassNode::__set_state(array(
+       'name' => 'App\\Console\\Commands\\SyncMissingPermissions',
+       'phpDoc' => NULL,
+       'abstract' => false,
+       'final' => false,
+       'extends' => 'Illuminate\\Console\\Command',
+       'implements' => 
+      array (
+      ),
+       'usedTraits' => 
+      array (
+      ),
+       'traitUseAdaptations' => 
+      array (
+      ),
+       'statements' => 
+      array (
+        0 => 
+        \PHPStan\Dependency\ExportedNode\ExportedPropertiesNode::__set_state(array(
+           'names' => 
+          array (
+            0 => 'signature',
+          ),
+           'phpDoc' => NULL,
+           'type' => NULL,
+           'public' => false,
+           'private' => false,
+           'static' => false,
+           'readonly' => false,
+           'attributes' => 
+          array (
+          ),
+        )),
+        1 => 
+        \PHPStan\Dependency\ExportedNode\ExportedPropertiesNode::__set_state(array(
+           'names' => 
+          array (
+            0 => 'description',
+          ),
+           'phpDoc' => NULL,
+           'type' => NULL,
+           'public' => false,
+           'private' => false,
+           'static' => false,
+           'readonly' => false,
+           'attributes' => 
+          array (
+          ),
+        )),
+        2 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'handle',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'int',
            'parameters' => 
           array (
           ),
@@ -12206,17 +12539,14 @@ return [
              'namespace' => 'App\\Console\\Commands',
              'uses' => 
             array (
+              'plantilladestino' => 'App\\Models\\Configuracion\\ConfigPlantilla',
+              'plantillatipodestino' => 'App\\Models\\Configuracion\\ConfigPlantillaTipo',
+              'plantilladetalleorigen' => 'App\\Models\\ImportarEcografias\\ConfigPlantillaDetalle',
+              'plantillatipoorigen' => 'App\\Models\\ImportarEcografias\\ConfigPlantillaTipo',
+              'personalorigen' => 'App\\Models\\ImportarEcografias\\GenePersonal',
+              'userdestino' => 'App\\Models\\User',
               'command' => 'Illuminate\\Console\\Command',
               'hash' => 'Illuminate\\Support\\Facades\\Hash',
-              'log' => 'Illuminate\\Support\\Facades\\Log',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-              'userorigen' => 'App\\Models\\ImportarEcografias\\SeguUsuario',
-              'personalorigen' => 'App\\Models\\ImportarEcografias\\GenePersonal',
-              'plantillatipoorigen' => 'App\\Models\\ImportarEcografias\\ConfigPlantillaTipo',
-              'plantilladetalleorigen' => 'App\\Models\\ImportarEcografias\\ConfigPlantillaDetalle',
-              'userdestino' => 'App\\Models\\User',
-              'plantillatipodestino' => 'App\\Models\\Configuracion\\ConfigPlantillaTipo',
-              'plantilladestino' => 'App\\Models\\Configuracion\\ConfigPlantilla',
             ),
              'constUses' => 
             array (
@@ -12247,17 +12577,14 @@ return [
              'namespace' => 'App\\Console\\Commands',
              'uses' => 
             array (
+              'plantilladestino' => 'App\\Models\\Configuracion\\ConfigPlantilla',
+              'plantillatipodestino' => 'App\\Models\\Configuracion\\ConfigPlantillaTipo',
+              'plantilladetalleorigen' => 'App\\Models\\ImportarEcografias\\ConfigPlantillaDetalle',
+              'plantillatipoorigen' => 'App\\Models\\ImportarEcografias\\ConfigPlantillaTipo',
+              'personalorigen' => 'App\\Models\\ImportarEcografias\\GenePersonal',
+              'userdestino' => 'App\\Models\\User',
               'command' => 'Illuminate\\Console\\Command',
               'hash' => 'Illuminate\\Support\\Facades\\Hash',
-              'log' => 'Illuminate\\Support\\Facades\\Log',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-              'userorigen' => 'App\\Models\\ImportarEcografias\\SeguUsuario',
-              'personalorigen' => 'App\\Models\\ImportarEcografias\\GenePersonal',
-              'plantillatipoorigen' => 'App\\Models\\ImportarEcografias\\ConfigPlantillaTipo',
-              'plantilladetalleorigen' => 'App\\Models\\ImportarEcografias\\ConfigPlantillaDetalle',
-              'userdestino' => 'App\\Models\\User',
-              'plantillatipodestino' => 'App\\Models\\Configuracion\\ConfigPlantillaTipo',
-              'plantilladestino' => 'App\\Models\\Configuracion\\ConfigPlantilla',
             ),
              'constUses' => 
             array (
@@ -12283,17 +12610,14 @@ return [
              'namespace' => 'App\\Console\\Commands',
              'uses' => 
             array (
+              'plantilladestino' => 'App\\Models\\Configuracion\\ConfigPlantilla',
+              'plantillatipodestino' => 'App\\Models\\Configuracion\\ConfigPlantillaTipo',
+              'plantilladetalleorigen' => 'App\\Models\\ImportarEcografias\\ConfigPlantillaDetalle',
+              'plantillatipoorigen' => 'App\\Models\\ImportarEcografias\\ConfigPlantillaTipo',
+              'personalorigen' => 'App\\Models\\ImportarEcografias\\GenePersonal',
+              'userdestino' => 'App\\Models\\User',
               'command' => 'Illuminate\\Console\\Command',
               'hash' => 'Illuminate\\Support\\Facades\\Hash',
-              'log' => 'Illuminate\\Support\\Facades\\Log',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-              'userorigen' => 'App\\Models\\ImportarEcografias\\SeguUsuario',
-              'personalorigen' => 'App\\Models\\ImportarEcografias\\GenePersonal',
-              'plantillatipoorigen' => 'App\\Models\\ImportarEcografias\\ConfigPlantillaTipo',
-              'plantilladetalleorigen' => 'App\\Models\\ImportarEcografias\\ConfigPlantillaDetalle',
-              'userdestino' => 'App\\Models\\User',
-              'plantillatipodestino' => 'App\\Models\\Configuracion\\ConfigPlantillaTipo',
-              'plantilladestino' => 'App\\Models\\Configuracion\\ConfigPlantilla',
             ),
              'constUses' => 
             array (
@@ -12347,7 +12671,6 @@ return [
              'phpDocString' => '/**
      * Define the application\'s command schedule.
      *
-     * @param  \\Illuminate\\Console\\Scheduling\\Schedule  $schedule
      * @return void
      */',
              'namespace' => 'App\\Console',
@@ -12456,12 +12779,13 @@ return [
              'phpDocString' => '/**
      * A list of exception types with their corresponding custom log levels.
      *
-     * @var array<class-string<\\Throwable>, \\Psr\\Log\\LogLevel::*>
+     * @var array<class-string<Throwable>, LogLevel::*>
      */',
              'namespace' => 'App\\Exceptions',
              'uses' => 
             array (
               'exceptionhandler' => 'Illuminate\\Foundation\\Exceptions\\Handler',
+              'loglevel' => 'Psr\\Log\\LogLevel',
               'throwable' => 'Throwable',
             ),
              'constUses' => 
@@ -12488,12 +12812,13 @@ return [
              'phpDocString' => '/**
      * A list of the exception types that are not reported.
      *
-     * @var array<int, class-string<\\Throwable>>
+     * @var array<int, class-string<Throwable>>
      */',
              'namespace' => 'App\\Exceptions',
              'uses' => 
             array (
               'exceptionhandler' => 'Illuminate\\Foundation\\Exceptions\\Handler',
+              'loglevel' => 'Psr\\Log\\LogLevel',
               'throwable' => 'Throwable',
             ),
              'constUses' => 
@@ -12526,6 +12851,7 @@ return [
              'uses' => 
             array (
               'exceptionhandler' => 'Illuminate\\Foundation\\Exceptions\\Handler',
+              'loglevel' => 'Psr\\Log\\LogLevel',
               'throwable' => 'Throwable',
             ),
              'constUses' => 
@@ -12555,6 +12881,7 @@ return [
              'uses' => 
             array (
               'exceptionhandler' => 'Illuminate\\Foundation\\Exceptions\\Handler',
+              'loglevel' => 'Psr\\Log\\LogLevel',
               'throwable' => 'Throwable',
             ),
              'constUses' => 
@@ -12593,11 +12920,11 @@ return [
        'implements' => 
       array (
         0 => 'Maatwebsite\\Excel\\Concerns\\FromCollection',
-        1 => 'Maatwebsite\\Excel\\Concerns\\WithHeadings',
-        2 => 'Maatwebsite\\Excel\\Concerns\\WithMapping',
-        3 => 'Maatwebsite\\Excel\\Concerns\\WithStyles',
-        4 => 'Maatwebsite\\Excel\\Concerns\\WithColumnWidths',
-        5 => 'Maatwebsite\\Excel\\Concerns\\WithCustomStartCell',
+        1 => 'Maatwebsite\\Excel\\Concerns\\WithColumnWidths',
+        2 => 'Maatwebsite\\Excel\\Concerns\\WithCustomStartCell',
+        3 => 'Maatwebsite\\Excel\\Concerns\\WithHeadings',
+        4 => 'Maatwebsite\\Excel\\Concerns\\WithMapping',
+        5 => 'Maatwebsite\\Excel\\Concerns\\WithStyles',
       ),
        'usedTraits' => 
       array (
@@ -12619,7 +12946,6 @@ return [
              'namespace' => 'App\\Exports',
              'uses' => 
             array (
-              'collection' => 'Illuminate\\Support\\Collection',
               'db' => 'Illuminate\\Support\\Facades\\DB',
               'fromcollection' => 'Maatwebsite\\Excel\\Concerns\\FromCollection',
               'withcolumnwidths' => 'Maatwebsite\\Excel\\Concerns\\WithColumnWidths',
@@ -12627,6 +12953,9 @@ return [
               'withheadings' => 'Maatwebsite\\Excel\\Concerns\\WithHeadings',
               'withmapping' => 'Maatwebsite\\Excel\\Concerns\\WithMapping',
               'withstyles' => 'Maatwebsite\\Excel\\Concerns\\WithStyles',
+              'alignment' => 'PhpOffice\\PhpSpreadsheet\\Style\\Alignment',
+              'border' => 'PhpOffice\\PhpSpreadsheet\\Style\\Border',
+              'fill' => 'PhpOffice\\PhpSpreadsheet\\Style\\Fill',
               'worksheet' => 'PhpOffice\\PhpSpreadsheet\\Worksheet\\Worksheet',
             ),
              'constUses' => 
@@ -12651,7 +12980,6 @@ return [
              'namespace' => 'App\\Exports',
              'uses' => 
             array (
-              'collection' => 'Illuminate\\Support\\Collection',
               'db' => 'Illuminate\\Support\\Facades\\DB',
               'fromcollection' => 'Maatwebsite\\Excel\\Concerns\\FromCollection',
               'withcolumnwidths' => 'Maatwebsite\\Excel\\Concerns\\WithColumnWidths',
@@ -12659,6 +12987,9 @@ return [
               'withheadings' => 'Maatwebsite\\Excel\\Concerns\\WithHeadings',
               'withmapping' => 'Maatwebsite\\Excel\\Concerns\\WithMapping',
               'withstyles' => 'Maatwebsite\\Excel\\Concerns\\WithStyles',
+              'alignment' => 'PhpOffice\\PhpSpreadsheet\\Style\\Alignment',
+              'border' => 'PhpOffice\\PhpSpreadsheet\\Style\\Border',
+              'fill' => 'PhpOffice\\PhpSpreadsheet\\Style\\Fill',
               'worksheet' => 'PhpOffice\\PhpSpreadsheet\\Worksheet\\Worksheet',
             ),
              'constUses' => 
@@ -12838,11 +13169,11 @@ return [
        'implements' => 
       array (
         0 => 'Maatwebsite\\Excel\\Concerns\\FromCollection',
-        1 => 'Maatwebsite\\Excel\\Concerns\\WithHeadings',
-        2 => 'Maatwebsite\\Excel\\Concerns\\WithMapping',
-        3 => 'Maatwebsite\\Excel\\Concerns\\WithStyles',
-        4 => 'Maatwebsite\\Excel\\Concerns\\WithColumnWidths',
-        5 => 'Maatwebsite\\Excel\\Concerns\\WithCustomStartCell',
+        1 => 'Maatwebsite\\Excel\\Concerns\\WithColumnWidths',
+        2 => 'Maatwebsite\\Excel\\Concerns\\WithCustomStartCell',
+        3 => 'Maatwebsite\\Excel\\Concerns\\WithHeadings',
+        4 => 'Maatwebsite\\Excel\\Concerns\\WithMapping',
+        5 => 'Maatwebsite\\Excel\\Concerns\\WithStyles',
       ),
        'usedTraits' => 
       array (
@@ -13153,11 +13484,11 @@ return [
        'implements' => 
       array (
         0 => 'Maatwebsite\\Excel\\Concerns\\FromCollection',
-        1 => 'Maatwebsite\\Excel\\Concerns\\WithHeadings',
-        2 => 'Maatwebsite\\Excel\\Concerns\\WithMapping',
-        3 => 'Maatwebsite\\Excel\\Concerns\\WithStyles',
-        4 => 'Maatwebsite\\Excel\\Concerns\\WithColumnWidths',
-        5 => 'Maatwebsite\\Excel\\Concerns\\WithCustomStartCell',
+        1 => 'Maatwebsite\\Excel\\Concerns\\WithColumnWidths',
+        2 => 'Maatwebsite\\Excel\\Concerns\\WithCustomStartCell',
+        3 => 'Maatwebsite\\Excel\\Concerns\\WithHeadings',
+        4 => 'Maatwebsite\\Excel\\Concerns\\WithMapping',
+        5 => 'Maatwebsite\\Excel\\Concerns\\WithStyles',
       ),
        'usedTraits' => 
       array (
@@ -13469,6 +13800,41 @@ return [
         0 => 
         \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
            'name' => 'originalName',
+           'type' => NULL,
+           'byRef' => false,
+           'variadic' => false,
+           'hasDefault' => false,
+           'attributes' => 
+          array (
+          ),
+        )),
+      ),
+       'attributes' => 
+      array (
+      ),
+    )),
+    1 => 
+    \PHPStan\Dependency\ExportedNode\ExportedFunctionNode::__set_state(array(
+       'name' => 'App\\Helpers\\storeSignature',
+       'phpDoc' => NULL,
+       'byRef' => false,
+       'returnType' => NULL,
+       'parameters' => 
+      array (
+        0 => 
+        \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+           'name' => 'base64String',
+           'type' => NULL,
+           'byRef' => false,
+           'variadic' => false,
+           'hasDefault' => false,
+           'attributes' => 
+          array (
+          ),
+        )),
+        1 => 
+        \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+           'name' => 'medicoDoc',
            'type' => NULL,
            'byRef' => false,
            'variadic' => false,
@@ -13991,128 +14357,6 @@ return [
       ),
     )),
   ),
-  'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\ConfirmPasswordController.php' => 
-  array (
-    0 => 
-    \PHPStan\Dependency\ExportedNode\ExportedClassNode::__set_state(array(
-       'name' => 'App\\Http\\Controllers\\Auth\\ConfirmPasswordController',
-       'phpDoc' => NULL,
-       'abstract' => false,
-       'final' => false,
-       'extends' => 'App\\Http\\Controllers\\Controller',
-       'implements' => 
-      array (
-      ),
-       'usedTraits' => 
-      array (
-        0 => 'Illuminate\\Foundation\\Auth\\ConfirmsPasswords',
-      ),
-       'traitUseAdaptations' => 
-      array (
-      ),
-       'statements' => 
-      array (
-        0 => 
-        \PHPStan\Dependency\ExportedNode\ExportedPropertiesNode::__set_state(array(
-           'names' => 
-          array (
-            0 => 'redirectTo',
-          ),
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Where to redirect users when the intended url fails.
-     *
-     * @var string
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Auth',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'routeserviceprovider' => 'App\\Providers\\RouteServiceProvider',
-              'confirmspasswords' => 'Illuminate\\Foundation\\Auth\\ConfirmsPasswords',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'type' => NULL,
-           'public' => false,
-           'private' => false,
-           'static' => false,
-           'readonly' => false,
-           'attributes' => 
-          array (
-          ),
-        )),
-        1 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => '__construct',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Create a new controller instance.
-     *
-     * @return void
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Auth',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'routeserviceprovider' => 'App\\Providers\\RouteServiceProvider',
-              'confirmspasswords' => 'Illuminate\\Foundation\\Auth\\ConfirmsPasswords',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-      ),
-       'attributes' => 
-      array (
-      ),
-    )),
-  ),
-  'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\ForgotPasswordController.php' => 
-  array (
-    0 => 
-    \PHPStan\Dependency\ExportedNode\ExportedClassNode::__set_state(array(
-       'name' => 'App\\Http\\Controllers\\Auth\\ForgotPasswordController',
-       'phpDoc' => NULL,
-       'abstract' => false,
-       'final' => false,
-       'extends' => 'App\\Http\\Controllers\\Controller',
-       'implements' => 
-      array (
-      ),
-       'usedTraits' => 
-      array (
-        0 => 'Illuminate\\Foundation\\Auth\\SendsPasswordResetEmails',
-      ),
-       'traitUseAdaptations' => 
-      array (
-      ),
-       'statements' => 
-      array (
-      ),
-       'attributes' => 
-      array (
-      ),
-    )),
-  ),
   'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\LoginController.php' => 
   array (
     0 => 
@@ -14141,16 +14385,19 @@ return [
              'phpDocString' => '/**
      * Procesa el inicio de sesión del usuario.
      *
-     * @param loginRequest $request Email y contraseña del usuario.
-     * @return \\Illuminate\\Http\\RedirectResponse Redirección al dashboard o al login con errores.
+     * @param  loginRequest  $request  Email y contraseña del usuario.
+     * @return RedirectResponse Redirección al dashboard o al login con errores.
      */',
              'namespace' => 'App\\Http\\Controllers\\Auth',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'loginrequest' => 'App\\Http\\Requests\\Autenticacion\\loginRequest',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'redirectresponse' => 'Illuminate\\Http\\RedirectResponse',
               'request' => 'Illuminate\\Http\\Request',
               'auth' => 'Illuminate\\Support\\Facades\\Auth',
+              'view' => 'Illuminate\\View\\View',
             ),
              'constUses' => 
             array (
@@ -14189,16 +14436,19 @@ return [
              'phpDocString' => '/**
      * Cierra la sesión del usuario autenticado.
      *
-     * @param Request $request Solicitud HTTP.
-     * @return \\Illuminate\\Http\\JsonResponse Código de respuesta.
+     * @param  Request  $request  Solicitud HTTP.
+     * @return JsonResponse Código de respuesta.
      */',
              'namespace' => 'App\\Http\\Controllers\\Auth',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'loginrequest' => 'App\\Http\\Requests\\Autenticacion\\loginRequest',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'redirectresponse' => 'Illuminate\\Http\\RedirectResponse',
               'request' => 'Illuminate\\Http\\Request',
               'auth' => 'Illuminate\\Support\\Facades\\Auth',
+              'view' => 'Illuminate\\View\\View',
             ),
              'constUses' => 
             array (
@@ -14237,15 +14487,18 @@ return [
              'phpDocString' => '/**
      * Muestra el formulario de inicio de sesión.
      *
-     * @return \\Illuminate\\View\\View Vista del login.
+     * @return View Vista del login.
      */',
              'namespace' => 'App\\Http\\Controllers\\Auth',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'loginrequest' => 'App\\Http\\Requests\\Autenticacion\\loginRequest',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'redirectresponse' => 'Illuminate\\Http\\RedirectResponse',
               'request' => 'Illuminate\\Http\\Request',
               'auth' => 'Illuminate\\Support\\Facades\\Auth',
+              'view' => 'Illuminate\\View\\View',
             ),
              'constUses' => 
             array (
@@ -14260,207 +14513,6 @@ return [
            'returnType' => NULL,
            'parameters' => 
           array (
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-      ),
-       'attributes' => 
-      array (
-      ),
-    )),
-  ),
-  'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\Auth\\RegisterController.php' => 
-  array (
-    0 => 
-    \PHPStan\Dependency\ExportedNode\ExportedClassNode::__set_state(array(
-       'name' => 'App\\Http\\Controllers\\Auth\\RegisterController',
-       'phpDoc' => NULL,
-       'abstract' => false,
-       'final' => false,
-       'extends' => 'App\\Http\\Controllers\\Controller',
-       'implements' => 
-      array (
-      ),
-       'usedTraits' => 
-      array (
-        0 => 'Illuminate\\Foundation\\Auth\\RegistersUsers',
-      ),
-       'traitUseAdaptations' => 
-      array (
-      ),
-       'statements' => 
-      array (
-        0 => 
-        \PHPStan\Dependency\ExportedNode\ExportedPropertiesNode::__set_state(array(
-           'names' => 
-          array (
-            0 => 'redirectTo',
-          ),
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Where to redirect users after registration.
-     *
-     * @var string
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Auth',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'routeserviceprovider' => 'App\\Providers\\RouteServiceProvider',
-              'user' => 'App\\Models\\User',
-              'registersusers' => 'Illuminate\\Foundation\\Auth\\RegistersUsers',
-              'hash' => 'Illuminate\\Support\\Facades\\Hash',
-              'validator' => 'Illuminate\\Support\\Facades\\Validator',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'type' => NULL,
-           'public' => false,
-           'private' => false,
-           'static' => false,
-           'readonly' => false,
-           'attributes' => 
-          array (
-          ),
-        )),
-        1 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => '__construct',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Create a new controller instance.
-     *
-     * @return void
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Auth',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'routeserviceprovider' => 'App\\Providers\\RouteServiceProvider',
-              'user' => 'App\\Models\\User',
-              'registersusers' => 'Illuminate\\Foundation\\Auth\\RegistersUsers',
-              'hash' => 'Illuminate\\Support\\Facades\\Hash',
-              'validator' => 'Illuminate\\Support\\Facades\\Validator',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        2 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'validator',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Get a validator for an incoming registration request.
-     *
-     * @param  array  $data
-     * @return \\Illuminate\\Contracts\\Validation\\Validator
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Auth',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'routeserviceprovider' => 'App\\Providers\\RouteServiceProvider',
-              'user' => 'App\\Models\\User',
-              'registersusers' => 'Illuminate\\Foundation\\Auth\\RegistersUsers',
-              'hash' => 'Illuminate\\Support\\Facades\\Hash',
-              'validator' => 'Illuminate\\Support\\Facades\\Validator',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => false,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'data',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        3 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'create',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Create a new user instance after a valid registration.
-     *
-     * @param  array  $data
-     * @return \\App\\Models\\User
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Auth',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'routeserviceprovider' => 'App\\Providers\\RouteServiceProvider',
-              'user' => 'App\\Models\\User',
-              'registersusers' => 'Illuminate\\Foundation\\Auth\\RegistersUsers',
-              'hash' => 'Illuminate\\Support\\Facades\\Hash',
-              'validator' => 'Illuminate\\Support\\Facades\\Validator',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => false,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'data',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
           ),
            'attributes' => 
           array (
@@ -14655,13 +14707,14 @@ return [
              'phpDocString' => '/**
      * Display a listing of the resource.
      *
-     * @return \\Illuminate\\Http\\Response
+     * @return Response
      */',
              'namespace' => 'App\\Http\\Controllers',
              'uses' => 
             array (
               'cita' => 'App\\Models\\Citas\\Cita',
               'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
             ),
              'constUses' => 
             array (
@@ -14689,13 +14742,14 @@ return [
              'phpDocString' => '/**
      * Show the form for creating a new resource.
      *
-     * @return \\Illuminate\\Http\\Response
+     * @return Response
      */',
              'namespace' => 'App\\Http\\Controllers',
              'uses' => 
             array (
               'cita' => 'App\\Models\\Citas\\Cita',
               'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
             ),
              'constUses' => 
             array (
@@ -14723,14 +14777,14 @@ return [
              'phpDocString' => '/**
      * Store a newly created resource in storage.
      *
-     * @param  \\Illuminate\\Http\\Request  $request
-     * @return \\Illuminate\\Http\\Response
+     * @return Response
      */',
              'namespace' => 'App\\Http\\Controllers',
              'uses' => 
             array (
               'cita' => 'App\\Models\\Citas\\Cita',
               'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
             ),
              'constUses' => 
             array (
@@ -14769,14 +14823,14 @@ return [
              'phpDocString' => '/**
      * Display the specified resource.
      *
-     * @param  \\App\\Models\\Citas\\Cita  $cita
-     * @return \\Illuminate\\Http\\Response
+     * @return Response
      */',
              'namespace' => 'App\\Http\\Controllers',
              'uses' => 
             array (
               'cita' => 'App\\Models\\Citas\\Cita',
               'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
             ),
              'constUses' => 
             array (
@@ -14815,14 +14869,14 @@ return [
              'phpDocString' => '/**
      * Show the form for editing the specified resource.
      *
-     * @param  \\App\\Models\\Citas\\Cita  $cita
-     * @return \\Illuminate\\Http\\Response
+     * @return Response
      */',
              'namespace' => 'App\\Http\\Controllers',
              'uses' => 
             array (
               'cita' => 'App\\Models\\Citas\\Cita',
               'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
             ),
              'constUses' => 
             array (
@@ -14861,15 +14915,14 @@ return [
              'phpDocString' => '/**
      * Update the specified resource in storage.
      *
-     * @param  \\Illuminate\\Http\\Request  $request
-     * @param  \\App\\Models\\Citas\\Cita  $cita
-     * @return \\Illuminate\\Http\\Response
+     * @return Response
      */',
              'namespace' => 'App\\Http\\Controllers',
              'uses' => 
             array (
               'cita' => 'App\\Models\\Citas\\Cita',
               'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
             ),
              'constUses' => 
             array (
@@ -14919,14 +14972,14 @@ return [
              'phpDocString' => '/**
      * Remove the specified resource from storage.
      *
-     * @param  \\App\\Models\\Citas\\Cita  $cita
-     * @return \\Illuminate\\Http\\Response
+     * @return Response
      */',
              'namespace' => 'App\\Http\\Controllers',
              'uses' => 
             array (
               'cita' => 'App\\Models\\Citas\\Cita',
               'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
             ),
              'constUses' => 
             array (
@@ -15009,14 +15062,15 @@ return [
              'phpDocString' => '/**
      * Lista todas las Administradoras de Salud (EPS).
      *
-     * @return \\Illuminate\\Http\\JsonResponse Lista de administradoras de salud.
+     * @return JsonResponse Lista de administradoras de salud.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'configadminsalud' => 'App\\Models\\Configuracion\\ConfigAdminSalud',
               'configadminsaludrequest' => 'App\\Http\\Requests\\Configuracion\\ConfigAdminSaludRequest',
+              'configadminsalud' => 'App\\Models\\Configuracion\\ConfigAdminSalud',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
             ),
              'constUses' => 
             array (
@@ -15044,16 +15098,17 @@ return [
              'phpDocString' => '/**
      * Crea una nueva Administradora de Salud.
      *
-     * @param  ConfigAdminSaludRequest  $request Datos de la administradora.
-     * @param  ConfigAdminSalud  $configAdminSalud Instancia del modelo (inyección de dependencia vacía).
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación de creación.
+     * @param  ConfigAdminSaludRequest  $request  Datos de la administradora.
+     * @param  ConfigAdminSalud  $configAdminSalud  Instancia del modelo (inyección de dependencia vacía).
+     * @return JsonResponse Confirmación de creación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'configadminsalud' => 'App\\Models\\Configuracion\\ConfigAdminSalud',
               'configadminsaludrequest' => 'App\\Http\\Requests\\Configuracion\\ConfigAdminSaludRequest',
+              'configadminsalud' => 'App\\Models\\Configuracion\\ConfigAdminSalud',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
             ),
              'constUses' => 
             array (
@@ -15103,16 +15158,17 @@ return [
              'phpDocString' => '/**
      * Actualiza una Administradora de Salud.
      *
-     * @param  ConfigAdminSaludRequest  $request Datos actualizados.
-     * @param  ConfigAdminSalud  $configAdminSalud Instancia a actualizar.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación de actualización.
+     * @param  ConfigAdminSaludRequest  $request  Datos actualizados.
+     * @param  ConfigAdminSalud  $configAdminSalud  Instancia a actualizar.
+     * @return JsonResponse Confirmación de actualización.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'configadminsalud' => 'App\\Models\\Configuracion\\ConfigAdminSalud',
               'configadminsaludrequest' => 'App\\Http\\Requests\\Configuracion\\ConfigAdminSaludRequest',
+              'configadminsalud' => 'App\\Models\\Configuracion\\ConfigAdminSalud',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
             ),
              'constUses' => 
             array (
@@ -15162,15 +15218,16 @@ return [
              'phpDocString' => '/**
      * Elimina una Administradora de Salud.
      *
-     * @param  ConfigAdminSalud  $configAdminSalud Instancia a eliminar.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación de eliminación.
+     * @param  ConfigAdminSalud  $configAdminSalud  Instancia a eliminar.
+     * @return JsonResponse Confirmación de eliminación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'configadminsalud' => 'App\\Models\\Configuracion\\ConfigAdminSalud',
               'configadminsaludrequest' => 'App\\Http\\Requests\\Configuracion\\ConfigAdminSaludRequest',
+              'configadminsalud' => 'App\\Models\\Configuracion\\ConfigAdminSalud',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
             ),
              'constUses' => 
             array (
@@ -15253,7 +15310,7 @@ return [
              'phpDocString' => '/**
      * Lista todos los diagnósticos (CIE-10) ordenados alfabéticamente.
      *
-     * @return \\Illuminate\\Http\\JsonResponse Lista de diagnósticos.
+     * @return JsonResponse Lista de diagnósticos.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
@@ -15261,6 +15318,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configdiagnosticorequest' => 'App\\Http\\Requests\\Configuracion\\ConfigDiagnosticoRequest',
               'configdiagnostico' => 'App\\Models\\Configuracion\\ConfigDiagnostico',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
             ),
              'constUses' => 
             array (
@@ -15288,9 +15346,9 @@ return [
              'phpDocString' => '/**
      * Crea un nuevo diagnóstico.
      *
-     * @param  ConfigDiagnosticoRequest  $request Datos del diagnóstico.
-     * @param  ConfigDiagnostico  $configDiagnostico Instancia del modelo.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación de creación.
+     * @param  ConfigDiagnosticoRequest  $request  Datos del diagnóstico.
+     * @param  ConfigDiagnostico  $configDiagnostico  Instancia del modelo.
+     * @return JsonResponse Confirmación de creación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
@@ -15298,6 +15356,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configdiagnosticorequest' => 'App\\Http\\Requests\\Configuracion\\ConfigDiagnosticoRequest',
               'configdiagnostico' => 'App\\Models\\Configuracion\\ConfigDiagnostico',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
             ),
              'constUses' => 
             array (
@@ -15347,9 +15406,9 @@ return [
              'phpDocString' => '/**
      * Actualiza un diagnóstico existente.
      *
-     * @param  ConfigDiagnosticoRequest  $request Datos actualizados.
-     * @param  ConfigDiagnostico  $configDiagnostico Instancia a actualizar.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación de actualización.
+     * @param  ConfigDiagnosticoRequest  $request  Datos actualizados.
+     * @param  ConfigDiagnostico  $configDiagnostico  Instancia a actualizar.
+     * @return JsonResponse Confirmación de actualización.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
@@ -15357,6 +15416,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configdiagnosticorequest' => 'App\\Http\\Requests\\Configuracion\\ConfigDiagnosticoRequest',
               'configdiagnostico' => 'App\\Models\\Configuracion\\ConfigDiagnostico',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
             ),
              'constUses' => 
             array (
@@ -15406,8 +15466,8 @@ return [
              'phpDocString' => '/**
      * Elimina un diagnóstico.
      *
-     * @param  ConfigDiagnostico  $configDiagnostico Instancia a eliminar.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación de eliminación.
+     * @param  ConfigDiagnostico  $configDiagnostico  Instancia a eliminar.
+     * @return JsonResponse Confirmación de eliminación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
@@ -15415,6 +15475,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configdiagnosticorequest' => 'App\\Http\\Requests\\Configuracion\\ConfigDiagnosticoRequest',
               'configdiagnostico' => 'App\\Models\\Configuracion\\ConfigDiagnostico',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
             ),
              'constUses' => 
             array (
@@ -15479,14 +15540,14 @@ return [
              'phpDocString' => '/**
      * Lista todos los módulos configurados en el sistema.
      *
-     * @return \\Illuminate\\Http\\JsonResponse Lista de módulos.
+     * @return JsonResponse Lista de módulos.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configmodulo' => 'App\\Models\\Configuracion\\ConfigModulo',
-              'request' => 'Illuminate\\Http\\Request',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
             ),
              'constUses' => 
             array (
@@ -15514,14 +15575,14 @@ return [
              'phpDocString' => '/**
      * Lista todos los módulos (Alias de index).
      *
-     * @return \\Illuminate\\Http\\JsonResponse Lista de módulos.
+     * @return JsonResponse Lista de módulos.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configmodulo' => 'App\\Models\\Configuracion\\ConfigModulo',
-              'request' => 'Illuminate\\Http\\Request',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
             ),
              'constUses' => 
             array (
@@ -15593,13 +15654,14 @@ return [
              'phpDocString' => '/**
      * Lista todas las plantillas de lectura.
      *
-     * @return \\Illuminate\\Http\\JsonResponse Lista de plantillas con relaciones (tipo, médico).
+     * @return JsonResponse Lista de plantillas con relaciones (tipo, médico).
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configplantilla' => 'App\\Models\\Configuracion\\ConfigPlantilla',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -15633,14 +15695,15 @@ return [
      * 2. Crea el registro en la base de datos.
      * 3. Retorna la plantilla creada.
      *
-     * @param Request $request Datos de la plantilla.
-     * @return \\Illuminate\\Http\\JsonResponse Datos de la plantilla creada.
+     * @param  Request  $request  Datos de la plantilla.
+     * @return JsonResponse Datos de la plantilla creada.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configplantilla' => 'App\\Models\\Configuracion\\ConfigPlantilla',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -15680,14 +15743,15 @@ return [
              'phpDocString' => '/**
      * Muestra una plantilla específica.
      *
-     * @param int $id ID de la plantilla.
-     * @return \\Illuminate\\Http\\JsonResponse Datos de la plantilla.
+     * @param  int  $id  ID de la plantilla.
+     * @return JsonResponse Datos de la plantilla.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configplantilla' => 'App\\Models\\Configuracion\\ConfigPlantilla',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -15733,15 +15797,16 @@ return [
      * 3. Actualiza el registro.
      * 4. Retorna la plantilla actualizada.
      *
-     * @param Request $request Datos a actualizar.
-     * @param int $id ID de la plantilla.
-     * @return \\Illuminate\\Http\\JsonResponse Datos actualizados.
+     * @param  Request  $request  Datos a actualizar.
+     * @param  int  $id  ID de la plantilla.
+     * @return JsonResponse Datos actualizados.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configplantilla' => 'App\\Models\\Configuracion\\ConfigPlantilla',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -15792,14 +15857,15 @@ return [
              'phpDocString' => '/**
      * Elimina una plantilla.
      *
-     * @param int $id ID de la plantilla.
-     * @return \\Illuminate\\Http\\JsonResponse Respuesta vacía (204).
+     * @param  int  $id  ID de la plantilla.
+     * @return JsonResponse Respuesta vacía (204).
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configplantilla' => 'App\\Models\\Configuracion\\ConfigPlantilla',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -15839,13 +15905,14 @@ return [
              'phpDocString' => '/**
      * Lista las plantillas activas.
      *
-     * @return \\Illuminate\\Http\\JsonResponse Lista de plantillas activas.
+     * @return JsonResponse Lista de plantillas activas.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configplantilla' => 'App\\Models\\Configuracion\\ConfigPlantilla',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -15918,13 +15985,14 @@ return [
              'phpDocString' => '/**
      * Lista todos los tipos de plantillas.
      *
-     * @return \\Illuminate\\Http\\JsonResponse Lista de tipos de plantillas.
+     * @return JsonResponse Lista de tipos de plantillas.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configplantillatipo' => 'App\\Models\\Configuracion\\ConfigPlantillaTipo',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -15958,14 +16026,15 @@ return [
      * 2. Crea el registro.
      * 3. Retorna el tipo creado.
      *
-     * @param Request $request Datos del tipo de plantilla.
-     * @return \\Illuminate\\Http\\JsonResponse Datos del tipo creado.
+     * @param  Request  $request  Datos del tipo de plantilla.
+     * @return JsonResponse Datos del tipo creado.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configplantillatipo' => 'App\\Models\\Configuracion\\ConfigPlantillaTipo',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -16005,14 +16074,15 @@ return [
              'phpDocString' => '/**
      * Muestra un tipo de plantilla específico.
      *
-     * @param int $id ID del tipo de plantilla.
-     * @return \\Illuminate\\Http\\JsonResponse Datos del tipo de plantilla.
+     * @param  int  $id  ID del tipo de plantilla.
+     * @return JsonResponse Datos del tipo de plantilla.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configplantillatipo' => 'App\\Models\\Configuracion\\ConfigPlantillaTipo',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -16058,15 +16128,16 @@ return [
      * 3. Actualiza el registro.
      * 4. Retorna el tipo actualizado.
      *
-     * @param Request $request Datos a actualizar.
-     * @param int $id ID del tipo de plantilla.
-     * @return \\Illuminate\\Http\\JsonResponse Datos actualizados.
+     * @param  Request  $request  Datos a actualizar.
+     * @param  int  $id  ID del tipo de plantilla.
+     * @return JsonResponse Datos actualizados.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configplantillatipo' => 'App\\Models\\Configuracion\\ConfigPlantillaTipo',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -16117,14 +16188,15 @@ return [
              'phpDocString' => '/**
      * Elimina un tipo de plantilla.
      *
-     * @param int $id ID del tipo de plantilla.
-     * @return \\Illuminate\\Http\\JsonResponse Respuesta vacía (204).
+     * @param  int  $id  ID del tipo de plantilla.
+     * @return JsonResponse Respuesta vacía (204).
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configplantillatipo' => 'App\\Models\\Configuracion\\ConfigPlantillaTipo',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -16164,13 +16236,14 @@ return [
              'phpDocString' => '/**
      * Lista los tipos de plantillas activos.
      *
-     * @return \\Illuminate\\Http\\JsonResponse Lista de tipos activos.
+     * @return JsonResponse Lista de tipos activos.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configplantillatipo' => 'App\\Models\\Configuracion\\ConfigPlantillaTipo',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -16243,7 +16316,7 @@ return [
              'phpDocString' => '/**
      * Lista todas las prioridades configuradas.
      *
-     * @return \\Illuminate\\Http\\JsonResponse Lista de prioridades.
+     * @return JsonResponse Lista de prioridades.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
@@ -16251,8 +16324,8 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configprioridadrequest' => 'App\\Http\\Requests\\Configuracion\\ConfigPrioridadRequest',
               'configprioridad' => 'App\\Models\\Configuracion\\ConfigPrioridad',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
-              'auth' => 'Illuminate\\Support\\Facades\\Auth',
             ),
              'constUses' => 
             array (
@@ -16280,9 +16353,9 @@ return [
              'phpDocString' => '/**
      * Crea una nueva prioridad.
      *
-     * @param  ConfigPrioridadRequest  $request Datos de la prioridad.
-     * @param  ConfigPrioridad  $configPrioridad Instancia del modelo.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación de creación.
+     * @param  ConfigPrioridadRequest  $request  Datos de la prioridad.
+     * @param  ConfigPrioridad  $configPrioridad  Instancia del modelo.
+     * @return JsonResponse Confirmación de creación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
@@ -16290,8 +16363,8 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configprioridadrequest' => 'App\\Http\\Requests\\Configuracion\\ConfigPrioridadRequest',
               'configprioridad' => 'App\\Models\\Configuracion\\ConfigPrioridad',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
-              'auth' => 'Illuminate\\Support\\Facades\\Auth',
             ),
              'constUses' => 
             array (
@@ -16341,9 +16414,9 @@ return [
              'phpDocString' => '/**
      * Actualiza una prioridad existente.
      *
-     * @param  Request  $request Datos actualizados.
-     * @param  ConfigPrioridad  $configPrioridad Instancia a actualizar.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación de actualización.
+     * @param  Request  $request  Datos actualizados.
+     * @param  ConfigPrioridad  $configPrioridad  Instancia a actualizar.
+     * @return JsonResponse Confirmación de actualización.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
@@ -16351,8 +16424,8 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configprioridadrequest' => 'App\\Http\\Requests\\Configuracion\\ConfigPrioridadRequest',
               'configprioridad' => 'App\\Models\\Configuracion\\ConfigPrioridad',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
-              'auth' => 'Illuminate\\Support\\Facades\\Auth',
             ),
              'constUses' => 
             array (
@@ -16402,8 +16475,8 @@ return [
              'phpDocString' => '/**
      * Elimina una prioridad.
      *
-     * @param  ConfigPrioridad  $configPrioridad Instancia a eliminar.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación de eliminación.
+     * @param  ConfigPrioridad  $configPrioridad  Instancia a eliminar.
+     * @return JsonResponse Confirmación de eliminación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
@@ -16411,8 +16484,8 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configprioridadrequest' => 'App\\Http\\Requests\\Configuracion\\ConfigPrioridadRequest',
               'configprioridad' => 'App\\Models\\Configuracion\\ConfigPrioridad',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
-              'auth' => 'Illuminate\\Support\\Facades\\Auth',
             ),
              'constUses' => 
             array (
@@ -16495,7 +16568,7 @@ return [
              'phpDocString' => '/**
      * Lista todos los productos (CUPS) ordenados alfabéticamente.
      *
-     * @return \\Illuminate\\Http\\JsonResponse Lista de productos.
+     * @return JsonResponse Lista de productos.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
@@ -16503,8 +16576,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configproductorequest' => 'App\\Http\\Requests\\Configuracion\\ConfigProductoRequest',
               'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
-              'request' => 'Illuminate\\Http\\Request',
-              'rule' => 'Illuminate\\Validation\\Rule',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
             ),
              'constUses' => 
             array (
@@ -16532,8 +16604,8 @@ return [
              'phpDocString' => '/**
      * Muestra un producto específico.
      *
-     * @param  ConfigProducto  $configProducto Instancia del producto.
-     * @return \\Illuminate\\Http\\JsonResponse Datos del producto.
+     * @param  ConfigProducto  $configProducto  Instancia del producto.
+     * @return JsonResponse Datos del producto.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
@@ -16541,8 +16613,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configproductorequest' => 'App\\Http\\Requests\\Configuracion\\ConfigProductoRequest',
               'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
-              'request' => 'Illuminate\\Http\\Request',
-              'rule' => 'Illuminate\\Validation\\Rule',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
             ),
              'constUses' => 
             array (
@@ -16581,9 +16652,9 @@ return [
              'phpDocString' => '/**
      * Crea un nuevo producto.
      *
-     * @param  ConfigProductoRequest  $request Datos del producto.
-     * @param  ConfigProducto  $configProducto Instancia del modelo.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación de creación.
+     * @param  ConfigProductoRequest  $request  Datos del producto.
+     * @param  ConfigProducto  $configProducto  Instancia del modelo.
+     * @return JsonResponse Confirmación de creación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
@@ -16591,8 +16662,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configproductorequest' => 'App\\Http\\Requests\\Configuracion\\ConfigProductoRequest',
               'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
-              'request' => 'Illuminate\\Http\\Request',
-              'rule' => 'Illuminate\\Validation\\Rule',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
             ),
              'constUses' => 
             array (
@@ -16642,9 +16712,9 @@ return [
              'phpDocString' => '/**
      * Actualiza un producto existente.
      *
-     * @param  ConfigProductoRequest  $request Datos actualizados.
-     * @param  ConfigProducto  $configProducto Instancia a actualizar.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación de actualización.
+     * @param  ConfigProductoRequest  $request  Datos actualizados.
+     * @param  ConfigProducto  $configProducto  Instancia a actualizar.
+     * @return JsonResponse Confirmación de actualización.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
@@ -16652,8 +16722,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configproductorequest' => 'App\\Http\\Requests\\Configuracion\\ConfigProductoRequest',
               'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
-              'request' => 'Illuminate\\Http\\Request',
-              'rule' => 'Illuminate\\Validation\\Rule',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
             ),
              'constUses' => 
             array (
@@ -16703,8 +16772,8 @@ return [
              'phpDocString' => '/**
      * Elimina un producto.
      *
-     * @param  ConfigProducto  $configProducto Instancia a eliminar.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación de eliminación.
+     * @param  ConfigProducto  $configProducto  Instancia a eliminar.
+     * @return JsonResponse Confirmación de eliminación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
@@ -16712,8 +16781,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configproductorequest' => 'App\\Http\\Requests\\Configuracion\\ConfigProductoRequest',
               'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
-              'request' => 'Illuminate\\Http\\Request',
-              'rule' => 'Illuminate\\Validation\\Rule',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
             ),
              'constUses' => 
             array (
@@ -16796,14 +16864,14 @@ return [
              'phpDocString' => '/**
      * Lista todas las sedes ordenadas alfabéticamente.
      *
-     * @return \\Illuminate\\Http\\JsonResponse Lista de sedes.
+     * @return JsonResponse Lista de sedes.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'configsederequest' => 'App\\Http\\Requests\\Configuracion\\ConfigSedeRequest',
               'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
               'log' => 'Illuminate\\Support\\Facades\\Log',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
@@ -16844,16 +16912,16 @@ return [
      * 5. Procesa y guarda la plantilla Ecografía si se adjunta (encripta nombre).
      * 6. Guarda el registro en la base de datos.
      *
-     * @param Request $request Datos de la sede y archivos.
-     * @param ConfigSede $configsede Instancia vacía (no usada).
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación de creación o errores de validación.
+     * @param  Request  $request  Datos de la sede y archivos.
+     * @param  ConfigSede  $configsede  Instancia vacía (no usada).
+     * @return JsonResponse Confirmación de creación o errores de validación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'configsederequest' => 'App\\Http\\Requests\\Configuracion\\ConfigSedeRequest',
               'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
               'log' => 'Illuminate\\Support\\Facades\\Log',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
@@ -16908,15 +16976,15 @@ return [
              'phpDocString' => '/**
      * Retorna la sede buscada por ID.
      *
-     * @param ConfigSede $configsede Instancia de la sede.
+     * @param  ConfigSede  $configsede  Instancia de la sede.
      * @return ConfigSede Datos de la sede.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'configsederequest' => 'App\\Http\\Requests\\Configuracion\\ConfigSedeRequest',
               'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
               'log' => 'Illuminate\\Support\\Facades\\Log',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
@@ -16960,14 +17028,14 @@ return [
              'phpDocString' => '/**
      * Lista solo las sedes activas.
      *
-     * @return \\Illuminate\\Http\\JsonResponse Lista de sedes activas.
+     * @return JsonResponse Lista de sedes activas.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'configsederequest' => 'App\\Http\\Requests\\Configuracion\\ConfigSedeRequest',
               'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
               'log' => 'Illuminate\\Support\\Facades\\Log',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
@@ -17008,15 +17076,15 @@ return [
      * 5. Reemplaza plantillas (RX/Ecografía) si se envían nuevas, eliminando las anteriores.
      * 6. Guarda los cambios.
      *
-     * @param Request $request Datos actualizados y archivos.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación de actualización o errores.
+     * @param  Request  $request  Datos actualizados y archivos.
+     * @return JsonResponse Confirmación de actualización o errores.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'configsederequest' => 'App\\Http\\Requests\\Configuracion\\ConfigSedeRequest',
               'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
               'log' => 'Illuminate\\Support\\Facades\\Log',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
@@ -17054,73 +17122,21 @@ return [
         )),
         6 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'updateWitchPlantillas',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Método auxiliar para depuración de carga de archivos (No usado en producción).
-     *
-     * @param Request $request
-     * @return mixed Nombre del archivo o null.
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Configuracion',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'configsederequest' => 'App\\Http\\Requests\\Configuracion\\ConfigSedeRequest',
-              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
-              'request' => 'Illuminate\\Http\\Request',
-              'log' => 'Illuminate\\Support\\Facades\\Log',
-              'storage' => 'Illuminate\\Support\\Facades\\Storage',
-              'validator' => 'Illuminate\\Support\\Facades\\Validator',
-              'str' => 'Illuminate\\Support\\Str',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'request',
-               'type' => 'Illuminate\\Http\\Request',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        7 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'destroy',
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
      * Elimina una sede.
      *
-     * @param ConfigSede $configSede Instancia a eliminar.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación de eliminación.
+     * @param  ConfigSede  $configSede  Instancia a eliminar.
+     * @return JsonResponse Confirmación de eliminación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'configsederequest' => 'App\\Http\\Requests\\Configuracion\\ConfigSedeRequest',
               'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
               'log' => 'Illuminate\\Support\\Facades\\Log',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
@@ -17208,13 +17224,14 @@ return [
              'phpDocString' => '/**
      * Lista todos los tipos de documento.
      *
-     * @return \\Illuminate\\Http\\JsonResponse Lista de tipos de documento.
+     * @return JsonResponse Lista de tipos de documento.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configtipodocumento' => 'App\\Models\\Configuracion\\ConfigTipoDocumento',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -17243,14 +17260,15 @@ return [
              'phpDocString' => '/**
      * Crea un nuevo tipo de documento.
      *
-     * @param  Request  $request Datos del tipo de documento.
-     * @return \\Illuminate\\Http\\JsonResponse Datos del registro creado.
+     * @param  Request  $request  Datos del tipo de documento.
+     * @return JsonResponse Datos del registro creado.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configtipodocumento' => 'App\\Models\\Configuracion\\ConfigTipoDocumento',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -17290,14 +17308,15 @@ return [
              'phpDocString' => '/**
      * Muestra un tipo de documento específico.
      *
-     * @param  int  $id ID del tipo de documento.
-     * @return \\Illuminate\\Http\\JsonResponse Datos del tipo de documento o error 404.
+     * @param  int  $id  ID del tipo de documento.
+     * @return JsonResponse Datos del tipo de documento o error 404.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configtipodocumento' => 'App\\Models\\Configuracion\\ConfigTipoDocumento',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -17337,15 +17356,16 @@ return [
              'phpDocString' => '/**
      * Actualiza un tipo de documento.
      *
-     * @param  Request  $request Datos a actualizar.
-     * @param  int  $id ID del tipo de documento.
-     * @return \\Illuminate\\Http\\JsonResponse Datos actualizados o error 404.
+     * @param  Request  $request  Datos a actualizar.
+     * @param  int  $id  ID del tipo de documento.
+     * @return JsonResponse Datos actualizados o error 404.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configtipodocumento' => 'App\\Models\\Configuracion\\ConfigTipoDocumento',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -17396,14 +17416,15 @@ return [
              'phpDocString' => '/**
      * Elimina un tipo de documento.
      *
-     * @param  int  $id ID del tipo de documento.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación de eliminación o error 404.
+     * @param  int  $id  ID del tipo de documento.
+     * @return JsonResponse Confirmación de eliminación o error 404.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configtipodocumento' => 'App\\Models\\Configuracion\\ConfigTipoDocumento',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -17443,13 +17464,14 @@ return [
              'phpDocString' => '/**
      * Lista los tipos de documento activos.
      *
-     * @return \\Illuminate\\Http\\JsonResponse Lista de tipos de documento activos.
+     * @return JsonResponse Lista de tipos de documento activos.
      */',
              'namespace' => 'App\\Http\\Controllers\\Configuracion',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configtipodocumento' => 'App\\Models\\Configuracion\\ConfigTipoDocumento',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -17906,11 +17928,9 @@ return [
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'consentimientoplantilla' => 'App\\Models\\Consentimientos\\ConsentimientoPlantilla',
-              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
               'request' => 'Illuminate\\Http\\Request',
               'db' => 'Illuminate\\Support\\Facades\\DB',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
-              'str' => 'Illuminate\\Support\\Str',
             ),
              'constUses' => 
             array (
@@ -18137,28 +18157,7 @@ return [
         0 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'dashboard',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Endpoint principal del dashboard.
-     * Mantiene compatibilidad con el frontend actual (`/reportes.dashboard`).
-     * - Administrador: estadísticas globales
-     * - Otros roles: estadísticas filtradas por el usuario logueado
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
+           'phpDoc' => NULL,
            'byRef' => false,
            'public' => true,
            'private' => false,
@@ -18186,81 +18185,8 @@ return [
         )),
         1 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'buildDashboardPayload',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Construye el payload completo del dashboard (tarjetas + series para gráficas).
-     *
-     * @return array<string,mixed>
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => false,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => 'array',
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'request',
-               'type' => 'Illuminate\\Http\\Request',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        2 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'resolveScope',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Resuelve el "scope" del dashboard a partir de query params y rol.
-     *
-     * Reglas:
-     * - No admin: siempre queda forzado a su propio medico_id.
-     * - Admin: puede filtrar por medico_id (opcional).
-     *
-     * @return array{medico_id:int|null,sede_id:int|null,modalidad:string|null}
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
+           'phpDoc' => NULL,
            'byRef' => false,
            'public' => false,
            'private' => false,
@@ -18308,30 +18234,10 @@ return [
           array (
           ),
         )),
-        3 => 
+        2 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'getCatalogos',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Catálogos para poblar filtros en UI.
-     *
-     * @return array<string,mixed>
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
+           'name' => 'buildDashboardPayload',
+           'phpDoc' => NULL,
            'byRef' => false,
            'public' => false,
            'private' => false,
@@ -18343,8 +18249,8 @@ return [
           array (
             0 => 
             \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'isAdmin',
-               'type' => 'bool',
+               'name' => 'request',
+               'type' => 'Illuminate\\Http\\Request',
                'byRef' => false,
                'variadic' => false,
                'hasDefault' => false,
@@ -18363,46 +18269,61 @@ return [
               array (
               ),
             )),
+            2 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'days',
+               'type' => 'int',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+            3 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'isAdmin',
+               'type' => 'bool',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+            4 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'userId',
+               'type' => 'int',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
           ),
            'attributes' => 
           array (
           ),
         )),
-        4 => 
+        3 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'applyScopeToEstudioQuery',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Aplica el scope a una query Eloquent de `Estudio`.
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
+           'name' => 'getIndicadores',
+           'phpDoc' => NULL,
            'byRef' => false,
            'public' => false,
            'private' => false,
            'abstract' => false,
            'final' => false,
            'static' => false,
-           'returnType' => NULL,
+           'returnType' => 'array',
            'parameters' => 
           array (
             0 => 
             \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'q',
-               'type' => NULL,
+               'name' => 'scope',
+               'type' => 'array',
                'byRef' => false,
                'variadic' => false,
                'hasDefault' => false,
@@ -18411,6 +18332,35 @@ return [
               ),
             )),
             1 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'days',
+               'type' => 'int',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        4 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'getOperacion',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => false,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'array',
+           'parameters' => 
+          array (
+            0 => 
             \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
                'name' => 'scope',
                'type' => 'array',
@@ -18428,39 +18378,21 @@ return [
         )),
         5 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'applyScopeToJoinedEstudioQuery',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Aplica el scope a una query builder con join de estudios como alias `e`.
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
+           'name' => 'getCatalogos',
+           'phpDoc' => NULL,
            'byRef' => false,
            'public' => false,
            'private' => false,
            'abstract' => false,
            'final' => false,
            'static' => false,
-           'returnType' => NULL,
+           'returnType' => 'array',
            'parameters' => 
           array (
             0 => 
             \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'q',
-               'type' => NULL,
+               'name' => 'isAdmin',
+               'type' => 'bool',
                'byRef' => false,
                'variadic' => false,
                'hasDefault' => false,
@@ -18486,1345 +18418,8 @@ return [
         )),
         6 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'getIndicadores',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Indicadores principales del dashboard.
-     *
-     * @return array<string,int>
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => 'array',
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'scope',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        7 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'countEstudiosAsignados',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Total de estudios asignados (global o por médico).
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => 'int',
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'scope',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        8 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'countEstudiosTranscritos',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Total de estudios transcritos (leídos).
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => 'int',
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'scope',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        9 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'countEstudiosPendientesTranscripcion',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Total de estudios pendientes de transcripción.
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => 'int',
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'scope',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        10 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'countEstudiosPendientesLectura',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Total de estudios pendientes de lectura.
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => 'int',
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'scope',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        11 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'getOperacionHoy',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Métricas operativas para HOY (00:00 - 23:59) para tarjetas/alertas.
-     *
-     * @return array<string,int>
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => 'array',
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'scope',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        12 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'getCalidad',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Calidad: tiempos promedio y distribución de antigüedad (aging) en pendientes.
-     *
-     * @return array<string,mixed>
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => 'array',
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'scope',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-            1 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'days',
-               'type' => 'int',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => true,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        13 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'getSla',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * SLA por prioridad (lectura y transcripción) basado en `config_prioridades.tiempo` (minutos).
-     *
-     * @return array<string,mixed>
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => 'array',
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'scope',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-            1 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'days',
-               'type' => 'int',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => true,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        14 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'buildAlerts',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Construye alertas automáticas a partir de métricas.
-     *
-     * @return array<int,array<string,string|int|float>>
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => false,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => 'array',
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'operacion',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-            1 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'calidad',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-            2 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'sla',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        15 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'getTiemposPromedio',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Promedios (minutos) para:
-     * - asignado -> leído (created_at -> fechor_lectura)
-     * - leído -> transcrito (fechor_lectura -> fechor_trascrito)
-     *
-     * @return array<string,mixed>
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => 'array',
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'scope',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-            1 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'days',
-               'type' => 'int',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => true,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        16 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'getAgingPendientesLectura',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Distribución de antigüedad para pendientes de lectura (según created_at del estudio).
-     *
-     * @return array<int,array<string,mixed>>
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => 'array',
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'scope',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        17 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'getAgingPendientesTranscripcion',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Distribución de antigüedad para pendientes de transcripción (según fechor_lectura).
-     *
-     * @return array<int,array<string,mixed>>
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => 'array',
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'scope',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        18 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'getPendientesLecturaTop',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Top N estudios pendientes de lectura (más antiguos primero).
-     *
-     * @return \\Illuminate\\Support\\Collection<int, object>
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'scope',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-            1 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'limit',
-               'type' => 'int',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => true,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        19 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'getPendientesTranscripcionTop',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Top N estudios pendientes de transcripción (más antiguos desde lectura).
-     *
-     * @return \\Illuminate\\Support\\Collection<int, object>
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'scope',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-            1 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'limit',
-               'type' => 'int',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => true,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        20 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'getRankingMedicosTranscritos',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Ranking de médicos por transcripciones en el período.
-     *
-     * @return \\Illuminate\\Support\\Collection<int, object>
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'scope',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-            1 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'days',
-               'type' => 'int',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => true,
-               'attributes' => 
-              array (
-              ),
-            )),
-            2 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'limit',
-               'type' => 'int',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => true,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        21 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'getRankingUsuarioTranscritos',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * "Ranking" (una fila) para el usuario logueado: transcritos en el período.
-     *
-     * @return \\Illuminate\\Support\\Collection<int, object>
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'userId',
-               'type' => 'int',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-            1 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'scope',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-            2 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'days',
-               'type' => 'int',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => true,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        22 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'getTopModalidades',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Modalidades más solicitadas (global o por médico).
-     *
-     * @return \\Illuminate\\Support\\Collection<int, object>
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'scope',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-            1 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'limit',
-               'type' => 'int',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => true,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        23 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'getTranscritosPorDia',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Serie diaria de transcripciones (para gráficas).
-     *
-     * @return \\Illuminate\\Support\\Collection<int, object>
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'scope',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-            1 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'days',
-               'type' => 'int',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => true,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        24 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'getAsignadosPorDia',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Serie diaria de asignaciones (según estudios.created_at).
-     *
-     * @return \\Illuminate\\Support\\Collection<int, object>
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'scope',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-            1 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'days',
-               'type' => 'int',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => true,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        25 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'getLeidosPorDia',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Serie diaria de lecturas (según estudios_productos.fechor_lectura).
-     *
-     * @return \\Illuminate\\Support\\Collection<int, object>
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'scope',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-            1 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'days',
-               'type' => 'int',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => true,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        26 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'getEventosPorHoraHoy',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Distribución por hora (HOY) para asignados / leídos / transcritos.
-     *
-     * @return array<string, \\Illuminate\\Support\\Collection<int, object>>
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => 'array',
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'scope',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        27 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'getTranscritosPorSede',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Transcritos por sede (admin) en el período.
-     *
-     * @return \\Illuminate\\Support\\Collection<int, object>
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'scope',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-            1 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'days',
-               'type' => 'int',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => true,
-               'attributes' => 
-              array (
-              ),
-            )),
-            2 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'limit',
-               'type' => 'int',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => true,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        28 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'getHeatmap7d',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Heatmap (últimos N días) Hora x Día para asignados / leídos / transcritos.
-     *
-     * @return array<string, \\Illuminate\\Support\\Collection<int, object>>
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => 'array',
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'scope',
-               'type' => 'array',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-            1 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'days',
-               'type' => 'int',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => true,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        29 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'isAdministrador',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Determina si el usuario logueado tiene rol Administrador.
-     */',
-             'namespace' => 'App\\Http\\Controllers\\Dashboard',
-             'uses' => 
-            array (
-              'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
+           'phpDoc' => NULL,
            'byRef' => false,
            'public' => false,
            'private' => false,
@@ -19898,9 +18493,9 @@ return [
      * 4. Cruza resultados con Lidiag para marcar estudios ya agendados.
      * 5. Limpia caracteres inválidos UTF-8 antes de retornar JSON.
      *
-     * @param Request $request Filtros: `sede_id`, `bus_nom_num_docu`, `bus_fehc_ini`, `bus_fecha_fin`.
-     * @param Study $study Modelo de estudio DCM4CHEE.
-     * @return \\Illuminate\\Http\\Response Lista de estudios en formato JSON.
+     * @param  Request  $request  Filtros: `sede_id`, `bus_nom_num_docu`, `bus_fehc_ini`, `bus_fecha_fin`.
+     * @param  Study  $study  Modelo de estudio DCM4CHEE.
+     * @return Response Lista de estudios en formato JSON.
      */',
              'namespace' => 'App\\Http\\Controllers\\Dcm4chee',
              'uses' => 
@@ -19909,9 +18504,9 @@ return [
               'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'study' => 'App\\Models\\Dcm4chee\\Study',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'config' => 'Illuminate\\Support\\Facades\\Config',
               'request' => 'Illuminate\\Http\\Request',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'response' => 'Illuminate\\Http\\Response',
+              'config' => 'Illuminate\\Support\\Facades\\Config',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
             ),
              'constUses' => 
@@ -20042,8 +18637,10 @@ return [
               'consentimientoplantilla' => 'App\\Models\\Consentimientos\\ConsentimientoPlantilla',
               'ecografiaconsentimiento' => 'App\\Models\\Consentimientos\\EcografiaConsentimiento',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
-              'auth' => 'Illuminate\\Support\\Facades\\Auth',
+              'carbon' => 'Carbon\\Carbon',
+              'filesystemadapter' => 'Illuminate\\Filesystem\\FilesystemAdapter',
               'request' => 'Illuminate\\Http\\Request',
+              'auth' => 'Illuminate\\Support\\Facades\\Auth',
               'db' => 'Illuminate\\Support\\Facades\\DB',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
@@ -20105,8 +18702,10 @@ return [
               'consentimientoplantilla' => 'App\\Models\\Consentimientos\\ConsentimientoPlantilla',
               'ecografiaconsentimiento' => 'App\\Models\\Consentimientos\\EcografiaConsentimiento',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
-              'auth' => 'Illuminate\\Support\\Facades\\Auth',
+              'carbon' => 'Carbon\\Carbon',
+              'filesystemadapter' => 'Illuminate\\Filesystem\\FilesystemAdapter',
               'request' => 'Illuminate\\Http\\Request',
+              'auth' => 'Illuminate\\Support\\Facades\\Auth',
               'db' => 'Illuminate\\Support\\Facades\\DB',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
@@ -20156,8 +18755,10 @@ return [
               'consentimientoplantilla' => 'App\\Models\\Consentimientos\\ConsentimientoPlantilla',
               'ecografiaconsentimiento' => 'App\\Models\\Consentimientos\\EcografiaConsentimiento',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
-              'auth' => 'Illuminate\\Support\\Facades\\Auth',
+              'carbon' => 'Carbon\\Carbon',
+              'filesystemadapter' => 'Illuminate\\Filesystem\\FilesystemAdapter',
               'request' => 'Illuminate\\Http\\Request',
+              'auth' => 'Illuminate\\Support\\Facades\\Auth',
               'db' => 'Illuminate\\Support\\Facades\\DB',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
@@ -20218,8 +18819,10 @@ return [
               'consentimientoplantilla' => 'App\\Models\\Consentimientos\\ConsentimientoPlantilla',
               'ecografiaconsentimiento' => 'App\\Models\\Consentimientos\\EcografiaConsentimiento',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
-              'auth' => 'Illuminate\\Support\\Facades\\Auth',
+              'carbon' => 'Carbon\\Carbon',
+              'filesystemadapter' => 'Illuminate\\Filesystem\\FilesystemAdapter',
               'request' => 'Illuminate\\Http\\Request',
+              'auth' => 'Illuminate\\Support\\Facades\\Auth',
               'db' => 'Illuminate\\Support\\Facades\\DB',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
@@ -20501,23 +19104,22 @@ return [
      * 3. Aplica filtro por rango de fechas de creación si se proporcionan.
      * 4. Retorna la colección de ecografías en formato JSON.
      *
-     * @param Request $request Filtros de búsqueda (bus_nom_num_docu, bus_fehc_ini, bus_fehc_fin).
-     * @return \\Illuminate\\Http\\JsonResponse Lista de ecografías.
+     * @param  Request  $request  Filtros de búsqueda (bus_nom_num_docu, bus_fehc_ini, bus_fehc_fin).
+     * @return JsonResponse Lista de ecografías.
      */',
              'namespace' => 'App\\Http\\Controllers\\Ecografias',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'plantillaecografiacontroller' => 'App\\Http\\Controllers\\Ecografias\\PlantillaEcografiaController',
               'ecografiarequest' => 'App\\Http\\Requests\\Ecografias\\EcografiaRequest',
               'configadminsalud' => 'App\\Models\\Configuracion\\ConfigAdminSalud',
               'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
               'ecografia' => 'App\\Models\\Ecografias\\Ecografia',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
               'paciente' => 'App\\Models\\General\\Paciente',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
-              'auth' => 'Illuminate\\Support\\Facades\\Auth',
             ),
              'constUses' => 
             array (
@@ -20562,23 +19164,22 @@ return [
      * 3. Aplica filtros de búsqueda por paciente (nombre/documento) y fechas.
      * 4. Retorna los resultados filtrados.
      *
-     * @param Request $request Criterios de búsqueda (bus_nom_num_docu, bus_fehc_ini, bus_fehc_fin).
-     * @return \\Illuminate\\Http\\JsonResponse Lista detallada de ecografías con productos.
+     * @param  Request  $request  Criterios de búsqueda (bus_nom_num_docu, bus_fehc_ini, bus_fehc_fin).
+     * @return JsonResponse Lista detallada de ecografías con productos.
      */',
              'namespace' => 'App\\Http\\Controllers\\Ecografias',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'plantillaecografiacontroller' => 'App\\Http\\Controllers\\Ecografias\\PlantillaEcografiaController',
               'ecografiarequest' => 'App\\Http\\Requests\\Ecografias\\EcografiaRequest',
               'configadminsalud' => 'App\\Models\\Configuracion\\ConfigAdminSalud',
               'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
               'ecografia' => 'App\\Models\\Ecografias\\Ecografia',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
               'paciente' => 'App\\Models\\General\\Paciente',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
-              'auth' => 'Illuminate\\Support\\Facades\\Auth',
             ),
              'constUses' => 
             array (
@@ -20627,23 +19228,22 @@ return [
      *    b. Crea la relación EcografiaProducto.
      * 6. Retorna respuesta exitosa con los datos creados.
      *
-     * @param Request $request Datos completos de la admisión (paciente, cita, productos).
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación de creación o error.
+     * @param  Request  $request  Datos completos de la admisión (paciente, cita, productos).
+     * @return JsonResponse Confirmación de creación o error.
      */',
              'namespace' => 'App\\Http\\Controllers\\Ecografias',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'plantillaecografiacontroller' => 'App\\Http\\Controllers\\Ecografias\\PlantillaEcografiaController',
               'ecografiarequest' => 'App\\Http\\Requests\\Ecografias\\EcografiaRequest',
               'configadminsalud' => 'App\\Models\\Configuracion\\ConfigAdminSalud',
               'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
               'ecografia' => 'App\\Models\\Ecografias\\Ecografia',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
               'paciente' => 'App\\Models\\General\\Paciente',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
-              'auth' => 'Illuminate\\Support\\Facades\\Auth',
             ),
              'constUses' => 
             array (
@@ -20686,23 +19286,22 @@ return [
      * 1. Busca la ecografía por ID incluyendo relaciones.
      * 2. Retorna el objeto ecografía o error 404.
      *
-     * @param int $id ID de la ecografía.
-     * @return \\Illuminate\\Http\\JsonResponse Datos de la ecografía.
+     * @param  int  $id  ID de la ecografía.
+     * @return JsonResponse Datos de la ecografía.
      */',
              'namespace' => 'App\\Http\\Controllers\\Ecografias',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'plantillaecografiacontroller' => 'App\\Http\\Controllers\\Ecografias\\PlantillaEcografiaController',
               'ecografiarequest' => 'App\\Http\\Requests\\Ecografias\\EcografiaRequest',
               'configadminsalud' => 'App\\Models\\Configuracion\\ConfigAdminSalud',
               'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
               'ecografia' => 'App\\Models\\Ecografias\\Ecografia',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
               'paciente' => 'App\\Models\\General\\Paciente',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
-              'auth' => 'Illuminate\\Support\\Facades\\Auth',
             ),
              'constUses' => 
             array (
@@ -20746,24 +19345,23 @@ return [
      * 2. Actualiza con los datos validados del request.
      * 3. Retorna confirmación.
      *
-     * @param EcografiaRequest $request Datos a actualizar.
-     * @param int $id ID de la ecografía.
-     * @return \\Illuminate\\Http\\JsonResponse Datos actualizados.
+     * @param  EcografiaRequest  $request  Datos a actualizar.
+     * @param  int  $id  ID de la ecografía.
+     * @return JsonResponse Datos actualizados.
      */',
              'namespace' => 'App\\Http\\Controllers\\Ecografias',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'plantillaecografiacontroller' => 'App\\Http\\Controllers\\Ecografias\\PlantillaEcografiaController',
               'ecografiarequest' => 'App\\Http\\Requests\\Ecografias\\EcografiaRequest',
               'configadminsalud' => 'App\\Models\\Configuracion\\ConfigAdminSalud',
               'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
               'ecografia' => 'App\\Models\\Ecografias\\Ecografia',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
               'paciente' => 'App\\Models\\General\\Paciente',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
-              'auth' => 'Illuminate\\Support\\Facades\\Auth',
             ),
              'constUses' => 
             array (
@@ -20818,23 +19416,22 @@ return [
      * 2. Elimina el registro.
      * 3. Retorna mensaje de éxito.
      *
-     * @param int $id ID de la ecografía.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación.
+     * @param  int  $id  ID de la ecografía.
+     * @return JsonResponse Confirmación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Ecografias',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'plantillaecografiacontroller' => 'App\\Http\\Controllers\\Ecografias\\PlantillaEcografiaController',
               'ecografiarequest' => 'App\\Http\\Requests\\Ecografias\\EcografiaRequest',
               'configadminsalud' => 'App\\Models\\Configuracion\\ConfigAdminSalud',
               'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
               'ecografia' => 'App\\Models\\Ecografias\\Ecografia',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
               'paciente' => 'App\\Models\\General\\Paciente',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
-              'auth' => 'Illuminate\\Support\\Facades\\Auth',
             ),
              'constUses' => 
             array (
@@ -20879,23 +19476,22 @@ return [
      * 3. Registra motivo, usuario y fecha de anulación.
      * 4. Guarda los cambios.
      *
-     * @param int $id ID de la ecografía.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación.
+     * @param  int  $id  ID de la ecografía.
+     * @return JsonResponse Confirmación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Ecografias',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'plantillaecografiacontroller' => 'App\\Http\\Controllers\\Ecografias\\PlantillaEcografiaController',
               'ecografiarequest' => 'App\\Http\\Requests\\Ecografias\\EcografiaRequest',
               'configadminsalud' => 'App\\Models\\Configuracion\\ConfigAdminSalud',
               'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
               'ecografia' => 'App\\Models\\Ecografias\\Ecografia',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
               'paciente' => 'App\\Models\\General\\Paciente',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
-              'auth' => 'Illuminate\\Support\\Facades\\Auth',
             ),
              'constUses' => 
             array (
@@ -20938,24 +19534,23 @@ return [
      * 1. Invoca al PlantillaEcografiaController para procesar la plantilla Word y generar el PDF.
      * 2. Retorna la respuesta del controlador de plantillas (URL del PDF).
      *
-     * @param Request $request Datos para el reporte.
-     * @param Ecografia $ecografia Instancia de la ecografía (no usada directamente en el método, pero inyectada).
+     * @param  Request  $request  Datos para el reporte.
+     * @param  Ecografia  $ecografia  Instancia de la ecografía (no usada directamente en el método, pero inyectada).
      * @return mixed Respuesta de PlantillaEcografiaController::editWord.
      */',
              'namespace' => 'App\\Http\\Controllers\\Ecografias',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'plantillaecografiacontroller' => 'App\\Http\\Controllers\\Ecografias\\PlantillaEcografiaController',
               'ecografiarequest' => 'App\\Http\\Requests\\Ecografias\\EcografiaRequest',
               'configadminsalud' => 'App\\Models\\Configuracion\\ConfigAdminSalud',
               'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
               'ecografia' => 'App\\Models\\Ecografias\\Ecografia',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
               'paciente' => 'App\\Models\\General\\Paciente',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
-              'auth' => 'Illuminate\\Support\\Facades\\Auth',
             ),
              'constUses' => 
             array (
@@ -21035,7 +19630,7 @@ return [
      * 1. Consulta el modelo EcografiaProducto con sus relaciones (ecografia, medico, producto).
      * 2. Retorna la colección en formato JSON.
      *
-     * @return \\Illuminate\\Http\\JsonResponse Lista de productos de ecografías.
+     * @return JsonResponse Lista de productos de ecografías.
      */',
              'namespace' => 'App\\Http\\Controllers\\Ecografias',
              'uses' => 
@@ -21043,6 +19638,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'ecografiaproductorequest' => 'App\\Http\\Requests\\Ecografias\\EcografiaProductoRequest',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -21077,6 +19673,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'ecografiaproductorequest' => 'App\\Http\\Requests\\Ecografias\\EcografiaProductoRequest',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -21109,8 +19706,8 @@ return [
      * 1. Crea el registro usando los datos validados del request.
      * 2. Retorna confirmación y los datos creados.
      *
-     * @param EcografiaProductoRequest $request Datos del producto a crear.
-     * @return \\Illuminate\\Http\\JsonResponse Datos del producto creado.
+     * @param  EcografiaProductoRequest  $request  Datos del producto a crear.
+     * @return JsonResponse Datos del producto creado.
      */',
              'namespace' => 'App\\Http\\Controllers\\Ecografias',
              'uses' => 
@@ -21118,6 +19715,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'ecografiaproductorequest' => 'App\\Http\\Requests\\Ecografias\\EcografiaProductoRequest',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -21161,8 +19759,8 @@ return [
      * 1. Busca el producto por ID incluyendo relaciones.
      * 2. Retorna el objeto o error 404.
      *
-     * @param int $id ID del producto de ecografía.
-     * @return \\Illuminate\\Http\\JsonResponse Datos del producto.
+     * @param  int  $id  ID del producto de ecografía.
+     * @return JsonResponse Datos del producto.
      */',
              'namespace' => 'App\\Http\\Controllers\\Ecografias',
              'uses' => 
@@ -21170,6 +19768,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'ecografiaproductorequest' => 'App\\Http\\Requests\\Ecografias\\EcografiaProductoRequest',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -21215,6 +19814,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'ecografiaproductorequest' => 'App\\Http\\Requests\\Ecografias\\EcografiaProductoRequest',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -21259,9 +19859,9 @@ return [
      * 2. Actualiza con los datos validados.
      * 3. Retorna confirmación.
      *
-     * @param EcografiaProductoRequest $request Datos a actualizar.
-     * @param int $id ID del producto de ecografía.
-     * @return \\Illuminate\\Http\\JsonResponse Datos actualizados.
+     * @param  EcografiaProductoRequest  $request  Datos a actualizar.
+     * @param  int  $id  ID del producto de ecografía.
+     * @return JsonResponse Datos actualizados.
      */',
              'namespace' => 'App\\Http\\Controllers\\Ecografias',
              'uses' => 
@@ -21269,6 +19869,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'ecografiaproductorequest' => 'App\\Http\\Requests\\Ecografias\\EcografiaProductoRequest',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -21324,8 +19925,8 @@ return [
      * 2. Elimina el registro.
      * 3. Retorna mensaje de éxito.
      *
-     * @param int $id ID del producto de ecografía.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación.
+     * @param  int  $id  ID del producto de ecografía.
+     * @return JsonResponse Confirmación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Ecografias',
              'uses' => 
@@ -21333,6 +19934,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'ecografiaproductorequest' => 'App\\Http\\Requests\\Ecografias\\EcografiaProductoRequest',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
@@ -21425,8 +20027,8 @@ return [
      * 6. Llama a convertDocxToPdf para generar el PDF.
      * 7. Elimina el .docx temporal y retorna la URL del PDF.
      *
-     * @param Request $request Datos del estudio, paciente, médico y contenido del reporte.
-     * @return \\Illuminate\\Http\\JsonResponse Retorna la URL del PDF generado o un mensaje de error.
+     * @param  Request  $request  Datos del estudio, paciente, médico y contenido del reporte.
+     * @return JsonResponse Retorna la URL del PDF generado o un mensaje de error.
      */',
              'namespace' => 'App\\Http\\Controllers\\Ecografias',
              'uses' => 
@@ -21435,14 +20037,13 @@ return [
               'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
               'user' => 'App\\Models\\User',
-              'request' => 'Illuminate\\Http\\Request',
-              'templateprocessor' => 'PhpOffice\\PhpWord\\TemplateProcessor',
               'carbon' => 'Carbon\\Carbon',
-              'textrun' => 'PhpOffice\\PhpWord\\Element\\TextRun',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
               'log' => 'Illuminate\\Support\\Facades\\Log',
-              'process' => 'Symfony\\Component\\Process\\Process',
-              'response' => 'Illuminate\\Support\\Facades\\Response',
               'str' => 'Illuminate\\Support\\Str',
+              'templateprocessor' => 'PhpOffice\\PhpWord\\TemplateProcessor',
+              'process' => 'Symfony\\Component\\Process\\Process',
             ),
              'constUses' => 
             array (
@@ -21484,8 +20085,8 @@ return [
      * Verifica la existencia del archivo de entrada y de la herramienta unoconv.
      * Ejecuta el comando de sistema para la conversión.
      *
-     * @param string $nomPlantilla Nombre base del archivo (sin extensión) ubicado en storage/app/reporte_lecturas/
-     * @return string|\\Illuminate\\Http\\JsonResponse Retorna un JSON con la URL pública del PDF o un error.
+     * @param  string  $nomPlantilla  Nombre base del archivo (sin extensión) ubicado en storage/app/reporte_lecturas/
+     * @return string|JsonResponse Retorna un JSON con la URL pública del PDF o un error.
      */',
              'namespace' => 'App\\Http\\Controllers\\Ecografias',
              'uses' => 
@@ -21494,14 +20095,13 @@ return [
               'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
               'user' => 'App\\Models\\User',
-              'request' => 'Illuminate\\Http\\Request',
-              'templateprocessor' => 'PhpOffice\\PhpWord\\TemplateProcessor',
               'carbon' => 'Carbon\\Carbon',
-              'textrun' => 'PhpOffice\\PhpWord\\Element\\TextRun',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
               'log' => 'Illuminate\\Support\\Facades\\Log',
-              'process' => 'Symfony\\Component\\Process\\Process',
-              'response' => 'Illuminate\\Support\\Facades\\Response',
               'str' => 'Illuminate\\Support\\Str',
+              'templateprocessor' => 'PhpOffice\\PhpWord\\TemplateProcessor',
+              'process' => 'Symfony\\Component\\Process\\Process',
             ),
              'constUses' => 
             array (
@@ -21590,18 +20190,18 @@ return [
      * 3. Si la acción es \'TERMINAR_LECTURA\', actualiza todos los productos, establece fecha de lectura y cambia el estado a \'LEIDO\'.
      * 4. Retorna mensaje de éxito.
      *
-     * @param Request $request Datos de la lectura (texto, opinion, accion).
-     * @param int $id ID de la ecografía.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación de guardado.
+     * @param  Request  $request  Datos de la lectura (texto, opinion, accion).
+     * @param  int  $id  ID de la ecografía.
+     * @return JsonResponse Confirmación de guardado.
      */',
              'namespace' => 'App\\Http\\Controllers\\Ecografias',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'plantillaestudiocontroller' => 'App\\Http\\Controllers\\Estudios\\PlantillaEstudioController',
               'ecografia' => 'App\\Models\\Ecografias\\Ecografia',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
               'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
               'db' => 'Illuminate\\Support\\Facades\\DB',
             ),
@@ -21659,17 +20259,17 @@ return [
      * 3. Filtra por ID del médico y estado del producto \'EN PROCESO\'.
      * 4. Retorna la lista de ecografías pendientes.
      *
-     * @param int $idMedico ID del médico.
-     * @return \\Illuminate\\Http\\JsonResponse Lista de ecografías pendientes.
+     * @param  int  $idMedico  ID del médico.
+     * @return JsonResponse Lista de ecografías pendientes.
      */',
              'namespace' => 'App\\Http\\Controllers\\Ecografias',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'plantillaestudiocontroller' => 'App\\Http\\Controllers\\Estudios\\PlantillaEstudioController',
               'ecografia' => 'App\\Models\\Ecografias\\Ecografia',
               'ecografiaproducto' => 'App\\Models\\Ecografias\\EcografiaProducto',
               'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
               'db' => 'Illuminate\\Support\\Facades\\DB',
             ),
@@ -21753,25 +20353,16 @@ return [
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
      * Sube y convierte un archivo de audio a MP3 usando FFmpeg.
-     *
-     * Flujo del proceso:
-     * 1. Valida que el archivo tenga contenido (> 20KB).
-     * 2. Guarda el archivo original temporalmente.
-     * 3. Convierte el audio a MP3 con bitrate reducido (64 kbps) usando FFmpeg.
-     * 4. Elimina el archivo original.
-     * 5. Guarda la referencia en la base de datos.
-     *
-     * @param Request $request Archivo de audio, `estudio_id`, `estudio_producto_id`.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación o error.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'estudioaudio' => 'App\\Models\\Estudio\\EstudioAudio',
-              'request' => 'Illuminate\\Http\\Request',
               'ffmpeg' => 'FFMpeg',
               'mp3' => 'FFMpeg\\Format\\Audio\\Mp3',
+              'filesystemadapter' => 'Illuminate\\Filesystem\\FilesystemAdapter',
+              'request' => 'Illuminate\\Http\\Request',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
               'str' => 'Illuminate\\Support\\Str',
             ),
@@ -21811,18 +20402,16 @@ return [
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
      * Lista los archivos de audio asociados a un estudio.
-     *
-     * @param Request $request ID del estudio (`estudio_id`).
-     * @return \\Illuminate\\Http\\JsonResponse Lista de audios con URL incluida.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'estudioaudio' => 'App\\Models\\Estudio\\EstudioAudio',
-              'request' => 'Illuminate\\Http\\Request',
               'ffmpeg' => 'FFMpeg',
               'mp3' => 'FFMpeg\\Format\\Audio\\Mp3',
+              'filesystemadapter' => 'Illuminate\\Filesystem\\FilesystemAdapter',
+              'request' => 'Illuminate\\Http\\Request',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
               'str' => 'Illuminate\\Support\\Str',
             ),
@@ -21862,21 +20451,16 @@ return [
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
      * Sirve un audio MP3 desde el disk "audios".
-     *
-     * Motivo: si no existe el symlink `public/audios` (storage:link),
-     * el navegador dará 404 al intentar acceder a `/{audios}/{filename}.mp3`.
-     *
-     * @param string $filename
-     * @return \\Symfony\\Component\\HttpFoundation\\BinaryFileResponse|\\Illuminate\\Http\\Response
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'estudioaudio' => 'App\\Models\\Estudio\\EstudioAudio',
-              'request' => 'Illuminate\\Http\\Request',
               'ffmpeg' => 'FFMpeg',
               'mp3' => 'FFMpeg\\Format\\Audio\\Mp3',
+              'filesystemadapter' => 'Illuminate\\Filesystem\\FilesystemAdapter',
+              'request' => 'Illuminate\\Http\\Request',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
               'str' => 'Illuminate\\Support\\Str',
             ),
@@ -21977,7 +20561,7 @@ return [
              'phpDocString' => '/**
      * Lista todos los estudios.
      *
-     * @return \\Illuminate\\Http\\JsonResponse Lista de estudios.
+     * @return JsonResponse Lista de estudios.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -21985,19 +20569,24 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'sahicontroller' => 'App\\Http\\Controllers\\Interface\\SAHIController',
               'sahitranscibircontroller' => 'App\\Http\\Controllers\\Interface\\SAHITranscibirController',
-              'paciente' => 'App\\Models\\General\\Paciente',
+              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
+              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
               'estudiodiagnostico' => 'App\\Models\\Estudio\\EstudioDiagnostico',
               'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'request' => 'Illuminate\\Http\\Request',
-              'carbon' => 'Illuminate\\Support\\Carbon',
-              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
-              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudiosoporteshc' => 'App\\Models\\Estudio\\EstudioSoportesHC',
+              'paciente' => 'App\\Models\\General\\Paciente',
+              'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
+              'uploadedfile' => 'Illuminate\\Http\\UploadedFile',
+              'carbon' => 'Illuminate\\Support\\Carbon',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'str' => 'Illuminate\\Support\\Str',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'binaryfileresponse' => 'Symfony\\Component\\HttpFoundation\\BinaryFileResponse',
             ),
              'constUses' => 
             array (
@@ -22035,8 +20624,8 @@ return [
      * 7. Procesa y guarda los archivos de soporte (HC) si existen.
      * 8. Retorna confirmación.
      *
-     * @param Request $request Datos del estudio y archivos.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación de creación o errores.
+     * @param  Request  $request  Datos del estudio y archivos.
+     * @return JsonResponse Confirmación de creación o errores.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -22044,19 +20633,24 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'sahicontroller' => 'App\\Http\\Controllers\\Interface\\SAHIController',
               'sahitranscibircontroller' => 'App\\Http\\Controllers\\Interface\\SAHITranscibirController',
-              'paciente' => 'App\\Models\\General\\Paciente',
+              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
+              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
               'estudiodiagnostico' => 'App\\Models\\Estudio\\EstudioDiagnostico',
               'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'request' => 'Illuminate\\Http\\Request',
-              'carbon' => 'Illuminate\\Support\\Carbon',
-              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
-              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudiosoporteshc' => 'App\\Models\\Estudio\\EstudioSoportesHC',
+              'paciente' => 'App\\Models\\General\\Paciente',
+              'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
+              'uploadedfile' => 'Illuminate\\Http\\UploadedFile',
+              'carbon' => 'Illuminate\\Support\\Carbon',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'str' => 'Illuminate\\Support\\Str',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'binaryfileresponse' => 'Symfony\\Component\\HttpFoundation\\BinaryFileResponse',
             ),
              'constUses' => 
             array (
@@ -22095,8 +20689,8 @@ return [
              'phpDocString' => '/**
      * Procesa y almacena un archivo de soporte de Historia Clínica.
      *
-     * @param \\Illuminate\\Http\\UploadedFile $archivo Archivo a procesar.
-     * @param int $estudioId ID del estudio asociado.
+     * @param  UploadedFile  $archivo  Archivo a procesar.
+     * @param  int  $estudioId  ID del estudio asociado.
      * @return void
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
@@ -22105,19 +20699,24 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'sahicontroller' => 'App\\Http\\Controllers\\Interface\\SAHIController',
               'sahitranscibircontroller' => 'App\\Http\\Controllers\\Interface\\SAHITranscibirController',
-              'paciente' => 'App\\Models\\General\\Paciente',
+              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
+              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
               'estudiodiagnostico' => 'App\\Models\\Estudio\\EstudioDiagnostico',
               'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'request' => 'Illuminate\\Http\\Request',
-              'carbon' => 'Illuminate\\Support\\Carbon',
-              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
-              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudiosoporteshc' => 'App\\Models\\Estudio\\EstudioSoportesHC',
+              'paciente' => 'App\\Models\\General\\Paciente',
+              'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
+              'uploadedfile' => 'Illuminate\\Http\\UploadedFile',
+              'carbon' => 'Illuminate\\Support\\Carbon',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'str' => 'Illuminate\\Support\\Str',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'binaryfileresponse' => 'Symfony\\Component\\HttpFoundation\\BinaryFileResponse',
             ),
              'constUses' => 
             array (
@@ -22173,9 +20772,9 @@ return [
      * 3. Ordena por prioridad (nivel).
      * 4. Retorna la lista de pendientes.
      *
-     * @param Request $request Filtros (id médico, sede_id).
-     * @param Estudio $estudio Instancia vacía (no usada).
-     * @return \\Illuminate\\Http\\JsonResponse Lista de estudios pendientes.
+     * @param  Request  $request  Filtros (id médico, sede_id).
+     * @param  Estudio  $estudio  Instancia vacía (no usada).
+     * @return JsonResponse Lista de estudios pendientes.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -22183,19 +20782,24 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'sahicontroller' => 'App\\Http\\Controllers\\Interface\\SAHIController',
               'sahitranscibircontroller' => 'App\\Http\\Controllers\\Interface\\SAHITranscibirController',
-              'paciente' => 'App\\Models\\General\\Paciente',
+              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
+              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
               'estudiodiagnostico' => 'App\\Models\\Estudio\\EstudioDiagnostico',
               'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'request' => 'Illuminate\\Http\\Request',
-              'carbon' => 'Illuminate\\Support\\Carbon',
-              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
-              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudiosoporteshc' => 'App\\Models\\Estudio\\EstudioSoportesHC',
+              'paciente' => 'App\\Models\\General\\Paciente',
+              'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
+              'uploadedfile' => 'Illuminate\\Http\\UploadedFile',
+              'carbon' => 'Illuminate\\Support\\Carbon',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'str' => 'Illuminate\\Support\\Str',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'binaryfileresponse' => 'Symfony\\Component\\HttpFoundation\\BinaryFileResponse',
             ),
              'constUses' => 
             array (
@@ -22234,9 +20838,9 @@ return [
              'phpDocString' => '/**
      * Guarda la lectura realizada por el médico.
      *
-     * @param Request $request Datos de la lectura.
-     * @param EstudioProducto $estudioProducto Instancia vacía (no usada).
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación.
+     * @param  Request  $request  Datos de la lectura.
+     * @param  EstudioProducto  $estudioProducto  Instancia vacía (no usada).
+     * @return JsonResponse Confirmación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -22244,19 +20848,24 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'sahicontroller' => 'App\\Http\\Controllers\\Interface\\SAHIController',
               'sahitranscibircontroller' => 'App\\Http\\Controllers\\Interface\\SAHITranscibirController',
-              'paciente' => 'App\\Models\\General\\Paciente',
+              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
+              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
               'estudiodiagnostico' => 'App\\Models\\Estudio\\EstudioDiagnostico',
               'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'request' => 'Illuminate\\Http\\Request',
-              'carbon' => 'Illuminate\\Support\\Carbon',
-              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
-              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudiosoporteshc' => 'App\\Models\\Estudio\\EstudioSoportesHC',
+              'paciente' => 'App\\Models\\General\\Paciente',
+              'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
+              'uploadedfile' => 'Illuminate\\Http\\UploadedFile',
+              'carbon' => 'Illuminate\\Support\\Carbon',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'str' => 'Illuminate\\Support\\Str',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'binaryfileresponse' => 'Symfony\\Component\\HttpFoundation\\BinaryFileResponse',
             ),
              'constUses' => 
             array (
@@ -22306,7 +20915,7 @@ return [
              'phpDocString' => '/**
      * Marca un estudio como visto.
      *
-     * @param int $id ID del producto de estudio.
+     * @param  int  $id  ID del producto de estudio.
      * @return void
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
@@ -22315,19 +20924,24 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'sahicontroller' => 'App\\Http\\Controllers\\Interface\\SAHIController',
               'sahitranscibircontroller' => 'App\\Http\\Controllers\\Interface\\SAHITranscibirController',
-              'paciente' => 'App\\Models\\General\\Paciente',
+              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
+              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
               'estudiodiagnostico' => 'App\\Models\\Estudio\\EstudioDiagnostico',
               'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'request' => 'Illuminate\\Http\\Request',
-              'carbon' => 'Illuminate\\Support\\Carbon',
-              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
-              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudiosoporteshc' => 'App\\Models\\Estudio\\EstudioSoportesHC',
+              'paciente' => 'App\\Models\\General\\Paciente',
+              'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
+              'uploadedfile' => 'Illuminate\\Http\\UploadedFile',
+              'carbon' => 'Illuminate\\Support\\Carbon',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'str' => 'Illuminate\\Support\\Str',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'binaryfileresponse' => 'Symfony\\Component\\HttpFoundation\\BinaryFileResponse',
             ),
              'constUses' => 
             array (
@@ -22366,8 +20980,8 @@ return [
              'phpDocString' => '/**
      * Lista los diagnósticos asociados a un estudio.
      *
-     * @param Request $request ID del estudio.
-     * @return \\Illuminate\\Http\\JsonResponse Lista de diagnósticos.
+     * @param  Request  $request  ID del estudio.
+     * @return JsonResponse Lista de diagnósticos.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -22375,19 +20989,24 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'sahicontroller' => 'App\\Http\\Controllers\\Interface\\SAHIController',
               'sahitranscibircontroller' => 'App\\Http\\Controllers\\Interface\\SAHITranscibirController',
-              'paciente' => 'App\\Models\\General\\Paciente',
+              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
+              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
               'estudiodiagnostico' => 'App\\Models\\Estudio\\EstudioDiagnostico',
               'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'request' => 'Illuminate\\Http\\Request',
-              'carbon' => 'Illuminate\\Support\\Carbon',
-              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
-              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudiosoporteshc' => 'App\\Models\\Estudio\\EstudioSoportesHC',
+              'paciente' => 'App\\Models\\General\\Paciente',
+              'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
+              'uploadedfile' => 'Illuminate\\Http\\UploadedFile',
+              'carbon' => 'Illuminate\\Support\\Carbon',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'str' => 'Illuminate\\Support\\Str',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'binaryfileresponse' => 'Symfony\\Component\\HttpFoundation\\BinaryFileResponse',
             ),
              'constUses' => 
             array (
@@ -22434,8 +21053,8 @@ return [
      *    - Fechas, nombre/documento, usuario asignador, médico.
      * 4. Ordena por prioridad.
      *
-     * @param Request $request Filtros de búsqueda.
-     * @return \\Illuminate\\Http\\JsonResponse Lista de estudios pendientes.
+     * @param  Request  $request  Filtros de búsqueda.
+     * @return JsonResponse Lista de estudios pendientes.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -22443,19 +21062,24 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'sahicontroller' => 'App\\Http\\Controllers\\Interface\\SAHIController',
               'sahitranscibircontroller' => 'App\\Http\\Controllers\\Interface\\SAHITranscibirController',
-              'paciente' => 'App\\Models\\General\\Paciente',
+              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
+              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
               'estudiodiagnostico' => 'App\\Models\\Estudio\\EstudioDiagnostico',
               'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'request' => 'Illuminate\\Http\\Request',
-              'carbon' => 'Illuminate\\Support\\Carbon',
-              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
-              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudiosoporteshc' => 'App\\Models\\Estudio\\EstudioSoportesHC',
+              'paciente' => 'App\\Models\\General\\Paciente',
+              'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
+              'uploadedfile' => 'Illuminate\\Http\\UploadedFile',
+              'carbon' => 'Illuminate\\Support\\Carbon',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'str' => 'Illuminate\\Support\\Str',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'binaryfileresponse' => 'Symfony\\Component\\HttpFoundation\\BinaryFileResponse',
             ),
              'constUses' => 
             array (
@@ -22499,8 +21123,8 @@ return [
      * 2. Aplica filtros por fechas, sede, paciente, usuario asignador y médico.
      * 3. Ordena por fecha de creación.
      *
-     * @param Request $request Filtros de búsqueda.
-     * @return \\Illuminate\\Http\\JsonResponse Lista de estudios asignados.
+     * @param  Request  $request  Filtros de búsqueda.
+     * @return JsonResponse Lista de estudios asignados.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -22508,19 +21132,24 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'sahicontroller' => 'App\\Http\\Controllers\\Interface\\SAHIController',
               'sahitranscibircontroller' => 'App\\Http\\Controllers\\Interface\\SAHITranscibirController',
-              'paciente' => 'App\\Models\\General\\Paciente',
+              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
+              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
               'estudiodiagnostico' => 'App\\Models\\Estudio\\EstudioDiagnostico',
               'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'request' => 'Illuminate\\Http\\Request',
-              'carbon' => 'Illuminate\\Support\\Carbon',
-              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
-              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudiosoporteshc' => 'App\\Models\\Estudio\\EstudioSoportesHC',
+              'paciente' => 'App\\Models\\General\\Paciente',
+              'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
+              'uploadedfile' => 'Illuminate\\Http\\UploadedFile',
+              'carbon' => 'Illuminate\\Support\\Carbon',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'str' => 'Illuminate\\Support\\Str',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'binaryfileresponse' => 'Symfony\\Component\\HttpFoundation\\BinaryFileResponse',
             ),
              'constUses' => 
             array (
@@ -22568,8 +21197,8 @@ return [
      *    - Convierte a PDF.
      *    - Notifica por email con `EstudioNotificacionController`.
      *
-     * @param Request $request Datos de transcripción y paciente.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación o error.
+     * @param  Request  $request  Datos de transcripción y paciente.
+     * @return JsonResponse Confirmación o error.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -22577,19 +21206,24 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'sahicontroller' => 'App\\Http\\Controllers\\Interface\\SAHIController',
               'sahitranscibircontroller' => 'App\\Http\\Controllers\\Interface\\SAHITranscibirController',
-              'paciente' => 'App\\Models\\General\\Paciente',
+              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
+              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
               'estudiodiagnostico' => 'App\\Models\\Estudio\\EstudioDiagnostico',
               'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'request' => 'Illuminate\\Http\\Request',
-              'carbon' => 'Illuminate\\Support\\Carbon',
-              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
-              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudiosoporteshc' => 'App\\Models\\Estudio\\EstudioSoportesHC',
+              'paciente' => 'App\\Models\\General\\Paciente',
+              'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
+              'uploadedfile' => 'Illuminate\\Http\\UploadedFile',
+              'carbon' => 'Illuminate\\Support\\Carbon',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'str' => 'Illuminate\\Support\\Str',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'binaryfileresponse' => 'Symfony\\Component\\HttpFoundation\\BinaryFileResponse',
             ),
              'constUses' => 
             array (
@@ -22628,8 +21262,8 @@ return [
              'phpDocString' => '/**
      * Lista estudios pendientes por leer o transcribir.
      *
-     * @param Request $request Filtros (no usados explícitamente en la consulta actual).
-     * @return \\Illuminate\\Http\\JsonResponse Lista de pendientes.
+     * @param  Request  $request  Filtros (no usados explícitamente en la consulta actual).
+     * @return JsonResponse Lista de pendientes.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -22637,19 +21271,24 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'sahicontroller' => 'App\\Http\\Controllers\\Interface\\SAHIController',
               'sahitranscibircontroller' => 'App\\Http\\Controllers\\Interface\\SAHITranscibirController',
-              'paciente' => 'App\\Models\\General\\Paciente',
+              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
+              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
               'estudiodiagnostico' => 'App\\Models\\Estudio\\EstudioDiagnostico',
               'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'request' => 'Illuminate\\Http\\Request',
-              'carbon' => 'Illuminate\\Support\\Carbon',
-              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
-              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudiosoporteshc' => 'App\\Models\\Estudio\\EstudioSoportesHC',
+              'paciente' => 'App\\Models\\General\\Paciente',
+              'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
+              'uploadedfile' => 'Illuminate\\Http\\UploadedFile',
+              'carbon' => 'Illuminate\\Support\\Carbon',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'str' => 'Illuminate\\Support\\Str',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'binaryfileresponse' => 'Symfony\\Component\\HttpFoundation\\BinaryFileResponse',
             ),
              'constUses' => 
             array (
@@ -22688,8 +21327,8 @@ return [
              'phpDocString' => '/**
      * Busca si un paciente tiene estudios por su número de documento.
      *
-     * @param Request $request Número de documento.
-     * @return \\Illuminate\\Http\\JsonResponse \'Si\' o \'No\'.
+     * @param  Request  $request  Número de documento.
+     * @return JsonResponse \'Si\' o \'No\'.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -22697,19 +21336,24 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'sahicontroller' => 'App\\Http\\Controllers\\Interface\\SAHIController',
               'sahitranscibircontroller' => 'App\\Http\\Controllers\\Interface\\SAHITranscibirController',
-              'paciente' => 'App\\Models\\General\\Paciente',
+              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
+              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
               'estudiodiagnostico' => 'App\\Models\\Estudio\\EstudioDiagnostico',
               'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'request' => 'Illuminate\\Http\\Request',
-              'carbon' => 'Illuminate\\Support\\Carbon',
-              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
-              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudiosoporteshc' => 'App\\Models\\Estudio\\EstudioSoportesHC',
+              'paciente' => 'App\\Models\\General\\Paciente',
+              'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
+              'uploadedfile' => 'Illuminate\\Http\\UploadedFile',
+              'carbon' => 'Illuminate\\Support\\Carbon',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'str' => 'Illuminate\\Support\\Str',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'binaryfileresponse' => 'Symfony\\Component\\HttpFoundation\\BinaryFileResponse',
             ),
              'constUses' => 
             array (
@@ -22748,9 +21392,9 @@ return [
              'phpDocString' => '/**
      * Anula la asignación de un producto de estudio (lo desactiva).
      *
-     * @param Request $request ID del producto.
-     * @param EstudioProducto $estudioProducto Instancia vacía (no usada).
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación.
+     * @param  Request  $request  ID del producto.
+     * @param  EstudioProducto  $estudioProducto  Instancia vacía (no usada).
+     * @return JsonResponse Confirmación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -22758,19 +21402,24 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'sahicontroller' => 'App\\Http\\Controllers\\Interface\\SAHIController',
               'sahitranscibircontroller' => 'App\\Http\\Controllers\\Interface\\SAHITranscibirController',
-              'paciente' => 'App\\Models\\General\\Paciente',
+              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
+              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
               'estudiodiagnostico' => 'App\\Models\\Estudio\\EstudioDiagnostico',
               'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'request' => 'Illuminate\\Http\\Request',
-              'carbon' => 'Illuminate\\Support\\Carbon',
-              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
-              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudiosoporteshc' => 'App\\Models\\Estudio\\EstudioSoportesHC',
+              'paciente' => 'App\\Models\\General\\Paciente',
+              'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
+              'uploadedfile' => 'Illuminate\\Http\\UploadedFile',
+              'carbon' => 'Illuminate\\Support\\Carbon',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'str' => 'Illuminate\\Support\\Str',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'binaryfileresponse' => 'Symfony\\Component\\HttpFoundation\\BinaryFileResponse',
             ),
              'constUses' => 
             array (
@@ -22820,8 +21469,8 @@ return [
              'phpDocString' => '/**
      * Descarga el archivo PDF de una lectura.
      *
-     * @param string $nomArchivo Nombre del archivo.
-     * @return \\Symfony\\Component\\HttpFoundation\\BinaryFileResponse Archivo PDF.
+     * @param  string  $nomArchivo  Nombre del archivo.
+     * @return BinaryFileResponse Archivo PDF.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -22829,19 +21478,24 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'sahicontroller' => 'App\\Http\\Controllers\\Interface\\SAHIController',
               'sahitranscibircontroller' => 'App\\Http\\Controllers\\Interface\\SAHITranscibirController',
-              'paciente' => 'App\\Models\\General\\Paciente',
+              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
+              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
               'estudiodiagnostico' => 'App\\Models\\Estudio\\EstudioDiagnostico',
               'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'request' => 'Illuminate\\Http\\Request',
-              'carbon' => 'Illuminate\\Support\\Carbon',
-              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
-              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudiosoporteshc' => 'App\\Models\\Estudio\\EstudioSoportesHC',
+              'paciente' => 'App\\Models\\General\\Paciente',
+              'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
+              'uploadedfile' => 'Illuminate\\Http\\UploadedFile',
+              'carbon' => 'Illuminate\\Support\\Carbon',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'str' => 'Illuminate\\Support\\Str',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'binaryfileresponse' => 'Symfony\\Component\\HttpFoundation\\BinaryFileResponse',
             ),
              'constUses' => 
             array (
@@ -22880,7 +21534,7 @@ return [
              'phpDocString' => '/**
      * Reenvía la notificación por email de un estudio.
      *
-     * @param Request $request Datos para generar reporte y notificar.
+     * @param  Request  $request  Datos para generar reporte y notificar.
      * @return mixed Respuesta del notificador.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
@@ -22889,19 +21543,24 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'sahicontroller' => 'App\\Http\\Controllers\\Interface\\SAHIController',
               'sahitranscibircontroller' => 'App\\Http\\Controllers\\Interface\\SAHITranscibirController',
-              'paciente' => 'App\\Models\\General\\Paciente',
+              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
+              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
               'estudiodiagnostico' => 'App\\Models\\Estudio\\EstudioDiagnostico',
               'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
-              'request' => 'Illuminate\\Http\\Request',
-              'carbon' => 'Illuminate\\Support\\Carbon',
-              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
-              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'estudiosoporteshc' => 'App\\Models\\Estudio\\EstudioSoportesHC',
+              'paciente' => 'App\\Models\\General\\Paciente',
+              'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
+              'uploadedfile' => 'Illuminate\\Http\\UploadedFile',
+              'carbon' => 'Illuminate\\Support\\Carbon',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'str' => 'Illuminate\\Support\\Str',
-              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'binaryfileresponse' => 'Symfony\\Component\\HttpFoundation\\BinaryFileResponse',
             ),
              'constUses' => 
             array (
@@ -22995,7 +21654,7 @@ return [
              'phpDocString' => '/**
      * Controlador scaffold sin implementación actual.
      *
-     * @return \\Illuminate\\Http\\Response
+     * @return Response
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -23003,6 +21662,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'estudiodiagnostico' => 'App\\Models\\Estudios\\EstudioDiagnostico',
               'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
             ),
              'constUses' => 
             array (
@@ -23030,7 +21690,7 @@ return [
              'phpDocString' => '/**
      * Show the form for creating a new resource.
      *
-     * @return \\Illuminate\\Http\\Response
+     * @return Response
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -23038,6 +21698,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'estudiodiagnostico' => 'App\\Models\\Estudios\\EstudioDiagnostico',
               'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
             ),
              'constUses' => 
             array (
@@ -23065,8 +21726,7 @@ return [
              'phpDocString' => '/**
      * Store a newly created resource in storage.
      *
-     * @param  \\Illuminate\\Http\\Request  $request
-     * @return \\Illuminate\\Http\\Response
+     * @return Response
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -23074,6 +21734,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'estudiodiagnostico' => 'App\\Models\\Estudios\\EstudioDiagnostico',
               'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
             ),
              'constUses' => 
             array (
@@ -23112,8 +21773,7 @@ return [
              'phpDocString' => '/**
      * Display the specified resource.
      *
-     * @param  \\App\\Models\\Estudios\\EstudioDiagnostico  $estudioDiagnostico
-     * @return \\Illuminate\\Http\\Response
+     * @return Response
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -23121,6 +21781,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'estudiodiagnostico' => 'App\\Models\\Estudios\\EstudioDiagnostico',
               'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
             ),
              'constUses' => 
             array (
@@ -23159,8 +21820,7 @@ return [
              'phpDocString' => '/**
      * Show the form for editing the specified resource.
      *
-     * @param  \\App\\Models\\Estudios\\EstudioDiagnostico  $estudioDiagnostico
-     * @return \\Illuminate\\Http\\Response
+     * @return Response
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -23168,6 +21828,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'estudiodiagnostico' => 'App\\Models\\Estudios\\EstudioDiagnostico',
               'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
             ),
              'constUses' => 
             array (
@@ -23206,9 +21867,8 @@ return [
              'phpDocString' => '/**
      * Update the specified resource in storage.
      *
-     * @param  \\Illuminate\\Http\\Request  $request
-     * @param  \\App\\Models\\Estudios\\EstudioDiagnostico  $estudioDiagnostico
-     * @return \\Illuminate\\Http\\Response
+     * @param  EstudioDiagnostico  $estudioDiagnostico
+     * @return Response
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -23216,6 +21876,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'estudiodiagnostico' => 'App\\Models\\Estudios\\EstudioDiagnostico',
               'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
             ),
              'constUses' => 
             array (
@@ -23265,8 +21926,8 @@ return [
              'phpDocString' => '/**
      * Remove the specified resource from storage.
      *
-     * @param  \\App\\Models\\Estudios\\EstudioDiagnostico  $lecturaDiagnostico
-     * @return \\Illuminate\\Http\\Response
+     * @param  EstudioDiagnostico  $lecturaDiagnostico
+     * @return Response
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -23274,6 +21935,7 @@ return [
               'controller' => 'App\\Http\\Controllers\\Controller',
               'estudiodiagnostico' => 'App\\Models\\Estudios\\EstudioDiagnostico',
               'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
             ),
              'constUses' => 
             array (
@@ -23356,8 +22018,8 @@ return [
              'phpDocString' => '/**
      * Lista los estudios que ya tienen transcripción y están activos, listos para notificar.
      *
-     * @param Request $request Filtros por número de documento (`bus_num_docu`) o nombre (`bus_nom`).
-     * @return \\Illuminate\\Http\\JsonResponse Lista de estudios.
+     * @param  Request  $request  Filtros por número de documento (`bus_num_docu`) o nombre (`bus_nom`).
+     * @return JsonResponse Lista de estudios.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -23368,13 +22030,13 @@ return [
               'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'instance' => 'App\\Models\\Dcm4chee\\Instance',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'paciente' => 'App\\Models\\General\\Paciente',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
               'carbon' => 'Illuminate\\Support\\Carbon',
+              'config' => 'Illuminate\\Support\\Facades\\Config',
               'http' => 'Illuminate\\Support\\Facades\\Http',
               'mail' => 'Illuminate\\Support\\Facades\\Mail',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
-              'config' => 'Illuminate\\Support\\Facades\\Config',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'client' => 'Twilio\\Rest\\Client',
             ),
@@ -23423,8 +22085,8 @@ return [
      *    - Envía email con el PDF adjunto usando `NotificacionDeLectura`.
      * 4. Limpia archivos temporales (PDF e imágenes).
      *
-     * @param object $estudio Objeto con datos del estudio y paciente.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación.
+     * @param  object  $estudio  Objeto con datos del estudio y paciente.
+     * @return JsonResponse Confirmación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -23435,13 +22097,13 @@ return [
               'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'instance' => 'App\\Models\\Dcm4chee\\Instance',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'paciente' => 'App\\Models\\General\\Paciente',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
               'carbon' => 'Illuminate\\Support\\Carbon',
+              'config' => 'Illuminate\\Support\\Facades\\Config',
               'http' => 'Illuminate\\Support\\Facades\\Http',
               'mail' => 'Illuminate\\Support\\Facades\\Mail',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
-              'config' => 'Illuminate\\Support\\Facades\\Config',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'client' => 'Twilio\\Rest\\Client',
             ),
@@ -23461,6 +22123,17 @@ return [
             0 => 
             \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
                'name' => 'estudio',
+               'type' => NULL,
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+            1 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'archivoReporte',
                'type' => NULL,
                'byRef' => false,
                'variadic' => false,
@@ -23511,9 +22184,9 @@ return [
              'phpDocString' => '/**
      * Descarga imágenes DICOM (convertidas a JPEG) desde el servidor WADO de la sede.
      *
-     * @param int $sedeId ID de la sede.
-     * @param string $study_iuid UID del estudio.
-     * @return \\Illuminate\\Http\\JsonResponse Resultado de la descarga.
+     * @param  int  $sedeId  ID de la sede.
+     * @param  string  $study_iuid  UID del estudio.
+     * @return JsonResponse Resultado de la descarga.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -23524,13 +22197,13 @@ return [
               'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'instance' => 'App\\Models\\Dcm4chee\\Instance',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'paciente' => 'App\\Models\\General\\Paciente',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
               'carbon' => 'Illuminate\\Support\\Carbon',
+              'config' => 'Illuminate\\Support\\Facades\\Config',
               'http' => 'Illuminate\\Support\\Facades\\Http',
               'mail' => 'Illuminate\\Support\\Facades\\Mail',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
-              'config' => 'Illuminate\\Support\\Facades\\Config',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'client' => 'Twilio\\Rest\\Client',
             ),
@@ -23582,9 +22255,9 @@ return [
              'phpDocString' => '/**
      * Envía una notificación por WhatsApp usando Twilio.
      *
-     * @param string $numeroTelefono Número de destino.
-     * @param string $mensaje Cuerpo del mensaje.
-     * @return \\Illuminate\\Http\\JsonResponse Resultado del envío.
+     * @param  string  $numeroTelefono  Número de destino.
+     * @param  string  $mensaje  Cuerpo del mensaje.
+     * @return JsonResponse Resultado del envío.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
@@ -23595,13 +22268,13 @@ return [
               'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
               'instance' => 'App\\Models\\Dcm4chee\\Instance',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
-              'paciente' => 'App\\Models\\General\\Paciente',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
               'carbon' => 'Illuminate\\Support\\Carbon',
+              'config' => 'Illuminate\\Support\\Facades\\Config',
               'http' => 'Illuminate\\Support\\Facades\\Http',
               'mail' => 'Illuminate\\Support\\Facades\\Mail',
               'storage' => 'Illuminate\\Support\\Facades\\Storage',
-              'config' => 'Illuminate\\Support\\Facades\\Config',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'client' => 'Twilio\\Rest\\Client',
             ),
@@ -23632,6 +22305,35 @@ return [
             1 => 
             \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
                'name' => 'mensaje',
+               'type' => NULL,
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        6 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'eliminarReporte',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => NULL,
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'reportePath',
                'type' => NULL,
                'byRef' => false,
                'variadic' => false,
@@ -23679,15 +22381,17 @@ return [
              'phpDocString' => '/**
      * Lista los productos asociados a un estudio.
      *
-     * @param Request $request ID del estudio (`id`).
-     * @return \\Illuminate\\Http\\JsonResponse Lista de productos.
+     * @param  Request  $request  ID del estudio (`id`).
+     * @return JsonResponse Lista de productos.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudioproducto' => 'App\\Models\\Estudios\\EstudioProducto',
+              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
             ),
              'constUses' => 
             array (
@@ -23726,16 +22430,18 @@ return [
              'phpDocString' => '/**
      * Crea un nuevo producto asociado a un estudio.
      *
-     * @param Request $request Datos del producto.
-     * @param EstudioProducto $estudioProducto Instancia del modelo.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación.
+     * @param  Request  $request  Datos del producto.
+     * @param  EstudioProducto  $estudioProducto  Instancia del modelo.
+     * @return JsonResponse Confirmación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudioproducto' => 'App\\Models\\Estudios\\EstudioProducto',
+              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
             ),
              'constUses' => 
             array (
@@ -23764,7 +22470,7 @@ return [
             1 => 
             \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
                'name' => 'estudioProducto',
-               'type' => 'App\\Models\\Estudios\\EstudioProducto',
+               'type' => 'App\\Models\\Estudio\\EstudioProducto',
                'byRef' => false,
                'variadic' => false,
                'hasDefault' => false,
@@ -23785,16 +22491,17 @@ return [
              'phpDocString' => '/**
      * Update the specified resource in storage.
      *
-     * @param  \\Illuminate\\Http\\Request  $request
      * @param  \\App\\Models\\Estudios\\EstudioProducto  $estudioProducto
-     * @return \\Illuminate\\Http\\Response
+     * @return Response
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudioproducto' => 'App\\Models\\Estudios\\EstudioProducto',
+              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
             ),
              'constUses' => 
             array (
@@ -23823,7 +22530,7 @@ return [
             1 => 
             \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
                'name' => 'estudioProducto',
-               'type' => 'App\\Models\\Estudios\\EstudioProducto',
+               'type' => 'App\\Models\\Estudio\\EstudioProducto',
                'byRef' => false,
                'variadic' => false,
                'hasDefault' => false,
@@ -23845,14 +22552,16 @@ return [
      * Remove the specified resource from storage.
      *
      * @param  \\App\\Models\\Estudios\\EstudioProducto  $estudioProducto
-     * @return \\Illuminate\\Http\\Response
+     * @return Response
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudioproducto' => 'App\\Models\\Estudios\\EstudioProducto',
+              'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
             ),
              'constUses' => 
             array (
@@ -23870,7 +22579,7 @@ return [
             0 => 
             \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
                'name' => 'estudioProducto',
-               'type' => 'App\\Models\\Estudios\\EstudioProducto',
+               'type' => 'App\\Models\\Estudio\\EstudioProducto',
                'byRef' => false,
                'variadic' => false,
                'hasDefault' => false,
@@ -23917,15 +22626,17 @@ return [
              'phpDocString' => '/**
      * Lista los soportes de historia clínica asociados a un estudio.
      *
-     * @param Request $request ID del estudio (`id`).
-     * @return \\Illuminate\\Http\\JsonResponse Lista de soportes.
+     * @param  Request  $request  ID del estudio (`id`).
+     * @return JsonResponse Lista de soportes.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'estudiosoporteshc' => 'App\\Models\\Estudio\\EstudioSoportesHC',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
+              'binaryfileresponse' => 'Symfony\\Component\\HttpFoundation\\BinaryFileResponse',
             ),
              'constUses' => 
             array (
@@ -23964,15 +22675,17 @@ return [
              'phpDocString' => '/**
      * Descarga un archivo de soporte de historia clínica.
      *
-     * @param string $nomArchivoEncriptadot Nombre encriptado del archivo.
-     * @return \\Symfony\\Component\\HttpFoundation\\BinaryFileResponse Archivo descargable.
+     * @param  string  $nomArchivoEncriptadot  Nombre encriptado del archivo.
+     * @return BinaryFileResponse Archivo descargable.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'estudiosoporteshc' => 'App\\Models\\Estudio\\EstudioSoportesHC',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
+              'binaryfileresponse' => 'Symfony\\Component\\HttpFoundation\\BinaryFileResponse',
             ),
              'constUses' => 
             array (
@@ -24047,18 +22760,19 @@ return [
      * 7. Convierte el .docx a PDF usando `convertDocxToPdf`.
      * 8. Elimina el .docx temporal.
      *
-     * @param Request $request Datos del estudio y lectura.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación con nombre del PDF o error.
+     * @param  Request  $request  Datos del estudio y lectura.
+     * @return JsonResponse Confirmación con nombre del PDF o error.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
-              'request' => 'Illuminate\\Http\\Request',
-              'templateprocessor' => 'PhpOffice\\PhpWord\\TemplateProcessor',
               'carbon' => 'Carbon\\Carbon',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
               'textrun' => 'PhpOffice\\PhpWord\\Element\\TextRun',
+              'templateprocessor' => 'PhpOffice\\PhpWord\\TemplateProcessor',
             ),
              'constUses' => 
             array (
@@ -24097,7 +22811,7 @@ return [
              'phpDocString' => '/**
      * Convierte un archivo Word (.docx) a PDF usando unoconv.
      *
-     * @param string $nomPlantilla Nombre base del archivo (sin extensión).
+     * @param  string  $nomPlantilla  Nombre base del archivo (sin extensión).
      * @return string|null Ruta del archivo PDF generado o null si falla.
      */',
              'namespace' => 'App\\Http\\Controllers\\Estudios',
@@ -24105,10 +22819,11 @@ return [
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
               'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
-              'request' => 'Illuminate\\Http\\Request',
-              'templateprocessor' => 'PhpOffice\\PhpWord\\TemplateProcessor',
               'carbon' => 'Carbon\\Carbon',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
               'textrun' => 'PhpOffice\\PhpWord\\Element\\TextRun',
+              'templateprocessor' => 'PhpOffice\\PhpWord\\TemplateProcessor',
             ),
              'constUses' => 
             array (
@@ -24127,342 +22842,6 @@ return [
             \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
                'name' => 'nomPlantilla',
                'type' => NULL,
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-      ),
-       'attributes' => 
-      array (
-      ),
-    )),
-  ),
-  'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\HelpDeskTicketsController.php' => 
-  array (
-    0 => 
-    \PHPStan\Dependency\ExportedNode\ExportedClassNode::__set_state(array(
-       'name' => 'App\\Http\\Controllers\\HelpDeskTicketsController',
-       'phpDoc' => NULL,
-       'abstract' => false,
-       'final' => false,
-       'extends' => 'App\\Http\\Controllers\\Controller',
-       'implements' => 
-      array (
-      ),
-       'usedTraits' => 
-      array (
-      ),
-       'traitUseAdaptations' => 
-      array (
-      ),
-       'statements' => 
-      array (
-        0 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'index',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Display a listing of the resource.
-     *
-     * @return \\Illuminate\\Http\\Response
-     */',
-             'namespace' => 'App\\Http\\Controllers',
-             'uses' => 
-            array (
-              'helpdesktickets' => 'App\\Models\\HelpDesk\\HelpDeskTickets',
-              'request' => 'Illuminate\\Http\\Request',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        1 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'create',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Show the form for creating a new resource.
-     *
-     * @return \\Illuminate\\Http\\Response
-     */',
-             'namespace' => 'App\\Http\\Controllers',
-             'uses' => 
-            array (
-              'helpdesktickets' => 'App\\Models\\HelpDesk\\HelpDeskTickets',
-              'request' => 'Illuminate\\Http\\Request',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        2 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'store',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Store a newly created resource in storage.
-     *
-     * @param  \\Illuminate\\Http\\Request  $request
-     * @return \\Illuminate\\Http\\Response
-     */',
-             'namespace' => 'App\\Http\\Controllers',
-             'uses' => 
-            array (
-              'helpdesktickets' => 'App\\Models\\HelpDesk\\HelpDeskTickets',
-              'request' => 'Illuminate\\Http\\Request',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'request',
-               'type' => 'Illuminate\\Http\\Request',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        3 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'show',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Display the specified resource.
-     *
-     * @param  \\App\\Models\\HelpDesk\\HelpDeskTickets  $helpDeskTickets
-     * @return \\Illuminate\\Http\\Response
-     */',
-             'namespace' => 'App\\Http\\Controllers',
-             'uses' => 
-            array (
-              'helpdesktickets' => 'App\\Models\\HelpDesk\\HelpDeskTickets',
-              'request' => 'Illuminate\\Http\\Request',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'helpDeskTickets',
-               'type' => 'App\\Models\\HelpDesk\\HelpDeskTickets',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        4 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'edit',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \\App\\Models\\HelpDesk\\HelpDeskTickets  $helpDeskTickets
-     * @return \\Illuminate\\Http\\Response
-     */',
-             'namespace' => 'App\\Http\\Controllers',
-             'uses' => 
-            array (
-              'helpdesktickets' => 'App\\Models\\HelpDesk\\HelpDeskTickets',
-              'request' => 'Illuminate\\Http\\Request',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'helpDeskTickets',
-               'type' => 'App\\Models\\HelpDesk\\HelpDeskTickets',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        5 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'update',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Update the specified resource in storage.
-     *
-     * @param  \\Illuminate\\Http\\Request  $request
-     * @param  \\App\\Models\\HelpDesk\\HelpDeskTickets  $helpDeskTickets
-     * @return \\Illuminate\\Http\\Response
-     */',
-             'namespace' => 'App\\Http\\Controllers',
-             'uses' => 
-            array (
-              'helpdesktickets' => 'App\\Models\\HelpDesk\\HelpDeskTickets',
-              'request' => 'Illuminate\\Http\\Request',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'request',
-               'type' => 'Illuminate\\Http\\Request',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-            1 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'helpDeskTickets',
-               'type' => 'App\\Models\\HelpDesk\\HelpDeskTickets',
-               'byRef' => false,
-               'variadic' => false,
-               'hasDefault' => false,
-               'attributes' => 
-              array (
-              ),
-            )),
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        6 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'destroy',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Remove the specified resource from storage.
-     *
-     * @param  \\App\\Models\\HelpDesk\\HelpDeskTickets  $helpDeskTickets
-     * @return \\Illuminate\\Http\\Response
-     */',
-             'namespace' => 'App\\Http\\Controllers',
-             'uses' => 
-            array (
-              'helpdesktickets' => 'App\\Models\\HelpDesk\\HelpDeskTickets',
-              'request' => 'Illuminate\\Http\\Request',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-            0 => 
-            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
-               'name' => 'helpDeskTickets',
-               'type' => 'App\\Models\\HelpDesk\\HelpDeskTickets',
                'byRef' => false,
                'variadic' => false,
                'hasDefault' => false,
@@ -25818,7 +24197,8 @@ return [
              'namespace' => 'App\\Http\\Controllers',
              'uses' => 
             array (
-              'request' => 'Illuminate\\Http\\Request',
+              'renderable' => 'Illuminate\\Contracts\\Support\\Renderable',
+              'view' => 'Illuminate\\View\\View',
             ),
              'constUses' => 
             array (
@@ -25846,12 +24226,13 @@ return [
              'phpDocString' => '/**
      * Renderiza la vista principal del dashboard.
      *
-     * @return \\Illuminate\\View\\View Vista home.
+     * @return View Vista home.
      */',
              'namespace' => 'App\\Http\\Controllers',
              'uses' => 
             array (
-              'request' => 'Illuminate\\Http\\Request',
+              'renderable' => 'Illuminate\\Contracts\\Support\\Renderable',
+              'view' => 'Illuminate\\View\\View',
             ),
              'constUses' => 
             array (
@@ -25967,8 +24348,8 @@ return [
              'phpDocString' => '/**
      * Lista las atenciones (ingresos) de un paciente.
      *
-     * @param Request $request Número de documento del paciente (`numDocu`).
-     * @return \\Illuminate\\Http\\JsonResponse Lista de atenciones.
+     * @param  Request  $request  Número de documento del paciente (`numDocu`).
+     * @return JsonResponse Lista de atenciones.
      */',
              'namespace' => 'App\\Http\\Controllers\\Interface',
              'uses' => 
@@ -25981,9 +24362,10 @@ return [
               'facmovimiento' => 'App\\Models\\Interface\\Sahi\\FacMovimiento',
               'facmovimientodet' => 'App\\Models\\Interface\\Sahi\\FacMovimientoDet',
               'hceconsulta' => 'App\\Models\\Interface\\Sahi\\HceConsulta',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
+              'collection' => 'Illuminate\\Support\\Collection',
               'db' => 'Illuminate\\Support\\Facades\\DB',
-              'required' => 'Symfony\\Contracts\\Service\\Attribute\\Required',
             ),
              'constUses' => 
             array (
@@ -26022,8 +24404,8 @@ return [
              'phpDocString' => '/**
      * Lista productos facturados y diagnósticos asociados a una atención.
      *
-     * @param Request $request ID de la atención (`idAtencion`).
-     * @return \\Illuminate\\Http\\JsonResponse Objeto con listas de `productos` y `diagnosticos`.
+     * @param  Request  $request  ID de la atención (`idAtencion`).
+     * @return JsonResponse Objeto con listas de `productos` y `diagnosticos`.
      */',
              'namespace' => 'App\\Http\\Controllers\\Interface',
              'uses' => 
@@ -26036,9 +24418,10 @@ return [
               'facmovimiento' => 'App\\Models\\Interface\\Sahi\\FacMovimiento',
               'facmovimientodet' => 'App\\Models\\Interface\\Sahi\\FacMovimientoDet',
               'hceconsulta' => 'App\\Models\\Interface\\Sahi\\HceConsulta',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
+              'collection' => 'Illuminate\\Support\\Collection',
               'db' => 'Illuminate\\Support\\Facades\\DB',
-              'required' => 'Symfony\\Contracts\\Service\\Attribute\\Required',
             ),
              'constUses' => 
             array (
@@ -26077,8 +24460,8 @@ return [
              'phpDocString' => '/**
      * Busca los datos de la EPS, Plan y Contrato de una atención.
      *
-     * @param int $idAtencion ID de la atención.
-     * @return \\Illuminate\\Support\\Collection Datos de facturación y contrato.
+     * @param  int  $idAtencion  ID de la atención.
+     * @return Collection Datos de facturación y contrato.
      */',
              'namespace' => 'App\\Http\\Controllers\\Interface',
              'uses' => 
@@ -26091,9 +24474,10 @@ return [
               'facmovimiento' => 'App\\Models\\Interface\\Sahi\\FacMovimiento',
               'facmovimientodet' => 'App\\Models\\Interface\\Sahi\\FacMovimientoDet',
               'hceconsulta' => 'App\\Models\\Interface\\Sahi\\HceConsulta',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
+              'collection' => 'Illuminate\\Support\\Collection',
               'db' => 'Illuminate\\Support\\Facades\\DB',
-              'required' => 'Symfony\\Contracts\\Service\\Attribute\\Required',
             ),
              'constUses' => 
             array (
@@ -26136,8 +24520,8 @@ return [
      * cargados a la cuenta del paciente. Luego cruza esta información con la base de datos local
      * de Lidiag para determinar el estado de la ecografía si existe.
      *
-     * @param Request $request ID de la atención (`bus_nom_num_docu`).
-     * @return \\Illuminate\\Http\\JsonResponse Lista combinada de productos con estado.
+     * @param  Request  $request  ID de la atención (`bus_nom_num_docu`).
+     * @return JsonResponse Lista combinada de productos con estado.
      */',
              'namespace' => 'App\\Http\\Controllers\\Interface',
              'uses' => 
@@ -26150,9 +24534,10 @@ return [
               'facmovimiento' => 'App\\Models\\Interface\\Sahi\\FacMovimiento',
               'facmovimientodet' => 'App\\Models\\Interface\\Sahi\\FacMovimientoDet',
               'hceconsulta' => 'App\\Models\\Interface\\Sahi\\HceConsulta',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
+              'collection' => 'Illuminate\\Support\\Collection',
               'db' => 'Illuminate\\Support\\Facades\\DB',
-              'required' => 'Symfony\\Contracts\\Service\\Attribute\\Required',
             ),
              'constUses' => 
             array (
@@ -26238,26 +24623,21 @@ return [
      * Similar a `SAHIController@listarProductosAtencion`, pero filtra específicamente por grupos
      * de productos relacionados con ecografías y devuelve la lista unificada.
      *
-     * @param Request $request ID de la atención (`bus_nom_num_docu`).
-     * @return \\Illuminate\\Http\\JsonResponse Lista de productos de ecografía.
+     * @param  Request  $request  ID de la atención (`bus_nom_num_docu`).
+     * @return JsonResponse Lista de productos de ecografía.
      */',
              'namespace' => 'App\\Http\\Controllers\\Interface',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
+              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
               'consentimientoplantilla' => 'App\\Models\\Consentimientos\\ConsentimientoPlantilla',
               'ecografiaconsentimiento' => 'App\\Models\\Consentimientos\\EcografiaConsentimiento',
-              'configproducto' => 'App\\Models\\Configuracion\\ConfigProducto',
-              'ecografia' => 'App\\Models\\Ecografias\\Ecografia',
-              'atencion' => 'App\\Models\\Interface\\Sahi\\Atencion',
-              'facfactura' => 'App\\Models\\Interface\\Sahi\\FacFactura',
               'facfacturadet' => 'App\\Models\\Interface\\Sahi\\facFacturaDet',
-              'facmovimiento' => 'App\\Models\\Interface\\Sahi\\FacMovimiento',
               'facmovimientodet' => 'App\\Models\\Interface\\Sahi\\FacMovimientoDet',
-              'hceconsulta' => 'App\\Models\\Interface\\Sahi\\HceConsulta',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
               'db' => 'Illuminate\\Support\\Facades\\DB',
-              'required' => 'Symfony\\Contracts\\Service\\Attribute\\Required',
             ),
              'constUses' => 
             array (
@@ -26394,6 +24774,7 @@ return [
               'sistabla' => 'App\\Models\\Interface\\Sahi\\sisTabla',
               'carbon' => 'Carbon\\Carbon',
               'request' => 'Illuminate\\Http\\Request',
+              'collection' => 'Illuminate\\Support\\Collection',
               'db' => 'Illuminate\\Support\\Facades\\DB',
               'log' => 'Illuminate\\Support\\Facades\\Log',
             ),
@@ -26771,12 +25152,12 @@ return [
      *    - `hceEsquemaDetMemo`: Detalle del reporte (texto).
      *    - `hceEsquemaDetProc`: Detalle del médico y producto.
      *
-     * @param int|null $idAtencion ID de la atención.
-     * @param int|null $idMedico ID del médico.
-     * @param string|null $reporteEstudio Texto del reporte.
-     * @param string|null $codCups Código CUPS del producto.
-     * @param string|null $fecHorLectura Fecha y hora de lectura.
-     * @return \\Illuminate\\Http\\JsonResponse Resultado de la transacción.
+     * @param  int|null  $idAtencion  ID de la atención.
+     * @param  int|null  $idMedico  ID del médico.
+     * @param  string|null  $reporteEstudio  Texto del reporte.
+     * @param  string|null  $codCups  Código CUPS del producto.
+     * @param  string|null  $fecHorLectura  Fecha y hora de lectura.
+     * @return JsonResponse Resultado de la transacción.
      */',
              'namespace' => 'App\\Http\\Controllers\\Interface',
              'uses' => 
@@ -26792,8 +25173,7 @@ return [
               'proproducto' => 'App\\Models\\Interface\\Sahi\\ProProducto',
               'sistabla' => 'App\\Models\\Interface\\Sahi\\sisTabla',
               'user' => 'App\\Models\\User',
-              'carbon' => 'Carbon\\Carbon',
-              'request' => 'Illuminate\\Http\\Request',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
             ),
              'constUses' => 
             array (
@@ -26926,15 +25306,20 @@ return [
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'request' => 'Illuminate\\Http\\Request',
-              'http' => 'Illuminate\\Support\\Facades\\Http',
-              'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'dcm4cheestudycontroller' => 'App\\Http\\Controllers\\Dcm4chee\\StudyController',
               'study' => 'App\\Models\\Dcm4chee\\Study',
-              'user' => 'App\\Models\\User',
-              'paciente' => 'App\\Models\\General\\Paciente',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
               'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
+              'estudioproductoadendum' => 'App\\Models\\Estudio\\EstudioProductoAdendum',
+              'paciente' => 'App\\Models\\General\\Paciente',
+              'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
+              'http' => 'Illuminate\\Support\\Facades\\Http',
+              'log' => 'Illuminate\\Support\\Facades\\Log',
+              'storage' => 'Illuminate\\Support\\Facades\\Storage',
+              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'str' => 'Illuminate\\Support\\Str',
             ),
              'constUses' => 
             array (
@@ -26979,15 +25364,20 @@ return [
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'request' => 'Illuminate\\Http\\Request',
-              'http' => 'Illuminate\\Support\\Facades\\Http',
-              'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'dcm4cheestudycontroller' => 'App\\Http\\Controllers\\Dcm4chee\\StudyController',
               'study' => 'App\\Models\\Dcm4chee\\Study',
-              'user' => 'App\\Models\\User',
-              'paciente' => 'App\\Models\\General\\Paciente',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
               'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
+              'estudioproductoadendum' => 'App\\Models\\Estudio\\EstudioProductoAdendum',
+              'paciente' => 'App\\Models\\General\\Paciente',
+              'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
+              'http' => 'Illuminate\\Support\\Facades\\Http',
+              'log' => 'Illuminate\\Support\\Facades\\Log',
+              'storage' => 'Illuminate\\Support\\Facades\\Storage',
+              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'str' => 'Illuminate\\Support\\Str',
             ),
              'constUses' => 
             array (
@@ -27026,22 +25416,27 @@ return [
              'phpDocString' => '/**
      * Envía una orden a la API externa de Teleradiología.
      *
-     * @param Request $request Datos de la orden.
-     * @return \\Illuminate\\Http\\JsonResponse Respuesta de la API externa o error.
+     * @param  Request  $request  Datos de la orden.
+     * @return JsonResponse Respuesta de la API externa o error.
      */',
              'namespace' => 'App\\Http\\Controllers\\Interface',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'request' => 'Illuminate\\Http\\Request',
-              'http' => 'Illuminate\\Support\\Facades\\Http',
-              'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'dcm4cheestudycontroller' => 'App\\Http\\Controllers\\Dcm4chee\\StudyController',
               'study' => 'App\\Models\\Dcm4chee\\Study',
-              'user' => 'App\\Models\\User',
-              'paciente' => 'App\\Models\\General\\Paciente',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
               'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
+              'estudioproductoadendum' => 'App\\Models\\Estudio\\EstudioProductoAdendum',
+              'paciente' => 'App\\Models\\General\\Paciente',
+              'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
+              'http' => 'Illuminate\\Support\\Facades\\Http',
+              'log' => 'Illuminate\\Support\\Facades\\Log',
+              'storage' => 'Illuminate\\Support\\Facades\\Storage',
+              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'str' => 'Illuminate\\Support\\Str',
             ),
              'constUses' => 
             array (
@@ -27078,24 +25473,522 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-     * Recibe y procesa lecturas de estudios realizadas por tele radiología.
+     * Recibe y procesa lecturas de TLIMAGEN (TLIMAGEN -> SaludTolima).
      *
-     * @param Request $request Datos de la lectura.
-     * @return \\Illuminate\\Http\\JsonResponse Respuesta de confirmación.
+     * Payload Lectura: study_pk, study_iuid, fec_estudio, accession_no, study_desc, mods_in_study,
+     * sexo, paciente{num_docu,nom_pacien,fec_naci}, priori{id,nom_priori}, cod_cups, nom_produc,
+     * fechor_lectura, lectura, medico{reg_medico,num_docu,name,firma_medico}, tipo_resultado.
+     *
+     * @param  Request  $request  Datos de la lectura.
+     * @return JsonResponse Respuesta de confirmación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Interface',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'request' => 'Illuminate\\Http\\Request',
-              'http' => 'Illuminate\\Support\\Facades\\Http',
-              'validator' => 'Illuminate\\Support\\Facades\\Validator',
               'dcm4cheestudycontroller' => 'App\\Http\\Controllers\\Dcm4chee\\StudyController',
               'study' => 'App\\Models\\Dcm4chee\\Study',
-              'user' => 'App\\Models\\User',
-              'paciente' => 'App\\Models\\General\\Paciente',
               'estudio' => 'App\\Models\\Estudio\\Estudio',
               'estudioproducto' => 'App\\Models\\Estudio\\EstudioProducto',
+              'estudioproductoadendum' => 'App\\Models\\Estudio\\EstudioProductoAdendum',
+              'paciente' => 'App\\Models\\General\\Paciente',
+              'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
+              'request' => 'Illuminate\\Http\\Request',
+              'http' => 'Illuminate\\Support\\Facades\\Http',
+              'log' => 'Illuminate\\Support\\Facades\\Log',
+              'storage' => 'Illuminate\\Support\\Facades\\Storage',
+              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'str' => 'Illuminate\\Support\\Str',
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => NULL,
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'request',
+               'type' => 'Illuminate\\Http\\Request',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+      ),
+       'attributes' => 
+      array (
+      ),
+    )),
+  ),
+  'C:\\laragon\\www\\lidiag\\app\\Http\\Controllers\\OHIF_visor\\OhifVisorController.php' => 
+  array (
+    0 => 
+    \PHPStan\Dependency\ExportedNode\ExportedClassNode::__set_state(array(
+       'name' => 'App\\Http\\Controllers\\OHIF_visor\\OhifVisorController',
+       'phpDoc' => NULL,
+       'abstract' => false,
+       'final' => false,
+       'extends' => 'App\\Http\\Controllers\\Controller',
+       'implements' => 
+      array (
+      ),
+       'usedTraits' => 
+      array (
+      ),
+       'traitUseAdaptations' => 
+      array (
+      ),
+       'statements' => 
+      array (
+        0 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'getOhifMetadataOhif',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * OHIF Metadata - version sin sedes
+     */',
+             'namespace' => 'App\\Http\\Controllers\\OHIF_visor',
+             'uses' => 
+            array (
+              'controller' => 'App\\Http\\Controllers\\Controller',
+              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
+              'instance' => 'App\\Models\\Dcm4chee\\Instance',
+              'series' => 'App\\Models\\Dcm4chee\\Series',
+              'study' => 'App\\Models\\Dcm4chee\\Study',
+              'request' => 'Illuminate\\Http\\Request',
+              'config' => 'Illuminate\\Support\\Facades\\Config',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'http' => 'Illuminate\\Support\\Facades\\Http',
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => NULL,
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'studyUID',
+               'type' => NULL,
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+            1 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'seriesUID',
+               'type' => NULL,
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => true,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        1 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'getOhifMetadata',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => NULL,
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'sedeId',
+               'type' => NULL,
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+            1 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'study_iuid',
+               'type' => NULL,
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        2 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'listStudies',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * Lista los estudios para la tabla de búsqueda de OHIF (QIDO-RS).
+     */',
+             'namespace' => 'App\\Http\\Controllers\\OHIF_visor',
+             'uses' => 
+            array (
+              'controller' => 'App\\Http\\Controllers\\Controller',
+              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
+              'instance' => 'App\\Models\\Dcm4chee\\Instance',
+              'series' => 'App\\Models\\Dcm4chee\\Series',
+              'study' => 'App\\Models\\Dcm4chee\\Study',
+              'request' => 'Illuminate\\Http\\Request',
+              'config' => 'Illuminate\\Support\\Facades\\Config',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'http' => 'Illuminate\\Support\\Facades\\Http',
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => NULL,
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'sedeId',
+               'type' => NULL,
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        3 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'downloadDicom',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => NULL,
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'request',
+               'type' => 'Illuminate\\Http\\Request',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        4 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'qidoStudies',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * QIDO-RS: Buscar estudios (para OHIF Viewer) - SIN SEDES
+     */',
+             'namespace' => 'App\\Http\\Controllers\\OHIF_visor',
+             'uses' => 
+            array (
+              'controller' => 'App\\Http\\Controllers\\Controller',
+              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
+              'instance' => 'App\\Models\\Dcm4chee\\Instance',
+              'series' => 'App\\Models\\Dcm4chee\\Series',
+              'study' => 'App\\Models\\Dcm4chee\\Study',
+              'request' => 'Illuminate\\Http\\Request',
+              'config' => 'Illuminate\\Support\\Facades\\Config',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'http' => 'Illuminate\\Support\\Facades\\Http',
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => NULL,
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'request',
+               'type' => 'Illuminate\\Http\\Request',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        5 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'qidoSeries',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * QIDO-RS: Buscar series de un estudio
+     */',
+             'namespace' => 'App\\Http\\Controllers\\OHIF_visor',
+             'uses' => 
+            array (
+              'controller' => 'App\\Http\\Controllers\\Controller',
+              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
+              'instance' => 'App\\Models\\Dcm4chee\\Instance',
+              'series' => 'App\\Models\\Dcm4chee\\Series',
+              'study' => 'App\\Models\\Dcm4chee\\Study',
+              'request' => 'Illuminate\\Http\\Request',
+              'config' => 'Illuminate\\Support\\Facades\\Config',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'http' => 'Illuminate\\Support\\Facades\\Http',
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => NULL,
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'studyUID',
+               'type' => NULL,
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        6 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'qidoInstances',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * QIDO-RS: Buscar instances de una serie
+     */',
+             'namespace' => 'App\\Http\\Controllers\\OHIF_visor',
+             'uses' => 
+            array (
+              'controller' => 'App\\Http\\Controllers\\Controller',
+              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
+              'instance' => 'App\\Models\\Dcm4chee\\Instance',
+              'series' => 'App\\Models\\Dcm4chee\\Series',
+              'study' => 'App\\Models\\Dcm4chee\\Study',
+              'request' => 'Illuminate\\Http\\Request',
+              'config' => 'Illuminate\\Support\\Facades\\Config',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'http' => 'Illuminate\\Support\\Facades\\Http',
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => NULL,
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'studyUID',
+               'type' => NULL,
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+            1 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'seriesUID',
+               'type' => NULL,
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        7 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'wadoRetrieve',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * WADO-RS: Recuperar instancia DICOM
+     */',
+             'namespace' => 'App\\Http\\Controllers\\OHIF_visor',
+             'uses' => 
+            array (
+              'controller' => 'App\\Http\\Controllers\\Controller',
+              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
+              'instance' => 'App\\Models\\Dcm4chee\\Instance',
+              'series' => 'App\\Models\\Dcm4chee\\Series',
+              'study' => 'App\\Models\\Dcm4chee\\Study',
+              'request' => 'Illuminate\\Http\\Request',
+              'config' => 'Illuminate\\Support\\Facades\\Config',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'http' => 'Illuminate\\Support\\Facades\\Http',
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => NULL,
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'studyUID',
+               'type' => NULL,
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+            1 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'seriesUID',
+               'type' => NULL,
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+            2 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'objectUID',
+               'type' => NULL,
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        8 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'wadoUri',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * WADO-URI: Recuperar imagen (alternativo)
+     */',
+             'namespace' => 'App\\Http\\Controllers\\OHIF_visor',
+             'uses' => 
+            array (
+              'controller' => 'App\\Http\\Controllers\\Controller',
+              'configsede' => 'App\\Models\\Configuracion\\ConfigSede',
+              'instance' => 'App\\Models\\Dcm4chee\\Instance',
+              'series' => 'App\\Models\\Dcm4chee\\Series',
+              'study' => 'App\\Models\\Dcm4chee\\Study',
+              'request' => 'Illuminate\\Http\\Request',
+              'config' => 'Illuminate\\Support\\Facades\\Config',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'http' => 'Illuminate\\Support\\Facades\\Http',
             ),
              'constUses' => 
             array (
@@ -27181,20 +26074,20 @@ return [
      * Permite generar reportes para \'Rx\' o \'Ecografia\', filtrando por fechas,
      * sede, usuario que asignó y médico.
      *
-     * @param Request $resquest Filtros: `fechaIni`, `fechaFin`, `sedeId`, `quien_asigno`, `medico`, `tipo`.
-     * @return \\Symfony\\Component\\HttpFoundation\\BinaryFileResponse Archivo Excel descargable.
+     * @param  Request  $resquest  Filtros: `fechaIni`, `fechaFin`, `sedeId`, `quien_asigno`, `medico`, `tipo`.
+     * @return BinaryFileResponse Archivo Excel descargable.
      */',
              'namespace' => 'App\\Http\\Controllers\\Reportes',
              'uses' => 
             array (
-              'producciondetalladaexport' => 'App\\Exports\\ProduccionDetalladaExport',
               'producciondetalladaecografiasexport' => 'App\\Exports\\ProduccionDetalladaEcografiasExport',
+              'producciondetalladaexport' => 'App\\Exports\\ProduccionDetalladaExport',
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'estudio' => 'App\\Models\\Estudio\\Estudio',
               'request' => 'Illuminate\\Http\\Request',
-              'excel' => 'Maatwebsite\\Excel\\Facades\\Excel',
               'db' => 'Illuminate\\Support\\Facades\\DB',
               'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'excel' => 'Maatwebsite\\Excel\\Facades\\Excel',
+              'binaryfileresponse' => 'Symfony\\Component\\HttpFoundation\\BinaryFileResponse',
             ),
              'constUses' => 
             array (
@@ -27305,7 +26198,6 @@ return [
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'request' => 'Illuminate\\Http\\Request',
               'dompdf' => 'Dompdf\\Dompdf',
             ),
              'constUses' => 
@@ -27378,17 +26270,18 @@ return [
              'phpDocString' => '/**
      * Lista todos los roles y permisos del sistema.
      *
-     * @return \\Illuminate\\Http\\JsonResponse Array con roles y permisos.
+     * @return JsonResponse Array con roles y permisos.
      */',
              'namespace' => 'App\\Http\\Controllers\\Seguridad',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'role' => 'Spatie\\Permission\\Models\\Role',
-              'permission' => 'Spatie\\Permission\\Models\\Permission',
               'rolagregarrequest' => 'App\\Http\\Requests\\Seguridad\\RolAgregarRequest',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
-              'db' => 'DB',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'permission' => 'Spatie\\Permission\\Models\\Permission',
+              'role' => 'Spatie\\Permission\\Models\\Role',
             ),
              'constUses' => 
             array (
@@ -27416,18 +26309,19 @@ return [
              'phpDocString' => '/**
      * Crea un nuevo rol y le asigna los permisos seleccionados.
      *
-     * @param RolAgregarRequest $request Datos del rol y permisos.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación.
+     * @param  RolAgregarRequest  $request  Datos del rol y permisos.
+     * @return JsonResponse Confirmación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Seguridad',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'role' => 'Spatie\\Permission\\Models\\Role',
-              'permission' => 'Spatie\\Permission\\Models\\Permission',
               'rolagregarrequest' => 'App\\Http\\Requests\\Seguridad\\RolAgregarRequest',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
-              'db' => 'DB',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'permission' => 'Spatie\\Permission\\Models\\Permission',
+              'role' => 'Spatie\\Permission\\Models\\Role',
             ),
              'constUses' => 
             array (
@@ -27466,18 +26360,19 @@ return [
              'phpDocString' => '/**
      * Muestra un rol específico junto con sus permisos asignados y la lista total de permisos.
      *
-     * @param int $id ID del rol.
-     * @return \\Illuminate\\Http\\JsonResponse Datos del rol, permisos y permisos asignados.
+     * @param  int  $id  ID del rol.
+     * @return JsonResponse Datos del rol, permisos y permisos asignados.
      */',
              'namespace' => 'App\\Http\\Controllers\\Seguridad',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'role' => 'Spatie\\Permission\\Models\\Role',
-              'permission' => 'Spatie\\Permission\\Models\\Permission',
               'rolagregarrequest' => 'App\\Http\\Requests\\Seguridad\\RolAgregarRequest',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
-              'db' => 'DB',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'permission' => 'Spatie\\Permission\\Models\\Permission',
+              'role' => 'Spatie\\Permission\\Models\\Role',
             ),
              'constUses' => 
             array (
@@ -27516,19 +26411,20 @@ return [
              'phpDocString' => '/**
      * Actualiza el nombre del rol y sincroniza sus permisos.
      *
-     * @param Request $request Datos actualizados del rol.
-     * @param int $id ID del rol.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación.
+     * @param  Request  $request  Datos actualizados del rol.
+     * @param  int  $id  ID del rol.
+     * @return JsonResponse Confirmación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Seguridad',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'role' => 'Spatie\\Permission\\Models\\Role',
-              'permission' => 'Spatie\\Permission\\Models\\Permission',
               'rolagregarrequest' => 'App\\Http\\Requests\\Seguridad\\RolAgregarRequest',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
-              'db' => 'DB',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'permission' => 'Spatie\\Permission\\Models\\Permission',
+              'role' => 'Spatie\\Permission\\Models\\Role',
             ),
              'constUses' => 
             array (
@@ -27578,18 +26474,19 @@ return [
              'phpDocString' => '/**
      * Elimina un rol.
      *
-     * @param Rol $rol Instancia del rol a eliminar.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación.
+     * @param  Rol  $rol  Instancia del rol a eliminar.
+     * @return JsonResponse Confirmación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Seguridad',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'role' => 'Spatie\\Permission\\Models\\Role',
-              'permission' => 'Spatie\\Permission\\Models\\Permission',
               'rolagregarrequest' => 'App\\Http\\Requests\\Seguridad\\RolAgregarRequest',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
-              'db' => 'DB',
+              'db' => 'Illuminate\\Support\\Facades\\DB',
+              'permission' => 'Spatie\\Permission\\Models\\Permission',
+              'role' => 'Spatie\\Permission\\Models\\Role',
             ),
              'constUses' => 
             array (
@@ -27672,22 +26569,24 @@ return [
              'phpDocString' => '/**
      * Lista todos los usuarios con sus módulos y roles.
      *
-     * @param Request $request Parámetros de filtrado (no utilizados actualmente).
-     * @return \\Illuminate\\Http\\JsonResponse Lista de usuarios.
+     * @param  Request  $request  Parámetros de filtrado (no utilizados actualmente).
+     * @return JsonResponse Lista de usuarios.
      */',
              'namespace' => 'App\\Http\\Controllers\\Seguridad',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'useragregarrequest' => 'App\\Http\\Requests\\Seguridad\\UserAgregarRequest',
               'configmodulo' => 'App\\Models\\Configuracion\\ConfigModulo',
               'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
-              'str' => 'Str',
-              'storage' => 'Illuminate\\Support\\Facades\\Storage',
-              'role' => 'Spatie\\Permission\\Models\\Role',
-              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'response' => 'Illuminate\\Http\\Response',
+              'collection' => 'Illuminate\\Support\\Collection',
               'auth' => 'Illuminate\\Support\\Facades\\Auth',
+              'storage' => 'Illuminate\\Support\\Facades\\Storage',
+              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'role' => 'Spatie\\Permission\\Models\\Role',
+              'str' => 'Str',
             ),
              'constUses' => 
             array (
@@ -27726,23 +26625,25 @@ return [
              'phpDocString' => '/**
      * Lista usuarios filtrados por tipo de rol y módulo.
      *
-     * @param string $tipo_user Nombre del rol (ej: \'Médico\').
-     * @param int $modulo ID del módulo.
-     * @return \\Illuminate\\Support\\Collection Lista de usuarios.
+     * @param  string  $tipo_user  Nombre del rol (ej: \'Médico\').
+     * @param  int  $modulo  ID del módulo.
+     * @return Collection Lista de usuarios.
      */',
              'namespace' => 'App\\Http\\Controllers\\Seguridad',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'useragregarrequest' => 'App\\Http\\Requests\\Seguridad\\UserAgregarRequest',
               'configmodulo' => 'App\\Models\\Configuracion\\ConfigModulo',
               'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
-              'str' => 'Str',
-              'storage' => 'Illuminate\\Support\\Facades\\Storage',
-              'role' => 'Spatie\\Permission\\Models\\Role',
-              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'response' => 'Illuminate\\Http\\Response',
+              'collection' => 'Illuminate\\Support\\Collection',
               'auth' => 'Illuminate\\Support\\Facades\\Auth',
+              'storage' => 'Illuminate\\Support\\Facades\\Storage',
+              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'role' => 'Spatie\\Permission\\Models\\Role',
+              'str' => 'Str',
             ),
              'constUses' => 
             array (
@@ -27792,22 +26693,24 @@ return [
              'phpDocString' => '/**
      * Muestra un usuario específico con sus roles.
      *
-     * @param int $id ID del usuario.
-     * @return \\Illuminate\\Http\\JsonResponse Datos del usuario, roles disponibles y roles asignados.
+     * @param  int  $id  ID del usuario.
+     * @return JsonResponse Datos del usuario, roles disponibles y roles asignados.
      */',
              'namespace' => 'App\\Http\\Controllers\\Seguridad',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'useragregarrequest' => 'App\\Http\\Requests\\Seguridad\\UserAgregarRequest',
               'configmodulo' => 'App\\Models\\Configuracion\\ConfigModulo',
               'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
-              'str' => 'Str',
-              'storage' => 'Illuminate\\Support\\Facades\\Storage',
-              'role' => 'Spatie\\Permission\\Models\\Role',
-              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'response' => 'Illuminate\\Http\\Response',
+              'collection' => 'Illuminate\\Support\\Collection',
               'auth' => 'Illuminate\\Support\\Facades\\Auth',
+              'storage' => 'Illuminate\\Support\\Facades\\Storage',
+              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'role' => 'Spatie\\Permission\\Models\\Role',
+              'str' => 'Str',
             ),
              'constUses' => 
             array (
@@ -27846,22 +26749,24 @@ return [
              'phpDocString' => '/**
      * Actualiza el estado activo/inactivo de un usuario.
      *
-     * @param Request $request ID y nuevo estado del usuario.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación.
+     * @param  Request  $request  ID y nuevo estado del usuario.
+     * @return JsonResponse Confirmación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Seguridad',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'useragregarrequest' => 'App\\Http\\Requests\\Seguridad\\UserAgregarRequest',
               'configmodulo' => 'App\\Models\\Configuracion\\ConfigModulo',
               'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
-              'str' => 'Str',
-              'storage' => 'Illuminate\\Support\\Facades\\Storage',
-              'role' => 'Spatie\\Permission\\Models\\Role',
-              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'response' => 'Illuminate\\Http\\Response',
+              'collection' => 'Illuminate\\Support\\Collection',
               'auth' => 'Illuminate\\Support\\Facades\\Auth',
+              'storage' => 'Illuminate\\Support\\Facades\\Storage',
+              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'role' => 'Spatie\\Permission\\Models\\Role',
+              'str' => 'Str',
             ),
              'constUses' => 
             array (
@@ -27911,22 +26816,24 @@ return [
              'phpDocString' => '/**
      * Crea un nuevo usuario con validación, asignación de roles, módulos y archivos (firma/avatar).
      *
-     * @param Request $request Datos del usuario, archivos de firma y avatar.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación o errores de validación.
+     * @param  Request  $request  Datos del usuario, archivos de firma y avatar.
+     * @return JsonResponse Confirmación o errores de validación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Seguridad',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'useragregarrequest' => 'App\\Http\\Requests\\Seguridad\\UserAgregarRequest',
               'configmodulo' => 'App\\Models\\Configuracion\\ConfigModulo',
               'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
-              'str' => 'Str',
-              'storage' => 'Illuminate\\Support\\Facades\\Storage',
-              'role' => 'Spatie\\Permission\\Models\\Role',
-              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'response' => 'Illuminate\\Http\\Response',
+              'collection' => 'Illuminate\\Support\\Collection',
               'auth' => 'Illuminate\\Support\\Facades\\Auth',
+              'storage' => 'Illuminate\\Support\\Facades\\Storage',
+              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'role' => 'Spatie\\Permission\\Models\\Role',
+              'str' => 'Str',
             ),
              'constUses' => 
             array (
@@ -27965,22 +26872,24 @@ return [
              'phpDocString' => '/**
      * Actualiza un usuario existente con validación, sincronización de roles, módulos y archivos.
      *
-     * @param Request $request Datos actualizados del usuario.
-     * @return \\Illuminate\\Http\\JsonResponse Confirmación o errores de validación.
+     * @param  Request  $request  Datos actualizados del usuario.
+     * @return JsonResponse Confirmación o errores de validación.
      */',
              'namespace' => 'App\\Http\\Controllers\\Seguridad',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'useragregarrequest' => 'App\\Http\\Requests\\Seguridad\\UserAgregarRequest',
               'configmodulo' => 'App\\Models\\Configuracion\\ConfigModulo',
               'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
-              'str' => 'Str',
-              'storage' => 'Illuminate\\Support\\Facades\\Storage',
-              'role' => 'Spatie\\Permission\\Models\\Role',
-              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'response' => 'Illuminate\\Http\\Response',
+              'collection' => 'Illuminate\\Support\\Collection',
               'auth' => 'Illuminate\\Support\\Facades\\Auth',
+              'storage' => 'Illuminate\\Support\\Facades\\Storage',
+              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'role' => 'Spatie\\Permission\\Models\\Role',
+              'str' => 'Str',
             ),
              'constUses' => 
             array (
@@ -28019,22 +26928,23 @@ return [
              'phpDocString' => '/**
      * Remove the specified resource from storage.
      *
-     * @param  \\App\\Models\\User  $user
-     * @return \\Illuminate\\Http\\Response
+     * @return Response
      */',
              'namespace' => 'App\\Http\\Controllers\\Seguridad',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'useragregarrequest' => 'App\\Http\\Requests\\Seguridad\\UserAgregarRequest',
               'configmodulo' => 'App\\Models\\Configuracion\\ConfigModulo',
               'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
-              'str' => 'Str',
-              'storage' => 'Illuminate\\Support\\Facades\\Storage',
-              'role' => 'Spatie\\Permission\\Models\\Role',
-              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'response' => 'Illuminate\\Http\\Response',
+              'collection' => 'Illuminate\\Support\\Collection',
               'auth' => 'Illuminate\\Support\\Facades\\Auth',
+              'storage' => 'Illuminate\\Support\\Facades\\Storage',
+              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'role' => 'Spatie\\Permission\\Models\\Role',
+              'str' => 'Str',
             ),
              'constUses' => 
             array (
@@ -28073,22 +26983,24 @@ return [
              'phpDocString' => '/**
      * Lista usuarios asociados a un módulo específico.
      *
-     * @param int $moduloId ID del módulo.
-     * @return \\Illuminate\\Http\\JsonResponse Lista de usuarios del módulo.
+     * @param  int  $moduloId  ID del módulo.
+     * @return JsonResponse Lista de usuarios del módulo.
      */',
              'namespace' => 'App\\Http\\Controllers\\Seguridad',
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'useragregarrequest' => 'App\\Http\\Requests\\Seguridad\\UserAgregarRequest',
               'configmodulo' => 'App\\Models\\Configuracion\\ConfigModulo',
               'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
-              'str' => 'Str',
-              'storage' => 'Illuminate\\Support\\Facades\\Storage',
-              'role' => 'Spatie\\Permission\\Models\\Role',
-              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'response' => 'Illuminate\\Http\\Response',
+              'collection' => 'Illuminate\\Support\\Collection',
               'auth' => 'Illuminate\\Support\\Facades\\Auth',
+              'storage' => 'Illuminate\\Support\\Facades\\Storage',
+              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'role' => 'Spatie\\Permission\\Models\\Role',
+              'str' => 'Str',
             ),
              'constUses' => 
             array (
@@ -28131,15 +27043,17 @@ return [
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'useragregarrequest' => 'App\\Http\\Requests\\Seguridad\\UserAgregarRequest',
               'configmodulo' => 'App\\Models\\Configuracion\\ConfigModulo',
               'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
-              'str' => 'Str',
-              'storage' => 'Illuminate\\Support\\Facades\\Storage',
-              'role' => 'Spatie\\Permission\\Models\\Role',
-              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'response' => 'Illuminate\\Http\\Response',
+              'collection' => 'Illuminate\\Support\\Collection',
               'auth' => 'Illuminate\\Support\\Facades\\Auth',
+              'storage' => 'Illuminate\\Support\\Facades\\Storage',
+              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'role' => 'Spatie\\Permission\\Models\\Role',
+              'str' => 'Str',
             ),
              'constUses' => 
             array (
@@ -28193,15 +27107,17 @@ return [
              'uses' => 
             array (
               'controller' => 'App\\Http\\Controllers\\Controller',
-              'useragregarrequest' => 'App\\Http\\Requests\\Seguridad\\UserAgregarRequest',
               'configmodulo' => 'App\\Models\\Configuracion\\ConfigModulo',
               'user' => 'App\\Models\\User',
+              'jsonresponse' => 'Illuminate\\Http\\JsonResponse',
               'request' => 'Illuminate\\Http\\Request',
-              'str' => 'Str',
-              'storage' => 'Illuminate\\Support\\Facades\\Storage',
-              'role' => 'Spatie\\Permission\\Models\\Role',
-              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'response' => 'Illuminate\\Http\\Response',
+              'collection' => 'Illuminate\\Support\\Collection',
               'auth' => 'Illuminate\\Support\\Facades\\Auth',
+              'storage' => 'Illuminate\\Support\\Facades\\Storage',
+              'validator' => 'Illuminate\\Support\\Facades\\Validator',
+              'role' => 'Spatie\\Permission\\Models\\Role',
+              'str' => 'Str',
             ),
              'constUses' => 
             array (
@@ -28276,7 +27192,35 @@ return [
              'namespace' => 'App\\Http',
              'uses' => 
             array (
+              'authenticate' => 'App\\Http\\Middleware\\Authenticate',
+              'encryptcookies' => 'App\\Http\\Middleware\\EncryptCookies',
+              'preventrequestsduringmaintenance' => 'App\\Http\\Middleware\\PreventRequestsDuringMaintenance',
+              'redirectifauthenticated' => 'App\\Http\\Middleware\\RedirectIfAuthenticated',
+              'securityheaders' => 'App\\Http\\Middleware\\SecurityHeaders',
+              'trimstrings' => 'App\\Http\\Middleware\\TrimStrings',
+              'trustproxies' => 'App\\Http\\Middleware\\TrustProxies',
+              'validatesignature' => 'App\\Http\\Middleware\\ValidateSignature',
+              'verifycsrftoken' => 'App\\Http\\Middleware\\VerifyCsrfToken',
+              'verifyteleradiologiahmac' => 'App\\Http\\Middleware\\VerifyTeleRadiologiaHmac',
+              'authenticatewithbasicauth' => 'Illuminate\\Auth\\Middleware\\AuthenticateWithBasicAuth',
+              'authorize' => 'Illuminate\\Auth\\Middleware\\Authorize',
+              'ensureemailisverified' => 'Illuminate\\Auth\\Middleware\\EnsureEmailIsVerified',
+              'requirepassword' => 'Illuminate\\Auth\\Middleware\\RequirePassword',
+              'addqueuedcookiestoresponse' => 'Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse',
               'httpkernel' => 'Illuminate\\Foundation\\Http\\Kernel',
+              'convertemptystringstonull' => 'Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull',
+              'validatepostsize' => 'Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize',
+              'handlecors' => 'Illuminate\\Http\\Middleware\\HandleCors',
+              'setcacheheaders' => 'Illuminate\\Http\\Middleware\\SetCacheHeaders',
+              'substitutebindings' => 'Illuminate\\Routing\\Middleware\\SubstituteBindings',
+              'throttlerequests' => 'Illuminate\\Routing\\Middleware\\ThrottleRequests',
+              'authenticatesession' => 'Illuminate\\Session\\Middleware\\AuthenticateSession',
+              'startsession' => 'Illuminate\\Session\\Middleware\\StartSession',
+              'shareerrorsfromsession' => 'Illuminate\\View\\Middleware\\ShareErrorsFromSession',
+              'ensurefrontendrequestsarestateful' => 'Laravel\\Sanctum\\Http\\Middleware\\EnsureFrontendRequestsAreStateful',
+              'permissionmiddleware' => 'Spatie\\Permission\\Middlewares\\PermissionMiddleware',
+              'rolemiddleware' => 'Spatie\\Permission\\Middlewares\\RoleMiddleware',
+              'roleorpermissionmiddleware' => 'Spatie\\Permission\\Middlewares\\RoleOrPermissionMiddleware',
             ),
              'constUses' => 
             array (
@@ -28307,7 +27251,35 @@ return [
              'namespace' => 'App\\Http',
              'uses' => 
             array (
+              'authenticate' => 'App\\Http\\Middleware\\Authenticate',
+              'encryptcookies' => 'App\\Http\\Middleware\\EncryptCookies',
+              'preventrequestsduringmaintenance' => 'App\\Http\\Middleware\\PreventRequestsDuringMaintenance',
+              'redirectifauthenticated' => 'App\\Http\\Middleware\\RedirectIfAuthenticated',
+              'securityheaders' => 'App\\Http\\Middleware\\SecurityHeaders',
+              'trimstrings' => 'App\\Http\\Middleware\\TrimStrings',
+              'trustproxies' => 'App\\Http\\Middleware\\TrustProxies',
+              'validatesignature' => 'App\\Http\\Middleware\\ValidateSignature',
+              'verifycsrftoken' => 'App\\Http\\Middleware\\VerifyCsrfToken',
+              'verifyteleradiologiahmac' => 'App\\Http\\Middleware\\VerifyTeleRadiologiaHmac',
+              'authenticatewithbasicauth' => 'Illuminate\\Auth\\Middleware\\AuthenticateWithBasicAuth',
+              'authorize' => 'Illuminate\\Auth\\Middleware\\Authorize',
+              'ensureemailisverified' => 'Illuminate\\Auth\\Middleware\\EnsureEmailIsVerified',
+              'requirepassword' => 'Illuminate\\Auth\\Middleware\\RequirePassword',
+              'addqueuedcookiestoresponse' => 'Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse',
               'httpkernel' => 'Illuminate\\Foundation\\Http\\Kernel',
+              'convertemptystringstonull' => 'Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull',
+              'validatepostsize' => 'Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize',
+              'handlecors' => 'Illuminate\\Http\\Middleware\\HandleCors',
+              'setcacheheaders' => 'Illuminate\\Http\\Middleware\\SetCacheHeaders',
+              'substitutebindings' => 'Illuminate\\Routing\\Middleware\\SubstituteBindings',
+              'throttlerequests' => 'Illuminate\\Routing\\Middleware\\ThrottleRequests',
+              'authenticatesession' => 'Illuminate\\Session\\Middleware\\AuthenticateSession',
+              'startsession' => 'Illuminate\\Session\\Middleware\\StartSession',
+              'shareerrorsfromsession' => 'Illuminate\\View\\Middleware\\ShareErrorsFromSession',
+              'ensurefrontendrequestsarestateful' => 'Laravel\\Sanctum\\Http\\Middleware\\EnsureFrontendRequestsAreStateful',
+              'permissionmiddleware' => 'Spatie\\Permission\\Middlewares\\PermissionMiddleware',
+              'rolemiddleware' => 'Spatie\\Permission\\Middlewares\\RoleMiddleware',
+              'roleorpermissionmiddleware' => 'Spatie\\Permission\\Middlewares\\RoleOrPermissionMiddleware',
             ),
              'constUses' => 
             array (
@@ -28340,7 +27312,35 @@ return [
              'namespace' => 'App\\Http',
              'uses' => 
             array (
+              'authenticate' => 'App\\Http\\Middleware\\Authenticate',
+              'encryptcookies' => 'App\\Http\\Middleware\\EncryptCookies',
+              'preventrequestsduringmaintenance' => 'App\\Http\\Middleware\\PreventRequestsDuringMaintenance',
+              'redirectifauthenticated' => 'App\\Http\\Middleware\\RedirectIfAuthenticated',
+              'securityheaders' => 'App\\Http\\Middleware\\SecurityHeaders',
+              'trimstrings' => 'App\\Http\\Middleware\\TrimStrings',
+              'trustproxies' => 'App\\Http\\Middleware\\TrustProxies',
+              'validatesignature' => 'App\\Http\\Middleware\\ValidateSignature',
+              'verifycsrftoken' => 'App\\Http\\Middleware\\VerifyCsrfToken',
+              'verifyteleradiologiahmac' => 'App\\Http\\Middleware\\VerifyTeleRadiologiaHmac',
+              'authenticatewithbasicauth' => 'Illuminate\\Auth\\Middleware\\AuthenticateWithBasicAuth',
+              'authorize' => 'Illuminate\\Auth\\Middleware\\Authorize',
+              'ensureemailisverified' => 'Illuminate\\Auth\\Middleware\\EnsureEmailIsVerified',
+              'requirepassword' => 'Illuminate\\Auth\\Middleware\\RequirePassword',
+              'addqueuedcookiestoresponse' => 'Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse',
               'httpkernel' => 'Illuminate\\Foundation\\Http\\Kernel',
+              'convertemptystringstonull' => 'Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull',
+              'validatepostsize' => 'Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize',
+              'handlecors' => 'Illuminate\\Http\\Middleware\\HandleCors',
+              'setcacheheaders' => 'Illuminate\\Http\\Middleware\\SetCacheHeaders',
+              'substitutebindings' => 'Illuminate\\Routing\\Middleware\\SubstituteBindings',
+              'throttlerequests' => 'Illuminate\\Routing\\Middleware\\ThrottleRequests',
+              'authenticatesession' => 'Illuminate\\Session\\Middleware\\AuthenticateSession',
+              'startsession' => 'Illuminate\\Session\\Middleware\\StartSession',
+              'shareerrorsfromsession' => 'Illuminate\\View\\Middleware\\ShareErrorsFromSession',
+              'ensurefrontendrequestsarestateful' => 'Laravel\\Sanctum\\Http\\Middleware\\EnsureFrontendRequestsAreStateful',
+              'permissionmiddleware' => 'Spatie\\Permission\\Middlewares\\PermissionMiddleware',
+              'rolemiddleware' => 'Spatie\\Permission\\Middlewares\\RoleMiddleware',
+              'roleorpermissionmiddleware' => 'Spatie\\Permission\\Middlewares\\RoleOrPermissionMiddleware',
             ),
              'constUses' => 
             array (
@@ -28389,13 +27389,14 @@ return [
              'phpDocString' => '/**
      * Get the path the user should be redirected to when they are not authenticated.
      *
-     * @param  \\Illuminate\\Http\\Request  $request
+     * @param  Request  $request
      * @return string|null
      */',
              'namespace' => 'App\\Http\\Middleware',
              'uses' => 
             array (
               'middleware' => 'Illuminate\\Auth\\Middleware\\Authenticate',
+              'request' => 'Illuminate\\Http\\Request',
             ),
              'constUses' => 
             array (
@@ -28614,17 +27615,18 @@ return [
              'phpDocString' => '/**
      * Handle an incoming request.
      *
-     * @param  \\Illuminate\\Http\\Request  $request
-     * @param  \\Closure(\\Illuminate\\Http\\Request): (\\Illuminate\\Http\\Response|\\Illuminate\\Http\\RedirectResponse)  $next
+     * @param  Closure(Request): (Response|RedirectResponse)  $next
      * @param  string|null  ...$guards
-     * @return \\Illuminate\\Http\\Response|\\Illuminate\\Http\\RedirectResponse
+     * @return Response|RedirectResponse
      */',
              'namespace' => 'App\\Http\\Middleware',
              'uses' => 
             array (
               'routeserviceprovider' => 'App\\Providers\\RouteServiceProvider',
               'closure' => 'Closure',
+              'redirectresponse' => 'Illuminate\\Http\\RedirectResponse',
               'request' => 'Illuminate\\Http\\Request',
+              'response' => 'Illuminate\\Http\\Response',
               'auth' => 'Illuminate\\Support\\Facades\\Auth',
             ),
              'constUses' => 
@@ -28747,6 +27749,35 @@ return [
             \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
                'name' => 'next',
                'type' => 'Closure',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        1 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'applyCsp',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => false,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => NULL,
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'response',
+               'type' => 'Symfony\\Component\\HttpFoundation\\Response',
                'byRef' => false,
                'variadic' => false,
                'hasDefault' => false,
@@ -29075,6 +28106,72 @@ return [
            'private' => false,
            'static' => false,
            'readonly' => false,
+           'attributes' => 
+          array (
+          ),
+        )),
+      ),
+       'attributes' => 
+      array (
+      ),
+    )),
+  ),
+  'C:\\laragon\\www\\lidiag\\app\\Http\\Middleware\\VerifyTeleRadiologiaHmac.php' => 
+  array (
+    0 => 
+    \PHPStan\Dependency\ExportedNode\ExportedClassNode::__set_state(array(
+       'name' => 'App\\Http\\Middleware\\VerifyTeleRadiologiaHmac',
+       'phpDoc' => NULL,
+       'abstract' => false,
+       'final' => false,
+       'extends' => NULL,
+       'implements' => 
+      array (
+      ),
+       'usedTraits' => 
+      array (
+      ),
+       'traitUseAdaptations' => 
+      array (
+      ),
+       'statements' => 
+      array (
+        0 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'handle',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'Symfony\\Component\\HttpFoundation\\Response',
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'request',
+               'type' => 'Illuminate\\Http\\Request',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+            1 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'next',
+               'type' => 'Closure',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
            'attributes' => 
           array (
           ),
@@ -29776,6 +28873,7 @@ return [
              'namespace' => 'App\\Http\\Requests\\Ecografias',
              'uses' => 
             array (
+              'validationrule' => 'Illuminate\\Contracts\\Validation\\ValidationRule',
               'formrequest' => 'Illuminate\\Foundation\\Http\\FormRequest',
             ),
              'constUses' => 
@@ -29804,11 +28902,12 @@ return [
              'phpDocString' => '/**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \\Illuminate\\Contracts\\Validation\\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */',
              'namespace' => 'App\\Http\\Requests\\Ecografias',
              'uses' => 
             array (
+              'validationrule' => 'Illuminate\\Contracts\\Validation\\ValidationRule',
               'formrequest' => 'Illuminate\\Foundation\\Http\\FormRequest',
             ),
              'constUses' => 
@@ -29840,6 +28939,7 @@ return [
              'namespace' => 'App\\Http\\Requests\\Ecografias',
              'uses' => 
             array (
+              'validationrule' => 'Illuminate\\Contracts\\Validation\\ValidationRule',
               'formrequest' => 'Illuminate\\Foundation\\Http\\FormRequest',
             ),
              'constUses' => 
@@ -29897,6 +28997,7 @@ return [
              'namespace' => 'App\\Http\\Requests\\Ecografias',
              'uses' => 
             array (
+              'validationrule' => 'Illuminate\\Contracts\\Validation\\ValidationRule',
               'formrequest' => 'Illuminate\\Foundation\\Http\\FormRequest',
             ),
              'constUses' => 
@@ -29925,11 +29026,12 @@ return [
              'phpDocString' => '/**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \\Illuminate\\Contracts\\Validation\\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */',
              'namespace' => 'App\\Http\\Requests\\Ecografias',
              'uses' => 
             array (
+              'validationrule' => 'Illuminate\\Contracts\\Validation\\ValidationRule',
               'formrequest' => 'Illuminate\\Foundation\\Http\\FormRequest',
             ),
              'constUses' => 
@@ -29961,6 +29063,7 @@ return [
              'namespace' => 'App\\Http\\Requests\\Ecografias',
              'uses' => 
             array (
+              'validationrule' => 'Illuminate\\Contracts\\Validation\\ValidationRule',
               'formrequest' => 'Illuminate\\Foundation\\Http\\FormRequest',
             ),
              'constUses' => 
@@ -30564,7 +29667,6 @@ return [
            'names' => 
           array (
             0 => 'paciente',
-            1 => 'estudio',
           ),
            'phpDoc' => NULL,
            'type' => NULL,
@@ -30577,6 +29679,22 @@ return [
           ),
         )),
         1 => 
+        \PHPStan\Dependency\ExportedNode\ExportedPropertiesNode::__set_state(array(
+           'names' => 
+          array (
+            0 => 'estudio',
+          ),
+           'phpDoc' => NULL,
+           'type' => NULL,
+           'public' => false,
+           'private' => false,
+           'static' => false,
+           'readonly' => false,
+           'attributes' => 
+          array (
+          ),
+        )),
+        2 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => '__construct',
            'phpDoc' => 
@@ -30590,7 +29708,6 @@ return [
              'uses' => 
             array (
               'queueable' => 'Illuminate\\Bus\\Queueable',
-              'shouldqueue' => 'Illuminate\\Contracts\\Queue\\ShouldQueue',
               'mailable' => 'Illuminate\\Mail\\Mailable',
               'content' => 'Illuminate\\Mail\\Mailables\\Content',
               'envelope' => 'Illuminate\\Mail\\Mailables\\Envelope',
@@ -30636,7 +29753,7 @@ return [
           array (
           ),
         )),
-        2 => 
+        3 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'envelope',
            'phpDoc' => 
@@ -30644,51 +29761,12 @@ return [
              'phpDocString' => '/**
      * Get the message envelope.
      *
-     * @return \\Illuminate\\Mail\\Mailables\\Envelope
+     * @return Envelope
      */',
              'namespace' => 'App\\Mail',
              'uses' => 
             array (
               'queueable' => 'Illuminate\\Bus\\Queueable',
-              'shouldqueue' => 'Illuminate\\Contracts\\Queue\\ShouldQueue',
-              'mailable' => 'Illuminate\\Mail\\Mailable',
-              'content' => 'Illuminate\\Mail\\Mailables\\Content',
-              'envelope' => 'Illuminate\\Mail\\Mailables\\Envelope',
-              'serializesmodels' => 'Illuminate\\Queue\\SerializesModels',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        3 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'content',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Get the message content definition.
-     *
-     * @return \\Illuminate\\Mail\\Mailables\\Content
-     */',
-             'namespace' => 'App\\Mail',
-             'uses' => 
-            array (
-              'queueable' => 'Illuminate\\Bus\\Queueable',
-              'shouldqueue' => 'Illuminate\\Contracts\\Queue\\ShouldQueue',
               'mailable' => 'Illuminate\\Mail\\Mailable',
               'content' => 'Illuminate\\Mail\\Mailables\\Content',
               'envelope' => 'Illuminate\\Mail\\Mailables\\Envelope',
@@ -30714,6 +29792,43 @@ return [
         )),
         4 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'content',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * Get the message content definition.
+     *
+     * @return Content
+     */',
+             'namespace' => 'App\\Mail',
+             'uses' => 
+            array (
+              'queueable' => 'Illuminate\\Bus\\Queueable',
+              'mailable' => 'Illuminate\\Mail\\Mailable',
+              'content' => 'Illuminate\\Mail\\Mailables\\Content',
+              'envelope' => 'Illuminate\\Mail\\Mailables\\Envelope',
+              'serializesmodels' => 'Illuminate\\Queue\\SerializesModels',
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => NULL,
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        5 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'attachments',
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
@@ -30726,7 +29841,6 @@ return [
              'uses' => 
             array (
               'queueable' => 'Illuminate\\Bus\\Queueable',
-              'shouldqueue' => 'Illuminate\\Contracts\\Queue\\ShouldQueue',
               'mailable' => 'Illuminate\\Mail\\Mailable',
               'content' => 'Illuminate\\Mail\\Mailables\\Content',
               'envelope' => 'Illuminate\\Mail\\Mailables\\Envelope',
@@ -30783,8 +29897,6 @@ return [
            'names' => 
           array (
             0 => 'estudio',
-            1 => 'nomArchivoReporte',
-            2 => 'study_iuid',
           ),
            'phpDoc' => NULL,
            'type' => NULL,
@@ -30797,6 +29909,38 @@ return [
           ),
         )),
         1 => 
+        \PHPStan\Dependency\ExportedNode\ExportedPropertiesNode::__set_state(array(
+           'names' => 
+          array (
+            0 => 'nomArchivoReporte',
+          ),
+           'phpDoc' => NULL,
+           'type' => NULL,
+           'public' => false,
+           'private' => false,
+           'static' => false,
+           'readonly' => false,
+           'attributes' => 
+          array (
+          ),
+        )),
+        2 => 
+        \PHPStan\Dependency\ExportedNode\ExportedPropertiesNode::__set_state(array(
+           'names' => 
+          array (
+            0 => 'study_iuid',
+          ),
+           'phpDoc' => NULL,
+           'type' => NULL,
+           'public' => false,
+           'private' => false,
+           'static' => false,
+           'readonly' => false,
+           'attributes' => 
+          array (
+          ),
+        )),
+        3 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => '__construct',
            'phpDoc' => 
@@ -30810,7 +29954,6 @@ return [
              'uses' => 
             array (
               'queueable' => 'Illuminate\\Bus\\Queueable',
-              'shouldqueue' => 'Illuminate\\Contracts\\Queue\\ShouldQueue',
               'mailable' => 'Illuminate\\Mail\\Mailable',
               'content' => 'Illuminate\\Mail\\Mailables\\Content',
               'envelope' => 'Illuminate\\Mail\\Mailables\\Envelope',
@@ -30868,7 +30011,7 @@ return [
           array (
           ),
         )),
-        2 => 
+        4 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'envelope',
            'phpDoc' => 
@@ -30876,13 +30019,12 @@ return [
              'phpDocString' => '/**
      * Get the message envelope.
      *
-     * @return \\Illuminate\\Mail\\Mailables\\Envelope
+     * @return Envelope
      */',
              'namespace' => 'App\\Mail',
              'uses' => 
             array (
               'queueable' => 'Illuminate\\Bus\\Queueable',
-              'shouldqueue' => 'Illuminate\\Contracts\\Queue\\ShouldQueue',
               'mailable' => 'Illuminate\\Mail\\Mailable',
               'content' => 'Illuminate\\Mail\\Mailables\\Content',
               'envelope' => 'Illuminate\\Mail\\Mailables\\Envelope',
@@ -30907,7 +30049,7 @@ return [
           array (
           ),
         )),
-        3 => 
+        5 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'content',
            'phpDoc' => 
@@ -30915,13 +30057,12 @@ return [
              'phpDocString' => '/**
      * Get the message content definition.
      *
-     * @return \\Illuminate\\Mail\\Mailables\\Content
+     * @return Content
      */',
              'namespace' => 'App\\Mail',
              'uses' => 
             array (
               'queueable' => 'Illuminate\\Bus\\Queueable',
-              'shouldqueue' => 'Illuminate\\Contracts\\Queue\\ShouldQueue',
               'mailable' => 'Illuminate\\Mail\\Mailable',
               'content' => 'Illuminate\\Mail\\Mailables\\Content',
               'envelope' => 'Illuminate\\Mail\\Mailables\\Envelope',
@@ -30946,7 +30087,7 @@ return [
           array (
           ),
         )),
-        4 => 
+        6 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'attachments',
            'phpDoc' => 
@@ -30960,7 +30101,6 @@ return [
              'uses' => 
             array (
               'queueable' => 'Illuminate\\Bus\\Queueable',
-              'shouldqueue' => 'Illuminate\\Contracts\\Queue\\ShouldQueue',
               'mailable' => 'Illuminate\\Mail\\Mailable',
               'content' => 'Illuminate\\Mail\\Mailables\\Content',
               'envelope' => 'Illuminate\\Mail\\Mailables\\Envelope',
@@ -31018,7 +30158,6 @@ return [
            'names' => 
           array (
             0 => 'estudio',
-            1 => 'nomArchivoReporte',
           ),
            'phpDoc' => NULL,
            'type' => NULL,
@@ -31031,6 +30170,22 @@ return [
           ),
         )),
         1 => 
+        \PHPStan\Dependency\ExportedNode\ExportedPropertiesNode::__set_state(array(
+           'names' => 
+          array (
+            0 => 'nomArchivoReporte',
+          ),
+           'phpDoc' => NULL,
+           'type' => NULL,
+           'public' => false,
+           'private' => false,
+           'static' => false,
+           'readonly' => false,
+           'attributes' => 
+          array (
+          ),
+        )),
+        2 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => '__construct',
            'phpDoc' => 
@@ -31044,7 +30199,6 @@ return [
              'uses' => 
             array (
               'queueable' => 'Illuminate\\Bus\\Queueable',
-              'shouldqueue' => 'Illuminate\\Contracts\\Queue\\ShouldQueue',
               'mailable' => 'Illuminate\\Mail\\Mailable',
               'content' => 'Illuminate\\Mail\\Mailables\\Content',
               'envelope' => 'Illuminate\\Mail\\Mailables\\Envelope',
@@ -31090,7 +30244,7 @@ return [
           array (
           ),
         )),
-        2 => 
+        3 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'envelope',
            'phpDoc' => 
@@ -31098,51 +30252,12 @@ return [
              'phpDocString' => '/**
      * Get the message envelope.
      *
-     * @return \\Illuminate\\Mail\\Mailables\\Envelope
+     * @return Envelope
      */',
              'namespace' => 'App\\Mail',
              'uses' => 
             array (
               'queueable' => 'Illuminate\\Bus\\Queueable',
-              'shouldqueue' => 'Illuminate\\Contracts\\Queue\\ShouldQueue',
-              'mailable' => 'Illuminate\\Mail\\Mailable',
-              'content' => 'Illuminate\\Mail\\Mailables\\Content',
-              'envelope' => 'Illuminate\\Mail\\Mailables\\Envelope',
-              'serializesmodels' => 'Illuminate\\Queue\\SerializesModels',
-            ),
-             'constUses' => 
-            array (
-            ),
-          )),
-           'byRef' => false,
-           'public' => true,
-           'private' => false,
-           'abstract' => false,
-           'final' => false,
-           'static' => false,
-           'returnType' => NULL,
-           'parameters' => 
-          array (
-          ),
-           'attributes' => 
-          array (
-          ),
-        )),
-        3 => 
-        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
-           'name' => 'content',
-           'phpDoc' => 
-          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
-             'phpDocString' => '/**
-     * Get the message content definition.
-     *
-     * @return \\Illuminate\\Mail\\Mailables\\Content
-     */',
-             'namespace' => 'App\\Mail',
-             'uses' => 
-            array (
-              'queueable' => 'Illuminate\\Bus\\Queueable',
-              'shouldqueue' => 'Illuminate\\Contracts\\Queue\\ShouldQueue',
               'mailable' => 'Illuminate\\Mail\\Mailable',
               'content' => 'Illuminate\\Mail\\Mailables\\Content',
               'envelope' => 'Illuminate\\Mail\\Mailables\\Envelope',
@@ -31168,6 +30283,43 @@ return [
         )),
         4 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'content',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * Get the message content definition.
+     *
+     * @return Content
+     */',
+             'namespace' => 'App\\Mail',
+             'uses' => 
+            array (
+              'queueable' => 'Illuminate\\Bus\\Queueable',
+              'mailable' => 'Illuminate\\Mail\\Mailable',
+              'content' => 'Illuminate\\Mail\\Mailables\\Content',
+              'envelope' => 'Illuminate\\Mail\\Mailables\\Envelope',
+              'serializesmodels' => 'Illuminate\\Queue\\SerializesModels',
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => NULL,
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        5 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'attachments',
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
@@ -31180,7 +30332,6 @@ return [
              'uses' => 
             array (
               'queueable' => 'Illuminate\\Bus\\Queueable',
-              'shouldqueue' => 'Illuminate\\Contracts\\Queue\\ShouldQueue',
               'mailable' => 'Illuminate\\Mail\\Mailable',
               'content' => 'Illuminate\\Mail\\Mailables\\Content',
               'envelope' => 'Illuminate\\Mail\\Mailables\\Envelope',
@@ -31918,8 +31069,42 @@ return [
           ),
         )),
         1 => 
+        \PHPStan\Dependency\ExportedNode\ExportedPropertiesNode::__set_state(array(
+           'names' => 
+          array (
+            0 => 'casts',
+          ),
+           'phpDoc' => NULL,
+           'type' => NULL,
+           'public' => false,
+           'private' => false,
+           'static' => false,
+           'readonly' => false,
+           'attributes' => 
+          array (
+          ),
+        )),
+        2 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'consentimientoInformado',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => NULL,
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        3 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'estudioProductos',
            'phpDoc' => NULL,
            'byRef' => false,
            'public' => true,
@@ -33277,6 +32462,38 @@ return [
           ),
         )),
         1 => 
+        \PHPStan\Dependency\ExportedNode\ExportedPropertiesNode::__set_state(array(
+           'names' => 
+          array (
+            0 => 'guarded',
+          ),
+           'phpDoc' => NULL,
+           'type' => NULL,
+           'public' => false,
+           'private' => false,
+           'static' => false,
+           'readonly' => false,
+           'attributes' => 
+          array (
+          ),
+        )),
+        2 => 
+        \PHPStan\Dependency\ExportedNode\ExportedPropertiesNode::__set_state(array(
+           'names' => 
+          array (
+            0 => 'casts',
+          ),
+           'phpDoc' => NULL,
+           'type' => NULL,
+           'public' => false,
+           'private' => false,
+           'static' => false,
+           'readonly' => false,
+           'attributes' => 
+          array (
+          ),
+        )),
+        3 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'paciente',
            'phpDoc' => NULL,
@@ -33294,7 +32511,7 @@ return [
           array (
           ),
         )),
-        2 => 
+        4 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'medico',
            'phpDoc' => NULL,
@@ -33312,7 +32529,7 @@ return [
           array (
           ),
         )),
-        3 => 
+        5 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'quienRegistro',
            'phpDoc' => NULL,
@@ -33330,7 +32547,7 @@ return [
           array (
           ),
         )),
-        4 => 
+        6 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'sede',
            'phpDoc' => NULL,
@@ -33348,7 +32565,7 @@ return [
           array (
           ),
         )),
-        5 => 
+        7 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'prioridad',
            'phpDoc' => NULL,
@@ -33366,7 +32583,7 @@ return [
           array (
           ),
         )),
-        6 => 
+        8 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'productos',
            'phpDoc' => NULL,
@@ -33384,7 +32601,7 @@ return [
           array (
           ),
         )),
-        7 => 
+        9 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'diagnosticos',
            'phpDoc' => NULL,
@@ -33465,7 +32682,7 @@ return [
         \PHPStan\Dependency\ExportedNode\ExportedPropertiesNode::__set_state(array(
            'names' => 
           array (
-            0 => 'appends',
+            0 => 'guarded',
           ),
            'phpDoc' => NULL,
            'type' => NULL,
@@ -33478,6 +32695,38 @@ return [
           ),
         )),
         3 => 
+        \PHPStan\Dependency\ExportedNode\ExportedPropertiesNode::__set_state(array(
+           'names' => 
+          array (
+            0 => 'casts',
+          ),
+           'phpDoc' => NULL,
+           'type' => NULL,
+           'public' => false,
+           'private' => false,
+           'static' => false,
+           'readonly' => false,
+           'attributes' => 
+          array (
+          ),
+        )),
+        4 => 
+        \PHPStan\Dependency\ExportedNode\ExportedPropertiesNode::__set_state(array(
+           'names' => 
+          array (
+            0 => 'appends',
+          ),
+           'phpDoc' => NULL,
+           'type' => NULL,
+           'public' => false,
+           'private' => false,
+           'static' => false,
+           'readonly' => false,
+           'attributes' => 
+          array (
+          ),
+        )),
+        5 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'getUrlAttribute',
            'phpDoc' => 
@@ -33510,7 +32759,7 @@ return [
           array (
           ),
         )),
-        4 => 
+        6 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'getFullPathAttribute',
            'phpDoc' => 
@@ -33662,6 +32911,38 @@ return [
           ),
         )),
         2 => 
+        \PHPStan\Dependency\ExportedNode\ExportedPropertiesNode::__set_state(array(
+           'names' => 
+          array (
+            0 => 'guarded',
+          ),
+           'phpDoc' => NULL,
+           'type' => NULL,
+           'public' => false,
+           'private' => false,
+           'static' => false,
+           'readonly' => false,
+           'attributes' => 
+          array (
+          ),
+        )),
+        3 => 
+        \PHPStan\Dependency\ExportedNode\ExportedPropertiesNode::__set_state(array(
+           'names' => 
+          array (
+            0 => 'casts',
+          ),
+           'phpDoc' => NULL,
+           'type' => NULL,
+           'public' => false,
+           'private' => false,
+           'static' => false,
+           'readonly' => false,
+           'attributes' => 
+          array (
+          ),
+        )),
+        4 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'estudio',
            'phpDoc' => NULL,
@@ -33679,9 +32960,122 @@ return [
           array (
           ),
         )),
-        3 => 
+        5 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'transcriptor',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => NULL,
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        6 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'adendums',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => NULL,
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        7 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'producto',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => NULL,
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+      ),
+       'attributes' => 
+      array (
+      ),
+    )),
+  ),
+  'C:\\laragon\\www\\lidiag\\app\\Models\\Estudio\\EstudioProductoAdendum.php' => 
+  array (
+    0 => 
+    \PHPStan\Dependency\ExportedNode\ExportedClassNode::__set_state(array(
+       'name' => 'App\\Models\\Estudio\\EstudioProductoAdendum',
+       'phpDoc' => NULL,
+       'abstract' => false,
+       'final' => false,
+       'extends' => 'Illuminate\\Database\\Eloquent\\Model',
+       'implements' => 
+      array (
+      ),
+       'usedTraits' => 
+      array (
+        0 => 'Illuminate\\Database\\Eloquent\\Factories\\HasFactory',
+      ),
+       'traitUseAdaptations' => 
+      array (
+      ),
+       'statements' => 
+      array (
+        0 => 
+        \PHPStan\Dependency\ExportedNode\ExportedPropertiesNode::__set_state(array(
+           'names' => 
+          array (
+            0 => 'table',
+          ),
+           'phpDoc' => NULL,
+           'type' => NULL,
+           'public' => false,
+           'private' => false,
+           'static' => false,
+           'readonly' => false,
+           'attributes' => 
+          array (
+          ),
+        )),
+        1 => 
+        \PHPStan\Dependency\ExportedNode\ExportedPropertiesNode::__set_state(array(
+           'names' => 
+          array (
+            0 => 'fillable',
+          ),
+           'phpDoc' => NULL,
+           'type' => NULL,
+           'public' => false,
+           'private' => false,
+           'static' => false,
+           'readonly' => false,
+           'attributes' => 
+          array (
+          ),
+        )),
+        2 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'estudioProducto',
            'phpDoc' => NULL,
            'byRef' => false,
            'public' => true,
@@ -37840,8 +37234,8 @@ return [
       array (
         0 => 'Laravel\\Sanctum\\HasApiTokens',
         1 => 'Illuminate\\Database\\Eloquent\\Factories\\HasFactory',
-        2 => 'Illuminate\\Notifications\\Notifiable',
-        3 => 'Spatie\\Permission\\Traits\\HasRoles',
+        2 => 'Spatie\\Permission\\Traits\\HasRoles',
+        3 => 'Illuminate\\Notifications\\Notifiable',
       ),
        'traitUseAdaptations' => 
       array (
@@ -38224,6 +37618,281 @@ return [
       ),
     )),
   ),
+  'C:\\laragon\\www\\lidiag\\app\\Policies\\UserPolicy.php' => 
+  array (
+    0 => 
+    \PHPStan\Dependency\ExportedNode\ExportedClassNode::__set_state(array(
+       'name' => 'App\\Policies\\UserPolicy',
+       'phpDoc' => NULL,
+       'abstract' => false,
+       'final' => false,
+       'extends' => NULL,
+       'implements' => 
+      array (
+      ),
+       'usedTraits' => 
+      array (
+        0 => 'Illuminate\\Auth\\Access\\HandlesAuthorization',
+      ),
+       'traitUseAdaptations' => 
+      array (
+      ),
+       'statements' => 
+      array (
+        0 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'viewAny',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * Determine whether the user can view any models.
+     */',
+             'namespace' => 'App\\Policies',
+             'uses' => 
+            array (
+              'user' => 'App\\Models\\User',
+              'handlesauthorization' => 'Illuminate\\Auth\\Access\\HandlesAuthorization',
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'bool',
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'user',
+               'type' => 'App\\Models\\User',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        1 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'view',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * Determine whether the user can view the model.
+     */',
+             'namespace' => 'App\\Policies',
+             'uses' => 
+            array (
+              'user' => 'App\\Models\\User',
+              'handlesauthorization' => 'Illuminate\\Auth\\Access\\HandlesAuthorization',
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'bool',
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'user',
+               'type' => 'App\\Models\\User',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+            1 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'model',
+               'type' => 'App\\Models\\User',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        2 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'create',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * Determine whether the user can create models.
+     */',
+             'namespace' => 'App\\Policies',
+             'uses' => 
+            array (
+              'user' => 'App\\Models\\User',
+              'handlesauthorization' => 'Illuminate\\Auth\\Access\\HandlesAuthorization',
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'bool',
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'user',
+               'type' => 'App\\Models\\User',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        3 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'update',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * Determine whether the user can update the model.
+     */',
+             'namespace' => 'App\\Policies',
+             'uses' => 
+            array (
+              'user' => 'App\\Models\\User',
+              'handlesauthorization' => 'Illuminate\\Auth\\Access\\HandlesAuthorization',
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'bool',
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'user',
+               'type' => 'App\\Models\\User',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+            1 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'model',
+               'type' => 'App\\Models\\User',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        4 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'delete',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * Determine whether the user can delete the model.
+     */',
+             'namespace' => 'App\\Policies',
+             'uses' => 
+            array (
+              'user' => 'App\\Models\\User',
+              'handlesauthorization' => 'Illuminate\\Auth\\Access\\HandlesAuthorization',
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'bool',
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'user',
+               'type' => 'App\\Models\\User',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+            1 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'model',
+               'type' => 'App\\Models\\User',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+      ),
+       'attributes' => 
+      array (
+      ),
+    )),
+  ),
   'C:\\laragon\\www\\lidiag\\app\\Providers\\AppServiceProvider.php' => 
   array (
     0 => 
@@ -38257,7 +37926,6 @@ return [
              'namespace' => 'App\\Providers',
              'uses' => 
             array (
-              'url' => 'Illuminate\\Support\\Facades\\URL',
               'serviceprovider' => 'Illuminate\\Support\\ServiceProvider',
             ),
              'constUses' => 
@@ -38291,7 +37959,6 @@ return [
              'namespace' => 'App\\Providers',
              'uses' => 
             array (
-              'url' => 'Illuminate\\Support\\Facades\\URL',
               'serviceprovider' => 'Illuminate\\Support\\ServiceProvider',
             ),
              'constUses' => 

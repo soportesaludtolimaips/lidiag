@@ -325,7 +325,7 @@
                                     <div class="form-group">
                                         <div class="checkbox checkbox-success">
                                             <input type="checkbox" id="estado" name="estado" v-model="registro.estado"
-                                                :checked="registro.estado" value="1">
+                                                :true-value="1" :false-value="0">
                                             <label for="estado"> Activo </label>
                                         </div>
                                     </div>
@@ -377,7 +377,7 @@ export default {
             registros: [],
             roles: [],
             id: null,
-            registro: { num_docu: '', reg_med: '', name: '', email: '', password: '', estado: 0, imagen_perfil: '', rolesUsuario: [], modulos: [], interface_id: null },
+            registro: { num_docu: '', reg_med: '', name: '', email: '', password: '', estado: false, imagen_perfil: '', rolesUsuario: [], modulos: [], interface_id: null },
             tituloModal: 'Nuevo registro',
             actualizar: false,
             avatar: null,
@@ -547,7 +547,10 @@ export default {
         async ListarModulos() {
             try {
                 const res = await axios.get("/api/config-modulos-listar");
-                this.registro.modulos = res.data;
+                this.registro.modulos = res.data.map(modulo => ({
+                    ...modulo,
+                    checked: false,
+                }));
             } catch (error) {
                 handleAxiosErrorToast(error, "No fue posible listar módulos.");
             }
@@ -559,7 +562,7 @@ export default {
             this.avatar = event.target.files[0];
         },
         mostrarRegistro(data = {}) {
-            if (this.actualizar == true) {
+            if (this.actualizar) {
                 this.tituloModal = "Actualizar el registro: " + data.name;
                 this.id = data.id;
                 this.registro.num_docu = data.num_docu;
@@ -567,6 +570,7 @@ export default {
                 this.registro.name = data.name;
                 this.registro.email = data.email;
                 this.registro.interface_id = data.interface_id;
+                this.registro.estado = Boolean(data.estado);
 
 
                 // Inactavar los modulos
@@ -608,7 +612,7 @@ export default {
                 this.registro.name = "";
                 this.registro.email = "";
                 this.registro.password = "";
-                this.registro.estado = 1;
+                this.registro.estado = true;
                 this.registro.interface_id = '';
             }
 
@@ -627,7 +631,7 @@ export default {
             this.registro.name = "";
             this.registro.email = "";
             this.registro.password = "";
-            this.registro.estado = 1;
+            this.registro.estado = true;
         }
     }
 }

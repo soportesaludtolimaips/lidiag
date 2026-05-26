@@ -160,24 +160,26 @@
                                     <div class="form-group">
                                         <div class="checkbox checkbox-success">
                                             <input type="checkbox" id="requi_lectura" name="requi_lectura"
-                                                v-model="registro.requi_lectura" :checked="registro.requi_lectura"
-                                                value="1">
+                                                v-model="registro.requi_lectura"
+                                                :true-value="1" :false-value="0">
                                             <label for="requi_lectura"> Requiere Lectura </label>
                                         </div>
                                         <div class="checkbox checkbox-success">
                                             <input type="checkbox" id="tipo_oral" name="tipo_oral"
-                                                v-model="registro.tipo_oral" :checked="registro.tipo_oral" value="1">
+                                                v-model="registro.tipo_oral"
+                                                :true-value="1" :false-value="0">
                                             <label for="tipo_oral"> Tipo Oral </label>
                                         </div>
                                         <div class="checkbox checkbox-success">
                                             <input type="checkbox" id="tipo_venoso" name="tipo_venoso"
-                                                v-model="registro.tipo_venoso" :checked="registro.tipo_venoso"
-                                                value="1">
+                                                v-model="registro.tipo_venoso"
+                                                :true-value="1" :false-value="0">
                                             <label for="tipo_venoso"> Tipo Venoso </label>
                                         </div>
                                         <div class="checkbox checkbox-success">
                                             <input type="checkbox" id="factura" name="factura"
-                                                v-model="registro.factura" :checked="registro.factura" value="1">
+                                                v-model="registro.factura"
+                                                :true-value="1" :false-value="0">
                                             <label for="factura"> Genera
                                                 factura </label>
                                         </div>
@@ -187,7 +189,7 @@
 
                             <div class="checkbox checkbox-success">
                                 <input type="checkbox" id="estado" name="estado" v-model="registro.estado"
-                                    :checked="registro.estado" value="1">
+                                    :true-value="1" :false-value="0">
                                 <label for="estado"> Activo </label>
                             </div>
 
@@ -234,7 +236,7 @@ export default {
         return {
             id: 0,
             registros: [],
-            registro: { cod_cups: '', nom_produc: '', porcen: 0, val_produc: 0, requi_lectura: 0, tipo_oral: 0, tipo_venoso: 0, factura: 0, estado: 1 },
+            registro: { cod_cups: '', nom_produc: '', porcen: 0, val_produc: 0, requi_lectura: false, tipo_oral: false, tipo_venoso: false, factura: false, estado: true },
             tituloModal: 'Nuevo registro',
             actualizar: false,
             errores: {},
@@ -338,31 +340,29 @@ export default {
             }
         },
         mostrarRegistro(data = {}) {
-            if (this.actualizar == true) {
+            if (this.actualizar) {
                 this.tituloModal = "Actualizar el registro: " + data.nom_produc;
                 this.id = data.id;
                 this.registro.cod_cups = data.cod_cups;
                 this.registro.nom_produc = data.nom_produc;
                 this.registro.porcen = data.porcen;
                 this.registro.val_produc = data.val_produc;
-                this.registro.requi_lectura = data.requi_lectura;
-                this.registro.tipo_oral = data.tipo_oral;
-                this.registro.tipo_venoso = data.tipo_venoso;
-                this.registro.factura = data.factura;
-
+                this.registro.requi_lectura = Boolean(data.requi_lectura);
+                this.registro.tipo_oral = Boolean(data.tipo_oral);
+                this.registro.tipo_venoso = Boolean(data.tipo_venoso);
+                this.registro.factura = Boolean(data.factura);
             } else {
                 this.actualizar = false;
                 this.tituloModal = "Nuevo registro";
                 this.id = 0;
                 this.registro.cod_cups = "";
                 this.registro.nom_produc = "";
-                this.registro.porcen = "";
-                this.registro.val_produc = "";
-                this.registro.requi_lectura = "";
-                this.registro.tipo_oral = "";
-                this.registro.tipo_venoso = "";
-                this.registro.factura = "";
-
+                this.registro.porcen = 0;
+                this.registro.val_produc = 0;
+                this.registro.requi_lectura = false;
+                this.registro.tipo_oral = false;
+                this.registro.tipo_venoso = false;
+                this.registro.factura = false;
             }
 
             this.btnCerralModalForm();
@@ -373,12 +373,12 @@ export default {
             this.id = 0;
             this.registro.cod_cups = "";
             this.registro.nom_produc = "";
-            this.registro.porcen = "";
-            this.registro.val_produc = "";
-            this.registro.requi_lectura = "";
-            this.registro.tipo_oral = "";
-            this.registro.tipo_venoso = "";
-            this.registro.factura = "";
+            this.registro.porcen = 0;
+            this.registro.val_produc = 0;
+            this.registro.requi_lectura = false;
+            this.registro.tipo_oral = false;
+            this.registro.tipo_venoso = false;
+            this.registro.factura = false;
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);

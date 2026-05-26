@@ -11,5 +11,9 @@ class ConfigPrioridad extends Model
 
     protected $table = 'config_prioridades';
 
-    protected $fillable = ['nom_priori', 'nivel', 'tiempo', 'stado'];
+    protected $fillable = ['nom_priori', 'nivel', 'tiempo', 'estado'];
+
+    protected $casts = [
+        'estado' => 'boolean',
+    ];
 }

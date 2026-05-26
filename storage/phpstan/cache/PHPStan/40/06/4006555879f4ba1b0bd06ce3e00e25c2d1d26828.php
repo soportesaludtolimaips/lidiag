@@ -2,6 +2,6 @@
 
 // variadic-method-App\Models\Consentimientos\ConsentimientoPlantilla-usuarioCrea-C:\laragon\www\lidiag\app\Models\Consentimientos\ConsentimientoPlantilla.php
 return \PHPStan\Cache\CacheItem::__set_state(array(
-   'variableKey' => '1770321901-v4',
+   'variableKey' => '1770999554-v4',
    'data' => false,
 ));
