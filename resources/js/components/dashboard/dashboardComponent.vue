@@ -721,6 +721,134 @@
             </div>
         </div>
         <!-- ============================================================== -->
+        <!-- Embudo (Pipeline) -->
+        <!-- ============================================================== -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">Embudo del período</h4>
+                        <small class="text-muted">Productos de estudios creados en los últimos {{ days }} días</small>
+                        <div class="row m-t-20 text-center">
+                            <div class="col-lg-3 col-md-6">
+                                <div class="bg-light-primary p-10 rounded">
+                                    <h2 class="text-primary font-weight-bold m-b-0">{{ embudo.total }}</h2>
+                                    <small class="text-muted">Asignados</small>
+                                </div>
+                                <div class="m-t-10" v-if="embudo.total > 0">
+                                    <span class="badge badge-primary">100%</span>
+                                </div>
+                            </div>
+                            <div class="col-lg-1 col-md-0 align-self-center d-none d-md-block">
+                                <h3 class="text-muted m-b-0">→</h3>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="bg-light-success p-10 rounded">
+                                    <h2 class="text-success font-weight-bold m-b-0">{{ embudo.leidos }}</h2>
+                                    <small class="text-muted">Leídos</small>
+                                </div>
+                                <div class="m-t-10" v-if="embudo.total > 0">
+                                    <span class="badge badge-success">{{ Math.round(embudo.tasaLectura * 100) }}%</span>
+                                </div>
+                            </div>
+                            <div class="col-lg-1 col-md-0 align-self-center d-none d-md-block">
+                                <h3 class="text-muted m-b-0">→</h3>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="bg-light-info p-10 rounded">
+                                    <h2 class="text-info font-weight-bold m-b-0">{{ embudo.transcritos }}</h2>
+                                    <small class="text-muted">Transcritos</small>
+                                </div>
+                                <div class="m-t-10" v-if="embudo.total > 0">
+                                    <span class="badge badge-info">{{ Math.round(embudo.tasaTranscripcion * 100) }}%</span>
+                                </div>
+                            </div>
+                            <div class="col-lg-2 col-md-6">
+                                <div class="p-10">
+                                    <small class="text-muted">Pendientes</small>
+                                    <h5 class="text-danger m-b-0">{{ embudo.pendientesLectura }} lectura</h5>
+                                    <h5 class="text-warning m-b-0">{{ embudo.pendientesTranscripcion }} transcripción</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ============================================================== -->
+        <!-- Ranking Transcriptores -->
+        <!-- ============================================================== -->
+        <div class="row">
+            <div class="col-lg-6 col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Ranking de Transcriptores</h5>
+                        <small class="text-muted">Top 10 por transcripciones en {{ days }} días</small>
+                        <div class="table-responsive m-t-10">
+                            <table class="table table-sm m-b-0">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Transcriptor</th>
+                                        <th class="text-right">Transcritos</th>
+                                        <th class="text-right">Tiempo promedio</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(row, i) in rankingTranscriptores" :key="row.transcriptor_id">
+                                        <td>{{ i + 1 }}</td>
+                                        <td>{{ row.name }}</td>
+                                        <td class="text-right">{{ row.total }}</td>
+                                        <td class="text-right">{{ formatMin(row.avgMin) }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div v-if="!loading && rankingTranscriptores.length === 0" class="text-muted m-t-10">
+                            Sin datos para mostrar.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Segmentación por Prioridad</h5>
+                        <small class="text-muted">Volumen y tiempos promedio por nivel de prioridad</small>
+                        <div class="table-responsive m-t-10">
+                            <table class="table table-sm m-b-0">
+                                <thead>
+                                    <tr>
+                                        <th>Prioridad</th>
+                                        <th class="text-right">Estudios</th>
+                                        <th class="text-right">Productos</th>
+                                        <th class="text-right">% Leído</th>
+                                        <th class="text-right">% Transcrito</th>
+                                        <th class="text-right">Tiempo lectura</th>
+                                        <th class="text-right">Tiempo transc.</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="row in prioridades" :key="row.prioridad_id">
+                                        <td>{{ row.prioridad }}</td>
+                                        <td class="text-right">{{ row.total_estudios }}</td>
+                                        <td class="text-right">{{ row.total_productos }}</td>
+                                        <td class="text-right">{{ Math.round(row.tasaLectura * 100) }}%</td>
+                                        <td class="text-right">{{ Math.round(row.tasaTranscripcion * 100) }}%</td>
+                                        <td class="text-right">{{ formatMin(row.avgLecturaMin) }}</td>
+                                        <td class="text-right">{{ formatMin(row.avgTranscripcionMin) }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div v-if="!loading && prioridades.length === 0" class="text-muted m-t-10">
+                            Sin datos para mostrar.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ============================================================== -->
         <!-- End Sales Chart -->
         <!-- ============================================================== -->
     </div>
@@ -761,21 +889,9 @@ export default {
         },
     },
     async mounted() {
-        console.log('Dashboard mounted ejecutándose');
-        try {
-            console.log('Iniciando initCharts...');
-            this.initCharts();
-            console.log('Listando sedes...');
-            await this.listarSedes();
-            console.log('Cargando dashboard...');
-            await this.fetchDashboard();
-            console.log('Dashboard cargado completamente');
-        } catch (e) {
-            this.initCharts();
-            await this.listarSedes();
-            await this.fetchDashboard();
-        }
-        // Si faltan librerías globales (c3/Morris), igual cargamos datos del dashboard.
+        this.initCharts();
+        await this.listarSedes();
+        await this.fetchDashboard();
         this.charts = {
             modalidades: null,
             resumen: null,
@@ -787,7 +903,6 @@ export default {
             slaLectura: null,
             slaTranscripcion: null,
         };
-
     },
     data() {
         return {
@@ -843,6 +958,18 @@ export default {
             productividad: {
                 rankingMedicosTranscritos: [],
                 transcritosPorSede: [],
+            },
+            rankingTranscriptores: [],
+            prioridades: [],
+            embudo: {
+                total: 0,
+                leidos: 0,
+                transcritos: 0,
+                tasaLectura: 0,
+                tasaTranscripcion: 0,
+                tasaCompletitud: 0,
+                pendientesLectura: 0,
+                pendientesTranscripcion: 0,
             },
             charts: {
                 resumen: null,
@@ -1004,12 +1131,9 @@ export default {
             });
         },
         async fetchDashboard() {
-            console.log('>>> fetchDashboard INICIO <<<');
             this.loading = true;
             this.error = null;
             this.filters.selected.sede_id = this.sedeSeleccionada;
-
-            console.log('>>> Params:', this.days, this.filters.selected.sede_id);
 
             try {
                 const http = window.axios;
@@ -1025,20 +1149,11 @@ export default {
                         : undefined,
                 };
 
-                console.log('>>> Haciendo petición axios con timeout...');
                 const res = await http.get("/api/reportes.dashboard", {
                     params,
-                    timeout: 30000, // 30 segundos timeout
-                }).catch(err => {
-                    console.log('>>> Error en axios:', err);
-                    console.log('>>> Response:', err.response);
-                    console.log('>>> Message:', err.message);
-                    console.log('>>> Code:', err.code);
-                    throw err;
+                    timeout: 30000,
                 });
-                console.log('>>> Respuesta recibida:', res);
 
-                console.log('resssss: ', res.date)
                 const data = res?.data || {};
 
                 if (data.filters) {
@@ -1071,17 +1186,19 @@ export default {
                 this.calidad = data.calidad || this.calidad;
                 this.tablas = data.tablas || this.tablas;
                 this.productividad = data.productividad || this.productividad;
+                this.rankingTranscriptores = Array.isArray(data.rankingTranscriptores)
+                    ? data.rankingTranscriptores : [];
+                this.prioridades = Array.isArray(data.prioridades)
+                    ? data.prioridades : [];
+                this.embudo = data.embudo || this.embudo;
 
                 this.reindexHeatmap();
                 this.renderCharts();
             } catch (e) {
-                console.log('Error')
                 this.error = "No fue posible cargar las estadísticas del dashboard.";
-                // opcional: log mínimo para depurar en consola sin ruido
-                // console.error(e);
-            } /* finally {
+            } finally {
                 this.loading = false;
-            } */
+            }
         },
         renderCharts() {
             // Bar (resumen)
@@ -1320,15 +1437,11 @@ export default {
             window.location.href = "/estudios.transcribir.listar";
         },
         async listarSedes() {
-            console.log('Iniciando listarSedes...');
             try {
-                console.log('Haciendo petición axios...');
                 const res = await axios.get("/api/config-sedes/listar/sedes/activas");
-                console.log('Respuesta received:', res);
                 this.sedes = res.data;
-                console.log('Sedes cargadas:', this.sedes);
             } catch (error) {
-                console.log('Error en listarSedes:', error);
+                console.error('Error en listarSedes:', error);
             }
         },
     },
