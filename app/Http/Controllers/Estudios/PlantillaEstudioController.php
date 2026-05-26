@@ -39,7 +39,7 @@ class PlantillaEstudioController extends Controller
         }
 
         // Ruta del archivo de plantilla_rx
-        $filePath = storage_path('app/plantilla_rxs_lecturas/'.$sede->plantilla_rx);
+        $filePath = storage_path('app/plantillas_lecturas/'.$sede->plantilla_rx);
 
         // Cargar el archivo de plantilla_rx
         $templateProcessor = new TemplateProcessor($filePath);
