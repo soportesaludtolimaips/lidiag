@@ -121,7 +121,7 @@ class PlantillaEstudioController extends Controller
             return response()->json(
                 [
                     'messaje' => 'Plantilla creada correctament',
-                    'plantilla_rx' => $nomArchivo.".pdf",
+                    'plantilla' => $nomArchivo.".pdf",
                 ],
                 200
             );
