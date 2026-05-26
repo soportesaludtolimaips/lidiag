@@ -42,14 +42,14 @@ class ConfigSedeController extends Controller
     }
 
     /**
-     * Crea una nueva sede con configuración de PACS y plantillas.
+     * Crea una nueva sede con configuración de PACS y plantilla_rxs.
      *
      * Flujo del proceso:
      * 1. Decodifica el JSON 'registro' del request.
      * 2. Valida los datos de configuración (DCM, OVIYAM, etc.).
      * 3. Crea la instancia de ConfigSede.
-     * 4. Procesa y guarda la plantilla RX si se adjunta (encripta nombre).
-     * 5. Procesa y guarda la plantilla Ecografía si se adjunta (encripta nombre).
+     * 4. Procesa y guarda la plantilla_rx RX si se adjunta (encripta nombre).
+     * 5. Procesa y guarda la plantilla_rx Ecografía si se adjunta (encripta nombre).
      * 6. Guarda el registro en la base de datos.
      *
      * @param  Request  $request  Datos de la sede y archivos.
@@ -109,36 +109,36 @@ class ConfigSedeController extends Controller
         $configSede->estado = $registro['estado'];
 
         /**
-         * Almacenos lla plantilla para RX
+         * Almacenos lla plantilla_rx para RX
          */
         if ($request->hasFile('plantilla_rx')) {
             $archivo = $request->plantilla_rx;
 
-            if (! is_null($configSede->plantilla_rx) && Storage::disk('plantillas_lecturas')->exists($configSede->plantilla_rx)) {
-                Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_rx);
+            if (! is_null($configSede->plantilla_rx) && Storage::disk('plantilla_rxs_lecturas')->exists($configSede->plantilla_rx)) {
+                Storage::disk('plantilla_rxs_lecturas')->delete($configSede->plantilla_rx);
             }
 
             $nombreEncrip = Str::random(50).".".$archivo->extension();
 
-            $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
+            $archivo->storeAs('plantilla_rxs_lecturas', $nombreEncrip);
             $configSede->plantilla_rx = $nombreEncrip;
         }
 
         /**
-         * Almacenos lla plantilla para EcografiasX
+         * Almacenos lla plantilla_rx para EcografiasX
          */
-        if ($request->hasFile('plantilla_ecografia')) {
+        if ($request->hasFile('plantilla_rx_ecografia')) {
 
-            $archivo = $request->plantilla_ecografia;
+            $archivo = $request->plantilla_rx_ecografia;
 
-            if (! is_null($configSede->plantilla_ecografia) && Storage::disk('plantillas_lecturas')->exists($configSede->plantilla_ecografia)) {
-                Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_ecografia);
+            if (! is_null($configSede->plantilla_rx_ecografia) && Storage::disk('plantilla_rxs_lecturas')->exists($configSede->plantilla_rx_ecografia)) {
+                Storage::disk('plantilla_rxs_lecturas')->delete($configSede->plantilla_rx_ecografia);
             }
 
             $nombreEncrip = Str::random(50).".".$archivo->extension();
 
-            $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
-            $configSede->plantilla_ecografia = $nombreEncrip;
+            $archivo->storeAs('plantilla_rxs_lecturas', $nombreEncrip);
+            $configSede->plantilla_rx_ecografia = $nombreEncrip;
         }
 
         $configSede->save();
@@ -202,14 +202,14 @@ class ConfigSedeController extends Controller
     }
 
     /**
-     * Actualiza una sede existente y sus plantillas.
+     * Actualiza una sede existente y sus plantilla_rxs.
      *
      * Flujo del proceso:
      * 1. Decodifica el JSON 'registro'.
      * 2. Valida los datos.
      * 3. Busca la sede por ID.
      * 4. Actualiza campos de configuración.
-     * 5. Reemplaza plantillas (RX/Ecografía) si se envían nuevas, eliminando las anteriores.
+     * 5. Reemplaza plantilla_rxs (RX/Ecografía) si se envían nuevas, eliminando las anteriores.
      * 6. Guarda los cambios.
      *
      * @param  Request  $request  Datos actualizados y archivos.
@@ -269,36 +269,36 @@ class ConfigSedeController extends Controller
         $configSede->estado = $registro['estado'];
 
         /**
-         * Almacenos lla plantilla para RX
+         * Almacenos lla plantilla_rx para RX
          */
         if ($request->hasFile('plantilla_rx')) {
             $archivo = $request->plantilla_rx;
 
-            if (! is_null($configSede->plantilla_rx) && Storage::disk('plantillas_lecturas')->exists($configSede->plantilla_rx)) {
-                Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_rx);
+            if (! is_null($configSede->plantilla_rx) && Storage::disk('plantilla_rxs_lecturas')->exists($configSede->plantilla_rx)) {
+                Storage::disk('plantilla_rxs_lecturas')->delete($configSede->plantilla_rx);
             }
 
             $nombreEncrip = Str::random(50).".".$archivo->extension();
 
-            $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
+            $archivo->storeAs('plantilla_rxs_lecturas', $nombreEncrip);
             $configSede->plantilla_rx = $nombreEncrip;
         }
 
         /**
-         * Almacenos lla plantilla para EcografiasX
+         * Almacenos lla plantilla_rx para EcografiasX
          */
-        if ($request->hasFile('plantilla_ecografia')) {
+        if ($request->hasFile('plantilla_rx_ecografia')) {
 
-            $archivo = $request->plantilla_ecografia;
+            $archivo = $request->plantilla_rx_ecografia;
 
-            if (! is_null($configSede->plantilla_ecografia) && Storage::disk('plantillas_lecturas')->exists($configSede->plantilla_ecografia)) {
-                Storage::disk('plantillas_lecturas')->delete($configSede->plantilla_ecografia);
+            if (! is_null($configSede->plantilla_rx_ecografia) && Storage::disk('plantilla_rxs_lecturas')->exists($configSede->plantilla_rx_ecografia)) {
+                Storage::disk('plantilla_rxs_lecturas')->delete($configSede->plantilla_rx_ecografia);
             }
 
             $nombreEncrip = Str::random(50).".".$archivo->extension();
 
-            $archivo->storeAs('plantillas_lecturas', $nombreEncrip);
-            $configSede->plantilla_ecografia = $nombreEncrip;
+            $archivo->storeAs('plantilla_rxs_lecturas', $nombreEncrip);
+            $configSede->plantilla_rx_ecografia = $nombreEncrip;
         }
 
         $configSede->update();
