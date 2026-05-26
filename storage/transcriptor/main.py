@@ -87,6 +87,20 @@ async def health_check():
     )
 
 
+@app.get("/debug")
+async def debug_info():
+    """Diagnostico: muestra informacion del entorno."""
+    import sys
+    return {
+        "python": sys.version,
+        "ffmpeg_path": whisper_service.ffmpeg_path,
+        "ffmpeg_ok": whisper_service.ffmpeg_ok,
+        "model_loaded": whisper_service.model is not None,
+        "cwd": os.getcwd(),
+        "path": os.environ.get("PATH", "").split(";"),
+    }
+
+
 @app.post("/transcribir", response_model=TranscriptionResponse)
 async def transcribir_audio(file: UploadFile = File(...)):
     """
