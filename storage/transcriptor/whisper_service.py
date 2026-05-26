@@ -1,6 +1,7 @@
 import whisper
 import tempfile
 import os
+import shutil
 import subprocess
 import logging
 
@@ -20,6 +21,32 @@ class WhisperTranscriptionService:
         """
         self.model_size = model_size
         self.model = None
+        self.ffmpeg_path = self._find_ffmpeg()
+
+    def _find_ffmpeg(self) -> str:
+        """Busca ffmpeg en el PATH o en rutas comunes de instalacion."""
+        ffmpeg = shutil.which("ffmpeg")
+        if ffmpeg:
+            logger.info(f"FFmpeg encontrado en: {ffmpeg}")
+            return ffmpeg
+
+        rutas_comunes = [
+            "C:/ffmpeg/bin/ffmpeg.exe",
+            "C:/ffmpeg/ffmpeg.exe",
+            os.path.expandvars("%USERPROFILE%/ffmpeg/bin/ffmpeg.exe"),
+            os.path.expandvars("%LOCALAPPDATA%/ffmpeg/bin/ffmpeg.exe"),
+        ]
+        for ruta in rutas_comunes:
+            if os.path.exists(ruta):
+                logger.info(f"FFmpeg encontrado en: {ruta}")
+                return ruta
+
+        logger.warning("FFmpeg no encontrado. El servicio fallara al transcribir.")
+        return "ffmpeg"
+
+    @property
+    def ffmpeg_ok(self) -> bool:
+        return shutil.which("ffmpeg") is not None or os.path.exists(self.ffmpeg_path)
 
     def load_model(self):
         """Carga el modelo Whisper en memoria."""
@@ -44,7 +71,7 @@ class WhisperTranscriptionService:
         try:
             result = subprocess.run(
                 [
-                    "ffmpeg",
+                    self.ffmpeg_path,
                     "-y",
                     "-i", audio_path,
                     "-acodec", "pcm_s16le",
