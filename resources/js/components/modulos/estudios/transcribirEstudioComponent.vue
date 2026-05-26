@@ -614,15 +614,47 @@
                                                         <i class="fa fa-spinner fa-spin"></i>
                                                         Cargando audios...
                                                     </div>
-                                                    <template
-                                                        v-for="(item, index) in audiosDeEstudio"
-                                                        :key="index"
-                                                    >
-                                                        <audio
-                                                            :src="item.url"
-                                                            controls
-                                                            style="height: 15px; width: 100%"
-                                                        ></audio>
+                                                    <template v-if="!loadingAudios">
+                                                        <div
+                                                            v-for="(item, index) in audiosDeEstudio"
+                                                            :key="item.id || index"
+                                                            class="card mb-2"
+                                                        >
+                                                            <div class="card-body p-2">
+                                                                <div class="d-flex align-items-center mb-1 flex-wrap">
+                                                                    <i class="fa fa-file-audio-o text-muted mr-1"></i>
+                                                                    <strong class="mr-2 text-truncate"
+                                                                        :title="item.nombre_original"
+                                                                        style="max-width: 200px;">
+                                                                        {{ item.nombre_original || 'Audio ' + (index + 1) }}
+                                                                    </strong>
+                                                                    <span class="badge mr-1"
+                                                                        :class="item.tipo === 'cargado' ? 'badge-info' : 'badge-success'">
+                                                                        <i :class="item.tipo === 'cargado' ? 'fa fa-upload' : 'fa fa-microphone'"></i>
+                                                                        {{ item.tipo === 'cargado' ? 'Cargado' : 'Grabado' }}
+                                                                    </span>
+                                                                    <small class="text-muted" v-if="item.duracion">
+                                                                        <i class="fa fa-clock-o"></i>
+                                                                        {{ formatDuracion(item.duracion) }}
+                                                                    </small>
+                                                                </div>
+                                                                <audio :src="audioUrl(item)" controls
+                                                                    style="height: 30px; width: 100%;"></audio>
+                                                                <div v-if="item.transcripcion"
+                                                                    class="bg-light rounded p-1 mt-1"
+                                                                    style="font-size: 0.8rem; max-height: 40px; overflow: hidden;">
+                                                                    {{ previewTranscripcion(item.transcripcion, 120) }}
+                                                                    <span v-if="item.transcripcion.length > 120"
+                                                                        class="text-primary small">...</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div
+                                                            v-if="audiosDeEstudio.length === 0"
+                                                            class="text-muted small"
+                                                        >
+                                                            No hay audios para este estudio.
+                                                        </div>
                                                     </template>
                                                 </div>
                                             </div>
@@ -1029,6 +1061,24 @@ export default {
             } finally {
                 this.loadingAudios = false;
             }
+        },
+
+        audioUrl(item) {
+            if (!item || !item.audio) return null;
+            return "/audios/" + item.audio;
+        },
+
+        formatDuracion(segundos) {
+            if (!segundos) return "0:00";
+            const mins = Math.floor(segundos / 60);
+            const secs = Math.floor(segundos % 60);
+            return mins + ":" + (secs < 10 ? "0" : "") + secs;
+        },
+
+        previewTranscripcion(texto, maxLen) {
+            if (!texto) return "";
+            if (texto.length <= maxLen) return texto;
+            return texto.substring(0, maxLen);
         },
         establecerSede() {
             this.busqueda.sede_id = sessionStorage.getItem("ST-sede");

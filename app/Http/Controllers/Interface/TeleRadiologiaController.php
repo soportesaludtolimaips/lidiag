@@ -60,10 +60,6 @@ class TeleRadiologiaController extends Controller
      */
     public function enviarOrdenTeleRadiologia(Request $request)
     {
-        return response()->json([
-            'message' => 'Endpoint en desarrollo. Use /estudios para crear el estudio localmente.',
-        ], 200);
-
         try {
             $validator = Validator::make($request->all(), [
                 'orden' => 'required|array',

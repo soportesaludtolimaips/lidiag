@@ -319,12 +319,14 @@ class EstudioAudioController extends Controller
             $estudioAudio->duracion = $duracion;
             $estudioAudio->tamano = $tamano;
             $estudioAudio->usuario_id = $usuarioId;
+            $estudioAudio->transcripcion = $transcripcion['texto'];
             $estudioAudio->save();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Audio cargado y transcrito exitosamente',
                 'audio_id' => $estudioAudio->id,
+                'audio_file' => $mp3RelativePath,
                 'transcripcion' => $transcripcion['texto'],
                 'duracion' => $duracion,
             ], 200);
