@@ -651,6 +651,7 @@ export default {
                         stack: 6,
                     });
                 } else {
+                    this.destroyDataTable();
                     this.registros = [];
 
                     const res = await axios.post(
@@ -660,7 +661,6 @@ export default {
 
                     this.registros = res.data;
 
-                    this.destroyDataTable();
                     this.$nextTick(() => {
                         this.initDataTable();
                     });
