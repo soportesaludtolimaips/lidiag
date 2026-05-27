@@ -46,7 +46,11 @@ class EstudioAudio extends Model
 
     public function getUrlAttribute()
     {
-        return Storage::disk('audios')->url($this->audio);
+        $path = $this->audio;
+        if (str_starts_with($path, 'audios/')) {
+            $path = substr($path, 7);
+        }
+        return Storage::disk('audios')->url($path);
     }
 
     public function getFullPathAttribute()
