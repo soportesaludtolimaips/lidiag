@@ -371,6 +371,7 @@ export default {
         async buscarStudy() {
             if (this.loadingBuscar) return;
             this.loadingBuscar = true;
+            this.destroyDataTable();
             this.registros = [];
             try {
                 if (
@@ -395,8 +396,6 @@ export default {
                     );
 
                     if (res.status == 200) {
-                        this.destroyDataTable();
-
                         this.registros = res.data || [];
 
                         this.$nextTick(() => {
@@ -586,6 +585,7 @@ export default {
             this.registro.sexo = data.sexo;
             this.registro.fec_naci = data.fec_naci;
             this.registro.tel = data.tel;
+            this.registro.email = data.email;
             this.registro.nom_produc = data.nom_produc;
             this.registro.id_producto_lectura = data.id;
 
@@ -601,6 +601,7 @@ export default {
             this.registro.sexo = data.sexo;
             this.registro.fec_naci = data.fec_naci;
             this.registro.tel = data.tel;
+            this.registro.email = data.email;
             this.registro.nom_produc = data.nom_produc;
             this.registro.id_producto_lectura = data.id;
         },

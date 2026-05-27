@@ -605,11 +605,12 @@ class EstudioController extends Controller
             ->join('config_productos', 'estudios_productos.producto_id', '=', 'config_productos.id')
             ->when($request->bus_fehc_ini && $request->bus_fecha_fin, function ($query) use ($request) {
                 return $query->whereBetween(
-                    DB::raw('DATE(estudios.fec_estudio)'),
-                    [$request->bus_fehc_ini, $request->bus_fecha_fin]
+                    'estudios.fec_estudio',
+                    [$request->bus_fehc_ini . ' 00:00:00', $request->bus_fecha_fin . ' 23:59:59']
                 );
             })
             ->where('estudios.sede_id', $request->sede_id)
+            ->where('estudios_productos.activo', 1)
             ->when($request->bus_nom_num_docu, function ($query, $bus_nom_num_docu) {
                 return $query->where(function ($q) use ($bus_nom_num_docu) {
                     $q->where('pacien.num_docu', $bus_nom_num_docu)
@@ -647,6 +648,7 @@ class EstudioController extends Controller
      */
     public function guardarTranscripcion(Request $request)
     {
+        return DB::transaction(function () use ($request) {
         /**
          * Si la sede donde se realizó el estudio tiene interface hago el envio del reporte a la HC del hospital
          */
@@ -754,6 +756,7 @@ class EstudioController extends Controller
         }
 
         return response()->json(['message' => 'La transcripción se guardo correctamente.']);
+        });
     }
 
     /**
