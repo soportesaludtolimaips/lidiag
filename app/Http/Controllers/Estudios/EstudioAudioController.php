@@ -133,7 +133,7 @@ class EstudioAudioController extends Controller
      */
     public function stream(string $filename)
     {
-        if (! preg_match('/^audio_[A-Z0-9]{10,}\.mp3$/', $filename)) {
+        if (! preg_match('/^(audio|cargado)_[A-Za-z0-9]{10,}\.(mp3|wav)$/', $filename)) {
             abort(404);
         }
 
