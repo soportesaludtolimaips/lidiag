@@ -138,7 +138,7 @@ ItemUsuario, index
                                         <th>Detalle</th>
                                         <th>Producto</th>
                                         <th>Leido</th>
-                                        <th>Transctito</th>
+                                        <th>Transcrito</th>
                                         <th>Activo</th>
                                         <th></th>
                                     </tr>
@@ -166,7 +166,6 @@ ItemUsuario, index
                                         </td>
                                         <td>{{ item.nom_sede }}</td>
                                         <td>{{ item.fec_estudio }}</td>
-                                        <!-- <td>{{ item.created_at }}</td> -->
                                         <td>{{ item.quien_registro }}</td>
                                         <td>{{ item.medico }}</td>
                                         <td>
@@ -530,11 +529,8 @@ export default {
     },
     async mounted() {
         this.$nextTick(() => this.initWysiwyg());
-        //this.listarUsuariosYSedes();
 
         await listarUsuariosYSedes(this);
-
-        //this.busqueda.quien_asigno_id = this.usuarioactual.id;
     },
     beforeUnmount() {
         this.destroyDataTable();
@@ -721,7 +717,7 @@ export default {
         async listarAudios() {
             this.loadingAudios = true;
             try {
-                const res = await axios.get("/api/listar-audios-estudio/" + this.id);
+                const res = await axios.get("/api/listar-audios-estudio/" + this.idRow);
                 this.audiosDeEstudio = res.data;
             } catch (e) {
                 handleAxiosErrorToast(e, "No fue posible listar audios.");
@@ -940,6 +936,14 @@ export default {
                 this.listarAudios();
 
                 this.btnCerralModalForm();
+
+                this.$nextTick(() => {
+                    const $editor = $(this.$el).find('.textarea_editor');
+                    const wysi = $editor.data('wysihtml5');
+                    if (wysi) {
+                        wysi.editor.setValue(this.registro.lectura);
+                    }
+                });
             } catch (error) {
                 handleAxiosErrorToast(error, "No fue posible cargar el estudio seleccionado.");
             } finally {
@@ -963,7 +967,6 @@ export default {
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);
             $(".right-sidebar").toggleClass("shw-rside");
-            this.audiosDeEstudio = [];
         }
     },
 }
