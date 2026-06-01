@@ -1,0 +1,102 @@
+Flow Summary
+1. Paciente escribe a número WhatsApp
+2. Bot detecta phone_number_id → busca sede asociada
+3. Bot muestra SOLO servicios de esa sede
+4. Paciente selecciona servicio
+5. Bot solicita número de documento
+6. Bot busca en LIDiag:
+   a. SI existe: pasa a paso 7
+   b. NO existe:
+      - Solicita nombres (paso a paso: nombres, primer apellido, segundo apellido)
+      - Muestra resumen y pide confirmación (sí/no)
+      - Si confirma → crea paciente
+      - Si no → reinicia o vuelve a pedir
+7. Bot solicita orden médica (archivo: imagen o PDF)
+   - Caption opcional → extrae número de orden
+8. Bot solicita autorización (archivo: imagen o PDF)
+   - Caption opcional → extrae número de autorización
+9. Bot envía: "Solicitud recibida con éxito. En 24h recibirá notificación."
+10. Admin revisa en panel web (filtrado por sede y servicio):
+    - Ve datos del paciente
+    - Ve archivos adjuntos (orden, autorización)
+    - Aprueba: selecciona fecha, hora, producto → asigna cita
+    - Rechaza: selecciona motivo predefinido o escribe motivo libre
+11. Si aprueba → bot envía a paciente: fecha, hora, sede, dirección, recomendaciones
+12. Si rechaza → bot envía a paciente: "No fue posible crear la cita: [motivo]"
+Implementation Plan
+Database Migrations
+1. Add sede_id to config_servicio_citas
+2. Create config_sede_whatsapp_numbers — phone_number_id → sede mapping
+3. Create cita_motivos_rechazo — predefined rejection reasons
+4. Add columns to citas table (if needed):
+   - revisada boolean (admin has reviewed)
+   - rechazo_motivo_id FK
+   - rechazo_observacion text (free text reason)
+   - fecha_revision datetime
+Models
+1. ConfigSedeWhatsappNumber — new model
+2. CitaMotivoRechazo — new model (seed with common reasons)
+3. ConfigServicioCita — add sede_id to fillable, add sede() relationship, add scopePorSede()
+4. ConfigSede — add servicios() and whatsappNumbers() relationships
+5. Cita — add revisada, rechazo_motivo_id, rechazo_observacion, add relationships
+Backend Services
+1. WhatsAppFlowService — major update:
+   - Accept $phoneNumberId
+   - New steps in flow:
+     - pedir_nombres → pedir_primer_apellido → pedir_segundo_apellido → confirmar_datos_paciente
+   - When creating patient (if not found), use the collected data
+   - When creating Cita, set sede_id from phone number
+   - Store file paths in Cita record
+   - Send confirmation message after submission
+2. WhatsAppService — mostly the same (already handles media)
+3. CitaController — update webhook to pass phone_number_id
+Admin Panel (Web UI)
+1. New filterable list: "Solicitudes Pendientes"
+   - Filter by sede_id (based on admin's sedes or all)
+   - Filter by servicio_cita_id
+   - Show: paciente, documento, orden, autorización, archivos adjuntos
+   - View files (download images/PDFs)
+   
+2. Approve modal:
+   - Select: producto (from servicio), fecha, hora, sede (pre-filled)
+   - Button: "Asignar cita"
+   - On approve: update cita estado → 'asignada', send WhatsApp message
+3. Reject modal:
+   - Select motivo (dropdown from cita_motivos_rechazo)
+   - Optional: observación (text)
+   - Button: "Rechazar"
+   - On reject: update cita estado → 'cancelada', send WhatsApp with motivo
+WhatsApp Notifications
+1. Solicitud recibida: already exists (enviarSolicitudRecibida)
+2. Cita asignada: enviarConfirmacion but enhanced with dirección and recomendaciones
+3. Cita rechazada: new method enviarRechazo with motivo
+Let me present this to the user in a structured way.
+Perfecto. Ya tengo todos los detalles. Te presento el plan completo:
+Plan Completo del Nuevo Flujo WhatsApp
+Flujo del paciente (bot)
+Mensaje → detectar número → sede automática → servicios de esa sede → 
+documento → buscar paciente
+  ├─ Existe → orden (archivo) → autorización (archivo) → "Solicitud recibida ✔️"
+  └─ No existe → nombres → apellido1 → apellido2 → confirmar (sí/no) 
+       → crear paciente → orden (archivo) → autorización (archivo) → "Solicitud recibida ✔️"
+Flujo del administrador (panel web)
+Panel → "Solicitudes Pendientes" → filtrar por sede/servicio → 
+ver datos + archivos adjuntos → 
+  ├─ Aprobar → elegir producto, fecha, hora → cita asignada → 
+  │   notificación WhatsApp: fecha, hora, sede, dirección, recomendaciones
+  └─ Rechazar → motivo predefinido + observación → cita cancelada →
+      notificación WhatsApp: motivo del rechazo
+Lo que hay que implementar
+Base de datos
+1. sede_id en config_servicio_citas
+2. config_sede_whatsapp_numbers (phone_number_id → sede)
+3. cita_motivos_rechazo (tabla de motivos predefinidos)
+4. Columnas en citas: revisada, rechazo_motivo_id, rechazo_observacion
+Backend (Laravel)
+5. Modelos nuevos + relaciones
+6. WhatsAppFlowService — nuevos pasos: pedir_nombres, pedir_primer_apellido, pedir_segundo_apellido, confirmar_datos_paciente
+7. WhatsAppService — método enviarRechazo
+8. CitaController@webhook — pasar phone_number_id
+9. Nuevo endpoint CitaController@aprobarSolicitud y @rechazarSolicitud
+Panel web
+10. Nueva vista: "Solicitudes Pendientes" con filtros por sede/servicio, visualización de archivos, modal de aprobación y rechazo

@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Citas;
 
 use App\Http\Controllers\Controller;
 use App\Models\Citas\Cita;
+use App\Models\Citas\ConfigCitaRechazoMotivo;
 use App\Models\Configuracion\ConfigProducto;
+use App\Models\Citas\WhatsAppConversation;
 use App\Models\Configuracion\ConfigServicioCita;
 use App\Models\General\Paciente;
 use App\Models\Interface\Sahi\Paciente as SahiPaciente;
@@ -253,6 +255,69 @@ class CitaController extends Controller
         ], 200);
     }
 
+    public function pendientes(Request $request)
+    {
+        $query = Cita::with(['paciente', 'servicio', 'producto', 'sede', 'quienRegistra', 'rechazoMotivo'])
+            ->where('estado', 'solicitada');
+
+        if ($request->servicio_cita_id) {
+            $query->where('servicio_cita_id', $request->servicio_cita_id);
+        }
+
+        if ($request->sede_id) {
+            $query->where('sede_id', $request->sede_id);
+        }
+
+        if ($request->busqueda) {
+            $busqueda = $request->busqueda;
+            $query->whereHas('paciente', function ($q) use ($busqueda) {
+                $q->where('num_docu', 'like', "%{$busqueda}%")
+                    ->orWhere('nombres', 'like', "%{$busqueda}%")
+                    ->orWhere('pri_ape', 'like', "%{$busqueda}%");
+            });
+        }
+
+        $citas = $query->orderBy('created_at', 'desc')->paginate($request->per_page ?? 20);
+
+        return response()->json($citas, 200);
+    }
+
+    public function rechazar(Request $request, Cita $cita)
+    {
+        if ($cita->estado !== 'solicitada') {
+            return response()->json(['error' => 'Solo se pueden rechazar citas solicitadas'], 422);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'rechazo_motivo_id' => 'required|exists:config_cita_rechazo_motivos,id',
+            'rechazo_observacion' => 'nullable|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $motivo = ConfigCitaRechazoMotivo::find($request->rechazo_motivo_id);
+
+        $cita->update([
+            'estado' => 'rechazada',
+            'revisada' => true,
+            'rechazo_motivo_id' => $request->rechazo_motivo_id,
+            'rechazo_observacion' => $request->rechazo_observacion,
+        ]);
+
+        $this->whatsAppService->enviarRechazo(
+            $cita,
+            $motivo?->motivo ?? 'Motivo no especificado',
+            $request->rechazo_observacion ?? ''
+        );
+
+        return response()->json([
+            'message' => 'Cita rechazada',
+            'cita' => $cita->fresh(['paciente', 'servicio', 'rechazoMotivo']),
+        ], 200);
+    }
+
     public function disponibilidad(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -290,54 +355,105 @@ class CitaController extends Controller
         return response()->json($servicios, 200);
     }
 
-    public function productosPorServicio(Request $request)
+    public function productosPorServicio($servicioCitaId)
     {
-        $validator = Validator::make($request->all(), [
-            'servicio_cita_id' => 'required|exists:config_servicio_citas,id',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
         $servicio = ConfigServicioCita::with(['productos' => function ($query) {
             $query->where('estado', true);
-        }])->findOrFail($request->servicio_cita_id);
+        }])->findOrFail($servicioCitaId);
 
         return response()->json($servicio->productos, 200);
     }
 
     public function webhook(Request $request)
     {
+        if ($request->isMethod('get')) {
+            // PHP parse_str convierte puntos a guiones bajos: hub.mode → hub_mode
+            $mode = $request->query('hub_mode', $request->query('hub.mode'));
+            $token = $request->query('hub_verify_token', $request->query('hub.verify_token'));
+            $challenge = $request->query('hub_challenge', $request->query('hub.challenge'));
+
+            if ($mode === 'subscribe' && $token === config('services.whatsapp.verify_token')) {
+                return response($challenge, 200)->header('Content-Type', 'text/plain');
+            }
+
+            return response('Token inválido', 403);
+        }
+
         $payload = $request->getContent();
         $signature = $request->header('X-Hub-Signature-256', '');
+        $secret = config('services.whatsapp.app_secret');
 
-        if ($signature && ! $this->whatsAppService->verificarWebhook($payload, $signature)) {
+        if ($secret && $signature && ! $this->whatsAppService->verificarWebhook($payload, $signature)) {
+            \Illuminate\Support\Facades\Log::warning('WhatsApp webhook: firma inválida', [
+                'signature' => $signature,
+            ]);
             return response()->json(['error' => 'Firma inválida'], 401);
         }
 
         $data = $request->all();
+
+        \Illuminate\Support\Facades\Log::info('WhatsApp webhook recibido', [
+            'has_entries' => ! empty($data['entry']),
+            'entry_count' => count($data['entry'] ?? []),
+        ]);
 
         if (empty($data['entry'])) {
             return response()->json(['message' => 'OK'], 200);
         }
 
         foreach ($data['entry'] as $entry) {
+            $value = $entry['changes'][0]['value'] ?? [];
+            \Illuminate\Support\Facades\Log::info('WhatsApp webhook entry', [
+                'has_messages' => ! empty($value['messages']),
+                'has_statuses' => ! empty($value['statuses']),
+                'messages_count' => count($value['messages'] ?? []),
+            ]);
             $mensaje = $this->whatsAppService->processarWebhook($entry);
 
-            if ($mensaje && $mensaje['text']) {
-                $respuesta = $this->whatsAppFlowService->procesarMensaje(
-                    $mensaje['from'],
-                    $mensaje['text']
-                );
+            if (! $mensaje || ! $mensaje['from']) {
+                continue;
+            }
 
-                if ($respuesta) {
-                    $this->whatsAppService->enviarMensaje($mensaje['from'], $respuesta);
+            $messageId = $mensaje['id'] ?? null;
+
+            $mediaPath = null;
+            if (in_array($mensaje['type'], ['image', 'document'])) {
+                $mediaId = $mensaje['media']['id'] ?? null;
+                if ($mediaId) {
+                    $mediaPath = $this->whatsAppService->descargarMedia($mediaId);
                 }
+            }
+
+            $respuesta = $this->whatsAppFlowService->procesarMensaje(
+                $mensaje['from'],
+                $mensaje['text'] ?? '',
+                $mensaje['type'] ?? 'text',
+                $mediaPath,
+                $mensaje['media'] ?? null,
+                $mensaje['phone_number_id'] ?? null
+            );
+
+            if ($respuesta) {
+                $this->whatsAppService->enviarMensaje($mensaje['from'], $respuesta);
+            }
+
+            if ($messageId) {
+                $this->whatsAppService->marcarComoLeido($messageId);
             }
         }
 
         return response()->json(['message' => 'OK'], 200);
+    }
+
+    public function descargarMedia($filename)
+    {
+        $path = 'citas_soportes/'.$filename;
+
+        if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($path)) {
+            abort(404, 'Archivo no encontrado');
+        }
+
+        return response()->file(\Illuminate\Support\Facades\Storage::disk('local')->path($path));
     }
 
     public function testEnviar(Request $request)

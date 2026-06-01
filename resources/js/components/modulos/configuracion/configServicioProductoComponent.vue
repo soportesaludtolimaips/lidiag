@@ -146,6 +146,13 @@ export default {
         this.cargarServicios();
     },
 
+    computed: {
+        servicioIdDesdeUrl: function () {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('servicio_id');
+        },
+    },
+
     methods: {
         cargarServicios: function () {
             var thisVue = this;
@@ -153,6 +160,15 @@ export default {
             axios.get('/api/config-servicio-citas')
                 .then(function (response) {
                     thisVue.servicios = response.data;
+
+                    var servicioIdUrl = thisVue.servicioIdDesdeUrl;
+                    if (servicioIdUrl) {
+                        var encontrado = thisVue.servicios.find(function (s) { return s.id == servicioIdUrl; });
+                        if (encontrado) {
+                            thisVue.seleccionarServicio(encontrado);
+                            return;
+                        }
+                    }
 
                     if (thisVue.servicios.length > 0) {
                         thisVue.seleccionarServicio(thisVue.servicios[0]);

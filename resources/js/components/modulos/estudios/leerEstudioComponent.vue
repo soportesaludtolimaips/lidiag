@@ -258,34 +258,7 @@
                     <div class="form-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <h5 class="card-title text-info">
-                                    <i class="fa fa-user"></i> Datos del Paciente
-                                </h5>
-                                <hr />
-
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <dl>
-                                                <dt>Paciente:</dt>
-                                                <dd>{{ registro.nom_pacien }}</dd>
-                                                <dt># Documento:</dt>
-                                                <dd>{{ registro.num_docu }}</dd>
-                                            </dl>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <dl>
-                                                <dt>Fecha de nacimiento:</dt>
-                                                <dd>{{ registro.fec_naci }}</dd>
-                                                <dt>Sexo:</dt>
-                                                <dd>{{ registro.sexo }}</dd>
-                                            </dl>
-                                        </div>
-                                    </div>
-                                </div>
+                                <datos-paciente-display :registro="registro" />
 
                                 <h5 class="card-title text-info">
                                     <i class="fa fa-user"></i> Datos del Estudio
@@ -754,6 +727,8 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
+import DatosPacienteDisplay from "@/components/comunes/datosPacienteDisplayComponent.vue";
+import { normalizarFecha } from "@/helpers/dateUtils.js";
 import {
     safeInitDataTable,
     safeRemoveDataTableRow,
@@ -778,6 +753,7 @@ export default {
     props: ["usuarioactual", "permisos"],
     components: {
         LoadingSpinner,
+        DatosPacienteDisplay,
     },
     computed: {
         contadorPendientes() {
@@ -840,6 +816,8 @@ export default {
                 sexo: "",
                 fec_naci: "",
                 email: "",
+                tel: "",
+                direccion: "",
                 diagnosticosEstudio: [],
                 urlOviyam: "",
                 patientId: "",
@@ -2486,8 +2464,10 @@ export default {
             this.registro.motivo_examen = data.motivo_examen;
             this.registro.num_docu = data.num_docu;
             this.registro.nom_pacien = data.nom_pacien;
-            this.registro.sexo = data.pat_sex;
-            this.registro.fec_naci = data.pat_birthdate;
+            this.registro.sexo = data.sexo || data.pat_sex || '';
+            this.registro.fec_naci = normalizarFecha(data.fec_naci || data.pat_birthdate) || '';
+            this.registro.tel = data.tel || '';
+            this.registro.direccion = data.direccion || '';
 
             this.registro.urlOviyam = data.url_oviyam;
             this.registro.patientId = data.num_docu;
@@ -2584,6 +2564,8 @@ export default {
             this.registro.nom_pacien = "";
             this.registro.sexo = "";
             this.registro.fec_naci = "";
+            this.registro.tel = "";
+            this.registro.direccion = "";
             this.registro.lectura = "";
 
             // Limpieza de audio/dictado para evitar envíos cruzados

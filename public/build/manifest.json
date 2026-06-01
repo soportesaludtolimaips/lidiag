@@ -8,12 +8,12 @@
     "src": "resources/js/admin-wrap/assets/images/users/avatar_default.png"
   },
   "resources/js/app.js": {
-    "file": "assets/app-DipE3VuK.js",
+    "file": "assets/app-CluTjk18.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "css": [
-      "assets/app-wvXDwDEB.css"
+      "assets/app-B2ycJAwR.css"
     ],
     "assets": [
       "assets/avatar_default-upCfBzQ-.png",

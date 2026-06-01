@@ -333,82 +333,7 @@
                         <div class="form-body">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <h5 class="card-title text-info">
-                                        <i class="fa fa-user"></i> Datos del Paciente
-                                    </h5>
-                                    <hr />
-
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <dl>
-                                                    <dt>Paciente:</dt>
-                                                    <dd>{{ registro.nom_pacien }}</dd>
-                                                    <dt># Documento:</dt>
-                                                    <dd>{{ registro.num_docu }}</dd>
-                                                </dl>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <dl>
-                                                    <dt>Fecha de nacimiento:</dt>
-                                                    <dd>{{ registro.fec_naci }}</dd>
-                                                    <dt>Sexo:</dt>
-                                                    <dd>{{ registro.sexo }}</dd>
-                                                </dl>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label class="control-label">Dirección</label>
-                                                <input
-                                                    type="text"
-                                                    id="direccion"
-                                                    name="direccion"
-                                                    v-model="registro.direccion"
-                                                    class="form-control"
-                                                />
-                                                <span class="text-danger" v-if="errores.direccion">
-                                                    {{ errores.direccion[0] }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label class="control-label">Télefono</label>
-                                                <input
-                                                    type="number"
-                                                    id="telefono"
-                                                    name="telefono"
-                                                    v-model="registro.tel"
-                                                    class="form-control"
-                                                />
-                                                <span class="text-danger" v-if="errores.tel">
-                                                    {{ errores.tel[0] }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-5">
-                                            <div class="form-group">
-                                                <label class="control-label">E - Mail</label>
-                                                <input
-                                                    type="email"
-                                                    id="email"
-                                                    name="email"
-                                                    v-model="registro.email"
-                                                    class="form-control"
-                                                />
-                                                <span class="text-danger" v-if="errores.email">
-                                                    {{ errores.email[0] }}</span
-                                                >
-                                            </div>
-                                        </div>
-                                    </div>
+                                <form-paciente :registro="registro" :errores="errores" />
 
                                     <h5 class="card-title text-info">
                                         <i class="fa fa-user"></i> Datos del Estudio
@@ -697,6 +622,7 @@
 
 <script>
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
+import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { listarUsuariosYSedes } from "../../../helpers/usuarios";
 import {
     safeDestroyDataTable,
@@ -721,6 +647,7 @@ export default {
     props: ["usuarioactual"],
     components: {
         LoadingSpinner,
+        FormPaciente,
     },
     computed: {
         contadorRegistros() {

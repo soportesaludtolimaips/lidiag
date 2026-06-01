@@ -50,6 +50,8 @@ import configProductoComponent from "./components/modulos/configuracion/configPr
 app.component("ConfigProductoComponent", configProductoComponent);
 import configSedeComponent from "./components/modulos/configuracion/configSedeComponent.vue";
 app.component("ConfigSedeComponent", configSedeComponent);
+import configServicioCitaComponent from "./components/modulos/configuracion/configServicioCitaComponent.vue";
+app.component("ConfigServicioCitaComponent", configServicioCitaComponent);
 import configTipoPlantilla from "./components/modulos/configuracion/configTipoPlantilla.vue";
 app.component("ConfigTipoPlantillaComponent", configTipoPlantilla);
 import configPlantilla from "./components/modulos/configuracion/configPlantilla.vue";
@@ -101,6 +103,16 @@ app.component(
     "EcografiasConsentimientosPlantillasComponent",
     ecografiasConsentimientosPlantillasComponent
 );
+
+/**
+ * Citas
+ */
+import citasComponent from "./components/modulos/citas/citasComponent.vue";
+app.component("CitasComponent", citasComponent);
+import gestionCitasComponent from "./components/modulos/citas/gestionCitasComponent.vue";
+app.component("GestionCitasComponent", gestionCitasComponent);
+import citasRevisionComponent from "./components/modulos/citas/citasRevisionComponent.vue";
+app.component("CitasRevisionComponent", citasRevisionComponent);
 
 /**
  * Agenda

@@ -2,6 +2,7 @@
 
 namespace App\Models\Citas;
 
+use App\Models\Citas\ConfigCitaRechazoMotivo;
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigRecomendacionProducto;
 use App\Models\Configuracion\ConfigSede;
@@ -30,10 +31,15 @@ class Cita extends Model
         'estado',
         'numero_orden',
         'numero_autorizacion',
+        'ruta_orden_media',
+        'ruta_autorizacion_media',
         'observaciones',
         'whatsapp_token',
         'whatsapp_mid',
         'whatsapp_estado',
+        'revisada',
+        'rechazo_motivo_id',
+        'rechazo_observacion',
     ];
 
     protected $casts = [
@@ -42,6 +48,7 @@ class Cita extends Model
         'duracion_minutos' => 'integer',
         'estado' => 'string',
         'whatsapp_estado' => 'string',
+        'revisada' => 'boolean',
     ];
 
     public function paciente()
@@ -72,6 +79,11 @@ class Cita extends Model
     public function quienConfirma()
     {
         return $this->belongsTo(User::class, 'quien_confirma_id');
+    }
+
+    public function rechazoMotivo()
+    {
+        return $this->belongsTo(ConfigCitaRechazoMotivo::class, 'rechazo_motivo_id');
     }
 
     public function recomendaciones()

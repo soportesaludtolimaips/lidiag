@@ -41,6 +41,17 @@
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
+                                            <label class="control-label">Servicio</label>
+                                            <select v-model="busqueda.servicio_cita_id" class="form-control">
+                                                <option value="">Todos</option>
+                                                <option v-for="s in servicios" :key="s.id" :value="s.id">
+                                                    {{ s.nombre }}
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group">
                                             <label class="control-label">Fecha Inicio</label>
                                             <input type="date" v-model="busqueda.fecha_inicio" class="form-control" />
                                         </div>
@@ -117,21 +128,37 @@
                                             </span>
                                         </td>
                                         <td>{{ item.fecha_hora_inicio ? formatFecha(item.fecha_hora_inicio) : '-' }}</td>
-                                        <td class="text-nowrap">
+                                        <td class="text-nowrap" style="min-width: 220px;">
                                             <button type="button"
                                                 class="btn btn-outline-primary btn-sm btn-rounded m-1"
-                                                @click="actualizar = true; mostrarModalAsignar(item)">
+                                                @click="actualizar = true; mostrarModalAsignar(item)"
+                                                :title="'Asignar cita'">
                                                 <i class="fa fa-calendar-plus"></i>
                                             </button>
                                             <button v-if="item.estado === 'asignada'" type="button"
                                                 class="btn btn-outline-success btn-sm btn-rounded m-1"
-                                                @click="confirmarCita(item)">
+                                                @click="confirmarCita(item)" title="Confirmar cita">
                                                 <i class="fa fa-check"></i>
                                             </button>
                                             <button v-if="item.estado === 'asignada' || item.estado === 'confirmada'"
                                                 type="button" class="btn btn-outline-danger btn-sm btn-rounded m-1"
-                                                @click="cancelarCita(item)">
+                                                @click="cancelarCita(item)" title="Cancelar cita">
                                                 <i class="fa fa-times"></i>
+                                            </button>
+                                            <button v-if="item.estado === 'confirmada'" type="button"
+                                                class="btn btn-outline-info btn-sm btn-rounded m-1"
+                                                @click="cumplirCita(item)" title="Marcar como cumplida">
+                                                <i class="fa fa-check-circle"></i>
+                                            </button>
+                                            <button v-if="item.estado === 'confirmada'" type="button"
+                                                class="btn btn-outline-secondary btn-sm btn-rounded m-1"
+                                                @click="noAsistioCita(item)" title="Marcar como no asistió">
+                                                <i class="fa fa-user-times"></i>
+                                            </button>
+                                            <button v-if="item.paciente?.cel" type="button"
+                                                class="btn btn-outline-warning btn-sm btn-rounded m-1"
+                                                @click="verConversacion(item)" title="Ver conversación WhatsApp">
+                                                <i class="fa fa-comments"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -161,16 +188,30 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
+                                    <label class="control-label">Servicio</label>
+                                    <select v-model="citaSeleccionada.servicio_cita_id" class="form-control"
+                                        @change="cargarProductosPorServicio()">
+                                        <option value="">Seleccione...</option>
+                                        <option v-for="s in servicios" :key="s.id" :value="s.id">
+                                            {{ s.nombre }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
                                     <label class="control-label">Producto *</label>
                                     <select v-model="citaSeleccionada.producto_id" class="form-control"
                                         @change="cargarDisponibilidad()">
                                         <option value="">Seleccione...</option>
-                                        <option v-for="prod in productos" :key="prod.id" :value="prod.id">
+                                        <option v-for="prod in productosFiltrados" :key="prod.id" :value="prod.id">
                                             {{ prod.nom_producto }}
                                         </option>
                                     </select>
                                 </div>
                             </div>
+                        </div>
+                        <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label class="control-label">Sede *</label>
@@ -182,8 +223,6 @@
                                     </select>
                                 </div>
                             </div>
-                        </div>
-                        <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label class="control-label">Fecha *</label>
@@ -191,6 +230,8 @@
                                         @change="cargarDisponibilidad()" />
                                 </div>
                             </div>
+                        </div>
+                        <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label class="control-label">Hora *</label>
@@ -202,6 +243,13 @@
                                             {{ !horario.disponible ? '(Ocupado)' : '' }}
                                         </option>
                                     </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label">Duración (min)</label>
+                                    <input type="number" v-model="citaSeleccionada.duracion_minutos" class="form-control"
+                                        placeholder="30" min="15" step="5" />
                                 </div>
                             </div>
                         </div>
@@ -226,6 +274,41 @@
                 </div>
             </div>
         </div>
+
+        <div id="modalConversacion" class="modal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Conversación WhatsApp</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div v-if="loadingConversacion" class="text-center p-4">
+                            <i class="fa fa-spinner fa-spin fa-2x"></i>
+                            <p class="mt-2">Cargando conversación...</p>
+                        </div>
+                        <div v-else-if="conversacion">
+                            <div class="alert alert-info">
+                                <strong>Teléfono:</strong> {{ conversacion.telefono }}<br />
+                                <strong>Estado:</strong> {{ conversacion.paso }}<br />
+                                <strong>Último mensaje:</strong> {{ formatFecha(conversacion.ultimo_mensaje) }}
+                            </div>
+                            <div v-if="conversacion.datos" class="mt-3">
+                                <h5>Datos de la conversación</h5>
+                                <pre class="bg-light p-3 rounded">{{ JSON.stringify(conversacion.datos, null, 2) }}</pre>
+                            </div>
+                        </div>
+                        <div v-else class="text-center p-4">
+                            <i class="fa fa-comments-o fa-3x text-muted"></i>
+                            <p class="mt-2 text-muted">No se encontró conversación para este paciente.</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-inverse" data-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -235,22 +318,28 @@ export default {
         return {
             registros: [],
             productos: [],
+            productosFiltrados: [],
             sedes: [],
             servicios: [],
             horarios: [],
             datosPaginacion: {},
+            conversacion: null,
+            loadingConversacion: false,
             busqueda: {
                 estado: '',
+                servicio_cita_id: '',
                 fecha_inicio: '',
                 fecha_fin: '',
                 busqueda: '',
             },
             citaSeleccionada: {
                 id: null,
+                servicio_cita_id: '',
                 producto_id: '',
                 sede_id: '',
                 fecha: '',
                 hora: '',
+                duracion_minutos: 30,
                 observaciones: '',
             },
             loadingBuscar: false,
@@ -269,15 +358,17 @@ export default {
             this.cargarListas();
         },
 
-        listarRegistros: function () {
+        listarRegistros: function (page) {
             var thisVue = this;
             thisVue.loadingBuscar = true;
 
             var params = new URLSearchParams();
             if (thisVue.busqueda.estado) params.append('estado', thisVue.busqueda.estado);
+            if (thisVue.busqueda.servicio_cita_id) params.append('servicio_cita_id', thisVue.busqueda.servicio_cita_id);
             if (thisVue.busqueda.fecha_inicio) params.append('fecha_inicio', thisVue.busqueda.fecha_inicio);
             if (thisVue.busqueda.fecha_fin) params.append('fecha_fin', thisVue.busqueda.fecha_fin);
             if (thisVue.busqueda.busqueda) params.append('busqueda', thisVue.busqueda.busqueda);
+            if (page) params.append('page', page);
 
             axios.get('/api/citas?' + params.toString())
                 .then(function (response) {
@@ -311,6 +402,31 @@ export default {
                 });
         },
 
+        cargarProductosPorServicio: function () {
+            var thisVue = this;
+            var servicioId = thisVue.citaSeleccionada.servicio_cita_id;
+
+            thisVue.citaSeleccionada.producto_id = '';
+            thisVue.citaSeleccionada.hora = '';
+            thisVue.horarios = [];
+
+            if (!servicioId) {
+                thisVue.productosFiltrados = thisVue.productos;
+                return;
+            }
+
+            thisVue.productosFiltrados = thisVue.productos.filter(function (p) {
+                return p.servicio_cita_id == servicioId;
+            });
+
+            if (thisVue.productosFiltrados.length === 0) {
+                axios.get('/api/citas/productos/' + servicioId)
+                    .then(function (response) {
+                        thisVue.productosFiltrados = response.data;
+                    });
+            }
+        },
+
         cargarDisponibilidad: function () {
             var thisVue = this;
 
@@ -335,14 +451,21 @@ export default {
         mostrarModalAsignar: function (cita) {
             this.citaSeleccionada = {
                 id: cita.id,
+                servicio_cita_id: cita.servicio_cita_id || '',
                 producto_id: '',
                 sede_id: '',
                 fecha: '',
                 hora: '',
+                duracion_minutos: 30,
                 observaciones: '',
             };
+            this.productosFiltrados = [];
             this.horarios = [];
             this.actualizar = true;
+
+            if (cita.servicio_cita_id) {
+                this.cargarProductosPorServicio();
+            }
 
             jQuery('#modalAsignar').modal('show');
         },
@@ -362,6 +485,7 @@ export default {
                     producto_id: thisVue.citaSeleccionada.producto_id,
                     sede_id: thisVue.citaSeleccionada.sede_id,
                     fecha_hora_inicio: thisVue.citaSeleccionada.hora,
+                    duracion_minutos: thisVue.citaSeleccionada.duracion_minutos,
                     observaciones: thisVue.citaSeleccionada.observaciones,
                 })
                 .then(function (response) {
@@ -429,9 +553,76 @@ export default {
             });
         },
 
+        cumplirCita: function (cita) {
+            var thisVue = this;
+
+            thisVue.$swal({
+                title: 'Cumplir Cita',
+                text: '¿Marcar esta cita como cumplida?',
+                type: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, cumplida',
+                cancelButtonText: 'No',
+            }).then(function (result) {
+                if (result.value) {
+                    axios.post('/api/citas/' + cita.id + '/cumplir')
+                        .then(function (response) {
+                            thisVue.mostrarExito('Cita marcada como cumplida');
+                            thisVue.listarRegistros();
+                        })
+                        .catch(function (error) {
+                            thisVue.mostrarError(error);
+                        });
+                }
+            });
+        },
+
+        noAsistioCita: function (cita) {
+            var thisVue = this;
+
+            thisVue.$swal({
+                title: 'No Asistió',
+                text: '¿Marcar esta cita como no asistió?',
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, no asistió',
+                cancelButtonText: 'No',
+            }).then(function (result) {
+                if (result.value) {
+                    axios.post('/api/citas/' + cita.id + '/no-asistio')
+                        .then(function (response) {
+                            thisVue.mostrarExito('Inasistencia registrada');
+                            thisVue.listarRegistros();
+                        })
+                        .catch(function (error) {
+                            thisVue.mostrarError(error);
+                        });
+                }
+            });
+        },
+
+        verConversacion: function (cita) {
+            var thisVue = this;
+            thisVue.conversacion = null;
+            thisVue.loadingConversacion = true;
+            jQuery('#modalConversacion').modal('show');
+
+            axios.get('/api/citas/' + cita.id + '/conversacion')
+                .then(function (response) {
+                    thisVue.conversacion = response.data.conversacion;
+                })
+                .catch(function (error) {
+                    thisVue.mostrarError(error);
+                })
+                .then(function () {
+                    thisVue.loadingConversacion = false;
+                });
+        },
+
         limpiarFiltros: function () {
             this.busqueda = {
                 estado: '',
+                servicio_cita_id: '',
                 fecha_inicio: '',
                 fecha_fin: '',
                 busqueda: '',

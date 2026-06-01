@@ -3,6 +3,10 @@
 use App\Http\Controllers\Citas\CitaController;
 use Illuminate\Support\Facades\Route;
 
+// Webhook DEBE ir antes de {cita} para que "webhook" no sea capturado como parámetro
+Route::match(['get', 'post'], '/citas/webhook', [CitaController::class, 'webhook'])->name('api.citas.webhook');
+Route::post('/citas/test/enviar', [CitaController::class, 'testEnviar'])->name('api.citas.test.enviar');
+
 Route::prefix('citas')->group(function () {
     Route::get('/', [CitaController::class, 'index'])->name('api.citas.index');
     Route::post('/', [CitaController::class, 'store'])->name('api.citas.store');
@@ -20,5 +24,11 @@ Route::prefix('citas')->group(function () {
     Route::get('/{cita}/conversacion', [CitaController::class, 'verConversacion'])->name('api.citas.conversacion');
 });
 
-Route::post('/citas/webhook', [CitaController::class, 'webhook'])->name('api.citas.webhook');
-Route::post('/citas/test/enviar', [CitaController::class, 'testEnviar'])->name('api.citas.test.enviar');
+Route::get('/citas/pendientes', [CitaController::class, 'pendientes'])->name('api.citas.pendientes');
+Route::post('/citas/{cita}/rechazar', [CitaController::class, 'rechazar'])->name('api.citas.rechazar');
+
+Route::apiResource('/citas-rechazo-motivos', \App\Http\Controllers\Citas\ConfigCitaRechazoMotivoController::class)
+    ->names('api.citas.rechazo.motivos')
+    ->except(['create', 'edit', 'show']);
+
+

@@ -176,6 +176,34 @@
                             </ul>
                         </li>
                     @endif
+                    @if (auth()->user()->hasAnyPermission(['citas.index']))
+                        <li class="nav-small-cap">--- CITAS</li>
+                        <li>
+                            <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
+                                <i class="fa fa-calendar"></i>
+                                <span class="hide-menu">Citas</span>
+                            </a>
+                            <ul aria-expanded="false" class="collapse">
+                                @can('citas.index')
+                                    <li>
+                                        <a href="{{ route('citas.revision') }}">
+                                            <i class="fa fa-inbox text-info"></i> Solicitudes Pendientes
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('citas.index') }}">
+                                            <i class="fa fa-list text-info"></i> Listado de Citas
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('citas.gestion') }}">
+                                            <i class="fa fa-dashboard text-info"></i> Tablero de Gestión
+                                        </a>
+                                    </li>
+                                @endcan
+                            </ul>
+                        </li>
+                    @endif
                     @if (auth()->user()->hasAnyPermission(['agendamiento.agendamiento.index', 'agendamiento.agendamiento.create', 'agendamiento.agendamiento.delete', 'agendamiento.agendamiento.update', 'agendamiento.agendamiento.interectuar', 'agendamiento.solicitudes.index', 'agendamiento.solicitudes.create', 'agendamiento.solicitudes.delete', 'agendamiento.solicitudes.update']))
                         <li class="nav-small-cap">--- Agendamiento</li>
                         <li>
@@ -251,7 +279,7 @@
                         </li>
                     @endif
 
-                    @if (auth()->user()->hasAnyPermission(['config.admin.salud.index', 'config.diagnosticos.index', 'config.prioridades.index', 'config.productos.index', 'config.sedes.index', 'config.plantillas.index', 'config.tipo.documento.index', 'config.consentimiento_informado.index', 'ecografias.consentimientos.index', 'ecografias.consentimientos.plantillas.index', 'helpdesk.config.categorias.index', 'helpdesk.config.prioridades.index', 'helpdesk.config.estados.index']))
+                    @if (auth()->user()->hasAnyPermission(['config.admin.salud.index', 'config.diagnosticos.index', 'config.prioridades.index', 'config.productos.index', 'config.sedes.index', 'config.servicio.citas.index', 'config.plantillas.index', 'config.tipo.documento.index', 'config.consentimiento_informado.index', 'ecografias.consentimientos.index', 'ecografias.consentimientos.plantillas.index', 'helpdesk.config.categorias.index', 'helpdesk.config.prioridades.index', 'helpdesk.config.estados.index']))
                         <li class="nav-small-cap">--- PARAMETRIZACIÓN</li>
                         <li>
                             <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
@@ -282,6 +310,11 @@
                                 @can('config.sedes.index')
                                     <li>
                                         <a href="{{ route('config.sedes.listar') }}">Sedes</a>
+                                    </li>
+                                @endcan
+                                @can('config.servicio.citas.index')
+                                    <li>
+                                        <a href="{{ route('config.servicio.citas.listar') }}">Servicios de Citas</a>
                                     </li>
                                 @endcan
                                 @can('config.plantillas.index')
