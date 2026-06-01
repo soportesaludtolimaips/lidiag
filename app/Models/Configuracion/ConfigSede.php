@@ -42,4 +42,14 @@ class ConfigSede extends Model
     protected $casts = [
         'estado' => 'boolean',
     ];
+
+    public function servicios()
+    {
+        return $this->hasMany(ConfigServicioCita::class, 'sede_id');
+    }
+
+    public function whatsappNumbers()
+    {
+        return $this->hasMany(ConfigSedeWhatsappNumber::class, 'sede_id');
+    }
 }

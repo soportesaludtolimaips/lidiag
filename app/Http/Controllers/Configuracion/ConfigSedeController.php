@@ -36,7 +36,7 @@ class ConfigSedeController extends Controller
      */
     public function index()
     {
-        $sedes = ConfigSede::orderBy('nom_sede')->get();
+        $sedes = ConfigSede::with(['servicios', 'whatsappNumbers'])->orderBy('nom_sede')->get();
 
         return response()->json($sedes);
     }

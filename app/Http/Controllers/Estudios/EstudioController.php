@@ -126,17 +126,19 @@ class EstudioController extends Controller
         $nombrePaciente = str_replace(' ^', '', $nombrePaciente);
         $nombrePaciente = str_replace('^', ' ', $nombrePaciente);
 
+        // No sobrescribir campos con vacío: preservar valores existentes del paciente
+        $pacienteExistente = Paciente::where('num_docu', $registro['num_docu'])->first();
         $paciente = Paciente::updateOrCreate(
             ['num_docu' => $registro['num_docu']],
             [
                 'num_docu' => $registro['num_docu'],
                 'nombres' => $nombrePaciente,
-                'direccion' => $registro['direccion'],
-                'sexo' => $registro['sexo'],
-                'fec_naci' => $registro['fec_naci'],
+                'direccion' => !empty($registro['direccion']) ? $registro['direccion'] : ($pacienteExistente->direccion ?? ''),
+                'sexo' => !empty($registro['sexo']) ? $registro['sexo'] : ($pacienteExistente->sexo ?? ''),
+                'fec_naci' => !empty($registro['fec_naci']) ? $registro['fec_naci'] : ($pacienteExistente->fec_naci ?? null),
                 // Unificar nombre de campo: el frontend envía `tel` (con fallback a `telefono` por compatibilidad)
-                'tel' => $registro['tel'] ?? ($registro['telefono'] ?? null),
-                'email' => $registro['email'],
+                'tel' => !empty($registro['tel']) ? $registro['tel'] : ($registro['telefono'] ?? ($pacienteExistente->tel ?? '')),
+                'email' => !empty($registro['email']) ? $registro['email'] : ($pacienteExistente->email ?? ''),
             ]
         );
 

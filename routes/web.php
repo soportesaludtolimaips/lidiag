@@ -195,6 +195,10 @@ Route::view('/config-sedes-listar', 'modulos.configuracion.config-sedes')
     ->name('config.sedes.listar')
     ->middleware(['auth', 'permission:config.sedes.index']);
 
+Route::post('/config/sedes/updateWitchPlantillas', [\App\Http\Controllers\Configuracion\ConfigSedeController::class, 'update'])
+    ->name('config.sedes.update')
+    ->middleware(['auth', 'permission:config.sedes.edit']);
+
 Route::view('/config-plantillas-listar', 'modulos.configuracion.config-plantillas')
     ->name('config.plantillas.listar')
     ->middleware(['auth', 'permission:config.plantillas.index']);
@@ -206,6 +210,10 @@ Route::view('/config-tipos-plantillas.listar', 'modulos.configuracion.config-tip
 Route::view('/config-servicio-producto', 'modulos.configuracion.config-servicio-producto')
     ->name('config.servicio.producto')
     ->middleware(['auth', 'permission:config.productos.index']);
+
+Route::view('/config-servicio-citas-listar', 'modulos.configuracion.config-servicio-citas')
+    ->name('config.servicio.citas.listar')
+    ->middleware(['auth', 'permission:config.servicio.citas.index']);
 
 Route::view('/config-tipos-documentos-listar', 'modulos.configuracion.config-tipos-documentos')
     ->name('config.tipos.documentos.listar')
@@ -273,6 +281,14 @@ Route::view('/citas', 'modulos.citas.index')
 
 Route::view('/citas/gestion', 'modulos.citas.gestion')
     ->name('citas.gestion')
+    ->middleware(['auth', 'permission:citas.index']);
+
+Route::view('/citas/revision', 'modulos.citas.revision')
+    ->name('citas.revision')
+    ->middleware(['auth', 'permission:citas.index']);
+
+Route::get('/citas/media/{filename}', [\App\Http\Controllers\Citas\CitaController::class, 'descargarMedia'])
+    ->name('citas.media')
     ->middleware(['auth', 'permission:citas.index']);
 
 /* Route::get('/{optional?}', function () {

@@ -53,5 +53,10 @@ class DatabaseSeeder extends Seeder
         $this->call(OtrasInterfacesSeeder::class);
         $this->call(InterfaceTeleRadiologiaSeeder::class);
         $this->call(PermisosAgendamientoSeeder::class);
+
+        // WhatsApp Citas
+        $this->call(ConfigServicioCitasSeeder::class);
+        $this->call(ConfigSedeWhatsappNumberSeeder::class);
+        $this->call(PermisionServicioCitasSeeder::class);
     }
 }

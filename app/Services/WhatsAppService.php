@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Citas\Cita;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class WhatsAppService
 {
@@ -132,6 +133,21 @@ class WhatsAppService
         return $this->enviarMensaje($cita->paciente?->cel ?? '', $mensaje);
     }
 
+    public function enviarRechazo(Cita $cita, string $motivo, string $observacion = ''): array
+    {
+        $mensaje = "❌ *Solicitud de Cita Rechazada*\n\n";
+        $mensaje .= "Su solicitud de cita ha sido revisada.\n\n";
+        $mensaje .= "*Motivo:* {$motivo}\n";
+
+        if ($observacion) {
+            $mensaje .= "*Observación:* {$observacion}\n";
+        }
+
+        $mensaje .= "\nPara más información, comuníquese con nosotros.";
+
+        return $this->enviarMensaje($cita->paciente?->cel ?? '', $mensaje);
+    }
+
     public function enviarSolicitudRecibida(Cita $cita): array
     {
         $servicio = $cita->servicio?->nombre ?? 'Estudio';
@@ -142,6 +158,124 @@ class WhatsAppService
         $mensaje .= "Gracias por confiar en nosotros.";
 
         return $this->enviarMensaje($cita->paciente?->cel ?? '', $mensaje);
+    }
+
+    public function enviarImagen(string $telefono, string $mediaUrl, ?string $caption = null): array
+    {
+        $telefono = $this->formatearTelefono($telefono);
+
+        $payload = [
+            'messaging_product' => 'whatsapp',
+            'to' => $telefono,
+            'type' => 'image',
+            'image' => [
+                'link' => $mediaUrl,
+            ],
+        ];
+
+        if ($caption) {
+            $payload['image']['caption'] = $caption;
+        }
+
+        return $this->enviarRequest($payload);
+    }
+
+    public function enviarDocumento(string $telefono, string $mediaUrl, ?string $filename = null, ?string $caption = null): array
+    {
+        $telefono = $this->formatearTelefono($telefono);
+
+        $payload = [
+            'messaging_product' => 'whatsapp',
+            'to' => $telefono,
+            'type' => 'document',
+            'document' => [
+                'link' => $mediaUrl,
+            ],
+        ];
+
+        if ($filename) {
+            $payload['document']['filename'] = $filename;
+        }
+
+        if ($caption) {
+            $payload['document']['caption'] = $caption;
+        }
+
+        return $this->enviarRequest($payload);
+    }
+
+    public function marcarComoLeido(string $messageId): array
+    {
+        $payload = [
+            'messaging_product' => 'whatsapp',
+            'status' => 'read',
+            'message_id' => $messageId,
+        ];
+
+        return $this->enviarRequest($payload);
+    }
+
+    public function descargarMedia(string $mediaId): ?string
+    {
+        try {
+            $mediaUrl = "https://graph.facebook.com/{$this->apiVersion}/{$mediaId}";
+
+            $mediaInfo = Http::withToken($this->token)
+                ->timeout(15)
+                ->get($mediaUrl)
+                ->json();
+
+            if (empty($mediaInfo['url'])) {
+                Log::error('WhatsApp media info missing URL', ['mediaId' => $mediaId, 'response' => $mediaInfo]);
+                return null;
+            }
+
+            $response = Http::withToken($this->token)
+                ->timeout(60)
+                ->get($mediaInfo['url']);
+
+            if ($response->failed()) {
+                Log::error('WhatsApp media download failed', [
+                    'mediaId' => $mediaId,
+                    'status' => $response->status(),
+                ]);
+                return null;
+            }
+
+            $mimeType = $mediaInfo['mime_type'] ?? 'application/octet-stream';
+            $extension = $this->mimeToExtension($mimeType);
+            $filename = 'cita_' . bin2hex(random_bytes(12)) . '.' . $extension;
+
+            $disk = 'local';
+            $path = 'citas_soportes/' . $filename;
+
+            Storage::disk($disk)->put($path, $response->body());
+
+            return $path;
+        } catch (\Exception $e) {
+            Log::error('WhatsApp media download exception: '.$e->getMessage(), [
+                'mediaId' => $mediaId,
+            ]);
+            return null;
+        }
+    }
+
+    protected function mimeToExtension(string $mime): string
+    {
+        $map = [
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+            'application/pdf' => 'pdf',
+            'application/msword' => 'doc',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+            'text/plain' => 'txt',
+            'audio/mpeg' => 'mp3',
+            'audio/ogg' => 'ogg',
+            'video/mp4' => 'mp4',
+        ];
+
+        return $map[$mime] ?? 'bin';
     }
 
     protected function formatearTelefono(string $telefono): string
@@ -223,13 +357,32 @@ class WhatsAppService
         $message = $value['messages'][0];
         $metadata = $value['metadata'] ?? [];
 
-        return [
+        $type = $message['type'] ?? null;
+        $result = [
             'from' => $message['from'] ?? null,
             'id' => $message['id'] ?? null,
             'timestamp' => $message['timestamp'] ?? null,
-            'type' => $message['type'] ?? null,
-            'text' => $message['text']['body'] ?? null,
+            'type' => $type,
+            'text' => null,
+            'media' => null,
             'metadata' => $metadata,
+            'phone_number_id' => $metadata['phone_number_id'] ?? null,
         ];
+
+        if ($type === 'text') {
+            $result['text'] = $message['text']['body'] ?? null;
+        } elseif (in_array($type, ['image', 'document', 'audio', 'video'])) {
+            $media = $message[$type] ?? [];
+            $result['media'] = [
+                'id' => $media['id'] ?? null,
+                'mime_type' => $media['mime_type'] ?? null,
+                'sha256' => $media['sha256'] ?? null,
+                'caption' => $media['caption'] ?? null,
+                'filename' => $media['filename'] ?? null,
+            ];
+            $result['text'] = $media['caption'] ?? null;
+        }
+
+        return $result;
     }
 }

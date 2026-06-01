@@ -11,6 +11,7 @@ class WhatsAppConversation extends Model
     protected $fillable = [
         'telefono',
         'cita_id',
+        'sede_id',
         'paso',
         'datos',
         'ultimo_mensaje',

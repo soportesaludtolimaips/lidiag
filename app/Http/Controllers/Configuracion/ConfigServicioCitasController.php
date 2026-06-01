@@ -3,44 +3,41 @@
 namespace App\Http\Controllers\Configuracion;
 
 use App\Http\Controllers\Controller;
-use App\Models\Configuracion\ConfigServicioCitas;
+use App\Models\Configuracion\ConfigServicioCita;
 use Illuminate\Http\Request;
 
 class ConfigServicioCitasController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        $servicios = ConfigServicioCitas::all();
+        $query = ConfigServicioCita::with('sede');
 
-        return response()->json($servicios);
+        if ($request->sede_id) {
+            $query->where('sede_id', $request->sede_id);
+        }
+
+        return response()->json($query->orderBy('nombre')->get());
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $request->validate([
             'nombre' => 'required|string|max:255',
+            'sede_id' => 'required|exists:config_sedes,id',
         ]);
 
-        $servicio = ConfigServicioCitas::create([
+        $servicio = ConfigServicioCita::create([
             'nombre' => $request->nombre,
-            'estado' => true,
+            'sede_id' => $request->sede_id,
+            'estado' => $request->boolean('estado', true),
         ]);
 
-        return response()->json($servicio, 201);
+        return response()->json($servicio->load('sede'), 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
-        $servicio = ConfigServicioCitas::find($id);
+        $servicio = ConfigServicioCita::with('sede')->find($id);
         if (! $servicio) {
             return response()->json(['message' => 'Servicio no encontrado'], 404);
         }
@@ -48,33 +45,30 @@ class ConfigServicioCitasController extends Controller
         return response()->json($servicio);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $id)
     {
-        $servicio = ConfigServicioCitas::find($id);
+        $servicio = ConfigServicioCita::find($id);
         if (! $servicio) {
             return response()->json(['message' => 'Servicio no encontrado'], 404);
         }
 
         $request->validate([
             'nombre' => 'required|string|max:255',
+            'sede_id' => 'required|exists:config_sedes,id',
         ]);
 
         $servicio->update([
             'nombre' => $request->nombre,
+            'sede_id' => $request->sede_id,
+            'estado' => $request->boolean('estado', $servicio->estado),
         ]);
 
-        return response()->json($servicio);
+        return response()->json($servicio->load('sede'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
-        $servicio = ConfigServicioCitas::find($id);
+        $servicio = ConfigServicioCita::find($id);
         if (! $servicio) {
             return response()->json(['message' => 'Servicio no encontrado'], 404);
         }

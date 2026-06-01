@@ -13,12 +13,18 @@ class ConfigServicioCita extends Model
 
     protected $fillable = [
         'nombre',
+        'sede_id',
         'estado',
     ];
 
     protected $casts = [
         'estado' => 'boolean',
     ];
+
+    public function sede()
+    {
+        return $this->belongsTo(ConfigSede::class, 'sede_id');
+    }
 
     public function productos()
     {
@@ -28,5 +34,15 @@ class ConfigServicioCita extends Model
             'servicio_cita_id',
             'producto_id'
         )->withPivot('estado')->wherePivot('estado', true);
+    }
+
+    public function scopeDeSede($query, $sedeId)
+    {
+        return $query->where('sede_id', $sedeId);
+    }
+
+    public function scopeActivos($query)
+    {
+        return $query->where('estado', true);
     }
 }

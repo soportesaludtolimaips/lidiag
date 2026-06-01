@@ -118,6 +118,19 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->names('api.config.servicio.citas')
         ->except(['create', 'edit']);
 
+    // Números WhatsApp por sede
+    Route::get('/config-sede-whatsapp-numbers', [\App\Http\Controllers\Configuracion\ConfigSedeWhatsappNumberController::class, 'index'])
+        ->name('api.config.sede.whatsapp.numbers.index');
+
+    Route::post('/config-sede-whatsapp-numbers', [\App\Http\Controllers\Configuracion\ConfigSedeWhatsappNumberController::class, 'store'])
+        ->name('api.config.sede.whatsapp.numbers.store');
+
+    Route::put('/config-sede-whatsapp-numbers/{id}', [\App\Http\Controllers\Configuracion\ConfigSedeWhatsappNumberController::class, 'update'])
+        ->name('api.config.sede.whatsapp.numbers.update');
+
+    Route::delete('/config-sede-whatsapp-numbers/{id}', [\App\Http\Controllers\Configuracion\ConfigSedeWhatsappNumberController::class, 'destroy'])
+        ->name('api.config.sede.whatsapp.numbers.destroy');
+
     // Servicio Citas <-> Productos
     Route::get('/servicio-producto', [ServicioProductoController::class, 'index'])
         ->name('api.config.servicio.producto.index');

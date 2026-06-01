@@ -41,6 +41,7 @@ return [
         'phone_number_id' => env('META_WHATSAPP_PHONE_ID'),
         'business_account_id' => env('META_WHATSAPP_BUSINESS_ID'),
         'app_secret' => env('META_WHATSAPP_APP_SECRET'),
+        'verify_token' => env('META_WHATSAPP_VERIFY_TOKEN', 'lidiag_whatsapp_2026'),
     ],
 
     'transcriptor' => [
