@@ -160,7 +160,7 @@
                                             class="form-control" placeholder="Número de documeto del usuario">
                                         <span class="text-danger" v-if="errores.num_docu">{{
                                             errores.num_docu[0]
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -170,7 +170,7 @@
                                             placeholder="Registro medico">
                                         <span class="text-danger" v-if="errores.reg_med">{{
                                             errores.reg_med[0]
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -180,7 +180,7 @@
                                             class="form-control" placeholder="Id del usuario de SAHI">
                                         <span class="text-danger" v-if="errores.interface_id">{{
                                             errores.interface_id[0]
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -193,7 +193,7 @@
                                             placeholder="Ingrese aquí el los nombres del usaurio">
                                         <span class="text-danger" v-if="errores.name">{{
                                             errores.name[0]
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -214,7 +214,7 @@
 
                                         <span class="text-danger" v-if="errores.email">{{
                                             errores.email[0]
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -236,7 +236,7 @@
 
                                         <span class="text-danger" v-if="errores.password">{{
                                             errores.password[0]
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </div>
 
@@ -256,7 +256,7 @@
 
                                         <span class="text-danger" v-if="errores.confirmarPassword">{{
                                             errores.confirmarPassword[0]
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -276,6 +276,14 @@
                                                                 {{ itemRol.name }}
                                                             </label>
                                                         </div>
+                                                    </div>
+
+                                                    <div class="custom-control custom-checkbox">
+                                                        <input type="checkbox" class="custom-control-input"
+                                                            id="transcrip_remoto" v-model="registro.transcrip_remoto">
+                                                        <label class="custom-control-label" for="transcrip_remoto">
+                                                            Transcripcción remota
+                                                        </label>
                                                     </div>
                                                 </div>
                                             </div>
@@ -363,6 +371,7 @@
 import { handleAxiosErrorToast, confirmAction, alertError, alertSuccess } from "@/helpers/alerts";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 
+
 export default {
     props: ['usuarioactual'],
     mounted() {
@@ -377,7 +386,7 @@ export default {
             registros: [],
             roles: [],
             id: null,
-            registro: { num_docu: '', reg_med: '', name: '', email: '', password: '', estado: false, imagen_perfil: '', rolesUsuario: [], modulos: [], interface_id: null },
+            registro: { num_docu: '', reg_med: '', name: '', email: '', password: '', estado: false, imagen_perfil: '', rolesUsuario: [], modulos: [], interface_id: null, transcrip_remoto: 0 },
             tituloModal: 'Nuevo registro',
             actualizar: false,
             avatar: null,

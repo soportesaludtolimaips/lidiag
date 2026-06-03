@@ -180,6 +180,7 @@ class UserController extends Controller
         $seguridad_usuario->email = $registro['email'];
         $seguridad_usuario->tel = $registro['tel'] ?? null;
         $seguridad_usuario->interface_id = $registro['interface_id'] ?? null;
+        $seguridad_usuario->transcrip_remoto = $registro['transcrip_remoto'] ?? false;
 
         if ($registro['password']) {
             $seguridad_usuario->password = bcrypt($registro['password']);
@@ -193,7 +194,7 @@ class UserController extends Controller
                 Storage::disk('firmas_medicos')->delete($seguridad_usuario->firma);
             }
 
-            $nombreEncrip = Str::random(50).".".$archivo->extension();
+            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
 
             $cargarFirma = $archivo->storeAs('firmas_medicos', $nombreEncrip);
             $seguridad_usuario->firma = $cargarFirma;
@@ -206,7 +207,7 @@ class UserController extends Controller
                 Storage::disk('avatars')->delete($seguridad_usuario->imagen_perfil);
             }
 
-            $nombreEncrip = Str::random(50).".".$archivo->extension();
+            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
 
             $cargarAvatar = $archivo->storeAs('avatars', $nombreEncrip);
             $seguridad_usuario->imagen_perfil = $cargarAvatar;
@@ -260,7 +261,7 @@ class UserController extends Controller
             // 'num_docu' => 'required|string|max:20|unique:users,num_docu,' . $request->id,
             'reg_med' => 'nullable|string|max:20',
             'name' => 'required|string|max:50',
-            'email' => 'required|email|max:255|unique:users,email,'.$request->id,
+            'email' => 'required|email|max:255|unique:users,email,' . $request->id,
             'tel' => 'nullable|string|max:50',
             'facebook' => 'nullable|string|max:100',
             'twitter' => 'nullable|string|max:100',
@@ -307,6 +308,7 @@ class UserController extends Controller
         $seguridad_usuario->email = $registro['email'];
         $seguridad_usuario->tel = $registro['tel'] ?? $seguridad_usuario->tel;
         $seguridad_usuario->interface_id = $registro['interface_id'] ?? $seguridad_usuario->interface_id;
+        $seguridad_usuario->transcrip_remoto = $registro['transcrip_remoto'] ?? $seguridad_usuario->transcrip_remoto;
 
         if ($registro['password']) {
             $seguridad_usuario->password = bcrypt($registro['password']);
@@ -320,7 +322,7 @@ class UserController extends Controller
                 Storage::disk('firmas_medicos')->delete($seguridad_usuario->firma);
             }
 
-            $nombreEncrip = Str::random(50).".".$archivo->extension();
+            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
 
             $cargarFirma = $archivo->storeAs('firmas_medicos', $nombreEncrip);
             $seguridad_usuario->firma = $cargarFirma;
@@ -333,7 +335,7 @@ class UserController extends Controller
                 Storage::disk('avatars')->delete($seguridad_usuario->imagen_perfil);
             }
 
-            $nombreEncrip = Str::random(50).".".$archivo->extension();
+            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
 
             $cargarAvatar = $archivo->storeAs('avatars', $nombreEncrip);
             $seguridad_usuario->imagen_perfil = $cargarAvatar;
@@ -468,7 +470,7 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'num_docu' => 'required|string|max:20',
             'name' => 'required|string|max:50',
-            'email' => 'required|email|max:255|unique:users,email,'.$usuario->id,
+            'email' => 'required|email|max:255|unique:users,email,' . $usuario->id,
             'password' => 'nullable|string|min:6',
             'imagen_perfil' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
@@ -499,7 +501,7 @@ class UserController extends Controller
                 } catch (\Exception $e) {
                 }
 
-                $nombreEncrip = Str::random(50).".".$archivo->extension();
+                $nombreEncrip = Str::random(50) . "." . $archivo->extension();
                 $path = $archivo->storeAs('avatars', $nombreEncrip);
                 $usuario->imagen_perfil = $path;
             }

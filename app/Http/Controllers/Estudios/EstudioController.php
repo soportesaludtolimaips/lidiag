@@ -113,6 +113,12 @@ class EstudioController extends Controller
             return response()->json($validator->errors(), 400);
         }
 
+        // Validar motivo_examen cuando el usuario no tiene transcripción remota
+        $user = auth()->user();
+        if ($user && !$user->transcrip_remoto && empty($registro['motivo_examen'])) {
+            return response()->json(['motivo_examen' => ['El motivo del examen es obligatorio.']], 400);
+        }
+
         // Asegurar que venga al menos un producto marcado (checked=true)
         $productosMarcados = array_values(array_filter(
             $registro['productosEstudio'] ?? [],
