@@ -78,55 +78,62 @@ class StudyController extends Controller
             'collation' => env('DB_SUCURSAL_collation', 'latin1_swedish_ci'),
         ]]);
 
-        // Aplicamos la nueva configuracion de bade datos
-        Config::set('database.default', 'mysql_sucursal');
+        // Aplicamos la nueva configuracion de base datos
+        // try-finally asegura restaurar la conexion incluso si hay excepcion,
+        // evitando que el middleware de sesion escriba en la BD incorrecta.
+        $conexionOriginal = config('database.default');
+        try {
+            Config::set('database.default', 'mysql_sucursal');
 
-        $estudios = new Study;
-        $query = $estudios->query();
+            $estudios = new Study;
+            $query = $estudios->query();
 
-        $query->select(
-            'study.pk as study_pk',
-            'study.study_iuid',
-            'study.study_id',
-            'study.study_datetime',
-            'study.accession_no',
-            'study.study_desc',
-            'study.mods_in_study',
-            'patient.pat_id',
-            'patient.pat_name',
-            'patient.pat_sex',
-            'patient.pat_birthdate',
-        )
-            ->join('patient', 'study.patient_fk', 'patient.pk');
+            $query->select(
+                'study.pk as study_pk',
+                'study.study_iuid',
+                'study.study_id',
+                'study.study_datetime',
+                'study.accession_no',
+                'study.study_desc',
+                'study.mods_in_study',
+                'patient.pat_id',
+                'patient.pat_name',
+                'patient.pat_sex',
+                'patient.pat_birthdate',
+            )
+                ->join('patient', 'study.patient_fk', 'patient.pk');
 
-        if ($tieneBusqueda) {
-            $needle = trim($request->bus_nom_num_docu);
-            $query->where(function ($q) use ($needle) {
-                $q->where('patient.pat_id', 'like', "%{$needle}%")
-                    ->orWhere('patient.pat_name', 'like', "%{$needle}%");
-            });
+            if ($tieneBusqueda) {
+                $needle = trim($request->bus_nom_num_docu);
+                $query->where(function ($q) use ($needle) {
+                    $q->where('patient.pat_id', 'like', "%{$needle}%")
+                        ->orWhere('patient.pat_name', 'like', "%{$needle}%");
+                });
+            }
+
+            if ($tieneFechas) {
+                // Rango sin DATE() para permitir uso de índice en study_datetime
+                $inicio = $request->bus_fehc_ini.' 00:00:00';
+                $fin = date('Y-m-d', strtotime($request->bus_fecha_fin.' +1 day')).' 00:00:00';
+                $query->where('study.study_datetime', '>=', $inicio)
+                    ->where('study.study_datetime', '<', $fin);
+            }
+
+            $query->orderBy('study.study_datetime', 'desc')->limit(500);
+
+            $resultados = $query->get();
+        } finally {
+            Config::set('database.default', $conexionOriginal);
         }
-
-        if ($tieneFechas) {
-            // Rango sin DATE() para permitir uso de índice en study_datetime
-            $inicio = $request->bus_fehc_ini.' 00:00:00';
-            $fin = date('Y-m-d', strtotime($request->bus_fecha_fin.' +1 day')).' 00:00:00';
-            $query->where('study.study_datetime', '>=', $inicio)
-                ->where('study.study_datetime', '<', $fin);
-        }
-
-        $query->orderBy('study.study_datetime', 'desc')->limit(500);
-
-        $resultados = $query->get();
-
-        Config::set('database.default', 'mysql');
 
         // Evitar N+1: traer todos los study_pk ya agendados en una sola consulta
+        // Solo se marcan como agendados los estudios que tienen un paciente real asociado en Lidiag
         $studyPks = $resultados->pluck('study_pk')->filter()->values()->all();
         $agendados = Estudio::query()
-            ->where('sede_id', $request->sede_id)
-            ->whereIn('study_pk', $studyPks)
-            ->pluck('study_pk')
+            ->join('pacientes', 'estudios.paciente_id', '=', 'pacientes.id')
+            ->where('estudios.sede_id', $request->sede_id)
+            ->whereIn('estudios.study_pk', $studyPks)
+            ->pluck('estudios.study_pk')
             ->flip();
 
         // Marcar agendado y convertir strings latin1 -> utf8 si aplica

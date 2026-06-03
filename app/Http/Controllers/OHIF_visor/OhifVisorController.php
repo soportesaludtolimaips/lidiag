@@ -79,39 +79,44 @@ class OhifVisorController extends Controller
         ]]);
 
         // Aplicamos la nueva configuracion de bade datos
+        $originalDefault = Config::get('database.default');
         Config::set('database.default', 'mysql_sucursal');
 
-        // Tu consulta Eloquent original
-        $imagenes = Instance::join('series', 'instance.series_fk', '=', 'series.pk')
-            ->join('study', 'series.study_fk', '=', 'study.pk')
-            ->where('study.study_iuid', $study_iuid)
-            ->select('series.series_iuid', 'instance.sop_iuid', 'study.study_iuid')
-            ->get();
+        try {
+            // Tu consulta Eloquent original
+            $imagenes = Instance::join('series', 'instance.series_fk', '=', 'series.pk')
+                ->join('study', 'series.study_fk', '=', 'study.pk')
+                ->where('study.study_iuid', $study_iuid)
+                ->select('series.series_iuid', 'instance.sop_iuid', 'study.study_iuid')
+                ->get();
 
-        if ($imagenes->isEmpty()) {
-            return response()->json([], 404);
+            if ($imagenes->isEmpty()) {
+                return response()->json([], 404);
+            }
+
+            $metadata = [];
+            foreach ($imagenes as $imagen) {
+                $metadata[] = [
+                    "0020000D" => ["vr" => "UI", "Value" => [$imagen->study_iuid]],
+                    "0020000E" => ["vr" => "UI", "Value" => [$imagen->series_iuid]],
+                    "00080018" => ["vr" => "UI", "Value" => [$imagen->sop_iuid]],
+                    "00080060" => ["vr" => "CS", "Value" => ["CR"]],
+                    "7FE00010" => [
+                        "vr" => "OW",
+                        "BulkDataURI" => route('dicom.download', [
+                            'sedeId' => $sedeId,
+                            'study' => $imagen->study_iuid,
+                            'series' => $imagen->series_iuid,
+                            'object' => $imagen->sop_iuid,
+                        ]),
+                    ],
+                ];
+            }
+
+            return response()->json($metadata);
+        } finally {
+            Config::set('database.default', $originalDefault);
         }
-
-        $metadata = [];
-        foreach ($imagenes as $imagen) {
-            $metadata[] = [
-                "0020000D" => ["vr" => "UI", "Value" => [$imagen->study_iuid]],
-                "0020000E" => ["vr" => "UI", "Value" => [$imagen->series_iuid]],
-                "00080018" => ["vr" => "UI", "Value" => [$imagen->sop_iuid]],
-                "00080060" => ["vr" => "CS", "Value" => ["CR"]],
-                "7FE00010" => [
-                    "vr" => "OW",
-                    "BulkDataURI" => route('dicom.download', [
-                        'sedeId' => $sedeId, // <--- IMPORTANTÍSIMO: Pásalo aquí
-                        'study' => $imagen->study_iuid,
-                        'series' => $imagen->series_iuid,
-                        'object' => $imagen->sop_iuid,
-                    ]),
-                ],
-            ];
-        }
-
-        return response()->json($metadata);
     }
 
     /**
@@ -145,7 +150,7 @@ class OhifVisorController extends Controller
      */
     public function listStudies($sedeId)
     {
-        return $this->getStudiesForSede($sedeId);
+        $originalDefault = Config::get('database.default');
         try {
             $this->conectarSede($sedeId);
 
@@ -183,6 +188,8 @@ class OhifVisorController extends Controller
             return response()->json($response);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
+        } finally {
+            Config::set('database.default', $originalDefault);
         }
     }
 
