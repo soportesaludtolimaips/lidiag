@@ -259,50 +259,55 @@ class EstudioNotificacionController extends Controller
         ]]);
 
         // Aplicamos la nueva configuracion de bade datos
+        $originalDefault = Config::get('database.default');
         Config::set('database.default', 'mysql_sucursal');
 
-        // Obtener todas las series y las instancias (imágenes) del estudio
-        $imagenes = Instance::join('series', 'instance.series_fk', '=', 'series.pk')
-            ->join('study', 'series.study_fk', '=', 'study.pk')
-            ->where('study.study_iuid', $study_iuid)
-            ->select('series.series_iuid', 'instance.sop_iuid')
-            ->limit(20)
-            ->get();
+        try {
+            // Obtener todas las series y las instancias (imágenes) del estudio
+            $imagenes = Instance::join('series', 'instance.series_fk', '=', 'series.pk')
+                ->join('study', 'series.study_fk', '=', 'study.pk')
+                ->where('study.study_iuid', $study_iuid)
+                ->select('series.series_iuid', 'instance.sop_iuid')
+                ->limit(20)
+                ->get();
 
-        // Verificar si se encontraron imágenes
-        if ($imagenes->isEmpty()) {
-            return response()->json(['error' => 'No se encontraron imágenes para el estudio especificado'], 404);
-        }
-
-        // Iterar sobre cada imagen, descargar y guardar en el storage
-        foreach ($imagenes as $imagen) {
-            $seriesUID = $imagen->series_iuid;
-            $objectUID = $imagen->sop_iuid;
-
-            // URL del servicio WADO para la imagen
-            $wadoUrl = "http://".$sedeActual->ip_dcm.":8080/wado?requestType=WADO&studyUID=$study_iuid&seriesUID=$seriesUID&objectUID=$objectUID&contentType=image/jpeg";
-
-            // Hacer la solicitud HTTP GET para obtener la imagen
-            $response = Http::get($wadoUrl);
-
-            // Verificar si la solicitud fue exitosa
-            if ($response->successful()) {
-                // Obtener el contenido de la imagen
-                $imageContent = $response->body();
-
-                // Definir el nombre del archivo
-                $filename = 'imagen_'.$study_iuid.'_'.$seriesUID.'_'.$objectUID.'.jpg';
-
-                // Guardar la imagen en el directorio 'img_dicom' del storage
-                Storage::put('img_dicom/'.$study_iuid."/".$filename, $imageContent);
-            } else {
-                // Manejo de errores si alguna imagen no se pudo descargar
-                return response()->json(['error' => 'Error al descargar una de las imágenes'], 500);
+            // Verificar si se encontraron imágenes
+            if ($imagenes->isEmpty()) {
+                return response()->json(['error' => 'No se encontraron imágenes para el estudio especificado'], 404);
             }
-        }
 
-        // Devolver un mensaje de éxito
-        return response()->json(['success' => 'Todas las imágenes se han descargado y guardado correctamente'], 200);
+            // Iterar sobre cada imagen, descargar y guardar en el storage
+            foreach ($imagenes as $imagen) {
+                $seriesUID = $imagen->series_iuid;
+                $objectUID = $imagen->sop_iuid;
+
+                // URL del servicio WADO para la imagen
+                $wadoUrl = "http://".$sedeActual->ip_dcm.":8080/wado?requestType=WADO&studyUID=$study_iuid&seriesUID=$seriesUID&objectUID=$objectUID&contentType=image/jpeg";
+
+                // Hacer la solicitud HTTP GET para obtener la imagen
+                $response = Http::get($wadoUrl);
+
+                // Verificar si la solicitud fue exitosa
+                if ($response->successful()) {
+                    // Obtener el contenido de la imagen
+                    $imageContent = $response->body();
+
+                    // Definir el nombre del archivo
+                    $filename = 'imagen_'.$study_iuid.'_'.$seriesUID.'_'.$objectUID.'.jpg';
+
+                    // Guardar la imagen en el directorio 'img_dicom' del storage
+                    Storage::put('img_dicom/'.$study_iuid."/".$filename, $imageContent);
+                } else {
+                    // Manejo de errores si alguna imagen no se pudo descargar
+                    return response()->json(['error' => 'Error al descargar una de las imágenes'], 500);
+                }
+            }
+
+            // Devolver un mensaje de éxito
+            return response()->json(['success' => 'Todas las imágenes se han descargado y guardado correctamente'], 200);
+        } finally {
+            Config::set('database.default', $originalDefault);
+        }
     }
 
     /**

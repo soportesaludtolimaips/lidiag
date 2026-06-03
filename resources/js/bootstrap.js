@@ -3,41 +3,63 @@ window._ = _;
 
 import "bootstrap";
 
-/**
- * We'll load the axios HTTP library which allows us to easily issue requests
- * to our Laravel back-end. This library automatically handles sending the
- * CSRF token as a header based on the value of the "XSRF" token cookie.
- */
-
 import axios from "axios";
 window.axios = axios;
 
 window.axios.defaults.headers.common["X-Requested-With"] = "XMLHttpRequest";
 window.axios.defaults.withCredentials = true;
 
-// CSRF (Laravel web/session): usar meta tag del layout
-const token = document.head?.querySelector('meta[name="csrf-token"]');
-if (token && token.content) {
-    window.axios.defaults.headers.common["X-CSRF-TOKEN"] = token.content;
+function refreshCsrfToken() {
+    const name = "XSRF-TOKEN";
+    const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+    if (match && match[2]) {
+        window.axios.defaults.headers.common["X-XSRF-TOKEN"] = decodeURIComponent(match[2]);
+    }
 }
 
-/**
- * Echo exposes an expressive API for subscribing to channels and listening
- * for events that are broadcast by Laravel. Echo and event broadcasting
- * allows your team to easily build robust real-time web applications.
- */
+const metaToken = document.head?.querySelector('meta[name="csrf-token"]');
+if (metaToken && metaToken.content) {
+    window.axios.defaults.headers.common["X-CSRF-TOKEN"] = metaToken.content;
+}
 
-// import Echo from 'laravel-echo';
+refreshCsrfToken();
 
-// import Pusher from 'pusher-js';
-// window.Pusher = Pusher;
+window.axios.interceptors.response.use(
+    function (response) {
+        refreshCsrfToken();
+        return response;
+    },
+    function (error) {
+        const status = error?.response?.status;
+        if (status === 401) {
+            const toast = window.$?.toast;
+            if (toast) {
+                toast({
+                    heading: "Sesión expirada",
+                    text: "Tu sesión expiró. Redirigiendo al login...",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "warning",
+                    hideAfter: 3000,
+                    stack: 6,
+                });
+            }
+            setTimeout(function () {
+                window.location.href = "/login";
+            }, 3000);
+        }
+        return Promise.reject(error);
+    }
+);
 
-// window.Echo = new Echo({
-//     broadcaster: 'pusher',
-//     key: import.meta.env.VITE_PUSHER_APP_KEY,
-//     wsHost: import.meta.env.VITE_PUSHER_HOST ?? `ws-${import.meta.env.VITE_PUSHER_APP_CLUSTER}.pusher.com`,
-//     wsPort: import.meta.env.VITE_PUSHER_PORT ?? 80,
-//     wssPort: import.meta.env.VITE_PUSHER_PORT ?? 443,
-//     forceTLS: (import.meta.env.VITE_PUSHER_SCHEME ?? 'https') === 'https',
-//     enabledTransports: ['ws', 'wss'],
-// });
+function keepSessionAlive() {
+    axios.get("/api/user").catch(function () {});
+}
+
+var heartbeatInterval = setInterval(keepSessionAlive, 25 * 60 * 1000);
+
+document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) {
+        keepSessionAlive();
+    }
+});
