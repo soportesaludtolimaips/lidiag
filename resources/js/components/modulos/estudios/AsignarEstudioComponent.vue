@@ -623,8 +623,24 @@ export default {
             }
         },
         async guardarRegistro() {
+
             if (this.loadingGuardar) return;
             this.loadingGuardar = true;
+
+            if ((this.usuarioactual.transcrip_remoto == 0 || this.usuarioactual.transcrip_remoto == null) && this.registro.motivo_examen == '') {
+                $.toast({
+                    heading: "Upsss!!!",
+                    text: 'El motivo del examen es obligatorio. Debes ingresarlo antes de guardar.',
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "warning",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+                this.loadingGuardar = false;
+                return;
+            }
+
             try {
                 const formData = new FormData();
                 formData.append('registro', JSON.stringify(this.registro));

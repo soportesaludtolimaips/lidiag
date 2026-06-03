@@ -32,6 +32,7 @@ class User extends Authenticatable
         'password',
         'imagen_perfil',
         'interface_id',
+        'transcrip_remoto',
         'estado',
     ];
 
@@ -55,6 +56,7 @@ class User extends Authenticatable
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'estado' => 'boolean',
+        'transcrip_remoto' => 'boolean',
     ];
 
     public function paciente()
