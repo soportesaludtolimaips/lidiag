@@ -9,6 +9,19 @@
  *   session.cleanup();
  */
 
+import { createAudioRecorderWorkerSession, isWorkerSupported } from "./audioRecorderWorkerSession";
+
+export async function createAudioRecorderSessionSmart(opts = {}) {
+    if (isWorkerSupported()) {
+        try {
+            return await createAudioRecorderWorkerSession(opts);
+        } catch (e) {
+            // fallback a main thread
+        }
+    }
+    return createAudioRecorderSession(opts);
+}
+
 export function getVoiceAudioConstraints() {
     return {
         audio: {
@@ -63,16 +76,19 @@ export async function createAudioRecorderSession({
         if (mediaRecorder.state === "paused") mediaRecorder.resume();
     };
 
+    let lastUrl = null;
+
     const stop = () =>
         new Promise((resolve) => {
             if (!mediaRecorder || mediaRecorder.state === "inactive") {
-                resolve({ blob: null, url: null, chunks });
+                resolve({ blob: null, url: null, chunks, revoke: () => {} });
                 return;
             }
             mediaRecorder.onstop = () => {
                 const blob = new Blob(chunks, { type: "audio/webm" });
                 const url = URL.createObjectURL(blob);
-                resolve({ blob, url, chunks });
+                lastUrl = url;
+                resolve({ blob, url, chunks, revoke: () => { if (lastUrl) { URL.revokeObjectURL(lastUrl); lastUrl = null; } } });
             };
             mediaRecorder.stop();
         });
@@ -81,6 +97,7 @@ export async function createAudioRecorderSession({
         try {
             if (stream && stream.getTracks) stream.getTracks().forEach((t) => t.stop());
         } catch (e) {}
+        if (lastUrl) { URL.revokeObjectURL(lastUrl); lastUrl = null; }
     };
 
     return { stream, mediaRecorder, chunks, start, pause, resume, stop, cleanup };

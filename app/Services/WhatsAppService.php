@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Citas\Cita;
+use App\Models\Agenda\AgendaCita;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -77,12 +77,12 @@ class WhatsAppService
         return $this->enviarRequest($payload);
     }
 
-    public function enviarConfirmacion(Cita $cita): array
+    public function enviarConfirmacion(AgendaCita $cita): array
     {
         $fecha = $cita->fecha_hora_inicio->format('d/m/Y');
         $hora = $cita->fecha_hora_inicio->format('H:i');
-        $sede = $cita->sede?->nombre ?? 'Sede principal';
-        $producto = $cita->producto?->nom_producto ?? 'Estudio';
+        $sede = $cita->sede?->nom_sede ?? 'Sede principal';
+        $producto = $cita->producto?->nom_produc ?? 'Estudio';
 
         $mensaje = "✅ *Confirmación de Cita*\n\n";
         $mensaje .= "📅 *Fecha:* {$fecha}\n";
@@ -94,7 +94,13 @@ class WhatsAppService
         if ($recomendaciones->isNotEmpty()) {
             $mensaje .= "📋 *Recomendaciones:*\n";
             foreach ($recomendaciones as $rec) {
-                $mensaje .= "• {$rec->recomendacion}\n";
+                $texto = $rec->recomendacion;
+                $texto = str_replace(
+                    ['${num_docu_paciente}', '${nom_paciente}', '${cod_cups}', '${nom_produc}'],
+                    [$cita->paciente?->num_docu ?? '', $cita->paciente?->nombres ?? '', $cita->producto?->cod_cups ?? '', $cita->producto?->nom_produc ?? ''],
+                    $texto
+                );
+                $mensaje .= "• {$texto}\n";
             }
         }
 
@@ -103,7 +109,7 @@ class WhatsAppService
         return $this->enviarMensaje($cita->paciente?->cel ?? '', $mensaje);
     }
 
-    public function enviarRecordatorio(Cita $cita): array
+    public function enviarRecordatorio(AgendaCita $cita): array
     {
         $fecha = $cita->fecha_hora_inicio->format('d/m/Y');
         $hora = $cita->fecha_hora_inicio->format('H:i');
@@ -119,7 +125,7 @@ class WhatsAppService
         return $this->enviarMensaje($cita->paciente?->cel ?? '', $mensaje);
     }
 
-    public function enviarCancelacion(Cita $cita, string $motivo = ''): array
+    public function enviarCancelacion(AgendaCita $cita, string $motivo = ''): array
     {
         $mensaje = "❌ *Cita Cancelada*\n\n";
         $mensaje .= "Su cita ha sido cancelada.";
@@ -133,7 +139,7 @@ class WhatsAppService
         return $this->enviarMensaje($cita->paciente?->cel ?? '', $mensaje);
     }
 
-    public function enviarRechazo(Cita $cita, string $motivo, string $observacion = ''): array
+    public function enviarRechazo(AgendaCita $cita, string $motivo, string $observacion = ''): array
     {
         $mensaje = "❌ *Solicitud de Cita Rechazada*\n\n";
         $mensaje .= "Su solicitud de cita ha sido revisada.\n\n";
@@ -148,7 +154,7 @@ class WhatsAppService
         return $this->enviarMensaje($cita->paciente?->cel ?? '', $mensaje);
     }
 
-    public function enviarSolicitudRecibida(Cita $cita): array
+    public function enviarSolicitudRecibida(AgendaCita $cita): array
     {
         $servicio = $cita->servicio?->nombre ?? 'Estudio';
 
@@ -200,6 +206,85 @@ class WhatsAppService
         if ($caption) {
             $payload['document']['caption'] = $caption;
         }
+
+        return $this->enviarRequest($payload);
+    }
+
+    public function enviarLista(string $telefono, string $body, string $buttonText, array $sections, ?string $headerText = null, ?string $footerText = null): array
+    {
+        $telefono = $this->formatearTelefono($telefono);
+
+        $interactive = [
+            'type' => 'list',
+            'action' => [
+                'button' => $buttonText,
+                'sections' => $sections,
+            ],
+        ];
+
+        if ($headerText) {
+            $interactive['header'] = [
+                'type' => 'text',
+                'text' => $headerText,
+            ];
+        }
+
+        $interactive['body'] = ['text' => $body];
+
+        if ($footerText) {
+            $interactive['footer'] = ['text' => $footerText];
+        }
+
+        $payload = [
+            'messaging_product' => 'whatsapp',
+            'to' => $telefono,
+            'type' => 'interactive',
+            'interactive' => $interactive,
+        ];
+
+        return $this->enviarRequest($payload);
+    }
+
+    public function enviarBotones(string $telefono, string $body, array $buttons, ?string $headerText = null, ?string $footerText = null): array
+    {
+        $telefono = $this->formatearTelefono($telefono);
+
+        $actionButtons = [];
+        foreach ($buttons as $btn) {
+            $actionButtons[] = [
+                'type' => 'reply',
+                'reply' => [
+                    'id' => (string) $btn['id'],
+                    'title' => $btn['title'],
+                ],
+            ];
+        }
+
+        $interactive = [
+            'type' => 'button',
+            'action' => [
+                'buttons' => $actionButtons,
+            ],
+            'body' => ['text' => $body],
+        ];
+
+        if ($headerText) {
+            $interactive['header'] = [
+                'type' => 'text',
+                'text' => $headerText,
+            ];
+        }
+
+        if ($footerText) {
+            $interactive['footer'] = ['text' => $footerText];
+        }
+
+        $payload = [
+            'messaging_product' => 'whatsapp',
+            'to' => $telefono,
+            'type' => 'interactive',
+            'interactive' => $interactive,
+        ];
 
         return $this->enviarRequest($payload);
     }
@@ -336,7 +421,7 @@ class WhatsAppService
     public function verificarWebhook(string $payload, string $signature): bool
     {
         $secret = config('services.whatsapp.app_secret');
-        $expected = hash_hmac('sha256', $payload, $secret);
+        $expected = 'sha256='.hash_hmac('sha256', $payload, $secret);
 
         return hash_equals($expected, $signature);
     }
@@ -381,6 +466,18 @@ class WhatsAppService
                 'filename' => $media['filename'] ?? null,
             ];
             $result['text'] = $media['caption'] ?? null;
+        } elseif ($type === 'interactive') {
+            $interactive = $message['interactive'] ?? [];
+            $subtype = $interactive['type'] ?? null;
+            $payload = $interactive[$subtype] ?? [];
+
+            $result['interactive'] = [
+                'type' => $subtype,
+                'id' => $payload['id'] ?? null,
+                'title' => $payload['title'] ?? null,
+                'description' => $payload['description'] ?? null,
+            ];
+            $result['text'] = $payload['id'] ?? $payload['title'] ?? null;
         }
 
         return $result;

@@ -24,6 +24,8 @@ if (metaToken && metaToken.content) {
 
 refreshCsrfToken();
 
+let _redirectingToLogin = false;
+
 window.axios.interceptors.response.use(
     function (response) {
         refreshCsrfToken();
@@ -31,7 +33,8 @@ window.axios.interceptors.response.use(
     },
     function (error) {
         const status = error?.response?.status;
-        if (status === 401) {
+        if (status === 401 && !_redirectingToLogin) {
+            _redirectingToLogin = true;
             const toast = window.$?.toast;
             if (toast) {
                 toast({
@@ -52,14 +55,3 @@ window.axios.interceptors.response.use(
     }
 );
 
-function keepSessionAlive() {
-    axios.get("/api/user").catch(function () {});
-}
-
-var heartbeatInterval = setInterval(keepSessionAlive, 25 * 60 * 1000);
-
-document.addEventListener("visibilitychange", function () {
-    if (!document.hidden) {
-        keepSessionAlive();
-    }
-});

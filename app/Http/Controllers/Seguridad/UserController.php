@@ -35,7 +35,7 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $users = User::with(['modulos', 'roles'])->get();
+        $users = User::with(['modulos', 'roles', 'sedes', 'serviciosCita'])->get();
 
         return response()->json($users);
     }
@@ -84,13 +84,23 @@ class UserController extends Controller
 
         $roles = Role::all();
         $userRole = $usuario->roles;
+        $usuario->load(['sedes', 'serviciosCita']);
 
         $RolesDeUsuario = [];
         foreach ($userRole as $del) {
             $RolesDeUsuario[] = $del->id;
         }
 
-        return response()->json(['usuario' => $usuario, 'roles' => $roles, 'RolesDeUsuario' => $RolesDeUsuario]);
+        $SedesDeUsuario = $usuario->sedes->pluck('id')->values()->toArray();
+        $ServiciosDeUsuario = $usuario->serviciosCita->pluck('id')->values()->toArray();
+
+        return response()->json([
+            'usuario' => $usuario,
+            'roles' => $roles,
+            'RolesDeUsuario' => $RolesDeUsuario,
+            'SedesDeUsuario' => $SedesDeUsuario,
+            'ServiciosDeUsuario' => $ServiciosDeUsuario,
+        ]);
     }
 
     /**
@@ -243,6 +253,26 @@ class UserController extends Controller
             $seguridad_usuario->modulos()->detach();
         }
 
+        /**
+         * Establezco las sedes del usuario
+         */
+        $sedesInsertar = $this->extractCheckedIds($registro, 'sedes');
+        if (! empty($sedesInsertar)) {
+            $seguridad_usuario->sedes()->sync($sedesInsertar);
+        } else {
+            $seguridad_usuario->sedes()->detach();
+        }
+
+        /**
+         * Establezco los servicios de cita del usuario
+         */
+        $serviciosCitasInsertar = $this->extractCheckedIds($registro, 'serviciosCitas');
+        if (! empty($serviciosCitasInsertar)) {
+            $seguridad_usuario->serviciosCita()->sync($serviciosCitasInsertar);
+        } else {
+            $seguridad_usuario->serviciosCita()->detach();
+        }
+
         return response()->json(['message' => 'El usuario se creo correctamente.']);
     }
 
@@ -374,6 +404,26 @@ class UserController extends Controller
             $seguridad_usuario->modulos()->detach();
         }
 
+        /**
+         * Establezco las sedes del usuario
+         */
+        $sedesInsertar = $this->extractCheckedIds($registro, 'sedes');
+        if (! empty($sedesInsertar)) {
+            $seguridad_usuario->sedes()->sync($sedesInsertar);
+        } else {
+            $seguridad_usuario->sedes()->detach();
+        }
+
+        /**
+         * Establezco los servicios de cita del usuario
+         */
+        $serviciosCitasInsertar = $this->extractCheckedIds($registro, 'serviciosCitas');
+        if (! empty($serviciosCitasInsertar)) {
+            $seguridad_usuario->serviciosCita()->sync($serviciosCitasInsertar);
+        } else {
+            $seguridad_usuario->serviciosCita()->detach();
+        }
+
         return response()->json(['message' => 'Registro actualizado correctamente.']);
     }
 
@@ -431,10 +481,42 @@ class UserController extends Controller
             }
         } catch (\Exception $e) {
         }
+        try {
+            if (method_exists($user, 'sedes')) {
+                $user->sedes()->detach();
+            }
+        } catch (\Exception $e) {
+        }
+        try {
+            if (method_exists($user, 'serviciosCita')) {
+                $user->serviciosCita()->detach();
+            }
+        } catch (\Exception $e) {
+        }
 
         $user->delete();
 
         return response()->json(['message' => 'Registro eliminado satisfactoriamente.']);
+    }
+
+    /**
+     * Extrae los IDs marcados de un array de objetos {id, checked} recibido en el payload.
+     * Si el array no existe, devuelve [].
+     */
+    private function extractCheckedIds(array $registro, string $key): array
+    {
+        if (! isset($registro[$key]) || ! is_array($registro[$key])) {
+            return [];
+        }
+
+        $ids = [];
+        foreach ($registro[$key] as $item) {
+            if (isset($item['checked']) && $item['checked'] === true && isset($item['id'])) {
+                $ids[] = $item['id'];
+            }
+        }
+
+        return $ids;
     }
 
     /**

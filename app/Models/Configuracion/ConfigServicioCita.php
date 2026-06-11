@@ -26,6 +26,11 @@ class ConfigServicioCita extends Model
         return $this->belongsTo(ConfigSede::class, 'sede_id');
     }
 
+    public function usuarios()
+    {
+        return $this->belongsToMany(\App\Models\User::class, 'user_servicio_citas', 'servicio_cita_id', 'user_id');
+    }
+
     public function productos()
     {
         return $this->belongsToMany(

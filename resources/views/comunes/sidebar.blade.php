@@ -200,6 +200,18 @@
                                             <i class="fa fa-dashboard text-info"></i> Tablero de Gestión
                                         </a>
                                     </li>
+                                    <li>
+                                        <a href="{{ route('citas.recomendaciones') }}">
+                                            <i class="fa fa-commenting text-info"></i> Recomendaciones
+                                        </a>
+                                    </li>
+                                @endcan
+                                @can('agendamiento.disponibilidad.index')
+                                    <li>
+                                        <a href="{{ route('agenda.disponibilidad.index') }}">
+                                            <i class="fa fa-calendar text-info"></i> Disponibilidad
+                                        </a>
+                                    </li>
                                 @endcan
                             </ul>
                         </li>
@@ -214,17 +226,12 @@
                             <ul aria-expanded="false" class="collapse">
                                 @can('agendamiento.agendamiento.index')
                                     <li>
-                                        <a href="">
+                                        <a href="{{ route('citas.index') }}">
                                             <i class="fa fa-calendar"></i> Asignacion
                                         </a>
                                     </li>
                                 @endcan
                             </ul>
-                        </li>
-                        <li>
-                            <a href="{{ route('agenda.disponibilidad.index') }}">
-                                <i class="fa fa-calendar"></i> Disponibilidad
-                            </a>
                         </li>
                     @endif
 
@@ -315,6 +322,9 @@
                                 @can('config.servicio.citas.index')
                                     <li>
                                         <a href="{{ route('config.servicio.citas.listar') }}">Servicios de Citas</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('config.servicio.producto') }}">Productos por Servicio</a>
                                     </li>
                                 @endcan
                                 @can('config.plantillas.index')

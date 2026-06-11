@@ -18,6 +18,11 @@ class AgendaDisponibilidaDetalle extends Model
         'estado',
     ];
 
+    protected $casts = [
+        'fecha_hora_inicio' => 'datetime',
+        'fecha_hora_fin' => 'datetime',
+    ];
+
     public function agendaDisponibilida()
     {
         return $this->belongsTo(AgendaDisponibilida::class, 'agenda_disponibilidad_id');

@@ -74,7 +74,8 @@ class ServicioProductoController extends Controller
             ->pluck('producto_id')
             ->toArray();
 
-        $productos = ConfigProducto::whereNotIn('id', $vinculados)
+        $productos = ConfigProducto::with('recomendacionProducto')
+            ->whereNotIn('id', $vinculados)
             ->where('estado', true)
             ->orderBy('nom_produc')
             ->get();

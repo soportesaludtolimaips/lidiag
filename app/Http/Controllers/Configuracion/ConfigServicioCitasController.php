@@ -19,6 +19,26 @@ class ConfigServicioCitasController extends Controller
         return response()->json($query->orderBy('nombre')->get());
     }
 
+    public function misServicios(Request $request)
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return response()->json([], 200);
+        }
+
+        $query = ConfigServicioCita::with('sede')
+            ->whereHas('usuarios', function ($q) use ($user) {
+                $q->where('users.id', $user->id);
+            });
+
+        if ($request->sede_id) {
+            $query->where('sede_id', $request->sede_id);
+        }
+
+        return response()->json($query->orderBy('nombre')->get());
+    }
+
     public function store(Request $request)
     {
         $request->validate([

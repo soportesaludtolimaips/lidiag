@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Citas\Cita;
+use App\Models\Agenda\AgendaCita;
 use App\Services\WhatsAppService;
 use Illuminate\Console\Command;
 
@@ -24,7 +24,7 @@ class CitasNotificarCommand extends Command
     {
         $this->info('Iniciando envío de recordatorios de citas...');
 
-        $citas = Cita::whereIn('estado', ['asignada', 'confirmada'])
+        $citas = AgendaCita::whereIn('estado', ['asignada', 'confirmada'])
             ->whereDate('fecha_hora_inicio', now()->addDay()->toDateString())
             ->with(['paciente', 'sede'])
             ->get();

@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Route;
 | - Autorización: permisos Spatie con el patrón `permission:...,web`.
 */
 
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     // Usuarios asignables (selector "Asignar a")
     Route::get('/helpdesk-usuarios-asignables', [HelpDeskUsuariosController::class, 'asignables'])
         ->name('api.helpdesk.usuarios.asignables')

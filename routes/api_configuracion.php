@@ -7,6 +7,7 @@ use App\Http\Controllers\Configuracion\ConfigPlantillaController;
 use App\Http\Controllers\Configuracion\ConfigPlantillaTipoController;
 use App\Http\Controllers\Configuracion\ConfigPrioridadController;
 use App\Http\Controllers\Configuracion\ConfigProductoController;
+use App\Http\Controllers\Configuracion\ConfigRecomendacionProductoController;
 use App\Http\Controllers\Configuracion\ConfigSedeController;
 use App\Http\Controllers\Configuracion\ConfigServicioCitasController;
 use App\Http\Controllers\Configuracion\ConfigTipoDocumentoController;
@@ -31,7 +32,7 @@ Route::get('/config-sedes/{configsede}/buscarPorId', [ConfigSedeController::clas
 
 // Rutas protegidas (requieren autenticación)
 // Nota: en API usamos Sanctum (stateful) para que funcione con sesión/cookies.
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['auth'])->group(function () {
 
     // Diagnosticos
     Route::resource('/config-diagnosticos', ConfigDiagnosticoController::class)
@@ -46,6 +47,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Productos
     Route::resource('/config-productos', ConfigProductoController::class)
         ->names('api.config.productos')
+        ->except(['create']);
+
+    // Recomendaciones de productos
+    Route::resource('/config-recomendacion-productos', ConfigRecomendacionProductoController::class)
+        ->names('api.config.recomendacion.productos')
         ->except(['create']);
 
     // Modulos
@@ -114,6 +120,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->name('api.consentimientos.plantillas.versions');
 
     // Servicio de Citas
+    Route::get('/config-servicio-citas/mis-servicios', [ConfigServicioCitasController::class, 'misServicios'])
+        ->name('api.config.servicio.citas.mis_servicios');
+
     Route::resource('/config-servicio-citas', ConfigServicioCitasController::class)
         ->names('api.config.servicio.citas')
         ->except(['create', 'edit']);

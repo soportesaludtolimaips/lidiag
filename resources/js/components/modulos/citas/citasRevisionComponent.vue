@@ -14,8 +14,8 @@
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
-                <button type="button" class="btn btn-info" @click="listarRegistros()" :disabled="loading">
-                    <i class="fa" :class="loading ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                <button type="button" class="btn btn-info" @click="listarRegistros()" :disabled="loadingBuscar">
+                    <i class="fa" :class="loadingBuscar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
                     Refrescar
                 </button>
             </div>
@@ -28,120 +28,137 @@
                         <h4 class="card-title text-themecolor">
                             <i class="fa fa-filter"></i> Filtros
                         </h4>
-                        <div class="row p-t-2">
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label>Servicio</label>
-                                    <select v-model="filtro.servicio_cita_id" class="form-control" @change="listarRegistros()">
-                                        <option value="">Todos</option>
-                                        <option v-for="s in servicios" :key="s.id" :value="s.id">{{ s.nombre }}</option>
-                                    </select>
+                        <form action="#">
+                            <div class="form-body">
+                                <div class="row p-t-2">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label class="control-label">Servicio</label>
+                                            <select v-model="filtro.servicio_cita_id" class="form-control"
+                                                @change="listarRegistros()">
+                                                <option value="">Todos</option>
+                                                <option v-for="s in servicios" :key="s.id" :value="s.id">{{ s.nombre }}
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label class="control-label">Sede</label>
+                                            <select v-model="filtro.sede_id" class="form-control"
+                                                @change="listarRegistros()">
+                                                <option value="">Todas</option>
+                                                <option v-for="s in sedes" :key="s.id" :value="s.id">{{ s.nom_sede }}
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label class="control-label">Búsqueda</label>
+                                            <input type="text" v-model="filtro.busqueda" class="form-control"
+                                                placeholder="Documento o nombre" @keyup.enter="listarRegistros()" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 d-flex align-items-end">
+                                        <button type="button" class="btn btn-success m-r-5" @click="listarRegistros()"
+                                            :disabled="loadingBuscar">
+                                            <i v-if="loadingBuscar" class="fa fa-spinner fa-spin"></i>
+                                            <i v-else class="fa fa-search"></i>
+                                            Buscar
+                                        </button>
+                                        <button type="button" class="btn btn-inverse" @click="limpiarFiltros()">
+                                            <i class="fa fa-refresh"></i> Limpiar
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label>Sede</label>
-                                    <select v-model="filtro.sede_id" class="form-control" @change="listarRegistros()">
-                                        <option value="">Todas</option>
-                                        <option v-for="s in sedes" :key="s.id" :value="s.id">{{ s.nom_sede }}</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label>Búsqueda</label>
-                                    <input type="text" v-model="filtro.busqueda" class="form-control"
-                                        placeholder="Documento o nombre" @keyup.enter="listarRegistros()" />
-                                </div>
-                            </div>
-                            <div class="col-md-3 d-flex align-items-end">
-                                <button type="button" class="btn btn-success m-r-5" @click="listarRegistros()">
-                                    <i class="fa fa-search"></i> Buscar
-                                </button>
-                                <button type="button" class="btn btn-inverse" @click="limpiarFiltros()">
-                                    <i class="fa fa-refresh"></i> Limpiar
-                                </button>
-                            </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="row">
-            <div class="col-12">
+            <div class="col-12 table-responsive">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Solicitudes Pendientes</h4>
-                        <h6 class="card-subtitle text-info">
-                            Revise las solicitudes de citas y apruebe o rechace cada una
-                        </h6>
-
-                        <div v-if="loading" class="text-center p-4">
-                            <i class="fa fa-spinner fa-spin fa-2x"></i>
-                            <p class="mt-2">Cargando solicitudes...</p>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h4 class="card-title">Solicitudes Pendientes</h4>
+                                <h6 class="card-subtitle text-info">
+                                    Revise las solicitudes de citas y apruebe o rechace cada una
+                                </h6>
+                            </div>
+                            <div class="text-right">
+                                <span class="badge badge-primary" v-if="contadorRegistros > 0">{{ contadorRegistros }}
+                                    registro(s)</span>
+                                <span class="badge badge-secondary" v-else>Sin resultados</span>
+                            </div>
                         </div>
 
-                        <div v-else-if="registros.length === 0" class="text-center p-4">
-                            <i class="fa fa-inbox fa-3x text-muted"></i>
-                            <p class="mt-2 text-muted">No hay solicitudes pendientes de revisión</p>
-                        </div>
+                        <loading-spinner :visible="loadingBuscar" />
 
-                        <div v-else class="row">
-                            <div class="col-md-6 col-lg-4" v-for="item in registros" :key="item.id">
-                                <div class="card border shadow-sm mb-3">
-                                    <div class="card-header d-flex justify-content-between align-items-center">
-                                        <strong>#{{ item.id }}</strong>
-                                        <span class="badge badge-warning">{{ item.created_at ? formatFecha(item.created_at) : '' }}</span>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="mb-2">
-                                            <strong>Paciente:</strong>
-                                            {{ item.paciente?.nombres }} {{ item.paciente?.pri_ape }} {{ item.paciente?.seg_ape || '' }}
-                                        </div>
-                                        <div class="mb-2">
-                                            <strong>Documento:</strong> {{ item.paciente?.num_docu || '—' }}
-                                        </div>
-                                        <div class="mb-2">
-                                            <strong>Teléfono:</strong> {{ item.paciente?.cel || '—' }}
-                                        </div>
-                                        <div class="mb-2">
-                                            <strong>Servicio:</strong> {{ item.servicio?.nombre || '—' }}
-                                        </div>
-                                        <div class="mb-2">
-                                            <strong>Orden:</strong> {{ item.numero_orden || '—' }}
-                                            <a v-if="item.ruta_orden_media" href="javascript:void(0)" class="ml-2 text-info"
+                        <div class="table-responsive" :class="{ 'd-none': loadingBuscar }">
+                            <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
+                                width="100%">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Fecha</th>
+                                        <th>Paciente</th>
+                                        <th>Documento</th>
+                                        <th>Servicio</th>
+                                        <th>Sede</th>
+                                        <th>Orden</th>
+                                        <th>Autorización</th>
+                                        <th class="text-nowrap">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(item, index) in registros" :key="item.id" :id="`cita-${item.id}`">
+                                        <td>{{ item.id }}</td>
+                                        <td>{{ item.created_at }}</td>
+                                        <td>{{ item.paciente?.nombres || '—' }}</td>
+                                        <td>{{ item.paciente?.num_docu || '—' }}</td>
+                                        <td>{{ item.servicio?.nombre || '—' }}</td>
+                                        <td>{{ item.sede?.nom_sede || '—' }}</td>
+                                        <td>
+                                            <a v-if="item.ruta_orden_media" href="javascript:void(0)"
                                                 @click="verArchivo(item.ruta_orden_media)" title="Ver archivo de orden">
-                                                <i class="fa fa-paperclip"></i>
+                                                <img v-if="esImagen(item.ruta_orden_media)"
+                                                    :src="getArchivoUrl(item.ruta_orden_media)"
+                                                    class="img-thumbnail miniatura-archivo" />
+                                                <i v-else class="fa fa-file-pdf-o text-danger icono-archivo"></i>
                                             </a>
-                                        </div>
-                                        <div class="mb-2">
-                                            <strong>Autorización:</strong> {{ item.numero_autorizacion || '—' }}
-                                            <a v-if="item.ruta_autorizacion_media" href="javascript:void(0)" class="ml-2 text-info"
-                                                @click="verArchivo(item.ruta_autorizacion_media)" title="Ver archivo de autorización">
-                                                <i class="fa fa-paperclip"></i>
+                                            <span v-else>—</span>
+                                        </td>
+                                        <td>
+                                            <a v-if="item.ruta_autorizacion_media" href="javascript:void(0)"
+                                                @click="verArchivo(item.ruta_autorizacion_media)"
+                                                title="Ver archivo de autorización">
+                                                <img v-if="esImagen(item.ruta_autorizacion_media)"
+                                                    :src="getArchivoUrl(item.ruta_autorizacion_media)"
+                                                    class="img-thumbnail miniatura-archivo" />
+                                                <i v-else class="fa fa-file-pdf-o text-danger icono-archivo"></i>
                                             </a>
-                                        </div>
-                                    </div>
-                                    <div class="card-footer d-flex justify-content-between">
-                                        <button type="button" class="btn btn-success btn-sm"
-                                            @click="abrirAprobar(item)">
-                                            <i class="fa fa-check"></i> Aprobar
-                                        </button>
-                                        <button type="button" class="btn btn-danger btn-sm"
-                                            @click="abrirRechazar(item)">
-                                            <i class="fa fa-times"></i> Rechazar
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mt-3">
-                            <div class="col-md-12 text-right">
-                                <pagination :data="datosPaginacion" @pagination-change-page="cambiarPagina">
-                                </pagination>
-                            </div>
+                                            <span v-else>—</span>
+                                        </td>
+                                        <td class="text-nowrap">
+                                            <button type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-success btn-sm m-r-5"
+                                                @click="abrirAprobar(item)" title="Aprobar cita">
+                                                <i class="fa fa-check"></i>
+                                            </button>
+                                            <button type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
+                                                @click="abrirRechazar(item)" title="Rechazar cita">
+                                                <i class="fa fa-times"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -157,25 +174,24 @@
                     </div>
                     <div class="modal-body">
                         <div class="alert alert-info">
-                            <strong>Paciente:</strong> {{ citaSeleccionada.paciente?.nombres }} {{ citaSeleccionada.paciente?.pri_ape }}<br />
+                            <strong>Paciente:</strong> {{ citaSeleccionada.paciente?.nombres }}<br />
                             <strong>Servicio:</strong> {{ citaSeleccionada.servicio?.nombre }}
                         </div>
                         <div class="row">
                             <div class="col-md-6">
-                                <div class="form-group">
+                                <div class="form-group" id="producto-parent">
                                     <label class="control-label">Producto *</label>
-                                    <select v-model="formAprobar.producto_id" class="form-control">
-                                        <option value="">Seleccione...</option>
-                                        <option v-for="prod in productos" :key="prod.id" :value="prod.id">
-                                            {{ prod.nom_producto }}
-                                        </option>
-                                    </select>
+                                    <Select2 :value="formAprobar.producto_id" :options="productoOptions"
+                                        width="100%" :allow-clear="true"
+                                        :dropdown-parent-selector="'#producto-parent'"
+                                        @input="onProductoSelect" />
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label class="control-label">Sede *</label>
-                                    <select v-model="formAprobar.sede_id" class="form-control">
+                                    <select v-model="formAprobar.sede_id" class="form-control"
+                                        @change="cargarProductosPorServicio(); cargarDetallesDisponibles()">
                                         <option value="">Seleccione...</option>
                                         <option v-for="s in sedes" :key="s.id" :value="s.id">{{ s.nom_sede }}</option>
                                     </select>
@@ -186,27 +202,36 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label class="control-label">Fecha *</label>
-                                    <input type="date" v-model="formAprobar.fecha" class="form-control" />
+                                    <input type="date" v-model="formAprobar.fecha" class="form-control"
+                                        @change="cargarDetallesDisponibles" />
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="control-label">Hora *</label>
-                                    <input type="time" v-model="formAprobar.hora" class="form-control" />
+                                    <label class="control-label">Horarios disponibles *</label>
+                                    <select v-model="formAprobar.agenda_disponibilidad_detalle_id" class="form-control"
+                                        :disabled="loadingDetalles || detallesDisponibles.length === 0">
+                                        <option value="">{{ loadingDetalles ? 'Cargando...' : (detallesDisponibles.length === 0 ? 'Sin horarios disponibles' : 'Seleccione un horario...') }}</option>
+                                        <option v-for="detalle in detallesDisponibles" :key="detalle.id" :value="detalle.id">
+                                            {{ formatearHoraDetalle(detalle.inicio) }} - {{ formatearHoraDetalle(detalle.fin) }}
+                                        </option>
+                                    </select>
+                                    <small class="text-muted" v-if="formAprobar.sede_id && formAprobar.fecha && detallesDisponibles.length === 0 && !loadingDetalles">
+                                        No hay bloques de agenda configurados para esta sede + servicio en esta fecha.
+                                    </small>
                                 </div>
                             </div>
                         </div>
+                        <div v-if="recomendacionActual" class="alert alert-warning" style="white-space: pre-wrap;">
+                            <strong><i class="fa fa-info-circle"></i> Recomendación para el paciente:</strong><br />
+                            {{ recomendacionActual }}
+                        </div>
                         <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="control-label">Duración (min)</label>
-                                    <input type="number" v-model="formAprobar.duracion_minutos" class="form-control" min="15" step="5" />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="control-label">Observaciones</label>
-                                    <textarea v-model="formAprobar.observaciones" class="form-control" rows="2"></textarea>
+                                    <textarea v-model="formAprobar.observaciones" class="form-control"
+                                        rows="2"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -231,7 +256,7 @@
                     </div>
                     <div class="modal-body">
                         <div class="alert alert-warning">
-                            <strong>Paciente:</strong> {{ citaSeleccionada.paciente?.nombres }} {{ citaSeleccionada.paciente?.pri_ape }}<br />
+                            <strong>Paciente:</strong> {{ citaSeleccionada.paciente?.nombres }}<br />
                             <strong>Documento:</strong> {{ citaSeleccionada.paciente?.num_docu }}
                         </div>
                         <div class="form-group">
@@ -261,17 +286,49 @@
 </template>
 
 <script>
+import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
+import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import { handleAxiosErrorToast, alertSuccess, alertError } from "@/helpers/alerts";
+
 export default {
-    data: function () {
+    name: "CitasRevisionComponent",
+    components: { LoadingSpinner },
+    computed: {
+        contadorRegistros() {
+            return this.registros.length;
+        },
+        recomendacionActual() {
+            if (!this.formAprobar.producto_id) return '';
+            const rec = this.recomendaciones.find(r => r.producto_id == this.formAprobar.producto_id);
+            return rec && rec.estado ? (rec.recomendacion || '') : '';
+        },
+        productoOptions() {
+            return (this.productos || []).map(p => ({
+                id: String(p.id),
+                cod_cups: p.cod_cups,
+                nom_produc: p.nom_produc,
+            }));
+        },
+    },
+    mounted() {
+        this.cargarListas();
+        this.listarRegistros();
+    },
+    beforeUnmount() {
+        this.destroyDataTable();
+    },
+    data() {
         return {
             registros: [],
             servicios: [],
             sedes: [],
             productos: [],
             motivosRechazo: [],
-            datosPaginacion: {},
-            loading: false,
+            recomendaciones: [],
+            detallesDisponibles: [],
+            loadingBuscar: false,
             loadingGuardar: false,
+            loadingDetalles: false,
             filtro: {
                 servicio_cita_id: '',
                 sede_id: '',
@@ -281,12 +338,13 @@ export default {
                 id: null,
                 paciente: null,
                 servicio: null,
+                servicio_cita_id: null,
             },
             formAprobar: {
                 producto_id: '',
                 sede_id: '',
                 fecha: '',
-                hora: '',
+                agenda_disponibilidad_detalle_id: '',
                 duracion_minutos: 30,
                 observaciones: '',
             },
@@ -296,115 +354,166 @@ export default {
             },
         };
     },
-    mounted: function () {
-        this.cargarListas();
-        this.listarRegistros();
-    },
     methods: {
-        cargarListas: function () {
-            var thisVue = this;
+        destroyDataTable() {
+            safeDestroyDataTable(this.$refs.dt || "#example23");
+        },
+        cargarListas() {
+            const self = this;
 
             axios.get('/api/citas/servicios')
-                .then(function (r) { thisVue.servicios = r.data; });
+                .then((r) => { self.servicios = r.data; })
+                .catch((e) => { console.error('Error servicios:', e); });
 
-            axios.get('/api/config/sedes')
-                .then(function (r) { thisVue.sedes = r.data; });
+            axios.get('/api/config-sedes/listar/sedes/activas')
+                .then((r) => { self.sedes = r.data; })
+                .catch((e) => { console.error('Error sedes:', e); });
 
-            axios.get('/api/config/productos')
-                .then(function (r) { thisVue.productos = r.data; });
+            // Los productos se cargan al abrir el modal con cargarProductosPorServicio
 
             axios.get('/api/citas-rechazo-motivos')
-                .then(function (r) { thisVue.motivosRechazo = r.data; });
+                .then((r) => { self.motivosRechazo = r.data; })
+                .catch((e) => { console.error('Error motivos rechazo:', e); });
+
+            axios.get('/api/config-recomendacion-productos')
+                .then((r) => { self.recomendaciones = r.data || []; })
+                .catch((e) => { console.error('Error recomendaciones:', e); });
         },
-        listarRegistros: function () {
-            var thisVue = this;
-            thisVue.loading = true;
+        async listarRegistros() {
+            this.destroyDataTable();
 
-            var params = new URLSearchParams();
-            if (thisVue.filtro.servicio_cita_id) params.append('servicio_cita_id', thisVue.filtro.servicio_cita_id);
-            if (thisVue.filtro.sede_id) params.append('sede_id', thisVue.filtro.sede_id);
-            if (thisVue.filtro.busqueda) params.append('busqueda', thisVue.filtro.busqueda);
+            if (this.loadingBuscar) return;
+            this.loadingBuscar = true;
 
-            axios.get('/api/citas/pendientes?' + params.toString())
-                .then(function (response) {
-                    thisVue.registros = response.data.data;
-                    thisVue.datosPaginacion = response.data;
-                })
-                .catch(function (error) {
-                    thisVue.$swal('Error', 'No fue posible cargar las solicitudes', 'error');
-                })
-                .then(function () {
-                    thisVue.loading = false;
-                });
+            try {
+                const params = new URLSearchParams();
+                if (this.filtro.servicio_cita_id) params.append('servicio_cita_id', this.filtro.servicio_cita_id);
+                if (this.filtro.sede_id) params.append('sede_id', this.filtro.sede_id);
+                if (this.filtro.busqueda) params.append('busqueda', this.filtro.busqueda);
+
+                const res = await axios.get('/api/citas/pendientes?' + params.toString());
+
+                if (res.status === 200) {
+                    this.destroyDataTable();
+
+                    const data = (typeof res.data === "string") ? JSON.parse(res.data) : res.data;
+                    this.registros = Array.isArray(data) ? data : [];
+
+                    this.$nextTick(() => {
+                        safeInitDataTable(this.$refs.dt || "#example23", {
+                            dom: "Bfrtip",
+                            buttons: ["copy", "csv", "excel", "pdf", "print"],
+                        });
+                    });
+                }
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible cargar las solicitudes.");
+            } finally {
+                this.loadingBuscar = false;
+            }
         },
-        cambiarPagina: function (page) {
-            var thisVue = this;
-            thisVue.loading = true;
-
-            var params = new URLSearchParams();
-            if (thisVue.filtro.servicio_cita_id) params.append('servicio_cita_id', thisVue.filtro.servicio_cita_id);
-            if (thisVue.filtro.sede_id) params.append('sede_id', thisVue.filtro.sede_id);
-            if (thisVue.filtro.busqueda) params.append('busqueda', thisVue.filtro.busqueda);
-            if (page) params.append('page', page);
-
-            axios.get('/api/citas/pendientes?' + params.toString())
-                .then(function (response) {
-                    thisVue.registros = response.data.data;
-                    thisVue.datosPaginacion = response.data;
-                })
-                .catch(function (error) {
-                    thisVue.$swal('Error', 'No fue posible cargar las solicitudes', 'error');
-                })
-                .then(function () {
-                    thisVue.loading = false;
-                });
-        },
-        abrirAprobar: function (cita) {
-            this.citaSeleccionada = cita;
+        abrirAprobar(cita) {
+            this.citaSeleccionada = {
+                ...cita,
+                servicio_cita_id: cita.servicio_cita_id || cita.servicio?.id,
+            };
             this.formAprobar = {
                 producto_id: '',
-                sede_id: '',
+                sede_id: cita.sede_id || '',
                 fecha: '',
-                hora: '',
+                agenda_disponibilidad_detalle_id: '',
                 duracion_minutos: 30,
                 observaciones: '',
             };
+            this.detallesDisponibles = [];
             jQuery('#modalAprobar').modal('show');
+            this.cargarProductosPorServicio();
         },
-        aprobarCita: function () {
-            var thisVue = this;
+        cargarProductosPorServicio() {
+            const servicioId = this.citaSeleccionada.servicio_cita_id;
+            const sedeId = this.formAprobar.sede_id;
 
-            if (!thisVue.formAprobar.producto_id || !thisVue.formAprobar.sede_id ||
-                !thisVue.formAprobar.fecha || !thisVue.formAprobar.hora) {
-                thisVue.$swal('Advertencia', 'Todos los campos obligatorios deben ser llenados', 'warning');
+            this.formAprobar.producto_id = '';
+            this.formAprobar.agenda_disponibilidad_detalle_id = '';
+            this.detallesDisponibles = [];
+            this.productos = [];
+
+            if (!servicioId) return;
+
+            var url = '/api/citas/productos/' + servicioId;
+            if (sedeId) url += '?sede_id=' + sedeId;
+
+            axios.get(url)
+                .then((r) => { this.productos = r.data; });
+        },
+        onProductoSelect(value) {
+            var id = Array.isArray(value) && value.length > 0 ? (value[0] && value[0].id) : (value && value.id);
+            this.formAprobar.producto_id = id || '';
+            this.cargarDetallesDisponibles();
+        },
+        async cargarDetallesDisponibles() {
+            if (!this.formAprobar.sede_id || !this.formAprobar.fecha || !this.citaSeleccionada.servicio_cita_id) {
+                this.detallesDisponibles = [];
+                return;
+            }
+            this.loadingDetalles = true;
+            this.formAprobar.agenda_disponibilidad_detalle_id = '';
+            try {
+                const res = await axios.get('/api/citas/disponibilidad', {
+                    params: {
+                        producto_id: this.formAprobar.producto_id || this.productos[0]?.id,
+                        sede_id: this.formAprobar.sede_id,
+                        servicio_cita_id: this.citaSeleccionada.servicio_cita_id,
+                        fecha: this.formAprobar.fecha,
+                    }
+                });
+                this.detallesDisponibles = res.data?.detalles || [];
+            } catch (error) {
+                this.detallesDisponibles = [];
+            } finally {
+                this.loadingDetalles = false;
+            }
+        },
+        cargarRecomendacion() {
+        },
+        formatearHoraDetalle(inicio) {
+            if (!inicio) return '';
+            const parts = inicio.split(' ');
+            return parts[1] ? parts[1].substring(0, 5) : inicio;
+        },
+        async aprobarCita() {
+            if (this.loadingGuardar) return;
+
+            if (!this.formAprobar.producto_id || !this.formAprobar.sede_id ||
+                !this.formAprobar.fecha || !this.formAprobar.agenda_disponibilidad_detalle_id) {
+                alertError('Advertencia', 'Debe seleccionar producto, sede, fecha y un horario disponible');
                 return;
             }
 
-            thisVue.loadingGuardar = true;
+            this.loadingGuardar = true;
 
-            var fechaHora = thisVue.formAprobar.fecha + ' ' + thisVue.formAprobar.hora + ':00';
-
-            axios.post('/api/citas/' + thisVue.citaSeleccionada.id + '/asignar', {
-                producto_id: thisVue.formAprobar.producto_id,
-                sede_id: thisVue.formAprobar.sede_id,
-                fecha_hora_inicio: fechaHora,
-                duracion_minutos: thisVue.formAprobar.duracion_minutos,
-                observaciones: thisVue.formAprobar.observaciones,
-            })
-                .then(function () {
-                    thisVue.$swal('Éxito', 'Cita aprobada y asignada correctamente', 'success');
-                    jQuery('#modalAprobar').modal('hide');
-                    thisVue.listarRegistros();
-                })
-                .catch(function (error) {
-                    var msg = error.response?.data?.error || error.response?.data?.message || 'Error al aprobar';
-                    thisVue.$swal('Error', msg, 'error');
-                })
-                .then(function () {
-                    thisVue.loadingGuardar = false;
+            try {
+                const detalle = this.detallesDisponibles.find(d => d.id == this.formAprobar.agenda_disponibilidad_detalle_id);
+                await axios.post('/api/citas/' + this.citaSeleccionada.id + '/asignar', {
+                    producto_id: this.formAprobar.producto_id,
+                    sede_id: this.formAprobar.sede_id,
+                    agenda_disponibilidad_detalle_id: this.formAprobar.agenda_disponibilidad_detalle_id,
+                    fecha_hora_inicio: detalle.inicio,
+                    duracion_minutos: this.formAprobar.duracion_minutos,
+                    observaciones: this.formAprobar.observaciones,
                 });
+
+                alertSuccess('Éxito', 'Cita aprobada y asignada correctamente');
+                jQuery('#modalAprobar').modal('hide');
+                this.listarRegistros();
+            } catch (error) {
+                const msg = error.response?.data?.error || error.response?.data?.message || 'Error al aprobar';
+                alertError('Error', msg);
+            } finally {
+                this.loadingGuardar = false;
+            }
         },
-        abrirRechazar: function (cita) {
+        abrirRechazar(cita) {
             this.citaSeleccionada = cita;
             this.formRechazar = {
                 rechazo_motivo_id: '',
@@ -412,47 +521,67 @@ export default {
             };
             jQuery('#modalRechazar').modal('show');
         },
-        rechazarCita: function () {
-            var thisVue = this;
+        async rechazarCita() {
+            if (this.loadingGuardar) return;
 
-            if (!thisVue.formRechazar.rechazo_motivo_id) {
-                thisVue.$swal('Advertencia', 'Debe seleccionar un motivo de rechazo', 'warning');
+            if (!this.formRechazar.rechazo_motivo_id) {
+                alertError('Advertencia', 'Debe seleccionar un motivo de rechazo');
                 return;
             }
 
-            thisVue.loadingGuardar = true;
+            this.loadingGuardar = true;
 
-            axios.post('/api/citas/' + thisVue.citaSeleccionada.id + '/rechazar', {
-                rechazo_motivo_id: thisVue.formRechazar.rechazo_motivo_id,
-                rechazo_observacion: thisVue.formRechazar.rechazo_observacion,
-            })
-                .then(function () {
-                    thisVue.$swal('Éxito', 'Cita rechazada correctamente', 'success');
-                    jQuery('#modalRechazar').modal('hide');
-                    thisVue.listarRegistros();
-                })
-                .catch(function (error) {
-                    var msg = error.response?.data?.error || error.response?.data?.message || 'Error al rechazar';
-                    thisVue.$swal('Error', msg, 'error');
-                })
-                .then(function () {
-                    thisVue.loadingGuardar = false;
+            try {
+                await axios.post('/api/citas/' + this.citaSeleccionada.id + '/rechazar', {
+                    rechazo_motivo_id: this.formRechazar.rechazo_motivo_id,
+                    rechazo_observacion: this.formRechazar.rechazo_observacion,
                 });
+
+                alertSuccess('Éxito', 'Cita rechazada correctamente');
+                jQuery('#modalRechazar').modal('hide');
+                this.listarRegistros();
+            } catch (error) {
+                const msg = error.response?.data?.error || error.response?.data?.message || 'Error al rechazar';
+                alertError('Error', msg);
+            } finally {
+                this.loadingGuardar = false;
+            }
         },
-        verArchivo: function (ruta) {
+        verArchivo(ruta) {
             if (!ruta) return;
-            var filename = ruta.replace('citas_soportes/', '');
-            var url = '/citas/media/' + filename;
-            window.open(url, '_blank');
+            window.open(this.getArchivoUrl(ruta), '_blank');
         },
-        limpiarFiltros: function () {
+        getArchivoUrl(ruta) {
+            if (!ruta) return '';
+            const filename = ruta.replace('citas_soportes/', '');
+            return '/citas/media/' + filename;
+        },
+        esImagen(ruta) {
+            if (!ruta) return false;
+            const ext = ruta.split('.').pop().toLowerCase();
+            return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+        },
+        limpiarFiltros() {
             this.filtro = { servicio_cita_id: '', sede_id: '', busqueda: '' };
             this.listarRegistros();
         },
-        formatFecha: function (fecha) {
-            if (!fecha) return '';
-            return moment(fecha).format('DD/MM/YYYY HH:mm');
+        formatFecha(fecha) {
+            return fecha || '';
         },
     },
 };
 </script>
+
+<style scoped>
+.miniatura-archivo {
+    max-width: 90px;
+    max-height: 90px;
+    object-fit: cover;
+    cursor: pointer;
+    padding: 2px;
+}
+.icono-archivo {
+    font-size: 3em;
+    cursor: pointer;
+}
+</style>

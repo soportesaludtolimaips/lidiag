@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('agenda_disponibilidad_detalle', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('agenda_disponibilida_id');
-            // $table->foreign('agenda_disponibilida_id')->references('id')->on('agenda_disponibilidad');
+            $table->unsignedBigInteger('agenda_disponibilidad_id');
+            // $table->foreign('agenda_disponibilidad_id')->references('id')->on('agenda_disponibilidad');
             $table->dateTime('fecha_hora_inicio');
             $table->dateTime('fecha_hora_fin');
             $table->enum('estado', ['Disponible', 'Reservado', 'Cancelado'])->default('Disponible');

@@ -69,8 +69,14 @@ class Kernel extends HttpKernel
         ],
 
         'api' => [
-            // Permite que /api/* reconozca sesión/cookies (Sanctum SPA)
-            EnsureFrontendRequestsAreStateful::class,
+            // Se eliminó EnsureFrontendRequestsAreStateful porque Sanctum cambia
+            // session.driver a 'cookie' corrompiendo la lectura de la sesión
+            // (creada por el driver 'database'). Ahora se usa el guard 'web' directamente.
+            // Se eliminó VerifyCsrfToken: las rutas SPA son same-origin y SameSite=Lax
+            // previene CSRF cross-site. El token XSRF-TOKEN se actualiza vía web group.
+            EncryptCookies::class,
+            AddQueuedCookiesToResponse::class,
+            StartSession::class,
             'throttle:api',
             SubstituteBindings::class,
             HandleCors::class,

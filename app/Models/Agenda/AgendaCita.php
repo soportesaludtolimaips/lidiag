@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Citas;
+namespace App\Models\Agenda;
 
 use App\Models\Citas\ConfigCitaRechazoMotivo;
 use App\Models\Configuracion\ConfigProducto;
@@ -12,26 +12,32 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Cita extends Model
+class AgendaCita extends Model
 {
     use HasFactory;
 
-    protected $table = 'citas';
+    protected $table = 'agenda_citas';
 
     protected $fillable = [
+        'quien_registro_id',
+        'quien_confirma_id',
         'paciente_id',
+        'sede_id',
+        'agenda_disponibilidad_detalle_id',
         'servicio_cita_id',
         'producto_id',
-        'sede_id',
-        'quien_registra_id',
-        'quien_confirma_id',
         'fecha_hora_inicio',
+        'fecha_hora_ini',
         'fecha_hora_fin',
         'duracion_minutos',
+        'total_citas',
+        'dura_cita',
         'estado',
         'numero_orden',
         'numero_autorizacion',
         'ruta_orden_media',
+        'ruta_cedula_frente_media',
+        'ruta_cedula_dorso_media',
         'ruta_autorizacion_media',
         'observaciones',
         'whatsapp_token',
@@ -44,11 +50,16 @@ class Cita extends Model
 
     protected $casts = [
         'fecha_hora_inicio' => 'datetime',
+        'fecha_hora_ini' => 'datetime',
         'fecha_hora_fin' => 'datetime',
         'duracion_minutos' => 'integer',
-        'estado' => 'string',
-        'whatsapp_estado' => 'string',
+        'total_citas' => 'integer',
+        'dura_cita' => 'integer',
         'revisada' => 'boolean',
+    ];
+
+    protected $hidden = [
+        'whatsapp_token',
     ];
 
     public function paciente()
@@ -56,7 +67,17 @@ class Cita extends Model
         return $this->belongsTo(Paciente::class, 'paciente_id');
     }
 
+    public function sede()
+    {
+        return $this->belongsTo(ConfigSede::class, 'sede_id');
+    }
+
     public function servicio()
+    {
+        return $this->belongsTo(ConfigServicioCita::class, 'servicio_cita_id');
+    }
+
+    public function servicioCita()
     {
         return $this->belongsTo(ConfigServicioCita::class, 'servicio_cita_id');
     }
@@ -66,19 +87,19 @@ class Cita extends Model
         return $this->belongsTo(ConfigProducto::class, 'producto_id');
     }
 
-    public function sede()
-    {
-        return $this->belongsTo(ConfigSede::class, 'sede_id');
-    }
-
     public function quienRegistra()
     {
-        return $this->belongsTo(User::class, 'quien_registra_id');
+        return $this->belongsTo(User::class, 'quien_registro_id');
     }
 
     public function quienConfirma()
     {
         return $this->belongsTo(User::class, 'quien_confirma_id');
+    }
+
+    public function agendaDisponibilidadDetalle()
+    {
+        return $this->belongsTo(AgendaDisponibilidaDetalle::class, 'agenda_disponibilidad_detalle_id');
     }
 
     public function rechazoMotivo()
