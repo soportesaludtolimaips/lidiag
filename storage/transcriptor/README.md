@@ -414,9 +414,9 @@ En `config/services.php`:
 | `main.py` | Servicio FastAPI con endpoints HTTP (`/health`, `/debug`, `/transcribir`) |
 | `whisper_service.py` | Carga y ejecuta el modelo Whisper. Detecta FFmpeg automaticamente y lo agrega al PATH |
 | `requirements.txt` | Lista de dependencias Python |
-| `start.bat` | Inicia el servicio manualmente (cmd) |
+| `start.bat` | Inicia el servicio manualmente (cmd interactivo, para pruebas). Muestra mensajes en consola y requiere Ctrl+C para detener |
 | `install.bat` | Instala todas las dependencias |
-| `iniciar_servicio.bat` | Script para el Programador de Tareas |
+| `iniciar_servicio.bat` | Script para el Programador de Tareas (headless, sin ventana, escribe logs a `servicio.log`). **Este es el que debe usarse para la tarea programada** |
 | `servicio.log` | Log de ejecucion del servicio (se crea automaticamente al iniciar) |
 | `uploads/` | Directorio temporal para archivos de audio recibidos |
 | `test_audio.mp3` | Audio de prueba para verificar la transcripcion |
