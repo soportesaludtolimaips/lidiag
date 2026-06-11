@@ -228,11 +228,11 @@ class ConfigSedeController extends Controller
                 'bd_dcm' => 'required|string|max:50',
                 'puerto_dcm' => 'required|string|max:5',
                 'usuario_dcm' => 'required|string|max:30',
-                'password_dcm' => 'required|string|max:30',
+                'password_dcm' => 'nullable|string|max:30',
                 'usuario_oviyam' => 'required|string|max:20',
-                'password_oviyam' => 'required|string|max:20',
+                'password_oviyam' => 'nullable|string|max:20',
                 'url_oviyam' => 'required|string|max:100',
-                'tap_oviyam' => 'required|string|max:100', // Validación para que no sea 0
+                'tap_oviyam' => 'required|string|max:100',
 
             ],
             [
@@ -241,9 +241,7 @@ class ConfigSedeController extends Controller
                 'bd_dcm.required' => 'El campo Base de datos DCM es obligatorio.',
                 'puerto_dcm.required' => 'El campo Puerto DCM es obligatorio.',
                 'usuario_dcm.required' => 'El campo Usuario DCM es obligatorio.',
-                'password_dcm.required' => 'El campo Contraseña DCM es obligatorio.',
                 'usuario_oviyam.required' => 'El campo Usuario OVIYAM es obligatorio.',
-                'password_oviyam.required' => 'El campo Contraseña OVIYAM es obligatorio.',
                 'url_oviyam.required' => 'El campo URL OVIYAM es obligatorio.',
                 'tap_oviyam.required' => 'El campo TAP OVIYAM es obligatorio.',
             ]
@@ -261,9 +259,9 @@ class ConfigSedeController extends Controller
         $configSede->bd_dcm = $registro['bd_dcm'];
         $configSede->puerto_dcm = $registro['puerto_dcm'];
         $configSede->usuario_dcm = $registro['usuario_dcm'];
-        $configSede->password_dcm = $registro['password_dcm'];
+        $configSede->password_dcm = $registro['password_dcm'] ?? $configSede->password_dcm;
         $configSede->usuario_oviyam = $registro['usuario_oviyam'];
-        $configSede->password_oviyam = $registro['password_oviyam'];
+        $configSede->password_oviyam = $registro['password_oviyam'] ?? $configSede->password_oviyam;
         $configSede->url_oviyam = $registro['url_oviyam'];
         $configSede->tap_oviyam = $registro['tap_oviyam'];
         $configSede->estado = $registro['estado'];
