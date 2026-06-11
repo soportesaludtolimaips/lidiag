@@ -5,6 +5,8 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use App\Models\Configuracion\ConfigModulo;
+use App\Models\Configuracion\ConfigSede;
+use App\Models\Configuracion\ConfigServicioCitas;
 use App\Models\Estudio\Estudio;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -82,5 +84,15 @@ class User extends Authenticatable
     public function modulos()
     {
         return $this->belongsToMany(ConfigModulo::class, 'users_modulos', 'user_id', 'modulo_id');
+    }
+
+    public function sedes()
+    {
+        return $this->belongsToMany(ConfigSede::class, 'user_sedes', 'user_id', 'sede_id');
+    }
+
+    public function serviciosCita()
+    {
+        return $this->belongsToMany(ConfigServicioCitas::class, 'user_servicio_citas', 'user_id', 'servicio_cita_id');
     }
 }

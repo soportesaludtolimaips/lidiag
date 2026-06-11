@@ -32,10 +32,9 @@ return [
     |
     */
 
-    'stateful' => array_values(array_unique(array_filter(array_map('trim', explode(',', env(
-        'SANCTUM_STATEFUL_DOMAINS',
-        $defaultStatefulDomains
-    )))))),
+    'stateful' => array_values(array_unique(array_filter(array_map('trim', explode(',',
+        (env('SANCTUM_STATEFUL_DOMAINS') ?? '') . ',' . $defaultStatefulDomains
+    ))))),
 
     /*
     |--------------------------------------------------------------------------

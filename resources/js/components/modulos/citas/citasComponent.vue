@@ -199,15 +199,12 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-group">
+                                <div class="form-group" id="producto-parent">
                                     <label class="control-label">Producto *</label>
-                                    <select v-model="citaSeleccionada.producto_id" class="form-control"
-                                        @change="cargarDisponibilidad()">
-                                        <option value="">Seleccione...</option>
-                                        <option v-for="prod in productosFiltrados" :key="prod.id" :value="prod.id">
-                                            {{ prod.nom_producto }}
-                                        </option>
-                                    </select>
+                                    <Select2 :value="citaSeleccionada.producto_id" :options="productoOptions"
+                                        width="100%" :allow-clear="true"
+                                        :dropdown-parent-selector="'#producto-parent'"
+                                        @input="onProductoSelect" />
                                 </div>
                             </div>
                         </div>
@@ -215,12 +212,13 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label class="control-label">Sede *</label>
-                                    <select v-model="citaSeleccionada.sede_id" class="form-control">
-                                        <option value="">Seleccione...</option>
-                                        <option v-for="sede in sedes" :key="sede.id" :value="sede.id">
-                                            {{ sede.nom_sede }}
-                                        </option>
-                                    </select>
+                    <select v-model="citaSeleccionada.sede_id" class="form-control"
+                        @change="cargarProductosPorServicio(); cargarDisponibilidad()">
+                        <option value="">Seleccione...</option>
+                        <option v-for="sede in sedes" :key="sede.id" :value="sede.id">
+                            {{ sede.nom_sede }}
+                        </option>
+                    </select>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -235,12 +233,12 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label class="control-label">Hora *</label>
-                                    <select v-model="citaSeleccionada.hora" class="form-control">
+                                    <select v-model="citaSeleccionada.agenda_disponibilidad_detalle_id" class="form-control">
                                         <option value="">Seleccione...</option>
-                                        <option v-for="horario in horarios" :key="horario.inicio" :value="horario.inicio"
-                                            :disabled="!horario.disponible">
-                                            {{ horario.inicio.substring(11, 16) }}
-                                            {{ !horario.disponible ? '(Ocupado)' : '' }}
+                                        <option v-for="detalle in detalles" :key="detalle.id" :value="detalle.id"
+                                            :disabled="!detalle.disponible">
+                                            {{ detalle.inicio.substring(11, 16) }}
+                                            {{ !detalle.disponible ? '(Ocupado)' : '' }}
                                         </option>
                                     </select>
                                 </div>
@@ -317,11 +315,10 @@ export default {
     data: function () {
         return {
             registros: [],
-            productos: [],
             productosFiltrados: [],
             sedes: [],
             servicios: [],
-            horarios: [],
+            detalles: [],
             datosPaginacion: {},
             conversacion: null,
             loadingConversacion: false,
@@ -339,6 +336,7 @@ export default {
                 sede_id: '',
                 fecha: '',
                 hora: '',
+                agenda_disponibilidad_detalle_id: '',
                 duracion_minutos: 30,
                 observaciones: '',
             },
@@ -346,6 +344,16 @@ export default {
             loadingGuardar: false,
             actualizar: false,
         };
+    },
+
+    computed: {
+        productoOptions() {
+            return (this.productosFiltrados || []).map(p => ({
+                id: String(p.id),
+                cod_cups: p.cod_cups,
+                nom_produc: p.nom_produc,
+            }));
+        },
     },
 
     mounted: function () {
@@ -391,60 +399,64 @@ export default {
                     thisVue.servicios = response.data;
                 });
 
-            axios.get('/api/config/productos')
-                .then(function (response) {
-                    thisVue.productos = response.data;
-                });
-
-            axios.get('/api/config/sedes')
+            axios.get('/api/config-sedes/listar/sedes/activas')
                 .then(function (response) {
                     thisVue.sedes = response.data;
-                });
+                })
+                .catch(function (e) { console.error('Error sedes:', e); });
         },
 
         cargarProductosPorServicio: function () {
             var thisVue = this;
             var servicioId = thisVue.citaSeleccionada.servicio_cita_id;
+            var sedeId = thisVue.citaSeleccionada.sede_id;
 
             thisVue.citaSeleccionada.producto_id = '';
             thisVue.citaSeleccionada.hora = '';
-            thisVue.horarios = [];
+            thisVue.citaSeleccionada.agenda_disponibilidad_detalle_id = '';
+            thisVue.detalles = [];
+            thisVue.productosFiltrados = [];
 
-            if (!servicioId) {
-                thisVue.productosFiltrados = thisVue.productos;
-                return;
-            }
+            if (!servicioId) return;
 
-            thisVue.productosFiltrados = thisVue.productos.filter(function (p) {
-                return p.servicio_cita_id == servicioId;
-            });
+            var url = '/api/citas/productos/' + servicioId;
+            if (sedeId) url += '?sede_id=' + sedeId;
 
-            if (thisVue.productosFiltrados.length === 0) {
-                axios.get('/api/citas/productos/' + servicioId)
-                    .then(function (response) {
-                        thisVue.productosFiltrados = response.data;
-                    });
-            }
+            axios.get(url)
+                .then(function (response) {
+                    thisVue.productosFiltrados = response.data;
+                });
+        },
+
+        onProductoSelect: function (value) {
+            var id = Array.isArray(value) && value.length > 0 ? (value[0] && value[0].id) : (value && value.id);
+            this.citaSeleccionada.producto_id = id || '';
+            this.cargarDisponibilidad();
         },
 
         cargarDisponibilidad: function () {
             var thisVue = this;
 
-            if (!thisVue.citaSeleccionada.producto_id || !thisVue.citaSeleccionada.fecha) {
+            if (!thisVue.citaSeleccionada.sede_id || !thisVue.citaSeleccionada.servicio_cita_id ||
+                !thisVue.citaSeleccionada.producto_id || !thisVue.citaSeleccionada.fecha) {
+                thisVue.detalles = [];
                 return;
             }
 
             axios.get('/api/citas/disponibilidad', {
                     params: {
                         producto_id: thisVue.citaSeleccionada.producto_id,
+                        sede_id: thisVue.citaSeleccionada.sede_id,
+                        servicio_cita_id: thisVue.citaSeleccionada.servicio_cita_id,
                         fecha: thisVue.citaSeleccionada.fecha,
                     },
                 })
                 .then(function (response) {
-                    thisVue.horarios = response.data.horarios;
+                    thisVue.detalles = response.data.detalles || [];
                 })
                 .catch(function (error) {
                     thisVue.mostrarError(error);
+                    thisVue.detalles = [];
                 });
         },
 
@@ -456,11 +468,12 @@ export default {
                 sede_id: '',
                 fecha: '',
                 hora: '',
+                agenda_disponibilidad_detalle_id: '',
                 duracion_minutos: 30,
                 observaciones: '',
             };
             this.productosFiltrados = [];
-            this.horarios = [];
+            this.detalles = [];
             this.actualizar = true;
 
             if (cita.servicio_cita_id) {
@@ -474,17 +487,20 @@ export default {
             var thisVue = this;
 
             if (!thisVue.citaSeleccionada.producto_id || !thisVue.citaSeleccionada.sede_id ||
-                !thisVue.citaSeleccionada.fecha || !thisVue.citaSeleccionada.hora) {
+                !thisVue.citaSeleccionada.fecha || !thisVue.citaSeleccionada.agenda_disponibilidad_detalle_id) {
                 thisVue.mostrarAdvertencia('Todos los campos obligatorios deben ser llenados');
                 return;
             }
+
+            const detalleSeleccionado = thisVue.detalles.find(d => d.id == thisVue.citaSeleccionada.agenda_disponibilidad_detalle_id);
 
             thisVue.loadingGuardar = true;
 
             axios.post('/api/citas/' + thisVue.citaSeleccionada.id + '/asignar', {
                     producto_id: thisVue.citaSeleccionada.producto_id,
                     sede_id: thisVue.citaSeleccionada.sede_id,
-                    fecha_hora_inicio: thisVue.citaSeleccionada.hora,
+                    agenda_disponibilidad_detalle_id: thisVue.citaSeleccionada.agenda_disponibilidad_detalle_id,
+                    fecha_hora_inicio: detalleSeleccionado ? detalleSeleccionado.inicio : thisVue.citaSeleccionada.fecha,
                     duracion_minutos: thisVue.citaSeleccionada.duracion_minutos,
                     observaciones: thisVue.citaSeleccionada.observaciones,
                 })

@@ -43,6 +43,12 @@ class ConfigSede extends Model
         'estado' => 'boolean',
     ];
 
+    protected $hidden = [
+        'password_dcm',
+        'password_oviyam',
+        'interface_password',
+    ];
+
     public function servicios()
     {
         return $this->hasMany(ConfigServicioCita::class, 'sede_id');

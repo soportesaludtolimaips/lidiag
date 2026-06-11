@@ -174,6 +174,8 @@ export default {
                     // Fallback for browsers that don't support the mimeType
                     this.mediaRecorder = new MediaRecorder(stream);
                 }
+                if (this._audioRevoke) { try { this._audioRevoke(); } catch (e) { } this._audioRevoke = null; }
+
                 this.audioChunks = [];
 
                 this.mediaRecorder.ondataavailable = (event) => {
@@ -192,16 +194,18 @@ export default {
         stopRecording() {
             return new Promise((resolve) => {
                 if (this.mediaRecorder && this.recording) {
+                    const oldUrl = this.audioUrl;
                     this.mediaRecorder.onstop = () => {
+                        if (oldUrl) { try { URL.revokeObjectURL(oldUrl); } catch (e) { } }
                         this.audioBlob = new Blob(this.audioChunks, { type: "audio/webm" });
                         this.audioUrl = URL.createObjectURL(this.audioBlob);
-                        resolve(); // Resuelve la promesa después de generar el Blob
+                        resolve();
                     };
                     this.mediaRecorder.stop();
                     this.recording = false;
                     this.microfono = 'admin-wrap/assets/images/mic.gif';
                 } else {
-                    resolve(); // Si ya está detenida, simplemente resuelve la promesa
+                    resolve();
                 }
             });
         },
@@ -287,6 +291,15 @@ export default {
                 this.loadingEnviar = false;
             }
         },
-    }
+    },
+    beforeDestroy() {
+        if (this.audioUrl) {
+            try { URL.revokeObjectURL(this.audioUrl); } catch (e) { }
+            this.audioUrl = null;
+        }
+        if (this.mediaStream && this.mediaStream.getTracks) {
+            this.mediaStream.getTracks().forEach((t) => t.stop());
+        }
+    },
 };
 </script>

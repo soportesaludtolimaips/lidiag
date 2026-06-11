@@ -1,33 +1,33 @@
 <?php
 
-use App\Http\Controllers\Citas\CitaController;
+use App\Http\Controllers\Agenda\AgendaCitaController;
 use Illuminate\Support\Facades\Route;
 
 // Webhook DEBE ir antes de {cita} para que "webhook" no sea capturado como parámetro
-Route::match(['get', 'post'], '/citas/webhook', [CitaController::class, 'webhook'])->name('api.citas.webhook');
-Route::post('/citas/test/enviar', [CitaController::class, 'testEnviar'])->name('api.citas.test.enviar');
+Route::match(['get', 'post'], '/citas/webhook', [AgendaCitaController::class, 'webhook'])->name('api.citas.webhook');
+Route::post('/citas/test/enviar', [AgendaCitaController::class, 'testEnviar'])->name('api.citas.test.enviar');
 
 Route::prefix('citas')->group(function () {
-    Route::get('/', [CitaController::class, 'index'])->name('api.citas.index');
-    Route::post('/', [CitaController::class, 'store'])->name('api.citas.store');
-    Route::get('/servicios', [CitaController::class, 'servicios'])->name('api.citas.servicios');
-    Route::get('/productos/{servicio_cita_id}', [CitaController::class, 'productosPorServicio'])->name('api.citas.productos');
-    Route::get('/disponibilidad', [CitaController::class, 'disponibilidad'])->name('api.citas.disponibilidad');
-    Route::get('/{cita}', [CitaController::class, 'show'])->name('api.citas.show');
-    Route::put('/{cita}', [CitaController::class, 'update'])->name('api.citas.update');
-    Route::delete('/{cita}', [CitaController::class, 'destroy'])->name('api.citas.destroy');
-    Route::post('/{cita}/asignar', [CitaController::class, 'asignar'])->name('api.citas.asignar');
-    Route::post('/{cita}/confirmar', [CitaController::class, 'confirmar'])->name('api.citas.confirmar');
-    Route::post('/{cita}/cancelar', [CitaController::class, 'cancelar'])->name('api.citas.cancelar');
-    Route::post('/{cita}/cumplir', [CitaController::class, 'cumplir'])->name('api.citas.cumplir');
-    Route::post('/{cita}/no-asistio', [CitaController::class, 'noAsistio'])->name('api.citas.noAsistio');
-    Route::get('/{cita}/conversacion', [CitaController::class, 'verConversacion'])->name('api.citas.conversacion');
+    Route::get('/', [AgendaCitaController::class, 'index'])->name('api.citas.index');
+    Route::post('/', [AgendaCitaController::class, 'store'])->name('api.citas.store');
+    Route::get('/servicios', [AgendaCitaController::class, 'servicios'])->name('api.citas.servicios');
+    Route::get('/productos/{servicio_cita_id}', [AgendaCitaController::class, 'productosPorServicio'])->name('api.citas.productos');
+    Route::get('/disponibilidad', [AgendaCitaController::class, 'disponibilidad'])->name('api.citas.disponibilidad');
+    Route::get('/pendientes', [AgendaCitaController::class, 'pendientes'])->name('api.citas.pendientes');
+
+    Route::get('/{cita}', [AgendaCitaController::class, 'show'])->name('api.citas.show');
+    Route::put('/{cita}', [AgendaCitaController::class, 'update'])->name('api.citas.update');
+    Route::delete('/{cita}', [AgendaCitaController::class, 'destroy'])->name('api.citas.destroy');
+    Route::post('/{cita}/asignar', [AgendaCitaController::class, 'asignar'])->name('api.citas.asignar');
+    Route::post('/{cita}/confirmar', [AgendaCitaController::class, 'confirmar'])->name('api.citas.confirmar');
+    Route::post('/{cita}/cancelar', [AgendaCitaController::class, 'cancelar'])->name('api.citas.cancelar');
+    Route::post('/{cita}/cumplir', [AgendaCitaController::class, 'cumplir'])->name('api.citas.cumplir');
+    Route::post('/{cita}/no-asistio', [AgendaCitaController::class, 'noAsistio'])->name('api.citas.noAsistio');
+    Route::post('/{cita}/rechazar', [AgendaCitaController::class, 'rechazar'])->name('api.citas.rechazar');
+    Route::get('/{cita}/conversacion', [AgendaCitaController::class, 'verConversacion'])->name('api.citas.conversacion');
 });
 
-Route::get('/citas/pendientes', [CitaController::class, 'pendientes'])->name('api.citas.pendientes');
-Route::post('/citas/{cita}/rechazar', [CitaController::class, 'rechazar'])->name('api.citas.rechazar');
-
-Route::apiResource('/citas-rechazo-motivos', \App\Http\Controllers\Citas\ConfigCitaRechazoMotivoController::class)
+Route::apiResource('/citas-rechazo-motivos', \App\Http\Controllers\Agenda\ConfigCitaRechazoMotivoController::class)
     ->names('api.citas.rechazo.motivos')
     ->except(['create', 'edit', 'show']);
 

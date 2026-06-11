@@ -465,49 +465,8 @@
                                                 </div>
 
                                                 <template v-if="!loadingAudios">
-                                                    <!-- FILA 1: Audios de la Lectura -->
-                                                    <div class="row mb-3">
-                                                        <div class="col-12">
-                                                            <h5 class="text-primary">
-                                                                <i class="fa fa-headphones"></i> Audios de la Lectura
-                                                            </h5>
-                                                            <hr>
-                                                            <div v-if="audiosDeEstudio && audiosDeEstudio.length > 0">
-                                                                <div v-for="(item, index) in audiosDeEstudio" :key="item.id || index"
-                                                                    class="audio-item mb-2 p-2 border rounded">
-                                                                    <div class="d-flex align-items-center">
-                                                                        <span class="badge mr-2"
-                                                                            :class="item.tipo === 'cargado' ? 'badge-info' : 'badge-success'"
-                                                                            style="min-width: 70px;">
-                                                                            <i :class="item.tipo === 'cargado' ? 'fa fa-upload' : 'fa fa-microphone'"></i>
-                                                                            {{ item.tipo === 'cargado' ? 'Cargado' : 'Grabado' }}
-                                                                        </span>
-                                                                        <audio :src="item.url" controls
-                                                                            style="height: 30px; flex: 1;"></audio>
-                                                                        <button v-if="item.tipo === 'cargado'"
-                                                                            type="button"
-                                                                            class="btn btn-danger btn-sm ml-2"
-                                                                            @click="eliminarAudioCargado(item.id)"
-                                                                            :disabled="eliminandoAudioId === item.id"
-                                                                            title="Eliminar audio">
-                                                                            <i v-if="eliminandoAudioId === item.id"
-                                                                                class="fa fa-spinner fa-spin"></i>
-                                                                            <i v-else class="fa fa-trash"></i>
-                                                                        </button>
-                                                                    </div>
-                                                                    <small class="text-muted" v-if="item.nombre_original">
-                                                                        {{ item.nombre_original }}
-                                                                        <span v-if="item.duracion">({{ formatDuracion(item.duracion) }})</span>
-                                                                    </small>
-                                                                </div>
-                                                            </div>
-                                                            <div v-else class="text-muted">
-                                                                No hay audios para este estudio.
-                                                            </div>
-                                                        </div>
-                                                    </div>
 
-                                                    <!-- FILA 2: Cargar Audios para Transcribir -->
+                                                    <!-- Cargar Audios para Transcribir -->
                                                     <div class="row">
                                                         <div class="col-12">
                                                             <h5 class="text-primary">
@@ -519,6 +478,9 @@
                                                             <div class="form-group">
                                                                 <label for="audioFileInput" class="btn btn-outline-primary btn-block">
                                                                     <i class="fa fa-upload"></i> Seleccionar Archivos de Audio
+                                                                    <span v-if="audiosSubiendo > 0" class="ml-2">
+                                                                        <i class="fa fa-spinner fa-spin"></i> Subiendo ({{ audiosSubiendo }})
+                                                                    </span>
                                                                 </label>
                                                                 <input type="file" id="audioFileInput"
                                                                     ref="audioFileInput"
@@ -623,26 +585,15 @@
                                                                     </div>
                                                                 </div>
 
-                                                                <!-- Boton de transcribir batch -->
+                                                                <!-- Boton de insertar batch -->
                                                                 <button type="button"
                                                                     class="btn btn-primary btn-block mt-3"
                                                                     @click="transcribirAudiosSeleccionados"
-                                                                    :disabled="transcribiendo || audioSeleccionados.length === 0">
-                                                                    <i v-if="transcribiendo" class="fa fa-spinner fa-spin"></i>
+                                                                    :disabled="insertandoAudios || audioSeleccionados.length === 0">
+                                                                    <i v-if="insertandoAudios" class="fa fa-spinner fa-spin"></i>
                                                                     <i v-else class="fa fa-file-text-o"></i>
-                                                                    {{ transcribiendo ? 'Transcribiendo...' : 'Transcribir Seleccionados (' + audioSeleccionados.length + ')' }}
+                                                                    {{ insertandoAudios ? 'Insertando...' : 'Insertar Seleccionados en Lectura (' + audioSeleccionados.length + ')' }}
                                                                 </button>
-
-                                                                <!-- Progreso -->
-                                                                <div v-if="transcribiendo" class="mt-2">
-                                                                    <div class="progress">
-                                                                        <div class="progress-bar progress-bar-striped progress-bar-animated"
-                                                                            role="progressbar"
-                                                                            :style="{ width: progresoTranscripcion + '%' }">
-                                                                            {{ progresoTranscripcion }}%
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
                                                             </div>
 
                                                             <div v-else class="text-muted mt-3">
@@ -779,16 +730,12 @@ export default {
             this.listarMisPendientes();
         });
 
-        // Estabilidad dictated: pausar/reanudar según foco/pestaña
-        this.setupDictationFocusHandlers();
+        this.setupKeyboardShortcut();
     },
     beforeUnmount() {
         this.destroyDataTable();
 
-        // Limpieza best-effort: evita streams/timers “zombies”
-        try {
-            this.teardownDictationFocusHandlers();
-        } catch (e) { }
+        this.teardownKeyboardShortcut();
         try {
             this.stopAll();
         } catch (e) { }
@@ -848,9 +795,10 @@ export default {
             audioSeleccionados: [],
             modoTranscripcion: "agregar",
             transcribiendo: false,
+            insertandoAudios: false,
             progresoTranscripcion: 0,
             eliminandoAudioId: null,
-            cargandoAudios: false,
+            audiosSubiendo: 0,  // contador de audios subiendo actualmente
 
             /**
              * Variables para convertir de voz a texto y grabacion de audio
@@ -862,7 +810,6 @@ export default {
             noSpeechCount: 0,
             maxNoSpeechRetries: 6,
             lastRecognitionError: null,
-            wasRecognizingBeforeHide: false,
             recording: false,
             microfono: "admin-wrap/assets/images/mic.gif",
             dictation: null, // instancia de createSpeechDictation (helper)
@@ -878,11 +825,7 @@ export default {
             mediaStream: null,
             capitalizeNext: false,
 
-            // Handlers para foco/visibilidad y teclado
             onKeydownHandler: null,
-            onVisibilityChangeHandler: null,
-            onWindowBlurHandler: null,
-            onWindowFocusHandler: null,
 
             // Comandos de mayúsculas
             uppercaseCommands: {
@@ -1097,11 +1040,9 @@ export default {
             } catch (e) { }
             this.listarMisPendientes();
         },
-        setupDictationFocusHandlers() {
-            // Evita duplicar listeners si mounted se ejecuta más de una vez
-            this.teardownDictationFocusHandlers();
+        setupKeyboardShortcut() {
+            this.teardownKeyboardShortcut();
 
-            // Atajo de teclado: F2 para iniciar/detener grabación
             this.onKeydownHandler = (e) => {
                 if (e.key === "F2" && !e.repeat) {
                     e.preventDefault();
@@ -1113,99 +1054,14 @@ export default {
                 }
             };
             window.addEventListener("keydown", this.onKeydownHandler);
-
-            this.onVisibilityChangeHandler = () => {
-                // Si se oculta la pestaña, Chrome suele cortar/pausar mic → pausamos nosotros.
-                if (document.hidden) {
-                    this.wasRecognizingBeforeHide = !!this.recognizing;
-                    try {
-                        this.pauseRecognition();
-                    } catch (e) { }
-                    // Pausar grabación si estaba activa
-                    if (this.mediaRecorder && this.mediaRecorder.state === "recording") {
-                        try {
-                            this.mediaRecorder.pause();
-                        } catch (e) { }
-                        this.microfono = "admin-wrap/assets/images/mic.gif";
-                    }
-                } else {
-                    // Al volver, reanudar solo si el usuario estaba dictando antes
-                    if (this.wasRecognizingBeforeHide) {
-                        this.wasRecognizingBeforeHide = false;
-                        try {
-                            this.resumeRecognition();
-                        } catch (e) { }
-                        if (this.mediaRecorder && this.mediaRecorder.state === "paused") {
-                            try {
-                                this.mediaRecorder.resume();
-                            } catch (e) { }
-                            this.microfono = "admin-wrap/assets/images/mic-animate.gif";
-                        }
-                    }
-                }
-            };
-
-            this.onWindowBlurHandler = () => {
-                this.wasRecognizingBeforeHide = !!this.recognizing;
-                try {
-                    this.pauseRecognition();
-                } catch (e) { }
-                if (this.mediaRecorder && this.mediaRecorder.state === "recording") {
-                    try {
-                        this.mediaRecorder.pause();
-                    } catch (e) { }
-                    this.microfono = "admin-wrap/assets/images/mic.gif";
-                }
-            };
-
-            this.onWindowFocusHandler = () => {
-                if (this.wasRecognizingBeforeHide) {
-                    this.wasRecognizingBeforeHide = false;
-                    try {
-                        this.resumeRecognition();
-                    } catch (e) { }
-                    if (this.mediaRecorder && this.mediaRecorder.state === "paused") {
-                        try {
-                            this.mediaRecorder.resume();
-                        } catch (e) { }
-                        this.microfono = "admin-wrap/assets/images/mic-animate.gif";
-                    }
-                }
-            };
-
-            document.addEventListener("visibilitychange", this.onVisibilityChangeHandler);
-            window.addEventListener("blur", this.onWindowBlurHandler);
-            window.addEventListener("focus", this.onWindowFocusHandler);
         },
-        teardownDictationFocusHandlers() {
+        teardownKeyboardShortcut() {
             if (this.onKeydownHandler) {
                 try {
                     window.removeEventListener("keydown", this.onKeydownHandler);
                 } catch (e) { }
+                this.onKeydownHandler = null;
             }
-            if (this.onVisibilityChangeHandler) {
-                try {
-                    document.removeEventListener(
-                        "visibilitychange",
-                        this.onVisibilityChangeHandler
-                    );
-                } catch (e) { }
-            }
-            if (this.onWindowBlurHandler) {
-                try {
-                    window.removeEventListener("blur", this.onWindowBlurHandler);
-                } catch (e) { }
-            }
-            if (this.onWindowFocusHandler) {
-                try {
-                    window.removeEventListener("focus", this.onWindowFocusHandler);
-                } catch (e) { }
-            }
-            this.onKeydownHandler = null;
-            this.onVisibilityChangeHandler = null;
-            this.onWindowBlurHandler = null;
-            this.onWindowFocusHandler = null;
-            this.wasRecognizingBeforeHide = false;
         },
         stripDiacritics(text) {
             // Elimina tildes/diacríticos para comparar comandos (no modifica el texto final)
@@ -1248,17 +1104,13 @@ export default {
             addNormalizedKeys(this.formatCommands);
         },
         clearAudioBuffer() {
-            // Limpia buffers/urls sin intentar detener nada (para cambios de estudio / reset UI)
-            try {
-                if (this.audioUrl) {
-                    try {
-                        URL.revokeObjectURL(this.audioUrl);
-                    } catch (e) { }
-                }
-            } catch (e) { }
+            if (this._audioRevoke) { try { this._audioRevoke(); } catch (e) { } this._audioRevoke = null; }
+            if (this.audioUrl) {
+                try { URL.revokeObjectURL(this.audioUrl); } catch (e) { }
+                this.audioUrl = null;
+            }
             this.audioChunks = [];
             this.audioBlob = null;
-            this.audioUrl = null;
         },
         applyCommandMap(text, commandMap, { onEachMatch } = {}) {
             // Reemplaza comandos respetando letras Unicode (á/é/í/ó/ú/ñ) y priorizando frases largas
@@ -1531,6 +1383,7 @@ export default {
                         this.mediaStream = session.stream;
                         this.mediaRecorder = session.mediaRecorder;
                         this.audioChunks = session.chunks;
+                        if (this._audioRevoke) { try { this._audioRevoke(); } catch (e) { } this._audioRevoke = null; }
                         this.audioBlob = null;
                         this.audioUrl = null;
 
@@ -1630,11 +1483,9 @@ export default {
                     } catch (e) { }
                 }
                 this.mediaStream = null;
-                // Revocar URL de audio si existe
+                if (this._audioRevoke) { try { this._audioRevoke(); } catch (e) { } this._audioRevoke = null; }
                 if (this.audioUrl) {
-                    try {
-                        URL.revokeObjectURL(this.audioUrl);
-                    } catch (e) { }
+                    try { URL.revokeObjectURL(this.audioUrl); } catch (e) { }
                     this.audioUrl = null;
                 }
                 // Indicadores de estado
@@ -1748,6 +1599,7 @@ export default {
                     .start()
                     .then(({ audioSession, dictation }) => {
                         // Mantener compatibilidad con estado/variables existentes
+                        if (this._audioRevoke) { try { this._audioRevoke(); } catch (e) { } this._audioRevoke = null; }
                         this.audioSession = audioSession;
                         this.dictation = dictation;
                         this.recognition = dictation ? dictation.recognition : this.recognition;
@@ -1787,7 +1639,8 @@ export default {
                         this.mediaRecorder &&
                         this.mediaRecorder.state !== "inactive"
                     ) {
-                        const { blob, url } = await this.audioSession.stop();
+                        const { blob, url, revoke } = await this.audioSession.stop();
+                        this._audioRevoke = revoke || null;
                         this.audioBlob = blob;
                         this.audioUrl = url;
                     } else if (this.mediaRecorder && this.recording) {
@@ -1955,6 +1808,8 @@ export default {
                 "audio/flac",
             ];
 
+            const validFiles = [];
+
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
 
@@ -1971,9 +1826,43 @@ export default {
                     continue;
                 }
 
-                const blobUrl = URL.createObjectURL(file);
-                await this.uploadAudioFile(file, blobUrl);
+                if (!allowedTypes.includes(file.type)) {
+                    $.toast({
+                        heading: "Upsss!!!",
+                        text: `El archivo "${file.name}" no es un formato de audio valido`,
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "warning",
+                        hideAfter: 5000,
+                        stack: 6,
+                    });
+                    continue;
+                }
+
+                validFiles.push(file);
             }
+
+            if (validFiles.length === 0) {
+                event.target.value = "";
+                return;
+            }
+
+            const CONCURRENCIA = 3;
+            let idx = 0;
+
+            const worker = async () => {
+                while (idx < validFiles.length) {
+                    const file = validFiles[idx++];
+                    const blobUrl = URL.createObjectURL(file);
+                    try {
+                        await this.uploadAudioFile(file, blobUrl);
+                    } catch (e) {
+                        // error ya mostrado por uploadAudioFile
+                    }
+                }
+            };
+
+            await Promise.all(Array.from({ length: CONCURRENCIA }, () => worker()));
 
             event.target.value = "";
         },
@@ -1992,7 +1881,7 @@ export default {
                 return;
             }
 
-            this.cargandoAudios = true;
+            this.audiosSubiendo++;
 
             const formData = new FormData();
             formData.append("audio", file);
@@ -2032,6 +1921,8 @@ export default {
                     throw new Error(res.data.message || "Error al cargar el audio");
                 }
             } catch (error) {
+                if (blobUrl) URL.revokeObjectURL(blobUrl);
+
                 const msg =
                     error.response && error.response.data && error.response.data.message
                         ? error.response.data.message
@@ -2047,66 +1938,48 @@ export default {
                     stack: 6,
                 });
             } finally {
-                this.cargandoAudios = false;
+                this.audiosSubiendo--;
+                if (this.audiosSubiendo < 0) this.audiosSubiendo = 0;
             }
         },
 
         async transcribirAudiosSeleccionados() {
             if (this.audioSeleccionados.length === 0) return;
 
-            this.transcribiendo = true;
-            this.progresoTranscripcion = 0;
+            this.insertandoAudios = true;
 
             const total = this.audioSeleccionados.length;
             let procesados = 0;
             let textoCompleto = "";
 
-            try {
-                for (const audioId of this.audioSeleccionados) {
-                    const audio = this.audiosCargadosPendientes.find((a) => a.id === audioId);
-                    if (!audio || !audio.transcripcion) continue;
+            for (const audioId of this.audioSeleccionados) {
+                const audio = this.audiosCargadosPendientes.find((a) => a.id === audioId);
+                if (!audio || !audio.transcripcion) continue;
 
-                    audio.transcripcion_estado = "Procesando...";
-
-                    if (textoCompleto.length > 0) {
-                        textoCompleto += "\n\n--- ";
-                        textoCompleto += audio.nombre_original || "Audio";
-                        textoCompleto += " ---\n\n";
-                    }
-
-                    textoCompleto += audio.transcripcion;
-                    procesados++;
-                    this.progresoTranscripcion = Math.round((procesados / total) * 100);
-                    audio.transcripcion_estado = "Completado";
+                if (textoCompleto.length > 0) {
+                    textoCompleto += "\n\n--- ";
+                    textoCompleto += audio.nombre_original || "Audio";
+                    textoCompleto += " ---\n\n";
                 }
 
-                this.insertarTranscripcion(textoCompleto);
-
-                $.toast({
-                    heading: "Ok!!!",
-                    text: `Transcripcion completada: ${procesados} audio(s) procesados`,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
-
-                this.audioSeleccionados = [];
-            } catch (error) {
-                $.toast({
-                    heading: "Upsss!!!",
-                    text: "Error al transcribir audios",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "error",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
-            } finally {
-                this.transcribiendo = false;
-                this.progresoTranscripcion = 0;
+                textoCompleto += audio.transcripcion;
+                procesados++;
             }
+
+            this.insertarTranscripcion(textoCompleto);
+
+            $.toast({
+                heading: "Ok!!!",
+                text: `${procesados} audio(s) insertados en la lectura`,
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "success",
+                hideAfter: 3500,
+                stack: 6,
+            });
+
+            this.audioSeleccionados = [];
+            this.insertandoAudios = false;
         },
 
         insertarTranscripcion(texto) {
@@ -2239,6 +2112,7 @@ export default {
             this.audioSeleccionados = [];
             this.progresoTranscripcion = 0;
             this.transcribiendo = false;
+            this.insertandoAudios = false;
         },
 
         async listarMisPendientes() {
@@ -2602,10 +2476,9 @@ export default {
                 this.mediaStream.getTracks().forEach((t) => t.stop());
                 this.mediaStream = null;
             }
+            if (this._audioRevoke) { try { this._audioRevoke(); } catch (e) { } this._audioRevoke = null; }
             if (this.audioUrl) {
-                try {
-                    URL.revokeObjectURL(this.audioUrl);
-                } catch (e) { }
+                try { URL.revokeObjectURL(this.audioUrl); } catch (e) { }
                 this.audioUrl = null;
             }
             if (this.emitter && this.emitter.off) {

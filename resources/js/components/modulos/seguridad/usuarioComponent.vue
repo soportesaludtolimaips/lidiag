@@ -49,6 +49,8 @@
                                         <th>Firma</th>
                                         <th>Modulos</th>
                                         <th>Permisos</th>
+                                        <th>Sedes</th>
+                                        <th>Servicios de Cita</th>
                                         <th>Estado</th>
                                         <th></th>
                                     </tr>
@@ -81,6 +83,17 @@
                                         <td>
                                             <span class="badge badge-info m-1" v-for="rol in item.roles" :key="rol.id">
                                                 {{ rol.name }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-warning m-1" v-for="sede in item.sedes" :key="sede.id">
+                                                {{ sede.nom_sede }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-success m-1" v-for="sc in item.serviciosCita" :key="sc.id" style="white-space: normal;">
+                                                {{ sc.nombre }}
+                                                <br><small style="font-size: 10px; opacity: 0.9;">{{ sc.sede?.nom_sede || '' }}</small>
                                             </span>
                                         </td>
                                         <td>
@@ -313,6 +326,54 @@
                                 </div>
                             </div>
 
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="text-info"><i class="fa fa-building"></i> Sedes Asignadas</p>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <div class="controls" style="max-height: 200px; overflow-y: auto;">
+                                                    <div v-for="itemSede in registro.sedes" :key="itemSede.id">
+                                                        <div class="custom-control custom-checkbox">
+                                                            <input type="checkbox" class="custom-control-input"
+                                                                :id="'sede_' + itemSede.id"
+                                                                v-model="itemSede.checked">
+                                                            <label class="custom-control-label"
+                                                                :for="'sede_' + itemSede.id">
+                                                                {{ itemSede.nom_sede }}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="text-info"><i class="fa fa-stethoscope"></i> Servicios de Cita</p>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <div class="controls" style="max-height: 200px; overflow-y: auto;">
+                                                    <div v-for="itemSC in registro.serviciosCitas" :key="itemSC.id">
+                                                        <div class="custom-control custom-checkbox">
+                                                            <input type="checkbox" class="custom-control-input"
+                                                                :id="'sc_' + itemSC.id"
+                                                                v-model="itemSC.checked">
+                                                            <label class="custom-control-label"
+                                                                :for="'sc_' + itemSC.id">
+                                                                {{ itemSC.nombre }}
+                                                                <small class="text-muted"> ({{ itemSC.sede?.nom_sede }})</small>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="col-md-12 m-b-20">
                                 <div class="fileupload btn btn-danger btn-rounded waves-effect waves-light">
                                     <span>
@@ -377,6 +438,8 @@ export default {
     mounted() {
         this.ListarDatos();
         this.ListarModulos();
+        this.ListarSedes();
+        this.ListarServiciosCitas();
     },
     beforeUnmount() {
         this.destroyDataTable();
@@ -386,7 +449,7 @@ export default {
             registros: [],
             roles: [],
             id: null,
-            registro: { num_docu: '', reg_med: '', name: '', email: '', password: '', estado: false, imagen_perfil: '', rolesUsuario: [], modulos: [], interface_id: null, transcrip_remoto: 0 },
+            registro: { num_docu: '', reg_med: '', name: '', email: '', password: '', estado: false, imagen_perfil: '', rolesUsuario: [], modulos: [], sedes: [], serviciosCitas: [], interface_id: null, transcrip_remoto: 0 },
             tituloModal: 'Nuevo registro',
             actualizar: false,
             avatar: null,
@@ -564,6 +627,29 @@ export default {
                 handleAxiosErrorToast(error, "No fue posible listar módulos.");
             }
         },
+        async ListarSedes() {
+            try {
+                const res = await axios.get("/api/config-sedes");
+                const data = res.data?.data || res.data || [];
+                this.registro.sedes = data.map(sede => ({
+                    ...sede,
+                    checked: false,
+                }));
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible listar sedes.");
+            }
+        },
+        async ListarServiciosCitas() {
+            try {
+                const res = await axios.get("/api/config-servicio-citas");
+                this.registro.serviciosCitas = (res.data || []).map(sc => ({
+                    ...sc,
+                    checked: false,
+                }));
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible listar servicios de cita.");
+            }
+        },
         obtenerFirma(event) {
             this.firma = event.target.files[0];
         },
@@ -591,6 +677,28 @@ export default {
                 data.modulos.forEach(modulo => {
                     let moduloActivo = this.registro.modulos.findIndex((x) => x.id == modulo.id);
                     this.registro.modulos[moduloActivo].checked = true;
+                });
+
+                // Inactivar sedes y marcar las del usuario
+                this.registro.sedes.forEach(sede => {
+                    sede.checked = false;
+                });
+                (data.sedes || []).forEach(sede => {
+                    let idx = this.registro.sedes.findIndex((x) => x.id == sede.id);
+                    if (idx !== -1) {
+                        this.registro.sedes[idx].checked = true;
+                    }
+                });
+
+                // Inactivar servicios de cita y marcar los del usuario
+                this.registro.serviciosCitas.forEach(sc => {
+                    sc.checked = false;
+                });
+                (data.serviciosCita || []).forEach(sc => {
+                    let idx = this.registro.serviciosCitas.findIndex((x) => x.id == sc.id);
+                    if (idx !== -1) {
+                        this.registro.serviciosCitas[idx].checked = true;
+                    }
                 });
 
                 /**
@@ -623,6 +731,9 @@ export default {
                 this.registro.password = "";
                 this.registro.estado = true;
                 this.registro.interface_id = '';
+                // Reset sedes y servicios de cita
+                this.registro.sedes.forEach(sede => sede.checked = false);
+                this.registro.serviciosCitas.forEach(sc => sc.checked = false);
             }
 
             this.btnCerralModalForm();

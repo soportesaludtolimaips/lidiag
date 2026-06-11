@@ -287,7 +287,11 @@ Route::view('/citas/revision', 'modulos.citas.revision')
     ->name('citas.revision')
     ->middleware(['auth', 'permission:citas.index']);
 
-Route::get('/citas/media/{filename}', [\App\Http\Controllers\Citas\CitaController::class, 'descargarMedia'])
+Route::view('/citas/recomendaciones', 'modulos.citas.recomendaciones')
+    ->name('citas.recomendaciones')
+    ->middleware(['auth', 'permission:citas.index']);
+
+Route::get('/citas/media/{filename}', [\App\Http\Controllers\Agenda\AgendaCitaController::class, 'descargarMedia'])
     ->name('citas.media')
     ->middleware(['auth', 'permission:citas.index']);
 

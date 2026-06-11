@@ -1,7 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Citas;
-
+namespace App\Http\Controllers\Agenda;
 use App\Http\Controllers\Controller;
 use App\Models\Citas\ConfigCitaRechazoMotivo;
 use Illuminate\Http\Request;

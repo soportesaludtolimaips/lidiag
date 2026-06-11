@@ -4,7 +4,7 @@
  *
  * Diseñado para ser reutilizable en múltiples componentes sin tocar UI.
  */
-import { createAudioRecorderSession, getVoiceAudioConstraints } from "./audioRecorder";
+import { createAudioRecorderSessionSmart, getVoiceAudioConstraints } from "./audioRecorder";
 import { createSpeechDictation, isSpeechRecognitionSupported } from "./speechDictation";
 
 export function createVoiceSession({
@@ -57,7 +57,7 @@ export function createVoiceSession({
     const ensureAudio = async () => {
         if (!enableAudio) return null;
         if (audioSession) return audioSession;
-        audioSession = await createAudioRecorderSession({
+        audioSession = await createAudioRecorderSessionSmart({
             constraints,
             mimeType,
             audioBitsPerSecond,

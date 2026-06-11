@@ -85,7 +85,7 @@
                                         <th with='5%'>Fecha Inicio</th>
                                         <th with='5%'>Fecha Fin</th>
                                         <th with='30%'>Sede</th>
-                                        <th>Servicio</th>
+                                        <th>Servicio de Cita</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -94,7 +94,7 @@
                                         <td>{{ item.fecha_hora_ini }}</td>
                                         <td>{{ item.fecha_hora_fin }}</td>
                                         <td>{{ item.sede?.nom_sede || item.sede_id }}</td>
-                                        <td>{{ item.servicio?.modulo || item.servicio_id }}</td>
+                                        <td>{{ item.servicio_cita?.nombre || '-' }}</td>
                                         <td class="text-nowrap">
                                             <button type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
@@ -162,18 +162,19 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-md-4">
+                                        <div class="col-md-5">
                                             <div class="form-group">
-                                                <label class="control-label">Servicio</label>
-                                                <select v-model="registro.servicio_id" name="servicio_id"
-                                                    id="servicio_id" class="form-control custom-select">
-                                                    <option v-for="(ItemServicio, index) in servicios" :key="index"
-                                                        :value="ItemServicio.id">
-                                                        {{ ItemServicio.modulo }}
+                                                <label class="control-label">Servicio de Cita</label>
+                                                <select v-model="registro.servicio_cita_id" name="servicio_cita_id"
+                                                    id="servicio_cita_id" class="form-control custom-select">
+                                                    <option value="">-- Ninguno --</option>
+                                                    <option v-for="(sc, index) in serviciosCitas" :key="index"
+                                                        :value="sc.id">
+                                                        {{ sc.nombre }} — {{ sc.sede?.nom_sede || 'Sin sede' }}
                                                     </option>
                                                 </select>
-                                                <span class="text-danger" v-if="errores.servicio_id">
-                                                    {{ errores.servicio_id[0] }}
+                                                <span class="text-danger" v-if="errores.servicio_cita_id">
+                                                    {{ errores.servicio_cita_id[0] }}
                                                 </span>
                                             </div>
                                         </div>
@@ -211,13 +212,13 @@
 
 <script>
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { handleAxiosErrorToast } from "@/helpers/alerts";
+import { handleAxiosErrorToast, confirmAction } from "@/helpers/alerts";
 
 export default {
     props: ['usuarioactual'],
     mounted() {
         this.establecerSede();
-        this.listarServicios();
+        this.listarServiciosCitas();
         this.buscarStudy();
 
         this.emitter.on("sedeSeleccionada", (data) => {
@@ -234,14 +235,14 @@ export default {
             registro: {
                 sede_id: this.sedeActual,
                 quien_registro_id: this.usuarioactual.id,
-                servicio_id: "",
+                servicio_cita_id: "",
                 total_citas: 1,
                 dura_cita: 15,
                 fecha_hora_ini: "",
             },
             busqueda: { sede_id: this.sedeActual, bus_fehc_ini: "", bus_fecha_fin: "" },
             sedeActual: sessionStorage.getItem('ST-sede'),
-            servicios: [],
+            serviciosCitas: [],
             errores: [],
             registros: [],
             loadingBuscar: false,
@@ -296,7 +297,7 @@ export default {
                 }
                 const payload = {
                     sede_id: this.registro.sede_id,
-                    servicio_id: this.registro.servicio_id,
+                    servicio_cita_id: this.registro.servicio_cita_id || null,
                     total_citas: this.registro.total_citas,
                     dura_cita: this.registro.dura_cita,
                     // backend acepta date/datetime
@@ -323,12 +324,10 @@ export default {
             }
         },
         async elimnarRegistro(id) {
-            const ok = await swal({
+            const ok = await confirmAction({
                 title: "¿Estas seguro?",
                 text: "No podrás recuperar este registro!",
                 icon: "warning",
-                buttons: true,
-                dangerMode: true,
             });
             if (!ok) return;
             if (this.loadingEliminarId) return;
@@ -351,12 +350,14 @@ export default {
                 this.loadingEliminarId = null;
             }
         },
-        async listarServicios() {
+        async listarServiciosCitas() {
             try {
-                const res = await axios.get('/api/config-modulos-listar')
-                this.servicios = res.data;
+                const res = await axios.get('/api/config-servicio-citas/mis-servicios', {
+                    params: { sede_id: this.sedeActual },
+                })
+                this.serviciosCitas = res.data;
             } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar servicios.");
+                handleAxiosErrorToast(error, "No fue posible listar servicios de cita.");
             }
         },
         establecerSede() {
@@ -375,7 +376,7 @@ export default {
             this.registro = {
                 sede_id: this.sedeActual,
                 quien_registro_id: this.usuarioactual.id,
-                servicio_id: "",
+                servicio_cita_id: "",
                 total_citas: 1,
                 dura_cita: 15,
                 fecha_hora_ini: "",

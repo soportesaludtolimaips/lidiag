@@ -2,8 +2,8 @@
 
 namespace App\Models\Agenda;
 
-use App\Models\Configuracion\ConfigModulo;
 use App\Models\Configuracion\ConfigSede;
+use App\Models\Configuracion\ConfigServicioCitas;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -16,7 +16,7 @@ class AgendaDisponibilida extends Model
     protected $fillable = [
         'quien_registro_id',
         'sede_id',
-        'servicio_id',
+        'servicio_cita_id',
         'total_citas',
         'dura_cita',
         'fecha_hora_ini',
@@ -34,8 +34,8 @@ class AgendaDisponibilida extends Model
         return $this->belongsTo(ConfigSede::class, 'sede_id');
     }
 
-    public function servicio()
+    public function servicioCita()
     {
-        return $this->belongsTo(ConfigModulo::class, 'servicio_id');
+        return $this->belongsTo(ConfigServicioCitas::class, 'servicio_cita_id');
     }
 }

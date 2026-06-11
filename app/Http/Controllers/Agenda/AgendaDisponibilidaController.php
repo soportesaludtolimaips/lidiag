@@ -28,10 +28,21 @@ class AgendaDisponibilidaController extends Controller
      */
     public function index(Request $request)
     {
-        $query = AgendaDisponibilida::query()->with(['sede', 'servicio'])->orderByDesc('id');
+        $user = auth()->user();
+        $sedesUsuario = $user ? $user->sedes()->pluck('config_sedes.id')->toArray() : [];
+
+        $query = AgendaDisponibilida::query()->with(['sede', 'servicioCita'])->orderByDesc('id');
+
+        if (! empty($sedesUsuario)) {
+            $query->whereIn('sede_id', $sedesUsuario);
+        }
 
         if ($request->filled('sede_id')) {
             $query->where('sede_id', $request->sede_id);
+        }
+
+        if ($request->filled('servicio_cita_id')) {
+            $query->where('servicio_cita_id', $request->servicio_cita_id);
         }
 
         if ($request->filled('bus_fehc_ini') && $request->filled('bus_fecha_fin')) {
@@ -50,13 +61,12 @@ class AgendaDisponibilidaController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'sede_id' => 'required|integer|exists:config_sedes,id',
-            'servicio_id' => 'required|integer|exists:config_modulos,id',
+            'servicio_cita_id' => 'nullable|integer|exists:config_servicio_citas,id',
             'fecha_hora_ini' => 'required|date',
             'total_citas' => 'required|integer|min:1',
             'dura_cita' => 'required|integer|min:1',
         ], [
             'sede_id.required' => 'La sede es obligatoria.',
-            'servicio_id.required' => 'El servicio es obligatorio.',
             'fecha_hora_ini.required' => 'La fecha/hora inicio es obligatoria.',
             'total_citas.required' => 'El total de citas es obligatorio.',
             'dura_cita.required' => 'La duración por cita es obligatoria.',
@@ -69,6 +79,21 @@ class AgendaDisponibilidaController extends Controller
             ], 422);
         }
 
+        $user = auth()->user();
+        if ($user) {
+            $sedesUsuario = $user->sedes()->pluck('config_sedes.id')->toArray();
+            if (! empty($sedesUsuario) && ! in_array((int) $request->sede_id, $sedesUsuario, true)) {
+                return response()->json(['error' => 'La sede seleccionada no está asignada a tu usuario.'], 403);
+            }
+
+            if ($request->filled('servicio_cita_id')) {
+                $serviciosUsuario = $user->serviciosCita()->pluck('config_servicio_citas.id')->toArray();
+                if (! empty($serviciosUsuario) && ! in_array((int) $request->servicio_cita_id, $serviciosUsuario, true)) {
+                    return response()->json(['error' => 'El servicio de cita seleccionado no está asignado a tu usuario.'], 403);
+                }
+            }
+        }
+
         $inicio = Carbon::parse($request->fecha_hora_ini);
         $totalCitas = (int) $request->total_citas;
         $dura = (int) $request->dura_cita;
@@ -78,7 +103,7 @@ class AgendaDisponibilidaController extends Controller
             $disponibilidad = AgendaDisponibilida::create([
                 'quien_registro_id' => auth()->id(),
                 'sede_id' => (int) $request->sede_id,
-                'servicio_id' => (int) $request->servicio_id,
+                'servicio_cita_id' => $request->servicio_cita_id ? (int) $request->servicio_cita_id : null,
                 'fecha_hora_ini' => $inicio,
                 'fecha_hora_fin' => $fin,
                 'total_citas' => $totalCitas,
@@ -103,7 +128,7 @@ class AgendaDisponibilidaController extends Controller
 
         return response()->json([
             'message' => 'Disponibilidad creada correctamente.',
-            'data' => $created->load(['sede', 'servicio']),
+            'data' => $created->load(['sede', 'servicioCita']),
         ], 201);
     }
 
@@ -112,7 +137,7 @@ class AgendaDisponibilidaController extends Controller
      */
     public function show($id)
     {
-        $disponibilidad = AgendaDisponibilida::with(['sede', 'servicio'])->find($id);
+        $disponibilidad = AgendaDisponibilida::with(['sede', 'servicioCita'])->find($id);
 
         if (! $disponibilidad) {
             return response()->json(['error' => 'Disponibilidad no encontrada.'], 404);
@@ -134,7 +159,7 @@ class AgendaDisponibilidaController extends Controller
 
         $validator = Validator::make($request->all(), [
             'sede_id' => 'required|integer|exists:config_sedes,id',
-            'servicio_id' => 'required|integer|exists:config_modulos,id',
+            'servicio_cita_id' => 'nullable|integer|exists:config_servicio_citas,id',
             'fecha_hora_ini' => 'required|date',
             'total_citas' => 'required|integer|min:1',
             'dura_cita' => 'required|integer|min:1',
@@ -155,7 +180,7 @@ class AgendaDisponibilidaController extends Controller
         DB::transaction(function () use ($disponibilidad, $request, $inicio, $fin, $totalCitas, $dura) {
             $disponibilidad->update([
                 'sede_id' => (int) $request->sede_id,
-                'servicio_id' => (int) $request->servicio_id,
+                'servicio_cita_id' => $request->servicio_cita_id ? (int) $request->servicio_cita_id : null,
                 'fecha_hora_ini' => $inicio,
                 'fecha_hora_fin' => $fin,
                 'total_citas' => $totalCitas,
@@ -180,7 +205,7 @@ class AgendaDisponibilidaController extends Controller
 
         return response()->json([
             'message' => 'Disponibilidad actualizada correctamente.',
-            'data' => $disponibilidad->fresh()->load(['sede', 'servicio']),
+            'data' => $disponibilidad->fresh()->load(['sede', 'servicioCita']),
         ]);
     }
 
@@ -189,17 +214,23 @@ class AgendaDisponibilidaController extends Controller
      */
     public function destroy($id)
     {
-        $disponibilidadDetalle = AgendaDisponibilidaDetalle::where('agenda_disponibilidad_id', $id)->get();
-        if ($disponibilidadDetalle->count() > 0) {
-            return response()->json(['error' => 'No se puede eliminar la disponibilidad porque tiene detalles asociados.'], 400);
-        }
-
         $disponibilidad = AgendaDisponibilida::find($id);
 
         if (! $disponibilidad) {
             return response()->json(['error' => 'Disponibilidad no encontrada.'], 404);
         }
 
+        $reservados = AgendaDisponibilidaDetalle::where('agenda_disponibilidad_id', $id)
+            ->where('estado', 'Reservado')
+            ->count();
+
+        if ($reservados > 0) {
+            return response()->json([
+                'error' => 'No se puede eliminar la disponibilidad porque tiene slots reservados asociados a citas.',
+            ], 400);
+        }
+
+        AgendaDisponibilidaDetalle::where('agenda_disponibilidad_id', $id)->delete();
         $disponibilidad->delete();
 
         return response()->json(['message' => 'Disponibilidad eliminada correctamente.']);
