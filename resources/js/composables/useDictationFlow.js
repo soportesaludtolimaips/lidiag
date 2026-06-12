@@ -297,7 +297,7 @@ export function useDictationFlow() {
     async function stopRecording() {
         return new Promise(async (resolve) => {
             try {
-                if (audioSession.value && mediaRecorder.value && mediaRecorder.value.state !== "inactive") {
+                if (audioSession.value && typeof audioSession.value.stop === "function") {
                     const { blob, url, revoke } = await audioSession.value.stop();
                     _audioRevoke = revoke || null;
                     audioBlob.value = blob instanceof Blob ? blob : null;
@@ -315,7 +315,7 @@ export function useDictationFlow() {
                     microfono.value = "admin-wrap/assets/images/mic.gif";
                     return;
                 }
-            } catch (e) { } finally {
+            } catch (e) { console.warn("[stopRecording] Error:", e); } finally {
                 recording.value = false;
                 microfono.value = "admin-wrap/assets/images/mic.gif";
                 resolve();
