@@ -32,6 +32,7 @@ public/img_dicom
 public/files_help_desk
 public/firmas_consntimientos
 public/files_consentimientos
+public/build/manifest.json
 
 /.agents
 /.cursor
