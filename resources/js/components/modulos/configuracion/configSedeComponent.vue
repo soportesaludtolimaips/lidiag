@@ -337,88 +337,6 @@
                                 </div>
                             </div>
 
-                            <h5 class="card-title text-info m-t-30">
-                                <i class="fa fa-whatsapp"></i> Números WhatsApp
-                            </h5>
-                            <hr>
-                            <div class="table-responsive">
-                                <table class="table table-sm table-bordered">
-                                    <thead class="thead-light">
-                                        <tr>
-                                            <th>Phone Number ID</th>
-                                            <th>Número</th>
-                                            <th>Descripción</th>
-                                            <th>Estado</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="n in whatsappNumbers" :key="n.id">
-                                            <td>{{ n.phone_number_id }}</td>
-                                            <td>{{ n.numero }}</td>
-                                            <td>{{ n.descripcion }}</td>
-                                            <td>
-                                                <span class="badge badge-success" v-if="n.activo">Activo</span>
-                                                <span class="badge badge-secondary" v-else>Inactivo</span>
-                                            </td>
-                                            <td class="text-nowrap">
-                                                <button type="button"
-                                                    class="btn btn-outline-warning btn-sm"
-                                                    @click="editarWhatsAppNumber(n)">
-                                                    <i class="fa fa-pencil"></i>
-                                                </button>
-                                                <button type="button"
-                                                    class="btn btn-outline-danger btn-sm"
-                                                    @click="eliminarWhatsAppNumber(n.id)"
-                                                    :disabled="loadingWhatsAppId === n.id">
-                                                    <i class="fa" :class="loadingWhatsAppId === n.id ? 'fa-spinner fa-spin' : 'fa-trash'"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr v-if="whatsappNumbers.length === 0">
-                                            <td colspan="5" class="text-center text-muted">No hay números registrados</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div class="row p-t-10 p-b-10">
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label>Phone Number ID *</label>
-                                        <input type="text" class="form-control form-control-sm" v-model="whatsAppForm.phone_number_id" placeholder="ID de Meta">
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label>Número *</label>
-                                        <input type="text" class="form-control form-control-sm" v-model="whatsAppForm.numero" placeholder="573001234567">
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label>Descripción</label>
-                                        <input type="text" class="form-control form-control-sm" v-model="whatsAppForm.descripcion" placeholder="Ej: Ecografías">
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label>Activo</label>
-                                        <div class="checkbox checkbox-success">
-                                            <input type="checkbox" id="wa_activo" v-model="whatsAppForm.activo" :true-value="1" :false-value="0">
-                                            <label for="wa_activo"></label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-2 d-flex align-items-end">
-                                    <button type="button" class="btn btn-success btn-sm" @click="guardarWhatsAppNumber()"
-                                        :disabled="loadingWhatsAppGuardar">
-                                        <i class="fa" :class="loadingWhatsAppGuardar ? 'fa-spinner fa-spin' : 'fa-plus'"></i>
-                                        {{ whatsAppEditandoId ? 'Actualizar' : 'Agregar' }}
-                                    </button>
-                                </div>
-                            </div>
-
                             <div class="form-actions mt-3">
                                 <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
                                     v-if="!actualizar" :disabled="loadingGuardar">
@@ -471,11 +389,6 @@ export default {
             loadingListar: false,
             loadingGuardar: false,
             loadingEliminarId: null,
-            whatsappNumbers: [],
-            whatsAppForm: { phone_number_id: '', numero: '', descripcion: '', activo: 1 },
-            whatsAppEditandoId: null,
-            loadingWhatsAppGuardar: false,
-            loadingWhatsAppId: null,
         };
     },
     methods: {
@@ -602,8 +515,6 @@ mostrarRegistro(data = {}) {
                 this.registro.plantilla = data.plantilla_rx;
                 this.registro.estado = Boolean(data.estado);
 
-                this.listarWhatsAppNumbers();
-
                 $('#btnCerralModalForm').click();
                 this.errores = [];
 
@@ -653,61 +564,7 @@ mostrarRegistro(data = {}) {
             $(".right-sidebar").slideDown(50);
             $(".right-sidebar").toggleClass("shw-rside");
         },
-        async listarWhatsAppNumbers() {
-            if (!this.registro.id) return;
-            try {
-                const res = await axios.get('/api/config-sede-whatsapp-numbers', { params: { sede_id: this.registro.id } });
-                this.whatsappNumbers = res.data;
-            } catch (e) {
-                this.whatsappNumbers = [];
-            }
-        },
-        async guardarWhatsAppNumber() {
-            if (this.loadingWhatsAppGuardar) return;
-            if (!this.registro.id) { alertError("Error", "Guarde la sede primero antes de agregar números."); return; }
-            if (!this.whatsAppForm.phone_number_id || !this.whatsAppForm.numero) { alertError("Error", "Phone Number ID y Número son requeridos."); return; }
-            this.loadingWhatsAppGuardar = true;
-            try {
-                const payload = { ...this.whatsAppForm, sede_id: this.registro.id };
-                if (this.whatsAppEditandoId) {
-                    await axios.put('/api/config-sede-whatsapp-numbers/' + this.whatsAppEditandoId, payload);
-                    alertSuccess("Ok!", "Número actualizado.");
-                } else {
-                    await axios.post('/api/config-sede-whatsapp-numbers', payload);
-                    alertSuccess("Ok!", "Número agregado.");
-                }
-                this.whatsAppForm = { phone_number_id: '', numero: '', descripcion: '', activo: 1 };
-                this.whatsAppEditandoId = null;
-                this.listarWhatsAppNumbers();
-            } catch (e) {
-                handleAxiosErrorToast(e, "Error al guardar número WhatsApp.");
-            } finally {
-                this.loadingWhatsAppGuardar = false;
-            }
-        },
-        editarWhatsAppNumber(n) {
-            this.whatsAppEditandoId = n.id;
-            this.whatsAppForm = {
-                phone_number_id: n.phone_number_id,
-                numero: n.numero,
-                descripcion: n.descripcion || '',
-                activo: n.activo ? 1 : 0,
-            };
-        },
-        async eliminarWhatsAppNumber(id) {
-            const ok = await confirmAction({ title: "¿Eliminar número?", text: "Esta acción no se puede deshacer.", icon: "warning" });
-            if (!ok) return;
-            try {
-                this.loadingWhatsAppId = id;
-                await axios.delete('/api/config-sede-whatsapp-numbers/' + id);
-                alertSuccess("Ok!", "Número eliminado.");
-                this.listarWhatsAppNumbers();
-            } catch (e) {
-                handleAxiosErrorToast(e, "Error al eliminar número.");
-            } finally {
-                this.loadingWhatsAppId = null;
-            }
-        },
+
     },
 };
 </script>

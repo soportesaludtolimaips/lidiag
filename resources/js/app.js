@@ -50,6 +50,8 @@ import configProductoComponent from "./components/modulos/configuracion/configPr
 app.component("ConfigProductoComponent", configProductoComponent);
 import configSedeComponent from "./components/modulos/configuracion/configSedeComponent.vue";
 app.component("ConfigSedeComponent", configSedeComponent);
+import configWhatsappComponent from "./components/modulos/configuracion/configWhatsappComponent.vue";
+app.component("ConfigWhatsappComponent", configWhatsappComponent);
 import configServicioCitaComponent from "./components/modulos/configuracion/configServicioCitaComponent.vue";
 app.component("ConfigServicioCitaComponent", configServicioCitaComponent);
 import configServicioProductoComponent from "./components/modulos/configuracion/configServicioProductoComponent.vue";
