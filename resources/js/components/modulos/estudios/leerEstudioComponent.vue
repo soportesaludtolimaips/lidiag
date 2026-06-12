@@ -780,7 +780,7 @@ export default {
         this.applyDashboardPrefill();
 
         this.dictationFlow.setCallbacks({
-            onText: (text) => { this.registro.lectura += text; },
+            onText: (text) => { if (this.registro) this.registro.lectura += text; },
             showToast: (cfg) => { $.toast(cfg); },
             onState: (state) => {},
             onAudioSaved: () => { this.listarAudios(); },
@@ -1009,6 +1009,11 @@ export default {
             try {
                 await this.dictationFlow.stopAll();
 
+                if (!this.registro || !this.registro.estudio_producto_id) {
+                    $.toast({ heading: "Upsss!!!", text: "No hay un estudio seleccionado para guardar.", position: "top-right", loaderBg: "#ff6849", icon: "warning", hideAfter: 3500, stack: 6 });
+                    return;
+                }
+
                 const res = await axios.post("/api/estudio-leerEstudio", this.registro);
 
                 if (res.status == 200) {
@@ -1045,8 +1050,7 @@ export default {
                     this.limpiar();
                 }
             } catch (error) {
-                this.errores =
-                    error.response && error.response.data ? error.response.data.errors : {};
+                this.errores = (error?.response?.data?.errors) || {};
                 handleAxiosErrorToast(error, "No fue posible guardar la lectura.");
             } finally {
                 this.loadingGuardar = false;
