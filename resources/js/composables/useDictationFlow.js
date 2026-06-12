@@ -441,29 +441,35 @@ export function useDictationFlow() {
     }
 
     async function sendToBackend(estudioId, estudioProductoId) {
+        console.log("[sendToBackend] INICIO", { estudioId, estudioProductoId, tieneBlob: !!audioBlob.value, blobSize: audioBlob.value?.size });
         await stopRecording();
-        if (!audioBlob.value || !(audioBlob.value instanceof Blob)) return;
+        if (!audioBlob.value || !(audioBlob.value instanceof Blob)) {
+            console.warn("[sendToBackend] No hay audioBlob para enviar", { blob: audioBlob.value });
+            return;
+        }
         const formData = new FormData();
         formData.append("audio", audioBlob.value, "audio.webm");
         formData.append("estudio_id", estudioId);
         formData.append("estudio_producto_id", estudioProductoId);
         try {
             const axios = (await import("axios")).default;
+            console.log("[sendToBackend] Enviando POST a /api/upload-audio", { blobSize: audioBlob.value.size, estudioId, estudioProductoId });
             const res = await axios.post("/api/upload-audio", formData);
+            console.log("[sendToBackend] Respuesta del servidor:", { status: res?.status, data: res?.data });
             if (res && res.status === 200) {
                 showToast({ heading: "Ok!!!", text: "Audio enviado correctamente", position: "top-right", loaderBg: "#ff6849", icon: "success", hideAfter: 3500, stack: 6 });
                 clearAudioBuffer();
                 if (typeof _onAudioSaved === "function") _onAudioSaved();
             } else {
                 const msg = res && res.data && res.data.message ? String(res.data.message) : "";
-                if (msg.includes("El audio debe tener contenido") || msg.includes("No se proporcionó un archivo de audio")) { clearAudioBuffer(); return; }
+                if (msg.includes("El audio debe tener contenido") || msg.includes("No se proporcionó un archivo de audio")) { console.warn("[sendToBackend] Audio vacío, limpiando buffer"); clearAudioBuffer(); return; }
                 showToast({ heading: "Upsss!!!", text: res && res.data && res.data.message ? res.data.message : "Error al enviar audio", position: "top-right", loaderBg: "#ff6849", icon: "error", hideAfter: 3500, stack: 6 });
             }
         } catch (error) {
             const status = error && error.response ? error.response.status : null;
             const msg = error && error.response && error.response.data && error.response.data.message ? String(error.response.data.message) : "";
-            if (status === 400 && (msg.includes("El audio debe tener contenido") || msg.includes("No se proporcionó un archivo de audio"))) { clearAudioBuffer(); return; }
-            console.error("Error al enviar audio:", error);
+            console.error("[sendToBackend] Error capturado:", { status, message: error.message, responseData: error?.response?.data });
+            if (status === 400 && (msg.includes("El audio debe tener contenido") || msg.includes("No se proporcionó un archivo de audio"))) { console.warn("[sendToBackend] Audio vacío, limpiando buffer"); clearAudioBuffer(); return; }
             showToast({ heading: "Upsss!!!", text: "Fallo al enviar audio", position: "top-right", loaderBg: "#ff6849", icon: "error", hideAfter: 3500, stack: 6 });
         }
     }
