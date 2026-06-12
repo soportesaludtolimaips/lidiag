@@ -33,13 +33,24 @@ class Authenticate extends Middleware
     protected function unauthenticated($request, array $guards)
     {
         if ($request->is('api/*') || $request->expectsJson()) {
+            $sessionExists = false;
+            if (session()->isStarted()) {
+                try {
+                    $sessionExists = DB::table('sessions')
+                        ->where('id', session()->getId())
+                        ->exists();
+                } catch (\Throwable $e) {
+                    $sessionExists = false;
+                }
+            }
+
             logger()->warning('401 - Request no autenticado', [
                 'url' => $request->fullUrl(),
                 'method' => $request->method(),
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
                 'session_id' => session()->getId(),
-                'session_exists' => session()->isStarted() ? DB::table('sessions')->where('id', session()->getId())->exists() : false,
+                'session_exists' => $sessionExists,
                 'cookies' => collect($request->cookies->all())->keys()->toArray(),
             ]);
 
