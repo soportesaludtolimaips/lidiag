@@ -728,16 +728,8 @@ import {
 } from "@/helpers/datatables.js";
 import { handleAxiosErrorToast } from "@/helpers/alerts";
 import { useMedicalDictionary } from "@/composables/useMedicalDictionary";
-import { useVoiceDictation } from "@/composables/useVoiceDictation";
-import {
-    createAudioRecorderSession,
-    getVoiceAudioConstraints,
-} from "@/helpers/voice/audioRecorder";
-import {
-    createSpeechDictation,
-    isSpeechRecognitionSupported,
-} from "@/helpers/voice/speechDictation";
-import { createVoiceSession } from "@/helpers/voice/voiceSession";
+import { useDictationFlow } from "@/composables/useDictationFlow";
+import { useAudioUploadFlow } from "@/composables/useAudioUploadFlow";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -755,16 +747,44 @@ export default {
     },
     setup() {
         const medicalDict = useMedicalDictionary();
-        const voiceDictation = useVoiceDictation();
-        return { medicalDict, voiceDictation };
+        const dictationFlow = useDictationFlow();
+        const audioUploadFlow = useAudioUploadFlow({
+            showToast: (cfg) => { $.toast(cfg); },
+        });
+        return {
+            medicalDict,
+            dictationFlow,
+            audioUploadFlow,
+            recognizing: dictationFlow.recognizing,
+            recording: dictationFlow.recording,
+            microfono: dictationFlow.microfono,
+            uppercase: dictationFlow.uppercase,
+            audiosCargadosPendientes: audioUploadFlow.audiosCargadosPendientes,
+            audioSeleccionados: audioUploadFlow.audioSeleccionados,
+            modoTranscripcion: audioUploadFlow.modoTranscripcion,
+            transcribiendo: audioUploadFlow.transcribiendo,
+            insertandoAudios: audioUploadFlow.insertandoAudios,
+            eliminandoAudioId: audioUploadFlow.eliminandoAudioId,
+            audiosSubiendo: audioUploadFlow.audiosSubiendo,
+            obtenerAudioUrl: audioUploadFlow.obtenerAudioUrl,
+            badgeClaseEstado: audioUploadFlow.badgeClaseEstado,
+            formatDuracion: audioUploadFlow.formatDuracion,
+            formatSize: audioUploadFlow.formatSize,
+            previewTranscripcion: audioUploadFlow.previewTranscripcion,
+            toggleSpeechRecognition: dictationFlow.toggleSpeechRecognition,
+        };
     },
     mounted() {
         this.establecerSede();
         this.sede_id = sessionStorage.getItem("ST-sede");
         this.applyDashboardPrefill();
 
-        // Prepara sinónimos (sin tildes) para comandos de voz
-        this.prepareVoiceCommands();
+        this.dictationFlow.setCallbacks({
+            onText: (text) => { this.registro.lectura += text; },
+            showToast: (cfg) => { $.toast(cfg); },
+            onState: (state) => {},
+            onAudioSaved: () => { this.listarAudios(); },
+        });
 
         this.emitter.on("sedeSeleccionada", (data) => {
             this.sede_id = data.idSede;
@@ -772,15 +792,10 @@ export default {
             this.listarMisPendientes();
         });
 
-        this.setupKeyboardShortcut();
+        this.dictationFlow.setupKeyboardShortcut();
     },
     beforeUnmount() {
         this.destroyDataTable();
-
-        this.teardownKeyboardShortcut();
-        try {
-            this.stopAll();
-        } catch (e) { }
     },
     data() {
         return {
@@ -831,235 +846,6 @@ export default {
             loadingImagenSidebar: false,
             loadingAudios: false,
             audiosDeEstudio: [],
-
-            // Audios cargados para transcripcion
-            audiosCargadosPendientes: [],
-            audioSeleccionados: [],
-            modoTranscripcion: "agregar",
-            transcribiendo: false,
-            insertandoAudios: false,
-            progresoTranscripcion: 0,
-            eliminandoAudioId: null,
-            audiosSubiendo: 0,  // contador de audios subiendo actualmente
-
-            /**
-             * Variables para convertir de voz a texto y grabacion de audio
-             */
-            recognizing: false,
-            recognitionActive: false,
-            recognitionRestartTimer: null,
-            recognitionBackoffMs: 500,
-            noSpeechCount: 0,
-            maxNoSpeechRetries: 6,
-            lastRecognitionError: null,
-            recording: false,
-            microfono: "admin-wrap/assets/images/mic.gif",
-            dictation: null, // instancia de createSpeechDictation (helper)
-            voiceSession: null, // orquestador dictado+grabación (helper)
-            recognition: null,
-            audioSession: null, // instancia de createAudioRecorderSession (helper)
-            mediaRecorder: null,
-            audioChunks: [],
-            audioBlob: null,
-            audioUrl: null,
-            speechInterim: "",
-            uppercase: false,
-            mediaStream: null,
-            capitalizeNext: false,
-
-            onKeydownHandler: null,
-
-            // Comandos de mayúsculas
-            uppercaseCommands: {
-                "iniciar mayúscula sostenida": () => {
-                    this.uppercase = true;
-                    return "";
-                },
-                "iniciar mayúsculas sostenida": () => {
-                    this.uppercase = true;
-                    return "";
-                },
-                "iniciar mayúsculas": () => {
-                    this.uppercase = true;
-                    return "";
-                },
-                "iniciar mayúscula": () => {
-                    this.uppercase = true;
-                    return "";
-                },
-                "mayúsculas sostenida": () => {
-                    this.uppercase = true;
-                    return "";
-                },
-                "mayúscula sostenida": () => {
-                    this.uppercase = true;
-                    return "";
-                },
-                "activar mayúsculas": () => {
-                    this.uppercase = true;
-                    return "";
-                },
-                "activar mayúscula": () => {
-                    this.uppercase = true;
-                    return "";
-                },
-                "habilitar mayúsculas": () => {
-                    this.uppercase = true;
-                    return "";
-                },
-                "habilitar mayúscula": () => {
-                    this.uppercase = true;
-                    return "";
-                },
-                "activare mayúsculas": () => {
-                    this.uppercase = true;
-                    return "";
-                },
-                "activare mayúscula": () => {
-                    this.uppercase = true;
-                    return "";
-                },
-                "desactivar mayúsculas": () => {
-                    this.uppercase = false;
-                    return "";
-                },
-                "desactivar mayúscula": () => {
-                    this.uppercase = false;
-                    return "";
-                },
-                "Deshabilitar mayúsculas": () => {
-                    this.uppercase = false;
-                    return "";
-                },
-                "Deshabilitar mayúscula": () => {
-                    this.uppercase = false;
-                    return "";
-                },
-                "terminar mayúsculas": () => {
-                    this.uppercase = false;
-                    return "";
-                },
-                "terminar mayúscula": () => {
-                    this.uppercase = false;
-                    return "";
-                },
-                "fin mayúsculas": () => {
-                    this.uppercase = false;
-                    return "";
-                },
-                "fin mayúscula": () => {
-                    this.uppercase = false;
-                    return "";
-                },
-                "finaliza mayúsculas": () => {
-                    this.uppercase = false;
-                    return "";
-                },
-                "finaliza mayúscula": () => {
-                    this.uppercase = false;
-                    return "";
-                },
-                "finalizar mayúsculas": () => {
-                    this.uppercase = false;
-                    return "";
-                },
-                "finalizar mayúscula": () => {
-                    this.uppercase = false;
-                    return "";
-                },
-            },
-
-            // Comandos de saltos de línea y puntuación
-            lineBreakCommands: {
-                "punto aparte": () => {
-                    this.capitalizeNext = true;
-                    return ".\n\n";
-                },
-                "punto a parte": () => {
-                    this.capitalizeNext = true;
-                    return ".\n\n";
-                },
-                "punto y aparte": () => {
-                    this.capitalizeNext = true;
-                    return ".\n\n";
-                },
-                "nuevo párrafo": () => {
-                    this.capitalizeNext = true;
-                    return "\n\n";
-                },
-                "nueva sección": () => {
-                    this.capitalizeNext = true;
-                    return "\n\n---\n\n";
-                },
-                "separador": () => "\n\n---\n\n",
-                "salto de línea": () => "\n",
-                "doble salto de línea": () => "\n\n",
-                enter: () => "\n",
-                "doble enter": () => "\n\n",
-                "línea en blanco": () => "\n\n",
-                "doble línea en blanco": () => "\n\n\n\n",
-            },
-
-            // Otros comandos
-            punctuationCommands: {
-                punto: () => {
-                    this.capitalizeNext = true;
-                    return ".";
-                },
-                "punto y seguido": () => {
-                    this.capitalizeNext = true;
-                    return ". ";
-                },
-                "punto seguido": () => {
-                    this.capitalizeNext = true;
-                    return ". ";
-                },
-                coma: () => ",",
-                "dos puntos": () => ":",
-                "punto y coma": () => ";",
-                "dar espacio": () => " ",
-                "un espacio": () => " ",
-                "dos espacio": () => "  ",
-                "doble espacio": () => "  ",
-                "abrir paréntesis": () => "(",
-                "cerrar paréntesis": () => ")",
-                "abrir corchetes": () => "[",
-                "cerrar corchetes": () => "]",
-                "abrir llaves": () => "{",
-                "cerrar llaves": () => "}",
-                "abrir comillas": () => '"',
-                "cerrar comillas": () => '"',
-                "abrir comillas simples": () => "'",
-                "cerrar comillas simples": () => "'",
-                guion: () => "-",
-                "guion bajo": () => "_",
-                "barra diagonal": () => "/",
-                "barra invertida": () => "\\",
-                "nueva oración": () => ". ",
-                // Números y símbolos
-                "por ciento": () => "%",
-                "menos": () => "-",
-                "más": () => "+",
-                "igual": () => "=",
-                "multiplicar": () => "×",
-                "dividir": () => "÷",
-                "asterisco": () => "*",
-                "numeral": () => "#",
-                "ampersand": () => "&",
-                "arroba": () => "@",
-                "dólar": () => "$",
-                "euro": () => "€",
-            },
-
-            // Comandos de formato
-            formatCommands: {
-                "negrita": () => "**",
-                "cerrar negrita": () => "**",
-                "cursiva": () => "_",
-                "cerrar cursiva": () => "_",
-                "subrayado": () => "<u>",
-                "cerrar subrayado": () => "</u>",
-            },
         };
     },
     methods: {
@@ -1082,105 +868,9 @@ export default {
             } catch (e) { }
             this.listarMisPendientes();
         },
-        setupKeyboardShortcut() {
-            this.teardownKeyboardShortcut();
 
-            this.onKeydownHandler = (e) => {
-                if (e.key === "F2" && !e.repeat) {
-                    e.preventDefault();
-                    if (this.recording || this.recognizing) {
-                        this.stopRecording();
-                    } else {
-                        this.startRecording();
-                    }
-                }
-            };
-            window.addEventListener("keydown", this.onKeydownHandler);
-        },
-        teardownKeyboardShortcut() {
-            if (this.onKeydownHandler) {
-                try {
-                    window.removeEventListener("keydown", this.onKeydownHandler);
-                } catch (e) { }
-                this.onKeydownHandler = null;
-            }
-        },
-        stripDiacritics(text) {
-            // Elimina tildes/diacríticos para comparar comandos (no modifica el texto final)
-            try {
-                return String(text)
-                    .normalize("NFD")
-                    .replace(/[\u0300-\u036f]/g, "");
-            } catch (e) {
-                return String(text);
-            }
-        },
-        escapeRegExp(text) {
-            return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        },
         normalizeWord(text) {
             return this.medicalDict.normalizeWord(text);
-        },
-        rebuildMedicalVocabulary() {
-            // Sin diccionario médico - solo transcripción directa
-        },
-        applyMedicalCorrections(text) {
-            return text;
-        },
-        prepareVoiceCommands() {
-            // Agrega claves sin tildes a los diccionarios de comandos (ej: "mayuscula" -> "mayúscula")
-            const addNormalizedKeys = (obj) => {
-                if (!obj) return;
-                const keys = Object.keys(obj);
-                keys.forEach((k) => {
-                    const normalized = this.stripDiacritics(k).toLowerCase();
-                    if (!Object.prototype.hasOwnProperty.call(obj, normalized)) {
-                        obj[normalized] = obj[k];
-                    }
-                });
-            };
-
-            addNormalizedKeys(this.uppercaseCommands);
-            addNormalizedKeys(this.lineBreakCommands);
-            addNormalizedKeys(this.punctuationCommands);
-            addNormalizedKeys(this.formatCommands);
-        },
-        clearAudioBuffer() {
-            if (this._audioRevoke) { try { this._audioRevoke(); } catch (e) { } this._audioRevoke = null; }
-            if (this.audioUrl) {
-                try { URL.revokeObjectURL(this.audioUrl); } catch (e) { }
-                this.audioUrl = null;
-            }
-            this.audioChunks = [];
-            this.audioBlob = null;
-        },
-        applyCommandMap(text, commandMap, { onEachMatch } = {}) {
-            // Reemplaza comandos respetando letras Unicode (á/é/í/ó/ú/ñ) y priorizando frases largas
-            if (!commandMap) return text;
-
-            // Importante: primero comandos más largos para evitar colisiones (ej: "punto y coma" vs "punto")
-            const keys = Object.keys(commandMap).sort((a, b) => b.length - a.length);
-            keys.forEach((command) => {
-                const escaped = this.escapeRegExp(command);
-                // "Bordes" con Unicode: evita el problema de \b con caracteres acentuados
-                const re = new RegExp(
-                    `(^|[^\\p{L}\\p{N}_])(${escaped})(?=$|[^\\p{L}\\p{N}_])`,
-                    "giu"
-                );
-
-                text = text.replace(re, (match, prefix) => {
-                    if (typeof onEachMatch === "function") {
-                        try {
-                            onEachMatch(command);
-                        } catch (e) { }
-                    }
-                    const fn = commandMap[command];
-                    const replacement = typeof fn === "function" ? fn() : String(fn);
-                    return `${prefix}${replacement}`;
-                });
-            });
-
-            return text;
         },
         initDataTable() {
             safeInitDataTable(this.$refs.dt || "#example23", {
@@ -1210,616 +900,7 @@ export default {
                 // No-op
             }
         },
-        getMicErrorToastConfig(error) {
-            const name = error && error.name ? String(error.name) : "";
-            const message = error && error.message ? String(error.message) : String(error);
 
-            // Casos típicos: permisos denegados / contexto inseguro / sin mic / mic ocupado
-            if (name === "NotAllowedError" || /permission denied/i.test(message)) {
-                return {
-                    heading: "Permiso de micrófono",
-                    text:
-                        "El navegador negó el acceso al micrófono. " +
-                        "Solución: en el ícono del candado del navegador → Permisos del sitio → Micrófono → Permitir, y recarga. " +
-                        "Si estás en Windows, revisa Configuración → Privacidad y seguridad → Micrófono y permite el acceso para tu navegador.",
-                    icon: "warning",
-                    hideAfter: 7000,
-                };
-            }
-
-            if (name === "SecurityError" || /secure origins|only secure origins/i.test(message)) {
-                return {
-                    heading: "HTTPS requerido",
-                    text:
-                        "El micrófono solo funciona en contextos seguros (HTTPS o localhost). " +
-                        "Abre el sistema en `https://` (por ejemplo `https://lidiag.test`) y acepta el certificado si corresponde, luego recarga.",
-                    icon: "warning",
-                    hideAfter: 8000,
-                };
-            }
-
-            if (name === "NotFoundError" || /notfound/i.test(name)) {
-                return {
-                    heading: "Sin micrófono",
-                    text: "No se encontró un dispositivo de micrófono. Conecta/activa un micrófono y vuelve a intentar.",
-                    icon: "warning",
-                    hideAfter: 7000,
-                };
-            }
-
-            if (name === "NotReadableError") {
-                return {
-                    heading: "Micrófono ocupado",
-                    text:
-                        "El micrófono está siendo usado por otra aplicación o el navegador no puede acceder a él. " +
-                        "Cierra apps que lo estén usando (Meet/Zoom/otra pestaña) y reintenta.",
-                    icon: "warning",
-                    hideAfter: 7000,
-                };
-            }
-
-            return {
-                heading: "Upsss!!!",
-                text: "Error al acceder al micrófono: " + (message || name || "desconocido"),
-                icon: "danger",
-                hideAfter: 4500,
-            };
-        },
-        async ensureMicApiAvailable() {
-            if (
-                !navigator ||
-                !navigator.mediaDevices ||
-                typeof navigator.mediaDevices.getUserMedia !== "function"
-            ) {
-                $.toast({
-                    heading: "No soportado",
-                    text: "Este navegador no soporta acceso al micrófono (getUserMedia). Usa Chrome/Edge actualizado.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "warning",
-                    hideAfter: 7000,
-                    stack: 6,
-                });
-                return false;
-            }
-            return true;
-        },
-        clearRecognitionRestartTimer() {
-            if (this.recognitionRestartTimer) {
-                try {
-                    clearTimeout(this.recognitionRestartTimer);
-                } catch (e) { }
-                this.recognitionRestartTimer = null;
-            }
-        },
-        safeStartRecognition() {
-            if (!this.recognition) return false;
-            // Evita InvalidStateError (start() cuando ya está activo)
-            if (this.recognitionActive) return false;
-
-            try {
-                this.recognition.start();
-                return true;
-            } catch (e) {
-                // InvalidStateError: ya inició (race). No lo tratamos como fatal.
-                return false;
-            }
-        },
-        scheduleRecognitionRestart(delayMs = 500) {
-            this.clearRecognitionRestartTimer();
-            if (!this.recognition || !this.recognizing) return;
-
-            this.recognitionRestartTimer = setTimeout(() => {
-                // Si sigue en modo "reconociendo", intenta arrancar.
-                if (!this.recognizing || !this.recognition) return;
-                this.safeStartRecognition();
-            }, delayMs);
-        },
-        isMediaStreamLive(stream) {
-            if (!stream || !stream.getTracks) return false;
-            try {
-                const tracks = stream.getTracks();
-                return tracks && tracks.some((t) => t && t.readyState === "live");
-            } catch (e) {
-                return false;
-            }
-        },
-        getVoiceAudioConstraints() {
-            // Centralizado en helper reutilizable
-            return getVoiceAudioConstraints();
-        },
-        pauseRecognition() {
-            // SpeechRecognition no tiene "pause": se simula con stop() y una bandera
-            this.clearRecognitionRestartTimer();
-            if (this.dictation) {
-                try {
-                    this.dictation.pause();
-                } catch (e) { }
-            } else if (this.recognition) {
-                try {
-                    this.recognition.stop();
-                } catch (e) { }
-            }
-            this.recognizing = false;
-        },
-        resumeRecognition() {
-            if (this.dictation && !this.recognizing) {
-                try {
-                    this.dictation.resume();
-                    this.recognizing = true;
-                } catch (e) {
-                    this.recognizing = false;
-                }
-                return;
-            }
-            // fallback (best-effort)
-            if (this.recognition && !this.recognizing) {
-                try {
-                    this.recognizing = true;
-                    this.safeStartRecognition();
-                } catch (e) {
-                    this.recognizing = false;
-                }
-            }
-        },
-        toggleSpeechRecognition() {
-            // Comportamiento acordado:
-            // - Primer clic: inicia dictado + grabación
-            // - Siguientes clics: pausa/reanuda AMBOS (audio + dictado)
-            if (!this.mediaRecorder || !this.recognition) {
-                this.startRecording();
-                return;
-            }
-
-            const state = this.mediaRecorder.state;
-            if (state === "recording") {
-                // Pausar ambos (audio + dictado) con orquestador si existe
-                if (this.voiceSession) {
-                    try {
-                        this.voiceSession.pause();
-                    } catch (e) { }
-                } else {
-                    try {
-                        this.mediaRecorder.pause();
-                    } catch (e) { }
-                    this.pauseRecognition();
-                }
-                this.microfono = "admin-wrap/assets/images/mic.gif";
-            } else if (state === "paused") {
-                if (this.voiceSession) {
-                    try {
-                        this.voiceSession.resume();
-                    } catch (e) { }
-                } else {
-                    try {
-                        this.mediaRecorder.resume();
-                    } catch (e) { }
-                    this.resumeRecognition();
-                }
-                this.microfono = "admin-wrap/assets/images/mic-animate.gif";
-            } else if (state === "inactive") {
-                this.startRecording();
-            }
-        },
-        // Inicia una nueva grabación de audio sin tocar el reconocimiento de voz
-        startAudioOnly() {
-            // Debe ejecutarse por un gesto del usuario (click/touch) o el navegador lo bloqueará.
-            this.ensureMicApiAvailable().then((ok) => {
-                if (!ok) return;
-
-                // Asegura que no queden streams previos abiertos
-                if (this.mediaStream && this.mediaStream.getTracks) {
-                    try {
-                        this.mediaStream.getTracks().forEach((t) => t.stop());
-                    } catch (e) { }
-                    this.mediaStream = null;
-                }
-                createAudioRecorderSession({
-                    constraints: this.getVoiceAudioConstraints(),
-                    mimeType: "audio/webm;codecs=opus",
-                    audioBitsPerSecond: 64000,
-                })
-                    .then((session) => {
-                        // Mantener compatibilidad con estado actual del componente
-                        this.audioSession = session;
-                        this.mediaStream = session.stream;
-                        this.mediaRecorder = session.mediaRecorder;
-                        this.audioChunks = session.chunks;
-                        if (this._audioRevoke) { try { this._audioRevoke(); } catch (e) { } this._audioRevoke = null; }
-                        this.audioBlob = null;
-                        this.audioUrl = null;
-
-                        session.start();
-                        this.recording = true;
-                        this.microfono = "admin-wrap/assets/images/mic-animate.gif";
-                    })
-                    .catch((error) => {
-                        this.recording = false;
-                        this.microfono = "admin-wrap/assets/images/mic.gif";
-                        const cfg = this.getMicErrorToastConfig(error);
-                        $.toast({
-                            heading: cfg.heading,
-                            text: cfg.text,
-                            position: "top-right",
-                            loaderBg: "#ff6849",
-                            icon: cfg.icon,
-                            hideAfter: cfg.hideAfter,
-                            stack: 6,
-                        });
-                        console.error("Error al acceder al micrófono:", error);
-                    });
-            });
-        },
-        // Permite detener explícitamente el reconocimiento de voz
-        stopRecognition() {
-            try {
-                // Si existe orquestador, destruir dictado internamente
-                if (this.voiceSession) {
-                    try {
-                        this.voiceSession.stopDictation();
-                    } catch (e) { }
-                }
-                if (this.dictation) {
-                    try {
-                        this.dictation.stop();
-                    } catch (e) { }
-                    this.dictation = null;
-                }
-                if (this.recognition) {
-                    try {
-                        this.recognition.onend = null;
-                        this.recognition.onerror = null;
-                    } catch (e) { }
-                    // Si se detiene el reconocimiento, pausar también la grabación de audio
-                    if (this.mediaRecorder && this.mediaRecorder.state === "recording") {
-                        try {
-                            this.mediaRecorder.pause();
-                        } catch (e) {
-                            console.warn(
-                                "No se pudo pausar la grabación al detener reconocimiento:",
-                                e
-                            );
-                        }
-                        this.microfono = "admin-wrap/assets/images/mic.gif";
-                    }
-                    try {
-                        this.recognition.stop();
-                    } catch (e) { }
-                }
-                this.recognizing = false;
-                this.recognitionActive = false;
-                this.microfono = "admin-wrap/assets/images/mic.gif";
-                this.speechInterim = "";
-            } catch (e) {
-                console.error("Error al detener reconocimiento:", e);
-            }
-        },
-        // Detiene todo: reconocimiento y grabación, y limpia recursos
-        async stopAll() {
-            try {
-                this.clearRecognitionRestartTimer();
-                this.noSpeechCount = 0;
-                this.recognitionBackoffMs = 500;
-                // Detener grabación y generar blob si corresponde
-                await this.stopRecording();
-                // Detener reconocimiento de voz
-                this.stopRecognition();
-                // Orquestador: cleanup y reset (no cambia UI)
-                if (this.voiceSession) {
-                    try {
-                        this.voiceSession.cleanup();
-                    } catch (e) { }
-                    // se recrea en siguiente startRecording
-                    this.voiceSession = null;
-                }
-                // Liberar media stream
-                if (this.audioSession) {
-                    try {
-                        this.audioSession.cleanup();
-                    } catch (e) { }
-                    this.audioSession = null;
-                } else if (this.mediaStream && this.mediaStream.getTracks) {
-                    // fallback legacy
-                    try {
-                        this.mediaStream.getTracks().forEach((t) => t.stop());
-                    } catch (e) { }
-                }
-                this.mediaStream = null;
-                if (this._audioRevoke) { try { this._audioRevoke(); } catch (e) { } this._audioRevoke = null; }
-                if (this.audioUrl) {
-                    try { URL.revokeObjectURL(this.audioUrl); } catch (e) { }
-                    this.audioUrl = null;
-                }
-                // Indicadores de estado
-                this.recording = false;
-                this.microfono = "admin-wrap/assets/images/mic.gif";
-            } catch (e) {
-                console.error("Error en stopAll:", e);
-            }
-        },
-        startRecording() {
-            // Debe ejecutarse por un gesto del usuario (click/touch) o el navegador lo bloqueará.
-            // Preflight: asegurar API de micrófono
-            this.ensureMicApiAvailable().then((ok) => {
-                if (!ok) return;
-
-                // Preparar comandos para gramática (best-effort)
-                this.prepareVoiceCommands();
-                const allCommands = {
-                    ...this.uppercaseCommands,
-                    ...this.lineBreakCommands,
-                    ...this.punctuationCommands,
-                    ...this.formatCommands,
-                };
-                const grammarCommands = Object.keys(allCommands);
-
-                if (!this.voiceSession) {
-                    this.voiceSession = createVoiceSession({
-                        constraints: this.getVoiceAudioConstraints(),
-                        mimeType: "audio/webm;codecs=opus",
-                        audioBitsPerSecond: 64000,
-                        lang: "es-ES",
-                        grammarCommands,
-                        maxNoSpeechRetries: this.maxNoSpeechRetries || 6,
-                        onFinalText: (raw) => {
-                            let text = String(raw || "").trim();
-                            if (!text) return;
-
-                            text = this.processCommands(text);
-
-                            if (text && String(text).length) {
-                                const suffix = /[ \n]$/.test(text) ? "" : " ";
-                                this.registro.lectura += text + suffix;
-                                this.speechInterim = "";
-                            }
-                        },
-                        onInterimText: (raw) => {
-                            this.speechInterim = String(raw || "").trim();
-                        },
-                        onPermissionDenied: () => {
-                            this.recognizing = false;
-                            this.recognitionActive = false;
-                            this.microfono = "admin-wrap/assets/images/mic.gif";
-                            this.speechInterim = "";
-                            $.toast({
-                                heading: "Permiso requerido",
-                                text: "El navegador bloqueó el micrófono. Permite el acceso al micrófono para usar dictado.",
-                                position: "top-right",
-                                loaderBg: "#ff6849",
-                                icon: "warning",
-                                hideAfter: 6000,
-                                stack: 6,
-                            });
-                        },
-                        onError: (e) => {
-                            const err = e && e.error ? String(e.error) : "";
-                            this.lastRecognitionError = err || null;
-                            console.error('[Voice] Error:', err, e);
-                            if (e && e.message === "Silencio repetido") {
-                                $.toast({
-                                    heading: "Sin voz detectada",
-                                    text: "No se detecta voz (silencio repetido). Verifica micrófono/entrada y vuelve a iniciar el dictamen.",
-                                    position: "top-right",
-                                    loaderBg: "#ff6849",
-                                    icon: "warning",
-                                    hideAfter: 6000,
-                                    stack: 6,
-                                });
-                            } else if (err.includes("not-allowed")) {
-                                $.toast({
-                                    heading: "Micrófono bloqueado",
-                                    text: "Permite el acceso al micrófono en la configuración del navegador.",
-                                    position: "top-right",
-                                    loaderBg: "#ff6849",
-                                    icon: "error",
-                                    hideAfter: 6000,
-                                    stack: 6,
-                                });
-                            } else if (err.includes("no-speech")) {
-                                $.toast({
-                                    heading: "Sin voz",
-                                    text: "No se detectó voz. Intenta de nuevo.",
-                                    position: "top-right",
-                                    loaderBg: "#ff6849",
-                                    icon: "info",
-                                    hideAfter: 4000,
-                                    stack: 6,
-                                });
-                            }
-                        },
-                        onState: ({ recognizing, active, lastError }) => {
-                            this.recognizing = !!recognizing;
-                            this.recognitionActive = !!active;
-                            this.lastRecognitionError = lastError || null;
-                        },
-                    });
-                }
-
-                this.microfono = "admin-wrap/assets/images/mic-animate.gif";
-
-                this.voiceSession
-                    .start()
-                    .then(({ audioSession, dictation }) => {
-                        // Mantener compatibilidad con estado/variables existentes
-                        if (this._audioRevoke) { try { this._audioRevoke(); } catch (e) { } this._audioRevoke = null; }
-                        this.audioSession = audioSession;
-                        this.dictation = dictation;
-                        this.recognition = dictation ? dictation.recognition : this.recognition;
-                        this.mediaStream = audioSession ? audioSession.stream : this.mediaStream;
-                        this.mediaRecorder = audioSession
-                            ? audioSession.mediaRecorder
-                            : this.mediaRecorder;
-                        this.audioChunks = audioSession ? audioSession.chunks : this.audioChunks;
-                        this.audioBlob = null;
-                        this.audioUrl = null;
-                        this.recording = true;
-                    })
-                    .catch((error) => {
-                        // Si falla, mostrar error de mic (o de SpeechRecognition)
-                        this.recording = false;
-                        this.microfono = "admin-wrap/assets/images/mic.gif";
-                        const cfg = this.getMicErrorToastConfig(error);
-                        $.toast({
-                            heading: cfg.heading,
-                            text: cfg.text,
-                            position: "top-right",
-                            loaderBg: "#ff6849",
-                            icon: cfg.icon,
-                            hideAfter: cfg.hideAfter,
-                            stack: 6,
-                        });
-                        console.error("Error al iniciar sesión de voz:", error);
-                    });
-            });
-        },
-        stopRecording() {
-            // Centralizado en helper: stop() genera blob+url.
-            return new Promise(async (resolve) => {
-                try {
-                    if (
-                        this.audioSession &&
-                        this.mediaRecorder &&
-                        this.mediaRecorder.state !== "inactive"
-                    ) {
-                        const { blob, url, revoke } = await this.audioSession.stop();
-                        this._audioRevoke = revoke || null;
-                        this.audioBlob = blob instanceof Blob ? blob : null;
-                        this.audioUrl = url || null;
-                    } else if (this.mediaRecorder && this.recording) {
-                        // fallback por compatibilidad (best-effort)
-                        const safetyTimer = setTimeout(() => {
-                            resolve();
-                        }, 5000);
-                        this.mediaRecorder.onstop = () => {
-                            clearTimeout(safetyTimer);
-                            this.audioBlob = new Blob(this.audioChunks, { type: "audio/webm" });
-                            this.audioUrl = URL.createObjectURL(this.audioBlob);
-                            resolve();
-                        };
-                        this.mediaRecorder.stop();
-                        this.recording = false;
-                        this.microfono = "admin-wrap/assets/images/mic.gif";
-                        return;
-                    }
-                } catch (e) {
-                    // best-effort
-                } finally {
-                    this.recording = false;
-                    this.microfono = "admin-wrap/assets/images/mic.gif";
-                    resolve();
-                }
-            });
-        },
-        processCommands(text) {
-            if (typeof this.uppercase === "undefined") {
-                this.uppercase = false;
-            }
-
-            this.prepareVoiceCommands();
-
-            text = this.applyCommandMap(text, this.uppercaseCommands);
-
-            text = this.applyCommandMap(text, this.lineBreakCommands, {
-                onEachMatch: () => {
-                    this.capitalizeNext = true;
-                },
-            });
-
-            text = this.applyCommandMap(text, this.punctuationCommands);
-
-            text = this.applyCommandMap(text, this.formatCommands);
-
-            text = this.uppercase ? text.toUpperCase() : text;
-
-            if (this.capitalizeNext) {
-                text = text.replace(/(^|\n)(\s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
-                    this.capitalizeNext = false;
-                    return `${start}${spaces}${first.toUpperCase()}`;
-                });
-            }
-
-            return text;
-        },
-        async sendToBackend() {
-            await this.stopRecording(); // Esperar a que el blob esté listo
-
-            // Acordado: si no hay audio, no hacer nada (sin toasts)
-            if (!this.audioBlob || !(this.audioBlob instanceof Blob)) return;
-
-            const formData = new FormData();
-            formData.append("audio", this.audioBlob, "audio.webm");
-            formData.append("estudio_id", this.id);
-            formData.append("estudio_producto_id", this.registro.estudio_producto_id);
-
-            try {
-                const res = await axios.post("/api/upload-audio", formData);
-
-                if (res && res.status === 200) {
-                    $.toast({
-                        heading: "Ok!!!",
-                        text: "Audio enviado correctamente",
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "success",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                    // Limpieza de estado de audio tras envío exitoso
-                    this.clearAudioBuffer();
-                    // Refrescar listado de audios del estudio (para reproducirlo de inmediato)
-                    await this.listarAudios();
-                } else {
-                    // Acordado: si el backend dice "sin contenido", no hacer nada (sin toasts)
-                    const msg = res && res.data && res.data.message ? String(res.data.message) : "";
-                    if (
-                        msg.includes("El audio debe tener contenido") ||
-                        msg.includes("No se proporcionó un archivo de audio")
-                    ) {
-                        this.clearAudioBuffer();
-                        return;
-                    }
-                    $.toast({
-                        heading: "Upsss!!!",
-                        text:
-                            res && res.data && res.data.message
-                                ? res.data.message
-                                : "Error al enviar audio",
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "error",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                }
-            } catch (error) {
-                const status = error && error.response ? error.response.status : null;
-                const msg =
-                    error && error.response && error.response.data && error.response.data.message
-                        ? String(error.response.data.message)
-                        : "";
-
-                // Acordado: si es "audio sin contenido", no hacer nada (sin toasts)
-                if (
-                    status === 400 &&
-                    (msg.includes("El audio debe tener contenido") ||
-                        msg.includes("No se proporcionó un archivo de audio"))
-                ) {
-                    this.clearAudioBuffer();
-                    return;
-                }
-
-                console.error("Error al enviar audio:", error);
-                $.toast({
-                    heading: "Upsss!!!",
-                    text: "Fallo al enviar audio",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "error",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
-            }
-        },
         async listarAudios() {
             if (this.loadingAudios) return;
             this.loadingAudios = true;
@@ -1838,327 +919,26 @@ export default {
             }
         },
 
-        async handleAudioFileSelect(event) {
-            const files = event.target.files;
-            if (!files || files.length === 0) return;
-
-            const maxSize = 100 * 1024 * 1024;
-            const allowedTypes = [
-                "audio/mpeg",
-                "audio/wav",
-                "audio/x-wav",
-                "audio/mp4",
-                "audio/webm",
-                "audio/ogg",
-                "audio/x-flac",
-                "audio/flac",
-            ];
-
-            const validFiles = [];
-
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-
-                if (file.size > maxSize) {
-                    $.toast({
-                        heading: "Upsss!!!",
-                        text: `El archivo "${file.name}" excede el tamano maximo de 100MB`,
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "warning",
-                        hideAfter: 5000,
-                        stack: 6,
-                    });
-                    continue;
-                }
-
-                if (!allowedTypes.includes(file.type)) {
-                    $.toast({
-                        heading: "Upsss!!!",
-                        text: `El archivo "${file.name}" no es un formato de audio valido`,
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "warning",
-                        hideAfter: 5000,
-                        stack: 6,
-                    });
-                    continue;
-                }
-
-                validFiles.push(file);
-            }
-
-            if (validFiles.length === 0) {
-                event.target.value = "";
-                return;
-            }
-
-            const CONCURRENCIA = 3;
-            let idx = 0;
-
-            const worker = async () => {
-                while (idx < validFiles.length) {
-                    const file = validFiles[idx++];
-                    const blobUrl = URL.createObjectURL(file);
-                    try {
-                        await this.uploadAudioFile(file, blobUrl);
-                    } catch (e) {
-                        // error ya mostrado por uploadAudioFile
-                    }
-                }
-            };
-
-            await Promise.all(Array.from({ length: CONCURRENCIA }, () => worker()));
-
-            event.target.value = "";
-        },
-
-        async uploadAudioFile(file, blobUrl) {
-            if (!this.registro.estudio_producto_id) {
-                $.toast({
-                    heading: "Upsss!!!",
-                    text: "No hay un estudio seleccionado",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "warning",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
-                return;
-            }
-
-            this.audiosSubiendo++;
-
-            const formData = new FormData();
-            formData.append("audio", file);
-            formData.append("estudio_id", this.id);
-            formData.append("estudio_producto_id", this.registro.estudio_producto_id);
-
-            try {
-                const res = await axios.post("/api/cargar-audio-transcribir", formData, {
-                    headers: { "Content-Type": "multipart/form-data" },
-                    timeout: 300000,
-                });
-
-                if (res.data && res.data.success) {
-                    this.audiosCargadosPendientes.push({
-                        id: res.data.audio_id,
-                        nombre_original: file.name,
-                        _blobUrl: blobUrl || null,
-                        serverUrl: res.data.audio_file ? '/audios/' + res.data.audio_file : null,
-                        transcripcion_estado: "Transcrito",
-                        transcripcion: res.data.transcripcion,
-                        duracion: res.data.duracion,
-                        tamano: file.size,
-                    });
-
-                    $.toast({
-                        heading: "Ok!!!",
-                        text: `Audio "${file.name}" cargado y transcrito exitosamente`,
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "success",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-
-                    await this.listarAudios();
-                } else {
-                    throw new Error(res.data.message || "Error al cargar el audio");
-                }
-            } catch (error) {
-                if (blobUrl) URL.revokeObjectURL(blobUrl);
-
-                const msg =
-                    error.response && error.response.data && error.response.data.message
-                        ? error.response.data.message
-                        : "Error al cargar y transcribir el audio";
-
-                $.toast({
-                    heading: "Upsss!!!",
-                    text: msg,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "error",
-                    hideAfter: 5000,
-                    stack: 6,
-                });
-            } finally {
-                this.audiosSubiendo--;
-                if (this.audiosSubiendo < 0) this.audiosSubiendo = 0;
-            }
+        handleAudioFileSelect(event) {
+            this.audioUploadFlow.handleAudioFileSelect(event, this.id, this.registro.estudio_producto_id);
         },
 
         async transcribirAudiosSeleccionados() {
-            if (this.audioSeleccionados.length === 0) return;
-
-            this.insertandoAudios = true;
-
-            const total = this.audioSeleccionados.length;
-            let procesados = 0;
-            let textoCompleto = "";
-
-            for (const audioId of this.audioSeleccionados) {
-                const audio = this.audiosCargadosPendientes.find((a) => a.id === audioId);
-                if (!audio || !audio.transcripcion) continue;
-
-                if (textoCompleto.length > 0) {
-                    textoCompleto += "\n\n--- ";
-                    textoCompleto += audio.nombre_original || "Audio";
-                    textoCompleto += " ---\n\n";
-                }
-
-                textoCompleto += audio.transcripcion;
-                procesados++;
+            const texto = await this.audioUploadFlow.transcribirAudiosSeleccionados();
+            if (texto) {
+                this.registro.lectura = this.audioUploadFlow.insertarTranscripcion(texto, this.registro.lectura);
             }
-
-            this.insertarTranscripcion(textoCompleto);
-
-            $.toast({
-                heading: "Ok!!!",
-                text: `${procesados} audio(s) insertados en la lectura`,
-                position: "top-right",
-                loaderBg: "#ff6849",
-                icon: "success",
-                hideAfter: 3500,
-                stack: 6,
-            });
-
-            this.audioSeleccionados = [];
-            this.insertandoAudios = false;
-        },
-
-        insertarTranscripcion(texto) {
-            if (!texto) return;
-
-            if (this.modoTranscripcion === "reemplazar") {
-                this.registro.lectura = texto;
-            } else {
-                if (this.registro.lectura && this.registro.lectura.trim().length > 0) {
-                    this.registro.lectura += "\n\n" + texto;
-                } else {
-                    this.registro.lectura = texto;
-                }
-            }
-        },
-
-        async eliminarAudioCargado(audioId) {
-            if (!confirm("¿Estas seguro de eliminar este audio?")) return;
-
-            this.eliminandoAudioId = audioId;
-
-            try {
-                const res = await axios.delete("/api/eliminar-audio-cargado/" + audioId);
-
-                if (res.data && res.data.success) {
-                    const audioEliminado = this.audiosCargadosPendientes.find((a) => a.id === audioId);
-                    if (audioEliminado && audioEliminado._blobUrl) {
-                        URL.revokeObjectURL(audioEliminado._blobUrl);
-                    }
-                    this.audiosCargadosPendientes = this.audiosCargadosPendientes.filter(
-                        (a) => a.id !== audioId
-                    );
-                    this.audioSeleccionados = this.audioSeleccionados.filter(
-                        (id) => id !== audioId
-                    );
-
-                    $.toast({
-                        heading: "Ok!!!",
-                        text: "Audio eliminado correctamente",
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "success",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-
-                    await this.listarAudios();
-                } else {
-                    throw new Error(res.data.message || "Error al eliminar");
-                }
-            } catch (error) {
-                const msg =
-                    error.response && error.response.data && error.response.data.message
-                        ? error.response.data.message
-                        : "Error al eliminar el audio";
-
-                $.toast({
-                    heading: "Upsss!!!",
-                    text: msg,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "error",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
-            } finally {
-                this.eliminandoAudioId = null;
-            }
-        },
-
-        formatDuracion(segundos) {
-            if (!segundos) return "0:00";
-            const mins = Math.floor(segundos / 60);
-            const secs = Math.floor(segundos % 60);
-            return `${mins}:${secs.toString().padStart(2, "0")}`;
         },
 
         insertarAudioIndividual(audio) {
-            if (!audio || !audio.transcripcion) return;
-            this.insertarTranscripcion(audio.transcripcion);
-            $.toast({
-                heading: "Ok!!!",
-                text: `Transcripcion de "${audio.nombre_original || 'Audio'}" insertada en la lectura`,
-                position: "top-right",
-                loaderBg: "#ff6849",
-                icon: "success",
-                hideAfter: 3000,
-                stack: 6,
-            });
-        },
-
-        obtenerAudioUrl(audio) {
-            if (audio._blobUrl) return audio._blobUrl;
-            if (audio.serverUrl) return audio.serverUrl;
-            return null;
-        },
-
-        previewTranscripcion(texto, maxLen) {
-            if (!texto) return "";
-            if (texto.length <= maxLen) return texto;
-            return texto.substring(0, maxLen);
-        },
-
-        badgeClaseEstado(estado) {
-            const map = {
-                "Transcrito": "badge-success",
-                "Completado": "badge-success",
-                "Procesando...": "badge-warning",
-                "Pendiente": "badge-secondary",
-                "Error": "badge-danger",
-            };
-            return map[estado] || "badge-secondary";
-        },
-
-        formatSize(bytes) {
-            if (!bytes || bytes === 0) return "0 B";
-            const units = ["B", "KB", "MB", "GB"];
-            const i = Math.floor(Math.log(bytes) / Math.log(1024));
-            const val = (bytes / Math.pow(1024, i)).toFixed(i > 0 ? 1 : 0);
-            return val + " " + units[i];
-        },
-
-        limpiarAudiosCargados() {
-            for (const audio of this.audiosCargadosPendientes) {
-                if (audio._blobUrl) {
-                    try { URL.revokeObjectURL(audio._blobUrl); } catch (e) { }
-                }
+            const texto = this.audioUploadFlow.insertarAudioIndividual(audio);
+            if (texto) {
+                this.registro.lectura = this.audioUploadFlow.insertarTranscripcion(texto, this.registro.lectura);
             }
-            this.audiosCargadosPendientes = [];
-            this.audioSeleccionados = [];
-            this.progresoTranscripcion = 0;
-            this.transcribiendo = false;
-            this.insertandoAudios = false;
+        },
+
+        eliminarAudioCargado(audioId) {
+            this.audioUploadFlow.eliminarAudioCargado(audioId, () => { this.listarAudios(); });
         },
 
         async listarMisPendientes() {
@@ -2227,16 +1007,12 @@ export default {
             if (this.loadingGuardar) return;
             this.loadingGuardar = true;
             try {
-                // Acordado: al Guardar, detener automáticamente dictado+grabación
-                await this.stopAll();
+                await this.dictationFlow.stopAll();
 
                 const res = await axios.post("/api/estudio-leerEstudio", this.registro);
 
                 if (res.status == 200) {
-                    /**
-                     * Envio el audio al backend
-                     */
-                    await this.sendToBackend();
+                    await this.dictationFlow.sendToBackend(this.id, this.registro.estudio_producto_id);
 
                     $.toast({
                         heading: "Ok!!!",
@@ -2364,13 +1140,9 @@ export default {
             if (this.loadingAbrirId !== null) return;
             this.loadingAbrirId = data.estudio_producto_id;
 
-            // Acordado: al abrir un nuevo estudio, limpiar cualquier audio/dictado previo
-            await this.stopAll();
-            this.clearAudioBuffer();
-            this.uppercase = false;
-            this.capitalizeNext = false;
+            await this.dictationFlow.stopAll();
             this.audiosDeEstudio = [];
-            this.limpiarAudiosCargados();
+            this.audioUploadFlow.limpiarAudiosCargados();
 
             this.tituloModal =
                 "Lectura de paciente: " + data.nom_pacien + "Producto: \n" + data.nom_produc;
@@ -2404,7 +1176,6 @@ export default {
                     "/api/study-listar-diagnostico-por-estudio?id=" + this.id
                 );
                 this.diagnosticosEstudio = res.data;
-                this.rebuildMedicalVocabulary();
 
                 const resSoportesHC = await axios.get(
                     "/api/listar-soportes-hc-estudio?id=" + this.id
@@ -2488,62 +1259,15 @@ export default {
             this.registro.direccion = "";
             this.registro.lectura = "";
 
-            // Limpieza de audio/dictado para evitar envíos cruzados
-            this.clearAudioBuffer();
-            this.limpiarAudiosCargados();
-            this.uppercase = false;
-            this.capitalizeNext = false;
-            this.speechInterim = "";
+            this.dictationFlow.clearAudioBuffer();
+            this.audioUploadFlow.limpiarAudiosCargados();
             this.audiosDeEstudio = [];
         },
         async btnCerralModalForm() {
-            await this.stopAll();
+            await this.dictationFlow.stopAll();
             $(".right-sidebar").slideDown(50);
             $(".right-sidebar").toggleClass("shw-rside");
         },
-    },
-    beforeDestroy() {
-        try {
-            if (this.recognition) {
-                this.recognizing = false;
-                this.recognition.onresult = null;
-                this.recognition.onend = null;
-                this.recognition.onerror = null;
-                this.recognition.stop();
-                this.recognition = null;
-            }
-            if (this.mediaRecorder) {
-                if (this.mediaRecorder.state && this.mediaRecorder.state !== "inactive") {
-                    try {
-                        this.mediaRecorder.stop();
-                    } catch (e) { }
-                }
-                this.mediaRecorder = null;
-            }
-            if (this.mediaStream && this.mediaStream.getTracks) {
-                this.mediaStream.getTracks().forEach((t) => t.stop());
-                this.mediaStream = null;
-            }
-            if (this._audioRevoke) { try { this._audioRevoke(); } catch (e) { } this._audioRevoke = null; }
-            if (this.audioUrl) {
-                try { URL.revokeObjectURL(this.audioUrl); } catch (e) { }
-                this.audioUrl = null;
-            }
-            if (this.emitter && this.emitter.off) {
-                try {
-                    this.emitter.off("sedeSeleccionada");
-                } catch (e) { }
-            }
-            if (this.audiosCargadosPendientes) {
-                for (const audio of this.audiosCargadosPendientes) {
-                    if (audio._blobUrl) {
-                        try { URL.revokeObjectURL(audio._blobUrl); } catch (e) { }
-                    }
-                }
-            }
-        } catch (e) {
-            // best-effort cleanup
-        }
     },
 };
 </script>
