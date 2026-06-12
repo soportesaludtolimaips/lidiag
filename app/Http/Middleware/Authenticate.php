@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Auth\Middleware\Authenticate as Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class Authenticate extends Middleware
 {
@@ -29,10 +30,19 @@ class Authenticate extends Middleware
     // Add new method
     // protected function unauthenticated($request, array $guards) {}
 
-    // Sobrescribimos este método para asegurar que la API no use sesiones
     protected function unauthenticated($request, array $guards)
     {
         if ($request->is('api/*') || $request->expectsJson()) {
+            logger()->warning('401 - Request no autenticado', [
+                'url' => $request->fullUrl(),
+                'method' => $request->method(),
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'session_id' => session()->getId(),
+                'session_exists' => session()->isStarted() ? DB::table('sessions')->where('id', session()->getId())->exists() : false,
+                'cookies' => collect($request->cookies->all())->keys()->toArray(),
+            ]);
+
             abort(response()->json(['message' => 'Unauthenticated.'], 401));
         }
 
