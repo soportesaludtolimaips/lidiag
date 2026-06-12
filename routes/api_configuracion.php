@@ -152,4 +152,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/servicio-producto/productos-no-vinculados', [ServicioProductoController::class, 'productosNoVinculados'])
         ->name('api.config.servicio.producto.no_vinculados');
+
+    // Configuración WhatsApp Bot (saludos por sede/servicio)
+    Route::apiResource('/config-whatsapp', \App\Http\Controllers\Configuracion\ConfigWhatsappController::class)
+        ->names('api.config.whatsapp')
+        ->except(['create', 'edit']);
 });

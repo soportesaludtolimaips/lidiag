@@ -223,6 +223,10 @@ Route::view('/config-consentimiento-informado-listar', 'modulos.configuracion.co
     ->name('config.consentimiento.informado.listar')
     ->middleware(['auth', 'permission:config.consentimiento_informado.index']);
 
+Route::view('/config-whatsapp-listar', 'modulos.configuracion.config-whatsapp')
+    ->name('config.whatsapp.listar')
+    ->middleware(['auth', 'permission:config.whatsapp.saludo.index']);
+
 /**
  * Configuración Helpdesk
  */

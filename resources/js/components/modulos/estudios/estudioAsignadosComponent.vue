@@ -933,9 +933,9 @@ export default {
                 this.soportesHC = resSoportesHC.data;
 
                 this.audiosDeEstudio = [];
-                this.listarAudios();
-
                 this.btnCerralModalForm();
+
+                await this.listarAudios();
 
                 this.$nextTick(() => {
                     const $editor = $(this.$el).find('.textarea_editor');

@@ -986,7 +986,10 @@ export default {
         async listarAudios(estudioProductoId) {
             this.loadingAudios = true;
             try {
-                const res = await axios.get("/api/listar-audios-estudio/" + estudioProductoId);
+                const url = "/api/listar-audios-estudio/" + estudioProductoId;
+                console.log("[Audio Debug] Solicitando:", url);
+                const res = await axios.get(url);
+                console.log("[Audio Debug] Respuesta:", res.data);
                 this.audiosDeEstudio = res.data;
             } catch (e) {
                 handleAxiosErrorToast(e, "No fue posible listar audios.");
@@ -1089,9 +1092,10 @@ export default {
                 this.soportesHC = resSoportesHC.data;
 
                 this.audiosDeEstudio = [];
-                this.listarAudios(this.registro.estudio_producto_id);
+                this.abrirModal();
 
-                this.btnCerralModalForm();
+                console.log("[Audio Debug] estudio_producto_id:", this.registro.estudio_producto_id);
+                await this.listarAudios(this.registro.estudio_producto_id);
                 this.errores = {};
             } catch (error) {
                 handleAxiosErrorToast(error, "No fue posible cargar el estudio seleccionado.");
@@ -1108,11 +1112,11 @@ export default {
             $("#btnCerralModalForm").click();
             this.errores = {};
         },
+        abrirModal() {
+            $(".right-sidebar").addClass("shw-rside");
+        },
         btnCerralModalForm() {
-            $(".right-sidebar").slideDown(50);
-            $(".right-sidebar").toggleClass("shw-rside");
-
-            this.audiosDeEstudio = [];
+            $(".right-sidebar").removeClass("shw-rside");
         },
     },
 };

@@ -7,6 +7,7 @@ use App\Models\Citas\WhatsAppConversation;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\Configuracion\ConfigSedeWhatsappNumber;
 use App\Models\Configuracion\ConfigServicioCita;
+use App\Models\Configuracion\ConfigWhatsapp;
 use App\Models\General\Paciente;
 use App\Models\Interface\Sahi\Paciente as SahiPaciente;
 
@@ -69,6 +70,15 @@ class WhatsAppFlowService
                 'pedir_primer_apellido' => $this->procesarPrimerApellido($conv, $mensaje),
                 'pedir_segundo_apellido' => $this->procesarSegundoApellido($conv, $mensaje),
                 'confirmar_datos_paciente' => $this->procesarConfirmarDatos($conv, $mensaje),
+                'confirmar_direccion' => $this->procesarConfirmarDireccion($conv, $mensaje),
+                'editar_direccion' => $this->procesarEditarDireccion($conv, $mensaje),
+                'confirmar_telefono1' => $this->procesarConfirmarTelefono1($conv, $mensaje),
+                'editar_telefono1' => $this->procesarEditarTelefono1($conv, $mensaje),
+                'confirmar_telefono2' => $this->procesarConfirmarTelefono2($conv, $mensaje),
+                'editar_telefono2' => $this->procesarEditarTelefono2($conv, $mensaje),
+                'pedir_direccion' => $this->procesarDireccion($conv, $mensaje),
+                'pedir_telefono1' => $this->procesarTelefono1($conv, $mensaje),
+                'pedir_telefono2' => $this->procesarTelefono2($conv, $mensaje),
                 'pedir_foto_cedula_frente' => $this->procesarFotoCedulaFrente($conv, $mensaje, $tipoMensaje, $mediaPath),
                 'pedir_foto_cedula_dorso' => $this->procesarFotoCedulaDorso($conv, $mensaje, $tipoMensaje, $mediaPath),
                 'pedir_orden' => $this->procesarOrden($conv, $mensaje, $tipoMensaje, $mediaPath),
@@ -135,10 +145,42 @@ class WhatsAppFlowService
 
         $conv->update(['paso' => 'pedir_documento']);
 
-        return $this->text(
-            "📄 *Bienvenido al sistema de citas de Salud Tolima*\n\n" .
-            "Por favor, ingrese su *número de documento*:"
-        );
+        $mensaje = $this->obtenerMensajeBienvenida($conv);
+
+        return $this->text($mensaje);
+    }
+
+    protected function obtenerMensajeBienvenida(WhatsAppConversation $conv): string
+    {
+        $sedeId = $conv->sede_id;
+        $servicioId = null;
+
+        $datos = $conv->datos ?: [];
+        if (isset($datos['servicio_cita_id'])) {
+            $servicioId = $datos['servicio_cita_id'];
+        }
+
+        $config = ConfigWhatsapp::where('activo', true)
+            ->where(function ($q) use ($sedeId) {
+                $q->where('sede_id', $sedeId)
+                  ->orWhereNull('sede_id');
+            })
+            ->where(function ($q) use ($servicioId) {
+                $q->where('servicio_cita_id', $servicioId)
+                  ->orWhereNull('servicio_cita_id');
+            })
+            ->orderByRaw('CASE WHEN sede_id IS NOT NULL AND servicio_cita_id IS NOT NULL THEN 0
+                              WHEN sede_id IS NOT NULL AND servicio_cita_id IS NULL THEN 1
+                              WHEN sede_id IS NULL AND servicio_cita_id IS NOT NULL THEN 2
+                              ELSE 3 END')
+            ->first();
+
+        if ($config && ! empty($config->mensaje_bienvenida)) {
+            return $config->mensaje_bienvenida;
+        }
+
+        return "📄 *Bienvenido al sistema de citas de Salud Tolima*\n\n" .
+               "Por favor, ingrese su *número de documento*:";
     }
 
     protected function mostrarSedes(WhatsAppConversation $conv): array
@@ -330,9 +372,13 @@ class WhatsAppFlowService
                 $paciente->update(['cel' => $conv->telefono]);
             }
 
+            $datos['direccion'] = $paciente->direccion ?? '';
+            $datos['tel'] = $paciente->tel ?? '';
+            $datos['cel'] = $paciente->cel ?? '';
+
             $conv->update([
                 'datos' => $datos,
-                'paso' => 'seleccionar_sede',
+                'paso' => 'confirmar_direccion',
             ]);
 
             $respuesta = "📄 *Documento: {$documento}*\n";
@@ -341,7 +387,7 @@ class WhatsAppFlowService
 
             $this->whatsAppService->enviarMensaje($conv->telefono, $respuesta);
 
-            return $this->mostrarSedes($conv->fresh());
+            return $this->mostrarConfirmarDireccion($conv->fresh());
         }
 
         $paciente = Paciente::create([
@@ -358,15 +404,14 @@ class WhatsAppFlowService
 
         $conv->update([
             'datos' => $datos,
-            'paso' => 'pedir_foto_cedula_frente',
+            'paso' => 'pedir_direccion',
         ]);
 
         $respuesta = "📄 *Documento: {$documento}*\n";
         $respuesta .= "⚠️ No encontramos sus datos registrados.\n";
-        $respuesta .= "Adjunte la foto de su cédula para validar su identidad.";
+        $respuesta .= "Por favor ingrese sus datos de contacto.";
         $respuesta .= self::SEPARADOR;
-        $respuesta .= "📷 *Envíe la foto del frente de su cédula.*\n";
-        $respuesta .= "_(Solo se aceptan archivos JPG, JPEG, PNG o PDF)_";
+        $respuesta .= "📍 *Escriba su dirección de residencia:*";
 
         return $this->text($respuesta);
     }
@@ -472,10 +517,251 @@ class WhatsAppFlowService
 
         $conv->update([
             'datos' => $datos,
-            'paso' => 'pedir_foto_cedula_frente',
+            'paso' => 'pedir_direccion',
         ]);
 
         $respuesta = "✅ *Paciente registrado exitosamente!*";
+        $respuesta .= self::SEPARADOR;
+        $respuesta .= "📍 *Escriba su dirección de residencia:*";
+
+        return $this->text($respuesta);
+    }
+
+    protected function mostrarConfirmarDireccion(WhatsAppConversation $conv): array
+    {
+        $datos = $conv->datos ?: [];
+        $direccion = $datos['direccion'] ?? '';
+
+        if (empty($direccion)) {
+            $conv->update(['paso' => 'editar_direccion']);
+            return $this->text("📍 *Escriba su dirección de residencia:*");
+        }
+
+        return [
+            'type' => 'button',
+            'body' => "📍 *Dirección actual:*\n{$direccion}\n\n¿Es correcta?",
+            'header' => 'Confirmar dirección',
+            'footer' => 'Verifique antes de continuar',
+            'buttons' => [
+                ['id' => '1', 'title' => 'Sí, correcto'],
+                ['id' => '2', 'title' => 'No, cambiar'],
+            ],
+        ];
+    }
+
+    protected function procesarConfirmarDireccion(WhatsAppConversation $conv, string $respuesta): array
+    {
+        $respuesta = trim(mb_strtolower($respuesta));
+
+        if (in_array($respuesta, ['1', 'si', 'sí', 'correcto', 'continuar'])) {
+            $conv->update(['paso' => 'confirmar_telefono1']);
+            return $this->mostrarConfirmarTelefono1($conv);
+        }
+
+        $conv->update(['paso' => 'editar_direccion']);
+        return $this->text("📍 *Escriba la nueva dirección:*");
+    }
+
+    protected function procesarEditarDireccion(WhatsAppConversation $conv, string $direccion): array
+    {
+        $direccion = trim($direccion);
+
+        if (empty($direccion) || strlen($direccion) < 5) {
+            return $this->text("❌ Dirección inválida. Por favor ingrese una dirección válida (mínimo 5 caracteres).");
+        }
+
+        $datos = $conv->datos ?: [];
+        $datos['direccion'] = $direccion;
+        $conv->update(['datos' => $datos, 'paso' => 'confirmar_telefono1']);
+
+        return $this->mostrarConfirmarTelefono1($conv);
+    }
+
+    protected function mostrarConfirmarTelefono1(WhatsAppConversation $conv): array
+    {
+        $datos = $conv->datos ?: [];
+        $tel = $datos['tel'] ?? '';
+
+        if (empty($tel)) {
+            $conv->update(['paso' => 'editar_telefono1']);
+            return $this->text("📞 *Escriba su número de teléfono fijo:*");
+        }
+
+        return [
+            'type' => 'button',
+            'body' => "📞 *Teléfono fijo actual:*\n{$tel}\n\n¿Es correcto?",
+            'header' => 'Confirmar teléfono',
+            'footer' => 'Verifique antes de continuar',
+            'buttons' => [
+                ['id' => '1', 'title' => 'Sí, correcto'],
+                ['id' => '2', 'title' => 'No, cambiar'],
+            ],
+        ];
+    }
+
+    protected function procesarConfirmarTelefono1(WhatsAppConversation $conv, string $respuesta): array
+    {
+        $respuesta = trim(mb_strtolower($respuesta));
+
+        if (in_array($respuesta, ['1', 'si', 'sí', 'correcto', 'continuar'])) {
+            $conv->update(['paso' => 'confirmar_telefono2']);
+            return $this->mostrarConfirmarTelefono2($conv);
+        }
+
+        $conv->update(['paso' => 'editar_telefono1']);
+        return $this->text("📞 *Escriba el nuevo número de teléfono fijo:*");
+    }
+
+    protected function procesarEditarTelefono1(WhatsAppConversation $conv, string $telefono): array
+    {
+        $telefono = trim($telefono);
+
+        if (empty($telefono) || strlen($telefono) < 7) {
+            return $this->text("❌ Número inválido. Por favor ingrese un número de teléfono válido (mínimo 7 dígitos).");
+        }
+
+        $datos = $conv->datos ?: [];
+        $datos['tel'] = $telefono;
+        $conv->update(['datos' => $datos, 'paso' => 'confirmar_telefono2']);
+
+        return $this->mostrarConfirmarTelefono2($conv);
+    }
+
+    protected function mostrarConfirmarTelefono2(WhatsAppConversation $conv): array
+    {
+        $datos = $conv->datos ?: [];
+        $cel = $datos['cel'] ?? '';
+
+        if (empty($cel)) {
+            $conv->update(['paso' => 'editar_telefono2']);
+            return $this->text("📱 *Escriba su número de celular:*\n\n_(Si no tiene, escriba 0 para omitir)_");
+        }
+
+        return [
+            'type' => 'button',
+            'body' => "📱 *Celular actual:*\n{$cel}\n\n¿Es correcto?",
+            'header' => 'Confirmar celular',
+            'footer' => 'Verifique antes de continuar',
+            'buttons' => [
+                ['id' => '1', 'title' => 'Sí, correcto'],
+                ['id' => '2', 'title' => 'No, cambiar'],
+            ],
+        ];
+    }
+
+    protected function procesarConfirmarTelefono2(WhatsAppConversation $conv, string $respuesta): array
+    {
+        $respuesta = trim(mb_strtolower($respuesta));
+
+        if (in_array($respuesta, ['1', 'si', 'sí', 'correcto', 'continuar'])) {
+            return $this->guardarContactoYContinuar($conv);
+        }
+
+        $conv->update(['paso' => 'editar_telefono2']);
+        return $this->text("📱 *Escriba el nuevo número de celular:*\n\n_(Si no tiene, escriba 0 para omitir)_");
+    }
+
+    protected function procesarEditarTelefono2(WhatsAppConversation $conv, string $telefono): array
+    {
+        $telefono = trim($telefono);
+
+        $datos = $conv->datos ?: [];
+        $datos['cel'] = ($telefono === '0') ? '' : $telefono;
+        $conv->update(['datos' => $datos]);
+
+        return $this->guardarContactoYContinuar($conv);
+    }
+
+    protected function guardarContactoYContinuar(WhatsAppConversation $conv): array
+    {
+        $datos = $conv->datos ?: [];
+        $pacienteId = $datos['paciente_id'] ?? null;
+
+        if ($pacienteId) {
+            $update = [];
+            if (isset($datos['direccion'])) {
+                $update['direccion'] = $datos['direccion'];
+            }
+            if (isset($datos['tel'])) {
+                $update['tel'] = $datos['tel'];
+            }
+            if (isset($datos['cel'])) {
+                $update['cel'] = $datos['cel'];
+            }
+            if (! empty($update)) {
+                Paciente::where('id', $pacienteId)->update($update);
+            }
+        }
+
+        $conv->update(['paso' => 'seleccionar_sede']);
+
+        return $this->mostrarSedes($conv->fresh());
+    }
+
+    protected function procesarDireccion(WhatsAppConversation $conv, string $direccion): array
+    {
+        $direccion = trim($direccion);
+
+        if (empty($direccion) || strlen($direccion) < 5) {
+            return $this->text("❌ Dirección inválida. Por favor ingrese una dirección válida (mínimo 5 caracteres).");
+        }
+
+        $datos = $conv->datos ?: [];
+        $datos['direccion'] = $direccion;
+        $conv->update([
+            'datos' => $datos,
+            'paso' => 'pedir_telefono1',
+        ]);
+
+        return $this->text("✅ Dirección registrada.\n\n📞 *Escriba su número de teléfono fijo:*");
+    }
+
+    protected function procesarTelefono1(WhatsAppConversation $conv, string $telefono): array
+    {
+        $telefono = trim($telefono);
+
+        if (empty($telefono) || strlen($telefono) < 7) {
+            return $this->text("❌ Número inválido. Por favor ingrese un número de teléfono válido (mínimo 7 dígitos).");
+        }
+
+        $datos = $conv->datos ?: [];
+        $datos['tel'] = $telefono;
+        $conv->update([
+            'datos' => $datos,
+            'paso' => 'pedir_telefono2',
+        ]);
+
+        return $this->text("✅ Teléfono fijo registrado.\n\n📱 *Escriba su número de celular:*\n\n_(Si no tiene, escriba 0 para omitir)_");
+    }
+
+    protected function procesarTelefono2(WhatsAppConversation $conv, string $telefono): array
+    {
+        $telefono = trim($telefono);
+
+        $datos = $conv->datos ?: [];
+        $datos['cel'] = ($telefono === '0') ? '' : $telefono;
+        $conv->update(['datos' => $datos]);
+
+        $pacienteId = $datos['paciente_id'] ?? null;
+        if ($pacienteId) {
+            $update = [];
+            if (isset($datos['direccion'])) {
+                $update['direccion'] = $datos['direccion'];
+            }
+            if (isset($datos['tel'])) {
+                $update['tel'] = $datos['tel'];
+            }
+            if (isset($datos['cel'])) {
+                $update['cel'] = $datos['cel'];
+            }
+            if (! empty($update)) {
+                Paciente::where('id', $pacienteId)->update($update);
+            }
+        }
+
+        $conv->update(['paso' => 'pedir_foto_cedula_frente']);
+
+        $respuesta = "✅ *Datos de contacto registrados!*";
         $respuesta .= self::SEPARADOR;
         $respuesta .= "📷 *Envíe la foto del frente de su cédula.*\n";
         $respuesta .= "_(Solo se aceptan archivos JPG, JPEG, PNG o PDF)_";
