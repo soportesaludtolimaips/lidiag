@@ -70,6 +70,9 @@ export async function createAudioRecorderWorkerSession({
 
     const mediaRecorderMock = {
         get state() { return recorderState; },
+        stop() {},
+        pause() {},
+        resume() {},
     };
 
     return {
@@ -78,8 +81,19 @@ export async function createAudioRecorderWorkerSession({
         get chunks() { return chunkList; },
 
         start() {
-            recorderState = "recording";
-            worker.postMessage({ action: "start" });
+            return new Promise((resolve, reject) => {
+                recorderState = "recording";
+                const onMsg = (e) => {
+                    const msg = e.data;
+                    if (msg.action === "start" && msg.result) {
+                        worker.removeEventListener("message", onMsg);
+                        if (msg.result.success) resolve();
+                        else reject(new Error(msg.result.error || "Error al iniciar grabación en Worker"));
+                    }
+                };
+                worker.addEventListener("message", onMsg);
+                worker.postMessage({ action: "start" });
+            });
         },
 
         pause() {
@@ -95,6 +109,18 @@ export async function createAudioRecorderWorkerSession({
         stop() {
             return new Promise((resolve) => {
                 resolveStop = resolve;
+                const timer = setTimeout(() => {
+                    if (resolveStop) {
+                        resolveStop({ blob: null, url: null, chunks: [...chunkList], revoke: () => {} });
+                        resolveStop = null;
+                    }
+                }, 5000);
+                const originalResolve = resolve;
+                const wrappedResolve = (val) => {
+                    clearTimeout(timer);
+                    originalResolve(val);
+                };
+                resolveStop = wrappedResolve;
                 worker.postMessage({ action: "stop" });
             });
         },
