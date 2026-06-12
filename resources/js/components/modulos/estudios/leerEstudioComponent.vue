@@ -466,6 +466,48 @@
 
                                                 <template v-if="!loadingAudios">
 
+                                                    <!-- Audios de la Lectura (grabados y cargados) -->
+                                                    <div class="row mb-3">
+                                                        <div class="col-12">
+                                                            <h5 class="text-primary">
+                                                                <i class="fa fa-headphones"></i> Audios de la Lectura
+                                                            </h5>
+                                                            <hr>
+                                                            <div v-if="audiosDeEstudio && audiosDeEstudio.length > 0">
+                                                                <div v-for="(item, index) in audiosDeEstudio" :key="item.id || index"
+                                                                    class="audio-item mb-2 p-2 border rounded">
+                                                                    <div class="d-flex align-items-center">
+                                                                        <span class="badge mr-2"
+                                                                            :class="item.tipo === 'cargado' ? 'badge-info' : 'badge-success'"
+                                                                            style="min-width: 70px;">
+                                                                            <i :class="item.tipo === 'cargado' ? 'fa fa-upload' : 'fa fa-microphone'"></i>
+                                                                            {{ item.tipo === 'cargado' ? 'Cargado' : 'Grabado' }}
+                                                                        </span>
+                                                                        <audio :src="'/audios/' + item.audio" controls
+                                                                            style="height: 30px; flex: 1;"></audio>
+                                                                        <button v-if="item.tipo === 'cargado'"
+                                                                            type="button"
+                                                                            class="btn btn-danger btn-sm ml-2"
+                                                                            @click="eliminarAudioCargado(item.id)"
+                                                                            :disabled="eliminandoAudioId === item.id"
+                                                                            title="Eliminar audio">
+                                                                            <i v-if="eliminandoAudioId === item.id"
+                                                                                class="fa fa-spinner fa-spin"></i>
+                                                                            <i v-else class="fa fa-trash"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                    <small class="text-muted" v-if="item.nombre_original">
+                                                                        {{ item.nombre_original }}
+                                                                        <span v-if="item.duracion">({{ formatDuracion(item.duracion) }})</span>
+                                                                    </small>
+                                                                </div>
+                                                            </div>
+                                                            <div v-else class="text-muted">
+                                                                No hay audios para este estudio.
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
                                                     <!-- Cargar Audios para Transcribir -->
                                                     <div class="row">
                                                         <div class="col-12">
@@ -1641,11 +1683,15 @@ export default {
                     ) {
                         const { blob, url, revoke } = await this.audioSession.stop();
                         this._audioRevoke = revoke || null;
-                        this.audioBlob = blob;
-                        this.audioUrl = url;
+                        this.audioBlob = blob instanceof Blob ? blob : null;
+                        this.audioUrl = url || null;
                     } else if (this.mediaRecorder && this.recording) {
                         // fallback por compatibilidad (best-effort)
+                        const safetyTimer = setTimeout(() => {
+                            resolve();
+                        }, 5000);
                         this.mediaRecorder.onstop = () => {
+                            clearTimeout(safetyTimer);
                             this.audioBlob = new Blob(this.audioChunks, { type: "audio/webm" });
                             this.audioUrl = URL.createObjectURL(this.audioBlob);
                             resolve();
@@ -2444,12 +2490,14 @@ export default {
 
             // Limpieza de audio/dictado para evitar envíos cruzados
             this.clearAudioBuffer();
+            this.limpiarAudiosCargados();
             this.uppercase = false;
             this.capitalizeNext = false;
             this.speechInterim = "";
             this.audiosDeEstudio = [];
         },
-        btnCerralModalForm() {
+        async btnCerralModalForm() {
+            await this.stopAll();
             $(".right-sidebar").slideDown(50);
             $(".right-sidebar").toggleClass("shw-rside");
         },

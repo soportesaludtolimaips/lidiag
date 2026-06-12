@@ -35,6 +35,11 @@ export async function createAudioRecorderWorkerSession({
             return;
         }
 
+        if (msg.action === "start" && msg.result && !msg.result.success) {
+            recorderState = "inactive";
+            return;
+        }
+
         if (msg.type === "paused") {
             recorderState = "paused";
             return;
@@ -47,7 +52,7 @@ export async function createAudioRecorderWorkerSession({
 
         if (msg.action === "stop" && msg.result) {
             recorderState = "inactive";
-            const blob = msg.result.audio;
+            const blob = msg.result.audio || null;
             if (resolveStop) {
                 const url = blob ? URL.createObjectURL(blob) : null;
                 lastUrl = url;
