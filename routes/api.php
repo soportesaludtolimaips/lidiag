@@ -3,6 +3,7 @@
 use App\Http\Controllers\OHIF_visor\OhifVisorController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Throwable;
 
 /*
 |--------------------------------------------------------------------------
@@ -57,7 +58,15 @@ Route::get('/debug-session', function (Request $request) {
             ];
         });
 
-    $sessionFromCookie = DB::table('sessions')->find($sessionId);
+    $sessionFromCookie = null;
+    try {
+        $sessionFromCookie = DB::table('sessions')->find($sessionId);
+    } catch (\Throwable $e) {
+        logger()->warning('debug-session: fallo al leer sesión', [
+            'session_id' => $sessionId,
+            'error' => $e->getMessage(),
+        ]);
+    }
 
     return [
         'session_id' => $sessionId,
@@ -67,7 +76,7 @@ Route::get('/debug-session', function (Request $request) {
         'session_driver' => config('session.driver'),
         'session_lifetime_config' => config('session.lifetime'),
         'now_readable' => date('Y-m-d H:i:s', $now),
-        'last_activity_readable' => optional($sessionFromCookie)
+        'last_activity_readable' => $sessionFromCookie
             ? date('Y-m-d H:i:s', $sessionFromCookie->last_activity)
             : null,
         'session_in_db' => $sessionFromCookie ? 'yes' : 'no',
