@@ -46,18 +46,14 @@ class LimpiarFirmasMedicos extends Command
             return 0;
         }
 
-        $this->line('Calculando espacio...');
-        $totalBytes = 0;
-        $this->output->write('  Progreso: ');
-        foreach ($huérfanos as $i => $f) {
-            $totalBytes += $disk->size($f) ?? 0;
-            if (($i + 1) % 1000 === 0 || $i === $huérfanos->count() - 1) {
-                $this->output->write(($i + 1) . ' ');
-            }
-        }
-        $this->line('');
+        $this->line('Calculando espacio (puede tomar unos segundos)...');
+        $totalBytes = $this->getDirectorySize($disk->path(''));
+        $avgBytes = $archivosEnDisco->count() > 0 ? intdiv($totalBytes, $archivosEnDisco->count()) : 0;
+        $espacioEst = $huérfanos->count() * $avgBytes;
 
-        $this->line("Espacio a liberar: " . round($totalBytes / 1024, 2) . " KB");
+        $this->line("  Total directorio: " . $this->formatBytes($totalBytes));
+        $this->line("  Tamaño promedio por archivo: " . $this->formatBytes($avgBytes));
+        $this->line("  Espacio a liberar (estimado): " . $this->formatBytes($espacioEst));
 
         if ($dryRun) {
             $this->warn('--- DRY RUN ---');
@@ -90,5 +86,32 @@ class LimpiarFirmasMedicos extends Command
         }
 
         return 0;
+    }
+
+    private function getDirectorySize(string $path): int
+    {
+        $os = PHP_OS_FAMILY;
+        if ($os === 'Windows') {
+            $bytes = shell_exec("powershell -Command \"(Get-ChildItem -LiteralPath '$path' -Recurse -File | Measure-Object -Property Length -Sum).Sum\"");
+        } else {
+            $bytes = shell_exec("du -sb " . escapeshellarg($path) . " | cut -f1");
+        }
+
+        return $bytes ? (int) trim($bytes) : 0;
+    }
+
+    private function formatBytes(int $bytes): string
+    {
+        if ($bytes >= 1073741824) {
+            return round($bytes / 1073741824, 2) . ' GB';
+        }
+        if ($bytes >= 1048576) {
+            return round($bytes / 1048576, 2) . ' MB';
+        }
+        if ($bytes >= 1024) {
+            return round($bytes / 1024, 2) . ' KB';
+        }
+
+        return $bytes . ' B';
     }
 }
