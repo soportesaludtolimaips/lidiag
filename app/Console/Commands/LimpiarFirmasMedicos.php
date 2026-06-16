@@ -47,13 +47,15 @@ class LimpiarFirmasMedicos extends Command
         }
 
         $this->line('Calculando espacio...');
-        $this->output->progressStart($huérfanos->count());
         $totalBytes = 0;
-        foreach ($huérfanos as $f) {
+        $this->output->write('  Progreso: ');
+        foreach ($huérfanos as $i => $f) {
             $totalBytes += $disk->size($f) ?? 0;
-            $this->output->progressAdvance();
+            if (($i + 1) % 1000 === 0 || $i === $huérfanos->count() - 1) {
+                $this->output->write(($i + 1) . ' ');
+            }
         }
-        $this->output->progressFinish();
+        $this->line('');
 
         $this->line("Espacio a liberar: " . round($totalBytes / 1024, 2) . " KB");
 
@@ -68,17 +70,19 @@ class LimpiarFirmasMedicos extends Command
 
         $eliminados = 0;
         $errores = 0;
-        $this->output->progressStart($huérfanos->count());
-        foreach ($huérfanos as $f) {
+        $this->output->write('  Eliminando: ');
+        foreach ($huérfanos as $i => $f) {
             if ($disk->delete($f)) {
                 $eliminados++;
             } else {
                 $errores++;
-                $this->error("  Error al eliminar: {$f}");
+                $this->error("Error al eliminar: {$f}");
             }
-            $this->output->progressAdvance();
+            if (($i + 1) % 1000 === 0 || $i === $huérfanos->count() - 1) {
+                $this->output->write(($i + 1) . ' ');
+            }
         }
-        $this->output->progressFinish();
+        $this->line('');
 
         $this->info("Eliminados: {$eliminados}");
         if ($errores > 0) {
