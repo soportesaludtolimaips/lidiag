@@ -27,6 +27,8 @@ class LimpiarFirmasMedicos extends Command
 
         $disk = Storage::disk('firmas_medicos');
         $archivosEnDisco = collect($disk->files());
+
+        $this->line('Analizando registros en DB...');
         $pathEnDb = User::whereNotNull('firma')->pluck('firma');
 
         $nombresEnDb = $pathEnDb->map(fn ($p) => basename($p))->filter()->values();
@@ -44,10 +46,14 @@ class LimpiarFirmasMedicos extends Command
             return 0;
         }
 
+        $this->line('Calculando espacio...');
+        $this->output->progressStart($huérfanos->count());
         $totalBytes = 0;
         foreach ($huérfanos as $f) {
             $totalBytes += $disk->size($f) ?? 0;
+            $this->output->progressAdvance();
         }
+        $this->output->progressFinish();
 
         $this->line("Espacio a liberar: " . round($totalBytes / 1024, 2) . " KB");
 
@@ -62,6 +68,7 @@ class LimpiarFirmasMedicos extends Command
 
         $eliminados = 0;
         $errores = 0;
+        $this->output->progressStart($huérfanos->count());
         foreach ($huérfanos as $f) {
             if ($disk->delete($f)) {
                 $eliminados++;
@@ -69,7 +76,9 @@ class LimpiarFirmasMedicos extends Command
                 $errores++;
                 $this->error("  Error al eliminar: {$f}");
             }
+            $this->output->progressAdvance();
         }
+        $this->output->progressFinish();
 
         $this->info("Eliminados: {$eliminados}");
         if ($errores > 0) {
