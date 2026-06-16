@@ -30,7 +30,7 @@
             <div class="col-lg-4 col-xlg-3 col-md-5">
                 <div class="card">
                     <div class="card-body">
-                        <center class="m-t-30">
+                        <div class="text-center m-t-30">
                             <img v-if="!registro.imagen_perfil"
                                 src="@/admin-wrap/assets/images/users/avatar_default.png" :alt="registro.name"
                                 class="img-circle" width="150">
@@ -45,11 +45,28 @@
                                         <span>
                                             <i class="ion-upload m-r-5"></i>Seleccionar archivo
                                         </span>
-                                        <input type="file" class="upload" @change='obtenerArchivo'>
+                                        <input type="file" class="upload" accept="image/*" @change='obtenerArchivo'>
                                     </div>
                                 </div>
                             </div>
-                        </center>
+                            <hr>
+                            <h6 class="card-subtitle m-b-10">Firma digital</h6>
+                            <img v-if="firmaPreview" :src="firmaPreview"
+                                alt="Firma" class="m-b-10" style="max-width: 100%; max-height: 80px;">
+                            <img v-else-if="registro.firma" :src="'/' + registro.firma"
+                                alt="Firma" class="m-b-10" style="max-width: 100%; max-height: 80px;">
+                            <p v-else class="text-muted small m-b-10">Sin firma</p>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="fileupload btn btn-info btn-rounded waves-effect waves-light btn-sm">
+                                        <span>
+                                            <i class="ion-upload m-r-5"></i>Seleccionar firma
+                                        </span>
+                                        <input type="file" class="upload" accept="image/*" @change='obtenerFirma'>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div>
                         <hr>
@@ -147,10 +164,14 @@ export default {
     mounted() {
         this.obtenerRegistro();
     },
+    beforeUnmount() {
+        if (this.firmaPreview) URL.revokeObjectURL(this.firmaPreview);
+    },
     data() {
         return {
             id: this.usuarioactual.id,
-            registro: { id: this.usuarioactual.id, num_docu: '', dependencia_id: this.usuarioactual.dependencia_id, name: '', email: '', password: '', estado: 0, imagen_perfil: null },
+            registro: { id: this.usuarioactual.id, num_docu: '', dependencia_id: this.usuarioactual.dependencia_id, name: '', email: '', password: '', estado: 0, imagen_perfil: null, firma: null },
+            firmaPreview: '',
             errores: {},
             loadingObtener: false,
             loadingActualizar: false,
@@ -167,6 +188,7 @@ export default {
                     this.registro.num_docu = res.data.usuario.num_docu;
                     this.registro.name = res.data.usuario.name;
                     this.registro.email = res.data.usuario.email;
+                    this.registro.firma = res.data.usuario.firma;
                 }
             } catch (error) {
                 this.errores = error?.response?.data?.errors || {};
@@ -182,16 +204,16 @@ export default {
                 const formData = new FormData();
                 Object.keys(this.registro).forEach((key) => {
                     if (this.registro[key] !== undefined && this.registro[key] !== null) {
+                        if (key === 'password' && !this.registro.password) return;
                         formData.append(key, this.registro[key]);
                     }
                 });
-                // Permite subir archivo con PUT (method spoof)
-                formData.append('_method', 'PUT');
-
                 const res = await axios.post('/api/seguridad-actualizar-perfil/' + this.id, formData, {
                     headers: { "Content-Type": "multipart/form-data" }
                 });
                 if (res.status == 200) {
+                    this.firmaPreview = '';
+                    await this.obtenerRegistro();
 
                     $.toast({
                         heading: 'Ok!!!',
@@ -212,6 +234,14 @@ export default {
         },
         obtenerArchivo(e) {
             this.registro.imagen_perfil = e.target.files[0];
+        },
+        obtenerFirma(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (this.firmaPreview) URL.revokeObjectURL(this.firmaPreview);
+                this.firmaPreview = URL.createObjectURL(file);
+            }
+            this.registro.firma = file;
         },
     }
 }

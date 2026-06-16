@@ -27,7 +27,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('api.seguridad.update')
         ->middleware(['permission:seguridad.usuarios.edit,web']);
 
-    Route::put('/seguridad-actualizar-perfil/{idUsua}', [UserController::class, 'actualizarPerfil'])
+    Route::post('/seguridad-actualizar-perfil/{idUsua}', [UserController::class, 'actualizarPerfil'])
         ->name('api.seguridad.actualizar.perfil');
 
     Route::put('/seguridad-usuarios/estado/{idUsua}', [UserController::class, 'estadoUsuario'])

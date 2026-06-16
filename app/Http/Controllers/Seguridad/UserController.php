@@ -151,8 +151,8 @@ class UserController extends Controller
                 'permitir_transcribir' => 'nullable|boolean',
                 'password' => 'required|string|min:6',
                 'estado' => 'nullable|boolean',
-                'firma' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:2048',
-                'avatar' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:2048',
+                'firma' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:10240',
+                'avatar' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:10240',
             ],
             [
                 'num_docu.required' => 'El número de documento es obligatorio.',
@@ -169,12 +169,12 @@ class UserController extends Controller
                 'youtube.max' => 'El enlace de YouTube no debe exceder los 100 caracteres.',
                 'password.required' => 'La contraseña es obligatoria.',
                 'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
-                'firma.file' => 'El campo firma debe ser un archivo.',
-                'firma.mimes' => 'El campo firma debe ser un archivo de tipo: jpeg, png, jpg, gif, svg.',
-                'firma.max' => 'El archivo de firma no debe exceder los 2048 kilobytes.',
-                'avatar.file' => 'El campo avatar debe ser un archivo.',
-                'avatar.mimes' => 'El campo avatar debe ser un archivo de tipo: jpeg, png, jpg, gif, svg.',
-                'avatar.max' => 'El archivo de avatar no debe exceder los 2048 kilobytes.',
+                'firma.file' => 'La firma debe ser un archivo.',
+                'firma.mimes' => 'La firma debe ser una imagen de tipo: jpeg, png, jpg, gif, svg.',
+                'firma.max' => 'La firma no debe exceder los 10 MB.',
+                'avatar.file' => 'El avatar debe ser un archivo.',
+                'avatar.mimes' => 'El avatar debe ser una imagen de tipo: jpeg, png, jpg, gif, svg.',
+                'avatar.max' => 'El avatar no debe exceder los 10 MB.',
             ]
         );
 
@@ -303,8 +303,8 @@ class UserController extends Controller
             'permitir_transcribir' => 'nullable|boolean',
             'password' => 'sometimes|string|min:6',
             'estado' => 'nullable|boolean',
-            'firma' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'avatar' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'firma' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:10240',
+            'avatar' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:10240',
         ], [
             // 'num_docu.required' => 'El número de documento es obligatorio.',
             // 'num_docu.max' => 'El número de documento no debe exceder los 20 caracteres.',
@@ -321,12 +321,12 @@ class UserController extends Controller
             'youtube.max' => 'El enlace de YouTube no debe exceder los 100 caracteres.',
             'password.sometimes' => 'La contraseña es opcional.',
             'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
-            'firma.file' => 'El campo firma debe ser un archivo.',
-            'firma.mimes' => 'El campo firma debe ser un archivo de tipo: jpeg, png, jpg, gif, svg.',
-            'firma.max' => 'El archivo de firma no debe exceder los 2048 kilobytes.',
-            'avatar.file' => 'El campo avatar debe ser un archivo.',
-            'avatar.mimes' => 'El campo avatar debe ser un archivo de tipo: jpeg, png, jpg, gif, svg.',
-            'avatar.max' => 'El archivo de avatar no debe exceder los 2048 kilobytes.',
+            'firma.file' => 'La firma debe ser un archivo.',
+            'firma.mimes' => 'La firma debe ser una imagen de tipo: jpeg, png, jpg, gif, svg.',
+            'firma.max' => 'La firma no debe exceder los 10 MB.',
+            'avatar.file' => 'El avatar debe ser un archivo.',
+            'avatar.mimes' => 'El avatar debe ser una imagen de tipo: jpeg, png, jpg, gif, svg.',
+            'avatar.max' => 'El avatar no debe exceder los 10 MB.',
         ]);
 
         // Si la validación falla, devuelve los errores
@@ -553,6 +553,11 @@ class UserController extends Controller
             'email' => 'required|email|max:255|unique:users,email,' . $usuario->id,
             'password' => 'nullable|string|min:6',
             'imagen_perfil' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'firma' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:10240',
+        ], [
+            'firma.file' => 'La firma debe ser un archivo.',
+            'firma.mimes' => 'La firma debe ser una imagen de tipo: jpeg, png, jpg, gif, svg.',
+            'firma.max' => 'La firma no debe exceder los 10 MB.',
         ]);
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 400);
@@ -584,6 +589,22 @@ class UserController extends Controller
                 $nombreEncrip = Str::random(50) . "." . $archivo->extension();
                 $path = $archivo->storeAs('avatars', $nombreEncrip);
                 $usuario->imagen_perfil = $path;
+            }
+        }
+
+        if ($request->hasFile('firma')) {
+            $archivo = $request->file('firma');
+            if ($archivo && $archivo->isValid()) {
+                if (! is_null($usuario->firma)) {
+                    $antiguo = basename($usuario->firma);
+                    if (Storage::disk('firmas_medicos')->exists($antiguo)) {
+                        Storage::disk('firmas_medicos')->delete($antiguo);
+                    }
+                }
+
+                $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+                $path = $archivo->storeAs('firmas_medicos', $nombreEncrip);
+                $usuario->firma = $path;
             }
         }
 
