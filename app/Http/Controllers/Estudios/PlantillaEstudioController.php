@@ -98,6 +98,12 @@ class PlantillaEstudioController extends Controller
         $templateProcessor->setValue('num_docu_medico', $request->num_docu_medico);
 
         // Manejar la carga de la imagen
+        \Log::info('DEBUG FIRMA', [
+            'nombres_medico' => $request->nombres_medico,
+            'firma_medico' => $request->firma_medico,
+            'path_resuelto' => $request->firma_medico ? storage_path('app/'.$request->firma_medico) : null,
+            'existe' => $request->firma_medico ? (file_exists(storage_path('app/'.$request->firma_medico)) ? 'SI' : 'NO') : 'N/A',
+        ]);
         if ($request->firma_medico) {
             // Insertar la imagen en el archivo de Word
             $templateProcessor->setImageValue('firma_medico', [
