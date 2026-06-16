@@ -5,6 +5,8 @@ namespace App\Console\Commands;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 class LimpiarFirmasMedicos extends Command
 {
@@ -26,78 +28,72 @@ class LimpiarFirmasMedicos extends Command
         }
 
         $disk = Storage::disk('firmas_medicos');
-        $archivosEnDisco = collect($disk->files());
+        $dir = $disk->path('');
 
-        $this->line('Analizando registros en DB...');
-        $pathEnDb = User::whereNotNull('firma')->pluck('firma');
+        $this->line('Cargando firmas referenciadas en DB...');
+        $nombresEnDb = User::whereNotNull('firma')
+            ->pluck('firma')
+            ->map(fn ($p) => basename($p))
+            ->filter()
+            ->flip();
+        $this->line('  Referencias en DB: ' . $nombresEnDb->count());
 
-        $nombresEnDb = $pathEnDb->map(fn ($p) => basename($p))->filter()->values();
-
-        $files = $archivosEnDisco;
-        $huérfanos = $files->reject(fn ($f) => $nombresEnDb->contains($f));
-
-        $this->line("Archivos en disco: {$files->count()}");
-        $this->line("Registros en DB con firma: {$pathEnDb->count()}");
-        $this->line("Huérfanos a eliminar: {$huérfanos->count()}");
-
-        if ($huérfanos->isEmpty()) {
-            $this->info('No hay archivos huérfanos.');
-
-            return 0;
-        }
-
-        $this->line('Calculando espacio (puede tomar unos segundos)...');
-        $totalBytes = $this->getDirectorySize($disk->path(''));
-        $avgBytes = $archivosEnDisco->count() > 0 ? intdiv($totalBytes, $archivosEnDisco->count()) : 0;
-        $espacioEst = $huérfanos->count() * $avgBytes;
-
-        $this->line("  Total directorio: " . $this->formatBytes($totalBytes));
-        $this->line("  Tamaño promedio por archivo: " . $this->formatBytes($avgBytes));
-        $this->line("  Espacio a liberar (estimado): " . $this->formatBytes($espacioEst));
-
-        if ($dryRun) {
-            $this->warn('--- DRY RUN ---');
-            foreach ($huérfanos as $f) {
-                $this->line("  [huérfano] {$f}");
-            }
-
-            return 0;
-        }
-
+        $this->line('Escaneando archivos en disco...');
+        $total = 0;
+        $huerfanos = 0;
+        $bytesHuerfanos = 0;
         $eliminados = 0;
         $errores = 0;
-        $this->output->write('  Eliminando: ');
-        foreach ($huérfanos as $i => $f) {
-            if ($disk->delete($f)) {
-                $eliminados++;
-            } else {
-                $errores++;
-                $this->error("Error al eliminar: {$f}");
+
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+
+        foreach ($iterator as $file) {
+            $total++;
+
+            if (! $nombresEnDb->has($file->getFilename())) {
+                $huerfanos++;
+
+                if ($dryRun) {
+                    $bytesHuerfanos += $file->getSize();
+                    $this->line("  [{$huerfanos}] {$file->getFilename()} (" . $this->formatBytes($file->getSize()) . ")");
+                } else {
+                    $this->output->write("  [{$huerfanos}] {$file->getFilename()} ... ");
+                    if (@unlink($file->getRealPath())) {
+                        $eliminados++;
+                        $this->output->writeln('OK');
+                    } else {
+                        $errores++;
+                        $this->output->writeln('<error>ERROR</error>');
+                    }
+                }
             }
-            if (($i + 1) % 1000 === 0 || $i === $huérfanos->count() - 1) {
-                $this->output->write(($i + 1) . ' ');
+
+            if ($total % 1000 === 0) {
+                $this->line("  --- Escaneados: {$total} ---");
             }
         }
-        $this->line('');
 
-        $this->info("Eliminados: {$eliminados}");
-        if ($errores > 0) {
-            $this->warn("Errores: {$errores}");
+        $this->line('');
+        $this->line("  Total archivos en disco: {$total}");
+        $this->line("  Huérfanos encontrados: {$huerfanos}");
+
+        if ($dryRun) {
+            $this->line("  Espacio a liberar: " . $this->formatBytes($bytesHuerfanos));
+            $this->newLine();
+            $this->warn('--- DRY RUN: no se eliminó ningún archivo ---');
+        } else {
+            $this->line("  Eliminados: {$eliminados}");
+            if ($errores > 0) {
+                $this->warn("  Errores: {$errores}");
+            }
+            if ($eliminados > 0) {
+                $this->info('Espacio liberado. Ejecute firmas:limpiar --dry-run para ver el tamaño actual del directorio.');
+            }
         }
 
         return 0;
-    }
-
-    private function getDirectorySize(string $path): int
-    {
-        $os = PHP_OS_FAMILY;
-        if ($os === 'Windows') {
-            $bytes = shell_exec("powershell -Command \"(Get-ChildItem -LiteralPath '$path' -Recurse -File | Measure-Object -Property Length -Sum).Sum\"");
-        } else {
-            $bytes = shell_exec("du -sb " . escapeshellarg($path) . " | cut -f1");
-        }
-
-        return $bytes ? (int) trim($bytes) : 0;
     }
 
     private function formatBytes(int $bytes): string
