@@ -14,8 +14,7 @@
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
-                <button type="button" class="btn btn-info btnDesplegarRigthSidebar"
-                    v-if="tabActivo !== 'productos'"
+                <button type="button" class="btn btn-info btnDesplegarRigthSidebar" v-if="tabActivo !== 'productos'"
                     @click="actualizar = false; mostrarRegistro()">
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
@@ -28,20 +27,20 @@
                     <div class="card-body">
                         <ul class="nav nav-tabs mb-3" role="tablist">
                             <li class="nav-item">
-                                <a class="nav-link" :class="{ active: tabActivo === 'numeros' }"
-                                    href="#" @click.prevent="cambiarTab('numeros')">
+                                <a class="nav-link" :class="{ active: tabActivo === 'numeros' }" href="#"
+                                    @click.prevent="cambiarTab('numeros')">
                                     <i class="fa fa-phone"></i> Números WhatsApp
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" :class="{ active: tabActivo === 'saludos' }"
-                                    href="#" @click.prevent="cambiarTab('saludos')">
+                                <a class="nav-link" :class="{ active: tabActivo === 'saludos' }" href="#"
+                                    @click.prevent="cambiarTab('saludos')">
                                     <i class="fa fa-comment"></i> Saludos del Bot
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" :class="{ active: tabActivo === 'productos' }"
-                                    href="#" @click.prevent="cambiarTab('productos')">
+                                <a class="nav-link" :class="{ active: tabActivo === 'productos' }" href="#"
+                                    @click.prevent="cambiarTab('productos')">
                                     <i class="fa fa-cubes"></i> Productos por Servicio
                                 </a>
                             </li>
@@ -49,11 +48,28 @@
 
                         <div v-if="tabActivo === 'numeros'">
                             <h4 class="card-title">Números WhatsApp por sede</h4>
-                            <h6 class="card-subtitle">Administración de los números de teléfono asociados a cada sede para el envío de mensajes.</h6>
-                            <div class="table-responsive m-t-40">
+                            <h6 class="card-subtitle">Administración de los números de teléfono asociados a cada sede
+                                para el envío de mensajes.</h6>
+
+                            <div v-if="loadingNumeros" class="text-center m-t-40">
+                                <i class="fa fa-spinner fa-spin fa-2x"></i>
+                                <p class="text-muted m-t-10">Cargando números...</p>
+                            </div>
+
+                            <div v-else-if="errorNumeros" class="alert alert-danger m-t-20">
+                                <i class="fa fa-exclamation-triangle"></i>
+                                {{ errorNumeros }}
+                            </div>
+
+                            <div v-else-if="registrosNumeros.length === 0" class="text-center m-t-40">
+                                <p class="text-muted">No hay números WhatsApp configurados. Cree un nuevo registro para
+                                    comenzar.</p>
+                            </div>
+
+                            <div class="table-responsive m-t-40" v-else>
                                 <table id="tblWhatsappNumbers" ref="dtNumeros"
-                                    class="display nowrap table table-hover table-striped table-bordered" cellspacing="0"
-                                    width="100%">
+                                    class="display nowrap table table-hover table-striped table-bordered"
+                                    cellspacing="0" width="100%">
                                     <thead>
                                         <tr>
                                             <th>Sede</th>
@@ -71,7 +87,8 @@
                                             <td>{{ item.numero }}</td>
                                             <td>{{ item.descripcion || '—' }}</td>
                                             <td>
-                                                <span class="label" :class="item.activo ? 'label-success' : 'label-danger'">
+                                                <span class="label"
+                                                    :class="item.activo ? 'label-success' : 'label-danger'">
                                                     {{ item.activo ? 'Activo' : 'Inactivo' }}
                                                 </span>
                                             </td>
@@ -97,11 +114,28 @@
 
                         <div v-if="tabActivo === 'saludos'">
                             <h4 class="card-title">Saludos del Bot</h4>
-                            <h6 class="card-subtitle">Mensajes de bienvenida personalizados por sede y servicio para el bot de WhatsApp.</h6>
-                            <div class="table-responsive m-t-40">
+                            <h6 class="card-subtitle">Mensajes de bienvenida personalizados por sede y servicio para el
+                                bot de WhatsApp.</h6>
+
+                            <div v-if="loadingSaludos" class="text-center m-t-40">
+                                <i class="fa fa-spinner fa-spin fa-2x"></i>
+                                <p class="text-muted m-t-10">Cargando saludos...</p>
+                            </div>
+
+                            <div v-else-if="errorSaludos" class="alert alert-danger m-t-20">
+                                <i class="fa fa-exclamation-triangle"></i>
+                                {{ errorSaludos }}
+                            </div>
+
+                            <div v-else-if="registrosSaludos.length === 0" class="text-center m-t-40">
+                                <p class="text-muted">No hay saludos configurados. Cree un nuevo registro para comenzar.
+                                </p>
+                            </div>
+
+                            <div class="table-responsive m-t-40" v-else>
                                 <table id="tblWhatsappSaludos" ref="dtSaludos"
-                                    class="display nowrap table table-hover table-striped table-bordered" cellspacing="0"
-                                    width="100%">
+                                    class="display nowrap table table-hover table-striped table-bordered"
+                                    cellspacing="0" width="100%">
                                     <thead>
                                         <tr>
                                             <th>Sede</th>
@@ -116,10 +150,12 @@
                                             <td>{{ item.sede ? item.sede.nom_sede : 'Todas las sedes' }}</td>
                                             <td>{{ item.servicio ? item.servicio.nombre : 'Todos los servicios' }}</td>
                                             <td class="text-wrap" style="max-width: 400px">
-                                                {{ item.mensaje_bienvenida.substring(0, 100) }}{{ item.mensaje_bienvenida.length > 100 ? '...' : '' }}
+                                                {{ item.mensaje_bienvenida.substring(0, 50) }}{{
+                                                    item.mensaje_bienvenida.length > 50 ? '...' : '' }}
                                             </td>
                                             <td>
-                                                <span class="label" :class="item.activo ? 'label-success' : 'label-danger'">
+                                                <span class="label"
+                                                    :class="item.activo ? 'label-success' : 'label-danger'">
                                                     {{ item.activo ? 'Activo' : 'Inactivo' }}
                                                 </span>
                                             </td>
@@ -128,6 +164,11 @@
                                                     class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
                                                     @click="actualizar = true; mostrarRegistro(item)">
                                                     <i class="fa fa-pencil"></i>
+                                                </button>
+                                                <button type="button"
+                                                    class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                                    @click="abrirProbarEnvio()">
+                                                    <i class="fa fa-send"></i>
                                                 </button>
                                                 <button type="button"
                                                     class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
@@ -149,7 +190,8 @@
                                     <div class="card">
                                         <div class="card-body">
                                             <h4 class="card-title">Servicios</h4>
-                                            <h6 class="card-subtitle text-info">Seleccione un servicio para administrar sus productos.</h6>
+                                            <h6 class="card-subtitle text-info">Seleccione un servicio para administrar
+                                                sus productos.</h6>
 
                                             <div v-if="loadingServiciosProductos" class="text-center m-t-20">
                                                 <i class="fa fa-spinner fa-spin fa-2x"></i>
@@ -162,22 +204,27 @@
                                             </div>
 
                                             <div v-else-if="serviciosProductos.length === 0" class="text-center m-t-20">
-                                                <p class="text-muted">No hay servicios disponibles. Contacte al administrador para asignarle servicios.</p>
+                                                <p class="text-muted">No hay servicios disponibles. Contacte al
+                                                    administrador para asignarle servicios.</p>
                                             </div>
 
                                             <div class="list-group m-t-10" v-else>
-                                                <button v-for="servicio in serviciosProductos" :key="servicio.id" type="button"
-                                                    class="list-group-item list-group-item-action"
+                                                <button v-for="servicio in serviciosProductos" :key="servicio.id"
+                                                    type="button" class="list-group-item list-group-item-action"
                                                     :class="servicioSeleccionado === servicio.id ? 'active' : ''"
                                                     @click="seleccionarServicio(servicio)">
-                                                    <div class="d-flex justify-content-between align-items-center w-100">
+                                                    <div
+                                                        class="d-flex justify-content-between align-items-center w-100">
                                                         <div>
                                                             <div>{{ servicio.nombre }}</div>
-                                                            <small class="d-block" style="font-size: 11px; opacity: 0.75;">
-                                                                <i class="fa fa-map-marker"></i> {{ servicio.sede?.nom_sede || 'Sin sede' }}
+                                                            <small class="d-block"
+                                                                style="font-size: 11px; opacity: 0.75;">
+                                                                <i class="fa fa-map-marker"></i> {{
+                                                                    servicio.sede?.nom_sede || 'Sin sede' }}
                                                             </small>
                                                         </div>
-                                                        <span class="badge badge-danger badge-pill" v-if="servicio.productos_count">
+                                                        <span class="badge badge-danger badge-pill"
+                                                            v-if="servicio.productos_count">
                                                             {{ servicio.productos_count }}
                                                         </span>
                                                     </div>
@@ -193,9 +240,11 @@
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <div>
                                                     <h4 class="card-title">{{ servicioActual?.nombre }}</h4>
-                                                    <h6 class="card-subtitle text-info">Productos vinculados a este servicio</h6>
+                                                    <h6 class="card-subtitle text-info">Productos vinculados a este
+                                                        servicio</h6>
                                                 </div>
-                                                <button type="button" class="btn btn-info" @click="mostrarModalAgregar()">
+                                                <button type="button" class="btn btn-info"
+                                                    @click="mostrarModalAgregar()">
                                                     <i class="fa fa-plus-circle m-r-5"></i> Agregar Producto
                                                 </button>
                                             </div>
@@ -214,7 +263,8 @@
                                                             <td>{{ item.producto?.cod_cups }}</td>
                                                             <td>{{ item.producto?.nom_produc }}</td>
                                                             <td>
-                                                                <span class="label label-success" v-if="item.estado">Activo</span>
+                                                                <span class="label label-success"
+                                                                    v-if="item.estado">Activo</span>
                                                                 <span class="label label-danger" v-else>Inactivo</span>
                                                             </td>
                                                             <td class="text-nowrap">
@@ -237,7 +287,8 @@
                                     </div>
                                     <div class="card" v-else>
                                         <div class="card-body text-center">
-                                            <p class="text-muted">Seleccione un servicio de la lista para ver sus productos.</p>
+                                            <p class="text-muted">Seleccione un servicio de la lista para ver sus
+                                                productos.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -271,27 +322,31 @@
                                                     {{ s.nom_sede }}
                                                 </option>
                                             </select>
-                                            <span class="text-danger" v-if="errores.sede_id">{{ errores.sede_id[0] }}</span>
+                                            <span class="text-danger" v-if="errores.sede_id">{{ errores.sede_id[0]
+                                            }}</span>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label class="control-label">Phone Number ID <span class="text-danger">*</span></label>
+                                            <label class="control-label">Phone Number ID <span
+                                                    class="text-danger">*</span></label>
                                             <input type="text" v-model="form.phone_number_id" class="form-control"
                                                 :class="{ 'is-invalid': errores.phone_number_id }"
                                                 placeholder="ID de Meta">
-                                            <span class="text-danger" v-if="errores.phone_number_id">{{ errores.phone_number_id[0] }}</span>
+                                            <span class="text-danger" v-if="errores.phone_number_id">{{
+                                                errores.phone_number_id[0] }}</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label class="control-label">Número <span class="text-danger">*</span></label>
+                                            <label class="control-label">Número <span
+                                                    class="text-danger">*</span></label>
                                             <input type="text" v-model="form.numero" class="form-control"
-                                                :class="{ 'is-invalid': errores.numero }"
-                                                placeholder="573001234567">
-                                            <span class="text-danger" v-if="errores.numero">{{ errores.numero[0] }}</span>
+                                                :class="{ 'is-invalid': errores.numero }" placeholder="573001234567">
+                                            <span class="text-danger" v-if="errores.numero">{{ errores.numero[0]
+                                            }}</span>
                                         </div>
                                     </div>
                                     <div class="col-md-5">
@@ -304,8 +359,8 @@
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             <div class="checkbox checkbox-success m-t-25">
-                                                <input type="checkbox" id="form_activo_numero"
-                                                    v-model="form.activo" :true-value="1" :false-value="0">
+                                                <input type="checkbox" id="form_activo_numero" v-model="form.activo"
+                                                    :true-value="1" :false-value="0">
                                                 <label for="form_activo_numero"> Activo </label>
                                             </div>
                                         </div>
@@ -317,7 +372,8 @@
                                 <div class="row p-t-20">
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label class="control-label">Sede <small class="text-muted">(opcional)</small></label>
+                                            <label class="control-label">Sede <small
+                                                    class="text-muted">(opcional)</small></label>
                                             <select v-model="form.sede_id" class="form-control"
                                                 :class="{ 'is-invalid': errores.sede_id }">
                                                 <option value="">Todas las sedes</option>
@@ -325,31 +381,41 @@
                                                     {{ s.nom_sede }}
                                                 </option>
                                             </select>
-                                            <span class="text-danger" v-if="errores.sede_id">{{ errores.sede_id[0] }}</span>
+                                            <span class="text-danger" v-if="errores.sede_id">{{ errores.sede_id[0]
+                                            }}</span>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label class="control-label">Servicio <small class="text-muted">(opcional)</small></label>
+                                            <label class="control-label">Servicio <small
+                                                    class="text-muted">(opcional)</small></label>
                                             <select v-model="form.servicio_cita_id" class="form-control"
                                                 :class="{ 'is-invalid': errores.servicio_cita_id }">
                                                 <option value="">Todos los servicios</option>
                                                 <option v-for="s in servicios" :key="s.id" :value="s.id">
-                                                    {{ s.nombre }}
+                                                    {{ s.nombre + (s.sede ? ' — ' + s.sede.nom_sede : '') }}
                                                 </option>
                                             </select>
-                                            <span class="text-danger" v-if="errores.servicio_cita_id">{{ errores.servicio_cita_id[0] }}</span>
+                                            <span class="text-danger" v-if="errores.servicio_cita_id">{{
+                                                errores.servicio_cita_id[0] }}</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-12">
                                         <div class="form-group">
-                                            <label class="control-label">Mensaje de bienvenida</label>
+                                            <label class="control-label">
+                                                Mensaje de bienvenida
+                                                <button type="button" class="btn btn-sm btn-outline-info m-l-10"
+                                                    @click="mostrarPreviewSaludo" :disabled="!form.mensaje_bienvenida">
+                                                    <i class="fa fa-eye"></i> Vista previa
+                                                </button>
+                                            </label>
                                             <textarea v-model="form.mensaje_bienvenida" class="form-control" rows="5"
                                                 :class="{ 'is-invalid': errores.mensaje_bienvenida }"
                                                 placeholder="Escriba el mensaje de bienvenida que verá el paciente al iniciar el chat..."></textarea>
-                                            <span class="text-danger" v-if="errores.mensaje_bienvenida">{{ errores.mensaje_bienvenida[0] }}</span>
+                                            <span class="text-danger" v-if="errores.mensaje_bienvenida">{{
+                                                errores.mensaje_bienvenida[0] }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -357,8 +423,8 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <div class="checkbox checkbox-success">
-                                                <input type="checkbox" id="form_activo_saludo"
-                                                    v-model="form.activo" :true-value="1" :false-value="0">
+                                                <input type="checkbox" id="form_activo_saludo" v-model="form.activo"
+                                                    :true-value="1" :false-value="0">
                                                 <label for="form_activo_saludo"> Activo </label>
                                             </div>
                                         </div>
@@ -370,9 +436,10 @@
                                 <div class="row p-t-20">
                                     <div class="col-md-12">
                                         <div class="form-group" id="producto-parent">
-                                            <label class="control-label">Producto <span class="text-danger">*</span></label>
-                                            <Select2 :value="productoSeleccionado" :options="productosDisponiblesOptions"
-                                                width="100%" :allow-clear="false"
+                                            <label class="control-label">Producto <span
+                                                    class="text-danger">*</span></label>
+                                            <Select2 :value="productoSeleccionado"
+                                                :options="productosDisponiblesOptions" width="100%" :allow-clear="false"
                                                 :dropdown-parent-selector="'#producto-parent'"
                                                 @input="onProductoSelect" />
                                         </div>
@@ -409,7 +476,8 @@
                                     Actualizar
                                 </button>
 
-                                <button type="button" class="btn btn-inverse" @click="btnCerrarModalForm()">Cancel</button>
+                                <button type="button" class="btn btn-inverse"
+                                    @click="cerrarFormSidebar()">Cancel</button>
                             </div>
 
                             <div class="form-actions mt-3" v-if="tabActivo === 'productos'">
@@ -422,6 +490,68 @@
                             </div>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+        <!-- Vista previa del saludo -->
+        <div class="modal fade" id="modalPreviewSaludo" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Vista previa del mensaje</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="card card-body bg-light">
+                            <p style="white-space: pre-wrap;">{{ previewMensaje }}</p>
+                        </div>
+                        <small class="text-muted">
+                            Variables:
+                            <code>${num_docu_paciente}</code> → <strong>1234567890</strong>,
+                            <code>${nom_paciente}</code> → <strong>Paciente</strong>,
+                            <code>${cod_cups}</code> → <strong>CUPS001</strong>,
+                            <code>${nom_produc}</code> → <strong>Producto</strong>
+                        </small>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-inverse" data-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal probar envío WhatsApp -->
+        <div class="modal fade" id="modalProbarEnvio" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Probar envío de WhatsApp</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="control-label">Número de teléfono <span class="text-danger">*</span></label>
+                            <input type="text" v-model="testPhoneNumber" class="form-control"
+                                placeholder="573001234567" />
+                            <small class="text-muted">Ingrese el número con código de país (Ej: 573001234567)</small>
+                        </div>
+                        <div v-if="testResultado" class="m-t-10">
+                            <div class="alert" :class="testResultado.ok ? 'alert-success' : 'alert-danger'">
+                                <i class="fa"
+                                    :class="testResultado.ok ? 'fa-check-circle' : 'fa-exclamation-triangle'"></i>
+                                {{ testResultado.mensaje }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-inverse" data-dismiss="modal"
+                            @click="testResultado = null">Cerrar</button>
+                        <button type="button" class="btn btn-info" @click="probarEnvio()"
+                            :disabled="!testPhoneNumber || loadingTestEnvio">
+                            <i class="fa" :class="loadingTestEnvio ? 'fa-spinner fa-spin' : 'fa-send'"></i>
+                            {{ loadingTestEnvio ? 'Enviando...' : 'Enviar' }}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -473,7 +603,10 @@ export default {
             tituloModal: 'Nuevo registro',
             actualizar: false,
             errores: {},
-            loadingListar: false,
+            loadingNumeros: false,
+            loadingSaludos: false,
+            errorNumeros: '',
+            errorSaludos: '',
             loadingGuardar: false,
             loadingEliminarId: null,
 
@@ -487,6 +620,10 @@ export default {
             productoSeleccionado: '',
             recomendacion: '',
             loadingAgregarProducto: false,
+            previewMensaje: '',
+            testPhoneNumber: '',
+            testResultado: null,
+            loadingTestEnvio: false,
         };
     },
     computed: {
@@ -523,8 +660,9 @@ export default {
             });
         },
         async listarNumeros() {
-            if (this.loadingListar) return;
-            this.loadingListar = true;
+            if (this.loadingNumeros) return;
+            this.loadingNumeros = true;
+            this.errorNumeros = '';
             try {
                 const res = await axios.get("/api/config-sede-whatsapp-numbers");
                 safeDestroyDataTable(this.$refs.dtNumeros || "#tblWhatsappNumbers");
@@ -538,15 +676,17 @@ export default {
                     }
                 });
             } catch (error) {
+                this.errorNumeros = error?.response?.data?.message || "No fue posible cargar los números WhatsApp.";
                 handleAxiosErrorToast(error, "No fue posible listar números WhatsApp.");
                 this.registrosNumeros = [];
             } finally {
-                this.loadingListar = false;
+                this.loadingNumeros = false;
             }
         },
         async listarSaludos() {
-            if (this.loadingListar) return;
-            this.loadingListar = true;
+            if (this.loadingSaludos) return;
+            this.loadingSaludos = true;
+            this.errorSaludos = '';
             try {
                 const res = await axios.get("/api/config-whatsapp");
                 safeDestroyDataTable(this.$refs.dtSaludos || "#tblWhatsappSaludos");
@@ -560,10 +700,11 @@ export default {
                     }
                 });
             } catch (error) {
+                this.errorSaludos = error?.response?.data?.message || "No fue posible cargar los saludos.";
                 handleAxiosErrorToast(error, "No fue posible listar saludos.");
                 this.registrosSaludos = [];
             } finally {
-                this.loadingListar = false;
+                this.loadingSaludos = false;
             }
         },
         async listarSedes() {
@@ -584,6 +725,28 @@ export default {
         },
         async guardarRegistro() {
             if (this.loadingGuardar) return;
+            this.errores = {};
+
+            if (this.tabActivo === 'numeros') {
+                const errs = {};
+                if (!this.form.sede_id) errs.sede_id = ['La sede es obligatoria.'];
+                if (!this.form.phone_number_id) errs.phone_number_id = ['El Phone Number ID es obligatorio.'];
+                if (!this.form.numero) errs.numero = ['El número es obligatorio.'];
+                if (Object.keys(errs).length > 0) {
+                    this.errores = errs;
+                    return;
+                }
+            } else if (this.tabActivo === 'saludos') {
+                const errs = {};
+                if (!this.form.mensaje_bienvenida || !this.form.mensaje_bienvenida.trim()) {
+                    errs.mensaje_bienvenida = ['El mensaje de bienvenida es obligatorio.'];
+                }
+                if (Object.keys(errs).length > 0) {
+                    this.errores = errs;
+                    return;
+                }
+            }
+
             this.loadingGuardar = true;
             try {
                 const payload = {
@@ -607,7 +770,7 @@ export default {
                             hideAfter: 3500,
                             stack: 6
                         });
-                        this.btnCerrarModalForm();
+                        this.cerrarFormSidebar();
                         this.limpiar();
                     }
                 } else {
@@ -623,7 +786,7 @@ export default {
                             hideAfter: 3500,
                             stack: 6
                         });
-                        this.btnCerrarModalForm();
+                        this.cerrarFormSidebar();
                         this.limpiar();
                     }
                 }
@@ -713,14 +876,18 @@ export default {
         },
         btnCerrarModalForm() {
             $(".right-sidebar").slideDown(50);
-            $(".right-sidebar").toggleClass("shw-rside");
+            $(".right-sidebar").addClass("shw-rside");
+        },
+        cerrarFormSidebar() {
+            $(".right-sidebar").slideUp(50);
+            $(".right-sidebar").removeClass("shw-rside");
         },
 
         async cargarServiciosProductos() {
             this.loadingServiciosProductos = true;
             this.errorServiciosProductos = '';
             try {
-                const res = await axios.get('/api/config-servicio-citas/mis-servicios');
+                const res = await axios.get('/api/config-servicio-citas');
                 this.serviciosProductos = res.data;
                 if (this.serviciosProductos.length > 0) {
                     this.seleccionarServicio(this.serviciosProductos[0]);
@@ -828,6 +995,46 @@ export default {
                 this.cargarServiciosProductos();
             } catch (error) {
                 handleAxiosErrorToast(error, 'No fue posible eliminar el producto.');
+            }
+        },
+
+        abrirProbarEnvio() {
+            this.testPhoneNumber = '';
+            this.testResultado = null;
+            $('#modalProbarEnvio').modal('show');
+        },
+
+        mostrarPreviewSaludo() {
+            if (!this.form.mensaje_bienvenida) return;
+            this.previewMensaje = this.form.mensaje_bienvenida
+                .replace(/\$\{num_docu_paciente\}/g, '1234567890')
+                .replace(/\$\{nom_paciente\}/g, 'Paciente')
+                .replace(/\$\{cod_cups\}/g, 'CUPS001')
+                .replace(/\$\{nom_produc\}/g, 'Nombre del producto');
+            $('#modalPreviewSaludo').modal('show');
+        },
+
+        async probarEnvio() {
+            if (!this.testPhoneNumber || this.loadingTestEnvio) return;
+            this.loadingTestEnvio = true;
+            this.testResultado = null;
+            try {
+                const res = await axios.post('/api/citas/test/enviar', {
+                    phone: this.testPhoneNumber,
+                });
+                this.testResultado = {
+                    ok: true,
+                    mensaje: res.data?.message || 'Mensaje enviado correctamente.',
+                };
+            } catch (error) {
+                const msg = error?.response?.data?.message || error.message || 'Error al enviar el mensaje.';
+                this.testResultado = {
+                    ok: false,
+                    mensaje: msg,
+                };
+                handleAxiosErrorToast(error, 'No fue posible enviar el mensaje de prueba.');
+            } finally {
+                this.loadingTestEnvio = false;
             }
         },
     },

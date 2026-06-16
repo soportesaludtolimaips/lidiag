@@ -52,6 +52,8 @@ import configSedeComponent from "./components/modulos/configuracion/configSedeCo
 app.component("ConfigSedeComponent", configSedeComponent);
 import configWhatsappComponent from "./components/modulos/configuracion/configWhatsappComponent.vue";
 app.component("ConfigWhatsappComponent", configWhatsappComponent);
+import configCitaRechazoMotivoComponent from "./components/modulos/configuracion/configCitaRechazoMotivoComponent.vue";
+app.component("ConfigCitaRechazoMotivoComponent", configCitaRechazoMotivoComponent);
 import configServicioCitaComponent from "./components/modulos/configuracion/configServicioCitaComponent.vue";
 app.component("ConfigServicioCitaComponent", configServicioCitaComponent);
 import configServicioProductoComponent from "./components/modulos/configuracion/configServicioProductoComponent.vue";

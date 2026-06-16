@@ -227,6 +227,10 @@ Route::view('/config-whatsapp-listar', 'modulos.configuracion.config-whatsapp')
     ->name('config.whatsapp.listar')
     ->middleware(['auth', 'permission:config.whatsapp.saludo.index']);
 
+Route::view('/config-cita-rechazo-motivos', 'modulos.configuracion.config-cita-rechazo-motivo')
+    ->name('config.cita.rechazo.motivos')
+    ->middleware(['auth', 'permission:citas.index']);
+
 /**
  * Configuración Helpdesk
  */

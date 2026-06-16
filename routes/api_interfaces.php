@@ -20,7 +20,8 @@ use Illuminate\Support\Facades\Route;
  */
 
 Route::post('/tele-radiologia-recibir-lectura', [TeleRadiologiaController::class, 'recibirLectura'])
-    ->name('api.tele.radiologia.recibir.lectura');
+    ->name('api.tele.radiologia.recibir.lectura')
+    ->middleware('tele.hmac');
 
 Route::middleware(['auth'])->group(function () {
     /*

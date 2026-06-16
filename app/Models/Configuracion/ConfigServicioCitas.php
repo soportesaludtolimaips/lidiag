@@ -12,8 +12,15 @@ class ConfigServicioCitas extends Model
 
     protected $table = 'config_servicio_citas';
 
+    public function sede()
+    {
+        return $this->belongsTo(ConfigSede::class, 'sede_id');
+    }
+
+
     protected $fillable = [
         'nombre',
+        'sede_id',
         'estado',
     ];
 

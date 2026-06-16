@@ -41,12 +41,19 @@
                             <span class="hide-menu">Configuraciones</span>
                         </a>
                         <ul aria-expanded="false" class="collapse">
-                            <li><router-link to="/configAdminSalud">Admin. De Salud uuuuuuuuuuuuu</router-link></li>
-                            <li><router-link to="/configDiagnosticos">Díagnosticos</router-link></li>
+                            <li><router-link to="/configAdminSalud">Admin. De Salud</router-link></li>
+                            <li><router-link to="/configDiagnosticos">Diagnosticos</router-link></li>
                             <li><router-link to="/configPrioridades">Prioridades</router-link></li>
                             <li><router-link to="/configProductos">Productos</router-link></li>
                             <li><router-link to="/configSedes">Sedes</router-link></li>
+                            <li><router-link to="/configServicioCitas">Servicios de Citas</router-link></li>
+                            <li><router-link to="/configServicioProducto">Productos por Servicio</router-link></li>
                             <li><router-link to="/config.tipos.plantillas.listar">Tipos de Plantillas</router-link></li>
+                            <li><router-link to="/configPlantillas">Plantillas</router-link></li>
+                            <li><router-link to="/configTiposDocumentos">Tipos de Documentos</router-link></li>
+                            <li><router-link to="/configConsentimientoInformado">Consentimiento Informado</router-link></li>
+                            <li><router-link to="/configWhatsapp">WhatsApp Bot</router-link></li>
+                            <li><router-link to="/configCitaRechazoMotivos">Motivos de Rechazo</router-link></li>
                         </ul>
                     </li>
                     <li>
