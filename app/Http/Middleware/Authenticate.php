@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Illuminate\Auth\Middleware\Authenticate as Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class Authenticate extends Middleware
 {
@@ -34,14 +35,29 @@ class Authenticate extends Middleware
     {
         if ($request->is('api/*') || $request->expectsJson()) {
             $sessionExists = false;
+            $sessionData = null;
             if (session()->isStarted()) {
                 try {
-                    $sessionExists = DB::table('sessions')
+                    $sessionData = DB::table('sessions')
                         ->where('id', session()->getId())
-                        ->exists();
+                        ->first();
+                    $sessionExists = (bool) $sessionData;
                 } catch (\Throwable $e) {
                     $sessionExists = false;
                 }
+            }
+
+            if ($sessionExists && $sessionData && $sessionData->user_id) {
+                Log::warning('SESION_EXPIRADA', [
+                    'user_id' => $sessionData->user_id,
+                    'session_id' => session()->getId(),
+                    'ultima_actividad' => $sessionData->last_activity
+                        ? date('Y-m-d H:i:s', $sessionData->last_activity)
+                        : null,
+                    'url' => $request->fullUrl(),
+                    'ip' => $request->ip(),
+                    'fecha' => now()->toDateTimeString(),
+                ]);
             }
 
             logger()->warning('401 - Request no autenticado', [
