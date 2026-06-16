@@ -71,8 +71,11 @@
                                         <td>{{ item.name }}</td>
                                         <td>{{ item.email }}</td>
                                         <td>
-                                            <span class="label label-success" v-if="item.firma != null">Si</span>
-                                            <span class="label label-danger" v-if="item.firma === null">No</span>
+                                            <img v-if="item.firma" :src="'/' + item.firma"
+                                                alt="Firma" :title="'Firma de ' + item.name"
+                                                height="30" style="cursor: pointer; max-width: 100px; object-fit: contain;"
+                                                @click="ampliarFirma(item.firma, item.name)">
+                                            <span class="label label-danger" v-else>No</span>
                                         </td>
                                         <td>
                                             <span class="badge badge-info m-1" v-for="mod in item.modulos"
@@ -425,6 +428,24 @@
         <!-- ============================================================== -->
         <!-- End Right sidebar -->
         <!-- ============================================================== -->
+
+        <!-- Modal ampliar firma -->
+        <div class="modal fade" id="modalAmpliarFirma" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Firma — {{ firmaAmpliadaNombre }}</h4>
+                        <button type="button" class="close" @click="cerrarModalFirma" aria-hidden="true">&times;</button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img v-if="firmaAmpliadaSrc" :src="firmaAmpliadaSrc" alt="Firma" style="max-width: 100%; max-height: 300px;">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-inverse" @click="cerrarModalFirma">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -461,6 +482,8 @@ export default {
             loadingGuardar: false,
             loadingEstadoId: null,
             loadingEliminarId: null,
+            firmaAmpliadaSrc: '',
+            firmaAmpliadaNombre: '',
         };
     },
     methods: {
@@ -737,6 +760,14 @@ export default {
             }
 
             this.btnCerralModalForm();
+        },
+        ampliarFirma(firma, nombre) {
+            this.firmaAmpliadaSrc = '/' + firma;
+            this.firmaAmpliadaNombre = nombre || 'Firma';
+            $('#modalAmpliarFirma').modal('show');
+        },
+        cerrarModalFirma() {
+            $('#modalAmpliarFirma').modal('hide');
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);

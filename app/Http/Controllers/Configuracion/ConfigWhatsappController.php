@@ -69,4 +69,33 @@ class ConfigWhatsappController extends Controller
 
         return response()->json(['message' => 'Configuración eliminada correctamente.']);
     }
+
+    public function buscar(Request $request)
+    {
+        $request->validate([
+            'sede_id' => 'nullable|exists:config_sedes,id',
+            'servicio_cita_id' => 'nullable|exists:config_servicio_citas,id',
+        ]);
+
+
+        $config = ConfigWhatsapp::paraSedeYservicio(
+            $request->sede_id,
+            $request->servicio_cita_id
+        )->first();
+
+        if (! $config) {
+            return response()->json([
+                'found' => false,
+                'mensaje_bienvenida' => "📄 *Bienvenido al sistema de citas de Salud Tolima*\n\nPor favor, ingrese su *número de documento*:",
+            ]);
+        }
+
+        return response()->json([
+            'found' => true,
+            'id' => $config->id,
+            'sede_id' => $config->sede_id,
+            'servicio_cita_id' => $config->servicio_cita_id,
+            'mensaje_bienvenida' => $config->mensaje_bienvenida,
+        ]);
+    }
 }

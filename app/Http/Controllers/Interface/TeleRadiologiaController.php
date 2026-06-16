@@ -264,7 +264,7 @@ class TeleRadiologiaController extends Controller
         if ($firmaRaw && strlen($firmaRaw) > 100) {
             try {
                 // Extraer extensión y limpiar base64
-                $extension = 'png'; // Valor por defecto
+                $extension = 'png';
                 if (preg_match('/^data:image\/(\w+);base64,/', $firmaRaw, $type)) {
                     $extension = strtolower($type[1]);
                     $firmaRaw = substr($firmaRaw, strpos($firmaRaw, ',') + 1);
@@ -273,10 +273,21 @@ class TeleRadiologiaController extends Controller
                 $imgData = base64_decode($firmaRaw);
 
                 if ($imgData) {
-                    // --- LÓGICA DE SUSTITUCIÓN ---
-                    // Si el médico ya tenía una ruta de firma guardada, eliminamos el archivo físico
-                    if ($medico->firma && Storage::disk('firmas_medicos')->exists($medico->firma)) {
-                        Storage::disk('firmas_medicos')->delete($medico->firma);
+                    // No re-guardar si la firma es idéntica a la actual
+                    $nuevoHash = md5($imgData);
+                    $archivoActual = $medico->firma ? basename($medico->firma) : null;
+                    $rutaActual = $archivoActual ? Storage::disk('firmas_medicos')->path($archivoActual) : null;
+                    $hashActual = $rutaActual && file_exists($rutaActual) ? md5_file($rutaActual) : null;
+
+                    if ($nuevoHash === $hashActual) {
+                        $medico->save();
+
+                        return $medico;
+                    }
+
+                    // Eliminar archivo físico anterior
+                    if ($archivoActual && Storage::disk('firmas_medicos')->exists($archivoActual)) {
+                        Storage::disk('firmas_medicos')->delete($archivoActual);
                     }
 
                     // Generar nombre aleatorio de 50 caracteres

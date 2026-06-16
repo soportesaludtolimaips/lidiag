@@ -43,4 +43,21 @@ class ConfigWhatsapp extends Model
     {
         return $query->where('servicio_cita_id', $servicioCitaId);
     }
+
+    public function scopeParaSedeYservicio($query, $sedeId, $servicioId)
+    {
+        return $query->where('activo', true)
+            ->where(function ($q) use ($sedeId) {
+                $q->where('sede_id', $sedeId)->orWhereNull('sede_id');
+            })
+            ->where(function ($q) use ($servicioId) {
+                $q->where('servicio_cita_id', $servicioId)->orWhereNull('servicio_cita_id');
+            })
+            ->orderByRaw('CASE
+                WHEN sede_id IS NOT NULL AND servicio_cita_id IS NOT NULL THEN 0
+                WHEN sede_id IS NOT NULL AND servicio_cita_id IS NULL THEN 1
+                WHEN sede_id IS NULL AND servicio_cita_id IS NOT NULL THEN 2
+                ELSE 3 END')
+            ->orderBy('id');
+    }
 }

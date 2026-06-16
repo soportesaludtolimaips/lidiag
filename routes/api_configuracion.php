@@ -154,7 +154,28 @@ Route::middleware(['auth'])->group(function () {
         ->name('api.config.servicio.producto.no_vinculados');
 
     // Configuración WhatsApp Bot (saludos por sede/servicio)
-    Route::apiResource('/config-whatsapp', \App\Http\Controllers\Configuracion\ConfigWhatsappController::class)
-        ->names('api.config.whatsapp')
-        ->except(['create', 'edit']);
+    Route::get('/config-whatsapp/buscar', [\App\Http\Controllers\Configuracion\ConfigWhatsappController::class, 'buscar'])
+        ->name('api.config.whatsapp.buscar');
+
+    // Protegemos store/update/destroy con permisos
+    Route::post('/config-whatsapp', [\App\Http\Controllers\Configuracion\ConfigWhatsappController::class, 'store'])
+        ->name('api.config.whatsapp.store')
+        ->middleware('permission:config.whatsapp.saludo.create,web');
+
+    Route::put('/config-whatsapp/{id}', [\App\Http\Controllers\Configuracion\ConfigWhatsappController::class, 'update'])
+        ->name('api.config.whatsapp.update')
+        ->middleware('permission:config.whatsapp.saludo.edit,web');
+
+    Route::delete('/config-whatsapp/{id}', [\App\Http\Controllers\Configuracion\ConfigWhatsappController::class, 'destroy'])
+        ->name('api.config.whatsapp.destroy')
+        ->middleware('permission:config.whatsapp.saludo.destroy,web');
+
+    // Index y show son de lectura (permiso index)
+    Route::get('/config-whatsapp', [\App\Http\Controllers\Configuracion\ConfigWhatsappController::class, 'index'])
+        ->name('api.config.whatsapp.index')
+        ->middleware('permission:config.whatsapp.saludo.index,web');
+
+    Route::get('/config-whatsapp/{id}', [\App\Http\Controllers\Configuracion\ConfigWhatsappController::class, 'show'])
+        ->name('api.config.whatsapp.show')
+        ->middleware('permission:config.whatsapp.saludo.index,web');
 });

@@ -3,8 +3,6 @@
 use App\Http\Controllers\OHIF_visor\OhifVisorController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Throwable;
-
 /*
 |--------------------------------------------------------------------------
 | API Routes

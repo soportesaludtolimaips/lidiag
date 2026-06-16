@@ -96,7 +96,7 @@ class AgendaCitaController extends Controller
         $cita = AgendaCita::create([
             'paciente_id' => $paciente->id,
             'servicio_cita_id' => $request->servicio_cita_id,
-            'quien_registra_id' => Auth::id(),
+            'quien_registro_id' => Auth::id(),
             'numero_orden' => $request->numero_orden,
             'numero_autorizacion' => $request->numero_autorizacion,
             'estado' => 'solicitada',

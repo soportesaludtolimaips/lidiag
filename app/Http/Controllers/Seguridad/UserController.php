@@ -200,8 +200,11 @@ class UserController extends Controller
 
             $archivo = $request->firma;
 
-            if (! is_null($seguridad_usuario->firma) && Storage::disk('firmas_medicos')->exists($seguridad_usuario->firma)) {
-                Storage::disk('firmas_medicos')->delete($seguridad_usuario->firma);
+            if (! is_null($seguridad_usuario->firma)) {
+                $antiguo = basename($seguridad_usuario->firma);
+                if (Storage::disk('firmas_medicos')->exists($antiguo)) {
+                    Storage::disk('firmas_medicos')->delete($antiguo);
+                }
             }
 
             $nombreEncrip = Str::random(50) . "." . $archivo->extension();
@@ -348,8 +351,11 @@ class UserController extends Controller
 
             $archivo = $request->firma;
 
-            if (! is_null($seguridad_usuario->firma) && Storage::disk('firmas_medicos')->exists($seguridad_usuario->firma)) {
-                Storage::disk('firmas_medicos')->delete($seguridad_usuario->firma);
+            if (! is_null($seguridad_usuario->firma)) {
+                $antiguo = basename($seguridad_usuario->firma);
+                if (Storage::disk('firmas_medicos')->exists($antiguo)) {
+                    Storage::disk('firmas_medicos')->delete($antiguo);
+                }
             }
 
             $nombreEncrip = Str::random(50) . "." . $archivo->extension();
@@ -442,13 +448,9 @@ class UserController extends Controller
         // Limpieza best-effort de archivos
         try {
             if (! is_null($user->firma)) {
-                if (Storage::disk('firmas_medicos')->exists($user->firma)) {
-                    Storage::disk('firmas_medicos')->delete($user->firma);
-                } else {
-                    $base = basename($user->firma);
-                    if (Storage::disk('firmas_medicos')->exists($base)) {
-                        Storage::disk('firmas_medicos')->delete($base);
-                    }
+                $antiguo = basename($user->firma);
+                if (Storage::disk('firmas_medicos')->exists($antiguo)) {
+                    Storage::disk('firmas_medicos')->delete($antiguo);
                 }
             }
         } catch (\Exception $e) {
@@ -456,13 +458,9 @@ class UserController extends Controller
 
         try {
             if (! is_null($user->imagen_perfil)) {
-                if (Storage::disk('avatars')->exists($user->imagen_perfil)) {
-                    Storage::disk('avatars')->delete($user->imagen_perfil);
-                } else {
-                    $base = basename($user->imagen_perfil);
-                    if (Storage::disk('avatars')->exists($base)) {
-                        Storage::disk('avatars')->delete($base);
-                    }
+                $antiguo = basename($user->imagen_perfil);
+                if (Storage::disk('avatars')->exists($antiguo)) {
+                    Storage::disk('avatars')->delete($antiguo);
                 }
             }
         } catch (\Exception $e) {

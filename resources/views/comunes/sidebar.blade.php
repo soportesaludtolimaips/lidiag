@@ -362,6 +362,13 @@
                                         </a>
                                     </li>
                                 @endcan
+                                @can('citas.index')
+                                    <li>
+                                        <a href="{{ route('config.cita.rechazo.motivos') }}">
+                                            <i class="fa fa-ban text-info"></i> Motivos de Rechazo
+                                        </a>
+                                    </li>
+                                @endcan
 
                                 @if (auth()->user()->hasAnyPermission(['helpdesk.config.categorias.index', 'helpdesk.config.prioridades.index', 'helpdesk.config.estados.index']))
                                     <li class="nav-small-cap">--- Helpdesk</li>
