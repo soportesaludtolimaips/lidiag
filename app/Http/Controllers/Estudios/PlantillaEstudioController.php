@@ -122,7 +122,7 @@ class PlantillaEstudioController extends Controller
         $plantilla_rxPdf = $this->convertDocxToPdf($nomArchivo);
         if ($plantilla_rxPdf === true) {
 
-            unlink($outputPath);
+            //unlink($outputPath);
 
             return response()->json(
                 [
