@@ -115,7 +115,14 @@ class PlantillaEstudioController extends Controller
         $plantilla_rxPdf = $this->convertDocxToPdf($nomArchivo);
         if ($plantilla_rxPdf === true) {
 
-            unlink($outputPath);
+            // Esperar a que LibreOffice libere el archivo antes de eliminar
+            $maxAttempts = 5;
+            for ($attempt = 0; $attempt < $maxAttempts; $attempt++) {
+                if (@unlink($outputPath) !== false) {
+                    break;
+                }
+                usleep(250000); // 250ms
+            }
 
             return response()->json(
                 [
