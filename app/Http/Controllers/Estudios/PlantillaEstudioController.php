@@ -35,11 +35,11 @@ class PlantillaEstudioController extends Controller
          */
         $sede = ConfigSede::find($request->sede_id);
         if (! $sede->plantilla_rx) {
-            return response()->json(['message' => 'La plantilla_rx para la sede '.$sede->nom_sede.' no está  configurada, por favor consulte con el administrador del sistema'], 402);
+            return response()->json(['message' => 'La plantilla_rx para la sede ' . $sede->nom_sede . ' no está  configurada, por favor consulte con el administrador del sistema'], 402);
         }
 
         // Ruta del archivo de plantilla_rx
-        $filePath = storage_path('app/plantillas_lecturas/'.$sede->plantilla_rx);
+        $filePath = storage_path('app/plantillas_lecturas/' . $sede->plantilla_rx);
 
         // Cargar el archivo de plantilla_rx
         $templateProcessor = new TemplateProcessor($filePath);
@@ -97,17 +97,10 @@ class PlantillaEstudioController extends Controller
         $templateProcessor->setValue('reg_medico', $request->reg_medico);
         $templateProcessor->setValue('num_docu_medico', $request->num_docu_medico);
 
-        // Manejar la carga de la imagen
-        \Log::info('DEBUG FIRMA', [
-            'nombres_medico' => $request->nombres_medico,
-            'firma_medico' => $request->firma_medico,
-            'path_resuelto' => $request->firma_medico ? storage_path('app/'.$request->firma_medico) : null,
-            'existe' => $request->firma_medico ? (file_exists(storage_path('app/'.$request->firma_medico)) ? 'SI' : 'NO') : 'N/A',
-        ]);
         if ($request->firma_medico) {
             // Insertar la imagen en el archivo de Word
             $templateProcessor->setImageValue('firma_medico', [
-                'path' => storage_path('app/'.$request->firma_medico),
+                'path' => storage_path('app/' . $request->firma_medico),
                 'width' => 100,
                 'height' => 100,
                 'ratio' => false,
@@ -115,8 +108,8 @@ class PlantillaEstudioController extends Controller
         }
 
         // Ruta para guardar el archivo editado
-        $nomArchivo = $request->estudio_producto_id."-".$request->num_docu."-".$nombrePaciente;
-        $outputPath = storage_path('app/reporte_lecturas/'.$nomArchivo.'.docx');
+        $nomArchivo = $request->estudio_producto_id . "-" . $request->num_docu . "-" . $nombrePaciente;
+        $outputPath = storage_path('app/reporte_lecturas/' . $nomArchivo . '.docx');
         $templateProcessor->saveAs($outputPath);
 
         $plantilla_rxPdf = $this->convertDocxToPdf($nomArchivo);
@@ -127,7 +120,7 @@ class PlantillaEstudioController extends Controller
             return response()->json(
                 [
                     'messaje' => 'Plantilla creada correctament',
-                    'plantilla' => $nomArchivo.".pdf",
+                    'plantilla' => $nomArchivo . ".pdf",
                 ],
                 200
             );
@@ -146,11 +139,11 @@ class PlantillaEstudioController extends Controller
     public function convertDocxToPdf($nomPlantilla): bool
     {
         // Rutas de los archivos de entrada y salida
-        $sourceFile = storage_path('app/reporte_lecturas/'.$nomPlantilla.'.docx');
-        $destinationFile = storage_path('app/reporte_lecturas/'.$nomPlantilla.'.pdf');
+        $sourceFile = storage_path('app/reporte_lecturas/' . $nomPlantilla . '.docx');
+        $destinationFile = storage_path('app/reporte_lecturas/' . $nomPlantilla . '.pdf');
 
         // Comando para convertir el archivo .docx a PDF utilizando unoconv
-        $command = escapeshellcmd('C:\unoconv\unoconv -f pdf -o '.escapeshellarg($destinationFile).' '.escapeshellarg($sourceFile));
+        $command = escapeshellcmd('C:\unoconv\unoconv -f pdf -o ' . escapeshellarg($destinationFile) . ' ' . escapeshellarg($sourceFile));
 
         // Ejecutar el comando
         $output = shell_exec($command);
@@ -158,7 +151,7 @@ class PlantillaEstudioController extends Controller
         // Verificar si la conversión fue exitosa
         if (! file_exists($destinationFile)) {
             // Registrar el error
-            \Log::error('Error converting DOCX to PDF: '.$output);
+            \Log::error('Error converting DOCX to PDF: ' . $output);
 
             return false;
         }
