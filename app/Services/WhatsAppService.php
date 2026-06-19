@@ -113,13 +113,30 @@ class WhatsAppService
     {
         $fecha = $cita->fecha_hora_inicio->format('d/m/Y');
         $hora = $cita->fecha_hora_inicio->format('H:i');
-        $sede = $cita->sede?->nombre ?? 'Sede principal';
+        $sede = $cita->sede?->nom_sede ?? 'Sede principal';
 
         $mensaje = "⏰ *Recordatorio de Cita*\n\n";
         $mensaje .= "Su cita está programada para mañana.\n\n";
         $mensaje .= "📅 *Fecha:* {$fecha}\n";
         $mensaje .= "🕐 *Hora:* {$hora}\n";
         $mensaje .= "🏥 *Sede:* {$sede}\n\n";
+        $mensaje .= "Si necesita reprogramar, comuníquese con nosotros.";
+
+        return $this->enviarMensaje($cita->paciente?->cel ?? '', $mensaje);
+    }
+
+    public function enviarRecordatorio2h(AgendaCita $cita): array
+    {
+        $fecha = $cita->fecha_hora_inicio->format('d/m/Y');
+        $hora = $cita->fecha_hora_inicio->format('H:i');
+        $sede = $cita->sede?->nom_sede ?? 'Sede principal';
+
+        $mensaje = "⏰ *Recordatorio de Cita*\n\n";
+        $mensaje .= "Su cita está programada para dentro de aproximadamente 2 horas.\n\n";
+        $mensaje .= "📅 *Fecha:* {$fecha}\n";
+        $mensaje .= "🕐 *Hora:* {$hora}\n";
+        $mensaje .= "🏥 *Sede:* {$sede}\n\n";
+        $mensaje .= "Por favor, llegue con 15 minutos de anticipación.\n";
         $mensaje .= "Si necesita reprogramar, comuníquese con nosotros.";
 
         return $this->enviarMensaje($cita->paciente?->cel ?? '', $mensaje);

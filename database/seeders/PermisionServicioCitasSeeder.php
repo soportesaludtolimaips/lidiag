@@ -16,6 +16,7 @@ class PermisionServicioCitasSeeder extends Seeder
         $estad = Role::firstOrCreate(['name' => 'Estadistico']);
 
         $perms = [
+            ['name' => 'citas.index', 'roles' => [$admin, $aux, $trans, $estad]],
             ['name' => 'config.servicio.citas.index', 'roles' => [$admin, $aux, $trans, $estad]],
             ['name' => 'config.servicio.citas.create', 'roles' => [$admin]],
             ['name' => 'config.servicio.citas.edit', 'roles' => [$admin]],

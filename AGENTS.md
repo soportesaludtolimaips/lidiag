@@ -81,7 +81,7 @@ php artisan sync-usuarios              # SAHI users + ecografía templates
 
 ## Citas + WhatsApp Bot
 
-The bot flow is: `servicio → documento →orden → autorización → confirmar`
+The bot flow is: `documento → sede → servicio → dirección → teléfono1 → teléfono2 → fotos cédula → orden → autorización → confirmar`
 
 ### Endpoints
 - `/api/citas` - Full CRUD
@@ -101,7 +101,7 @@ php artisan citas:notificar  # Daily at 8am - sends reminders
 - `whatsapp_conversations` - Bot conversation state
 
 ### WhatsApp Flow States
-`inicio → seleccionar_servicio → pedir_documento → pedir_orden → pedir_autorizacion → confirmar_solicitud`
+`inicio → pedir_documento → seleccionar_sede → seleccionar_servicio → pedir_dirección → confirmar_dirección → pedir_telefono1 → pedir_telefono2 → pedir_foto_cedula_frente → pedir_foto_cedula_dorso → pedir_orden → pedir_autorización → confirmar_solicitud`
 
 ### Gotchas
 

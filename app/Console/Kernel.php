@@ -22,6 +22,10 @@ class Kernel extends ConsoleKernel
             ->dailyAt('08:00')
             ->withoutOverlapping();
 
+        $schedule->command('citas:notificar-2h')
+            ->everyTenMinutes()
+            ->withoutOverlapping();
+
         $schedule->command('sessions:prune --hours=24')
             ->hourly()
             ->withoutOverlapping();

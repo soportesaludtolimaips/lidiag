@@ -26,11 +26,12 @@ class CitasNotificarCommand extends Command
 
         $citas = AgendaCita::whereIn('estado', ['asignada', 'confirmada'])
             ->whereDate('fecha_hora_inicio', now()->addDay()->toDateString())
+            ->where('recordatorio_24h_enviado', false)
             ->with(['paciente', 'sede'])
             ->get();
 
         if ($citas->isEmpty()) {
-            $this->info('No hay citas para mañana.');
+            $this->info('No hay citas para mañana pendientes de notificar.');
 
             return 0;
         }
@@ -48,8 +49,9 @@ class CitasNotificarCommand extends Command
                     $cita->update([
                         'whatsapp_estado' => 'sent',
                         'whatsapp_mid' => $resultado['message_id'],
+                        'recordatorio_24h_enviado' => true,
                     ]);
-                    $this->info("Recordatorio enviado a cita #{$cita->id}");
+                    $this->info("Recordatorio 24h enviado a cita #{$cita->id}");
                     $enviados++;
                 } else {
                     $cita->update(['whatsapp_estado' => 'failed']);

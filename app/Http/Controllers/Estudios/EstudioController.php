@@ -122,7 +122,7 @@ class EstudioController extends Controller
         // Asegurar que venga al menos un producto marcado (checked=true)
         $productosMarcados = array_values(array_filter(
             $registro['productosEstudio'] ?? [],
-            fn ($p) => isset($p['checked']) && $p['checked'] == true
+            fn($p) => isset($p['checked']) && $p['checked'] == true
         ));
         if (count($productosMarcados) === 0) {
             return response()->json(['productosEstudio' => ['Debe seleccionar al menos un producto (marcar el check).']], 400);
@@ -214,10 +214,10 @@ class EstudioController extends Controller
                 $productoDicom = ConfigProducto::where('cod_cups', $Producto['cod_cups'])->first();
 
                 if (! $productoDicom) {
-                    return response()->json(['message' => 'No se encontró el producto con código CUPS '.$Producto['cod_cups'].' en la base de datos.'], 400);
+                    return response()->json(['message' => 'No se encontró el producto con código CUPS ' . $Producto['cod_cups'] . ' en la base de datos.'], 400);
                 }
                 if ((int) $productoDicom->requi_lectura === 0) {
-                    return response()->json(['message' => 'El producto '.$productoDicom->nom_produc.' no requiere lectura.'], 400);
+                    return response()->json(['message' => 'El producto ' . $productoDicom->nom_produc . ' no requiere lectura.'], 400);
                 }
 
                 EstudioProducto::create([
@@ -265,7 +265,7 @@ class EstudioController extends Controller
      */
     public function procesarArchivo($archivo, $estudioId)
     {
-        $nombreEncrip = Str::random(50).".".$archivo->extension();
+        $nombreEncrip = Str::random(50) . "." . $archivo->extension();
         $nombreOriginal = $archivo->getClientOriginalName();
 
         $archivoSoporteHC = new EstudioSoportesHC;
@@ -535,7 +535,7 @@ class EstudioController extends Controller
             ->when($request->bus_nom_num_docu, function ($query, $bus_nom_num_docu) {
                 return $query->where(function ($q) use ($bus_nom_num_docu) {
                     $q->where('pacien.num_docu', $bus_nom_num_docu)
-                        ->orWhere('pacien.nombres', 'LIKE', '%'.$bus_nom_num_docu.'%');
+                        ->orWhere('pacien.nombres', 'LIKE', '%' . $bus_nom_num_docu . '%');
                 });
             })
             ->when($request->quien_asigno_id, function ($query, $quien_asigno_id) {
@@ -622,7 +622,7 @@ class EstudioController extends Controller
             ->when($request->bus_nom_num_docu, function ($query, $bus_nom_num_docu) {
                 return $query->where(function ($q) use ($bus_nom_num_docu) {
                     $q->where('pacien.num_docu', $bus_nom_num_docu)
-                        ->orWhere('pacien.nombres', 'LIKE', '%'.$bus_nom_num_docu.'%');
+                        ->orWhere('pacien.nombres', 'LIKE', '%' . $bus_nom_num_docu . '%');
                 });
             })
             ->when($request->quien_asigno_id, function ($query, $quien_asigno_id) {
@@ -657,113 +657,113 @@ class EstudioController extends Controller
     public function guardarTranscripcion(Request $request)
     {
         return DB::transaction(function () use ($request) {
-        /**
-         * Si la sede donde se realizó el estudio tiene interface hago el envio del reporte a la HC del hospital
-         */
-        $sede = ConfigSede::findOrfail($request->sede_id);
-        if ($sede->interface_software === 'SAHI') {
+            /**
+             * Si la sede donde se realizó el estudio tiene interface hago el envio del reporte a la HC del hospital
+             */
+            $sede = ConfigSede::findOrfail($request->sede_id);
+            if ($sede->interface_software === 'SAHI') {
 
-            $medico = User::find($request->medico_id);
-            if (! $medico->interface_id) {
-                return response()->json(['message' => 'El medico '.$medico->name.' no está registrado en SAHI'], 400);
+                $medico = User::find($request->medico_id);
+                if (! $medico->interface_id) {
+                    return response()->json(['message' => 'El medico ' . $medico->name . ' no está registrado en SAHI'], 400);
+                }
             }
-        }
 
-        $validator = Validator::make($request->all(), [
-            'estudio_producto_id' => 'required|integer|exists:estudios_productos,id',
-            'id_estudio' => 'nullable|integer',
-            'lectura' => 'required|string|min:3',
-            'num_docu' => 'required|string|max:50',
-            'nom_pacien' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'tel' => 'nullable|string|max:50',
-            'sede_id' => 'required|integer|exists:config_sedes,id',
-            'cod_cups' => 'required|string|max:50',
-            'nom_produc' => 'required|string|max:255',
-            'medico_id' => 'nullable|integer',
-        ], [
-            'lectura.required' => 'Debe ingresar la lectura.',
-        ]);
+            $validator = Validator::make($request->all(), [
+                'estudio_producto_id' => 'required|integer|exists:estudios_productos,id',
+                'id_estudio' => 'nullable|integer',
+                'lectura' => 'required|string|min:3',
+                'num_docu' => 'required|string|max:50',
+                'nom_pacien' => 'required|string|max:255',
+                'email' => 'nullable|email|max:255',
+                'tel' => 'nullable|string|max:50',
+                'sede_id' => 'required|integer|exists:config_sedes,id',
+                'cod_cups' => 'required|string|max:50',
+                'nom_produc' => 'required|string|max:255',
+                'medico_id' => 'nullable|integer',
+            ], [
+                'lectura.required' => 'Debe ingresar la lectura.',
+            ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
-        }
+            if ($validator->fails()) {
+                return response()->json($validator->errors(), 400);
+            }
 
-        // Completar campos esperados por plantilla/notificación
-        $request->merge([
-            'fechor_lectura' => $request->input('fechor_lectura', $request->input('fec_lectura')),
-            'fechor_trascrito' => $request->input('fechor_trascrito', Carbon::now()->format('Y-m-d H:i:s')),
-        ]);
+            // Completar campos esperados por plantilla/notificación
+            $request->merge([
+                'fechor_lectura' => $request->input('fechor_lectura', $request->input('fec_lectura')),
+                'fechor_trascrito' => $request->input('fechor_trascrito', Carbon::now()->format('Y-m-d H:i:s')),
+            ]);
 
-        /**
-         * Actualizo los datos del paciente
-         */
-        $paciente = Paciente::updateOrCreate(
-            ['num_docu' => $request->num_docu],
-            [
-                'num_docu' => $request->num_docu,
-                'nombres' => $request->nom_pacien,
-                'direccion' => $request->direccion,
-                'sexo' => $request->sexo,
-                'fec_naci' => $request->fec_naci,
-                'tel' => $request->tel,
-                'email' => $request->email,
-            ]
-        );
+            /**
+             * Actualizo los datos del paciente
+             */
+            $paciente = Paciente::updateOrCreate(
+                ['num_docu' => $request->num_docu],
+                [
+                    'num_docu' => $request->num_docu,
+                    'nombres' => $request->nom_pacien,
+                    'direccion' => $request->direccion,
+                    'sexo' => $request->sexo,
+                    'fec_naci' => $request->fec_naci,
+                    'tel' => $request->tel,
+                    'email' => $request->email,
+                ]
+            );
 
-        /**
-         * Actualizo la lectura del estudio
-         */
-        $transcribirEstudios = EstudioProducto::findOrFail($request->estudio_producto_id);
-        $transcribirEstudios->lectura = $request->lectura;
-        $transcribirEstudios->transcriptor_id = auth()->user()->id;
-        $transcribirEstudios->fechor_trascrito = Carbon::now()->format('Y-m-d H:i:s');
-        $transcribirEstudios->visto = 1;
-        $transcribirEstudios->save();
+            /**
+             * Actualizo la lectura del estudio
+             */
+            $transcribirEstudios = EstudioProducto::findOrFail($request->estudio_producto_id);
+            $transcribirEstudios->lectura = $request->lectura;
+            $transcribirEstudios->transcriptor_id = auth()->user()->id;
+            $transcribirEstudios->fechor_trascrito = Carbon::now()->format('Y-m-d H:i:s');
+            $transcribirEstudios->visto = 1;
+            $transcribirEstudios->save();
 
-        /**
-         * Si el estudio se va a enviar a Teleradiologia o Trys no se asigna medico porque se asigna en la plataforma de ellos, pero si el estudio se va a enviar a Salud Tolima se asigna el medico que realizo la lectura porque es para que el medico de Salud Tolima pueda identificar quien realizo la lectura del estudio
-         */
-        if ($request->destino_estudio === 'Tele Radiologia') {
-            $estudio = Estudio::findOrFail($request->id_estudio);
-            $estudio->medico_id = $request['medico_id'];
-            $estudio->save();
-        }
+            /**
+             * Si el estudio se va a enviar a Teleradiologia o Trys no se asigna medico porque se asigna en la plataforma de ellos, pero si el estudio se va a enviar a Salud Tolima se asigna el medico que realizo la lectura porque es para que el medico de Salud Tolima pueda identificar quien realizo la lectura del estudio
+             */
+            if ($request->destino_estudio === 'Tele Radiologia') {
+                $estudio = Estudio::findOrFail($request->id_estudio);
+                $estudio->medico_id = $request['medico_id'];
+                $estudio->save();
+            }
 
-        /**
-         * Si la sede donde se realizó el estudio tiene interface hago el envio del reporte a la HC del hospital
-         */
-        if ($sede->interface_software === 'SAHI') {
-            $transcribir = (new SAHITranscibirController)->enviarEstudio($request->atencion, $request->medico_id, $request->lectura, $request->cod_cups, $request->fec_lectura);
+            /**
+             * Si la sede donde se realizó el estudio tiene interface hago el envio del reporte a la HC del hospital
+             */
+            if ($sede->interface_software === 'SAHI') {
+                $transcribir = (new SAHITranscibirController)->enviarEstudio($request->atencion, $request->medico_id, $request->lectura, $request->cod_cups, $request->fec_lectura);
 
-            /* if ($transcribir->status() != 200) {
+                /* if ($transcribir->status() != 200) {
                 return response()->json(['message' => 'Error al enviar el reporte a la interface SAHI ' . $transcribir->message()], 400);
             } */
-        }
+            }
 
-        /**
-         * Genero el reporte de la lectura del estudio
-         * 1. Genero laplantilla .docx con la informacion de la lectura por prte del medico
-         * 2. Convierto la plantilla .docx a .pdf
-         * 3. Notificacion por correo electronico
-         */
-        $genearPlantilla = (new PlantillaEstudioController)->editWord($request);
-        if ($genearPlantilla->status() === 402) {
-            return response()->json(['message' => 'La plantilla para la sede '.$sede->nom_sede.', no está  configurada, por favor consulte con el administrador del sistema'], 402);
-        } elseif ($genearPlantilla->status() == 200) {
+            /**
+             * Genero el reporte de la lectura del estudio
+             * 1. Genero laplantilla .docx con la informacion de la lectura por prte del medico
+             * 2. Convierto la plantilla .docx a .pdf
+             * 3. Notificacion por correo electronico
+             */
+            $genearPlantilla = (new PlantillaEstudioController)->editWord($request);
+            if ($genearPlantilla->status() === 402) {
+                return response()->json(['message' => 'La plantilla para la sede ' . $sede->nom_sede . ', no está  configurada, por favor consulte con el administrador del sistema'], 402);
+            } elseif ($genearPlantilla->status() == 200) {
 
-            $notificar = (new EstudioNotificacionController)->enviarPortalPacientes($request);
+                $notificar = (new EstudioNotificacionController)->enviarPortalPacientes($request);
 
-            /* if ($notificar->status() == 200) {
+                /* if ($notificar->status() == 200) {
                 return response()->json(['message' => 'Lectura transferida correctamente'], 200);
             } else {
                 return response()->json(['message' => 'Error en la trnaferencia de la notificacion'], 400);
             } */
-        } else {
-            return response()->json(['message' => 'Error en la notificación de la lectura'], 400);
-        }
+            } else {
+                return response()->json(['message' => 'Error en la notificación de la lectura'], 400);
+            }
 
-        return response()->json(['message' => 'La transcripción se guardo correctamente.']);
+            return response()->json(['message' => 'La transcripción se guardo correctamente.']);
         });
     }
 
@@ -855,7 +855,7 @@ class EstudioController extends Controller
      */
     public function descargarPdfLectura($nomArchivo)
     {
-        $rutaArchivo = storage_path('app/reporte_lecturas/'.$nomArchivo);
+        $rutaArchivo = storage_path('app/reporte_lecturas/' . $nomArchivo);
 
         return response()->file($rutaArchivo);
     }
