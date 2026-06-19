@@ -200,7 +200,6 @@ class AgendaCitaController extends Controller
         }
 
         $this->whatsAppService->enviarConfirmacion($cita);
-        $this->enviarRecomendacionesWhatsApp($cita);
 
         return response()->json([
             'message' => 'Cita asignada y notificación enviada',

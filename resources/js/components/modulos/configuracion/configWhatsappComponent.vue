@@ -948,6 +948,7 @@ export default {
         },
 
         abrirModal() {
+            $(".right-sidebar").slideDown(50);
             $(".right-sidebar").addClass("shw-rside");
         },
 

@@ -246,8 +246,8 @@
         <div class="slimscrollright" style="overflow-x: hidden;">
             <div class="rpanel-title">
                 {{ tituloModal }}
-                <span @click="btnCerralModalForm()">
-                    <i class="ti-close right-side-toggle" id="btnCerralModalForm" @click="btnCerralModalForm()"></i>
+                <span @click="cerrarSidebar()">
+                    <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
                 </span>
             </div>
             <div class="r-panel-body">
@@ -302,7 +302,7 @@
                                         <div class="form-group">
                                             <dl>
                                                 <dt>Observaciones</dt>
-                                                {{ registro.observaciones }}
+                                                <dd>{{ registro.observaciones }}</dd>
                                             </dl>
                                         </div>
                                     </div>
@@ -474,14 +474,17 @@
                                                             </h5>
                                                             <hr>
                                                             <div v-if="audiosDeEstudio && audiosDeEstudio.length > 0">
-                                                                <div v-for="(item, index) in audiosDeEstudio" :key="item.id || index"
+                                                                <div v-for="(item, index) in audiosDeEstudio"
+                                                                    :key="item.id || index"
                                                                     class="audio-item mb-2 p-2 border rounded">
                                                                     <div class="d-flex align-items-center">
                                                                         <span class="badge mr-2"
                                                                             :class="item.tipo === 'cargado' ? 'badge-info' : 'badge-success'"
                                                                             style="min-width: 70px;">
-                                                                            <i :class="item.tipo === 'cargado' ? 'fa fa-upload' : 'fa fa-microphone'"></i>
-                                                                            {{ item.tipo === 'cargado' ? 'Cargado' : 'Grabado' }}
+                                                                            <i
+                                                                                :class="item.tipo === 'cargado' ? 'fa fa-upload' : 'fa fa-microphone'"></i>
+                                                                            {{ item.tipo === 'cargado' ? 'Cargado' :
+                                                                                'Grabado' }}
                                                                         </span>
                                                                         <audio :src="'/audios/' + item.audio" controls
                                                                             style="height: 30px; flex: 1;"></audio>
@@ -496,9 +499,11 @@
                                                                             <i v-else class="fa fa-trash"></i>
                                                                         </button>
                                                                     </div>
-                                                                    <small class="text-muted" v-if="item.nombre_original">
+                                                                    <small class="text-muted"
+                                                                        v-if="item.nombre_original">
                                                                         {{ item.nombre_original }}
-                                                                        <span v-if="item.duracion">({{ formatDuracion(item.duracion) }})</span>
+                                                                        <span v-if="item.duracion">({{
+                                                                            formatDuracion(item.duracion) }})</span>
                                                                     </small>
                                                                 </div>
                                                             </div>
@@ -512,21 +517,24 @@
                                                     <div class="row">
                                                         <div class="col-12">
                                                             <h5 class="text-primary">
-                                                                <i class="fa fa-file-audio-o"></i> Cargar Audios para Transcribir
+                                                                <i class="fa fa-file-audio-o"></i> Cargar Audios para
+                                                                Transcribir
                                                             </h5>
                                                             <hr>
 
                                                             <!-- Zona de carga -->
                                                             <div class="form-group">
-                                                                <label for="audioFileInput" class="btn btn-outline-primary btn-block">
-                                                                    <i class="fa fa-upload"></i> Seleccionar Archivos de Audio
+                                                                <label for="audioFileInput"
+                                                                    class="btn btn-outline-primary btn-block">
+                                                                    <i class="fa fa-upload"></i> Seleccionar Archivos de
+                                                                    Audio
                                                                     <span v-if="audiosSubiendo > 0" class="ml-2">
-                                                                        <i class="fa fa-spinner fa-spin"></i> Subiendo ({{ audiosSubiendo }})
+                                                                        <i class="fa fa-spinner fa-spin"></i> Subiendo
+                                                                        ({{ audiosSubiendo }})
                                                                     </span>
                                                                 </label>
                                                                 <input type="file" id="audioFileInput"
-                                                                    ref="audioFileInput"
-                                                                    multiple
+                                                                    ref="audioFileInput" multiple
                                                                     accept=".mp3,.wav,.m4a,.webm,.ogg,.flac"
                                                                     @change="handleAudioFileSelect"
                                                                     style="display: none;">
@@ -536,39 +544,44 @@
                                                             </div>
 
                                                             <!-- Lista de audios cargados pendientes -->
-                                                            <div v-if="audiosCargadosPendientes.length > 0" class="mt-3">
+                                                            <div v-if="audiosCargadosPendientes.length > 0"
+                                                                class="mt-3">
 
                                                                 <!-- Selector de modo de transcripcion -->
                                                                 <div class="form-group">
-                                                                    <label class="font-weight-bold">Modo de transcripcion:</label>
-                                                                    <div class="custom-control custom-radio custom-control-inline">
+                                                                    <label class="font-weight-bold">Modo de
+                                                                        transcripcion:</label>
+                                                                    <div
+                                                                        class="custom-control custom-radio custom-control-inline">
                                                                         <input type="radio" id="modoReemplazar"
-                                                                            name="modoTranscripcion"
-                                                                            value="reemplazar"
+                                                                            name="modoTranscripcion" value="reemplazar"
                                                                             v-model="modoTranscripcion"
                                                                             class="custom-control-input">
-                                                                        <label class="custom-control-label" for="modoReemplazar">
+                                                                        <label class="custom-control-label"
+                                                                            for="modoReemplazar">
                                                                             Reemplazar texto actual
                                                                         </label>
                                                                     </div>
-                                                                    <div class="custom-control custom-radio custom-control-inline">
+                                                                    <div
+                                                                        class="custom-control custom-radio custom-control-inline">
                                                                         <input type="radio" id="modoAgregar"
-                                                                            name="modoTranscripcion"
-                                                                            value="agregar"
+                                                                            name="modoTranscripcion" value="agregar"
                                                                             v-model="modoTranscripcion"
                                                                             class="custom-control-input">
-                                                                        <label class="custom-control-label" for="modoAgregar">
+                                                                        <label class="custom-control-label"
+                                                                            for="modoAgregar">
                                                                             Agregar al texto actual
                                                                         </label>
                                                                     </div>
                                                                 </div>
 
                                                                 <!-- Tarjetas de audio -->
-                                                                <div v-for="(audio, index) in audiosCargadosPendientes" :key="audio.id"
-                                                                    class="card mb-2 shadow-sm">
+                                                                <div v-for="(audio, index) in audiosCargadosPendientes"
+                                                                    :key="audio.id" class="card mb-2 shadow-sm">
                                                                     <div class="card-body p-2">
                                                                         <div class="d-flex align-items-center mb-1">
-                                                                            <div class="custom-control custom-checkbox mr-2">
+                                                                            <div
+                                                                                class="custom-control custom-checkbox mr-2">
                                                                                 <input type="checkbox"
                                                                                     :id="'check-audio-' + audio.id"
                                                                                     :value="audio.id"
@@ -577,26 +590,34 @@
                                                                                 <label :for="'check-audio-' + audio.id"
                                                                                     class="custom-control-label"></label>
                                                                             </div>
-                                                                            <i class="fa fa-file-audio-o text-muted mr-1"></i>
-                                                                            <strong class="mr-2 text-truncate" style="max-width: 180px;"
+                                                                            <i
+                                                                                class="fa fa-file-audio-o text-muted mr-1"></i>
+                                                                            <strong class="mr-2 text-truncate"
+                                                                                style="max-width: 180px;"
                                                                                 :title="audio.nombre_original">
-                                                                                {{ audio.nombre_original || 'Audio ' + (index + 1) }}
+                                                                                {{ audio.nombre_original || 'Audio ' +
+                                                                                    (index + 1) }}
                                                                             </strong>
                                                                             <span class="badge mr-1"
                                                                                 :class="badgeClaseEstado(audio.transcripcion_estado)">
-                                                                                {{ audio.transcripcion_estado || 'Pendiente' }}
+                                                                                {{ audio.transcripcion_estado ||
+                                                                                    'Pendiente' }}
                                                                             </span>
-                                                                            <small class="text-muted mr-1" v-if="audio.duracion">
+                                                                            <small class="text-muted mr-1"
+                                                                                v-if="audio.duracion">
                                                                                 <i class="fa fa-clock-o"></i>
                                                                                 {{ formatDuracion(audio.duracion) }}
                                                                             </small>
-                                                                            <small class="text-muted" v-if="audio.tamano">
+                                                                            <small class="text-muted"
+                                                                                v-if="audio.tamano">
                                                                                 {{ formatSize(audio.tamano) }}
                                                                             </small>
                                                                         </div>
 
-                                                                        <div class="d-flex align-items-center" style="min-width: 0;">
-                                                                            <audio :src="obtenerAudioUrl(audio)" controls
+                                                                        <div class="d-flex align-items-center"
+                                                                            style="min-width: 0;">
+                                                                            <audio :src="obtenerAudioUrl(audio)"
+                                                                                controls
                                                                                 style="height: 30px; flex: 1; min-width: 0; max-width: 100%;"></audio>
                                                                             <button type="button"
                                                                                 class="btn btn-sm btn-outline-primary ml-1"
@@ -618,10 +639,13 @@
                                                                             </button>
                                                                         </div>
 
-                                                                        <div v-if="audio.transcripcion" class="bg-light rounded p-1 mt-1"
+                                                                        <div v-if="audio.transcripcion"
+                                                                            class="bg-light rounded p-1 mt-1"
                                                                             style="font-size: 0.8rem; max-height: 40px; overflow: hidden;">
-                                                                            {{ previewTranscripcion(audio.transcripcion, 120) }}
-                                                                            <span v-if="audio.transcripcion.length > 120"
+                                                                            {{ previewTranscripcion(audio.transcripcion,
+                                                                                120) }}
+                                                                            <span
+                                                                                v-if="audio.transcripcion.length > 120"
                                                                                 class="text-primary small">...</span>
                                                                         </div>
                                                                     </div>
@@ -632,9 +656,10 @@
                                                                     class="btn btn-primary btn-block mt-3"
                                                                     @click="transcribirAudiosSeleccionados"
                                                                     :disabled="insertandoAudios || audioSeleccionados.length === 0">
-                                                                    <i v-if="insertandoAudios" class="fa fa-spinner fa-spin"></i>
+                                                                    <i v-if="insertandoAudios"
+                                                                        class="fa fa-spinner fa-spin"></i>
                                                                     <i v-else class="fa fa-file-text-o"></i>
-                                                                    {{ insertandoAudios ? 'Insertando...' : 'Insertar Seleccionados en Lectura (' + audioSeleccionados.length + ')' }}
+                                                                     {{ insertandoAudios ? 'Insertando...' : 'Insertar Seleccionados en Lectura' }}
                                                                 </button>
                                                             </div>
 
@@ -701,7 +726,7 @@
                                 Guardar
                             </button>
 
-                            <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">
+                            <button type="button" class="btn btn-inverse" @click="cerrarSidebar()">
                                 Cancel
                             </button>
                         </div>
@@ -782,7 +807,7 @@ export default {
         this.dictationFlow.setCallbacks({
             onText: (text) => { if (this.registro) this.registro.lectura += text; },
             showToast: (cfg) => { $.toast(cfg); },
-            onState: (state) => {},
+            onState: (state) => { },
             onAudioSaved: () => { this.listarAudios(); },
         });
 
@@ -900,6 +925,15 @@ export default {
                 // No-op
             }
         },
+        destroyDataTableHistorial() {
+            try {
+                if ($ && $.fn && $.fn.DataTable && $.fn.dataTable.isDataTable('#example23-1')) {
+                    $("#example23-1").DataTable().destroy();
+                }
+            } catch (e) {
+                // No-op
+            }
+        },
 
         async listarAudios() {
             if (this.loadingAudios) return;
@@ -960,6 +994,7 @@ export default {
 
                 try {
                     const res = await axios.post('/api/estudio-listarPendientesMedico', { id: this.usuarioactual.id, sede_id: this.sede_id });
+                    console.log(res)
                     this.destroyDataTable();
 
                     this.registros = res.data;
@@ -1046,7 +1081,7 @@ export default {
                         this.registros.splice(estudioEliminar, 1);
                     }
 
-                    this.btnCerralModalForm();
+                    this.cerrarSidebar();
                     this.limpiar();
                 }
             } catch (error) {
@@ -1099,12 +1134,12 @@ export default {
                 );
 
                 if (res.status == 200) {
-                    this.destroyDataTable();
+                    this.destroyDataTableHistorial();
 
                     this.historial_estudios = res.data;
 
                     this.$nextTick(() => {
-                        safeInitDataTable(this.$refs.dt || "#example23", {
+                        safeInitDataTable("#example23-1", {
                             dom: "Bfrtip",
                             buttons: ["copy", "csv", "excel", "pdf", "print"],
                         });
@@ -1188,7 +1223,7 @@ export default {
 
                 await this.listarAudios();
 
-                this.btnCerralModalForm();
+                this.abrirSidebar();
                 this.errores = {};
             } catch (error) {
                 handleAxiosErrorToast(error, "No fue posible cargar el estudio seleccionado.");
@@ -1267,10 +1302,15 @@ export default {
             this.audioUploadFlow.limpiarAudiosCargados();
             this.audiosDeEstudio = [];
         },
-        async btnCerralModalForm() {
+        async abrirSidebar() {
             await this.dictationFlow.stopAll();
             $(".right-sidebar").slideDown(50);
-            $(".right-sidebar").toggleClass("shw-rside");
+            $(".right-sidebar").addClass("shw-rside");
+        },
+        async cerrarSidebar() {
+            await this.dictationFlow.stopAll();
+            $(".right-sidebar").slideUp(50);
+            $(".right-sidebar").removeClass("shw-rside");
         },
     },
 };

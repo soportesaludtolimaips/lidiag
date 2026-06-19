@@ -23,6 +23,27 @@ Copy-Item .env.example .env
 
 En Windows + Laragon, el proyecto está pensado para el vhost **`lidiag.test`** con HTTPS en Vite (ver `vite.config.js`).
 
+### Túnel Cloudflare para desarrollo local (WhatsApp webhook)
+
+Meta WhatsApp requiere una URL pública HTTPS para enviar webhooks. Para desarrollo local usa [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/):
+
+```bash
+# Con HTTPS (si tienes certificado válido, ej. Laragon)
+cloudflared tunnel --url https://lidiag.test
+
+# Con HTTP (recomendado si cloudflared rechaza el certificado self-signed)
+cloudflared tunnel --url http://lidiag.test
+```
+
+Esto genera una URL como `https://xxx.trycloudflare.com`. Úsala en la configuración del webhook de Meta:
+
+| Campo | Valor |
+|-------|-------|
+| **Callback URL** | `https://xxx.trycloudflare.com/api/citas/webhook` |
+| **Verify token** | `lidiag_whatsapp_2026` (o el configurado en `META_WHATSAPP_VERIFY_TOKEN`) |
+
+> El túnel debe mantenerse corriendo en la terminal. Si se cierra, la URL expira. Cada vez que inicias cloudflared se genera una URL nueva.
+
 ## Stack Tecnológico (resumen)
 
 -   **Backend**: Laravel 10 (PHP >= 8.0.2), MySQL

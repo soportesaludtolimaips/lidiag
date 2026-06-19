@@ -46,6 +46,8 @@ class AgendaCita extends Model
         'revisada',
         'rechazo_motivo_id',
         'rechazo_observacion',
+        'recordatorio_24h_enviado',
+        'recordatorio_2h_enviado',
     ];
 
     protected $casts = [
@@ -56,6 +58,8 @@ class AgendaCita extends Model
         'total_citas' => 'integer',
         'dura_cita' => 'integer',
         'revisada' => 'boolean',
+        'recordatorio_24h_enviado' => 'boolean',
+        'recordatorio_2h_enviado' => 'boolean',
     ];
 
     protected $hidden = [
