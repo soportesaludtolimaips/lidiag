@@ -49,8 +49,8 @@ class SecurityHeaders
             ])
         );
 
-        // HSTS solo en producción (y solo si corres bajo HTTPS)
-        if (app()->environment('production') && $request->isSecure()) {
+        // HSTS solo si la request viene por HTTPS
+        if ($request->isSecure()) {
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         }
 
@@ -89,7 +89,6 @@ class SecurityHeaders
                 'https://cdn.jsdelivr.net',
                 'https://cdn.datatables.net',
                 'https://cdnjs.cloudflare.com',
-                'https://cdn.rawgit.com',
             ], $viteOrigins);
 
             $connectSrc = array_merge([
