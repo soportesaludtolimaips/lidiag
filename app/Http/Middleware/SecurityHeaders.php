@@ -89,6 +89,7 @@ class SecurityHeaders
                 'https://cdn.jsdelivr.net',
                 'https://cdn.datatables.net',
                 'https://cdnjs.cloudflare.com',
+                'https://cdn.rawgit.com',
             ], $viteOrigins);
 
             $connectSrc = array_merge([
