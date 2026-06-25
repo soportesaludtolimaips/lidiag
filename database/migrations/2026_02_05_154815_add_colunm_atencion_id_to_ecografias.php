@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('ecografias', function (Blueprint $table) {
-            $table->string('atencion_id', 20)->after('id');
-        });
+        if (! Schema::hasColumn('ecografias', 'atencion_id')) {
+            Schema::table('ecografias', function (Blueprint $table) {
+                $table->string('atencion_id', 20)->after('id');
+            });
+        }
     }
 
     /**
