@@ -867,13 +867,17 @@ import usePermissions from "@/helpers/permissions.js";
 import { formatoMoneda } from "@/helpers/funciones.js";
 import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts.js";
 import { handleAxiosErrorToast } from "@/helpers/alerts";
+import { useSede } from "@/composables/useSede";
+import { useSahiInterface } from "@/composables/useSahiInterface";
 
 export default {
     props: ["usuarioactual", "permisos"],
     setup(props) {
         const { can } = usePermissions(props.permisos);
+        const { sedeInterface, establecerSede } = useSede();
+        const { consultarEstado, enviarEcografiaProducto } = useSahiInterface();
 
-        return { can, formatoMoneda };
+        return { can, formatoMoneda, sedeInterface, establecerSede, consultarEstado, enviarEcografiaProducto };
     },
     mounted() {
         this.listarMedicos();
@@ -939,7 +943,6 @@ export default {
             isBuscandoAtenciones: false,
             isGuardandoEcografia: false,
             isAnulandoEcografia: false,
-            sedeInterface: false,
             isConsultandoSahi: {},
             isEnviandoSahi: {},
 
@@ -1194,13 +1197,7 @@ export default {
             this.registro.sede_id = sessionStorage.getItem("ST-sede");
             this.busqueda.sede_id = sessionStorage.getItem("ST-sede");
             this.sedeActual = sessionStorage.getItem("ST-sede");
-
-            try {
-                const res = await axios.get(`/api/config-sedes/${this.sedeActual}/buscarPorId`);
-                this.sedeInterface = res?.data?.interface_software === "SAHI";
-            } catch (error) {
-                this.sedeInterface = false;
-            }
+            await this.establecerSede();
             this.registros = [];
         },
         async establecerMedico() {
@@ -1225,16 +1222,13 @@ export default {
             const id = item.ecografia_producto_id;
             try {
                 this.setMapValue("isConsultandoSahi", id, true);
-                const res = await axios.get(
-                    `/api/interface-sahi-ecografias/estado/ecografia-producto/${id}`
-                );
-                const d = res.data?.data || {};
+                const estado = await this.consultarEstado(id);
 
-                item.estado_envio_sahi = d.estado_envio_sahi ?? item.estado_envio_sahi;
-                item.fechor_envio_sahi = d.fechor_envio_sahi ?? item.fechor_envio_sahi;
-                item.error_envio_sahi = d.error_envio_sahi ?? null;
-                item.sahi_esquema_149 = d.sahi_esquema_149 ?? item.sahi_esquema_149;
-                item.sahi_esquema_150 = d.sahi_esquema_150 ?? item.sahi_esquema_150;
+                item.estado_envio_sahi = estado.estado_envio_sahi ?? item.estado_envio_sahi;
+                item.fechor_envio_sahi = estado.fechor_envio_sahi ?? item.fechor_envio_sahi;
+                item.error_envio_sahi = estado.error_envio_sahi ?? null;
+                item.sahi_esquema_149 = estado.sahi_esquema_149 ?? item.sahi_esquema_149;
+                item.sahi_esquema_150 = estado.sahi_esquema_150 ?? item.sahi_esquema_150;
             } catch (error) {
                 $.toast({
                     heading: "SAHI",
@@ -1259,16 +1253,11 @@ export default {
                 item.estado_envio_sahi = "ENVIANDO";
                 item.error_envio_sahi = null;
 
-                const res = await axios.post(
-                    "/api/interface-sahi-ecografias/enviar/ecografia-producto",
-                    {
-                        ecografia_producto_id: id,
-                    }
-                );
+                await this.enviarEcografiaProducto(id);
 
                 $.toast({
                     heading: "SAHI",
-                    text: res.data?.message || "Envío a SAHI encolado.",
+                    text: "Envío a SAHI encolado.",
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: "info",
