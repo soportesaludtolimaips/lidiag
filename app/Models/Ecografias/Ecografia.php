@@ -5,12 +5,14 @@ namespace App\Models\Ecografias;
 use App\Models\Configuracion\ConfigAdminSalud;
 use App\Models\General\Paciente;
 use App\Models\User;
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Ecografia extends Model
 {
     use HasFactory;
+    use LogsActivity;
 
     protected $fillable = [
         'medico_id',

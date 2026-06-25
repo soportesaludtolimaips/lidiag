@@ -7,12 +7,14 @@ use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\Ecografias\EcografiaProducto;
 use App\Models\User;
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class EcografiaConsentimiento extends Model
 {
     use HasFactory;
+    use LogsActivity;
 
     protected $table = 'ecografias_consentimientos';
 

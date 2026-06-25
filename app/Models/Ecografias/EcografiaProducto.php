@@ -3,12 +3,14 @@
 namespace App\Models\Ecografias;
 
 use App\Models\Configuracion\ConfigProducto;
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class EcografiaProducto extends Model
 {
     use HasFactory;
+    use LogsActivity;
 
     protected $table = 'ecografias_productos';
 
