@@ -703,6 +703,8 @@ import { handleAxiosErrorToast } from "@/helpers/alerts";
 import { createVoiceSession } from "@/helpers/voice/voiceSession";
 import medicalReplacements from "@/data/medical_replacements.json";
 import medicalTermsRaw from "@/data/terminos_medicos.txt?raw";
+import { useSede } from "@/composables/useSede";
+import { useSahiInterface } from "@/composables/useSahiInterface";
 
 const MEDICAL_REPLACEMENTS_FROM_JSON = Array.isArray(medicalReplacements)
     ? medicalReplacements
@@ -716,8 +718,13 @@ export default {
     props: ["usuarioactual", "permisos"],
     setup(props) {
         const { can } = usePermissions(props.permisos);
-
-        return { can };
+        const { sedeInterface, establecerSede } = useSede();
+        const {
+            isEnviando, isConsultando,
+            enviarEcografiaProducto, consultarEstado,
+            startPolling, stopPolling,
+        } = useSahiInterface();
+        return { can, sedeInterface, establecerSede, isEnviando, isConsultando, enviarEcografiaProducto, consultarEstado, startPolling, stopPolling };
     },
     mounted() {
         this.establecerSede();
@@ -794,7 +801,6 @@ export default {
             productosAgenda: [],
             tiposPlantillas: [],
             plantillas: [],
-            sedeInterface: false,
             url: "",
 
             microfono: "admin-wrap/assets/images/mic.gif",
@@ -808,12 +814,7 @@ export default {
             medicalVocabularyIndex: {}, // firstLetter -> length -> array<normalizedKey>
 
             isGuardandoLectura: false,
-            isEnviandoSahi: false,
             isBuscandoPendientes: false,
-
-            isConsultandoSahi: false,
-            sahiPollTimer: null,
-            sahiPollCount: 0,
 
             // Consentimientos
             bloqueoLectura: false,
@@ -1306,25 +1307,23 @@ export default {
         startSahiPolling() {
             if (!this.sedeInterface) return;
             if (!this.registro?.ecografia_producto_id) return;
-            if (this.sahiPollTimer) return;
 
-            this.sahiPollCount = 0;
-            this.sahiPollTimer = setInterval(async () => {
-                this.sahiPollCount += 1;
-                // ~3 minutos max (36 * 5s)
-                if (this.sahiPollCount > 36) {
-                    this.stopSahiPolling();
-                    return;
-                }
-                await this.consultarEstadoSahi(true);
-            }, 5000);
+            const id = this.registro.ecografia_producto_id;
+            const onUpdate = (estado) => {
+                if (estado.estado_envio_sahi != null) this.registro.estado_envio_sahi = estado.estado_envio_sahi;
+                this.registro.fechor_envio_sahi = estado.fechor_envio_sahi ?? this.registro.fechor_envio_sahi;
+                this.registro.error_envio_sahi = estado.error_envio_sahi ?? null;
+                this.registro.sahi_esquema_149 = estado.sahi_esquema_149 ?? this.registro.sahi_esquema_149;
+                this.registro.sahi_esquema_150 = estado.sahi_esquema_150 ?? this.registro.sahi_esquema_150;
+            };
+            const onError = (error) => {
+                this.registro.estado_envio_sahi = "ERROR";
+                this.registro.error_envio_sahi = error.response?.data?.message || "Error consultando SAHI.";
+            };
+            this.startPolling(id, onUpdate, onError);
         },
         stopSahiPolling() {
-            if (this.sahiPollTimer) {
-                clearInterval(this.sahiPollTimer);
-                this.sahiPollTimer = null;
-            }
-            this.sahiPollCount = 0;
+            this.stopPolling();
         },
         async consultarEstadoSahi(silent = false) {
             if (!this.sedeInterface) return;
@@ -1332,24 +1331,15 @@ export default {
             if (!id) return;
 
             try {
-                this.isConsultandoSahi = true;
-                const res = await axios.get(
-                    `/api/interface-sahi-ecografias/estado/ecografia-producto/${id}`
-                );
-                const d = res.data?.data || {};
-
-                if (d.estado_envio_sahi != null)
-                    this.registro.estado_envio_sahi = d.estado_envio_sahi;
-                this.registro.fechor_envio_sahi =
-                    d.fechor_envio_sahi ?? this.registro.fechor_envio_sahi;
-                this.registro.error_envio_sahi = d.error_envio_sahi ?? null;
-                this.registro.sahi_esquema_149 =
-                    d.sahi_esquema_149 ?? this.registro.sahi_esquema_149;
-                this.registro.sahi_esquema_150 =
-                    d.sahi_esquema_150 ?? this.registro.sahi_esquema_150;
+                const estado = await this.consultarEstado(id);
+                if (estado.estado_envio_sahi != null) this.registro.estado_envio_sahi = estado.estado_envio_sahi;
+                this.registro.fechor_envio_sahi = estado.fechor_envio_sahi ?? this.registro.fechor_envio_sahi;
+                this.registro.error_envio_sahi = estado.error_envio_sahi ?? null;
+                this.registro.sahi_esquema_149 = estado.sahi_esquema_149 ?? this.registro.sahi_esquema_149;
+                this.registro.sahi_esquema_150 = estado.sahi_esquema_150 ?? this.registro.sahi_esquema_150;
 
                 if (this.registro.estado_envio_sahi !== "ENVIANDO") {
-                    this.stopSahiPolling();
+                    this.stopPolling();
                 }
 
                 if (!silent) {
@@ -1360,25 +1350,19 @@ export default {
                         loaderBg: "#ff6849",
                         icon: "info",
                         hideAfter: 2500,
-                        stack: 6,
                     });
                 }
             } catch (error) {
                 if (!silent) {
                     $.toast({
                         heading: "SAHI",
-                        text:
-                            error.response?.data?.message ||
-                            "No se pudo consultar el estado en SAHI.",
+                        text: error.response?.data?.message || "No se pudo consultar el estado en SAHI.",
                         position: "top-right",
                         loaderBg: "#ff6849",
                         icon: "warning",
-                        hideAfter: 3500,
-                        stack: 6,
+                        hideAfter: 3500, stack: 6,
                     });
                 }
-            } finally {
-                this.isConsultandoSahi = false;
             }
         },
         safeDestroyDataTable(selector = "#example23") {
@@ -1544,7 +1528,6 @@ export default {
             }
         },
         async enviarASahiEcografiaProducto() {
-            // Solo aplica si la sede está configurada para interface
             if (!this.sedeInterface) return true;
 
             const id = this.registro.ecografia_producto_id;
@@ -1555,49 +1538,46 @@ export default {
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: "warning",
-                    hideAfter: 3500,
-                    stack: 6,
+                    hideAfter: 3500, stack: 6,
                 });
                 return false;
             }
 
             try {
-                this.isEnviandoSahi = true;
                 this.registro.estado_envio_sahi = "ENVIANDO";
-
-                const res = await axios.post(
-                    "/api/interface-sahi-ecografias/enviar/ecografia-producto",
-                    {
-                        ecografia_producto_id: id,
-                    }
-                );
+                const res = await this.enviarEcografiaProducto(id);
 
                 const encolado = res.status === 202;
                 $.toast({
                     heading: "SAHI",
-                    text:
-                        res.data?.message ||
-                        (encolado ? "Envío a SAHI encolado." : "Enviado a SAHI correctamente."),
+                    text: res.data?.message || (encolado ? "Envío a SAHI encolado." : "Enviado a SAHI correctamente."),
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: encolado ? "info" : "success",
-                    hideAfter: 3500,
-                    stack: 6,
+                    hideAfter: 3500, stack: 6,
                 });
 
-                // Reflejar estado en UI (lo más confiable sigue siendo recargar listado)
                 this.registro.estado_envio_sahi = encolado ? "ENVIANDO" : "ENVIADO";
                 this.registro.fechor_envio_sahi = new Date().toISOString();
                 this.registro.error_envio_sahi = null;
                 if (!encolado && res.data?.data) {
-                    this.registro.sahi_esquema_149 =
-                        res.data.data.IdEsquemaEncabezado149 ?? this.registro.sahi_esquema_149;
-                    this.registro.sahi_esquema_150 =
-                        res.data.data.IdEsquemaEncabezado150 ?? this.registro.sahi_esquema_150;
+                    this.registro.sahi_esquema_149 = res.data.data.IdEsquemaEncabezado149 ?? this.registro.sahi_esquema_149;
+                    this.registro.sahi_esquema_150 = res.data.data.IdEsquemaEncabezado150 ?? this.registro.sahi_esquema_150;
                 }
 
                 if (encolado) {
-                    this.startSahiPolling();
+                    const onUpdate = (estado) => {
+                        if (estado.estado_envio_sahi != null) this.registro.estado_envio_sahi = estado.estado_envio_sahi;
+                        this.registro.fechor_envio_sahi = estado.fechor_envio_sahi ?? this.registro.fechor_envio_sahi;
+                        this.registro.error_envio_sahi = estado.error_envio_sahi ?? null;
+                        this.registro.sahi_esquema_149 = estado.sahi_esquema_149 ?? this.registro.sahi_esquema_149;
+                        this.registro.sahi_esquema_150 = estado.sahi_esquema_150 ?? this.registro.sahi_esquema_150;
+                    };
+                    const onError = (error) => {
+                        this.registro.estado_envio_sahi = "ERROR";
+                        this.registro.error_envio_sahi = error.response?.data?.message || "Error consultando SAHI.";
+                    };
+                    this.startPolling(id, onUpdate, onError);
                 }
 
                 return true;
@@ -1608,15 +1588,11 @@ export default {
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: "warning",
-                    hideAfter: 4500,
-                    stack: 6,
+                    hideAfter: 4500, stack: 6,
                 });
                 this.registro.estado_envio_sahi = "ERROR";
-                this.registro.error_envio_sahi =
-                    error.response?.data?.message || "No se pudo enviar a SAHI.";
+                this.registro.error_envio_sahi = error.response?.data?.message || "No se pudo enviar a SAHI.";
                 return false;
-            } finally {
-                this.isEnviandoSahi = false;
             }
         },
         async guardarRegistro() {
@@ -1682,12 +1658,7 @@ export default {
             this.registro.sede_id = sessionStorage.getItem("ST-sede");
             this.busqueda.sede_id = sessionStorage.getItem("ST-sede");
             this.sedeActual = sessionStorage.getItem("ST-sede");
-            try {
-                const res = await axios.get(`/api/config-sedes/${this.sedeActual}/buscarPorId`);
-                this.sedeInterface = res?.data?.interface_software === "SAHI";
-            } catch (error) {
-                this.sedeInterface = false;
-            }
+            await this.establecerSede(); // composable call
             this.registros = [];
         },
         establecerMedico() {
