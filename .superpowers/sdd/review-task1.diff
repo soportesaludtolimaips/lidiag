@@ -1,0 +1,10 @@
+# Review package: 1d690b68..bb16e09b
+
+## Commits
+bb16e09b feat(composable): add useSede composable for sede config logic
+
+## Files changed
+ resources/js/composables/useSede.js | 25 +++++++++++++++++++++++++  1 file changed, 25 insertions(+)
+
+## Diff
+diff --git a/resources/js/composables/useSede.js b/resources/js/composables/useSede.js new file mode 100644 index 00000000..c1c0ca07 --- /dev/null +++ b/resources/js/composables/useSede.js @@ -0,0 +1,25 @@ +import { ref } from "vue"; +import axios from "axios"; + +export function useSede() { +    const sedeActual = ref(null); +    const sedeInterface = ref(false); +    const isLoading = ref(false); + +    const establecerSede = async () => { +        const id = sessionStorage.getItem("ST-sede"); +        if (!id) return; +        sedeActual.value = id; +        isLoading.value = true; +        try { +            const res = await axios.get(`/api/config-sedes/${id}/buscarPorId`); +            sedeInterface.value = res?.data?.interface_software === "SAHI"; +        } catch { +            sedeInterface.value = false; +        } finally { +            isLoading.value = false; +        } +    }; + +    return { sedeActual, sedeInterface, isLoading, establecerSede }; +}
