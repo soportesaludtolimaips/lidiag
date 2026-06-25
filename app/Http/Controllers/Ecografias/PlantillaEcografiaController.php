@@ -240,6 +240,10 @@ class PlantillaEcografiaController extends Controller
             return false;
         }
 
+        $encryptedPath = $outputPath.'.enc';
+        file_put_contents($encryptedPath, encrypt(file_get_contents($outputPath)));
+        @unlink($outputPath);
+
         return true;
     }
 }

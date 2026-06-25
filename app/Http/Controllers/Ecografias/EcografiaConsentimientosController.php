@@ -284,9 +284,9 @@ class EcografiaConsentimientosController extends Controller
         }
 
         $prefix = $consent->firmante_tipo === 'ACOMPANANTE' ? 'Acompanante_' : 'Paciente_';
-        $filename = $prefix.Str::random(40).'.png';
+        $filename = $prefix.Str::random(40).'.png.enc';
 
-        $path = Storage::disk('firmas_consntimientos')->put($filename, $raw);
+        $path = Storage::disk('firmas_consntimientos')->put($filename, encrypt($raw));
         if (! $path) {
             return response()->json(['message' => 'No fue posible guardar la firma'], 500);
         }
@@ -411,11 +411,11 @@ class EcografiaConsentimientosController extends Controller
         $cod = (string) ($consent->producto?->cod_cups ?? 'NA');
 
         $baseName = "Consentimiento_{$numDoc}_{$cod}.pdf";
-        $filename = $this->makeUniquePdfFilename($baseName);
+        $filename = $this->makeUniquePdfFilename($baseName).'.enc';
 
         /** @var FilesystemAdapter $disk */
         $disk = Storage::disk('files_consentimientos');
-        $disk->put($filename, $output);
+        $disk->put($filename, encrypt($output));
 
         $consent->pdf_path = "files_consentimientos/{$filename}";
         $consent->pdf_generated_at = now();
