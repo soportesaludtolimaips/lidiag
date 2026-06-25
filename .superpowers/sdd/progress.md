@@ -3,3 +3,4 @@ Task 3: complete (commits 7581d172..71fae2f4)
 
 Task 1: complete (commits 1d690b68..bb16e09b, review clean)
 Task 2: complete (commits bb16e09b..6d8146ae, review clean)
+Task 3: complete (commits 6d8146ae..d545f9cc, review clean after template fix)
