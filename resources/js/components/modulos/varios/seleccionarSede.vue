@@ -45,6 +45,8 @@ export default {
         establecerSucursal(data = {}) {
             this.nomSucursal = data.sucursal;
             this.sucursalActual = data.id;
+            sessionStorage.setItem("ST-sede", data.id);
+            this.emitter.emit("sedeSeleccionada", { idSede: data.id });
         },
     }
 }
