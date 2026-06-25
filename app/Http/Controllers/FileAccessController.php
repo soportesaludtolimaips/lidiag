@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -22,10 +23,17 @@ class FileAccessController extends Controller
         $contents = $storage->get($path);
 
         if (str_ends_with($path, '.enc')) {
-            $contents = decrypt($contents);
+            $mimePath = substr($path, 0, -4);
+            try {
+                $contents = decrypt($contents);
+            } catch (DecryptException $e) {
+                abort(500, 'Error al descifrar el archivo.');
+            }
+        } else {
+            $mimePath = $path;
         }
 
-        $mimeType = $storage->mimeType($path);
+        $mimeType = $storage->mimeType($mimePath);
 
         return response($contents, 200, [
             'Content-Type' => $mimeType,
