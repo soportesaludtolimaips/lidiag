@@ -55,6 +55,17 @@ class EcografiaController extends Controller
             })
             ->get();
 
+        $ecografias->transform(function ($eco) {
+            if ($eco->relationLoaded('paciente') && $eco->paciente) {
+                $eco->paciente->num_docu = maskData($eco->paciente->num_docu ?? '', 'document');
+                $eco->paciente->direccion = maskData($eco->paciente->direccion ?? '', 'address');
+                $eco->paciente->tel = maskData($eco->paciente->tel ?? '', 'phone');
+                $eco->paciente->cel = maskData($eco->paciente->cel ?? '', 'phone');
+            }
+
+            return $eco;
+        });
+
         return response()->json($ecografias);
     }
 

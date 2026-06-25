@@ -138,6 +138,17 @@ class ecografiaLecturaController extends Controller
             ->with(['paciente', 'usuarioRegistrador', 'adminSalud', 'medico'])
             ->get();
 
+        $ecografiasPendientes->transform(function ($eco) {
+            if (isset($eco->num_docu)) {
+                $eco->num_docu = maskData($eco->num_docu, 'document');
+            }
+            if (isset($eco->direccion)) {
+                $eco->direccion = maskData($eco->direccion, 'address');
+            }
+
+            return $eco;
+        });
+
         return response()->json(['ecografias' => $ecografiasPendientes]);
     }
 }
