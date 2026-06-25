@@ -58,8 +58,7 @@ return [
         'reporte_lecturas' => [
             'driver' => 'local',
             'root' => storage_path('app/reporte_lecturas'),
-            'url' => env('APP_URL').'/reporte_lecturas',
-            'visibility' => 'public',
+            'visibility' => 'private',
         ],
         'avatars' => [
             'driver' => 'local',
@@ -70,50 +69,42 @@ return [
         'firmas_medicos' => [
             'driver' => 'local',
             'root' => storage_path('app/firmas_medicos'),
-            'url' => env('APP_URL').'/firmas_medicos',
-            'visibility' => 'public',
+            'visibility' => 'private',
         ],
         'soportes_hc' => [
             'driver' => 'local',
             'root' => storage_path('app/soportes_hc'),
-            'url' => env('APP_URL').'/soportes_hc',
-            'visibility' => 'public',
+            'visibility' => 'private',
         ],
         'audios' => [
             'driver' => 'local',
             'root' => storage_path('app/audios'),
-            'url' => env('APP_URL').'/audios',
-            'visibility' => 'public',
+            'visibility' => 'private',
         ],
         'plantillas_lecturas' => [
             'driver' => 'local',
             'root' => storage_path('app/plantillas_lecturas'),
-            'url' => env('APP_URL').'/plantillas_lecturas',
-            'visibility' => 'public',
+            'visibility' => 'private',
         ],
         'img_dicom' => [
             'driver' => 'local',
             'root' => storage_path('app/img_dicom'),
-            'url' => env('APP_URL').'/img_dicom',
-            'visibility' => 'public',
+            'visibility' => 'private',
         ],
         'files_help_desk' => [
             'driver' => 'local',
             'root' => storage_path('app/files_help_desk'),
-            'url' => env('APP_URL').'/files_help_desk',
-            'visibility' => 'public',
+            'visibility' => 'private',
         ],
         'firmas_consntimientos' => [
             'driver' => 'local',
             'root' => storage_path('app/firmas_consntimientos'),
-            'url' => env('APP_URL').'/firmas_consntimientos',
-            'visibility' => 'public',
+            'visibility' => 'private',
         ],
         'files_consentimientos' => [
             'driver' => 'local',
             'root' => storage_path('app/files_consentimientos'),
-            'url' => env('APP_URL').'/files_consentimientos',
-            'visibility' => 'public',
+            'visibility' => 'private',
         ],
     ],
 
@@ -130,16 +121,6 @@ return [
 
     'links' => [
         public_path('storage') => storage_path('app/public'),
-        public_path('reporte_lecturas') => storage_path('app/reporte_lecturas'),
-        public_path('avatars') => storage_path('app/avatars'),
-        public_path('firmas_medicos') => storage_path('app/firmas_medicos'),
-        public_path('soportes_hc') => storage_path('app/soportes_hc'),
-        public_path('audios') => storage_path('app/audios'),
-        public_path('plantillas_lecturas') => storage_path('app/plantillas_lecturas'),
-        public_path('img_dicom') => storage_path('app/img_dicom'),
-        public_path('files_help_desk') => storage_path('app/files_help_desk'),
-        public_path('firmas_consntimientos') => storage_path('app/firmas_consntimientos'),
-        public_path('files_consentimientos') => storage_path('app/files_consentimientos'),
     ],
 
 ];

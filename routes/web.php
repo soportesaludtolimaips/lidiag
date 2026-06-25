@@ -39,6 +39,25 @@ Route::post('/logout', [LoginController::class, 'logout'])
     ->name('logout')
     ->middleware(['auth']);
 
+// Password Reset
+use App\Http\Controllers\Agenda\AgendaCitaController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Configuracion\ConfigSedeController;
+
+Route::get('/password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])
+    ->name('password.request')
+    ->middleware(['guest']);
+Route::post('/password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])
+    ->name('password.email')
+    ->middleware(['guest', 'throttle:5,1']);
+Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])
+    ->name('password.reset')
+    ->middleware(['guest']);
+Route::post('/password/reset', [ResetPasswordController::class, 'reset'])
+    ->name('password.update')
+    ->middleware(['guest', 'throttle:5,1']);
+
 Route::view('dashboard', 'modulos.dashboard.dashboard')->name('dashboard')->middleware('auth');
 
 /**
@@ -195,7 +214,7 @@ Route::view('/config-sedes-listar', 'modulos.configuracion.config-sedes')
     ->name('config.sedes.listar')
     ->middleware(['auth', 'permission:config.sedes.index']);
 
-Route::post('/config/sedes/updateWitchPlantillas', [\App\Http\Controllers\Configuracion\ConfigSedeController::class, 'update'])
+Route::post('/config/sedes/updateWitchPlantillas', [ConfigSedeController::class, 'update'])
     ->name('config.sedes.update')
     ->middleware(['auth', 'permission:config.sedes.edit']);
 
@@ -299,9 +318,11 @@ Route::view('/citas/recomendaciones', 'modulos.citas.recomendaciones')
     ->name('citas.recomendaciones')
     ->middleware(['auth', 'permission:citas.index']);
 
-Route::get('/citas/media/{filename}', [\App\Http\Controllers\Agenda\AgendaCitaController::class, 'descargarMedia'])
+Route::get('/citas/media/{filename}', [AgendaCitaController::class, 'descargarMedia'])
     ->name('citas.media')
     ->middleware(['auth', 'permission:citas.index']);
+
+require __DIR__.'/files.php';
 
 /* Route::get('/{optional?}', function () {
     return view('layouts.app');
