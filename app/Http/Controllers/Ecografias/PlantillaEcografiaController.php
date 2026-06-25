@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use PhpOffice\PhpWord\TemplateProcessor;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 
 class PlantillaEcografiaController extends Controller
@@ -202,6 +203,11 @@ class PlantillaEcografiaController extends Controller
             return false;
         }
 
+        $filename = pathinfo($nomPlantilla, PATHINFO_FILENAME);
+        if (! preg_match('/^[a-zA-Z0-9._-]+$/', $filename)) {
+            throw new \InvalidArgumentException('Nombre de archivo inválido');
+        }
+
         try {
             // Asegurar carpeta destino
             $outDir = dirname($outputPath);
@@ -209,24 +215,13 @@ class PlantillaEcografiaController extends Controller
                 @mkdir($outDir, 0775, true);
             }
 
-            // Comando para convertir el archivo .docx a PDF utilizando unoconv
-            $cmd = [
-                $unoconvPath,
-                '-f',
-                'pdf',
-                '-o',
-                $outputPath,
-                $inputPath,
-            ];
+            $process = new Process([$unoconvPath, '-f', 'pdf', '-o', $outputPath, $inputPath]);
+            $process->setTimeout(60);
+            $process->run();
 
-            // En Windows, si es .bat se ejecuta mejor vía cmd
-            if (PHP_OS_FAMILY === 'Windows') {
-                $command = 'cmd /c "'.$unoconvPath.'" -f pdf -o '.escapeshellarg($outputPath).' '.escapeshellarg($inputPath);
-                shell_exec($command);
-            } else {
-                $process = new Process($cmd);
-                $process->setTimeout(60);
-                $process->run();
+            if (! $process->isSuccessful()) {
+                Log::error('unoconv error: '.$process->getErrorOutput());
+                throw new ProcessFailedException($process);
             }
         } catch (\Exception $e) {
             Log::error("Error durante la conversión: ".$e->getMessage());

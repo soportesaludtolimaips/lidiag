@@ -17,6 +17,7 @@ use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class SyncDicomEcografias extends Command
 {
@@ -93,7 +94,8 @@ class SyncDicomEcografias extends Command
 
                 $user = new User;
                 $user->num_docu = $personal->num_docu;
-                $user->password = Hash::make('123456'); // Contraseña por defecto
+                $user->password = Hash::make(Str::random(16));
+                $user->password_changed_at = null;
                 $user->name = trim($personal->pri_nom.' '.$personal->pri_ape);
                 $user->reg_med = $personal->num_regis;
 
@@ -224,7 +226,8 @@ class SyncDicomEcografias extends Command
                     if (! $user) {
                         $userNew = new User;
                         $userNew->num_docu = $lectura->medico->num_docu;
-                        $userNew->password = Hash::make('123456'); // Contraseña por defecto
+                        $userNew->password = Hash::make(Str::random(16));
+                        $userNew->password_changed_at = null;
                         $userNew->name = trim($lectura->medico->pri_nom.' '.$lectura->medico->pri_ape);
                         $userNew->email = $lectura->medico->e_mail ?? trim($lectura->medico->num_docu).'@salidtolimaips.com';
                         $userNew->reg_med = $lectura->medico->num_regis;
