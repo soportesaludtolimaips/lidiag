@@ -506,13 +506,13 @@
                                 type="button"
                                 class="btn btn-info m-r-5"
                                 @click="consultarEstadoSahi(false)"
-                                :disabled="isConsultandoSahi"
+                                :disabled="isConsultando"
                             >
                                 <i
                                     class="fa"
-                                    :class="isConsultandoSahi ? 'fa-spinner fa-spin' : 'fa-refresh'"
+                                    :class="isConsultando ? 'fa-spinner fa-spin' : 'fa-refresh'"
                                 ></i>
-                                {{ isConsultandoSahi ? "Consultando..." : "Actualizar SAHI" }}
+                                {{ isConsultando ? "Consultando..." : "Actualizar SAHI" }}
                             </button>
 
                             <button
@@ -521,7 +521,7 @@
                                 class="btn btn-warning m-r-5"
                                 @click="enviarASahiEcografiaProducto()"
                                 :disabled="
-                                    isEnviandoSahi || registro.estado_envio_sahi === 'ENVIANDO'
+                                    isEnviando || registro.estado_envio_sahi === 'ENVIANDO'
                                 "
                             >
                                 <i class="fa fa-refresh"></i> Reintentar SAHI
