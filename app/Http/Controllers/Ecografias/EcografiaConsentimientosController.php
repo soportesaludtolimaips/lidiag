@@ -273,15 +273,26 @@ class EcografiaConsentimientosController extends Controller
             return response()->json(['message' => 'El consentimiento no está pendiente de firma de paciente'], 422);
         }
 
-        $dataUrl = (string) $request->firma_png;
-        if (! str_starts_with($dataUrl, 'data:image/png;base64,')) {
-            return response()->json(['message' => 'Formato de firma inválido (se esperaba PNG)'], 422);
+        $dataUrl = $request->input('firma_png');
+        if (! $dataUrl || ! str_starts_with($dataUrl, 'data:image/png;base64,')) {
+            return response()->json(['success' => false, 'message' => 'Formato inválido. Solo PNG.'], 422);
         }
 
-        $raw = base64_decode(substr($dataUrl, strlen('data:image/png;base64,')), true);
-        if ($raw === false) {
-            return response()->json(['message' => 'No fue posible decodificar la firma'], 422);
+        $base64 = substr($dataUrl, strpos($dataUrl, ',') + 1);
+        $decoded = base64_decode($base64, true);
+        if ($decoded === false || strlen($decoded) > 2 * 1024 * 1024) {
+            return response()->json(['success' => false, 'message' => 'Firma inválida o demasiado grande.'], 422);
         }
+
+        $img = @imagecreatefromstring($decoded);
+        if (! $img || imagesx($img) > 2048 || imagesy($img) > 2048) {
+            imagedestroy($img);
+
+            return response()->json(['success' => false, 'message' => 'Dimensiones excedidas (max 2048x2048).'], 422);
+        }
+        imagedestroy($img);
+
+        $raw = $decoded;
 
         $prefix = $consent->firmante_tipo === 'ACOMPANANTE' ? 'Acompanante_' : 'Paciente_';
         $filename = $prefix.Str::random(40).'.png.enc';
