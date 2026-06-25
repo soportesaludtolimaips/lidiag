@@ -459,12 +459,17 @@ import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { handleAxiosErrorToast } from "@/helpers/alerts";
 import { normalizarFecha } from "@/helpers/dateUtils.js";
+import { useSede } from "@/composables/useSede";
 
 export default {
     props: ['usuarioactual', 'permisos'],
     components: {
         LoadingSpinner,
         FormPaciente,
+    },
+    setup() {
+        const { sedeInterface, establecerSede } = useSede();
+        return { sedeInterface, establecerSede };
     },
     computed: {
         contadorRegistros() {
@@ -527,7 +532,6 @@ export default {
             diagnosticoSelecciondo: "",
             sedeActual,
             productosAtencion: [],
-            sedeInterface: false,
             idRow: null,
             selectedRows: {},
             loadingBuscar: false,
@@ -792,17 +796,11 @@ export default {
 
             this.registro.atencion_id = this.interfaceAtencionSeleccionada;
         },
-        establecerSede() {
+        async establecerSede() {
             this.registro.sede_id = sessionStorage.getItem('ST-sede');
             this.busqueda.sede_id = sessionStorage.getItem('ST-sede');
             this.sedeActual = sessionStorage.getItem('ST-sede');
-
-            if (this.registro.sede_id == 1) {
-                this.sedeInterface = true;
-            } else {
-                this.sedeInterface = false;
-            }
-
+            await this.establecerSede();
             this.registros = [];
         },
         btnCerralModalForm() {

@@ -447,9 +447,14 @@ ItemAtencion, index
 <script>
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { handleAxiosErrorToast } from "@/helpers/alerts";
+import { useSede } from "@/composables/useSede";
 
 export default {
     props: ["usuarioactual"],
+    setup() {
+        const { sedeInterface, establecerSede } = useSede();
+        return { sedeInterface, establecerSede };
+    },
     mounted() {
         this.listarPrioridades();
         this.listarProductos();
@@ -549,7 +554,6 @@ export default {
             idSedeActual: "",
             nomSedeActual: "",
             productosAtencion: [],
-            sedeInterface: false,
             idRow: null,
             selectedRows: {},
             loadingBuscar: false,
@@ -901,14 +905,7 @@ export default {
             this.idSedeActual = sessionStorage.getItem("ST-sede");
             this.nomSedeActual = sessionStorage.getItem("ST-nomsede");
             this.registro.sede_id = sessionStorage.getItem("ST-sede");
-            try {
-                const res = await axios.get(
-                    "/api/config-sedes/" + this.idSedeActual + "/buscarPorId"
-                );
-                this.sedeInterface = res.data && res.data.interface_software === "SAHI";
-            } catch (e) {
-                this.sedeInterface = false;
-            }
+            await this.establecerSede();
             this.registros = [];
         },
         btnCerralModalForm() {
