@@ -85,6 +85,11 @@ class RouteServiceProvider extends ServiceProvider
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
 
+        RateLimiter::for('api-general', fn () => Limit::perMinute(60));
+        RateLimiter::for('api-sahi', fn () => Limit::perMinute(30));
+        RateLimiter::for('api-consent-create', fn () => Limit::perMinute(10));
+        RateLimiter::for('api-lectura', fn () => Limit::perMinute(20));
+
         // Limita intentos de login por email+IP para mitigar brute force
         RateLimiter::for('login', function (Request $request) {
             $email = (string) $request->input('email');
