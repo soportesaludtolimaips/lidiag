@@ -36,6 +36,7 @@ Route::middleware(['auth'])->group(function () {
         ->middleware(['permission:ecografias.anular,web']);
 
     Route::put('ecografia-lectura/{ecografia_id}', [ecografiaLecturaController::class, 'leer'])
+        ->middleware('throttle:api-lectura')
         ->name('api.ecografias.lectura')
         ->middleware(['permission:ecografias.leer,web']);
 
@@ -44,6 +45,7 @@ Route::middleware(['auth'])->group(function () {
         ->middleware(['permission:ecografias.reporte,web']);
 
     Route::post('/ecografia-listarPendientesPorLectura/{idMedico}', [ecografiaLecturaController::class, 'listarPendientesPorLectura'])
+        ->middleware('throttle:api-lectura')
         ->name('api.ecografia.listarPendientesPorLectura')
         ->middleware(['permission:ecografias.leer,web']);
 
@@ -52,14 +54,17 @@ Route::middleware(['auth'])->group(function () {
         ->except(['create', 'edit']);
 
     Route::post('/interface-sahi-ecografias/listar/productos/atencion', [SAHIEcografiasController::class, 'listarProductosAtencion'])
+        ->middleware('throttle:api-sahi')
         ->name('api.sahi.listar.productos.atencion')
         ->middleware(['permission:ecografias.admision|ecografias.index,web']);
 
     Route::post('/interface-sahi-ecografias/enviar/ecografia-producto', [SAHIEcografiasEnviarController::class, 'enviarPorEcografiaProducto'])
+        ->middleware('throttle:api-sahi')
         ->name('api.sahi.ecografias.enviar.ecografiaProducto')
         ->middleware(['permission:ecografias.leer|ecografias.reporte,web']);
 
     Route::get('/interface-sahi-ecografias/estado/ecografia-producto/{ecografia_producto_id}', [SAHIEcografiasEnviarController::class, 'estadoPorEcografiaProducto'])
+        ->middleware('throttle:api-sahi')
         ->name('api.sahi.ecografias.estado.ecografiaProducto')
         ->middleware(['permission:ecografias.admision|ecografias.index|ecografias.leer,web']);
 
@@ -67,6 +72,7 @@ Route::middleware(['auth'])->group(function () {
      * Consentimientos (Ecografías)
      */
     Route::post('/ecografias-consentimientos/token', [EcografiaConsentimientosController::class, 'crearToken'])
+        ->middleware('throttle:api-consent-create')
         ->name('api.ecografias.consentimientos.token')
         ->middleware(['permission:ecografias.consentimientos.capturar_firma,web']);
 

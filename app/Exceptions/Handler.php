@@ -2,8 +2,16 @@
 
 namespace App\Exceptions;
 
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Psr\Log\LogLevel;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -38,14 +46,37 @@ class Handler extends ExceptionHandler
     ];
 
     /**
-     * Register the exception handling callbacks for the application.
+     * Render an exception into an HTTP response.
      *
-     * @return void
+     * @param  Request  $request
+     * @return Response
      */
-    public function register()
+    public function render($request, Throwable $e)
     {
-        $this->reportable(function (Throwable $e) {
-            //
-        });
+        if ($request->expectsJson()) {
+            $status = match (true) {
+                $e instanceof AuthenticationException => 401,
+                $e instanceof AuthorizationException => 403,
+                $e instanceof ModelNotFoundException => 404,
+                $e instanceof NotFoundHttpException => 404,
+                $e instanceof ValidationException => 422,
+                $e instanceof ThrottleRequestsException => 429,
+                default => method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500,
+            };
+
+            $message = match (true) {
+                $e instanceof ValidationException => $e->getMessage(),
+                $e instanceof AuthenticationException => 'No autenticado.',
+                $e instanceof AuthorizationException => 'No autorizado.',
+                $e instanceof ModelNotFoundException => 'Recurso no encontrado.',
+                $e instanceof ThrottleRequestsException => 'Demasiadas solicitudes.',
+                $e instanceof NotFoundHttpException => 'Ruta no encontrada.',
+                default => config('app.debug') && app()->isLocal() ? $e->getMessage() : 'Error interno del servidor.',
+            };
+
+            return response()->json(['success' => false, 'message' => $message], $status);
+        }
+
+        return parent::render($request, $e);
     }
 }
