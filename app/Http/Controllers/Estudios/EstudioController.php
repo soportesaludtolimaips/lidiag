@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Estudios;
 
+use App\Helpers\AuditLogger;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Interface\SAHIController;
 use App\Http\Controllers\Interface\SAHITranscibirController;
@@ -115,14 +116,14 @@ class EstudioController extends Controller
 
         // Validar motivo_examen cuando el usuario no tiene transcripción remota
         $user = auth()->user();
-        if ($user && !$user->transcrip_remoto && empty($registro['motivo_examen'])) {
+        if ($user && ! $user->transcrip_remoto && empty($registro['motivo_examen'])) {
             return response()->json(['motivo_examen' => ['El motivo del examen es obligatorio.']], 400);
         }
 
         // Asegurar que venga al menos un producto marcado (checked=true)
         $productosMarcados = array_values(array_filter(
             $registro['productosEstudio'] ?? [],
-            fn($p) => isset($p['checked']) && $p['checked'] == true
+            fn ($p) => isset($p['checked']) && $p['checked'] == true
         ));
         if (count($productosMarcados) === 0) {
             return response()->json(['productosEstudio' => ['Debe seleccionar al menos un producto (marcar el check).']], 400);
@@ -139,12 +140,12 @@ class EstudioController extends Controller
             [
                 'num_docu' => $registro['num_docu'],
                 'nombres' => $nombrePaciente,
-                'direccion' => !empty($registro['direccion']) ? $registro['direccion'] : ($pacienteExistente->direccion ?? ''),
-                'sexo' => !empty($registro['sexo']) ? $registro['sexo'] : ($pacienteExistente->sexo ?? ''),
-                'fec_naci' => !empty($registro['fec_naci']) ? $registro['fec_naci'] : ($pacienteExistente->fec_naci ?? null),
+                'direccion' => ! empty($registro['direccion']) ? $registro['direccion'] : ($pacienteExistente->direccion ?? ''),
+                'sexo' => ! empty($registro['sexo']) ? $registro['sexo'] : ($pacienteExistente->sexo ?? ''),
+                'fec_naci' => ! empty($registro['fec_naci']) ? $registro['fec_naci'] : ($pacienteExistente->fec_naci ?? null),
                 // Unificar nombre de campo: el frontend envía `tel` (con fallback a `telefono` por compatibilidad)
-                'tel' => !empty($registro['tel']) ? $registro['tel'] : ($registro['telefono'] ?? ($pacienteExistente->tel ?? '')),
-                'email' => !empty($registro['email']) ? $registro['email'] : ($pacienteExistente->email ?? ''),
+                'tel' => ! empty($registro['tel']) ? $registro['tel'] : ($registro['telefono'] ?? ($pacienteExistente->tel ?? '')),
+                'email' => ! empty($registro['email']) ? $registro['email'] : ($pacienteExistente->email ?? ''),
             ]
         );
 
@@ -174,32 +175,28 @@ class EstudioController extends Controller
          * Inserto el estudio en Lidiag
          */
         return DB::transaction(function () use ($registro, $paciente, $eps, $contrato, $plan, $servicio, $request, $productosMarcados) {
-            $estudio = Estudio::updateOrCreate(
-                [
-                    'sede_id' => $registro['sede_id'],
-                    'study_pk' => $registro['study_pk'],
-                ],
-                [
-                    'study_iuid' => $registro['study_iuid'],
-                    'study_id' => $registro['study_id'],
-                    'fec_estudio' => $registro['study_datetime'],
-                    'accession_no' => $registro['accession_no'],
-                    'study_desc' => $registro['study_desc'],
-                    'mods_in_study' => $registro['mods_in_study'],
-                    'email_reportar' => $registro['email_reportar'],
-                    'paciente_id' => $paciente->id,
-                    'quien_registro_id' => auth()->user()->id,
-                    'prioridad_id' => $registro['prioridad_id'],
-                    'observaciones' => $registro['observaciones'],
-                    'motivo_examen' => $registro['motivo_examen'],
-                    'atencion' => $registro['atencion_id'],
-                    'servicio' => $servicio,
-                    'eps' => $eps,
-                    'contrato' => $contrato,
-                    'plan' => $plan,
-                    'destino_estudio' => $registro['destino_estudio'],
-                ]
-            );
+            $estudio = Estudio::create([
+                'sede_id' => $registro['sede_id'],
+                'study_pk' => $registro['study_pk'],
+                'study_iuid' => $registro['study_iuid'],
+                'study_id' => $registro['study_id'],
+                'fec_estudio' => $registro['study_datetime'],
+                'accession_no' => $registro['accession_no'],
+                'study_desc' => $registro['study_desc'],
+                'mods_in_study' => $registro['mods_in_study'],
+                'email_reportar' => $registro['email_reportar'],
+                'paciente_id' => $paciente->id,
+                'quien_registro_id' => auth()->user()->id,
+                'prioridad_id' => $registro['prioridad_id'],
+                'observaciones' => $registro['observaciones'],
+                'motivo_examen' => $registro['motivo_examen'],
+                'atencion' => $registro['atencion_id'],
+                'servicio' => $servicio,
+                'eps' => $eps,
+                'contrato' => $contrato,
+                'plan' => $plan,
+                'destino_estudio' => $registro['destino_estudio'],
+            ]);
 
             if ($registro['destino_estudio'] === 'Salud Tolima') {
                 $estudio->medico_id = $registro['medico_id'];
@@ -214,10 +211,10 @@ class EstudioController extends Controller
                 $productoDicom = ConfigProducto::where('cod_cups', $Producto['cod_cups'])->first();
 
                 if (! $productoDicom) {
-                    return response()->json(['message' => 'No se encontró el producto con código CUPS ' . $Producto['cod_cups'] . ' en la base de datos.'], 400);
+                    return response()->json(['message' => 'No se encontró el producto con código CUPS '.$Producto['cod_cups'].' en la base de datos.'], 400);
                 }
                 if ((int) $productoDicom->requi_lectura === 0) {
-                    return response()->json(['message' => 'El producto ' . $productoDicom->nom_produc . ' no requiere lectura.'], 400);
+                    return response()->json(['message' => 'El producto '.$productoDicom->nom_produc.' no requiere lectura.'], 400);
                 }
 
                 EstudioProducto::create([
@@ -252,6 +249,12 @@ class EstudioController extends Controller
                 $this->procesarArchivo($request->archivo3, $estudio->id);
             }
 
+            AuditLogger::log(
+                $estudio->wasRecentlyCreated ? 'crear' : 'actualizar',
+                $estudio,
+                'Estudio '.($estudio->wasRecentlyCreated ? 'asignado' : 'actualizado').' — Paciente: '.($registro['nombres'] ?? 'N/A').', Sede: '.($registro['sede_id'] ?? 'N/A')
+            );
+
             return response()->json(['message' => 'La asignación de la lectura se realizó correctamente.']);
         });
     }
@@ -265,7 +268,7 @@ class EstudioController extends Controller
      */
     public function procesarArchivo($archivo, $estudioId)
     {
-        $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+        $nombreEncrip = Str::random(50).".".$archivo->extension();
         $nombreOriginal = $archivo->getClientOriginalName();
 
         $archivoSoporteHC = new EstudioSoportesHC;
@@ -535,7 +538,7 @@ class EstudioController extends Controller
             ->when($request->bus_nom_num_docu, function ($query, $bus_nom_num_docu) {
                 return $query->where(function ($q) use ($bus_nom_num_docu) {
                     $q->where('pacien.num_docu', $bus_nom_num_docu)
-                        ->orWhere('pacien.nombres', 'LIKE', '%' . $bus_nom_num_docu . '%');
+                        ->orWhere('pacien.nombres', 'LIKE', '%'.$bus_nom_num_docu.'%');
                 });
             })
             ->when($request->quien_asigno_id, function ($query, $quien_asigno_id) {
@@ -614,7 +617,7 @@ class EstudioController extends Controller
             ->when($request->bus_fehc_ini && $request->bus_fecha_fin, function ($query) use ($request) {
                 return $query->whereBetween(
                     'estudios.fec_estudio',
-                    [$request->bus_fehc_ini . ' 00:00:00', $request->bus_fecha_fin . ' 23:59:59']
+                    [$request->bus_fehc_ini.' 00:00:00', $request->bus_fecha_fin.' 23:59:59']
                 );
             })
             ->where('estudios.sede_id', $request->sede_id)
@@ -622,7 +625,7 @@ class EstudioController extends Controller
             ->when($request->bus_nom_num_docu, function ($query, $bus_nom_num_docu) {
                 return $query->where(function ($q) use ($bus_nom_num_docu) {
                     $q->where('pacien.num_docu', $bus_nom_num_docu)
-                        ->orWhere('pacien.nombres', 'LIKE', '%' . $bus_nom_num_docu . '%');
+                        ->orWhere('pacien.nombres', 'LIKE', '%'.$bus_nom_num_docu.'%');
                 });
             })
             ->when($request->quien_asigno_id, function ($query, $quien_asigno_id) {
@@ -665,7 +668,7 @@ class EstudioController extends Controller
 
                 $medico = User::find($request->medico_id);
                 if (! $medico->interface_id) {
-                    return response()->json(['message' => 'El medico ' . $medico->name . ' no está registrado en SAHI'], 400);
+                    return response()->json(['message' => 'El medico '.$medico->name.' no está registrado en SAHI'], 400);
                 }
             }
 
@@ -749,7 +752,7 @@ class EstudioController extends Controller
              */
             $genearPlantilla = (new PlantillaEstudioController)->editWord($request);
             if ($genearPlantilla->status() === 402) {
-                return response()->json(['message' => 'La plantilla para la sede ' . $sede->nom_sede . ', no está  configurada, por favor consulte con el administrador del sistema'], 402);
+                return response()->json(['message' => 'La plantilla para la sede '.$sede->nom_sede.', no está  configurada, por favor consulte con el administrador del sistema'], 402);
             } elseif ($genearPlantilla->status() == 200) {
 
                 $notificar = (new EstudioNotificacionController)->enviarPortalPacientes($request);
@@ -855,7 +858,7 @@ class EstudioController extends Controller
      */
     public function descargarPdfLectura($nomArchivo)
     {
-        $rutaArchivo = storage_path('app/reporte_lecturas/' . $nomArchivo);
+        $rutaArchivo = storage_path('app/reporte_lecturas/'.$nomArchivo);
 
         return response()->file($rutaArchivo);
     }
