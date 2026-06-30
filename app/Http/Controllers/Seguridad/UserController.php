@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Seguridad;
 
+use App\Helpers\AuditLogger;
 use App\Http\Controllers\Controller;
 use App\Models\Configuracion\ConfigModulo;
 use App\Models\User;
@@ -207,7 +208,7 @@ class UserController extends Controller
                 }
             }
 
-            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+            $nombreEncrip = Str::random(50).".".$archivo->extension();
 
             $cargarFirma = $archivo->storeAs('firmas_medicos', $nombreEncrip);
             $seguridad_usuario->firma = $cargarFirma;
@@ -220,7 +221,7 @@ class UserController extends Controller
                 Storage::disk('avatars')->delete($seguridad_usuario->imagen_perfil);
             }
 
-            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+            $nombreEncrip = Str::random(50).".".$archivo->extension();
 
             $cargarAvatar = $archivo->storeAs('avatars', $nombreEncrip);
             $seguridad_usuario->imagen_perfil = $cargarAvatar;
@@ -276,6 +277,8 @@ class UserController extends Controller
             $seguridad_usuario->serviciosCita()->detach();
         }
 
+        AuditLogger::crear($seguridad_usuario, 'Usuario creado: '.($registro['name'] ?? ''));
+
         return response()->json(['message' => 'El usuario se creo correctamente.']);
     }
 
@@ -294,7 +297,7 @@ class UserController extends Controller
             // 'num_docu' => 'required|string|max:20|unique:users,num_docu,' . $request->id,
             'reg_med' => 'nullable|string|max:20',
             'name' => 'required|string|max:50',
-            'email' => 'required|email|max:255|unique:users,email,' . $request->id,
+            'email' => 'required|email|max:255|unique:users,email,'.$request->id,
             'tel' => 'nullable|string|max:50',
             'facebook' => 'nullable|string|max:100',
             'twitter' => 'nullable|string|max:100',
@@ -335,6 +338,7 @@ class UserController extends Controller
         }
 
         $seguridad_usuario = User::findOrFail($request->id);
+        $datosViejos = $seguridad_usuario->toArray();
         $seguridad_usuario->num_docu = $registro['num_docu'] ?? $seguridad_usuario->num_docu;
         $seguridad_usuario->reg_med = $registro['reg_med'];
         $seguridad_usuario->name = $registro['name'];
@@ -358,7 +362,7 @@ class UserController extends Controller
                 }
             }
 
-            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+            $nombreEncrip = Str::random(50).".".$archivo->extension();
 
             $cargarFirma = $archivo->storeAs('firmas_medicos', $nombreEncrip);
             $seguridad_usuario->firma = $cargarFirma;
@@ -371,7 +375,7 @@ class UserController extends Controller
                 Storage::disk('avatars')->delete($seguridad_usuario->imagen_perfil);
             }
 
-            $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+            $nombreEncrip = Str::random(50).".".$archivo->extension();
 
             $cargarAvatar = $archivo->storeAs('avatars', $nombreEncrip);
             $seguridad_usuario->imagen_perfil = $cargarAvatar;
@@ -429,6 +433,8 @@ class UserController extends Controller
         } else {
             $seguridad_usuario->serviciosCita()->detach();
         }
+
+        AuditLogger::actualizar($seguridad_usuario, $datosViejos, 'Usuario actualizado: '.$seguridad_usuario->name);
 
         return response()->json(['message' => 'Registro actualizado correctamente.']);
     }
@@ -494,6 +500,8 @@ class UserController extends Controller
 
         $user->delete();
 
+        AuditLogger::eliminar($user, 'Usuario eliminado: '.$user->name);
+
         return response()->json(['message' => 'Registro eliminado satisfactoriamente.']);
     }
 
@@ -550,7 +558,7 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'num_docu' => 'required|string|max:20',
             'name' => 'required|string|max:50',
-            'email' => 'required|email|max:255|unique:users,email,' . $usuario->id,
+            'email' => 'required|email|max:255|unique:users,email,'.$usuario->id,
             'password' => 'nullable|string|min:6',
             'imagen_perfil' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'firma' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:10240',
@@ -586,7 +594,7 @@ class UserController extends Controller
                 } catch (\Exception $e) {
                 }
 
-                $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+                $nombreEncrip = Str::random(50).".".$archivo->extension();
                 $path = $archivo->storeAs('avatars', $nombreEncrip);
                 $usuario->imagen_perfil = $path;
             }
@@ -602,7 +610,7 @@ class UserController extends Controller
                     }
                 }
 
-                $nombreEncrip = Str::random(50) . "." . $archivo->extension();
+                $nombreEncrip = Str::random(50).".".$archivo->extension();
                 $path = $archivo->storeAs('firmas_medicos', $nombreEncrip);
                 $usuario->firma = $path;
             }
