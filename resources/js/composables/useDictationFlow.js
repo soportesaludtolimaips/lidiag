@@ -1,6 +1,10 @@
 import { ref, onBeforeUnmount } from "vue";
+import axios from "axios";
 import { createVoiceSession } from "@/helpers/voice/voiceSession";
-import { createAudioRecorderSession, getVoiceAudioConstraints } from "@/helpers/voice/audioRecorder";
+import {
+    createAudioRecorderSession,
+    getVoiceAudioConstraints,
+} from "@/helpers/voice/audioRecorder";
 import { isSpeechRecognitionSupported } from "@/helpers/voice/speechDictation";
 
 export function useDictationFlow() {
@@ -41,39 +45,126 @@ export function useDictationFlow() {
     }
 
     const uppercaseCommands = {
-        "iniciar mayúscula sostenida": () => { uppercase.value = true; return ""; },
-        "iniciar mayúsculas sostenida": () => { uppercase.value = true; return ""; },
-        "iniciar mayúsculas": () => { uppercase.value = true; return ""; },
-        "iniciar mayúscula": () => { uppercase.value = true; return ""; },
-        "mayúsculas sostenida": () => { uppercase.value = true; return ""; },
-        "mayúscula sostenida": () => { uppercase.value = true; return ""; },
-        "activar mayúsculas": () => { uppercase.value = true; return ""; },
-        "activar mayúscula": () => { uppercase.value = true; return ""; },
-        "habilitar mayúsculas": () => { uppercase.value = true; return ""; },
-        "habilitar mayúscula": () => { uppercase.value = true; return ""; },
-        "activare mayúsculas": () => { uppercase.value = true; return ""; },
-        "activare mayúscula": () => { uppercase.value = true; return ""; },
-        "desactivar mayúsculas": () => { uppercase.value = false; return ""; },
-        "desactivar mayúscula": () => { uppercase.value = false; return ""; },
-        "Deshabilitar mayúsculas": () => { uppercase.value = false; return ""; },
-        "Deshabilitar mayúscula": () => { uppercase.value = false; return ""; },
-        "terminar mayúsculas": () => { uppercase.value = false; return ""; },
-        "terminar mayúscula": () => { uppercase.value = false; return ""; },
-        "fin mayúsculas": () => { uppercase.value = false; return ""; },
-        "fin mayúscula": () => { uppercase.value = false; return ""; },
-        "finaliza mayúsculas": () => { uppercase.value = false; return ""; },
-        "finaliza mayúscula": () => { uppercase.value = false; return ""; },
-        "finalizar mayúsculas": () => { uppercase.value = false; return ""; },
-        "finalizar mayúscula": () => { uppercase.value = false; return ""; },
+        "iniciar mayúscula sostenida": () => {
+            uppercase.value = true;
+            return "";
+        },
+        "iniciar mayúsculas sostenida": () => {
+            uppercase.value = true;
+            return "";
+        },
+        "iniciar mayúsculas": () => {
+            uppercase.value = true;
+            return "";
+        },
+        "iniciar mayúscula": () => {
+            uppercase.value = true;
+            return "";
+        },
+        "mayúsculas sostenida": () => {
+            uppercase.value = true;
+            return "";
+        },
+        "mayúscula sostenida": () => {
+            uppercase.value = true;
+            return "";
+        },
+        "activar mayúsculas": () => {
+            uppercase.value = true;
+            return "";
+        },
+        "activar mayúscula": () => {
+            uppercase.value = true;
+            return "";
+        },
+        "habilitar mayúsculas": () => {
+            uppercase.value = true;
+            return "";
+        },
+        "habilitar mayúscula": () => {
+            uppercase.value = true;
+            return "";
+        },
+        "activare mayúsculas": () => {
+            uppercase.value = true;
+            return "";
+        },
+        "activare mayúscula": () => {
+            uppercase.value = true;
+            return "";
+        },
+        "desactivar mayúsculas": () => {
+            uppercase.value = false;
+            return "";
+        },
+        "desactivar mayúscula": () => {
+            uppercase.value = false;
+            return "";
+        },
+        "Deshabilitar mayúsculas": () => {
+            uppercase.value = false;
+            return "";
+        },
+        "Deshabilitar mayúscula": () => {
+            uppercase.value = false;
+            return "";
+        },
+        "terminar mayúsculas": () => {
+            uppercase.value = false;
+            return "";
+        },
+        "terminar mayúscula": () => {
+            uppercase.value = false;
+            return "";
+        },
+        "fin mayúsculas": () => {
+            uppercase.value = false;
+            return "";
+        },
+        "fin mayúscula": () => {
+            uppercase.value = false;
+            return "";
+        },
+        "finaliza mayúsculas": () => {
+            uppercase.value = false;
+            return "";
+        },
+        "finaliza mayúscula": () => {
+            uppercase.value = false;
+            return "";
+        },
+        "finalizar mayúsculas": () => {
+            uppercase.value = false;
+            return "";
+        },
+        "finalizar mayúscula": () => {
+            uppercase.value = false;
+            return "";
+        },
     };
 
     const lineBreakCommands = {
-        "punto aparte": () => { capitalizeNext.value = true; return ".\n\n"; },
-        "punto a parte": () => { capitalizeNext.value = true; return ".\n\n"; },
-        "punto y aparte": () => { capitalizeNext.value = true; return ".\n\n"; },
-        "nuevo párrafo": () => { capitalizeNext.value = true; return "\n\n"; },
-        "nueva sección": () => { capitalizeNext.value = true; return "\n\n---\n\n"; },
-        "separador": () => "\n\n---\n\n",
+        "punto aparte": () => {
+            capitalizeNext.value = true;
+            return ".\n\n";
+        },
+        "punto a parte": () => {
+            capitalizeNext.value = true;
+            return ".\n\n";
+        },
+        "punto y aparte": () => {
+            capitalizeNext.value = true;
+            return ".\n\n";
+        },
+        "nuevo párrafo": () => {
+            capitalizeNext.value = true;
+            return "\n\n";
+        },
+        "nueva sección": () => {
+            capitalizeNext.value = true;
+            return "\n\n---\n\n";
+        },
+        separador: () => "\n\n---\n\n",
         "salto de línea": () => "\n",
         "doble salto de línea": () => "\n\n",
         enter: () => "\n",
@@ -83,9 +174,18 @@ export function useDictationFlow() {
     };
 
     const punctuationCommands = {
-        punto: () => { capitalizeNext.value = true; return "."; },
-        "punto y seguido": () => { capitalizeNext.value = true; return ". "; },
-        "punto seguido": () => { capitalizeNext.value = true; return ". "; },
+        punto: () => {
+            capitalizeNext.value = true;
+            return ".";
+        },
+        "punto y seguido": () => {
+            capitalizeNext.value = true;
+            return ". ";
+        },
+        "punto seguido": () => {
+            capitalizeNext.value = true;
+            return ". ";
+        },
         coma: () => ",",
         "dos puntos": () => ":",
         "punto y coma": () => ";",
@@ -132,8 +232,13 @@ export function useDictationFlow() {
     };
 
     function stripDiacritics(text) {
-        try { return String(text).normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }
-        catch (e) { return String(text); }
+        try {
+            return String(text)
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "");
+        } catch (e) {
+            return String(text);
+        }
     }
 
     function escapeRegExp(text) {
@@ -158,7 +263,10 @@ export function useDictationFlow() {
         if (!commandMap) return text;
         const keys = Object.keys(commandMap).sort((a, b) => b.length - a.length);
         keys.forEach((cmd) => {
-            const re = new RegExp(`(^|[^\\p{L}\\p{N}_])(${escapeRegExp(cmd)})(?=$|[^\\p{L}\\p{N}_])`, "giu");
+            const re = new RegExp(
+                `(^|[^\\p{L}\\p{N}_])(${escapeRegExp(cmd)})(?=$|[^\\p{L}\\p{N}_])`,
+                "giu"
+            );
             text = text.replace(re, (match, prefix) => {
                 if (typeof onEachMatch === "function") onEachMatch(cmd);
                 const fn = commandMap[cmd];
@@ -172,7 +280,11 @@ export function useDictationFlow() {
         if (typeof uppercase.value === "undefined") uppercase.value = false;
         prepareVoiceCommands();
         text = applyCommandMap(text, uppercaseCommands);
-        text = applyCommandMap(text, lineBreakCommands, { onEachMatch: () => { capitalizeNext.value = true; } });
+        text = applyCommandMap(text, lineBreakCommands, {
+            onEachMatch: () => {
+                capitalizeNext.value = true;
+            },
+        });
         text = applyCommandMap(text, punctuationCommands);
         text = applyCommandMap(text, formatCommands);
         text = uppercase.value ? text.toUpperCase() : text;
@@ -187,14 +299,21 @@ export function useDictationFlow() {
 
     function clearRecognitionRestartTimer() {
         if (recognitionRestartTimer.value) {
-            try { clearTimeout(recognitionRestartTimer.value); } catch (e) { }
+            try {
+                clearTimeout(recognitionRestartTimer.value);
+            } catch (e) {}
             recognitionRestartTimer.value = null;
         }
     }
 
     function safeStartRecognition() {
         if (!recognition.value || recognitionActive.value) return false;
-        try { recognition.value.start(); return true; } catch (e) { return false; }
+        try {
+            recognition.value.start();
+            return true;
+        } catch (e) {
+            return false;
+        }
     }
 
     function scheduleRecognitionRestart(delayMs = 500) {
@@ -211,8 +330,20 @@ export function useDictationFlow() {
     }
 
     async function ensureMicApiAvailable() {
-        if (!navigator || !navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== "function") {
-            showToast({ heading: "No soportado", text: "Este navegador no soporta acceso al micrófono (getUserMedia). Usa Chrome/Edge actualizado.", position: "top-right", loaderBg: "#ff6849", icon: "warning", hideAfter: 7000, stack: 6 });
+        if (
+            !navigator ||
+            !navigator.mediaDevices ||
+            typeof navigator.mediaDevices.getUserMedia !== "function"
+        ) {
+            showToast({
+                heading: "No soportado",
+                text: "Este navegador no soporta acceso al micrófono (getUserMedia). Usa Chrome/Edge actualizado.",
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "warning",
+                hideAfter: 7000,
+                stack: 6,
+            });
             return false;
         }
         return true;
@@ -221,27 +352,73 @@ export function useDictationFlow() {
     function getMicErrorToastConfig(error) {
         const name = error && error.name ? String(error.name) : "";
         const msg = error && error.message ? String(error.message) : String(error);
-        if (name === "NotAllowedError" || /permission denied/i.test(msg)) return { heading: "Permiso de micrófono", text: "El navegador negó el acceso al micrófono. Solución: en el ícono del candado del navegador → Permisos del sitio → Micrófono → Permitir, y recarga. Si estás en Windows, revisa Configuración → Privacidad y seguridad → Micrófono y permite el acceso para tu navegador.", icon: "warning", hideAfter: 7000 };
-        if (name === "SecurityError" || /secure origins|only secure origins/i.test(msg)) return { heading: "HTTPS requerido", text: "El micrófono solo funciona en contextos seguros (HTTPS o localhost). Abre el sistema en `https://` (por ejemplo `https://lidiag.test`) y acepta el certificado si corresponde, luego recarga.", icon: "warning", hideAfter: 8000 };
-        if (name === "NotFoundError" || /notfound/i.test(name)) return { heading: "Sin micrófono", text: "No se encontró un dispositivo de micrófono. Conecta/activa un micrófono y vuelve a intentar.", icon: "warning", hideAfter: 7000 };
-        if (name === "NotReadableError") return { heading: "Micrófono ocupado", text: "El micrófono está siendo usado por otra aplicación o el navegador no puede acceder a él. Cierra apps que lo estén usando (Meet/Zoom/otra pestaña) y reintenta.", icon: "warning", hideAfter: 7000 };
-        return { heading: "Upsss!!!", text: "Error al acceder al micrófono: " + (msg || name || "desconocido"), icon: "danger", hideAfter: 4500 };
+        if (name === "NotAllowedError" || /permission denied/i.test(msg))
+            return {
+                heading: "Permiso de micrófono",
+                text: "El navegador negó el acceso al micrófono. Solución: en el ícono del candado del navegador → Permisos del sitio → Micrófono → Permitir, y recarga. Si estás en Windows, revisa Configuración → Privacidad y seguridad → Micrófono y permite el acceso para tu navegador.",
+                icon: "warning",
+                hideAfter: 7000,
+            };
+        if (name === "SecurityError" || /secure origins|only secure origins/i.test(msg))
+            return {
+                heading: "HTTPS requerido",
+                text: "El micrófono solo funciona en contextos seguros (HTTPS o localhost). Abre el sistema en `https://` (por ejemplo `https://lidiag.test`) y acepta el certificado si corresponde, luego recarga.",
+                icon: "warning",
+                hideAfter: 8000,
+            };
+        if (name === "NotFoundError" || /notfound/i.test(name))
+            return {
+                heading: "Sin micrófono",
+                text: "No se encontró un dispositivo de micrófono. Conecta/activa un micrófono y vuelve a intentar.",
+                icon: "warning",
+                hideAfter: 7000,
+            };
+        if (name === "NotReadableError")
+            return {
+                heading: "Micrófono ocupado",
+                text: "El micrófono está siendo usado por otra aplicación o el navegador no puede acceder a él. Cierra apps que lo estén usando (Meet/Zoom/otra pestaña) y reintenta.",
+                icon: "warning",
+                hideAfter: 7000,
+            };
+        return {
+            heading: "Upsss!!!",
+            text: "Error al acceder al micrófono: " + (msg || name || "desconocido"),
+            icon: "danger",
+            hideAfter: 4500,
+        };
     }
 
     function pauseRecognition() {
         clearRecognitionRestartTimer();
-        if (dictation.value) { try { dictation.value.pause(); } catch (e) { } }
-        else if (recognition.value) { try { recognition.value.stop(); } catch (e) { } }
+        if (dictation.value) {
+            try {
+                dictation.value.pause();
+            } catch (e) {}
+        } else if (recognition.value) {
+            try {
+                recognition.value.stop();
+            } catch (e) {}
+        }
         recognizing.value = false;
     }
 
     function resumeRecognition() {
         if (dictation.value && !recognizing.value) {
-            try { dictation.value.resume(); recognizing.value = true; } catch (e) { recognizing.value = false; }
+            try {
+                dictation.value.resume();
+                recognizing.value = true;
+            } catch (e) {
+                recognizing.value = false;
+            }
             return;
         }
         if (recognition.value && !recognizing.value) {
-            try { recognizing.value = true; safeStartRecognition(); } catch (e) { recognizing.value = false; }
+            try {
+                recognizing.value = true;
+                safeStartRecognition();
+            } catch (e) {
+                recognizing.value = false;
+            }
         }
     }
 
@@ -249,16 +426,27 @@ export function useDictationFlow() {
         ensureMicApiAvailable().then((ok) => {
             if (!ok) return;
             if (mediaStream.value && mediaStream.value.getTracks) {
-                try { mediaStream.value.getTracks().forEach((t) => t.stop()); } catch (e) { }
+                try {
+                    mediaStream.value.getTracks().forEach((t) => t.stop());
+                } catch (e) {}
                 mediaStream.value = null;
             }
-            createAudioRecorderSession({ constraints: getVoiceAudioConstraints(), mimeType: "audio/webm;codecs=opus", audioBitsPerSecond: 64000 })
+            createAudioRecorderSession({
+                constraints: getVoiceAudioConstraints(),
+                mimeType: "audio/webm;codecs=opus",
+                audioBitsPerSecond: 64000,
+            })
                 .then((session) => {
                     audioSession.value = session;
                     mediaStream.value = session.stream;
                     mediaRecorder.value = session.mediaRecorder;
                     audioChunks.value = session.chunks;
-                    if (_audioRevoke) { try { _audioRevoke(); } catch (e) { } _audioRevoke = null; }
+                    if (_audioRevoke) {
+                        try {
+                            _audioRevoke();
+                        } catch (e) {}
+                        _audioRevoke = null;
+                    }
                     audioBlob.value = null;
                     audioUrl.value = null;
                     session.start();
@@ -269,7 +457,15 @@ export function useDictationFlow() {
                     recording.value = false;
                     microfono.value = "admin-wrap/assets/images/mic.gif";
                     const cfg = getMicErrorToastConfig(error);
-                    showToast({ heading: cfg.heading, text: cfg.text, position: "top-right", loaderBg: "#ff6849", icon: cfg.icon, hideAfter: cfg.hideAfter, stack: 6 });
+                    showToast({
+                        heading: cfg.heading,
+                        text: cfg.text,
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: cfg.icon,
+                        hideAfter: cfg.hideAfter,
+                        stack: 6,
+                    });
                     console.error("Error al acceder al micrófono:", error);
                 });
         });
@@ -277,21 +473,44 @@ export function useDictationFlow() {
 
     function stopRecognition() {
         try {
-            if (voiceSession.value) { try { voiceSession.value.stopDictation(); } catch (e) { } }
-            if (dictation.value) { try { dictation.value.stop(); } catch (e) { } dictation.value = null; }
+            if (voiceSession.value) {
+                try {
+                    voiceSession.value.stopDictation();
+                } catch (e) {}
+            }
+            if (dictation.value) {
+                try {
+                    dictation.value.stop();
+                } catch (e) {}
+                dictation.value = null;
+            }
             if (recognition.value) {
-                try { recognition.value.onend = null; recognition.value.onerror = null; } catch (e) { }
+                try {
+                    recognition.value.onend = null;
+                    recognition.value.onerror = null;
+                } catch (e) {}
                 if (mediaRecorder.value && mediaRecorder.value.state === "recording") {
-                    try { mediaRecorder.value.pause(); } catch (e) { console.warn("No se pudo pausar la grabación al detener reconocimiento:", e); }
+                    try {
+                        mediaRecorder.value.pause();
+                    } catch (e) {
+                        console.warn(
+                            "No se pudo pausar la grabación al detener reconocimiento:",
+                            e
+                        );
+                    }
                     microfono.value = "admin-wrap/assets/images/mic.gif";
                 }
-                try { recognition.value.stop(); } catch (e) { }
+                try {
+                    recognition.value.stop();
+                } catch (e) {}
             }
             recognizing.value = false;
             recognitionActive.value = false;
             microfono.value = "admin-wrap/assets/images/mic.gif";
             speechInterim.value = "";
-        } catch (e) { console.error("Error al detener reconocimiento:", e); }
+        } catch (e) {
+            console.error("Error al detener reconocimiento:", e);
+        }
     }
 
     async function stopRecording() {
@@ -303,7 +522,9 @@ export function useDictationFlow() {
                     audioBlob.value = blob instanceof Blob ? blob : null;
                     audioUrl.value = url || null;
                 } else if (mediaRecorder.value && recording.value) {
-                    const safetyTimer = setTimeout(() => { resolve(); }, 5000);
+                    const safetyTimer = setTimeout(() => {
+                        resolve();
+                    }, 5000);
                     mediaRecorder.value.onstop = () => {
                         clearTimeout(safetyTimer);
                         audioBlob.value = new Blob(audioChunks.value, { type: "audio/webm" });
@@ -315,7 +536,9 @@ export function useDictationFlow() {
                     microfono.value = "admin-wrap/assets/images/mic.gif";
                     return;
                 }
-            } catch (e) { console.warn("[stopRecording] Error:", e); } finally {
+            } catch (e) {
+                console.warn("[stopRecording] Error:", e);
+            } finally {
                 recording.value = false;
                 microfono.value = "admin-wrap/assets/images/mic.gif";
                 resolve();
@@ -330,20 +553,55 @@ export function useDictationFlow() {
             recognitionBackoffMs.value = 500;
             await stopRecording();
             stopRecognition();
-            if (voiceSession.value) { try { voiceSession.value.cleanup(); } catch (e) { } voiceSession.value = null; }
-            if (audioSession.value) { try { audioSession.value.cleanup(); } catch (e) { } audioSession.value = null; }
-            else if (mediaStream.value && mediaStream.value.getTracks) { try { mediaStream.value.getTracks().forEach((t) => t.stop()); } catch (e) { } }
+            if (voiceSession.value) {
+                try {
+                    voiceSession.value.cleanup();
+                } catch (e) {}
+                voiceSession.value = null;
+            }
+            if (audioSession.value) {
+                try {
+                    audioSession.value.cleanup();
+                } catch (e) {}
+                audioSession.value = null;
+            } else if (mediaStream.value && mediaStream.value.getTracks) {
+                try {
+                    mediaStream.value.getTracks().forEach((t) => t.stop());
+                } catch (e) {}
+            }
             mediaStream.value = null;
-            if (_audioRevoke) { try { _audioRevoke(); } catch (e) { } _audioRevoke = null; }
-            if (audioUrl.value) { try { URL.revokeObjectURL(audioUrl.value); } catch (e) { } audioUrl.value = null; }
+            if (_audioRevoke) {
+                try {
+                    _audioRevoke();
+                } catch (e) {}
+                _audioRevoke = null;
+            }
+            if (audioUrl.value) {
+                try {
+                    URL.revokeObjectURL(audioUrl.value);
+                } catch (e) {}
+                audioUrl.value = null;
+            }
             recording.value = false;
             microfono.value = "admin-wrap/assets/images/mic.gif";
-        } catch (e) { console.error("Error en stopAll:", e); }
+        } catch (e) {
+            console.error("Error en stopAll:", e);
+        }
     }
 
     function clearAudioBuffer() {
-        if (_audioRevoke) { try { _audioRevoke(); } catch (e) { } _audioRevoke = null; }
-        if (audioUrl.value) { try { URL.revokeObjectURL(audioUrl.value); } catch (e) { } audioUrl.value = null; }
+        if (_audioRevoke) {
+            try {
+                _audioRevoke();
+            } catch (e) {}
+            _audioRevoke = null;
+        }
+        if (audioUrl.value) {
+            try {
+                URL.revokeObjectURL(audioUrl.value);
+            } catch (e) {}
+            audioUrl.value = null;
+        }
         audioChunks.value = [];
         audioBlob.value = null;
     }
@@ -352,7 +610,12 @@ export function useDictationFlow() {
         ensureMicApiAvailable().then((ok) => {
             if (!ok) return;
             prepareVoiceCommands();
-            const allCommands = { ...uppercaseCommands, ...lineBreakCommands, ...punctuationCommands, ...formatCommands };
+            const allCommands = {
+                ...uppercaseCommands,
+                ...lineBreakCommands,
+                ...punctuationCommands,
+                ...formatCommands,
+            };
             const grammarCommands = Object.keys(allCommands);
             if (!voiceSession.value) {
                 voiceSession.value = createVoiceSession({
@@ -372,35 +635,83 @@ export function useDictationFlow() {
                             speechInterim.value = "";
                         }
                     },
-                    onInterimText: (raw) => { speechInterim.value = String(raw || "").trim(); },
+                    onInterimText: (raw) => {
+                        speechInterim.value = String(raw || "").trim();
+                    },
                     onPermissionDenied: () => {
-                        recognizing.value = false; recognitionActive.value = false;
-                        microfono.value = "admin-wrap/assets/images/mic.gif"; speechInterim.value = "";
-                        showToast({ heading: "Permiso requerido", text: "El navegador bloqueó el micrófono. Permite el acceso al micrófono para usar dictado.", position: "top-right", loaderBg: "#ff6849", icon: "warning", hideAfter: 6000, stack: 6 });
+                        recognizing.value = false;
+                        recognitionActive.value = false;
+                        microfono.value = "admin-wrap/assets/images/mic.gif";
+                        speechInterim.value = "";
+                        showToast({
+                            heading: "Permiso requerido",
+                            text: "El navegador bloqueó el micrófono. Permite el acceso al micrófono para usar dictado.",
+                            position: "top-right",
+                            loaderBg: "#ff6849",
+                            icon: "warning",
+                            hideAfter: 6000,
+                            stack: 6,
+                        });
                     },
                     onError: (e) => {
                         const err = e && e.error ? String(e.error) : "";
                         lastRecognitionError.value = err || null;
                         console.error("[Voice] Error:", err, e);
                         if (e && e.message === "Silencio repetido") {
-                            showToast({ heading: "Sin voz detectada", text: "No se detecta voz (silencio repetido). Verifica micrófono/entrada y vuelve a iniciar el dictamen.", position: "top-right", loaderBg: "#ff6849", icon: "warning", hideAfter: 6000, stack: 6 });
+                            showToast({
+                                heading: "Sin voz detectada",
+                                text: "No se detecta voz (silencio repetido). Verifica micrófono/entrada y vuelve a iniciar el dictamen.",
+                                position: "top-right",
+                                loaderBg: "#ff6849",
+                                icon: "warning",
+                                hideAfter: 6000,
+                                stack: 6,
+                            });
                         } else if (err.includes("not-allowed")) {
-                            showToast({ heading: "Micrófono bloqueado", text: "Permite el acceso al micrófono en la configuración del navegador.", position: "top-right", loaderBg: "#ff6849", icon: "error", hideAfter: 6000, stack: 6 });
+                            showToast({
+                                heading: "Micrófono bloqueado",
+                                text: "Permite el acceso al micrófono en la configuración del navegador.",
+                                position: "top-right",
+                                loaderBg: "#ff6849",
+                                icon: "error",
+                                hideAfter: 6000,
+                                stack: 6,
+                            });
                         } else if (err.includes("no-speech")) {
-                            showToast({ heading: "Sin voz", text: "No se detectó voz. Intenta de nuevo.", position: "top-right", loaderBg: "#ff6849", icon: "info", hideAfter: 4000, stack: 6 });
+                            showToast({
+                                heading: "Sin voz",
+                                text: "No se detectó voz. Intenta de nuevo.",
+                                position: "top-right",
+                                loaderBg: "#ff6849",
+                                icon: "info",
+                                hideAfter: 4000,
+                                stack: 6,
+                            });
                         }
                     },
                     onState: ({ recognizing: r, active, lastError }) => {
-                        recognizing.value = !!r; recognitionActive.value = !!active;
+                        recognizing.value = !!r;
+                        recognitionActive.value = !!active;
                         lastRecognitionError.value = lastError || null;
-                        if (typeof _onState === "function") _onState({ recognizing: !!r, active: !!active, lastError: lastError || null });
+                        if (typeof _onState === "function")
+                            _onState({
+                                recognizing: !!r,
+                                active: !!active,
+                                lastError: lastError || null,
+                            });
                     },
                 });
             }
             microfono.value = "admin-wrap/assets/images/mic-animate.gif";
-            voiceSession.value.start()
+            voiceSession.value
+                .start()
                 .then(({ audioSession: as, dictation: d }) => {
-                    if (_audioRevoke) { try { _audioRevoke(); } catch (e) { } _audioRevoke = null; }
+                    if (_audioRevoke) {
+                        try {
+                            _audioRevoke();
+                        } catch (e) {}
+                        _audioRevoke = null;
+                    }
                     audioSession.value = as;
                     dictation.value = d;
                     recognition.value = d ? d.recognition : recognition.value;
@@ -415,7 +726,15 @@ export function useDictationFlow() {
                     recording.value = false;
                     microfono.value = "admin-wrap/assets/images/mic.gif";
                     const cfg = getMicErrorToastConfig(error);
-                    showToast({ heading: cfg.heading, text: cfg.text, position: "top-right", loaderBg: "#ff6849", icon: cfg.icon, hideAfter: cfg.hideAfter, stack: 6 });
+                    showToast({
+                        heading: cfg.heading,
+                        text: cfg.text,
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: cfg.icon,
+                        hideAfter: cfg.hideAfter,
+                        stack: 6,
+                    });
                     console.error("Error al iniciar sesión de voz:", error);
                 });
         });
@@ -428,12 +747,28 @@ export function useDictationFlow() {
         }
         const state = mediaRecorder.value.state;
         if (state === "recording") {
-            if (voiceSession.value) { try { voiceSession.value.pause(); } catch (e) { } }
-            else { try { mediaRecorder.value.pause(); } catch (e) { } pauseRecognition(); }
+            if (voiceSession.value) {
+                try {
+                    voiceSession.value.pause();
+                } catch (e) {}
+            } else {
+                try {
+                    mediaRecorder.value.pause();
+                } catch (e) {}
+                pauseRecognition();
+            }
             microfono.value = "admin-wrap/assets/images/mic.gif";
         } else if (state === "paused") {
-            if (voiceSession.value) { try { voiceSession.value.resume(); } catch (e) { } }
-            else { try { mediaRecorder.value.resume(); } catch (e) { } resumeRecognition(); }
+            if (voiceSession.value) {
+                try {
+                    voiceSession.value.resume();
+                } catch (e) {}
+            } else {
+                try {
+                    mediaRecorder.value.resume();
+                } catch (e) {}
+                resumeRecognition();
+            }
             microfono.value = "admin-wrap/assets/images/mic-animate.gif";
         } else if (state === "inactive") {
             startRecording();
@@ -441,7 +776,12 @@ export function useDictationFlow() {
     }
 
     async function sendToBackend(estudioId, estudioProductoId) {
-        console.log("[sendToBackend] INICIO", { estudioId, estudioProductoId, tieneBlob: !!audioBlob.value, blobSize: audioBlob.value?.size });
+        console.log("[sendToBackend] INICIO", {
+            estudioId,
+            estudioProductoId,
+            tieneBlob: !!audioBlob.value,
+            blobSize: audioBlob.value?.size,
+        });
         await stopRecording();
         if (!audioBlob.value || !(audioBlob.value instanceof Blob)) {
             console.warn("[sendToBackend] No hay audioBlob para enviar", { blob: audioBlob.value });
@@ -452,25 +792,80 @@ export function useDictationFlow() {
         formData.append("estudio_id", estudioId);
         formData.append("estudio_producto_id", estudioProductoId);
         try {
-            const axios = (await import("axios")).default;
-            console.log("[sendToBackend] Enviando POST a /api/upload-audio", { blobSize: audioBlob.value.size, estudioId, estudioProductoId });
+            console.log("[sendToBackend] Enviando POST a /api/upload-audio", {
+                blobSize: audioBlob.value.size,
+                estudioId,
+                estudioProductoId,
+            });
             const res = await axios.post("/api/upload-audio", formData);
-            console.log("[sendToBackend] Respuesta del servidor:", { status: res?.status, data: res?.data });
+            console.log("[sendToBackend] Respuesta del servidor:", {
+                status: res?.status,
+                data: res?.data,
+            });
             if (res && res.status === 200) {
-                showToast({ heading: "Ok!!!", text: "Audio enviado correctamente", position: "top-right", loaderBg: "#ff6849", icon: "success", hideAfter: 3500, stack: 6 });
+                showToast({
+                    heading: "Ok!!!",
+                    text: "Audio enviado correctamente",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "success",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
                 clearAudioBuffer();
                 if (typeof _onAudioSaved === "function") _onAudioSaved();
             } else {
                 const msg = res && res.data && res.data.message ? String(res.data.message) : "";
-                if (msg.includes("El audio debe tener contenido") || msg.includes("No se proporcionó un archivo de audio")) { console.warn("[sendToBackend] Audio vacío, limpiando buffer"); clearAudioBuffer(); return; }
-                showToast({ heading: "Upsss!!!", text: res && res.data && res.data.message ? res.data.message : "Error al enviar audio", position: "top-right", loaderBg: "#ff6849", icon: "error", hideAfter: 3500, stack: 6 });
+                if (
+                    msg.includes("El audio debe tener contenido") ||
+                    msg.includes("No se proporcionó un archivo de audio")
+                ) {
+                    console.warn("[sendToBackend] Audio vacío, limpiando buffer");
+                    clearAudioBuffer();
+                    return;
+                }
+                showToast({
+                    heading: "Upsss!!!",
+                    text:
+                        res && res.data && res.data.message
+                            ? res.data.message
+                            : "Error al enviar audio",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "error",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
             }
         } catch (error) {
             const status = error && error.response ? error.response.status : null;
-            const msg = error && error.response && error.response.data && error.response.data.message ? String(error.response.data.message) : "";
-            console.error("[sendToBackend] Error capturado:", { status, message: error.message, responseData: error?.response?.data });
-            if (status === 400 && (msg.includes("El audio debe tener contenido") || msg.includes("No se proporcionó un archivo de audio"))) { console.warn("[sendToBackend] Audio vacío, limpiando buffer"); clearAudioBuffer(); return; }
-            showToast({ heading: "Upsss!!!", text: "Fallo al enviar audio", position: "top-right", loaderBg: "#ff6849", icon: "error", hideAfter: 3500, stack: 6 });
+            const msg =
+                error && error.response && error.response.data && error.response.data.message
+                    ? String(error.response.data.message)
+                    : "";
+            console.error("[sendToBackend] Error capturado:", {
+                status,
+                message: error.message,
+                responseData: error?.response?.data,
+            });
+            if (
+                status === 400 &&
+                (msg.includes("El audio debe tener contenido") ||
+                    msg.includes("No se proporcionó un archivo de audio"))
+            ) {
+                console.warn("[sendToBackend] Audio vacío, limpiando buffer");
+                clearAudioBuffer();
+                return;
+            }
+            showToast({
+                heading: "Upsss!!!",
+                text: "Fallo al enviar audio",
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "error",
+                hideAfter: 3500,
+                stack: 6,
+            });
         }
     }
 
@@ -487,27 +882,64 @@ export function useDictationFlow() {
     }
 
     function teardownKeyboardShortcut() {
-        if (onKeydownHandler) { try { window.removeEventListener("keydown", onKeydownHandler); } catch (e) { } onKeydownHandler = null; }
+        if (onKeydownHandler) {
+            try {
+                window.removeEventListener("keydown", onKeydownHandler);
+            } catch (e) {}
+            onKeydownHandler = null;
+        }
     }
 
-    onBeforeUnmount(() => { stopAll(); teardownKeyboardShortcut(); });
+    onBeforeUnmount(() => {
+        stopAll();
+        teardownKeyboardShortcut();
+    });
 
     return {
-        recognizing, recognitionActive, recognitionRestartTimer, recognitionBackoffMs,
-        noSpeechCount, maxNoSpeechRetries, lastRecognitionError, recording,
-        microfono, dictation, voiceSession, recognition, audioSession,
-        mediaRecorder, audioChunks, audioBlob, audioUrl, speechInterim,
-        uppercase, mediaStream, capitalizeNext,
+        recognizing,
+        recognitionActive,
+        recognitionRestartTimer,
+        recognitionBackoffMs,
+        noSpeechCount,
+        maxNoSpeechRetries,
+        lastRecognitionError,
+        recording,
+        microfono,
+        dictation,
+        voiceSession,
+        recognition,
+        audioSession,
+        mediaRecorder,
+        audioChunks,
+        audioBlob,
+        audioUrl,
+        speechInterim,
+        uppercase,
+        mediaStream,
+        capitalizeNext,
 
         setCallbacks,
-        toggleSpeechRecognition, startAudioOnly, stopRecognition,
-        stopAll, stopRecording, clearAudioBuffer, startRecording,
-        processCommands, sendToBackend,
-        setupKeyboardShortcut, teardownKeyboardShortcut,
-        pauseRecognition, resumeRecognition,
-        ensureMicApiAvailable, getMicErrorToastConfig,
-        clearRecognitionRestartTimer, safeStartRecognition,
-        scheduleRecognitionRestart, prepareVoiceCommands,
-        stripDiacritics, escapeRegExp, applyCommandMap,
+        toggleSpeechRecognition,
+        startAudioOnly,
+        stopRecognition,
+        stopAll,
+        stopRecording,
+        clearAudioBuffer,
+        startRecording,
+        processCommands,
+        sendToBackend,
+        setupKeyboardShortcut,
+        teardownKeyboardShortcut,
+        pauseRecognition,
+        resumeRecognition,
+        ensureMicApiAvailable,
+        getMicErrorToastConfig,
+        clearRecognitionRestartTimer,
+        safeStartRecognition,
+        scheduleRecognitionRestart,
+        prepareVoiceCommands,
+        stripDiacritics,
+        escapeRegExp,
+        applyCommandMap,
     };
 }

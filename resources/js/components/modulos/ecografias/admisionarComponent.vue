@@ -877,7 +877,14 @@ export default {
         const { sedeInterface, establecerSede } = useSede();
         const { consultarEstado, enviarEcografiaProducto } = useSahiInterface();
 
-        return { can, formatoMoneda, sedeInterface, establecerSede, consultarEstado, enviarEcografiaProducto };
+        return {
+            can,
+            formatoMoneda,
+            sedeInterface,
+            establecerSede,
+            consultarEstado,
+            enviarEcografiaProducto,
+        };
     },
     mounted() {
         this.listarMedicos();
@@ -1087,7 +1094,7 @@ export default {
 
         abrirLinkFirma() {
             if (!this.consentimientoUrl) return;
-            window.open(this.consentimientoUrl, "_blank", "noopener");
+            window.open(this.consentimientoUrl, "_blank", "noopener,noreferrer");
         },
 
         async refrescarConsentimientoItem() {

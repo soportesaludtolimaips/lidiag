@@ -514,7 +514,7 @@ export default {
                 const res = await axios.post(`/api/ecografia-generar-reporte/${id}`);
                 const url = res?.data?.plantilla || res?.data?.url;
                 if (url) {
-                    window.open(url, "_blank");
+                    window.open(url, "_blank", "noopener,noreferrer");
                 } else {
                     $.toast({
                         heading: "Upss!!!",

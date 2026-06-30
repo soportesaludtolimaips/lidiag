@@ -247,7 +247,7 @@ export default {
             window.open(
                 `/api/ecografias-consentimientos/${c.id}/pdf/download`,
                 "_blank",
-                "noopener"
+                "noopener,noreferrer"
             );
         },
         async generarZip() {

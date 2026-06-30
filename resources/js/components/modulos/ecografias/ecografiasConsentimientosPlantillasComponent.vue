@@ -432,7 +432,7 @@ export default {
                 window.open(
                     `/api/consentimientos-plantillas/${p.id}/preview-pdf`,
                     "_blank",
-                    "noopener"
+                    "noopener,noreferrer"
                 );
             } finally {
                 this.loadingPreviewId = null;

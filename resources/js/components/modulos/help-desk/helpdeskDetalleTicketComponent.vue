@@ -154,11 +154,11 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Descripción</h4>
-                        <div v-html="ticket.descripcion"></div>
+                        <div v-html="sanitize(ticket.descripcion)"></div>
 
                         <div v-if="ticket.descripcion_solucion" class="m-t-20">
                             <h5 class="text-success">Solución</h5>
-                            <div v-html="ticket.descripcion_solucion"></div>
+                            <div v-html="sanitize(ticket.descripcion_solucion)"></div>
                         </div>
                     </div>
                 </div>
@@ -226,7 +226,11 @@
                                     }}</span>
                                 </div>
                                 <div class="text-muted">{{ h.user?.name }}</div>
-                                <div v-if="h.comentario" class="m-t-5" v-html="h.comentario"></div>
+                                <div
+                                    v-if="h.comentario"
+                                    class="m-t-5"
+                                    v-html="sanitize(h.comentario)"
+                                ></div>
 
                                 <div v-if="h.adjuntos && h.adjuntos.length" class="m-t-10">
                                     <div v-for="a in h.adjuntos" :key="a.id">
@@ -251,6 +255,7 @@
 </template>
 
 <script>
+import DOMPurify from "dompurify";
 import { toastMessage, handleAxiosErrorToast } from "@/helpers/alerts.js";
 
 export default {
@@ -288,6 +293,9 @@ export default {
         await this.cargar();
     },
     methods: {
+        sanitize(dirty) {
+            return DOMPurify.sanitize(dirty || "");
+        },
         initWysiwyg() {
             try {
                 const $root = $(this.$el);
