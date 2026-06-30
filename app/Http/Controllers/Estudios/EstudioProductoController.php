@@ -33,7 +33,7 @@ class EstudioProductoController extends Controller
      */
     public function store(Request $request, EstudioProducto $estudioProducto)
     {
-        $estudioProducto->create($request->all());
+        $estudioProducto->create($request->only($estudioProducto->getFillable()));
 
         return response()->json(['message' => 'Registro creado satisfactoriamente.']);
     }

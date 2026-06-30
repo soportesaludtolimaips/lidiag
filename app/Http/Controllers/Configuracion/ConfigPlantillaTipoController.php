@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Configuracion;
 
+use App\Helpers\AuditLogger;
 use App\Http\Controllers\Controller;
 use App\Models\Configuracion\ConfigPlantillaTipo;
 use Illuminate\Http\JsonResponse;
@@ -54,7 +55,9 @@ class ConfigPlantillaTipoController extends Controller
             'estado.boolean' => 'El estado debe ser verdadero o falso.',
         ]);
 
-        $plantilla = ConfigPlantillaTipo::create($request->all());
+        $plantilla = ConfigPlantillaTipo::create($request->only(['nom_tipo', 'estado']));
+
+        AuditLogger::crear($plantilla, 'Tipo de plantilla creado');
 
         return response()->json($plantilla, 201);
     }
@@ -97,7 +100,10 @@ class ConfigPlantillaTipoController extends Controller
         ]);
 
         $plantilla = ConfigPlantillaTipo::findOrFail($id);
-        $plantilla->update($request->all());
+        $datosViejos = $plantilla->toArray();
+        $plantilla->update($request->only(['nom_tipo', 'estado']));
+
+        AuditLogger::actualizar($plantilla, $datosViejos, 'Tipo de plantilla actualizado');
 
         return response()->json($plantilla);
     }
@@ -112,6 +118,8 @@ class ConfigPlantillaTipoController extends Controller
     {
         $plantilla = ConfigPlantillaTipo::findOrFail($id);
         $plantilla->delete();
+
+        AuditLogger::eliminar($plantilla, 'Tipo de plantilla eliminado');
 
         return response()->json(null, 204);
     }

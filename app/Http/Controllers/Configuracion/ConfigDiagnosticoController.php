@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Configuracion;
 
+use App\Helpers\AuditLogger;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Configuracion\ConfigDiagnosticoRequest;
 use App\Models\Configuracion\ConfigDiagnostico;
@@ -39,7 +40,9 @@ class ConfigDiagnosticoController extends Controller
      */
     public function store(ConfigDiagnosticoRequest $request, ConfigDiagnostico $configDiagnostico)
     {
-        $configDiagnostico->create($request->all());
+        $configDiagnostico->create($request->only(['cod_diagnos', 'nom_diagnos', 'estado']));
+
+        AuditLogger::crear($configDiagnostico, 'Diagnóstico creado');
 
         return response()->json(['message' => 'Registro creado satisfactoriamente.']);
     }
@@ -53,7 +56,10 @@ class ConfigDiagnosticoController extends Controller
      */
     public function update(ConfigDiagnosticoRequest $request, ConfigDiagnostico $configDiagnostico)
     {
-        $configDiagnostico->update($request->all());
+        $datosViejos = $configDiagnostico->toArray();
+        $configDiagnostico->update($request->only(['cod_diagnos', 'nom_diagnos', 'estado']));
+
+        AuditLogger::actualizar($configDiagnostico, $datosViejos, 'Diagnóstico actualizado');
 
         return response()->json(['message' => 'Registro actualizado correctamente.']);
     }
@@ -67,6 +73,8 @@ class ConfigDiagnosticoController extends Controller
     public function destroy(ConfigDiagnostico $configDiagnostico)
     {
         $configDiagnostico->delete();
+
+        AuditLogger::eliminar($configDiagnostico, 'Diagnóstico eliminado');
 
         return response()->json(['message' => 'Registro eliminado crrectamente.']);
     }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Configuracion;
 
+use App\Helpers\AuditLogger;
 use App\Http\Controllers\Controller;
 use App\Models\Configuracion\ConfigTipoDocumento;
 use Illuminate\Http\JsonResponse;
@@ -43,7 +44,9 @@ class ConfigTipoDocumentoController extends Controller
             'tipo_documento' => 'required|string|max:100',
             'estado' => 'nullable|boolean',
         ]);
-        $tipoDocumento = ConfigTipoDocumento::create($request->all());
+        $tipoDocumento = ConfigTipoDocumento::create($request->only(['codigo', 'tipo_documento', 'estado']));
+
+        AuditLogger::crear($tipoDocumento, 'Tipo de documento creado');
 
         return response()->json($tipoDocumento);
     }
@@ -87,7 +90,10 @@ class ConfigTipoDocumentoController extends Controller
             ], 404);
         }
 
-        $tipoDocumento->update($request->all());
+        $datosViejos = $tipoDocumento->toArray();
+        $tipoDocumento->update($request->only(['codigo', 'tipo_documento', 'estado']));
+
+        AuditLogger::actualizar($tipoDocumento, $datosViejos, 'Tipo de documento actualizado');
 
         return response()->json($tipoDocumento);
     }
@@ -108,6 +114,8 @@ class ConfigTipoDocumentoController extends Controller
         }
 
         $tipoDocumento->delete();
+
+        AuditLogger::eliminar($tipoDocumento, 'Tipo de documento eliminado');
 
         return response()->json([
             'message' => 'Tipo de documento eliminado',

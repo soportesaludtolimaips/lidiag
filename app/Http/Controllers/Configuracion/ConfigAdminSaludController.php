@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Configuracion;
 
+use App\Helpers\AuditLogger;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Configuracion\ConfigAdminSaludRequest;
 use App\Models\Configuracion\ConfigAdminSalud;
@@ -38,7 +39,9 @@ class ConfigAdminSaludController extends Controller
      */
     public function store(ConfigAdminSaludRequest $request, ConfigAdminSalud $configAdminSalud)
     {
-        $configAdminSalud->create($request->all());
+        $configAdminSalud->create($request->only(['cod_admin_salud', 'nit_admin_salud', 'nom_admin_salud', 'estado']));
+
+        AuditLogger::crear($configAdminSalud, 'Administradora de Salud creada');
 
         return response()->json(['message' => 'Registro creado satisfactoriamente.']);
     }
@@ -52,7 +55,10 @@ class ConfigAdminSaludController extends Controller
      */
     public function update(ConfigAdminSaludRequest $request, ConfigAdminSalud $configAdminSalud)
     {
-        $configAdminSalud->update($request->all());
+        $datosViejos = $configAdminSalud->toArray();
+        $configAdminSalud->update($request->only(['cod_admin_salud', 'nit_admin_salud', 'nom_admin_salud', 'estado']));
+
+        AuditLogger::actualizar($configAdminSalud, $datosViejos, 'Administradora de Salud actualizada');
 
         return response()->json(['message' => 'Registro actualizado correctamente.']);
     }
@@ -66,6 +72,8 @@ class ConfigAdminSaludController extends Controller
     public function destroy(ConfigAdminSalud $configAdminSalud)
     {
         $configAdminSalud->delete();
+
+        AuditLogger::eliminar($configAdminSalud, 'Administradora de Salud eliminada');
 
         return response()->json(['message' => 'Registro eliminado correctamente.']);
     }

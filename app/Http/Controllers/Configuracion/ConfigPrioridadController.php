@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Configuracion;
 
+use App\Helpers\AuditLogger;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Configuracion\ConfigPrioridadRequest;
 use App\Models\Configuracion\ConfigPrioridad;
@@ -40,7 +41,9 @@ class ConfigPrioridadController extends Controller
      */
     public function store(ConfigPrioridadRequest $request, ConfigPrioridad $configPrioridad)
     {
-        $configPrioridad->create($request->all());
+        $configPrioridad->create($request->only(['nom_priori', 'nivel', 'tiempo', 'estado']));
+
+        AuditLogger::crear($configPrioridad, 'Prioridad creada');
 
         return response()->json(['message' => 'Registro creado satisfactoriamente.']);
     }
@@ -54,7 +57,10 @@ class ConfigPrioridadController extends Controller
      */
     public function update(Request $request, ConfigPrioridad $configPrioridad)
     {
-        $configPrioridad->update($request->all());
+        $datosViejos = $configPrioridad->toArray();
+        $configPrioridad->update($request->only(['nom_priori', 'nivel', 'tiempo', 'estado']));
+
+        AuditLogger::actualizar($configPrioridad, $datosViejos, 'Prioridad actualizada');
 
         return response()->json(['message' => 'Registro actualizado correctamente.']);
     }
@@ -68,6 +74,8 @@ class ConfigPrioridadController extends Controller
     public function destroy(ConfigPrioridad $configPrioridad)
     {
         $configPrioridad->delete();
+
+        AuditLogger::eliminar($configPrioridad, 'Prioridad eliminada');
 
         return response()->json(['message' => 'Registro eliminado crrectamente.']);
     }

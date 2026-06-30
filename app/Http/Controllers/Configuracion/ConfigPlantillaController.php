@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Configuracion;
 
+use App\Helpers\AuditLogger;
 use App\Http\Controllers\Controller;
 use App\Models\Configuracion\ConfigPlantilla;
 use Illuminate\Http\JsonResponse;
@@ -65,7 +66,9 @@ class ConfigPlantillaController extends Controller
             'estado.boolean' => 'El estado debe ser verdadero o falso.',
         ]);
 
-        $detalle = ConfigPlantilla::create($request->all());
+        $detalle = ConfigPlantilla::create($request->only(['plantilla_tipo_id', 'medico_id', 'nom_plantilla', 'plantilla', 'opinion', 'estado']));
+
+        AuditLogger::crear($detalle, 'Plantilla creada');
 
         return response()->json($detalle, 201);
     }
@@ -114,7 +117,10 @@ class ConfigPlantillaController extends Controller
         ]);
 
         $detalle = ConfigPlantilla::findOrFail($id);
-        $detalle->update($request->all());
+        $datosViejos = $detalle->toArray();
+        $detalle->update($request->only(['plantilla_tipo_id', 'medico_id', 'nom_plantilla', 'plantilla', 'opinion', 'estado']));
+
+        AuditLogger::actualizar($detalle, $datosViejos, 'Plantilla actualizada');
 
         return response()->json($detalle);
     }
@@ -129,6 +135,8 @@ class ConfigPlantillaController extends Controller
     {
         $detalle = ConfigPlantilla::findOrFail($id);
         $detalle->delete();
+
+        AuditLogger::eliminar($detalle, 'Plantilla eliminada');
 
         return response()->json(null, 204);
     }
