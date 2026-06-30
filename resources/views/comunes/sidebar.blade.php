@@ -419,6 +419,13 @@
                                         </a>
                                     </li>
                                 @endcan
+                                @can('seguridad.auditoria.index')
+                                    <li>
+                                        <a href="{{ route('seguridad.auditoria') }}">
+                                            <i class="fa fa-key text-info"></i> Auditoria
+                                        </a>
+                                    </li>
+                                @endcan
                             </ul>
                         </li>
                     @endif

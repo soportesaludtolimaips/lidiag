@@ -38,7 +38,6 @@ class Estudio extends Model
         'estado',
         'destino_estudio',
         'destino_estudio_id',
-        'created_at',
     ];
 
     protected $guarded = ['*'];

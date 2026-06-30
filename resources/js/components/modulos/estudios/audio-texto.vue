@@ -1,19 +1,43 @@
 <template>
     <div>
-        <a class="" @click="toggleSpeechRecognition" style="width: 30px; height: 30px;">
-            <img title="Grabadora" :src="microfono">
-        </a>
+        <button
+            type="button"
+            @click="toggleSpeechRecognition"
+            :aria-label="recognizing ? 'Detener grabación' : 'Iniciar grabación'"
+            :aria-pressed="String(recognizing)"
+            style="
+                width: 44px;
+                height: 44px;
+                padding: 0;
+                border: none;
+                background: none;
+                cursor: pointer;
+            "
+        >
+            <img title="Grabadora" :src="microfono" />
+        </button>
         <div class="row">
             <div class="col-7">
                 <div class="form-group">
-                    <textarea v-model="registro.lectura" class="textarea_editor form-control" rows="15" id="lectura"
-                        style="height: 700px;" placeholder="Ingrese aquí la lectura del estudio ..."></textarea>
+                    <textarea
+                        v-model="registro.lectura"
+                        class="textarea_editor form-control"
+                        rows="15"
+                        id="lectura"
+                        style="height: 700px"
+                        placeholder="Ingrese aquí la lectura del estudio ..."
+                    ></textarea>
                 </div>
             </div>
         </div>
         <audio v-if="audioUrl" :src="audioUrl" controls></audio>
 
-        <button type="button" class="btn btn-success m-r-5" @click="sendToBackend()" :disabled="loadingEnviar">
+        <button
+            type="button"
+            class="btn btn-success m-r-5"
+            @click="sendToBackend()"
+            :disabled="loadingEnviar"
+        >
             <i v-if="loadingEnviar" class="fa fa-spinner fa-spin"></i>
             <i v-else class="fa fa-check"></i>
             Guardar
@@ -31,9 +55,10 @@ export default {
         return {
             recognizing: false,
             recording: false,
-            microfono: 'admin-wrap/assets/images/mic.gif',
+            microfono: "admin-wrap/assets/images/mic.gif",
             recognition: null,
             mediaRecorder: null,
+            mediaStream: null,
             audioChunks: [],
             audioUrl: null,
             uppercase: false,
@@ -44,39 +69,111 @@ export default {
             },
             loadingEnviar: false,
             commands: {
-                "iniciar mayúscula sostenida": () => { this.uppercase = true; return ""; },
-                "iniciar mayúsculas sostenida": () => { this.uppercase = true; return ""; },
-                "iniciar mayúsculas": () => { this.uppercase = true; return ""; },
-                "iniciar mayúscula": () => { this.uppercase = true; return ""; },
-                "mayúsculas sostenida": () => { this.uppercase = true; return ""; },
-                "mayúscula sostenida": () => { this.uppercase = true; return ""; },
-                "activar mayúsculas": () => { this.uppercase = true; return ""; },
-                "activar mayúscula": () => { this.uppercase = true; return ""; },
-                "habilitar mayúsculas": () => { this.uppercase = true; return ""; },
-                "habilitar mayúscula": () => { this.uppercase = true; return ""; },
-                "activare mayúsculas": () => { this.uppercase = true; return ""; },
-                "activare mayúscula": () => { this.uppercase = true; return ""; },
-                "desactivar mayúsculas": () => { this.uppercase = false; return ""; },
-                "desactivar mayúscula": () => { this.uppercase = false; return ""; },
-                "Deshabilitar mayúsculas": () => { this.uppercase = false; return ""; },
-                "Deshabilitar mayúscula": () => { this.uppercase = false; return ""; },
-                "terminar mayúsculas": () => { this.uppercase = false; return ""; },
-                "terminar mayúscula": () => { this.uppercase = false; return ""; },
-                "fin mayúsculas": () => { this.uppercase = false; return ""; },
-                "fin mayúscula": () => { this.uppercase = false; return ""; },
-                "finaliza mayúsculas": () => { this.uppercase = false; return ""; },
-                "finaliza mayúscula": () => { this.uppercase = false; return ""; },
-                "finalizar mayúsculas": () => { this.uppercase = false; return ""; },
-                "finalizar mayúscula": () => { this.uppercase = false; return ""; },
+                "iniciar mayúscula sostenida": () => {
+                    this.uppercase = true;
+                    return "";
+                },
+                "iniciar mayúsculas sostenida": () => {
+                    this.uppercase = true;
+                    return "";
+                },
+                "iniciar mayúsculas": () => {
+                    this.uppercase = true;
+                    return "";
+                },
+                "iniciar mayúscula": () => {
+                    this.uppercase = true;
+                    return "";
+                },
+                "mayúsculas sostenida": () => {
+                    this.uppercase = true;
+                    return "";
+                },
+                "mayúscula sostenida": () => {
+                    this.uppercase = true;
+                    return "";
+                },
+                "activar mayúsculas": () => {
+                    this.uppercase = true;
+                    return "";
+                },
+                "activar mayúscula": () => {
+                    this.uppercase = true;
+                    return "";
+                },
+                "habilitar mayúsculas": () => {
+                    this.uppercase = true;
+                    return "";
+                },
+                "habilitar mayúscula": () => {
+                    this.uppercase = true;
+                    return "";
+                },
+                "activare mayúsculas": () => {
+                    this.uppercase = true;
+                    return "";
+                },
+                "activare mayúscula": () => {
+                    this.uppercase = true;
+                    return "";
+                },
+                "desactivar mayúsculas": () => {
+                    this.uppercase = false;
+                    return "";
+                },
+                "desactivar mayúscula": () => {
+                    this.uppercase = false;
+                    return "";
+                },
+                "Deshabilitar mayúsculas": () => {
+                    this.uppercase = false;
+                    return "";
+                },
+                "Deshabilitar mayúscula": () => {
+                    this.uppercase = false;
+                    return "";
+                },
+                "terminar mayúsculas": () => {
+                    this.uppercase = false;
+                    return "";
+                },
+                "terminar mayúscula": () => {
+                    this.uppercase = false;
+                    return "";
+                },
+                "fin mayúsculas": () => {
+                    this.uppercase = false;
+                    return "";
+                },
+                "fin mayúscula": () => {
+                    this.uppercase = false;
+                    return "";
+                },
+                "finaliza mayúsculas": () => {
+                    this.uppercase = false;
+                    return "";
+                },
+                "finaliza mayúscula": () => {
+                    this.uppercase = false;
+                    return "";
+                },
+                "finalizar mayúsculas": () => {
+                    this.uppercase = false;
+                    return "";
+                },
+                "finalizar mayúscula": () => {
+                    this.uppercase = false;
+                    return "";
+                },
 
                 "punto aparte": () => ".\n\n",
                 "salto de línea": () => "\n",
                 "doble salto de línea": () => "\n\n",
-                "enter": () => "\n",
+                enter: () => "\n",
                 "doble enter": () => "\n\n",
                 "línea en blanco": () => "\n\n",
-                "punto": () => ".",
-                "coma": () => ",",
+                punto: () => ".",
+                coma: () => ",",
                 "dos puntos": () => ":",
                 "punto y coma": () => ";",
 
@@ -90,17 +187,16 @@ export default {
                 "cerrar corchetes": () => "]",
                 "abrir llaves": () => "{",
                 "cerrar llaves": () => "}",
-                "abrir comillas": () => "\"",
-                "cerrar comillas": () => "\"",
+                "abrir comillas": () => '"',
+                "cerrar comillas": () => '"',
                 "abrir comillas simples": () => "'",
                 "cerrar comillas simples": () => "'",
-                "guion": () => "-",
+                guion: () => "-",
                 "guion bajo": () => "_",
                 "barra diagonal": () => "/",
                 "barra invertida": () => "\\",
-                "nueva oración": () => ". "
+                "nueva oración": () => ". ",
             },
-
         };
     },
     methods: {
@@ -110,37 +206,46 @@ export default {
             } else if (this.mediaRecorder) {
                 if (this.mediaRecorder.state === "recording") {
                     this.mediaRecorder.pause();
-                    this.microfono = 'admin-wrap/assets/images/mic.gif';
-                } else if (this.mediaRecorder.state === "paused" || this.mediaRecorder.state === "inactive") {
+                    this.microfono = "admin-wrap/assets/images/mic.gif";
+                } else if (
+                    this.mediaRecorder.state === "paused" ||
+                    this.mediaRecorder.state === "inactive"
+                ) {
                     this.mediaRecorder.resume();
-                    this.microfono = 'admin-wrap/assets/images/mic-animate.gif';
+                    this.microfono = "admin-wrap/assets/images/mic-animate.gif";
                 }
             }
         },
         startRecording() {
             if (!this.recognition) {
-                this.recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition)();
-                this.recognition.lang = 'es-ES';
+                this.recognition = new (
+                    window.SpeechRecognition ||
+                    window.webkitSpeechRecognition ||
+                    window.mozSpeechRecognition
+                )();
+                this.recognition.lang = "es-ES";
                 this.recognition.continuous = true;
                 this.recognition.interimResults = true;
                 this.recognition.maxAlternatives = 1;
 
                 // Implementación de SpeechGrammarList para optimizar los comandos
-                const speechRecognitionList = new (window.SpeechGrammarList || window.webkitSpeechGrammarList)();
+                const speechRecognitionList = new (
+                    window.SpeechGrammarList || window.webkitSpeechGrammarList
+                )();
                 const commandsList = Object.keys(this.commands);
                 const grammar = `#JSGF V1.0; grammar commands; public <command> = ${commandsList.join(" | ")};`;
                 speechRecognitionList.addFromString(grammar, 1);
                 this.recognition.grammars = speechRecognitionList;
 
                 this.recognition.onresult = (event) => {
-                    let finalText = '';
+                    let finalText = "";
                     for (let i = event.resultIndex; i < event.results.length; i++) {
                         if (event.results[i].isFinal) {
                             let text = event.results[i][0].transcript.trim();
 
                             text = this.processCommands(text); // Aplica los comandos correctamente
 
-                            finalText += text + ' ';
+                            finalText += text + " ";
                         }
                     }
                     this.registro.lectura += finalText;
@@ -153,8 +258,8 @@ export default {
                 };
 
                 this.recognition.onerror = (event) => {
-                    console.error('Error en reconocimiento:', event.error);
-                    if (event.error === 'no-speech' || event.error === 'network') {
+                    console.error("Error en reconocimiento:", event.error);
+                    if (event.error === "no-speech" || event.error === "network") {
                         this.recognition.stop();
                     }
                 };
@@ -162,48 +267,61 @@ export default {
 
             this.recognition.start();
             this.recognizing = true;
-            this.microfono = 'admin-wrap/assets/images/mic-animate.gif';
+            this.microfono = "admin-wrap/assets/images/mic-animate.gif";
 
-            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-                try {
-                    this.mediaRecorder = new MediaRecorder(stream, {
-                        mimeType: "audio/webm;codecs=opus",
-                        audioBitsPerSecond: 64000, // Reduce la calidad (valores entre 16kbps y 128kbps)
-                    });
-                } catch (e) {
-                    // Fallback for browsers that don't support the mimeType
-                    this.mediaRecorder = new MediaRecorder(stream);
-                }
-                if (this._audioRevoke) { try { this._audioRevoke(); } catch (e) { } this._audioRevoke = null; }
+            navigator.mediaDevices
+                .getUserMedia({ audio: true })
+                .then((stream) => {
+                    this.mediaStream = stream;
+                    try {
+                        this.mediaRecorder = new MediaRecorder(stream, {
+                            mimeType: "audio/webm;codecs=opus",
+                            audioBitsPerSecond: 64000, // Reduce la calidad (valores entre 16kbps y 128kbps)
+                        });
+                    } catch (e) {
+                        // Fallback for browsers that don't support the mimeType
+                        this.mediaRecorder = new MediaRecorder(stream);
+                    }
+                    if (this._audioRevoke) {
+                        try {
+                            this._audioRevoke();
+                        } catch (e) {}
+                        this._audioRevoke = null;
+                    }
 
-                this.audioChunks = [];
+                    this.audioChunks = [];
 
-                this.mediaRecorder.ondataavailable = (event) => {
-                    this.audioChunks.push(event.data);
-                };
+                    this.mediaRecorder.ondataavailable = (event) => {
+                        this.audioChunks.push(event.data);
+                    };
 
-                this.mediaRecorder.onstop = () => {
-                    this.audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
-                    this.audioUrl = URL.createObjectURL(this.audioBlob);
-                };
+                    this.mediaRecorder.onstop = () => {
+                        this.audioBlob = new Blob(this.audioChunks, { type: "audio/webm" });
+                        this.audioUrl = URL.createObjectURL(this.audioBlob);
+                    };
 
-                this.mediaRecorder.start();
-                this.recording = true;
-            }).catch(error => console.error('Error al acceder al micrófono:', error));
+                    this.mediaRecorder.start();
+                    this.recording = true;
+                })
+                .catch((error) => console.error("Error al acceder al micrófono:", error));
         },
         stopRecording() {
             return new Promise((resolve) => {
                 if (this.mediaRecorder && this.recording) {
                     const oldUrl = this.audioUrl;
                     this.mediaRecorder.onstop = () => {
-                        if (oldUrl) { try { URL.revokeObjectURL(oldUrl); } catch (e) { } }
+                        if (oldUrl) {
+                            try {
+                                URL.revokeObjectURL(oldUrl);
+                            } catch (e) {}
+                        }
                         this.audioBlob = new Blob(this.audioChunks, { type: "audio/webm" });
                         this.audioUrl = URL.createObjectURL(this.audioBlob);
                         resolve();
                     };
                     this.mediaRecorder.stop();
                     this.recording = false;
-                    this.microfono = 'admin-wrap/assets/images/mic.gif';
+                    this.microfono = "admin-wrap/assets/images/mic.gif";
                 } else {
                     resolve();
                 }
@@ -214,7 +332,7 @@ export default {
                 this.uppercase = false;
             }
 
-            Object.keys(this.commands).forEach(command => {
+            Object.keys(this.commands).forEach((command) => {
                 text = text.replace(new RegExp(`\\b${command}\\b`, "gi"), this.commands[command]);
             });
 
@@ -236,16 +354,16 @@ export default {
                         hideAfter: 3500,
                         stack: 6,
                     });
-                } catch (e) { }
+                } catch (e) {}
                 this.loadingEnviar = false;
                 return;
             }
 
             const formData = new FormData();
-            formData.append('audio', this.audioBlob, 'audio.webm');
-            formData.append('text', this.registro.lectura);
-            formData.append('estudio_id', this.id);
-            formData.append('estudio_producto_id', this.registro.estudio_producto_id);
+            formData.append("audio", this.audioBlob, "audio.webm");
+            formData.append("text", this.registro.lectura);
+            formData.append("estudio_id", this.id);
+            formData.append("estudio_producto_id", this.registro.estudio_producto_id);
 
             try {
                 if (!this.id || !this.registro.estudio_producto_id) {
@@ -259,13 +377,13 @@ export default {
                             hideAfter: 3500,
                             stack: 6,
                         });
-                    } catch (e) { }
+                    } catch (e) {}
                     return;
                 }
-                const res = await axios.post('/upload-audio', formData);
+                const res = await axios.post("/upload-audio", formData);
                 try {
                     $.toast({
-                        heading: "Ok!!!",
+                        heading: "Completado",
                         text: res?.data?.message || "Audio enviado correctamente.",
                         position: "top-right",
                         loaderBg: "#ff6849",
@@ -273,9 +391,9 @@ export default {
                         hideAfter: 3500,
                         stack: 6,
                     });
-                } catch (e) { }
+                } catch (e) {}
             } catch (error) {
-                console.error('Error al enviar audio:', error);
+                console.error("Error al enviar audio:", error);
                 try {
                     $.toast({
                         heading: "Upss!!!",
@@ -286,19 +404,40 @@ export default {
                         hideAfter: 3500,
                         stack: 6,
                     });
-                } catch (e) { }
+                } catch (e) {}
             } finally {
                 this.loadingEnviar = false;
             }
         },
     },
-    beforeDestroy() {
-        if (this.audioUrl) {
-            try { URL.revokeObjectURL(this.audioUrl); } catch (e) { }
-            this.audioUrl = null;
+    mounted() {
+        this._onKeydown = (e) => {
+            if (e.key === "F2") {
+                e.preventDefault();
+                this.toggleSpeechRecognition();
+            }
+        };
+        window.addEventListener("keydown", this._onKeydown);
+    },
+    beforeUnmount() {
+        if (this._onKeydown) {
+            window.removeEventListener("keydown", this._onKeydown);
+        }
+        if (this.recognition) {
+            try {
+                this.recognition.abort();
+            } catch (e) {}
+            this.recognition = null;
         }
         if (this.mediaStream && this.mediaStream.getTracks) {
             this.mediaStream.getTracks().forEach((t) => t.stop());
+            this.mediaStream = null;
+        }
+        if (this.audioUrl) {
+            try {
+                URL.revokeObjectURL(this.audioUrl);
+            } catch (e) {}
+            this.audioUrl = null;
         }
     },
 };

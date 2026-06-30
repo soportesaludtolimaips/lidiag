@@ -83,7 +83,7 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label class="control-label"
+                                            <label class="control-label" for="bus_nom_num_docu"
                                                 >Nombres o # documento</label
                                             >
                                             <input
@@ -93,12 +93,15 @@
                                                 v-model="busqueda.bus_nom_num_docu"
                                                 class="form-control"
                                                 placeholder="Nombres de paciente o # de documento"
+                                                @keyup.enter="listarPendientesTrascribir()"
                                             />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label class="control-label">Fecha Inicio</label>
+                                            <label class="control-label" for="bus_fehc_ini"
+                                                >Fecha Inicio</label
+                                            >
                                             <input
                                                 type="date"
                                                 id="bus_fehc_ini"
@@ -110,7 +113,9 @@
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label class="control-label">Fecha Fin</label>
+                                            <label class="control-label" for="fecha_fin"
+                                                >Fecha Fin</label
+                                            >
                                             <input
                                                 type="date"
                                                 id="fecha_fin"
@@ -310,20 +315,18 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div
-            class="right-sidebar"
-            style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%"
-        >
+        <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; height: 100%">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span @click="btnCerralModalForm()">
-                        <i
-                            class="ti-close right-side-toggle"
-                            id="btnCerralModalForm"
-                            @click="btnCerralModalForm()"
-                        ></i>
-                    </span>
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="btnCerralModalForm()"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
                 </div>
                 <div class="r-panel-body">
                     <!-- ============================================================== -->
@@ -333,7 +336,7 @@
                         <div class="form-body">
                             <div class="row">
                                 <div class="col-md-6">
-                                <form-paciente :registro="registro" :errores="errores" />
+                                    <form-paciente :registro="registro" :errores="errores" />
 
                                     <h5 class="card-title text-info">
                                         <i class="fa fa-user"></i> Datos del Estudio
@@ -384,16 +387,18 @@
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
-                                                <label class="control-label"
-                                                    >Reportar al Email</label
+                                                <label class="control-label" for="email_reportar"
+                                                    >Reportar al Email
+                                                    <span class="text-danger">*</span></label
                                                 >
                                                 <input
-                                                    type="text"
+                                                    type="email"
                                                     id="email_reportar"
                                                     name="email_reportar"
                                                     v-model="registro.email_reportar"
                                                     class="form-control"
-                                                    placeholder="Ingrese aqi el email a reportar"
+                                                    placeholder="Ingrese aquí el email a reportar"
+                                                    ref="primerInput"
                                                 />
                                             </div>
 
@@ -436,8 +441,13 @@
                                                     type="button"
                                                     class="btn btn-secondary btn-xs"
                                                     @click="verImagen()"
+                                                    :disabled="loadingImagen"
                                                 >
-                                                    <i class="fa fa-file-image-o"></i>
+                                                    <i
+                                                        v-if="loadingImagen"
+                                                        class="fa fa-spinner fa-spin"
+                                                    ></i>
+                                                    <i v-else class="fa fa-file-image-o"></i>
                                                 </button>
                                             </div>
                                         </div>
@@ -450,7 +460,7 @@
                                             <div class="form-group">
                                                 <textarea
                                                     v-model="registro.lectura"
-                                                    class="form-control"
+                                                    class="textarea_editor form-control"
                                                     rows="20"
                                                     id="lectura"
                                                     style="height: 100%"
@@ -546,31 +556,91 @@
                                                             class="card mb-2"
                                                         >
                                                             <div class="card-body p-2">
-                                                                <div class="d-flex align-items-center mb-1 flex-wrap">
-                                                                    <i class="fa fa-file-audio-o text-muted mr-1"></i>
-                                                                    <strong class="mr-2 text-truncate"
-                                                                        :title="item.nombre_original"
-                                                                        style="max-width: 200px;">
-                                                                        {{ item.nombre_original || 'Audio ' + (index + 1) }}
+                                                                <div
+                                                                    class="d-flex align-items-center mb-1 flex-wrap"
+                                                                >
+                                                                    <i
+                                                                        class="fa fa-file-audio-o text-muted mr-1"
+                                                                    ></i>
+                                                                    <strong
+                                                                        class="mr-2 text-truncate"
+                                                                        :title="
+                                                                            item.nombre_original
+                                                                        "
+                                                                        style="max-width: 200px"
+                                                                    >
+                                                                        {{
+                                                                            item.nombre_original ||
+                                                                            "Audio " + (index + 1)
+                                                                        }}
                                                                     </strong>
-                                                                    <span class="badge mr-1"
-                                                                        :class="item.tipo === 'cargado' ? 'badge-info' : 'badge-success'">
-                                                                        <i :class="item.tipo === 'cargado' ? 'fa fa-upload' : 'fa fa-microphone'"></i>
-                                                                        {{ item.tipo === 'cargado' ? 'Cargado' : 'Grabado' }}
+                                                                    <span
+                                                                        class="badge mr-1"
+                                                                        :class="
+                                                                            item.tipo === 'cargado'
+                                                                                ? 'badge-info'
+                                                                                : 'badge-success'
+                                                                        "
+                                                                    >
+                                                                        <i
+                                                                            :class="
+                                                                                item.tipo ===
+                                                                                'cargado'
+                                                                                    ? 'fa fa-upload'
+                                                                                    : 'fa fa-microphone'
+                                                                            "
+                                                                        ></i>
+                                                                        {{
+                                                                            item.tipo === "cargado"
+                                                                                ? "Cargado"
+                                                                                : "Grabado"
+                                                                        }}
                                                                     </span>
-                                                                    <small class="text-muted" v-if="item.duracion">
-                                                                        <i class="fa fa-clock-o"></i>
-                                                                        {{ formatDuracion(item.duracion) }}
+                                                                    <small
+                                                                        class="text-muted"
+                                                                        v-if="item.duracion"
+                                                                    >
+                                                                        <i
+                                                                            class="fa fa-clock-o"
+                                                                        ></i>
+                                                                        {{
+                                                                            formatDuracion(
+                                                                                item.duracion
+                                                                            )
+                                                                        }}
                                                                     </small>
                                                                 </div>
-                                                                <audio :src="audioUrl(item)" controls
-                                                                    style="height: 30px; width: 100%;"></audio>
-                                                                <div v-if="item.transcripcion"
+                                                                <audio
+                                                                    :src="audioUrl(item)"
+                                                                    controls
+                                                                    style="
+                                                                        height: 30px;
+                                                                        width: 100%;
+                                                                    "
+                                                                ></audio>
+                                                                <div
+                                                                    v-if="item.transcripcion"
                                                                     class="bg-light rounded p-1 mt-1"
-                                                                    style="font-size: 0.8rem; max-height: 40px; overflow: hidden;">
-                                                                    {{ previewTranscripcion(item.transcripcion, 120) }}
-                                                                    <span v-if="item.transcripcion.length > 120"
-                                                                        class="text-primary small">...</span>
+                                                                    style="
+                                                                        font-size: 0.8rem;
+                                                                        max-height: 40px;
+                                                                        overflow: hidden;
+                                                                    "
+                                                                >
+                                                                    {{
+                                                                        previewTranscripcion(
+                                                                            item.transcripcion,
+                                                                            120
+                                                                        )
+                                                                    }}
+                                                                    <span
+                                                                        v-if="
+                                                                            item.transcripcion
+                                                                                .length > 120
+                                                                        "
+                                                                        class="text-primary small"
+                                                                        >...</span
+                                                                    >
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -670,11 +740,15 @@ export default {
     },
     beforeUnmount() {
         this.destroyDataTable();
+        this.registros = [];
+        this.registro = { productosEstudio: [], diagnosticosEstudio: [], soportesHC: [] };
+        this.soportesHC = [];
+        this.audiosDeEstudio = [];
     },
     data() {
         const hoy = new Date();
         const yearActual = hoy.getFullYear();
-        const fechaDefectoIni = yearActual + '-01-01';
+        const fechaDefectoIni = yearActual + "-01-01";
         const fechaDefectoFin = hoy.toISOString().slice(0, 10);
         return {
             id: 0,
@@ -736,6 +810,7 @@ export default {
             loadingAnularId: null,
             loadingDescargaSoporte: null,
             loadingAudios: false,
+            loadingImagen: false,
         };
     },
     methods: {
@@ -777,7 +852,7 @@ export default {
             this.busqueda.quien_asigno_id = "";
             this.busqueda.medico_id = "";
             this.busqueda.bus_nom_num_docu = "";
-            this.busqueda.bus_fehc_ini = yearActual + '-01-01';
+            this.busqueda.bus_fehc_ini = yearActual + "-01-01";
             this.busqueda.bus_fecha_fin = hoy.toISOString().slice(0, 10);
             this.errores = {};
             this.destroyDataTable();
@@ -825,7 +900,7 @@ export default {
             this.loadingGuardar = true;
             try {
                 $.toast({
-                    heading: "Ok!!!",
+                    heading: "Procesando...",
                     text: "Enviando lectura, por favor espere",
                     position: "top-right",
                     loaderBg: "#ff6849",
@@ -847,14 +922,12 @@ export default {
                                 this.$refs.dt || "#example23",
                                 "#row-" + this.idRow
                             );
-                        } catch (e) {
-                            console.error("Error al intentar eliminar la fila de la tabla:", e);
-                        }
+                        } catch (e) {}
                         this.registros.splice(estudioEliminar, 1);
                     }
 
                     $.toast({
-                        heading: "Ok!!!",
+                        heading: "Completado",
                         text: res.data.message,
                         position: "top-right",
                         loaderBg: "#ff6849",
@@ -929,9 +1002,7 @@ export default {
                     // cleanup best-effort
                     setTimeout(() => window.URL.revokeObjectURL(blobUrl), 2000);
                 })
-                .catch((error) => {
-                    console.error(error);
-                })
+                .catch(() => {})
                 .finally(() => {
                     this.loadingDescargaSoporte = null;
                 });
@@ -975,21 +1046,27 @@ export default {
             }
         },
         verImagen() {
-            const base = this.datosImagen.urlOviyam || "";
-            const params = new URLSearchParams({
-                patientID: String(this.datosImagen.patientId ?? ""),
-                studyUID: String(this.datosImagen.studyUID ?? ""),
-                serverName: String(this.datosImagen.serverName ?? ""),
-            });
-            window.open(`${base}?${params.toString()}`, "_blank");
+            if (this.loadingImagen) return;
+            this.loadingImagen = true;
+            try {
+                const base = this.datosImagen.urlOviyam || "";
+                const params = new URLSearchParams({
+                    patientID: String(this.datosImagen.patientId ?? ""),
+                    studyUID: String(this.datosImagen.studyUID ?? ""),
+                    serverName: String(this.datosImagen.serverName ?? ""),
+                });
+                window.open(`${base}?${params.toString()}`, "_blank", "noopener,noreferrer");
+            } finally {
+                setTimeout(() => {
+                    this.loadingImagen = false;
+                }, 500);
+            }
         },
         async listarAudios(estudioProductoId) {
             this.loadingAudios = true;
             try {
                 const url = "/api/listar-audios-estudio/" + estudioProductoId;
-                console.log("[Audio Debug] Solicitando:", url);
                 const res = await axios.get(url);
-                console.log("[Audio Debug] Respuesta:", res.data);
                 this.audiosDeEstudio = res.data;
             } catch (e) {
                 handleAxiosErrorToast(e, "No fue posible listar audios.");
@@ -1094,7 +1171,6 @@ export default {
                 this.audiosDeEstudio = [];
                 this.abrirModal();
 
-                console.log("[Audio Debug] estudio_producto_id:", this.registro.estudio_producto_id);
                 await this.listarAudios(this.registro.estudio_producto_id);
                 this.errores = {};
             } catch (error) {
@@ -1109,11 +1185,14 @@ export default {
             this.registro.email_reportar = "";
             this.registro.email = "";
 
-            $("#btnCerralModalForm").click();
+            this.btnCerralModalForm();
             this.errores = {};
         },
         abrirModal() {
             $(".right-sidebar").addClass("shw-rside");
+            this.$nextTick(() => {
+                this.$refs.primerInput?.focus();
+            });
         },
         btnCerralModalForm() {
             $(".right-sidebar").removeClass("shw-rside");
@@ -1125,8 +1204,8 @@ export default {
 <style scoped>
 .right-sidebar {
     position: fixed;
-    right: -95%;
-    width: 95%;
+    right: -80%;
+    width: 80%;
     display: none;
     z-index: 1100;
     background: #ffffff;
@@ -1140,9 +1219,22 @@ export default {
     transition: all 0.3s ease;
 }
 
+@media (max-width: 767px) {
+    .right-sidebar {
+        right: -100%;
+        width: 100%;
+    }
+}
+
 .shw-rside {
     right: 0px;
-    width: 95%;
+    width: 80%;
     display: block;
+}
+
+@media (max-width: 767px) {
+    .shw-rside {
+        width: 100%;
+    }
 }
 </style>

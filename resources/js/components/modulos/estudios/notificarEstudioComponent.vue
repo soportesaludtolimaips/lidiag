@@ -36,45 +36,85 @@
                                 <div class="row p-t-2">
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label class="control-label"># de documento </label>
-                                            <input type="text" id="bus_num_docu" name="bus_num_docu"
-                                                v-model="busqueda.bus_num_docu" class="form-control"
-                                                placeholder="# de documento de paciente" @keyup.enter="buscarStudy()" />
+                                            <label class="control-label" for="bus_num_docu"
+                                                ># de documento
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="bus_num_docu"
+                                                name="bus_num_docu"
+                                                v-model="busqueda.bus_num_docu"
+                                                class="form-control"
+                                                placeholder="# de documento de paciente"
+                                                @keyup.enter="buscarStudy()"
+                                            />
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label class="control-label">Nombres del paciente</label>
-                                            <input type="text" id="bus_nom" name="bus_nom" v-model="busqueda.bus_nom"
-                                                class="form-control" placeholder="Nombres del paciente"
-                                                @keyup.enter="buscarStudy()" />
+                                            <label class="control-label" for="bus_nom"
+                                                >Nombres del paciente</label
+                                            >
+                                            <input
+                                                type="text"
+                                                id="bus_nom"
+                                                name="bus_nom"
+                                                v-model="busqueda.bus_nom"
+                                                class="form-control"
+                                                placeholder="Nombres del paciente"
+                                                @keyup.enter="buscarStudy()"
+                                            />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label class="control-label">Fecha Inicio</label>
-                                            <input type="date" id="fecha_ini" name="fecha_ini"
-                                                v-model="busqueda.bus_fehc_ini" class="form-control" />
+                                            <label class="control-label" for="fecha_ini"
+                                                >Fecha Inicio</label
+                                            >
+                                            <input
+                                                type="date"
+                                                id="fecha_ini"
+                                                name="fecha_ini"
+                                                v-model="busqueda.bus_fehc_ini"
+                                                class="form-control"
+                                                @keyup.enter="buscarStudy()"
+                                            />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label class="control-label">Fecha Fin</label>
-                                            <input type="date" id="fecha_fin" name="fecha_fin"
-                                                v-model="busqueda.bus_fecha_fin" class="form-control" />
+                                            <label class="control-label" for="fecha_fin"
+                                                >Fecha Fin</label
+                                            >
+                                            <input
+                                                type="date"
+                                                id="fecha_fin"
+                                                name="fecha_fin"
+                                                v-model="busqueda.bus_fecha_fin"
+                                                class="form-control"
+                                                @keyup.enter="buscarStudy()"
+                                            />
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="form-actions mt-3">
-                                    <button type="button" class="btn btn-success m-r-5" @click="buscarStudy()"
-                                        :disabled="loadingBuscar">
+                                    <button
+                                        type="button"
+                                        class="btn btn-success m-r-5"
+                                        @click="buscarStudy()"
+                                        :disabled="loadingBuscar"
+                                    >
                                         <i v-if="loadingBuscar" class="fa fa-spinner fa-spin"></i>
                                         <i v-else class="fa fa-search"></i>
                                         Buscar
                                     </button>
 
-                                    <button type="button" class="btn btn-inverse" @click="btnLimpiar()">
+                                    <button
+                                        type="button"
+                                        class="btn btn-inverse"
+                                        @click="btnLimpiar()"
+                                    >
                                         <i class="fa fa-refresh"></i> Limpiar
                                     </button>
 
@@ -94,18 +134,30 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div>
-                                <h4 class="card-title">Listado de estudios disponibles para notificar</h4>
-                                <h6 class="card-subtitle">Notifique por correo electrónico el descargue del reporte y de imágenes de un paciente.</h6>
+                                <h4 class="card-title">
+                                    Listado de estudios disponibles para notificar
+                                </h4>
+                                <h6 class="card-subtitle">
+                                    Notifique por correo electrónico el descargue del reporte y de
+                                    imágenes de un paciente.
+                                </h6>
                             </div>
                             <div class="text-right">
-                                <span class="badge badge-primary" v-if="contadorRegistros > 0">{{ contadorRegistros }} registro(s)</span>
+                                <span class="badge badge-primary" v-if="contadorRegistros > 0"
+                                    >{{ contadorRegistros }} registro(s)</span
+                                >
                                 <span class="badge badge-secondary" v-else>Sin resultados</span>
                             </div>
                         </div>
                         <loading-spinner :visible="loadingBuscar" />
                         <div class="table-responsive" :class="{ 'd-none': loadingBuscar }">
-                            <table id="example23" ref="dt" class="table table-bordered table-striped" cellspacing="0"
-                                width="100%">
+                            <table
+                                id="example23"
+                                ref="dt"
+                                class="table table-bordered table-striped"
+                                cellspacing="0"
+                                width="100%"
+                            >
                                 <thead>
                                     <tr>
                                         <th>Fecha del Estudio</th>
@@ -128,44 +180,73 @@
                                         <td>{{ item.email }}</td>
                                         <td>{{ item.nom_produc }}</td>
                                         <td class="text-nowrap">
-                                            <button type="button" v-if="
-                                                permisos.includes(
-                                                    'estudios.reporteLectura.index'
-                                                )
-                                            " class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
-                                                @click="imprimirReporte(item)" title="Imprimir reporte" :disabled="loadingImprimirId === item.estudio_producto_id
-                                                    ">
-                                                <i v-if="
-                                                    loadingImprimirId ===
-                                                    item.estudio_producto_id
-                                                " class="fa fa-spinner fa-spin"></i>
+                                            <button
+                                                type="button"
+                                                v-if="
+                                                    permisos.includes(
+                                                        'estudios.reporteLectura.index'
+                                                    )
+                                                "
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
+                                                @click="imprimirReporte(item)"
+                                                title="Imprimir reporte"
+                                                :disabled="
+                                                    loadingImprimirId === item.estudio_producto_id
+                                                "
+                                            >
+                                                <i
+                                                    v-if="
+                                                        loadingImprimirId ===
+                                                        item.estudio_producto_id
+                                                    "
+                                                    class="fa fa-spinner fa-spin"
+                                                ></i>
                                                 <i v-else class="fa fa-file-pdf-o"></i>
                                             </button>
-                                            <button type="button" v-if="permisos.includes('estudios.notificar.index')"
+                                            <button
+                                                type="button"
+                                                v-if="permisos.includes('estudios.notificar.index')"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
-                                                :disabled="loadingAbrirId === item.estudio_producto_id
-                                                    " @click="mostrarRegistro(item)"
-                                                title="Notificar por correo electronico">
-                                                <i v-if="
+                                                :disabled="
                                                     loadingAbrirId === item.estudio_producto_id
-                                                " class="fa fa-spinner fa-spin"></i>
+                                                "
+                                                @click="mostrarRegistro(item)"
+                                                title="Notificar por correo electronico"
+                                            >
+                                                <i
+                                                    v-if="
+                                                        loadingAbrirId === item.estudio_producto_id
+                                                    "
+                                                    class="fa fa-spinner fa-spin"
+                                                ></i>
                                                 <i v-else class="fa fa-envelope-o"></i>
                                             </button>
-                                            <button type="button" v-if="permisos.includes('estudios.notificar.index')"
+                                            <button
+                                                type="button"
+                                                v-if="permisos.includes('estudios.notificar.index')"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
-                                                :disabled="loadingPortalId === item.estudio_producto_id
-                                                    " @click="enviarPortal(item)"
-                                                title="Enviar al portal de pacientes">
-                                                <i v-if="
+                                                :disabled="
                                                     loadingPortalId === item.estudio_producto_id
-                                                " class="fa fa-spinner fa-spin"></i>
+                                                "
+                                                @click="enviarPortal(item)"
+                                                title="Enviar al portal de pacientes"
+                                            >
+                                                <i
+                                                    v-if="
+                                                        loadingPortalId === item.estudio_producto_id
+                                                    "
+                                                    class="fa fa-spinner fa-spin"
+                                                ></i>
                                                 <i v-else class="fa fa-send"></i>
                                             </button>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
-                            <div v-if="registros.length === 0 && !loadingBuscar" class="text-center py-4 text-muted">
+                            <div
+                                v-if="registros.length === 0 && !loadingBuscar"
+                                class="text-center py-4 text-muted"
+                            >
                                 <i class="fa fa-inbox fa-3x mb-3"></i>
                                 <p>No hay estudios para notificar</p>
                             </div>
@@ -182,13 +263,18 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%">
+        <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; height: 100%">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span>
-                        <i class="ti-close right-side-toggle" id="btnCerralModalForm" @click="btnCerralModalForm()"></i>
-                    </span>
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="btnCerralModalForm()"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
                 </div>
                 <div class="r-panel-body">
                     <!-- ============================================================== -->
@@ -198,7 +284,7 @@
                         <div class="form-body">
                             <div class="row">
                                 <div class="col-md-12">
-                                <datos-paciente-display :registro="registro" />
+                                    <datos-paciente-display :registro="registro" />
 
                                     <h5 class="card-title text-info">
                                         <i class="fa fa-edit"></i> Datos del Estudio
@@ -206,22 +292,35 @@
                                     <hr />
                                     <div class="col-md-12">
                                         <div class="form-group">
-                                            <input type="text" id="nom_produc" name="nom_produc" class="form-control"
-                                                v-model="registro.nom_produc" />
+                                            <input
+                                                type="text"
+                                                id="nom_produc"
+                                                name="nom_produc"
+                                                class="form-control"
+                                                v-model="registro.nom_produc"
+                                            />
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="form-actions mt-3">
-                                <button type="button" class="btn btn-success m-r-5" @click="notificar()"
-                                    :disabled="loadingNotificar">
+                                <button
+                                    type="button"
+                                    class="btn btn-success m-r-5"
+                                    @click="notificar()"
+                                    :disabled="loadingNotificar"
+                                >
                                     <i v-if="loadingNotificar" class="fa fa-spinner fa-spin"></i>
                                     <i v-else class="fa fa-envelope-o"></i>
                                     Notificar
                                 </button>
 
-                                <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">
+                                <button
+                                    type="button"
+                                    class="btn btn-inverse"
+                                    @click="btnCerralModalForm()"
+                                >
                                     Cancel
                                 </button>
                             </div>
@@ -251,9 +350,11 @@ export default {
             return this.registros.length;
         },
     },
-    mounted() { },
+    mounted() {},
     beforeUnmount() {
         this.destroyDataTable();
+        this.registros = [];
+        this.registro = {};
     },
     data() {
         return {
@@ -369,20 +470,24 @@ export default {
             this.loadingImprimirId = estudio.estudio_producto_id;
             try {
                 $.toast({
-                    heading: "Ok!!!",
+                    heading: "Procesando...",
                     text: "Generando reportes, por favor espere",
                     position: "top-right",
                     loaderBg: "#ff6849",
-                    icon: "success",
+                    icon: "info",
                     hideAfter: 3500,
                     stack: 6,
                 });
 
                 const res = await axios.post("/api/edit-word", estudio);
 
-                window.open(`/descargar.pdf.lectura/${res.data.plantilla}`, "_blank");
+                window.open(
+                    `/descargar.pdf.lectura/${res.data.plantilla}`,
+                    "_blank",
+                    "noopener,noreferrer"
+                );
             } catch (error) {
-                this.errores = error.response.data;
+                this.errores = error?.response?.data || {};
             } finally {
                 this.loadingImprimirId = null;
             }
@@ -392,7 +497,7 @@ export default {
             this.loadingNotificar = true;
             try {
                 $.toast({
-                    heading: "Ok!!!",
+                    heading: "Procesando...",
                     text: "Generando reporte, por favor espere.",
                     position: "top-right",
                     loaderBg: "#ff6849",
@@ -407,7 +512,7 @@ export default {
 
                 if (res.status == 200) {
                     $.toast({
-                        heading: "Ok!!!",
+                        heading: "Completado",
                         text: "La notificación se realizó correctamente, estamos enviando el correo electronico, por favor espere..",
                         position: "top-right",
                         loaderBg: "#ff6849",
@@ -423,7 +528,7 @@ export default {
                 const status = e?.response?.status;
                 if (status == 402) {
                     $.toast({
-                        heading: "Ok!!!",
+                        heading: "Error",
                         text: e.response.data.message,
                         position: "top-right",
                         loaderBg: "#ff6849",
@@ -459,7 +564,7 @@ export default {
         async enviarPortalPacientes() {
             try {
                 $.toast({
-                    heading: "Ok!!!",
+                    heading: "Procesando...",
                     text: "Enviando al portal de pacientes, por favor espere.",
                     position: "top-right",
                     loaderBg: "#ff6849",
@@ -472,21 +577,21 @@ export default {
 
                 if (res.status == 200) {
                     $.toast({
-                        heading: "Ok!!!",
-                        text: "El estudio se ha enviado al portal de pacientes correctamente.",
+                        heading: "Completado",
+                        text: "Enviado al portal de pacientes.",
                         position: "top-right",
-                        loaderBg: "#ff6849",
+                        loaderBg: "#39cb14",
                         icon: "success",
                         hideAfter: 3500,
                         stack: 6,
                     });
-                }
 
-                this.limpiar();
+                    this.limpiar();
+                }
             } catch (e) {
-                if (e.response.status == 402) {
+                if (e.response && e.response.status == 402) {
                     $.toast({
-                        heading: "Ok!!!",
+                        heading: "Error",
                         text: e.response.data.message,
                         position: "top-right",
                         loaderBg: "#ff6849",
@@ -497,15 +602,19 @@ export default {
                 }
             }
         },
-        btnCerralModalForm() {
+        abrirModal() {
             $(".right-sidebar").slideDown(50);
-            $(".right-sidebar").toggleClass("shw-rside");
+            $(".right-sidebar").addClass("shw-rside");
+        },
+        btnCerralModalForm() {
+            $(".right-sidebar").slideUp(50);
+            $(".right-sidebar").removeClass("shw-rside");
         },
         mostrarRegistro(data = {}) {
             if (this.loadingAbrirId) return;
             this.loadingAbrirId = data.estudio_producto_id;
             this.estudio = data;
-            this.tituloModal = "Notificar al paciente: " + data.pat_name;
+            this.tituloModal = "Notificar al paciente: " + data.nom_pacien;
 
             this.registro.num_docu = data.num_docu;
             this.registro.nombres = data.nom_pacien;
@@ -516,12 +625,12 @@ export default {
             this.registro.nom_produc = data.nom_produc;
             this.registro.id_producto_lectura = data.id;
 
-            this.btnCerralModalForm();
+            this.abrirModal();
             this.loadingAbrirId = null;
         },
         setarDatosPortalPacientes(data = {}) {
             this.estudio = data;
-            this.tituloModal = "Notificar al paciente: " + data.pat_name;
+            this.tituloModal = "Notificar al paciente: " + data.nom_pacien;
 
             this.registro.num_docu = data.num_docu;
             this.registro.nombres = data.nom_pacien;
@@ -548,8 +657,8 @@ export default {
 <style scoped>
 .right-sidebar {
     position: fixed;
-    right: -40%;
-    width: 40%;
+    right: -80%;
+    width: 80%;
     display: none;
     z-index: 1100;
     background: #ffffff;
@@ -563,9 +672,22 @@ export default {
     transition: all 0.3s ease;
 }
 
+@media (max-width: 767px) {
+    .right-sidebar {
+        right: -100%;
+        width: 100%;
+    }
+}
+
 .shw-rside {
     right: 0px;
-    width: 40%;
+    width: 80%;
     display: block;
+}
+
+@media (max-width: 767px) {
+    .shw-rside {
+        width: 100%;
+    }
 }
 </style>
