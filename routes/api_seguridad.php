@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Seguridad\AuditLogController;
 use App\Http\Controllers\Seguridad\RolController;
 use App\Http\Controllers\Seguridad\UserController;
 use Illuminate\Support\Facades\Route;
@@ -53,4 +54,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/seguridad-listarPermisosUsuario/{id}', [UserController::class, 'listarPermisosUsuario'])
         ->name('api.seguridad.listarPermisosUsuario')
         ->middleware(['permission:seguridad.usuarios.show,web']);
+
+    Route::get('/seguridad-auditoria', [AuditLogController::class, 'index'])
+        ->name('api.seguridad.auditoria.index')
+        ->middleware(['permission:seguridad.auditoria.index,web']);
+
+    Route::get('/seguridad-auditoria/eventos', [AuditLogController::class, 'eventos'])
+        ->name('api.seguridad.auditoria.eventos')
+        ->middleware(['permission:seguridad.auditoria.index,web']);
 });
