@@ -63,6 +63,8 @@
 </template>
 
 <script>
+import DOMPurify from "dompurify";
+
 export default {
     props: {
         token: { type: String, required: true },
@@ -122,7 +124,7 @@ export default {
             try {
                 const res = await axios.get(`/firma/consentimiento-ecografia/${this.token}/info`);
                 this.info = res.data;
-                this.html = res.data?.html || "";
+                this.html = DOMPurify.sanitize(res.data?.html || "");
             } catch (e) {
                 this.error =
                     e?.response?.data?.message || "No fue posible cargar el consentimiento.";

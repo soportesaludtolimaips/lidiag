@@ -491,11 +491,19 @@ export default {
         },
         exportExcel() {
             const params = new URLSearchParams(this.buildParams());
-            window.open(`/api/helpdesk-reportes/export/excel?${params.toString()}`, "_blank");
+            window.open(
+                `/api/helpdesk-reportes/export/excel?${params.toString()}`,
+                "_blank",
+                "noopener,noreferrer"
+            );
         },
         exportPdf() {
             const params = new URLSearchParams(this.buildParams());
-            window.open(`/api/helpdesk-reportes/export/pdf?${params.toString()}`, "_blank");
+            window.open(
+                `/api/helpdesk-reportes/export/pdf?${params.toString()}`,
+                "_blank",
+                "noopener,noreferrer"
+            );
         },
     },
 };
