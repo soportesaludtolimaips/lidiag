@@ -280,6 +280,10 @@ Route::view('/seguridad.perfil', 'modulos.seguridad.perfil')
     ->name('seguridad.perfil')
     ->middleware(['auth']);
 
+Route::view('/seguridad-auditoria', 'modulos.seguridad.auditoria')
+    ->name('seguridad.auditoria')
+    ->middleware(['auth', 'permission:seguridad.auditoria.index']);
+
 /**
  * Interface SAHI
  */

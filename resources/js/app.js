@@ -141,6 +141,8 @@ app.component("UsuarioPerfilComponent", usuarioPerfil);
 app.component("SeguridadPerfil", usuarioPerfil);
 import roleComponente from "./components/modulos/seguridad/roleComponente.vue";
 app.component("RoleComponente", roleComponente);
+import auditLogComponent from "./components/modulos/seguridad/auditLogComponent.vue";
+app.component("AuditLogComponent", auditLogComponent);
 
 /**
  * Reportes
