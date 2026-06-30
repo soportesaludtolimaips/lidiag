@@ -43,4 +43,25 @@ export default defineConfig({
             "@": "/resources/js",
         },
     },
+    build: {
+        chunkSizeWarningLimit: 600,
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (id.includes("node_modules")) {
+                        if (id.includes("vue") || id.includes("axios") || id.includes("dayjs")) {
+                            return "vendor";
+                        }
+                    }
+                    if (id.includes("modulos/help-desk/")) return "helpdesk";
+                    if (id.includes("modulos/ecografias/lecturaComponent")) return "ecografiasLectura";
+                    if (id.includes("modulos/ecografias/consentimiento")) return "ecografiasConsentimientos";
+                    if (id.includes("modulos/ecografias/")) return "ecografias";
+                    if (id.includes("modulos/estudios/")) return "estudios";
+                    if (id.includes("modulos/tele-radiologia/")) return "teleRadiologia";
+                    if (id.includes("modulos/seguridad/")) return "seguridad";
+                },
+            },
+        },
+    },
 });
