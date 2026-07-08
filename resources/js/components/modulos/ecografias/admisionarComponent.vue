@@ -395,7 +395,6 @@
                                                     width="100%"
                                                     :allow-clear="true"
                                                     :label-fields="['codigo', 'tipo_documento']"
-                                                    :dropdown-parent-selector="'#tipoDocumentos-parent'"
                                                     @input="onTipoDocumentoSelect"
                                                 />
 
@@ -584,7 +583,6 @@
                                                     width="100%"
                                                     :allow-clear="true"
                                                     :label-fields="['name']"
-                                                    :dropdown-parent-selector="'#medicos-parent'"
                                                     @input="onMedicoSelect"
                                                 />
 
@@ -601,7 +599,6 @@
                                                     :options="productoOptions"
                                                     width="100%"
                                                     :allow-clear="true"
-                                                    :dropdown-parent-selector="'#productos-parent'"
                                                     @input="onProductoSelect"
                                                 />
                                             </div>
@@ -1344,38 +1341,20 @@ export default {
             this.registro.tipo_documento_id = selectedId || "";
         },
         onProductoSelect(value) {
-            let selectedId = null;
-            if (Array.isArray(value) && value.length > 0) {
-                const v = value[0];
-                selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
-            } else if (value && typeof value === "object" && value.id != null) {
-                selectedId = String(value.id);
-            } else if (value != null) {
-                selectedId = String(value);
-            }
+            let selectedId = value || null;
             if (selectedId != null) {
-                const indexProductoEstudio = this.productos.findIndex(
-                    (x) => x.cod_cups == value[0].cod_cups
-                );
-
-                if (indexProductoEstudio >= 0) {
-                    const productoEstudioId = this.productos[indexProductoEstudio].id;
-                    const productoEstudioCod_cups = this.productos[indexProductoEstudio].cod_cups;
-                    const productoEstudioNomProduc =
-                        this.productos[indexProductoEstudio].nom_produc;
-                    const productoEstudioValProduc =
-                        this.productos[indexProductoEstudio].val_produc;
-
-                    const yaExiste = this.registro.productosAgenda.some(
-                        (p) => p.id == productoEstudioId
-                    );
+                var prod = this.productos.find(function (p) {
+                    return String(p.id) === String(selectedId);
+                });
+                if (prod) {
+                    const yaExiste = this.registro.productosAgenda.some((p) => p.id == prod.id);
                     if (!yaExiste) {
                         this.registro.productosAgenda.push({
-                            IdProducto: productoEstudioId,
-                            CodLegal: productoEstudioCod_cups,
-                            NomProducto: productoEstudioNomProduc,
+                            IdProducto: prod.id,
+                            CodLegal: prod.cod_cups,
+                            NomProducto: prod.nom_produc,
                             Cantidad: 1,
-                            ValProduc: productoEstudioValProduc,
+                            ValProduc: prod.val_produc,
                         });
                     }
 

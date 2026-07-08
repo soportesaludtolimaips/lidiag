@@ -2,6 +2,7 @@
 
 namespace App\Models\Citas;
 
+use App\Models\Agenda\AgendaCita;
 use Illuminate\Database\Eloquent\Model;
 
 class WhatsAppConversation extends Model
@@ -24,6 +25,6 @@ class WhatsAppConversation extends Model
 
     public function cita()
     {
-        return $this->belongsTo(Cita::class, 'cita_id');
+        return $this->belongsTo(AgendaCita::class, 'cita_id');
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Helpers\AuditLogger;
 use App\Models\Agenda\AgendaCita;
 use App\Models\Citas\WhatsAppConversation;
 use App\Models\Configuracion\ConfigSede;
@@ -12,6 +13,8 @@ use App\Models\General\Paciente;
 use App\Models\Interface\Sahi\Paciente as SahiPaciente;
 use App\Models\User;
 use App\Notifications\Citas\CitaSolicitadaNotification;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 
 class WhatsAppFlowService
@@ -36,6 +39,13 @@ class WhatsAppFlowService
         ?string $phoneNumberId = null
     ): ?array {
         try {
+            Log::info('WhatsApp mensaje recibido', [
+                'telefono' => $telefono,
+                'tipo' => $tipoMensaje,
+                'paso_actual' => null, // se actualiza tras obtener la conversación
+                'media_path' => $mediaPath,
+            ]);
+
             $telefono = $this->formatearTelefono($telefono);
             $mensaje = trim($mensaje);
             $mensajeLower = mb_strtolower($mensaje);
@@ -48,6 +58,7 @@ class WhatsAppFlowService
             if (in_array($paso, $pasosBloqueados, true)) {
                 if ($mensajeLower === '0' || $mensajeLower === 'menu' || $mensajeLower === 'menú') {
                     $this->resetearConversacion($conv);
+
                     return $this->iniciarConversacion($conv);
                 }
                 if ($mensajeLower === 'hola' || $mensajeLower === 'hi' || $mensajeLower === 'inicio') {
@@ -60,6 +71,7 @@ class WhatsAppFlowService
 
                 if ($mensajeLower === 'menu' || $mensajeLower === 'menú') {
                     $this->resetearConversacion($conv);
+
                     return $this->iniciarConversacion($conv);
                 }
             }
@@ -90,11 +102,12 @@ class WhatsAppFlowService
                 default => $this->iniciarConversacion($conv),
             };
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('WhatsAppFlow error: '.$e->getMessage(), [
+            Log::error('WhatsAppFlow error: '.$e->getMessage(), [
                 'telefono' => $telefono,
                 'paso' => $paso ?? 'unknown',
                 'trace' => $e->getTraceAsString(),
             ]);
+
             return $this->text("❌ Ocurrió un error inesperado. Por favor intente de nuevo más tarde.");
         }
     }
@@ -109,11 +122,13 @@ class WhatsAppFlowService
         $extension = strtolower(pathinfo($mediaPath, PATHINFO_EXTENSION));
         if (! in_array($extension, self::EXTENSIONES_PERMITIDAS, true)) {
             $mensaje = "❌ *Formato no permitido: .{$extension}*\n\n"
-                     . "Solo se aceptan archivos con extensión: *JPG, JPEG, PNG o PDF*."
-                     . self::SEPARADOR
-                     . $mensajePaso;
+                     ."Solo se aceptan archivos con extensión: *JPG, JPEG, PNG o PDF*."
+                     .self::SEPARADOR
+                     .$mensajePaso;
+
             return $this->text($mensaje);
         }
+
         return null;
     }
 
@@ -134,10 +149,10 @@ class WhatsAppFlowService
         };
 
         $mensaje = "⛔ *No puede saltar este paso.*\n\n"
-                 . "Para continuar, debe adjuntar la {$documento} como archivo.\n"
-                 . "📋 Solo se aceptan: *JPG, JPEG, PNG o PDF*."
-                 . self::SEPARADOR
-                 . $instrucciones;
+                 ."Para continuar, debe adjuntar la {$documento} como archivo.\n"
+                 ."📋 Solo se aceptan: *JPG, JPEG, PNG o PDF*."
+                 .self::SEPARADOR
+                 .$instrucciones;
 
         return $this->text($mensaje);
     }
@@ -145,12 +160,13 @@ class WhatsAppFlowService
     protected function iniciarConversacion(WhatsAppConversation $conv): array
     {
         $sedes = ConfigSede::where('estado', true)
-            ->whereHas('servicios', fn($q) => $q->where('estado', true))
+            ->whereHas('servicios', fn ($q) => $q->where('estado', true))
             ->orderBy('nom_sede')
             ->get();
 
         if ($sedes->isEmpty()) {
             $this->resetearConversacion($conv);
+
             return $this->text("Lo sentimos, actualmente no hay sedes con servicios disponibles.");
         }
 
@@ -180,7 +196,7 @@ class WhatsAppFlowService
             return $config->mensaje_bienvenida;
         }
 
-        return "📄 *Bienvenido al sistema de citas de Salud Tolima*\n\n" .
+        return "📄 *Bienvenido al sistema de citas de Salud Tolima*\n\n".
                "Por favor, ingrese su *número de documento*:";
     }
 
@@ -471,10 +487,10 @@ class WhatsAppFlowService
         ]);
 
         $body = "*Confirme sus datos:*\n\n"
-              . "• Nombres: {$datos['nombres']}\n"
-              . "• Primer apellido: {$datos['pri_ape']}\n"
-              . "• Segundo apellido: " . ($datos['seg_ape'] ?: '—') . "\n"
-              . "• Documento: {$datos['num_docu']}";
+              ."• Nombres: {$datos['nombres']}\n"
+              ."• Primer apellido: {$datos['pri_ape']}\n"
+              ."• Segundo apellido: ".($datos['seg_ape'] ?: '—')."\n"
+              ."• Documento: {$datos['num_docu']}";
 
         return [
             'type' => 'button',
@@ -583,6 +599,7 @@ class WhatsAppFlowService
 
         if (empty($direccion)) {
             $conv->update(['paso' => 'editar_direccion']);
+
             return $this->text("📍 *Escriba su dirección de residencia:*");
         }
 
@@ -604,10 +621,12 @@ class WhatsAppFlowService
 
         if (in_array($respuesta, ['1', 'si', 'sí', 'correcto', 'continuar'])) {
             $conv->update(['paso' => 'confirmar_telefono1']);
+
             return $this->mostrarConfirmarTelefono1($conv);
         }
 
         $conv->update(['paso' => 'editar_direccion']);
+
         return $this->text("📍 *Escriba la nueva dirección:*");
     }
 
@@ -633,6 +652,7 @@ class WhatsAppFlowService
 
         if (empty($tel)) {
             $conv->update(['paso' => 'editar_telefono1']);
+
             return $this->text("📞 *Escriba su número de teléfono 1:*");
         }
 
@@ -654,10 +674,12 @@ class WhatsAppFlowService
 
         if (in_array($respuesta, ['1', 'si', 'sí', 'correcto', 'continuar'])) {
             $conv->update(['paso' => 'confirmar_telefono2']);
+
             return $this->mostrarConfirmarTelefono2($conv);
         }
 
         $conv->update(['paso' => 'editar_telefono1']);
+
         return $this->text("📞 *Escriba el nuevo número de teléfono 1:*");
     }
 
@@ -683,6 +705,7 @@ class WhatsAppFlowService
 
         if (empty($cel)) {
             $conv->update(['paso' => 'editar_telefono2']);
+
             return $this->text("📱 *Escriba su número de teléfono 2:*\n\n_(Si no tiene, escriba 0 para omitir)_");
         }
 
@@ -707,6 +730,7 @@ class WhatsAppFlowService
         }
 
         $conv->update(['paso' => 'editar_telefono2']);
+
         return $this->text("📱 *Escriba el nuevo número de teléfono 2:*\n\n_(Si no tiene, escriba 0 para omitir)_");
     }
 
@@ -809,7 +833,7 @@ class WhatsAppFlowService
         ]);
 
         $response = "✅ *Foto del frente registrada*";
-        $response .= "\n📎 Archivo: " . basename($mediaPath);
+        $response .= "\n📎 Archivo: ".basename($mediaPath);
         $response .= self::SEPARADOR;
         $response .= "📷 *Envíe la foto del reverso de su cédula.*\n";
         $response .= "_(Solo se aceptan archivos JPG, JPEG, PNG o PDF)_";
@@ -841,7 +865,7 @@ class WhatsAppFlowService
         ]);
 
         $response = "✅ *Foto del reverso registrada*";
-        $response .= "\n📎 Archivo: " . basename($mediaPath);
+        $response .= "\n📎 Archivo: ".basename($mediaPath);
         $response .= self::SEPARADOR;
         $response .= "📋 *Envíe la orden médica.*\n";
         $response .= "Adjunte la imagen o PDF de la orden.\n";
@@ -875,7 +899,7 @@ class WhatsAppFlowService
         ]);
 
         $response = "✅ *Orden registrada*";
-        $response .= "\n📎 Archivo: " . basename($mediaPath);
+        $response .= "\n📎 Archivo: ".basename($mediaPath);
         $response .= self::SEPARADOR;
         $response .= "📋 *Envíe la autorización médica.*\n";
         $response .= "Adjunte la imagen o PDF de la autorización.\n";
@@ -912,41 +936,55 @@ class WhatsAppFlowService
 
         if (! $paciente) {
             $this->resetearConversacion($conv);
+
             return $this->text("❌ Error al procesar el paciente. Por favor contacte a soporte.");
         }
 
-        if ($conv->cita_id) {
-            $cita = AgendaCita::find($conv->cita_id);
-            if ($cita) {
-                $conv->update(['paso' => 'confirmar_solicitud']);
-                return $this->text("✅ Su solicitud ya fue registrada. En 24 horas será notificado.");
+        $cita = DB::transaction(function () use ($conv, $paciente, $datos) {
+            $convActual = WhatsAppConversation::lockForUpdate()->find($conv->id);
+
+            if ($convActual->cita_id) {
+                $citaExistente = AgendaCita::find($convActual->cita_id);
+                if ($citaExistente) {
+                    $convActual->update(['paso' => 'confirmar_solicitud']);
+
+                    return $citaExistente;
+                }
             }
-        }
 
-        $cita = AgendaCita::create([
-            'paciente_id' => $paciente->id,
-            'servicio_cita_id' => $datos['servicio_cita_id'],
-            'sede_id' => $conv->sede_id,
-            'quien_registro_id' => null,
-            'quien_confirma_id' => null,
-            'numero_orden' => null,
-            'numero_autorizacion' => null,
-            'ruta_orden_media' => $datos['ruta_orden_media'] ?? null,
-            'ruta_cedula_frente_media' => $datos['ruta_cedula_frente_media'] ?? null,
-            'ruta_cedula_dorso_media' => $datos['ruta_cedula_dorso_media'] ?? null,
-            'ruta_autorizacion_media' => $datos['ruta_autorizacion_media'] ?? null,
-            'estado' => 'solicitada',
-            'whatsapp_token' => bin2hex(random_bytes(16)),
-        ]);
+            $nuevaCita = AgendaCita::create([
+                'paciente_id' => $paciente->id,
+                'servicio_cita_id' => $datos['servicio_cita_id'],
+                'sede_id' => $convActual->sede_id,
+                'quien_registro_id' => null,
+                'quien_confirma_id' => null,
+                'numero_orden' => null,
+                'numero_autorizacion' => null,
+                'ruta_orden_media' => $datos['ruta_orden_media'] ?? null,
+                'ruta_cedula_frente_media' => $datos['ruta_cedula_frente_media'] ?? null,
+                'ruta_cedula_dorso_media' => $datos['ruta_cedula_dorso_media'] ?? null,
+                'ruta_autorizacion_media' => $datos['ruta_autorizacion_media'] ?? null,
+                'estado' => 'solicitada',
+                'whatsapp_token' => bin2hex(random_bytes(16)),
+            ]);
 
-        $conv->update([
-            'cita_id' => $cita->id,
-            'paso' => 'confirmar_solicitud',
-        ]);
+            $convActual->update([
+                'cita_id' => $nuevaCita->id,
+                'paso' => 'confirmar_solicitud',
+            ]);
+
+            return $nuevaCita;
+        });
+
+        AuditLogger::evento(
+            'whatsapp_cita_creada',
+            $cita,
+            "Cita solicitada vía WhatsApp | Paciente: {$paciente->nombres} {$paciente->pri_ape} | Documento: {$datos['num_docu']} | Servicio: {$datos['servicio_nombre']}"
+        );
 
         try {
             $users = User::permission('citas.index')->get();
-            $nombrePacienteNotif = trim(($datos['nombres'] ?? '') . ' ' . ($datos['pri_ape'] ?? ''));
+            $nombrePacienteNotif = trim(($datos['nombres'] ?? '').' '.($datos['pri_ape'] ?? ''));
             Notification::send($users, new CitaSolicitadaNotification(
                 citaId: $cita->id,
                 pacienteNombre: $nombrePacienteNotif ?: 'Paciente',
@@ -954,11 +992,11 @@ class WhatsAppFlowService
                 sede: $conv->sede_id ? (ConfigSede::find($conv->sede_id)?->nom_sede) : null,
             ));
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('Error al notificar nueva cita: ' . $e->getMessage());
+            Log::warning('Error al notificar nueva cita: '.$e->getMessage());
         }
 
         $servicio = $datos['servicio_nombre'] ?? 'Estudio';
-        $nombrePaciente = $datos['nombres'] . ' ' . ($datos['pri_ape'] ?? '') . ' ' . ($datos['seg_ape'] ?? '');
+        $nombrePaciente = $datos['nombres'].' '.($datos['pri_ape'] ?? '').' '.($datos['seg_ape'] ?? '');
         $sede = $conv->sede_id ? ConfigSede::find($conv->sede_id) : null;
         $sedeNombre = $sede?->nom_sede ?? '—';
 
@@ -971,16 +1009,16 @@ class WhatsAppFlowService
         $mensajeR .= "• Documento: {$datos['num_docu']}\n";
 
         if (! empty($datos['ruta_cedula_frente_media'])) {
-            $mensajeR .= "• 📎 Cédula frente: " . basename($datos['ruta_cedula_frente_media']) . "\n";
+            $mensajeR .= "• 📎 Cédula frente: ".basename($datos['ruta_cedula_frente_media'])."\n";
         }
         if (! empty($datos['ruta_cedula_dorso_media'])) {
-            $mensajeR .= "• 📎 Cédula reverso: " . basename($datos['ruta_cedula_dorso_media']) . "\n";
+            $mensajeR .= "• 📎 Cédula reverso: ".basename($datos['ruta_cedula_dorso_media'])."\n";
         }
         if (! empty($datos['ruta_orden_media'])) {
-            $mensajeR .= "• 📎 Orden: " . basename($datos['ruta_orden_media']) . "\n";
+            $mensajeR .= "• 📎 Orden: ".basename($datos['ruta_orden_media'])."\n";
         }
         if (! empty($datos['ruta_autorizacion_media'])) {
-            $mensajeR .= "• 📎 Autorización: " . basename($datos['ruta_autorizacion_media']) . "\n";
+            $mensajeR .= "• 📎 Autorización: ".basename($datos['ruta_autorizacion_media'])."\n";
         }
 
         $mensajeR .= self::SEPARADOR;
@@ -1041,6 +1079,12 @@ class WhatsAppFlowService
 
     protected function resetearConversacion(WhatsAppConversation $conv): void
     {
+        AuditLogger::evento(
+            'whatsapp_conversacion_reseteada',
+            $conv,
+            "Conversación WhatsApp reseteada | Teléfono: {$conv->telefono} | Paso anterior: {$conv->paso}"
+        );
+
         $conv->update([
             'paso' => 'inicio',
             'datos' => [],

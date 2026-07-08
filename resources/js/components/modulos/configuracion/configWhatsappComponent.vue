@@ -719,7 +719,6 @@
                                                 :options="productosDisponiblesOptions"
                                                 width="100%"
                                                 :allow-clear="false"
-                                                :dropdown-parent-selector="'#producto-parent'"
                                                 @input="onProductoSelect"
                                             />
                                         </div>
@@ -729,12 +728,11 @@
                                     <div class="col-md-12">
                                         <div class="form-group">
                                             <label class="control-label">Recomendación</label>
-                                            <textarea
+                                            <FormattedTextEditor
                                                 v-model="recomendacion"
-                                                class="form-control"
-                                                rows="8"
+                                                rows="18"
                                                 placeholder="Texto de recomendación para el paciente. Use saltos de línea si es necesario."
-                                            ></textarea>
+                                            />
                                             <small class="text-muted">
                                                 Variables disponibles:
                                                 <code>${num_docu_paciente}</code>
@@ -934,6 +932,7 @@ import {
 } from "@/helpers/alerts.js";
 import Select2 from "@/components/shared/Select2.vue";
 import EmojiPicker from "@/components/shared/EmojiPicker.vue";
+import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
 
 const INIT_FORM_NUMEROS = {
     sede_id: "",
@@ -951,7 +950,7 @@ const INIT_FORM_SALUDOS = {
 };
 
 export default {
-    components: { Select2, EmojiPicker },
+    components: { Select2, EmojiPicker, FormattedTextEditor },
     mounted() {
         this.listarNumeros();
         this.listarSaludos();
@@ -1316,24 +1315,15 @@ export default {
         },
 
         onProductoSelect(value) {
-            const id =
-                Array.isArray(value) && value.length > 0
-                    ? value[0] && value[0].id
-                    : value && value.id;
-            this.productoSeleccionado = id || "";
-            const prod = Array.isArray(value) && value.length > 0 ? value[0] : value;
-            if (prod && prod.recomendacion_producto) {
-                this.recomendacion = prod.recomendacion_producto.recomendacion || "";
-            } else {
-                const encontrado = this.productosDisponibles.find(function (p) {
-                    return String(p.id) === String(id);
-                });
-                this.recomendacion =
-                    (encontrado &&
-                        encontrado.recomendacion_producto &&
-                        encontrado.recomendacion_producto.recomendacion) ||
-                    "";
-            }
+            this.productoSeleccionado = value || "";
+            const encontrado = this.productosDisponibles.find(function (p) {
+                return String(p.id) === String(value);
+            });
+            this.recomendacion =
+                (encontrado &&
+                    encontrado.recomendacion_producto &&
+                    encontrado.recomendacion_producto.recomendacion) ||
+                "";
         },
 
         abrirModal() {

@@ -452,7 +452,6 @@
                                                 :options="productoOptions"
                                                 width="100%"
                                                 :allow-clear="true"
-                                                :dropdown-parent-selector="'#productos-parent'"
                                                 @input="onProductoSelect"
                                             />
                                         </div>
@@ -535,7 +534,6 @@
                                                 width="100%"
                                                 :allow-clear="true"
                                                 :label-fields="['nom_diagnos']"
-                                                :dropdown-parent-selector="'#diagnosticos-parent'"
                                                 @input="onDiagnosticoSelect"
                                             />
                                         </div>

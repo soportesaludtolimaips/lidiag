@@ -4,22 +4,22 @@ namespace App\Http\Controllers\Agenda;
 
 use App\Http\Controllers\Controller;
 use App\Models\Agenda\AgendaCita;
-use App\Models\Agenda\AgendaDisponibilida;
 use App\Models\Agenda\AgendaDisponibilidaDetalle;
 use App\Models\Citas\ConfigCitaRechazoMotivo;
-use App\Models\Configuracion\ConfigProducto;
-use App\Models\Configuracion\ConfigRecomendacionProducto;
 use App\Models\Citas\WhatsAppConversation;
+use App\Models\Configuracion\ConfigRecomendacionProducto;
 use App\Models\Configuracion\ConfigServicioCita;
 use App\Models\General\Paciente;
 use App\Models\Interface\Sahi\Paciente as SahiPaciente;
 use App\Services\WhatsAppFlowService;
 use App\Services\WhatsAppService;
 use Carbon\Carbon;
-use App\Notifications\Citas\CitaSolicitadaNotification;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class AgendaCitaController extends Controller
@@ -193,7 +193,7 @@ class AgendaCitaController extends Controller
         $cita->refresh()->load(['paciente', 'servicio', 'producto', 'sede']);
 
         if ($cita->paciente && empty($cita->paciente->cel)) {
-            $conv = \App\Models\Citas\WhatsAppConversation::where('cita_id', $cita->id)->first();
+            $conv = WhatsAppConversation::where('cita_id', $cita->id)->first();
             if ($conv && ! empty($conv->telefono)) {
                 $cita->paciente->update(['cel' => $conv->telefono]);
                 $cita->refresh()->load(['paciente', 'servicio', 'producto', 'sede']);
@@ -235,10 +235,10 @@ class AgendaCitaController extends Controller
         $lineas = [
             "*📋 Recomendaciones para tu cita*",
             '',
-            "📍 *Sede:* " . ($cita->sede->nom_sede ?? 'N/A'),
-            "🩺 *Servicio:* " . ($cita->servicio->nombre ?? 'N/A'),
-            "🗓️ *Fecha:* " . $cita->fecha_hora_inicio->format('d/m/Y'),
-            "🕐 *Hora:* " . $cita->fecha_hora_inicio->format('H:i'),
+            "📍 *Sede:* ".($cita->sede->nom_sede ?? 'N/A'),
+            "🩺 *Servicio:* ".($cita->servicio->nombre ?? 'N/A'),
+            "🗓️ *Fecha:* ".$cita->fecha_hora_inicio->format('d/m/Y'),
+            "🕐 *Hora:* ".$cita->fecha_hora_inicio->format('H:i'),
             '',
             "📋 *Recomendaciones:*",
         ];
@@ -250,7 +250,7 @@ class AgendaCitaController extends Controller
                 [$paciente->num_docu ?? '', $paciente->nombres ?? '', $cita->producto?->cod_cups ?? '', $cita->producto?->nom_produc ?? ''],
                 $texto
             );
-            $lineas[] = '• ' . $texto;
+            $lineas[] = '• '.$texto;
         }
 
         $mensaje = implode("\n", $lineas);
@@ -475,16 +475,17 @@ class AgendaCitaController extends Controller
         $signature = $request->header('X-Hub-Signature-256', '');
         $secret = config('services.whatsapp.app_secret');
 
-        if ($secret && $signature && ! $this->whatsAppService->verificarWebhook($payload, $signature)) {
-            \Illuminate\Support\Facades\Log::warning('WhatsApp webhook: firma inválida', [
+        if ($secret && (! $signature || ! $this->whatsAppService->verificarWebhook($payload, $signature))) {
+            Log::warning('WhatsApp webhook: firma inválida', [
                 'signature' => $signature,
             ]);
+
             return response()->json(['error' => 'Firma inválida'], 401);
         }
 
         $data = $request->all();
 
-        \Illuminate\Support\Facades\Log::info('WhatsApp webhook recibido', [
+        Log::info('WhatsApp webhook recibido', [
             'has_entries' => ! empty($data['entry']),
             'entry_count' => count($data['entry'] ?? []),
         ]);
@@ -495,7 +496,7 @@ class AgendaCitaController extends Controller
 
         foreach ($data['entry'] as $entry) {
             $value = $entry['changes'][0]['value'] ?? [];
-            \Illuminate\Support\Facades\Log::info('WhatsApp webhook entry', [
+            Log::info('WhatsApp webhook entry', [
                 'has_messages' => ! empty($value['messages']),
                 'has_statuses' => ! empty($value['statuses']),
                 'messages_count' => count($value['messages'] ?? []),
@@ -539,13 +540,14 @@ class AgendaCitaController extends Controller
 
     public function descargarMedia($filename)
     {
+        $filename = basename($filename);
         $path = 'citas_soportes/'.$filename;
 
-        if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($path)) {
+        if (! Storage::disk('local')->exists($path)) {
             abort(404, 'Archivo no encontrado');
         }
 
-        return response()->file(\Illuminate\Support\Facades\Storage::disk('local')->path($path));
+        return response()->file(Storage::disk('local')->path($path));
     }
 
     protected function enviarRespuesta(string $telefono, array $respuesta): void
@@ -561,6 +563,7 @@ class AgendaCitaController extends Controller
                 $respuesta['header'] ?? null,
                 $respuesta['footer'] ?? null
             );
+
             return;
         }
 
@@ -572,6 +575,7 @@ class AgendaCitaController extends Controller
                 $respuesta['header'] ?? null,
                 $respuesta['footer'] ?? null
             );
+
             return;
         }
 
@@ -592,7 +596,7 @@ class AgendaCitaController extends Controller
         ]);
     }
 
-    public function notificacionesNoLeidas(): \Illuminate\Http\JsonResponse
+    public function notificacionesNoLeidas(): JsonResponse
     {
         $user = Auth::user();
         $count = $user->unreadNotifications()
@@ -617,21 +621,23 @@ class AgendaCitaController extends Controller
         ]);
     }
 
-    public function marcarNotificacionLeida(string $id): \Illuminate\Http\JsonResponse
+    public function marcarNotificacionLeida(string $id): JsonResponse
     {
         $user = Auth::user();
         $notification = $user->notifications()->where('id', $id)->first();
         if ($notification) {
             $notification->markAsRead();
         }
+
         return response()->json(['success' => true]);
     }
 
-    public function marcarTodasLeidas(): \Illuminate\Http\JsonResponse
+    public function marcarTodasLeidas(): JsonResponse
     {
         Auth::user()->unreadNotifications()
             ->where('type', 'App\Notifications\Citas\CitaSolicitadaNotification')
             ->update(['read_at' => now()]);
+
         return response()->json(['success' => true]);
     }
 
@@ -725,41 +731,5 @@ class AgendaCitaController extends Controller
         }
 
         return $horarios;
-    }
-
-    protected function procesarRespuestaWhatsApp(array $mensaje): void
-    {
-        $telefono = $mensaje['from'];
-        $texto = strtolower(trim($mensaje['text']));
-
-        $paciente = Paciente::where('cel', 'like', "%{$telefono}")->first();
-
-        if (! $paciente) {
-            return;
-        }
-
-        $cita = AgendaCita::where('paciente_id', $paciente->id)
-            ->whereIn('estado', ['asignada', 'confirmada'])
-            ->latest()
-            ->first();
-
-        if (! $cita) {
-            return;
-        }
-
-        if (in_array($texto, ['si', 'confirmar', 'si, confirmar', '1'])) {
-            $cita->update([
-                'estado' => 'confirmada',
-                'quien_confirma_id' => Auth::id(),
-            ]);
-        } elseif (in_array($texto, ['no', 'cancelar', '2'])) {
-            $cita->update(['estado' => 'cancelada']);
-            $this->whatsAppService->enviarCancelacion($cita, 'Cancelado por el paciente');
-        } elseif (in_array($texto, ['reprogramar', '3'])) {
-            $this->whatsAppService->enviarMensaje(
-                $telefono,
-                "Para reprogramar su cita, por favor comuníquese con nosotros."
-            );
-        }
     }
 }
