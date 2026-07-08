@@ -10,6 +10,9 @@ use App\Models\Configuracion\ConfigServicioCita;
 use App\Models\Configuracion\ConfigWhatsapp;
 use App\Models\General\Paciente;
 use App\Models\Interface\Sahi\Paciente as SahiPaciente;
+use App\Models\User;
+use App\Notifications\Citas\CitaSolicitadaNotification;
+use Illuminate\Support\Facades\Notification;
 
 class WhatsAppFlowService
 {
@@ -66,6 +69,7 @@ class WhatsAppFlowService
                 'seleccionar_sede' => $this->procesarSeleccionSede($conv, $mensaje),
                 'seleccionar_servicio' => $this->procesarSeleccionServicio($conv, $mensaje),
                 'pedir_documento' => $this->procesarDocumento($conv, $mensaje),
+                'confirmar_datos_completos' => $this->procesarConfirmarDatosCompletos($conv, $mensaje),
                 'pedir_nombres' => $this->procesarNombres($conv, $mensaje),
                 'pedir_primer_apellido' => $this->procesarPrimerApellido($conv, $mensaje),
                 'pedir_segundo_apellido' => $this->procesarSegundoApellido($conv, $mensaje),
@@ -140,6 +144,16 @@ class WhatsAppFlowService
 
     protected function iniciarConversacion(WhatsAppConversation $conv): array
     {
+        $sedes = ConfigSede::where('estado', true)
+            ->whereHas('servicios', fn($q) => $q->where('estado', true))
+            ->orderBy('nom_sede')
+            ->get();
+
+        if ($sedes->isEmpty()) {
+            $this->resetearConversacion($conv);
+            return $this->text("Lo sentimos, actualmente no hay sedes con servicios disponibles.");
+        }
+
         $this->resetearConversacion($conv);
         $conv = $conv->fresh();
 
@@ -326,16 +340,11 @@ class WhatsAppFlowService
         $datos['servicio_nombre'] = $servicio->nombre;
         $conv->update(['datos' => $datos]);
 
-        $mensaje = "✅ *Servicio seleccionado: {$servicio->nombre}*";
-        $this->whatsAppService->enviarMensaje($conv->telefono, $mensaje);
+        $this->whatsAppService->enviarMensaje($conv->telefono, "✅ *Servicio seleccionado: {$servicio->nombre}*");
 
-        if (! empty($datos['direccion'])) {
-            $conv->update(['paso' => 'confirmar_direccion']);
-            return $this->mostrarConfirmarDireccion($conv->fresh());
-        }
+        $conv->update(['paso' => 'pedir_foto_cedula_frente']);
 
-        $conv->update(['paso' => 'pedir_direccion']);
-        return $this->text("📍 *Escriba su dirección de residencia:*");
+        return $this->text("📷 *Envíe la foto del frente de su cédula.*\n_(Solo se aceptan archivos JPG, JPEG, PNG o PDF)_");
     }
 
     protected function procesarDocumento(WhatsAppConversation $conv, string $documento): array
@@ -346,7 +355,7 @@ class WhatsAppFlowService
             return $this->text("❌ Número de documento inválido. Por favor ingrese un número de documento válido.");
         }
 
-        $paciente = $this->buscarPaciente($documento);
+        $paciente = $this->buscarPaciente($documento, $conv->telefono);
 
         $datos = $conv->datos ?: [];
         $datos['num_docu'] = $documento;
@@ -356,27 +365,41 @@ class WhatsAppFlowService
             $datos['nombres'] = $paciente->nombres;
             $datos['pri_ape'] = $paciente->pri_ape;
             $datos['seg_ape'] = $paciente->seg_ape;
-
-            if (empty($paciente->cel)) {
-                $paciente->update(['cel' => $conv->telefono]);
-            }
-
             $datos['direccion'] = $paciente->direccion ?? '';
             $datos['tel'] = $paciente->tel ?? '';
             $datos['cel'] = $paciente->cel ?? '';
 
+            if (! $paciente->cel) {
+                $paciente->update(['cel' => $conv->telefono]);
+                $datos['cel'] = $conv->telefono;
+            }
+
             $conv->update([
                 'datos' => $datos,
-                'paso' => 'seleccionar_sede',
+                'paso' => 'confirmar_datos_completos',
             ]);
 
-            $respuesta = "📄 *Documento: {$documento}*\n";
-            $respuesta .= "👤 Paciente: {$paciente->nombres} {$paciente->pri_ape} {$paciente->seg_ape}";
-            $respuesta .= self::SEPARADOR;
+            $body = "📄 *Documento: {$documento}*\n";
+            $body .= "👤 *{$paciente->nombres} {$paciente->pri_ape} {$paciente->seg_ape}*\n";
+            if ($paciente->direccion) {
+                $body .= "📍 {$paciente->direccion}\n";
+            }
+            if ($paciente->tel) {
+                $body .= "📞 {$paciente->tel}";
+            }
+            $body .= self::SEPARADOR;
+            $body .= "¿Son correctos sus datos?";
 
-            $this->whatsAppService->enviarMensaje($conv->telefono, $respuesta);
-
-            return $this->mostrarSedes($conv->fresh());
+            return [
+                'type' => 'button',
+                'body' => $body,
+                'header' => '✅ Datos encontrados',
+                'footer' => 'Verifique antes de continuar',
+                'buttons' => [
+                    ['id' => '1', 'title' => 'Sí, correcto'],
+                    ['id' => '2', 'title' => 'No, editar'],
+                ],
+            ];
         }
 
         $paciente = Paciente::create([
@@ -390,21 +413,13 @@ class WhatsAppFlowService
         $datos['nombres'] = 'Pendiente';
         $datos['pri_ape'] = '';
         $datos['seg_ape'] = '';
-        $datos['requiere_fotos'] = true;
 
         $conv->update([
             'datos' => $datos,
-            'paso' => 'seleccionar_sede',
+            'paso' => 'pedir_nombres',
         ]);
 
-        $respuesta = "📄 *Documento: {$documento}*\n";
-        $respuesta .= "⚠️ No encontramos sus datos registrados.\n";
-        $respuesta .= "Por favor ingrese sus datos de contacto.";
-        $respuesta .= self::SEPARADOR;
-
-        $this->whatsAppService->enviarMensaje($conv->telefono, $respuesta);
-
-        return $this->mostrarSedes($conv->fresh());
+        return $this->text("📄 *Documento: {$documento}*\n\nNo encontramos sus datos registrados.\nPor favor, ingrese sus *nombres completos*:");
     }
 
     protected function procesarNombres(WhatsAppConversation $conv, string $nombres): array
@@ -478,7 +493,20 @@ class WhatsAppFlowService
         $respuesta = trim(mb_strtolower($respuesta));
 
         if (in_array($respuesta, ['1', 'si', 'sí', 'correcto', 'continuar'])) {
-            return $this->crearPacienteYContinuar($conv);
+            $datos = $conv->datos ?: [];
+            $pacienteId = $datos['paciente_id'] ?? null;
+
+            if ($pacienteId) {
+                Paciente::where('id', $pacienteId)->update([
+                    'nombres' => $datos['nombres'],
+                    'pri_ape' => $datos['pri_ape'],
+                    'seg_ape' => $datos['seg_ape'] ?? '',
+                ]);
+            }
+
+            $conv->update(['paso' => 'pedir_direccion']);
+
+            return $this->text("✅ *Nombres registrados*\n\n📍 *Escriba su dirección de residencia:*");
         }
 
         $datos = $conv->datos ?: [];
@@ -489,6 +517,36 @@ class WhatsAppFlowService
         ]);
 
         return $this->text("Entendido. Vamos a empezar de nuevo.\n\nPor favor, escriba sus *nombres completos*:");
+    }
+
+    protected function procesarConfirmarDatosCompletos(WhatsAppConversation $conv, string $respuesta): array
+    {
+        $respuesta = trim(mb_strtolower($respuesta));
+
+        if (in_array($respuesta, ['1', 'si', 'sí', 'correcto', 'continuar'])) {
+            $datos = $conv->datos ?: [];
+            $pacienteId = $datos['paciente_id'] ?? null;
+
+            if ($pacienteId) {
+                Paciente::where('id', $pacienteId)->update([
+                    'direccion' => $datos['direccion'] ?? '',
+                    'tel' => $datos['tel'] ?? '',
+                    'cel' => $datos['cel'] ?? $conv->telefono,
+                ]);
+            }
+
+            $conv->update(['paso' => 'seleccionar_sede']);
+
+            $this->whatsAppService->enviarMensaje($conv->telefono, "✅ *Datos confirmados*");
+
+            return $this->mostrarSedes($conv->fresh());
+        }
+
+        $datos = $conv->datos ?: [];
+        unset($datos['nombres'], $datos['pri_ape'], $datos['seg_ape'], $datos['direccion'], $datos['tel'], $datos['cel']);
+        $conv->update(['datos' => $datos, 'paso' => 'pedir_nombres']);
+
+        return $this->text("Entendido. Ingrese sus *nombres completos*:");
     }
 
     protected function crearPacienteYContinuar(WhatsAppConversation $conv): array
@@ -669,41 +727,21 @@ class WhatsAppFlowService
         $pacienteId = $datos['paciente_id'] ?? null;
 
         if ($pacienteId) {
-            $update = [];
-            if (isset($datos['direccion'])) {
-                $update['direccion'] = $datos['direccion'];
-            }
-            if (isset($datos['tel'])) {
-                $update['tel'] = $datos['tel'];
-            }
-            if (isset($datos['cel'])) {
-                $update['cel'] = $datos['cel'];
-            }
-            if (! empty($update)) {
-                Paciente::where('id', $pacienteId)->update($update);
-            }
+            Paciente::where('id', $pacienteId)->update([
+                'nombres' => $datos['nombres'] ?? 'Pendiente',
+                'pri_ape' => $datos['pri_ape'] ?? '',
+                'seg_ape' => $datos['seg_ape'] ?? '',
+                'direccion' => $datos['direccion'] ?? '',
+                'tel' => $datos['tel'] ?? '',
+                'cel' => $datos['cel'] ?? $conv->telefono,
+            ]);
         }
 
-        if (! empty($datos['requiere_fotos'])) {
-            $conv->update(['paso' => 'pedir_foto_cedula_frente']);
+        $conv->update(['paso' => 'seleccionar_sede']);
 
-            $respuesta = "✅ *Datos de contacto actualizados!*";
-            $respuesta .= self::SEPARADOR;
-            $respuesta .= "📷 *Envíe la foto del frente de su cédula.*\n";
-            $respuesta .= "_(Solo se aceptan archivos JPG, JPEG, PNG o PDF)_";
+        $this->whatsAppService->enviarMensaje($conv->telefono, "✅ *Datos registrados correctamente!*");
 
-            return $this->text($respuesta);
-        }
-
-        $conv->update(['paso' => 'pedir_orden']);
-
-        $respuesta = "✅ *Datos de contacto actualizados!*";
-        $respuesta .= self::SEPARADOR;
-        $respuesta .= "📋 *Envíe la orden médica.*\n";
-        $respuesta .= "Adjunte la imagen o PDF de la orden.\n";
-        $respuesta .= "_(Solo se aceptan archivos JPG, JPEG, PNG o PDF)_";
-
-        return $this->text($respuesta);
+        return $this->mostrarSedes($conv->fresh());
     }
 
     protected function procesarDireccion(WhatsAppConversation $conv, string $direccion): array
@@ -716,9 +754,9 @@ class WhatsAppFlowService
 
         $datos = $conv->datos ?: [];
         $datos['direccion'] = $direccion;
-        $conv->update(['datos' => $datos, 'paso' => 'confirmar_direccion']);
+        $conv->update(['datos' => $datos, 'paso' => 'pedir_telefono1']);
 
-        return $this->mostrarConfirmarDireccion($conv->fresh());
+        return $this->text("✅ *Dirección registrada*\n\n📞 *Escriba su número de teléfono 1:*");
     }
 
     protected function procesarTelefono1(WhatsAppConversation $conv, string $telefono): array
@@ -731,9 +769,9 @@ class WhatsAppFlowService
 
         $datos = $conv->datos ?: [];
         $datos['tel'] = $telefono;
-        $conv->update(['datos' => $datos, 'paso' => 'confirmar_telefono1']);
+        $conv->update(['datos' => $datos, 'paso' => 'pedir_telefono2']);
 
-        return $this->mostrarConfirmarTelefono1($conv->fresh());
+        return $this->text("✅ *Teléfono 1 registrado*\n\n📱 *Escriba su número de teléfono 2* (o *0* si no tiene):");
     }
 
     protected function procesarTelefono2(WhatsAppConversation $conv, string $telefono): array
@@ -744,31 +782,7 @@ class WhatsAppFlowService
         $datos['cel'] = ($telefono === '0') ? '' : $telefono;
         $conv->update(['datos' => $datos]);
 
-        $pacienteId = $datos['paciente_id'] ?? null;
-        if ($pacienteId) {
-            $update = [];
-            if (isset($datos['direccion'])) {
-                $update['direccion'] = $datos['direccion'];
-            }
-            if (isset($datos['tel'])) {
-                $update['tel'] = $datos['tel'];
-            }
-            if (isset($datos['cel'])) {
-                $update['cel'] = $datos['cel'];
-            }
-            if (! empty($update)) {
-                Paciente::where('id', $pacienteId)->update($update);
-            }
-        }
-
-        $conv->update(['paso' => 'pedir_foto_cedula_frente']);
-
-        $respuesta = "✅ *Datos de contacto registrados!*";
-        $respuesta .= self::SEPARADOR;
-        $respuesta .= "📷 *Envíe la foto del frente de su cédula.*\n";
-        $respuesta .= "_(Solo se aceptan archivos JPG, JPEG, PNG o PDF)_";
-
-        return $this->text($respuesta);
+        return $this->guardarContactoYContinuar($conv);
     }
 
     protected function procesarFotoCedulaFrente(
@@ -930,6 +944,19 @@ class WhatsAppFlowService
             'paso' => 'confirmar_solicitud',
         ]);
 
+        try {
+            $users = User::permission('citas.index')->get();
+            $nombrePacienteNotif = trim(($datos['nombres'] ?? '') . ' ' . ($datos['pri_ape'] ?? ''));
+            Notification::send($users, new CitaSolicitadaNotification(
+                citaId: $cita->id,
+                pacienteNombre: $nombrePacienteNotif ?: 'Paciente',
+                servicio: $datos['servicio_nombre'] ?? null,
+                sede: $conv->sede_id ? (ConfigSede::find($conv->sede_id)?->nom_sede) : null,
+            ));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Error al notificar nueva cita: ' . $e->getMessage());
+        }
+
         $servicio = $datos['servicio_nombre'] ?? 'Estudio';
         $nombrePaciente = $datos['nombres'] . ' ' . ($datos['pri_ape'] ?? '') . ' ' . ($datos['seg_ape'] ?? '');
         $sede = $conv->sede_id ? ConfigSede::find($conv->sede_id) : null;
@@ -964,35 +991,32 @@ class WhatsAppFlowService
         return $this->text($mensajeR);
     }
 
-    protected function buscarPaciente(string $documento): ?Paciente
+    protected function buscarPaciente(string $documento, ?string $telefono = null): ?Paciente
     {
         try {
             $sahiPaciente = SahiPaciente::where('PA_NUMDOCU', $documento)->first();
 
             if ($sahiPaciente) {
-                return Paciente::create([
-                    'tipo_documento_id' => 1,
-                    'num_docu' => $sahiPaciente->PA_NUMDOCU,
-                    'nombres' => $sahiPaciente->PA_NOMB1.' '.$sahiPaciente->PA_NOMB2,
-                    'pri_ape' => $sahiPaciente->PA_APELL1,
-                    'seg_ape' => $sahiPaciente->PA_APELL2,
-                    'sexo' => $sahiPaciente->PA_SEXO,
-                    'fec_naci' => $sahiPaciente->PA_FENAC,
-                    'direccion' => $sahiPaciente->PA_DIRECC,
-                    'tel' => $sahiPaciente->PA_TELEFO,
-                ]);
+                return Paciente::updateOrCreate(
+                    ['num_docu' => $sahiPaciente->PA_NUMDOCU],
+                    [
+                        'tipo_documento_id' => 1,
+                        'nombres' => $sahiPaciente->PA_NOMB1.' '.$sahiPaciente->PA_NOMB2,
+                        'pri_ape' => $sahiPaciente->PA_APELL1,
+                        'seg_ape' => $sahiPaciente->PA_APELL2,
+                        'sexo' => $sahiPaciente->PA_SEXO,
+                        'fec_naci' => $sahiPaciente->PA_FENAC,
+                        'direccion' => $sahiPaciente->PA_DIRECC,
+                        'tel' => $sahiPaciente->PA_TELEFO,
+                        'cel' => $telefono ?? '',
+                    ]
+                );
             }
         } catch (\Throwable $e) {
             // SAHI no disponible — continuar con búsqueda local
         }
 
-        $paciente = Paciente::where('num_docu', $documento)->first();
-
-        if ($paciente) {
-            return $paciente;
-        }
-
-        return null;
+        return Paciente::where('num_docu', $documento)->first();
     }
 
     protected function obtenerOCrearConversacion(string $telefono, ?string $phoneNumberId = null): WhatsAppConversation

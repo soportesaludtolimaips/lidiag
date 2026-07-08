@@ -6,7 +6,10 @@ use Illuminate\Support\Facades\Route;
 
 // Webhook DEBE ir antes de {cita} para que "webhook" no sea capturado como parámetro
 Route::match(['get', 'post'], '/citas/webhook', [AgendaCitaController::class, 'webhook'])->name('api.citas.webhook');
-Route::post('/citas/test/enviar', [AgendaCitaController::class, 'testEnviar'])->name('api.citas.test.enviar');
+Route::post('/citas/test/enviar', [AgendaCitaController::class, 'testEnviar'])->name('api.citas.test.enviar')->middleware('auth');
+Route::get('/citas/notificaciones/no-leidas', [AgendaCitaController::class, 'notificacionesNoLeidas'])->name('api.citas.notificaciones.no-leidas')->middleware('auth');
+Route::post('/citas/notificaciones/{id}/leida', [AgendaCitaController::class, 'marcarNotificacionLeida'])->name('api.citas.notificaciones.leida')->middleware('auth');
+Route::post('/citas/notificaciones/todas-leidas', [AgendaCitaController::class, 'marcarTodasLeidas'])->name('api.citas.notificaciones.todas-leidas')->middleware('auth');
 
 Route::prefix('citas')->middleware(['auth'])->group(function () {
     Route::get('/', [AgendaCitaController::class, 'index'])->name('api.citas.index');

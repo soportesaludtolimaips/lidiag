@@ -46,6 +46,7 @@
 </template>
 
 <script>
+import { getUserSafeError } from "@/helpers/alerts.js";
 export default {
     props: {
         estudioId: { type: [Number, String], default: null },
@@ -258,7 +259,6 @@ export default {
                 };
 
                 this.recognition.onerror = (event) => {
-                    console.error("Error en reconocimiento:", event.error);
                     if (event.error === "no-speech" || event.error === "network") {
                         this.recognition.stop();
                     }
@@ -303,7 +303,7 @@ export default {
                     this.mediaRecorder.start();
                     this.recording = true;
                 })
-                .catch((error) => console.error("Error al acceder al micrófono:", error));
+                .catch(() => {});
         },
         stopRecording() {
             return new Promise((resolve) => {
@@ -393,11 +393,10 @@ export default {
                     });
                 } catch (e) {}
             } catch (error) {
-                console.error("Error al enviar audio:", error);
                 try {
                     $.toast({
                         heading: "Upss!!!",
-                        text: error?.response?.data?.message || "Error al enviar audio.",
+                        text: getUserSafeError(error, "Error al enviar audio."),
                         position: "top-right",
                         loaderBg: "#ff6849",
                         icon: "error",

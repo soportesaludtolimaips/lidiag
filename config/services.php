@@ -49,4 +49,12 @@ return [
         'timeout' => env('TRANSCRIPTOR_TIMEOUT', 300),
     ],
 
+    'teleradiologia' => [
+        'hmac_secret' => env('TELERADIOLOGIA_HMAC_SECRET'),
+        'orden_url' => env('TELERADIOLOGIA_ORDEN_URL', 'https://ris.tlimagen.com/RISServices/integracion/salud_tolima/ordenes'),
+        'connect_timeout' => env('TELERADIOLOGIA_CONNECT_TIMEOUT', 30),
+        'timeout' => env('TELERADIOLOGIA_TIMEOUT', 60),
+        'retries' => env('TELERADIOLOGIA_RETRIES', 1),
+    ],
+
 ];

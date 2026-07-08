@@ -722,6 +722,7 @@ import {
     alertError,
     alertSuccess,
     confirmAction,
+    getUserSafeError,
     handleAxiosErrorToast,
 } from "@/helpers/alerts.js";
 
@@ -1009,17 +1010,17 @@ export default {
                 }
             } catch (error) {
                 const status = error?.response?.status;
-                const message = error?.response?.data?.message;
                 if (
                     status == 400 &&
                     error?.response?.data &&
                     typeof error.response.data === "object"
                 ) {
-                    this.errores = error.response.data;
+                    const data = error.response.data;
+                    this.errores = data.errors && typeof data.errors === "object" ? data.errors : data;
                 }
                 $.toast({
                     heading: "Upss!!!",
-                    text: message || "No fue posible guardar la transcripción.",
+                    text: getUserSafeError(error, "No fue posible guardar la transcripción."),
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: "error",

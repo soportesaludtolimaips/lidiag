@@ -472,9 +472,16 @@ export default {
     mounted() {
         this.cargarListas();
         this.listarRegistros();
+        this.pollingInterval = setInterval(() => {
+            this.listarRegistros();
+            axios.post('/api/citas/notificaciones/todas-leidas').catch(() => {});
+        }, 30000);
     },
     beforeUnmount() {
         this.destroyDataTable();
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+        }
     },
     data() {
         return {
@@ -511,6 +518,7 @@ export default {
                 rechazo_motivo_id: "",
                 rechazo_observacion: "",
             },
+            pollingInterval: null,
         };
     },
     methods: {
