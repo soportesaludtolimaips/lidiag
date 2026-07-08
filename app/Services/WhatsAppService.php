@@ -45,16 +45,17 @@ class WhatsAppService
         $telefono = $this->formatearTelefono($telefono);
 
         $components = [];
-        foreach ($params as $param) {
+        if (! empty($params)) {
+            $bodyParams = [];
+            foreach ($params as $param) {
+                $bodyParams[] = [
+                    'type' => 'text',
+                    'text' => $param['text'] ?? $param['value'] ?? $param,
+                ];
+            }
             $components[] = [
                 'type' => 'body',
-                'parameters' => [
-                    [
-                        'type' => 'text',
-                        'parameter_name' => $param['name'],
-                        'text' => $param['value'],
-                    ],
-                ],
+                'parameters' => $bodyParams,
             ];
         }
 
@@ -329,6 +330,7 @@ class WhatsAppService
 
             if (empty($mediaInfo['url'])) {
                 Log::error('WhatsApp media info missing URL', ['mediaId' => $mediaId, 'response' => $mediaInfo]);
+
                 return null;
             }
 
@@ -341,15 +343,16 @@ class WhatsAppService
                     'mediaId' => $mediaId,
                     'status' => $response->status(),
                 ]);
+
                 return null;
             }
 
             $mimeType = $mediaInfo['mime_type'] ?? 'application/octet-stream';
             $extension = $this->mimeToExtension($mimeType);
-            $filename = 'cita_' . bin2hex(random_bytes(12)) . '.' . $extension;
+            $filename = 'cita_'.bin2hex(random_bytes(12)).'.'.$extension;
 
             $disk = 'local';
-            $path = 'citas_soportes/' . $filename;
+            $path = 'citas_soportes/'.$filename;
 
             Storage::disk($disk)->put($path, $response->body());
 
@@ -358,6 +361,7 @@ class WhatsAppService
             Log::error('WhatsApp media download exception: '.$e->getMessage(), [
                 'mediaId' => $mediaId,
             ]);
+
             return null;
         }
     }

@@ -442,7 +442,6 @@
                                                     width="100%"
                                                     :allow-clear="true"
                                                     :label-fields="['name']"
-                                                    :dropdown-parent-selector="'#medicos-parent'"
                                                     @input="onMedicoSelect"
                                                 />
 
@@ -537,7 +536,6 @@
                                                 :options="productoOptions"
                                                 width="100%"
                                                 :allow-clear="true"
-                                                :dropdown-parent-selector="'#productos-parent'"
                                                 @input="onProductoSelect"
                                             />
                                         </div>
@@ -615,7 +613,6 @@
                                                 width="100%"
                                                 :allow-clear="true"
                                                 :label-fields="['nom_diagnos']"
-                                                :dropdown-parent-selector="'#diagnosticos-parent'"
                                                 @input="onDiagnosticoSelect"
                                             />
                                         </div>
@@ -1016,7 +1013,10 @@ export default {
                 this.btnCerralModalForm();
                 this.limpiar();
             } catch (error) {
-                this.errores = (error?.response?.data?.errors && typeof error.response.data.errors === "object") ? error.response.data.errors : {};
+                this.errores =
+                    error?.response?.data?.errors && typeof error.response.data.errors === "object"
+                        ? error.response.data.errors
+                        : {};
                 const status = error?.response?.status;
                 if (status == 400) {
                     $.toast({

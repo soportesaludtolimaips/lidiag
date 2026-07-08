@@ -21,29 +21,17 @@
 import { EMOJIS } from "@/helpers/emojis.js";
 
 export default {
-    props: {
-        abierto: {
-            type: Boolean,
-            default: false,
-        },
-    },
-    emits: ["update:abierto", "select"],
+    emits: ["select"],
     data() {
         return {
             emojis: EMOJIS,
-            internoAbierto: false,
+            abierto: false,
         };
-    },
-    computed: {
-        open() {
-            return this.abierto !== undefined ? this.abierto : this.internoAbierto;
-        },
     },
     methods: {
         toggle() {
-            const nuevo = !this.open;
-            this.sync(nuevo);
-            if (nuevo) {
+            this.abierto = !this.abierto;
+            if (this.abierto) {
                 this.$nextTick(() => {
                     document.addEventListener("click", this.clickFuera);
                 });
@@ -52,7 +40,7 @@ export default {
             }
         },
         cerrar() {
-            this.sync(false);
+            this.abierto = false;
             document.removeEventListener("click", this.clickFuera);
         },
         clickFuera(e) {
@@ -63,13 +51,6 @@ export default {
         },
         seleccionar(emoji) {
             this.$emit("select", emoji);
-        },
-        sync(valor) {
-            if (this.abierto !== undefined) {
-                this.$emit("update:abierto", valor);
-            } else {
-                this.internoAbierto = valor;
-            }
         },
     },
     beforeUnmount() {
@@ -102,15 +83,14 @@ export default {
     top: 100%;
     left: 0;
     z-index: 1050;
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(10, 32px);
     gap: 2px;
     padding: 8px;
     background: #fff;
     border: 1px solid #ced4da;
     border-radius: 4px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    max-width: 352px;
     max-height: 260px;
     overflow-y: auto;
 }
@@ -123,6 +103,7 @@ export default {
     border: none;
     cursor: pointer;
     border-radius: 4px;
+    text-align: center;
 }
 
 .emoji-picker-dropdown .emoji-btn:hover {

@@ -60,5 +60,7 @@ class DatabaseSeeder extends Seeder
         $this->call(PermisionServicioCitasSeeder::class);
         $this->call(PermisionWhatsAppSeeder::class);
         $this->call(PermisoAuditoriaSeeder::class);
+        $this->call(ConfigWhatsappSeeder::class);
+        $this->call(ConfigRecomendacionProductoSeeder::class);
     }
 }

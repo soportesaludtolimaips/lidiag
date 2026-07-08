@@ -17,8 +17,14 @@
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
-                <button type="button" class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="actualizar = false; mostrarRegistro()">
+                <button
+                    type="button"
+                    class="btn btn-info btnDesplegarRigthSidebar"
+                    @click="
+                        actualizar = false;
+                        mostrarRegistro();
+                    "
+                >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
@@ -35,11 +41,17 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de consentimiento informado</h4>
-                        <h6 class="card-subtitle">Administración de los consentimiento informado.</h6>
+                        <h6 class="card-subtitle">
+                            Administración de los consentimiento informado.
+                        </h6>
                         <div class="table-responsive m-t-40">
-                            <table id="example23" ref="dt"
-                                class="display nowrap table table-hover table-striped table-bordered" cellspacing="0"
-                                width="100%">
+                            <table
+                                id="example23"
+                                ref="dt"
+                                class="display nowrap table table-hover table-striped table-bordered"
+                                cellspacing="0"
+                                width="100%"
+                            >
                                 <thead>
                                     <tr>
                                         <th width="150px">Producto</th>
@@ -54,28 +66,44 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="item in registros" :key="item.id">
-                                        <td>{{ item.producto?.nom_produc || '—' }}</td>
+                                        <td>{{ item.producto?.nom_produc || "—" }}</td>
                                         <td>{{ item.sede.nom_sede }}</td>
                                         <td>{{ item.nombre }}</td>
                                         <td>
-                                            <a v-if="item.archivo" :href="archivoUrl(item)" target="_blank">Ver PDF</a>
+                                            <a
+                                                v-if="item.archivo"
+                                                :href="archivoUrl(item)"
+                                                target="_blank"
+                                                >Ver PDF</a
+                                            >
                                             <span v-else class="text-muted">—</span>
                                         </td>
                                         <td>{{ item.created_at }}</td>
                                         <td>{{ item.updated_at }}</td>
                                         <td>
-                                            <span class="label label-success" v-if="item.estado">Activo</span>
-                                            <span class="label label-danger" v-if="!item.estado">Inactivo</span>
+                                            <span class="label label-success" v-if="item.estado"
+                                                >Activo</span
+                                            >
+                                            <span class="label label-danger" v-if="!item.estado"
+                                                >Inactivo</span
+                                            >
                                         </td>
                                         <td class="text-nowrap">
-                                            <button type="button"
+                                            <button
+                                                type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="actualizar = true; mostrarRegistro(item)">
+                                                @click="
+                                                    actualizar = true;
+                                                    mostrarRegistro(item);
+                                                "
+                                            >
                                                 <i class="fa fa-pencil"></i>
                                             </button>
-                                            <button type="button"
+                                            <button
+                                                type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="elimnarRegistro(item.id, item.nombre)">
+                                                @click="elimnarRegistro(item.id, item.nombre)"
+                                            >
                                                 <i class="fa fa-trash"></i>
                                             </button>
                                         </td>
@@ -113,27 +141,43 @@
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label class="control-label">Producto</label>
-                                        <Select2 :value="productoSelecciondo" :options="productoOptions" width="100%"
-                                            :allow-clear="true" :dropdown-parent-selector="'#productos-parent'"
-                                            @input="onProductoSelect" />
+                                        <Select2
+                                            :value="productoSelecciondo"
+                                            :options="productoOptions"
+                                            width="100%"
+                                            :allow-clear="true"
+                                            @input="onProductoSelect"
+                                        />
                                         <span class="text-danger" v-if="errores.producto_id">{{
                                             errores.producto_id[0]
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label class="control-label">Nombre de consentimiento informado</label>
-                                        <input type="text" id="nombre" name="nombre" v-model="registro.nombre"
-                                            class="form-control" />
+                                        <label class="control-label"
+                                            >Nombre de consentimiento informado</label
+                                        >
+                                        <input
+                                            type="text"
+                                            id="nombre"
+                                            name="nombre"
+                                            v-model="registro.nombre"
+                                            class="form-control"
+                                        />
                                         <span class="text-danger" v-if="errores.nombre">
                                             {{ errores.nombre[0] }}
                                         </span>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <input type="file" class="form-control" id="exampleInputFile1"
-                                        aria-describedby="fileHelp" @change='obtenerArchivo' />
+                                    <input
+                                        type="file"
+                                        class="form-control"
+                                        id="exampleInputFile1"
+                                        aria-describedby="fileHelp"
+                                        @change="obtenerArchivo"
+                                    />
                                 </div>
                             </div>
 
@@ -141,8 +185,14 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <div class="checkbox checkbox-success">
-                                            <input type="checkbox" id="estado" name="estado" v-model="registro.estado"
-                                                :true-value="1" :false-value="0">
+                                            <input
+                                                type="checkbox"
+                                                id="estado"
+                                                name="estado"
+                                                v-model="registro.estado"
+                                                :true-value="1"
+                                                :false-value="0"
+                                            />
                                             <label for="estado"> Activo </label>
                                         </div>
                                     </div>
@@ -150,18 +200,31 @@
                             </div>
 
                             <div class="form-actions mt-3">
-                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
-                                    v-if="!actualizar">
+                                <button
+                                    type="button"
+                                    class="btn btn-success m-r-5"
+                                    @click="guardarRegistro()"
+                                    v-if="!actualizar"
+                                >
                                     <i class="fa fa-check"></i> Guardar
                                 </button>
 
-                                <button type="button" class="btn btn-warning m-r-5" v-if="actualizar"
-                                    @click="guardarRegistro()">
+                                <button
+                                    type="button"
+                                    class="btn btn-warning m-r-5"
+                                    v-if="actualizar"
+                                    @click="guardarRegistro()"
+                                >
                                     <i class="fa fa-pencil"></i> Actualizar
                                 </button>
 
-                                <button type="button" class="btn btn-inverse"
-                                    @click="btnCerralModalForm()">Cancel</button>
+                                <button
+                                    type="button"
+                                    class="btn btn-inverse"
+                                    @click="btnCerralModalForm()"
+                                >
+                                    Cancel
+                                </button>
                             </div>
                         </div>
                     </form>
@@ -176,7 +239,12 @@
 
 <script>
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { alertError, alertSuccess, confirmAction, handleAxiosErrorToast } from "@/helpers/alerts.js";
+import {
+    alertError,
+    alertSuccess,
+    confirmAction,
+    handleAxiosErrorToast,
+} from "@/helpers/alerts.js";
 
 export default {
     mounted() {
@@ -190,10 +258,15 @@ export default {
         return {
             id: 0,
             registros: [],
-            registro: { producto_id: null, sede_id: sessionStorage.getItem('ST-sede'), nombre: '', estado: true },
+            registro: {
+                producto_id: null,
+                sede_id: sessionStorage.getItem("ST-sede"),
+                nombre: "",
+                estado: true,
+            },
             productoSelecciondo: null,
             archivoFile: null,
-            tituloModal: 'Nuevo registro',
+            tituloModal: "Nuevo registro",
             actualizar: false,
             errores: {},
             productos: [],
@@ -205,7 +278,11 @@ export default {
     computed: {
         productoOptions() {
             // Opciones para el Select2 local de productos.
-            return (this.productos || []).map(p => ({ id: String(p.id), cod_cups: p.cod_cups, nom_produc: p.nom_produc }));
+            return (this.productos || []).map((p) => ({
+                id: String(p.id),
+                cod_cups: p.cod_cups,
+                nom_produc: p.nom_produc,
+            }));
         },
     },
     methods: {
@@ -218,8 +295,8 @@ export default {
                 this.registros = res?.data?.data || res?.data || [];
                 this.$nextTick(() => {
                     safeInitDataTable(this.$refs.dt || "#example23", {
-                        dom: 'Bfrtip',
-                        buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
+                        dom: "Bfrtip",
+                        buttons: ["copy", "csv", "excel", "pdf", "print"],
                     });
                 });
             } catch (error) {
@@ -233,35 +310,39 @@ export default {
             if (this.loadingGuardar) return;
             this.loadingGuardar = true;
             try {
-                const sedeId = sessionStorage.getItem('ST-sede');
+                const sedeId = sessionStorage.getItem("ST-sede");
                 const formData = new FormData();
-                formData.append('producto_id', String(this.registro.producto_id ?? ''));
-                formData.append('sede_id', String(this.registro.sede_id ?? sedeId ?? ''));
-                formData.append('nombre', String(this.registro.nombre ?? ''));
-                formData.append('estado', this.registro.estado ? '1' : '0');
-                if (this.archivoFile) formData.append('archivo', this.archivoFile);
+                formData.append("producto_id", String(this.registro.producto_id ?? ""));
+                formData.append("sede_id", String(this.registro.sede_id ?? sedeId ?? ""));
+                formData.append("nombre", String(this.registro.nombre ?? ""));
+                formData.append("estado", this.registro.estado ? "1" : "0");
+                if (this.archivoFile) formData.append("archivo", this.archivoFile);
 
                 let res;
                 if (!this.actualizar) {
-                    res = await axios.post('/api/config-consentimiento-informado', formData, {
-                        headers: { "Content-Type": "multipart/form-data" }
+                    res = await axios.post("/api/config-consentimiento-informado", formData, {
+                        headers: { "Content-Type": "multipart/form-data" },
                     });
                 } else {
-                    formData.append('_method', 'PUT');
-                    res = await axios.post('/api/config-consentimiento-informado/' + this.id, formData, {
-                        headers: { "Content-Type": "multipart/form-data" }
-                    });
+                    formData.append("_method", "PUT");
+                    res = await axios.post(
+                        "/api/config-consentimiento-informado/" + this.id,
+                        formData,
+                        {
+                            headers: { "Content-Type": "multipart/form-data" },
+                        }
+                    );
                 }
 
                 if (res.status === 200 || res.status === 201) {
                     $.toast({
-                        heading: 'Ok!!!',
-                        text: res.data.message || 'Guardado correctamente.',
-                        position: 'top-right',
-                        loaderBg: '#ff6849',
-                        icon: 'success',
+                        heading: "Ok!!!",
+                        text: res.data.message || "Guardado correctamente.",
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "success",
                         hideAfter: 3500,
-                        stack: 6
+                        stack: 6,
                     });
                     this.ListarDatos();
                     this.limpiarFormulario();
@@ -285,7 +366,7 @@ export default {
             try {
                 if (this.loadingEliminarId) return;
                 this.loadingEliminarId = id;
-                const response = await axios.delete('/api/config-consentimiento-informado/' + id);
+                const response = await axios.delete("/api/config-consentimiento-informado/" + id);
                 alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
                 this.ListarDatos();
             } catch (error) {
@@ -310,8 +391,8 @@ export default {
             let selectedId = null;
             if (Array.isArray(value) && value.length > 0) {
                 const v = value[0];
-                selectedId = String(typeof v === 'object' && v && v.id != null ? v.id : v);
-            } else if (value && typeof value === 'object' && value.id != null) {
+                selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
+            } else if (value && typeof value === "object" && value.id != null) {
                 selectedId = String(value.id);
             } else if (value != null) {
                 selectedId = String(value);
@@ -328,7 +409,7 @@ export default {
                 this.tituloModal = "Actualizar el registro: " + (data.nombre || "");
                 this.id = data.id;
                 this.registro.producto_id = data.producto_id;
-                this.productoSelecciondo = String(data.producto_id ?? '');
+                this.productoSelecciondo = String(data.producto_id ?? "");
                 this.registro.sede_id = data.sede_id;
                 this.registro.nombre = data.nombre;
                 this.registro.estado = !!data.estado;
@@ -348,7 +429,7 @@ export default {
             this.id = 0;
             this.errores = {};
             this.registro.producto_id = null;
-            this.registro.sede_id = sessionStorage.getItem('ST-sede');
+            this.registro.sede_id = sessionStorage.getItem("ST-sede");
             this.registro.nombre = "";
             this.registro.estado = true;
             this.productoSelecciondo = null;
@@ -357,7 +438,7 @@ export default {
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);
             $(".right-sidebar").toggleClass("shw-rside");
-        }
+        },
     },
 };
 </script>

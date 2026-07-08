@@ -511,7 +511,6 @@
                                                 :options="productoOptions"
                                                 width="100%"
                                                 :allow-clear="true"
-                                                :dropdown-parent-selector="'#productos-parent'"
                                                 @input="onProductoSelect"
                                             />
                                         </div>

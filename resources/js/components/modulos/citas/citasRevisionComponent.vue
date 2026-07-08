@@ -261,7 +261,6 @@
                                         :options="productoOptions"
                                         width="100%"
                                         :allow-clear="true"
-                                        :dropdown-parent-selector="'#producto-parent'"
                                         @input="onProductoSelect"
                                     />
                                 </div>
@@ -474,7 +473,7 @@ export default {
         this.listarRegistros();
         this.pollingInterval = setInterval(() => {
             this.listarRegistros();
-            axios.post('/api/citas/notificaciones/todas-leidas').catch(() => {});
+            axios.post("/api/citas/notificaciones/todas-leidas").catch(() => {});
         }, 30000);
     },
     beforeUnmount() {
@@ -636,11 +635,7 @@ export default {
             });
         },
         onProductoSelect(value) {
-            var id =
-                Array.isArray(value) && value.length > 0
-                    ? value[0] && value[0].id
-                    : value && value.id;
-            this.formAprobar.producto_id = id || "";
+            this.formAprobar.producto_id = value || "";
             this.cargarDetallesDisponibles();
         },
         async cargarDetallesDisponibles() {
