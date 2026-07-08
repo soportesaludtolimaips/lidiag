@@ -42,6 +42,7 @@ Route::post('/logout', [LoginController::class, 'logout'])
 // Password Reset
 use App\Http\Controllers\Agenda\AgendaCitaController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\PasswordChangeController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Configuracion\ConfigSedeController;
 
@@ -57,6 +58,14 @@ Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showRese
 Route::post('/password/reset', [ResetPasswordController::class, 'reset'])
     ->name('password.update')
     ->middleware(['guest', 'throttle:5,1']);
+
+// Password Change (authenticated — must change password before accessing dashboard)
+Route::get('/password/cambiar', [PasswordChangeController::class, 'showForm'])
+    ->name('password.cambiar')
+    ->middleware(['auth']);
+Route::post('/password/cambiar', [PasswordChangeController::class, 'update'])
+    ->name('password.cambiar.update')
+    ->middleware(['auth']);
 
 Route::view('dashboard', 'modulos.dashboard.dashboard')->name('dashboard')->middleware('auth');
 
