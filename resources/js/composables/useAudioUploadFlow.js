@@ -121,9 +121,7 @@ export function useAudioUploadFlow({ showToast } = {}) {
     }
 
     async function uploadAudioFile(file, blobUrl, estudioId, estudioProductoId) {
-        console.log("[uploadAudioFile] INICIO", { file: file?.name, estudioId, estudioProductoId });
         if (!estudioProductoId) {
-            console.warn("[uploadAudioFile] No hay estudio_producto_id");
             if (typeof showToast === "function") {
                 showToast({
                     heading: "Upsss!!!",
@@ -143,12 +141,10 @@ export function useAudioUploadFlow({ showToast } = {}) {
         formData.append("estudio_id", estudioId);
         formData.append("estudio_producto_id", estudioProductoId);
         try {
-            console.log("[uploadAudioFile] Enviando POST a /api/cargar-audio-transcribir");
             const res = await axios.post("/api/cargar-audio-transcribir", formData, {
                 headers: { "Content-Type": "multipart/form-data" },
                 timeout: 300000,
             });
-            console.log("[uploadAudioFile] Respuesta del servidor:", { status: res?.status, success: res?.data?.success, audio_id: res?.data?.audio_id, audio_file: res?.data?.audio_file, tieneTranscripcion: !!res?.data?.transcripcion });
             if (res.data && res.data.success) {
                 audiosCargadosPendientes.value.push({
                     id: res.data.audio_id,
@@ -160,7 +156,6 @@ export function useAudioUploadFlow({ showToast } = {}) {
                     duracion: res.data.duracion,
                     tamano: file.size,
                 });
-                console.log("[uploadAudioFile] Audio agregado a audiosCargadosPendientes, total:", audiosCargadosPendientes.value.length);
                 if (typeof showToast === "function") {
                     showToast({
                         heading: "Ok!!!",
@@ -174,11 +169,9 @@ export function useAudioUploadFlow({ showToast } = {}) {
                 }
                 return true;
             } else {
-                console.warn("[uploadAudioFile] El servidor respondió pero success=false", res?.data);
                 throw new Error(res.data.message || "Error al cargar el audio");
             }
         } catch (error) {
-            console.error("[uploadAudioFile] Error capturado:", { message: error.message, response: error?.response?.data, status: error?.response?.status });
             if (blobUrl) URL.revokeObjectURL(blobUrl);
             const msg = error.response && error.response.data && error.response.data.message
                 ? error.response.data.message
@@ -198,15 +191,12 @@ export function useAudioUploadFlow({ showToast } = {}) {
         } finally {
             audiosSubiendo.value--;
             if (audiosSubiendo.value < 0) audiosSubiendo.value = 0;
-            console.log("[uploadAudioFile] FIN, audiosSubiendo restante:", audiosSubiendo.value);
         }
     }
 
     async function handleAudioFileSelect(event, estudioId, estudioProductoId) {
         const files = event.target.files;
-        console.log("[handleAudioFileSelect] Archivos seleccionados:", files?.length, { estudioId, estudioProductoId });
         if (!files || files.length === 0) {
-            console.warn("[handleAudioFileSelect] No hay archivos");
             return;
         }
         const maxSize = 100 * 1024 * 1024;
@@ -259,11 +249,9 @@ export function useAudioUploadFlow({ showToast } = {}) {
                 try {
                     await uploadAudioFile(file, blobUrl, estudioId, estudioProductoId);
                 } catch (e) {
-                    console.error("[handleAudioFileSelect] Error en worker para", file.name, e);
                 }
             }
         };
-        console.log("[handleAudioFileSelect] Iniciando carga de", validFiles.length, "archivos con concurrencia 3");
         await Promise.all(Array.from({ length: 3 }, () => worker()));
         event.target.value = "";
     }

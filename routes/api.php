@@ -27,7 +27,7 @@ Route::get('/test', function () {
     return response()->json(['message' => 'API funcionando correctamente']);
 });
 
-Route::get('/debug-session', function (Request $request) {
+Route::middleware('auth')->get('/debug-session', function (Request $request) {
     $sessionId = session()->getId();
     $sessionRecord = DB::table('sessions')->where('id', $sessionId)->first();
     $now = time();
@@ -98,8 +98,8 @@ Route::middleware('auth:sanctum')->get('/debug-session-auth', function (Request 
     ];
 });
 
-// Debug: ver si llega aquí
-Route::get('/debug', function () {
+// Debug: ver si llega aquí (requiere autenticación)
+Route::middleware('auth')->get('/debug', function () {
     return response()->json([
         'message' => 'Debug works',
         'routes' => \Route::getRoutes()->getRoutesByName(),

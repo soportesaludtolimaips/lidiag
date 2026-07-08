@@ -58,40 +58,65 @@ class TeleRadiologiaController extends Controller
      * @param  Request  $request  Datos de la orden.
      * @return JsonResponse Respuesta de la API externa o error.
      */
+    /**
+     * Envía una orden a la API externa de Teleradiología.
+     *
+     * @param  Request  $request  Datos de la orden.
+     * @return JsonResponse Respuesta de la API externa o error.
+     */
     public function enviarOrdenTeleRadiologia(Request $request)
     {
         try {
+
             $validator = Validator::make($request->all(), [
                 'orden' => 'required|array',
             ]);
+
             if ($validator->fails()) {
                 return response()->json($validator->errors(), 400);
             }
 
             $orden = $request->input('orden');
 
-            // Validar que la orden exista
-            if (! $orden) {
-                return response()->json(['message' => 'No se recibieron datos de la orden.'], 400);
+            if (!$orden) {
+                return response()->json([
+                    'message' => 'No se recibieron datos de la orden.'
+                ], 400);
             }
 
-            $url = env('TELERADIOLOGIA_ORDEN_URL', 'https://ris.tlimagen.com/RISServices/integracion/salud_tolima/ordenes');
+            $url = config('services.teleradiologia.orden_url');
 
-            // Realizar la petición a la API externa
-            $response = Http::timeout((int) env('TELERADIOLOGIA_TIMEOUT', 30))
-                ->retry((int) env('TELERADIOLOGIA_RETRIES', 1), 200)
+            $response = Http::withOptions([
+                'curl' => [
+                    CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+                ],
+            ])
+                ->connectTimeout((int) config('services.teleradiologia.connect_timeout'))
+                ->timeout((int) config('services.teleradiologia.timeout'))
+                ->retry((int) config('services.teleradiologia.retries'), 200)
+                ->acceptJson()
                 ->post($url, $orden);
 
-            // Retornar la respuesta de la API externa al frontend
             if ($response->successful()) {
+
                 $json = $response->json();
 
-                // Normalizar "confirmation" para el frontend
                 $confirmation = null;
+
                 if (is_array($json)) {
-                    $confirmation = $json['confirmation'] ?? $json['confirmation_id'] ?? $json['id'] ?? null;
-                    if ($confirmation === null && isset($json['data']) && is_array($json['data'])) {
-                        $confirmation = $json['data']['confirmation'] ?? $json['data']['id'] ?? null;
+                    $confirmation = $json['confirmation']
+                        ?? $json['confirmation_id']
+                        ?? $json['id']
+                        ?? null;
+
+                    if (
+                        $confirmation === null &&
+                        isset($json['data']) &&
+                        is_array($json['data'])
+                    ) {
+                        $confirmation = $json['data']['confirmation']
+                            ?? $json['data']['id']
+                            ?? null;
                     }
                 }
 
@@ -99,14 +124,15 @@ class TeleRadiologiaController extends Controller
                     'message' => $json['message'] ?? 'Orden enviada correctamente.',
                     'confirmation' => $confirmation,
                     'data' => $json,
-                ], $response->status() === 201 ? 201 : 200);
-            } else {
-                return response()->json([
-                    'message' => 'Error en la API externa',
-                    'details' => $response->body(),
                 ], $response->status());
             }
-        } catch (\Exception $e) {
+
+            return response()->json([
+                'message' => 'Error en la API externa',
+                'details' => $response->json() ?? $response->body(),
+            ], $response->status());
+        } catch (\Throwable $e) {
+
             return response()->json([
                 'message' => 'Error interno en el servidor proxy',
                 'error' => $e->getMessage(),
@@ -126,10 +152,7 @@ class TeleRadiologiaController extends Controller
      */
     public function recibirLectura(Request $request)
     {
-        // 1. Logs iniciales para depuración
-        Log::info('RAW CONTENT: ' . $request->getContent());
-
-        // 2. Procesamiento de Encoding y JSON (ISO-8859-1 a UTF-8)
+        // 1. Procesamiento de Encoding y JSON (ISO-8859-1 a UTF-8)
         $rawContent = $request->getContent();
         $utf8Content = mb_convert_encoding($rawContent, 'UTF-8', 'ISO-8859-1');
         $data = json_decode($utf8Content, true);
@@ -140,7 +163,6 @@ class TeleRadiologiaController extends Controller
                 'error' => json_last_error_msg(),
             ], 400);
         }
-
         // 3. Validación de datos mínimos requeridos
         $validator = Validator::make($data, [
             'study_iuid' => 'required|string',
@@ -157,8 +179,8 @@ class TeleRadiologiaController extends Controller
         try {
             $d = $data;
 
-            // 4. Identificar y procesar al Médico (independientemente de si es Adendum o Lectura)
-            $medicoData = (isset($d['tipo']) && $d['tipo'] === 'adendum')
+            // 4. Identificar y procesar al Médico (prioriza médico del adendum si existe)
+            $medicoData = (isset($d['adendum']['medico']))
                 ? $d['adendum']['medico']
                 : $d['medico'];
 
@@ -180,8 +202,8 @@ class TeleRadiologiaController extends Controller
                 return response()->json(['message' => 'Producto CUPS no encontrado en este estudio.'], 404);
             }
 
-            // --- FLUJO A: ES UN ADENDUM ---
-            if (isset($d['tipo']) && $d['tipo'] === 'adendum') {
+            // --- FLUJO A: TIENE ADENDUM (crea registro de adendum y actualiza lectura principal) ---
+            if (isset($d['adendum'])) {
                 $adendum = EstudioProductoAdendum::create([
                     'medico_id' => $medico->id,
                     'estudio_producto_id' => $estudioProducto->id,
@@ -190,8 +212,14 @@ class TeleRadiologiaController extends Controller
                     'activo' => 1,
                 ]);
 
+                $estudioProducto->update([
+                    'lectura' => $d['adendum']['lectura'] ?? null,
+                    'fechor_lectura' => $d['adendum']['fecha'] ?? $d['fechor_lectura'] ?? null,
+                ]);
+
                 return response()->json([
-                    'message' => 'Addendum procesado correctamente.',
+                    'message' => 'Lectura y adendum procesados correctamente.',
+                    'estudio_id' => $estudio->id,
                     'adendum_id' => $adendum->id,
                 ], 200);
             }
@@ -264,7 +292,7 @@ class TeleRadiologiaController extends Controller
         if ($firmaRaw && strlen($firmaRaw) > 100) {
             try {
                 // Extraer extensión y limpiar base64
-                $extension = 'png';
+                $extension = 'png'; // Valor por defecto
                 if (preg_match('/^data:image\/(\w+);base64,/', $firmaRaw, $type)) {
                     $extension = strtolower($type[1]);
                     $firmaRaw = substr($firmaRaw, strpos($firmaRaw, ',') + 1);
@@ -273,21 +301,10 @@ class TeleRadiologiaController extends Controller
                 $imgData = base64_decode($firmaRaw);
 
                 if ($imgData) {
-                    // No re-guardar si la firma es idéntica a la actual
-                    $nuevoHash = md5($imgData);
-                    $archivoActual = $medico->firma ? basename($medico->firma) : null;
-                    $rutaActual = $archivoActual ? Storage::disk('firmas_medicos')->path($archivoActual) : null;
-                    $hashActual = $rutaActual && file_exists($rutaActual) ? md5_file($rutaActual) : null;
-
-                    if ($nuevoHash === $hashActual) {
-                        $medico->save();
-
-                        return $medico;
-                    }
-
-                    // Eliminar archivo físico anterior
-                    if ($archivoActual && Storage::disk('firmas_medicos')->exists($archivoActual)) {
-                        Storage::disk('firmas_medicos')->delete($archivoActual);
+                    // --- LÓGICA DE SUSTITUCIÓN ---
+                    // Si el médico ya tenía una ruta de firma guardada, eliminamos el archivo físico
+                    if ($medico->firma && Storage::disk('firmas_medicos')->exists($medico->firma)) {
+                        Storage::disk('firmas_medicos')->delete($medico->firma);
                     }
 
                     // Generar nombre aleatorio de 50 caracteres

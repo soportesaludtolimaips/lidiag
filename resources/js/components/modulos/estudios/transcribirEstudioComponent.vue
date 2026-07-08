@@ -703,6 +703,7 @@ import {
     alertError,
     alertSuccess,
     confirmAction,
+    getUserSafeError,
     handleAxiosErrorToast,
 } from "@/helpers/alerts.js";
 
@@ -952,19 +953,19 @@ export default {
                 }
             } catch (error) {
                 const status = error?.response?.status;
-                const message = error?.response?.data?.message;
                 // Errores de validación (400) vienen como objeto con campos
                 if (
                     status == 400 &&
                     error?.response?.data &&
                     typeof error.response.data === "object"
                 ) {
-                    this.errores = error.response.data;
+                    const data = error.response.data;
+                    this.errores = data.errors && typeof data.errors === "object" ? data.errors : data;
                 }
                 if (status == 402) {
                     $.toast({
                         heading: "Upss!!!",
-                        text: message || "La plantilla no está configurada para esta sede.",
+                        text: getUserSafeError(error, "La plantilla no está configurada para esta sede."),
                         position: "top-right",
                         loaderBg: "#ff6849",
                         icon: "error",
@@ -974,7 +975,7 @@ export default {
                 } else {
                     $.toast({
                         heading: "Upss!!!",
-                        text: message || "No fue posible guardar la transcripción.",
+                        text: getUserSafeError(error, "No fue posible guardar la transcripción."),
                         position: "top-right",
                         loaderBg: "#ff6849",
                         icon: "error",

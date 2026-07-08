@@ -13,7 +13,7 @@ class VerifyTeleRadiologiaHmac
 
     public function handle(Request $request, Closure $next): Response
     {
-        $secret = env('TELERADIOLOGIA_HMAC_SECRET');
+        $secret = config('services.teleradiologia.hmac_secret');
         if (empty($secret)) {
             return response()->json(['message' => 'HMAC no configurado.'], 503);
         }
@@ -31,9 +31,10 @@ class VerifyTeleRadiologiaHmac
         }
 
         $method = $request->method();
-        $path = '/'.$request->path();
+        $path = '/' . $request->path();
         $body = $request->getContent();
-        $bodySha = hash('sha256', $body ?: '');
+        $utf8Body = mb_convert_encoding($body ?: '', 'UTF-8', 'ISO-8859-1');
+        $bodySha = hash('sha256', $utf8Body);
         $stringToSign = implode("\n", [$method, $path, (string) $ts, $bodySha]);
         $expected = base64_encode(hash_hmac('sha256', $stringToSign, $secret, true));
 

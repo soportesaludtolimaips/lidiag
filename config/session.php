@@ -33,7 +33,7 @@ return [
 
     // 1 minuto es demasiado agresivo para uso real (genera cierres inesperados).
     // Controla el valor real desde .env por ambiente.
-    'lifetime' => env('SESSION_LIFETIME', 120),
+    'lifetime' => env('SESSION_LIFETIME', 480),
 
     'expire_on_close' => false,
 
@@ -48,7 +48,7 @@ return [
     |
     */
 
-    'encrypt' => false,
+    'encrypt' => true,
 
     /*
     |--------------------------------------------------------------------------
@@ -199,6 +199,6 @@ return [
     |
     */
 
-    'same_site' => 'strict',
+    'same_site' => 'lax',
 
 ];

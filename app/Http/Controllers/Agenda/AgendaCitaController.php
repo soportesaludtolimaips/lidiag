@@ -16,6 +16,7 @@ use App\Models\Interface\Sahi\Paciente as SahiPaciente;
 use App\Services\WhatsAppFlowService;
 use App\Services\WhatsAppService;
 use Carbon\Carbon;
+use App\Notifications\Citas\CitaSolicitadaNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -589,6 +590,49 @@ class AgendaCitaController extends Controller
             'mensaje' => $mensaje,
             'resultado' => $resultado,
         ]);
+    }
+
+    public function notificacionesNoLeidas(): \Illuminate\Http\JsonResponse
+    {
+        $user = Auth::user();
+        $count = $user->unreadNotifications()
+            ->where('type', 'App\Notifications\Citas\CitaSolicitadaNotification')
+            ->count();
+
+        $notifications = $user->unreadNotifications()
+            ->where('type', 'App\Notifications\Citas\CitaSolicitadaNotification')
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(fn ($n) => [
+                'id' => $n->id,
+                'mensaje' => $n->data['mensaje'] ?? '',
+                'url' => $n->data['url'] ?? '/citas/revision',
+                'created_at' => $n->created_at->diffForHumans(),
+            ]);
+
+        return response()->json([
+            'count' => $count,
+            'notifications' => $notifications,
+        ]);
+    }
+
+    public function marcarNotificacionLeida(string $id): \Illuminate\Http\JsonResponse
+    {
+        $user = Auth::user();
+        $notification = $user->notifications()->where('id', $id)->first();
+        if ($notification) {
+            $notification->markAsRead();
+        }
+        return response()->json(['success' => true]);
+    }
+
+    public function marcarTodasLeidas(): \Illuminate\Http\JsonResponse
+    {
+        Auth::user()->unreadNotifications()
+            ->where('type', 'App\Notifications\Citas\CitaSolicitadaNotification')
+            ->update(['read_at' => now()]);
+        return response()->json(['success' => true]);
     }
 
     public function verConversacion(AgendaCita $cita)

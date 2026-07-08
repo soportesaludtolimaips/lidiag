@@ -188,6 +188,7 @@
                                     <li>
                                         <a href="{{ route('citas.revision') }}">
                                             <i class="fa fa-inbox text-info"></i> Solicitudes Pendientes
+                                            <citas-notification-badge-component></citas-notification-badge-component>
                                         </a>
                                     </li>
                                     <li>

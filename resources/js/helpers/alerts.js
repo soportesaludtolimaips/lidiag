@@ -83,6 +83,32 @@ export function toastMessage({
     });
 }
 
+const PATRONES_PII = [
+    /^\s*\{/,
+    /(\/[\w\-]+){2,}/,
+    /[Tt]race/,
+    /#\d+\s+[\w\\]+/,
+    /SQLSTATE|syntax error|unexpected|stack trace/i,
+];
+
+function sanitizeServerMessage(message) {
+    if (typeof message !== "string" || message.trim().length === 0) {
+        return null;
+    }
+    if (message.length > 200) {
+        return null;
+    }
+    if (PATRONES_PII.some((re) => re.test(message))) {
+        return null;
+    }
+    return message.trim();
+}
+
+export function getUserSafeError(error, fallback = "Ocurrió un error.") {
+    const message = error?.response?.data?.message || error?.message || "";
+    return sanitizeServerMessage(message) || fallback;
+}
+
 /**
  * Manejo estándar de errores Axios (401/403 + fallback).
  */
@@ -107,14 +133,9 @@ export function handleAxiosErrorToast(error, fallbackMessage = "Ocurrió un erro
         return;
     }
 
-    const msg =
-        error?.response?.data?.message ||
-        (typeof error?.response?.data === "string" ? error.response.data : null) ||
-        fallbackMessage;
-
     toastMessage({
         heading: "Upss!!!",
-        text: msg,
+        text: getUserSafeError(error, fallbackMessage),
         icon: "error",
     });
 }

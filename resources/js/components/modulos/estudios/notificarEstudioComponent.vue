@@ -338,6 +338,7 @@
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import DatosPacienteDisplay from "@/components/comunes/datosPacienteDisplayComponent.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import { getUserSafeError } from "@/helpers/alerts.js";
 
 export default {
     props: ["usuarioactual", "permisos"],
@@ -451,7 +452,7 @@ export default {
                 if (status == 500) {
                     $.toast({
                         heading: "Upss!!!",
-                        text: error?.response?.data?.message || "Error al listar estudios.",
+                        text: getUserSafeError(error, "Error al listar estudios."),
                         position: "top-right",
                         loaderBg: "#ff6849",
                         icon: "error",
@@ -460,7 +461,7 @@ export default {
                     });
                 }
 
-                this.erroresBusqueda = error?.response?.data?.errors || {};
+                this.erroresBusqueda = (error?.response?.data?.errors && typeof error.response.data.errors === "object") ? error.response.data.errors : {};
             } finally {
                 this.loadingBuscar = false;
             }
@@ -487,7 +488,7 @@ export default {
                     "noopener,noreferrer"
                 );
             } catch (error) {
-                this.errores = error?.response?.data || {};
+                this.errores = (error?.response?.data?.errors && typeof error.response.data.errors === "object") ? error.response.data.errors : {};
             } finally {
                 this.loadingImprimirId = null;
             }
@@ -529,7 +530,7 @@ export default {
                 if (status == 402) {
                     $.toast({
                         heading: "Error",
-                        text: e.response.data.message,
+                        text: getUserSafeError(e, "Saldo insuficiente."),
                         position: "top-right",
                         loaderBg: "#ff6849",
                         icon: "error",
@@ -539,7 +540,7 @@ export default {
                 } else {
                     $.toast({
                         heading: "Upss!!!",
-                        text: e?.response?.data?.message || "No fue posible notificar.",
+                        text: getUserSafeError(e, "No fue posible notificar."),
                         position: "top-right",
                         loaderBg: "#ff6849",
                         icon: "error",
@@ -592,7 +593,7 @@ export default {
                 if (e.response && e.response.status == 402) {
                     $.toast({
                         heading: "Error",
-                        text: e.response.data.message,
+                        text: getUserSafeError(e, "Saldo insuficiente."),
                         position: "top-right",
                         loaderBg: "#ff6849",
                         icon: "error",

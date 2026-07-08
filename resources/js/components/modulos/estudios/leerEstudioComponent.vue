@@ -1554,7 +1554,7 @@ export default {
                     this.limpiar();
                 }
             } catch (error) {
-                this.errores = error?.response?.data?.errors || {};
+                this.errores = (error?.response?.data?.errors && typeof error.response.data.errors === "object") ? error.response.data.errors : {};
                 handleAxiosErrorToast(error, "No fue posible guardar la lectura.");
             } finally {
                 this.loadingGuardar = false;
@@ -1638,7 +1638,7 @@ export default {
                     "noopener,noreferrer"
                 );
             } catch (error) {
-                this.errores = error?.response?.data || {};
+                this.errores = (error?.response?.data?.errors && typeof error.response.data.errors === "object") ? error.response.data.errors : {};
             } finally {
                 this.loadingImprimirId = null;
             }

@@ -119,6 +119,8 @@ import gestionCitasComponent from "./components/modulos/citas/gestionCitasCompon
 app.component("GestionCitasComponent", gestionCitasComponent);
 import citasRevisionComponent from "./components/modulos/citas/citasRevisionComponent.vue";
 app.component("CitasRevisionComponent", citasRevisionComponent);
+import citasNotificationBadgeComponent from "./components/modulos/citas/citasNotificationBadgeComponent.vue";
+app.component("CitasNotificationBadgeComponent", citasNotificationBadgeComponent);
 import recomendacionProductoComponent from "./components/modulos/citas/recomendacionProductoComponent.vue";
 app.component("RecomendacionProductoComponent", recomendacionProductoComponent);
 

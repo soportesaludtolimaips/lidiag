@@ -1016,7 +1016,7 @@ export default {
                 this.btnCerralModalForm();
                 this.limpiar();
             } catch (error) {
-                this.errores = error?.response?.data || {};
+                this.errores = (error?.response?.data?.errors && typeof error.response.data.errors === "object") ? error.response.data.errors : {};
                 const status = error?.response?.status;
                 if (status == 400) {
                     $.toast({

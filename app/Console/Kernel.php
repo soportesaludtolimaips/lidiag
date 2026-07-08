@@ -26,7 +26,7 @@ class Kernel extends ConsoleKernel
             ->everyTenMinutes()
             ->withoutOverlapping();
 
-        $schedule->command('sessions:prune --hours=24')
+        $schedule->command('sessions:prune --hours=24 --user-hours=168')
             ->hourly()
             ->withoutOverlapping();
     }
