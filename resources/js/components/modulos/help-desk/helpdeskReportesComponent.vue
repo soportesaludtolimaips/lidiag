@@ -44,24 +44,30 @@
                         <h4 class="card-title">Reportes Helpdesk</h4>
                         <div class="row">
                             <div class="col-md-2">
-                                <label>Desde</label>
+                                <label for="reporteFechaIni">Desde</label>
                                 <input
+                                    id="reporteFechaIni"
                                     type="date"
                                     class="form-control"
                                     v-model="filters.fechaIni"
                                 />
                             </div>
                             <div class="col-md-2">
-                                <label>Hasta</label>
+                                <label for="reporteFechaFin">Hasta</label>
                                 <input
+                                    id="reporteFechaFin"
                                     type="date"
                                     class="form-control"
                                     v-model="filters.fechaFin"
                                 />
                             </div>
                             <div class="col-md-3">
-                                <label>Sede</label>
-                                <select class="form-control custom-select" v-model="filters.sedeId">
+                                <label for="reporteSede">Sede</label>
+                                <select
+                                    id="reporteSede"
+                                    class="form-control custom-select"
+                                    v-model="filters.sedeId"
+                                >
                                     <option value="">Todas</option>
                                     <option v-for="s in sedes" :key="s.id" :value="s.id">
                                         {{ s.nom_sede }}
@@ -69,8 +75,9 @@
                                 </select>
                             </div>
                             <div class="col-md-2">
-                                <label>Estado</label>
+                                <label for="reporteEstado">Estado</label>
                                 <select
+                                    id="reporteEstado"
                                     class="form-control custom-select"
                                     v-model="filters.estadoId"
                                 >
@@ -81,8 +88,9 @@
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label>Categoría</label>
+                                <label for="reporteCategoria">Categoría</label>
                                 <select
+                                    id="reporteCategoria"
                                     class="form-control custom-select"
                                     v-model="filters.categoriaId"
                                 >
@@ -96,8 +104,9 @@
 
                         <div class="row m-t-10">
                             <div class="col-md-3">
-                                <label>Prioridad</label>
+                                <label for="reportePrioridad">Prioridad</label>
                                 <select
+                                    id="reportePrioridad"
                                     class="form-control custom-select"
                                     v-model="filters.prioridadId"
                                 >
@@ -108,8 +117,9 @@
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label>Solicitante (ID)</label>
+                                <label for="reporteSolicitante">Solicitante (ID)</label>
                                 <input
+                                    id="reporteSolicitante"
                                     type="number"
                                     class="form-control"
                                     v-model="filters.solicitanteId"
@@ -117,8 +127,9 @@
                                 />
                             </div>
                             <div class="col-md-3">
-                                <label>Técnico (ID)</label>
+                                <label for="reporteTecnico">Técnico (ID)</label>
                                 <input
+                                    id="reporteTecnico"
                                     type="number"
                                     class="form-control"
                                     v-model="filters.tecnicoId"
@@ -187,10 +198,13 @@
                         <h4 class="card-title">Totales por estado</h4>
                         <div class="table-responsive">
                             <table class="table table-sm table-striped">
+                                <caption class="sr-only">
+                                    Resumen de tickets agrupados por estado
+                                </caption>
                                 <thead>
                                     <tr>
-                                        <th>Estado</th>
-                                        <th>Total</th>
+                                        <th scope="col">Estado</th>
+                                        <th scope="col">Total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -213,10 +227,13 @@
                         <h4 class="card-title">Tickets por mes</h4>
                         <div class="table-responsive">
                             <table class="table table-sm table-striped">
+                                <caption class="sr-only">
+                                    Tickets creados por mes
+                                </caption>
                                 <thead>
                                     <tr>
-                                        <th>Mes</th>
-                                        <th>Total</th>
+                                        <th scope="col">Mes</th>
+                                        <th scope="col">Total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -239,10 +256,13 @@
                         <h4 class="card-title">Tickets por categoría</h4>
                         <div class="table-responsive">
                             <table class="table table-sm table-striped">
+                                <caption class="sr-only">
+                                    Tickets por categoría
+                                </caption>
                                 <thead>
                                     <tr>
-                                        <th>Categoría</th>
-                                        <th>Total</th>
+                                        <th scope="col">Categoría</th>
+                                        <th scope="col">Total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -265,10 +285,13 @@
                         <h4 class="card-title">Top técnicos</h4>
                         <div class="table-responsive">
                             <table class="table table-sm table-striped">
+                                <caption class="sr-only">
+                                    Tickets resueltos por técnico
+                                </caption>
                                 <thead>
                                     <tr>
-                                        <th>Técnico</th>
-                                        <th>Total</th>
+                                        <th scope="col">Técnico</th>
+                                        <th scope="col">Total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -292,7 +315,14 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Detalle (últimos {{ limit }} registros)</h4>
-                        <div class="table-responsive">
+                        <div v-if="loading" class="text-center p-5">
+                            <i class="fa fa-spinner fa-spin fa-3x"></i>
+                            <p class="m-t-10">Cargando reporte...</p>
+                        </div>
+                        <div v-else-if="!detallado.length" class="text-center p-5 text-muted">
+                            No se encontraron registros para los filtros seleccionados.
+                        </div>
+                        <div v-else class="table-responsive">
                             <table
                                 id="helpdeskReportesDetallado"
                                 ref="dt"
@@ -300,20 +330,23 @@
                                 cellspacing="0"
                                 width="100%"
                             >
+                                <caption class="sr-only">
+                                    Listado detallado de tickets
+                                </caption>
                                 <thead>
                                     <tr>
-                                        <th>Folio</th>
-                                        <th>Título</th>
-                                        <th>Estado</th>
-                                        <th>Prioridad</th>
-                                        <th>Categoría</th>
-                                        <th>Pendiente</th>
-                                        <th>Sede</th>
-                                        <th>Solicitante</th>
-                                        <th>Técnico</th>
-                                        <th>Creado</th>
-                                        <th>Resuelto</th>
-                                        <th>Horas</th>
+                                        <th scope="col">Folio</th>
+                                        <th scope="col">Título</th>
+                                        <th scope="col">Estado</th>
+                                        <th scope="col">Prioridad</th>
+                                        <th scope="col">Categoría</th>
+                                        <th scope="col">Pendiente</th>
+                                        <th scope="col">Sede</th>
+                                        <th scope="col">Solicitante</th>
+                                        <th scope="col">Técnico</th>
+                                        <th scope="col">Creado</th>
+                                        <th scope="col">Resuelto</th>
+                                        <th scope="col">Horas</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -347,10 +380,11 @@
 
 <script>
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { handleAxiosErrorToast } from "@/helpers/alerts.js";
+import { toastMessage, handleAxiosErrorToast } from "@/helpers/alerts.js";
+import { formatDateTime } from "@/helpers/dateUtils.js";
+import { helpdesk } from "@/helpers/api.js";
 
 export default {
-    props: ["usuarioactual"],
     data() {
         const today = new Date();
         const yyyy = today.getFullYear();
@@ -388,7 +422,9 @@ export default {
         try {
             const sedeActiva = sessionStorage.getItem("ST-sede");
             if (sedeActiva) this.filters.sedeId = sedeActiva;
-        } catch (_) {}
+        } catch (e) {
+            console.warn("No se pudo leer sede activa de sessionStorage", e);
+        }
         await this.cargarCatalogos();
         await this.buscar();
     },
@@ -397,12 +433,7 @@ export default {
     },
     methods: {
         formatDateTime(dt) {
-            if (!dt) return "";
-            try {
-                return window.dayjs(dt).tz("America/Bogota").format("YYYY-MM-DD HH:mm");
-            } catch (_) {
-                return String(dt);
-            }
+            return formatDateTime(dt);
         },
         formatHoras(segundos) {
             if (!segundos) return "";
@@ -413,10 +444,10 @@ export default {
         async cargarCatalogos() {
             try {
                 const [cats, prios, ests, sedes] = await Promise.all([
-                    axios.get("/api/helpdesk-categorias"),
-                    axios.get("/api/helpdesk-prioridades"),
-                    axios.get("/api/helpdesk-estados"),
-                    axios.get("/api/config-sedes/listar/sedes/activas"),
+                    helpdesk.categorias(),
+                    helpdesk.prioridades(),
+                    helpdesk.estados(),
+                    helpdesk.sedesActivas(),
                 ]);
                 this.categorias = (cats.data || []).filter((x) => x.activo);
                 this.prioridades = (prios.data || []).filter((x) => x.activo);
@@ -445,7 +476,9 @@ export default {
             try {
                 const sedeActiva = sessionStorage.getItem("ST-sede");
                 if (sedeActiva) this.filters.sedeId = sedeActiva;
-            } catch (_) {}
+            } catch (e) {
+                console.warn("No se pudo leer sede activa de sessionStorage", e);
+            }
             this.buscar();
         },
         buildParams(extra = {}) {
@@ -464,7 +497,13 @@ export default {
         initDT() {
             safeInitDataTable(this.$refs.dt || "#helpdeskReportesDetallado", {
                 dom: "Bfrtip",
-                buttons: ["copy", "csv", "excel", "pdf", "print"],
+                buttons: [
+                    { extend: "copy", titleAttr: "Copiar al portapapeles" },
+                    { extend: "csv", titleAttr: "Exportar a CSV" },
+                    { extend: "excel", titleAttr: "Exportar a Excel" },
+                    { extend: "pdf", titleAttr: "Exportar a PDF" },
+                    { extend: "print", titleAttr: "Imprimir" },
+                ],
                 retrieve: true,
                 order: [],
             });
@@ -472,17 +511,32 @@ export default {
         async buscar() {
             if (!this.canExport) return;
             if (this.loading) return;
+            if (
+                this.filters.fechaIni &&
+                this.filters.fechaFin &&
+                this.filters.fechaFin < this.filters.fechaIni
+            ) {
+                toastMessage({
+                    heading: "Upss!!!",
+                    text: "La fecha 'Hasta' no puede ser anterior a 'Desde'.",
+                    icon: "warning",
+                });
+                this.$nextTick(() => document.getElementById("reporteFechaFin")?.focus());
+                return;
+            }
             this.loading = true;
             try {
-                safeDestroyDataTable(this.$refs.dt || "#helpdeskReportesDetallado");
                 const params = this.buildParams({ limit: this.limit });
                 const [ind, det] = await Promise.all([
-                    axios.get("/api/helpdesk-reportes/indicadores", { params }),
-                    axios.get("/api/helpdesk-reportes/detallado", { params }),
+                    helpdesk.indicadores(params),
+                    helpdesk.detallado(params),
                 ]);
                 this.indicadores = ind.data || null;
                 this.detallado = det.data?.items || [];
-                this.$nextTick(() => this.initDT());
+                this.$nextTick(() => {
+                    safeDestroyDataTable(this.$refs.dt || "#helpdeskReportesDetallado");
+                    this.initDT();
+                });
             } catch (error) {
                 handleAxiosErrorToast(error, "No se pudo generar el reporte.");
             } finally {
@@ -491,19 +545,11 @@ export default {
         },
         exportExcel() {
             const params = new URLSearchParams(this.buildParams());
-            window.open(
-                `/api/helpdesk-reportes/export/excel?${params.toString()}`,
-                "_blank",
-                "noopener,noreferrer"
-            );
+            window.open(helpdesk.exportExcelUrl(params), "_blank", "noopener,noreferrer");
         },
         exportPdf() {
             const params = new URLSearchParams(this.buildParams());
-            window.open(
-                `/api/helpdesk-reportes/export/pdf?${params.toString()}`,
-                "_blank",
-                "noopener,noreferrer"
-            );
+            window.open(helpdesk.exportPdfUrl(params), "_blank", "noopener,noreferrer");
         },
     },
 };

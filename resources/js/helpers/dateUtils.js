@@ -3,7 +3,7 @@ export function normalizarFecha(val) {
     const str = String(val).trim();
     if (!str) return null;
     if (/^\d{8}$/.test(str)) {
-        return `${str.slice(0,4)}-${str.slice(4,6)}-${str.slice(6,8)}`;
+        return `${str.slice(0, 4)}-${str.slice(4, 6)}-${str.slice(6, 8)}`;
     }
     const iso = str.match(/^(\d{4})[/.-](\d{2})[/.-](\d{2})/);
     if (iso) {
@@ -16,8 +16,8 @@ export function normalizarFecha(val) {
     const d = new Date(str);
     if (!isNaN(d.getTime())) {
         const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const dia = String(d.getDate()).padStart(2, '0');
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const dia = String(d.getDate()).padStart(2, "0");
         return `${y}-${m}-${dia}`;
     }
     return null;
@@ -36,4 +36,13 @@ export function calcularEdad(fechaNacimiento) {
         edad--;
     }
     return edad;
+}
+
+export function formatDateTime(dt) {
+    if (!dt) return "";
+    try {
+        return window.dayjs(dt).tz("America/Bogota").format("YYYY-MM-DD HH:mm");
+    } catch (_) {
+        return String(dt);
+    }
 }
