@@ -153,23 +153,75 @@
                                         <th>Documento</th>
                                         <th>Servicio</th>
                                         <th>Sede</th>
+                                        <th>Cédula Frente</th>
+                                        <th>Cédula Dorso</th>
                                         <th>Orden</th>
                                         <th>Autorización</th>
                                         <th class="text-nowrap">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <tr v-if="!registros.length">
+                                        <td colspan="11" class="text-center text-muted py-4">
+                                            <i class="fa fa-inbox fa-2x d-block mb-2"></i>
+                                            No hay solicitudes pendientes.
+                                        </td>
+                                    </tr>
                                     <tr
                                         v-for="item in registros"
                                         :key="item.id"
                                         :id="`cita-${item.id}`"
                                     >
                                         <td>{{ item.id }}</td>
-                                        <td>{{ item.created_at }}</td>
+                                        <td>{{ formatFecha(item.created_at) }}</td>
                                         <td>{{ item.paciente?.nombres || "—" }}</td>
                                         <td>{{ item.paciente?.num_docu || "—" }}</td>
                                         <td>{{ item.servicio?.nombre || "—" }}</td>
                                         <td>{{ item.sede?.nom_sede || "—" }}</td>
+                                        <td>
+                                            <a
+                                                v-if="item.ruta_cedula_frente_media"
+                                                href="javascript:void(0)"
+                                                @click="verArchivo(item.ruta_cedula_frente_media)"
+                                                title="Ver cédula frente"
+                                            >
+                                                <img
+                                                    v-if="esImagen(item.ruta_cedula_frente_media)"
+                                                    :src="
+                                                        getArchivoUrl(item.ruta_cedula_frente_media)
+                                                    "
+                                                    class="img-thumbnail miniatura-archivo"
+                                                    alt="Cédula frente"
+                                                />
+                                                <i
+                                                    v-else
+                                                    class="fa fa-file-pdf-o text-danger icono-archivo"
+                                                ></i>
+                                            </a>
+                                            <span v-else>—</span>
+                                        </td>
+                                        <td>
+                                            <a
+                                                v-if="item.ruta_cedula_dorso_media"
+                                                href="javascript:void(0)"
+                                                @click="verArchivo(item.ruta_cedula_dorso_media)"
+                                                title="Ver cédula dorso"
+                                            >
+                                                <img
+                                                    v-if="esImagen(item.ruta_cedula_dorso_media)"
+                                                    :src="
+                                                        getArchivoUrl(item.ruta_cedula_dorso_media)
+                                                    "
+                                                    class="img-thumbnail miniatura-archivo"
+                                                    alt="Cédula dorso"
+                                                />
+                                                <i
+                                                    v-else
+                                                    class="fa fa-file-pdf-o text-danger icono-archivo"
+                                                ></i>
+                                            </a>
+                                            <span v-else>—</span>
+                                        </td>
                                         <td>
                                             <a
                                                 v-if="item.ruta_orden_media"
@@ -181,6 +233,7 @@
                                                     v-if="esImagen(item.ruta_orden_media)"
                                                     :src="getArchivoUrl(item.ruta_orden_media)"
                                                     class="img-thumbnail miniatura-archivo"
+                                                    alt="Orden médica"
                                                 />
                                                 <i
                                                     v-else
@@ -202,6 +255,7 @@
                                                         getArchivoUrl(item.ruta_autorizacion_media)
                                                     "
                                                     class="img-thumbnail miniatura-archivo"
+                                                    alt="Autorización"
                                                 />
                                                 <i
                                                     v-else
@@ -216,6 +270,7 @@
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-success btn-sm m-r-5"
                                                 @click="abrirAprobar(item)"
                                                 title="Aprobar cita"
+                                                aria-label="Aprobar cita"
                                             >
                                                 <i class="fa fa-check"></i>
                                             </button>
@@ -224,6 +279,7 @@
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
                                                 @click="abrirRechazar(item)"
                                                 title="Rechazar cita"
+                                                aria-label="Rechazar cita"
                                             >
                                                 <i class="fa fa-times"></i>
                                             </button>
@@ -445,6 +501,7 @@
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { handleAxiosErrorToast, alertSuccess, alertError } from "@/helpers/alerts";
+import { formatFecha } from "@/composables/useCitasUtils.js";
 
 export default {
     name: "CitasRevisionComponent",
@@ -471,9 +528,9 @@ export default {
     mounted() {
         this.cargarListas();
         this.listarRegistros();
+        axios.post("/api/citas/notificaciones/todas-leidas").catch(() => {});
         this.pollingInterval = setInterval(() => {
             this.listarRegistros();
-            axios.post("/api/citas/notificaciones/todas-leidas").catch(() => {});
         }, 30000);
     },
     beforeUnmount() {
@@ -665,7 +722,6 @@ export default {
                 this.loadingDetalles = false;
             }
         },
-        cargarRecomendacion() {},
         formatearHoraDetalle(inicio) {
             if (!inicio) return "";
             const parts = inicio.split(" ");
@@ -771,9 +827,7 @@ export default {
             this.filtro = { servicio_cita_id: "", sede_id: "", busqueda: "" };
             this.listarRegistros();
         },
-        formatFecha(fecha) {
-            return fecha || "";
-        },
+        formatFecha,
     },
 };
 </script>

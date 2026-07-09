@@ -128,122 +128,133 @@
                         <h6 class="card-subtitle text-info">
                             Gestione las solicitudes de citas y asígneles fecha y hora
                         </h6>
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Fecha Solicitud</th>
-                                        <th>Paciente</th>
-                                        <th>Documento</th>
-                                        <th>Teléfono</th>
-                                        <th>Servicio</th>
-                                        <th>Orden</th>
-                                        <th>Autorización</th>
-                                        <th>Estado</th>
-                                        <th>Fecha Cita</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="item in registros" :key="item.id">
-                                        <td>{{ formatFecha(item.created_at) }}</td>
-                                        <td>
-                                            {{ item.paciente?.nombres }}
-                                            {{ item.paciente?.pri_ape }}
-                                        </td>
-                                        <td>{{ item.paciente?.num_docu }}</td>
-                                        <td>{{ item.paciente?.cel }}</td>
-                                        <td>{{ item.servicio?.nombre }}</td>
-                                        <td>{{ item.numero_orden }}</td>
-                                        <td>{{ item.numero_autorizacion }}</td>
-                                        <td>
-                                            <span
-                                                :class="getEstadoClase(item.estado)"
-                                                class="badge badge-pill font-weight-bold"
-                                            >
-                                                {{ getEstadoLabel(item.estado) }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            {{
-                                                item.fecha_hora_inicio
-                                                    ? formatFecha(item.fecha_hora_inicio)
-                                                    : "-"
-                                            }}
-                                        </td>
-                                        <td class="text-nowrap" style="min-width: 220px">
-                                            <button
-                                                type="button"
-                                                class="btn btn-outline-primary btn-sm btn-rounded m-1"
-                                                @click="
-                                                    actualizar = true;
-                                                    mostrarModalAsignar(item);
-                                                "
-                                                :title="'Asignar cita'"
-                                            >
-                                                <i class="fa fa-calendar-plus"></i>
-                                            </button>
-                                            <button
-                                                v-if="item.estado === 'asignada'"
-                                                type="button"
-                                                class="btn btn-outline-success btn-sm btn-rounded m-1"
-                                                @click="confirmarCita(item)"
-                                                title="Confirmar cita"
-                                            >
-                                                <i class="fa fa-check"></i>
-                                            </button>
-                                            <button
-                                                v-if="
-                                                    item.estado === 'asignada' ||
-                                                    item.estado === 'confirmada'
-                                                "
-                                                type="button"
-                                                class="btn btn-outline-danger btn-sm btn-rounded m-1"
-                                                @click="cancelarCita(item)"
-                                                title="Cancelar cita"
-                                            >
-                                                <i class="fa fa-times"></i>
-                                            </button>
-                                            <button
-                                                v-if="item.estado === 'confirmada'"
-                                                type="button"
-                                                class="btn btn-outline-info btn-sm btn-rounded m-1"
-                                                @click="cumplirCita(item)"
-                                                title="Marcar como cumplida"
-                                            >
-                                                <i class="fa fa-check-circle"></i>
-                                            </button>
-                                            <button
-                                                v-if="item.estado === 'confirmada'"
-                                                type="button"
-                                                class="btn btn-outline-secondary btn-sm btn-rounded m-1"
-                                                @click="noAsistioCita(item)"
-                                                title="Marcar como no asistió"
-                                            >
-                                                <i class="fa fa-user-times"></i>
-                                            </button>
-                                            <button
-                                                v-if="item.paciente?.cel"
-                                                type="button"
-                                                class="btn btn-outline-warning btn-sm btn-rounded m-1"
-                                                @click="verConversacion(item)"
-                                                title="Ver conversación WhatsApp"
-                                            >
-                                                <i class="fa fa-comments"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
 
-                        <div class="row mt-3">
-                            <div class="col-md-12 text-right">
-                                <pagination
-                                    :data="datosPaginacion"
-                                    @pagination-change-page="listarRegistros"
-                                >
-                                </pagination>
+                        <loading-spinner :visible="loadingBuscar" />
+
+                        <div :class="{ 'd-none': loadingBuscar }">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha Solicitud</th>
+                                            <th>Paciente</th>
+                                            <th>Documento</th>
+                                            <th>Teléfono</th>
+                                            <th>Servicio</th>
+                                            <th>Orden</th>
+                                            <th>Autorización</th>
+                                            <th>Estado</th>
+                                            <th>Fecha Cita</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-if="!registros.length">
+                                            <td colspan="10" class="text-center text-muted py-4">
+                                                <i class="fa fa-calendar fa-2x d-block mb-2"></i>
+                                                No se encontraron citas.
+                                            </td>
+                                        </tr>
+                                        <tr v-for="item in registros" :key="item.id">
+                                            <td>{{ formatFecha(item.created_at) }}</td>
+                                            <td>
+                                                {{ item.paciente?.nombres }}
+                                                {{ item.paciente?.pri_ape }}
+                                            </td>
+                                            <td>{{ item.paciente?.num_docu }}</td>
+                                            <td>{{ item.paciente?.cel }}</td>
+                                            <td>{{ item.servicio?.nombre }}</td>
+                                            <td>{{ item.numero_orden }}</td>
+                                            <td>{{ item.numero_autorizacion }}</td>
+                                            <td>
+                                                <span
+                                                    :class="getEstadoClase(item.estado)"
+                                                    class="badge badge-pill font-weight-bold"
+                                                >
+                                                    {{ getEstadoLabel(item.estado) }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {{
+                                                    item.fecha_hora_inicio
+                                                        ? formatFecha(item.fecha_hora_inicio)
+                                                        : "-"
+                                                }}
+                                            </td>
+                                            <td class="text-nowrap" style="min-width: 220px">
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-outline-primary btn-sm btn-rounded m-1"
+                                                    @click="
+                                                        actualizar = true;
+                                                        mostrarModalAsignar(item);
+                                                    "
+                                                    :title="'Asignar cita'"
+                                                >
+                                                    <i class="fa fa-calendar-plus"></i>
+                                                </button>
+                                                <button
+                                                    v-if="item.estado === 'asignada'"
+                                                    type="button"
+                                                    class="btn btn-outline-success btn-sm btn-rounded m-1"
+                                                    @click="confirmarCita(item)"
+                                                    title="Confirmar cita"
+                                                >
+                                                    <i class="fa fa-check"></i>
+                                                </button>
+                                                <button
+                                                    v-if="
+                                                        item.estado === 'asignada' ||
+                                                        item.estado === 'confirmada'
+                                                    "
+                                                    type="button"
+                                                    class="btn btn-outline-danger btn-sm btn-rounded m-1"
+                                                    @click="cancelarCita(item)"
+                                                    title="Cancelar cita"
+                                                >
+                                                    <i class="fa fa-times"></i>
+                                                </button>
+                                                <button
+                                                    v-if="item.estado === 'confirmada'"
+                                                    type="button"
+                                                    class="btn btn-outline-info btn-sm btn-rounded m-1"
+                                                    @click="cumplirCita(item)"
+                                                    title="Marcar como cumplida"
+                                                >
+                                                    <i class="fa fa-check-circle"></i>
+                                                </button>
+                                                <button
+                                                    v-if="item.estado === 'confirmada'"
+                                                    type="button"
+                                                    class="btn btn-outline-secondary btn-sm btn-rounded m-1"
+                                                    @click="noAsistioCita(item)"
+                                                    title="Marcar como no asistió"
+                                                >
+                                                    <i class="fa fa-user-times"></i>
+                                                </button>
+                                                <button
+                                                    v-if="item.paciente?.cel"
+                                                    type="button"
+                                                    class="btn btn-outline-warning btn-sm btn-rounded m-1"
+                                                    @click="verConversacion(item)"
+                                                    title="Ver conversación WhatsApp"
+                                                >
+                                                    <i class="fa fa-comments"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="row mt-3">
+                                <div class="col-md-12 text-right">
+                                    <pagination
+                                        :data="datosPaginacion"
+                                        @pagination-change-page="listarRegistros"
+                                    >
+                                    </pagination>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -442,7 +453,11 @@
 </template>
 
 <script>
+import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
+import { formatFecha, getEstadoLabel, getEstadoClase } from "@/composables/useCitasUtils.js";
+
 export default {
+    components: { LoadingSpinner },
     data: function () {
         return {
             registros: [],
@@ -707,7 +722,7 @@ export default {
                     cancelButtonText: "No",
                 })
                 .then(function (result) {
-                    if (result.value || result.dismiss === thisVue.$swal.DismissReason.cancel) {
+                    if (result.isConfirmed) {
                         var motivo = result.value || "";
                         axios
                             .post("/api/citas/" + cita.id + "/cancelar", {
@@ -808,34 +823,9 @@ export default {
             this.listarRegistros();
         },
 
-        formatFecha: function (fecha) {
-            if (!fecha) return "";
-            return moment(fecha).format("DD/MM/YYYY HH:mm");
-        },
-
-        getEstadoLabel: function (estado) {
-            var estados = {
-                solicitada: "Solicitada",
-                asignada: "Asignada",
-                confirmada: "Confirmada",
-                cancelada: "Cancelada",
-                cumplida: "Cumplida",
-                no_asistio: "No asistió",
-            };
-            return estados[estado] || estado;
-        },
-
-        getEstadoClase: function (estado) {
-            var clases = {
-                solicitada: "badge-warning",
-                asignada: "badge-info",
-                confirmada: "badge-success",
-                cancelada: "badge-danger",
-                cumplida: "badge-primary",
-                no_asistio: "badge-secondary",
-            };
-            return clases[estado] || "badge-default";
-        },
+        formatFecha,
+        getEstadoLabel,
+        getEstadoClase,
 
         mostrarError: function (error) {
             var mensaje = error.response?.data?.error || error.message || "Error desconocido";

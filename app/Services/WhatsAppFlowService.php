@@ -14,6 +14,7 @@ use App\Models\General\Paciente;
 use App\Models\Interface\Sahi\Paciente as SahiPaciente;
 use App\Models\User;
 use App\Notifications\Citas\CitaSolicitadaNotification;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
@@ -53,6 +54,15 @@ class WhatsAppFlowService
             $conv = $this->obtenerOCrearConversacion($telefono, $phoneNumberId);
             $conv->update(['ultimo_mensaje' => now()]);
             $paso = $conv->paso;
+
+            $rateKey = "whatsapp_rate_{$telefono}";
+            $rateCount = (int) Cache::get($rateKey, 0);
+            if ($rateCount > 20) {
+                Log::warning('WhatsApp rate limit excedido', ['telefono' => $telefono, 'count' => $rateCount]);
+
+                return $this->text("⏳ Está enviando mensajes muy rápido. Espere un momento y vuelva a intentar.");
+            }
+            Cache::put($rateKey, $rateCount + 1, now()->addMinute());
 
             $this->logMensaje($conv, 'paciente', $tipoMensaje, $mensaje ?: null, $mediaPath);
 
@@ -466,7 +476,11 @@ class WhatsAppFlowService
         $documento = trim($documento);
 
         if (empty($documento) || strlen($documento) < 4) {
-            return $this->text("❌ Número de documento inválido. Por favor ingrese un número de documento válido.");
+            return $this->text("❌ Número de documento inválido. Por favor ingrese su número de documento.");
+        }
+
+        if (! preg_match('/^\d{4,15}$/', $documento)) {
+            return $this->text("❌ El número de documento solo debe contener números (4 a 15 dígitos).\nEjemplo: *1234567890*");
         }
 
         $paciente = $this->buscarPaciente($documento, $conv->telefono);
@@ -541,7 +555,11 @@ class WhatsAppFlowService
         $nombres = trim($nombres);
 
         if (empty($nombres) || strlen($nombres) < 3) {
-            return $this->text("❌ Por favor ingrese sus nombres completos válidos.");
+            return $this->text("❌ Por favor ingrese sus nombres completos (mínimo 3 caracteres).");
+        }
+
+        if (! preg_match('/^[a-zA-ZáéíóúüñÑÁÉÍÓÚÜ\s]+$/', $nombres)) {
+            return $this->text("❌ Los nombres solo deben contener letras.\nEjemplo: *Juan Carlos*");
         }
 
         $datos = $conv->datos ?: [];
@@ -559,7 +577,11 @@ class WhatsAppFlowService
         $apellido = trim($apellido);
 
         if (empty($apellido) || strlen($apellido) < 2) {
-            return $this->text("❌ Por favor ingrese un apellido válido.");
+            return $this->text("❌ Por favor ingrese un apellido válido (mínimo 2 caracteres).");
+        }
+
+        if (! preg_match('/^[a-zA-ZáéíóúüñÑÁÉÍÓÚÜ\s]+$/', $apellido)) {
+            return $this->text("❌ El apellido solo debe contener letras.\nEjemplo: *García*");
         }
 
         $datos = $conv->datos ?: [];
@@ -575,6 +597,10 @@ class WhatsAppFlowService
     protected function procesarSegundoApellido(WhatsAppConversation $conv, string $apellido): array
     {
         $apellido = trim($apellido);
+
+        if ($apellido !== '0' && ! empty($apellido) && ! preg_match('/^[a-zA-ZáéíóúüñÑÁÉÍÓÚÜ\s]+$/', $apellido)) {
+            return $this->text("❌ El apellido solo debe contener letras. Escriba *0* si no tiene segundo apellido.");
+        }
 
         $datos = $conv->datos ?: [];
         $datos['seg_ape'] = ($apellido === '0') ? '' : $apellido;
@@ -736,6 +762,10 @@ class WhatsAppFlowService
             return $this->text("❌ Dirección inválida. Por favor ingrese una dirección válida (mínimo 5 caracteres).");
         }
 
+        if (strlen($direccion) > 200) {
+            return $this->text("❌ Dirección demasiado larga (máximo 200 caracteres). Por favor resuma la dirección.");
+        }
+
         $datos = $conv->datos ?: [];
         $datos['direccion'] = $direccion;
         $conv->update(['datos' => $datos, 'paso' => 'confirmar_telefono1']);
@@ -874,6 +904,10 @@ class WhatsAppFlowService
             return $this->text("❌ Dirección inválida. Por favor ingrese una dirección válida (mínimo 5 caracteres).");
         }
 
+        if (strlen($direccion) > 200) {
+            return $this->text("❌ Dirección demasiado larga (máximo 200 caracteres). Por favor resuma la dirección.");
+        }
+
         $datos = $conv->datos ?: [];
         $datos['direccion'] = $direccion;
         $conv->update(['datos' => $datos, 'paso' => 'pedir_telefono1']);
@@ -886,7 +920,11 @@ class WhatsAppFlowService
         $telefono = trim($telefono);
 
         if (empty($telefono) || strlen($telefono) < 7) {
-            return $this->text("❌ Número inválido. Por favor ingrese un número de teléfono válido (mínimo 7 dígitos).");
+            return $this->text("❌ Número inválido. Ingrese un número de teléfono válido (mínimo 7 dígitos).");
+        }
+
+        if (! preg_match('/^\d{7,10}$/', $telefono)) {
+            return $this->text("❌ El teléfono solo debe contener números (7 a 10 dígitos).\nEjemplo: *3001234567*");
         }
 
         $datos = $conv->datos ?: [];
@@ -899,6 +937,10 @@ class WhatsAppFlowService
     protected function procesarTelefono2(WhatsAppConversation $conv, string $telefono): array
     {
         $telefono = trim($telefono);
+
+        if ($telefono !== '0' && ! empty($telefono) && ! preg_match('/^\d{7,10}$/', $telefono)) {
+            return $this->text("❌ El teléfono solo debe contener números. Escriba *0* si no tiene otro teléfono.");
+        }
 
         $datos = $conv->datos ?: [];
         $datos['cel'] = ($telefono === '0') ? '' : $telefono;

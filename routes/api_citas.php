@@ -5,7 +5,9 @@ use App\Http\Controllers\Agenda\ConfigCitaRechazoMotivoController;
 use Illuminate\Support\Facades\Route;
 
 // Webhook DEBE ir antes de {cita} para que "webhook" no sea capturado como parámetro
-Route::match(['get', 'post'], '/citas/webhook', [AgendaCitaController::class, 'webhook'])->name('api.citas.webhook');
+Route::match(['get', 'post'], '/citas/webhook', [AgendaCitaController::class, 'webhook'])
+    ->name('api.citas.webhook')
+    ->middleware('throttle:60,1');
 Route::post('/citas/test/enviar', [AgendaCitaController::class, 'testEnviar'])->name('api.citas.test.enviar')->middleware('auth');
 Route::get('/citas/notificaciones/no-leidas', [AgendaCitaController::class, 'notificacionesNoLeidas'])->name('api.citas.notificaciones.no-leidas')->middleware('auth');
 Route::post('/citas/notificaciones/{id}/leida', [AgendaCitaController::class, 'marcarNotificacionLeida'])->name('api.citas.notificaciones.leida')->middleware('auth');
