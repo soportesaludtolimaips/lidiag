@@ -8,10 +8,22 @@
                 <h3 class="text-themecolor">Estudios</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Estudios</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Estudios
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Asignar Estudios</li>
                 </ol>
@@ -185,6 +197,7 @@
                                                     mostrarRegistro(item, index);
                                                 "
                                                 title="Asignar estudio"
+                                                aria-label="Asignar estudio"
                                             >
                                                 <i
                                                     v-if="loadingAbrirRegistroIndex === index"
@@ -203,6 +216,7 @@
                                                     )
                                                 "
                                                 title="Ver imagenes"
+                                                aria-label="Ver imagenes"
                                                 :disabled="
                                                     loadingImagenId === item.estudio_producto_id
                                                 "
@@ -572,6 +586,7 @@
                                                             />
                                                             <label
                                                                 :for="`flat-checkbox-producto-${index}`"
+                                                                aria-label="Seleccionar"
                                                             ></label>
                                                         </td>
                                                         <td>{{ item.cod_cups }}</td>

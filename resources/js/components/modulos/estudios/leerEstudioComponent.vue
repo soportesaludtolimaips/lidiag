@@ -7,10 +7,22 @@
             <h3 class="text-themecolor">Estudios</h3>
             <ol class="breadcrumb">
                 <li class="breadcrumb-item">
-                    <a href="javascript:void(0)">Inicio</a>
+                    <button
+                        type="button"
+                        class="btn btn-link p-0"
+                        style="vertical-align: baseline; text-decoration: none; color: inherit"
+                    >
+                        Inicio
+                    </button>
                 </li>
                 <li class="breadcrumb-item">
-                    <a href="javascript:void(0)">Estudios</a>
+                    <button
+                        type="button"
+                        class="btn btn-link p-0"
+                        style="vertical-align: baseline; text-decoration: none; color: inherit"
+                    >
+                        Estudios
+                    </button>
                 </li>
                 <li class="breadcrumb-item active">Leer Estudios</li>
             </ol>
@@ -239,6 +251,7 @@
                                                 mostrarRegistro(item);
                                             "
                                             title="Abrir estudio"
+                                            aria-label="Abrir estudio"
                                         >
                                             <i
                                                 v-if="loadingAbrirId === item.estudio_producto_id"
@@ -260,6 +273,7 @@
                                                 )
                                             "
                                             title="Ver imágenes"
+                                            aria-label="Ver imágenes"
                                         >
                                             <i
                                                 v-if="loadingImagenId === item.estudio_producto_id"
@@ -276,6 +290,7 @@
                                                 visto(item.estudio_producto_id);
                                             "
                                             title="Marcar como visto"
+                                            aria-label="Marcar como visto"
                                         >
                                             <i
                                                 v-if="loadingVistoId === item.estudio_producto_id"
@@ -709,6 +724,7 @@
                                                                                 item.id
                                                                             "
                                                                             title="Eliminar audio"
+                                                                            aria-label="Eliminar audio"
                                                                         >
                                                                             <i
                                                                                 v-if="
@@ -879,6 +895,7 @@
                                                                                         audio.id
                                                                                     "
                                                                                     class="custom-control-label"
+                                                                                    aria-label="Seleccionar"
                                                                                 ></label>
                                                                             </div>
                                                                             <i
@@ -991,6 +1008,7 @@
                                                                                     audio.id
                                                                                 "
                                                                                 title="Eliminar audio"
+                                                                                aria-label="Eliminar audio"
                                                                             >
                                                                                 <i
                                                                                     v-if="
@@ -1123,6 +1141,7 @@
                                                                     class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
                                                                     @click="imprimirReporte(item)"
                                                                     title="Imprimir reporte"
+                                                                    aria-label="Imprimir reporte"
                                                                     :disabled="
                                                                         loadingImprimirId ===
                                                                         item.estudio_producto_id
@@ -1554,7 +1573,10 @@ export default {
                     this.limpiar();
                 }
             } catch (error) {
-                this.errores = (error?.response?.data?.errors && typeof error.response.data.errors === "object") ? error.response.data.errors : {};
+                this.errores =
+                    error?.response?.data?.errors && typeof error.response.data.errors === "object"
+                        ? error.response.data.errors
+                        : {};
                 handleAxiosErrorToast(error, "No fue posible guardar la lectura.");
             } finally {
                 this.loadingGuardar = false;
@@ -1638,7 +1660,10 @@ export default {
                     "noopener,noreferrer"
                 );
             } catch (error) {
-                this.errores = (error?.response?.data?.errors && typeof error.response.data.errors === "object") ? error.response.data.errors : {};
+                this.errores =
+                    error?.response?.data?.errors && typeof error.response.data.errors === "object"
+                        ? error.response.data.errors
+                        : {};
             } finally {
                 this.loadingImprimirId = null;
             }
