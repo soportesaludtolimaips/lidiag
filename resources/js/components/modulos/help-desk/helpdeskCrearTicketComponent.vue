@@ -25,8 +25,10 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label>Título</label>
+                                            <label for="crearTitulo">Título</label>
                                             <input
+                                                id="crearTitulo"
+                                                ref="primerCampo"
                                                 v-model="form.titulo"
                                                 type="text"
                                                 class="form-control"
@@ -36,8 +38,9 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label>Categoría</label>
+                                            <label for="crearCategoria">Categoría</label>
                                             <select
+                                                id="crearCategoria"
                                                 v-model="form.categoria_id"
                                                 class="form-control custom-select"
                                             >
@@ -54,8 +57,9 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label>Prioridad</label>
+                                            <label for="crearPrioridad">Prioridad</label>
                                             <select
+                                                id="crearPrioridad"
                                                 v-model="form.prioridad_id"
                                                 class="form-control custom-select"
                                             >
@@ -75,8 +79,9 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label>Asignar a</label>
+                                            <label for="crearAsignado">Asignar a</label>
                                             <select
+                                                id="crearAsignado"
                                                 v-model="form.asignado_id"
                                                 class="form-control custom-select"
                                             >
@@ -94,8 +99,9 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label>Adjuntos (opcional)</label>
+                                            <label for="crearAdjuntos">Adjuntos (opcional)</label>
                                             <input
+                                                id="crearAdjuntos"
                                                 ref="files"
                                                 type="file"
                                                 class="form-control"
@@ -110,8 +116,9 @@
                                 <div class="row">
                                     <div class="col-md-12">
                                         <div class="form-group">
-                                            <label>Descripción</label>
+                                            <label for="crearDescripcion">Descripción</label>
                                             <textarea
+                                                id="crearDescripcion"
                                                 v-model="form.descripcion"
                                                 class="form-control textarea_editor"
                                                 rows="6"
@@ -134,6 +141,7 @@
                                         href="/helpdesk-tickets"
                                         class="btn btn-inverse m-l-5"
                                         :class="{ disabled: loading }"
+                                        tabindex="0"
                                     >
                                         Cancelar
                                     </a>
@@ -149,9 +157,20 @@
 
 <script>
 import { toastMessage, handleAxiosErrorToast } from "@/helpers/alerts.js";
+import { initWysiwyg, getWysiwygValue, isHtmlEffectivelyEmpty } from "@/helpers/wysiwyg.js";
+import { helpdesk } from "@/helpers/api.js";
 
 export default {
-    props: ["usuarioactual"],
+    beforeUnmount() {
+        try {
+            const $root = $(this.$el);
+            $root.find(".textarea_editor").each((_, el) => {
+                const $el = $(el);
+                const inst = $el.data("wysihtml5");
+                if (inst && inst.editor) inst.editor.destroy();
+            });
+        } catch (_) {}
+    },
     data() {
         return {
             loading: false,
@@ -174,50 +193,28 @@ export default {
         try {
             const sedeActiva = sessionStorage.getItem("ST-sede");
             if (sedeActiva) this.form.sede_id = sedeActiva;
-        } catch (e) {}
+        } catch (e) {
+            console.warn("No se pudo leer sede activa de sessionStorage", e);
+        }
 
         await this.cargar();
     },
     methods: {
         initWysiwyg() {
-            try {
-                const $root = $(this.$el);
-                $root.find(".textarea_editor").each((_, el) => {
-                    const $el = $(el);
-                    if ($el.data("wysihtml5")) return; // evita duplicar toolbars
-                    $el.wysihtml5({
-                        stylesheets: ["/lib/css/wysiwyg-color.css"],
-                    });
-                });
-            } catch (e) {}
+            initWysiwyg(this.$el);
         },
         getDescripcionFromEditor() {
-            try {
-                const $el = $(this.$el).find("textarea.textarea_editor").first();
-                if (!$el.length) return this.form.descripcion || "";
-                const inst = $el.data("wysihtml5");
-                if (inst && inst.editor && typeof inst.editor.getValue === "function") {
-                    return inst.editor.getValue();
-                }
-                return $el.val() || this.form.descripcion || "";
-            } catch (_) {
-                return this.form.descripcion || "";
-            }
+            return getWysiwygValue(this.$el) || this.form.descripcion || "";
         },
         isHtmlEffectivelyEmpty(html) {
-            const text = String(html || "")
-                .replace(/<[^>]*>/g, " ")
-                .replace(/&nbsp;/g, " ")
-                .replace(/\s+/g, " ")
-                .trim();
-            return !text;
+            return isHtmlEffectivelyEmpty(html);
         },
         async cargar() {
             try {
                 const [cats, prios, asignables] = await Promise.all([
-                    axios.get("/api/helpdesk-categorias"),
-                    axios.get("/api/helpdesk-prioridades"),
-                    axios.get("/api/helpdesk-usuarios-asignables"),
+                    helpdesk.categorias(),
+                    helpdesk.prioridades(),
+                    helpdesk.asignables(),
                 ]);
                 this.categorias = (cats.data || []).filter((x) => x.activo);
                 this.prioridades = (prios.data || []).filter((x) => x.activo);
@@ -241,6 +238,7 @@ export default {
                     text: "El título es obligatorio.",
                     icon: "warning",
                 });
+                this.$nextTick(() => this.$refs.primerCampo?.focus());
                 return;
             }
             if (!this.form.categoria_id) {
@@ -249,6 +247,7 @@ export default {
                     text: "La categoría es obligatoria.",
                     icon: "warning",
                 });
+                this.$nextTick(() => document.getElementById("crearCategoria")?.focus());
                 return;
             }
             if (!this.form.prioridad_id) {
@@ -257,6 +256,7 @@ export default {
                     text: "La prioridad es obligatoria.",
                     icon: "warning",
                 });
+                this.$nextTick(() => document.getElementById("crearPrioridad")?.focus());
                 return;
             }
             if (!this.form.asignado_id) {
@@ -265,6 +265,7 @@ export default {
                     text: "Debes seleccionar a quién asignar.",
                     icon: "warning",
                 });
+                this.$nextTick(() => document.getElementById("crearAsignado")?.focus());
                 return;
             }
             // Importante: WYSIHTML5 usa iframe; sincronizamos el valor real antes de validar.
@@ -275,12 +276,13 @@ export default {
                     text: "La descripción es obligatoria.",
                     icon: "warning",
                 });
+                this.$nextTick(() => document.getElementById("crearDescripcion")?.focus());
                 return;
             }
 
             this.loading = true;
             try {
-                const res = await axios.post("/api/helpdesk-tickets", {
+                const res = await helpdesk.crearTicket({
                     titulo: this.form.titulo,
                     descripcion: this.form.descripcion,
                     categoria_id: this.form.categoria_id,
@@ -298,9 +300,7 @@ export default {
                     const fd = new FormData();
                     files.forEach((f) => fd.append("files[]", f));
                     fd.append("comentario", "Adjuntos iniciales.");
-                    await axios.post(`/api/helpdesk-tickets/${ticket.id}/attachments`, fd, {
-                        headers: { "Content-Type": "multipart/form-data" },
-                    });
+                    await helpdesk.subirAdjuntos(ticket.id, fd);
                 }
 
                 toastMessage({

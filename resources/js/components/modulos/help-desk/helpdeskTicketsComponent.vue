@@ -25,14 +25,16 @@
 
                         <div class="row p-t-2">
                             <div class="col-md-3">
-                                <label>Vista</label>
+                                <label id="labelVista">Vista</label>
                                 <div
                                     class="btn-group btn-group-sm d-flex"
-                                    role="group"
-                                    aria-label="Tabs"
+                                    role="tablist"
+                                    aria-labelledby="labelVista"
                                 >
                                     <button
                                         type="button"
+                                        role="tab"
+                                        :aria-selected="scope === 'mine'"
                                         class="btn"
                                         :class="scope === 'mine' ? 'btn-info' : 'btn-outline-info'"
                                         @click="setScope('mine')"
@@ -41,6 +43,8 @@
                                     </button>
                                     <button
                                         type="button"
+                                        role="tab"
+                                        :aria-selected="scope === 'assigned'"
                                         class="btn"
                                         :class="
                                             scope === 'assigned' ? 'btn-info' : 'btn-outline-info'
@@ -51,6 +55,8 @@
                                     </button>
                                     <button
                                         type="button"
+                                        role="tab"
+                                        :aria-selected="scope === 'all'"
                                         class="btn"
                                         :class="scope === 'all' ? 'btn-info' : 'btn-outline-info'"
                                         @click="setScope('all')"
@@ -61,8 +67,9 @@
                             </div>
 
                             <div class="col-md-2">
-                                <label>Estado</label>
+                                <label for="ticketEstado">Estado</label>
                                 <select
+                                    id="ticketEstado"
                                     v-model="filters.estado_id"
                                     class="form-control custom-select"
                                 >
@@ -73,8 +80,9 @@
                                 </select>
                             </div>
                             <div class="col-md-2">
-                                <label>Categoría</label>
+                                <label for="ticketCategoria">Categoría</label>
                                 <select
+                                    id="ticketCategoria"
                                     v-model="filters.categoria_id"
                                     class="form-control custom-select"
                                 >
@@ -85,8 +93,9 @@
                                 </select>
                             </div>
                             <div class="col-md-2">
-                                <label>Prioridad</label>
+                                <label for="ticketPrioridad">Prioridad</label>
                                 <select
+                                    id="ticketPrioridad"
                                     v-model="filters.prioridad_id"
                                     class="form-control custom-select"
                                 >
@@ -97,8 +106,9 @@
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label>Búsqueda</label>
+                                <label for="ticketBusqueda">Búsqueda</label>
                                 <input
+                                    id="ticketBusqueda"
                                     v-model="filters.q"
                                     type="text"
                                     class="form-control"
@@ -109,16 +119,27 @@
 
                         <div class="row p-t-2">
                             <div class="col-md-2">
-                                <label>Desde</label>
-                                <input v-model="filters.desde" type="date" class="form-control" />
+                                <label for="ticketDesde">Desde</label>
+                                <input
+                                    id="ticketDesde"
+                                    v-model="filters.desde"
+                                    type="date"
+                                    class="form-control"
+                                />
                             </div>
                             <div class="col-md-2">
-                                <label>Hasta</label>
-                                <input v-model="filters.hasta" type="date" class="form-control" />
+                                <label for="ticketHasta">Hasta</label>
+                                <input
+                                    id="ticketHasta"
+                                    v-model="filters.hasta"
+                                    type="date"
+                                    class="form-control"
+                                />
                             </div>
                             <div class="col-md-3">
-                                <label>Sede</label>
+                                <label for="ticketSede">Sede</label>
                                 <select
+                                    id="ticketSede"
                                     v-model="filters.sede_id"
                                     class="form-control custom-select"
                                 >
@@ -164,7 +185,11 @@
                             Orden por defecto: Prioridad (Alta→Baja) y luego fecha.
                         </h6>
 
-                        <div class="table-responsive">
+                        <div v-if="loading" class="text-center p-5">
+                            <i class="fa fa-spinner fa-spin fa-3x"></i>
+                            <p class="m-t-10">Cargando tickets...</p>
+                        </div>
+                        <div v-else class="table-responsive">
                             <table
                                 id="helpdeskTicketsTable"
                                 ref="dt"
@@ -172,23 +197,35 @@
                                 cellspacing="0"
                                 width="100%"
                             >
+                                <caption class="sr-only">
+                                    Listado de tickets del helpdesk
+                                </caption>
                                 <thead>
                                     <tr>
-                                        <th>Folio</th>
-                                        <th>Título</th>
-                                        <th>Estado</th>
-                                        <th>Prioridad</th>
-                                        <th>Categoría</th>
-                                        <th>Pendiente de</th>
-                                        <th>Solicitante</th>
-                                        <th>Asignado</th>
-                                        <th>Sede</th>
-                                        <th>Creación</th>
-                                        <th>Actualización</th>
+                                        <th scope="col">Folio</th>
+                                        <th scope="col">Título</th>
+                                        <th scope="col">Estado</th>
+                                        <th scope="col">Prioridad</th>
+                                        <th scope="col">Categoría</th>
+                                        <th scope="col">Pendiente de</th>
+                                        <th scope="col">Solicitante</th>
+                                        <th scope="col">Asignado</th>
+                                        <th scope="col">Sede</th>
+                                        <th scope="col">Creación</th>
+                                        <th scope="col">Actualización</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="t in tickets" :key="t.id">
+                                    <tr v-if="!tickets.length">
+                                        <td colspan="11" class="text-center text-muted">
+                                            No se encontraron tickets.
+                                        </td>
+                                    </tr>
+                                    <tr
+                                        v-for="t in tickets"
+                                        :key="t.id"
+                                        :class="prioridadRowClass(t.prioridad?.nombre)"
+                                    >
                                         <td>
                                             <a :href="`/helpdesk-tickets/${t.id}`">{{
                                                 t.folio || "#" + t.id
@@ -229,9 +266,10 @@
 <script>
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { handleAxiosErrorToast } from "@/helpers/alerts.js";
+import { formatDateTime } from "@/helpers/dateUtils.js";
+import { helpdesk } from "@/helpers/api.js";
 
 export default {
-    props: ["usuarioactual"],
     data() {
         return {
             scope: "mine",
@@ -257,7 +295,9 @@ export default {
             // sede activa por defecto
             const sedeActiva = sessionStorage.getItem("ST-sede");
             if (sedeActiva) this.filters.sede_id = sedeActiva;
-        } catch (e) {}
+        } catch (e) {
+            console.warn("No se pudo leer sede activa de sessionStorage", e);
+        }
 
         await this.cargarCatalogos();
         await this.buscar();
@@ -267,20 +307,23 @@ export default {
     },
     methods: {
         formatDateTime(dt) {
-            if (!dt) return "";
-            try {
-                return window.dayjs(dt).tz("America/Bogota").format("YYYY-MM-DD HH:mm");
-            } catch (_) {
-                return String(dt);
-            }
+            return formatDateTime(dt);
+        },
+        prioridadRowClass(nombre) {
+            if (!nombre) return "";
+            const p = nombre.toLowerCase();
+            if (p.includes("alta") || p.includes("critico") || p.includes("critica"))
+                return "table-danger";
+            if (p.includes("media") || p.includes("normal")) return "table-warning";
+            return "";
         },
         async cargarCatalogos() {
             try {
                 const [cats, prios, ests, sedes] = await Promise.all([
-                    axios.get("/api/helpdesk-categorias"),
-                    axios.get("/api/helpdesk-prioridades"),
-                    axios.get("/api/helpdesk-estados"),
-                    axios.get("/api/config-sedes/listar/sedes/activas"),
+                    helpdesk.categorias(),
+                    helpdesk.prioridades(),
+                    helpdesk.estados(),
+                    helpdesk.sedesActivas(),
                 ]);
                 this.categorias = (cats.data || []).filter((x) => x.activo);
                 this.prioridades = (prios.data || []).filter((x) => x.activo);
@@ -307,13 +350,21 @@ export default {
             try {
                 const sedeActiva = sessionStorage.getItem("ST-sede");
                 if (sedeActiva) this.filters.sede_id = sedeActiva;
-            } catch (e) {}
+            } catch (e) {
+                console.warn("No se pudo leer sede activa de sessionStorage", e);
+            }
             this.buscar();
         },
         initDataTable() {
             safeInitDataTable(this.$refs.dt || "#helpdeskTicketsTable", {
                 dom: "Bfrtip",
-                buttons: ["copy", "csv", "excel", "pdf", "print"],
+                buttons: [
+                    { extend: "copy", titleAttr: "Copiar al portapapeles" },
+                    { extend: "csv", titleAttr: "Exportar a CSV" },
+                    { extend: "excel", titleAttr: "Exportar a Excel" },
+                    { extend: "pdf", titleAttr: "Exportar a PDF" },
+                    { extend: "print", titleAttr: "Imprimir" },
+                ],
                 retrieve: true,
                 order: [],
             });
@@ -324,19 +375,22 @@ export default {
         async buscar() {
             this.loading = true;
             try {
-                this.destroyDataTable();
-                const res = await axios.get("/api/helpdesk-tickets", {
-                    params: {
-                        scope: this.scope,
-                        ...this.filters,
-                    },
+                const res = await helpdesk.tickets({
+                    scope: this.scope,
+                    ...this.filters,
                 });
                 this.tickets = res.data || [];
-                this.$nextTick(() => this.initDataTable());
+                this.$nextTick(() => {
+                    this.destroyDataTable();
+                    this.initDataTable();
+                });
             } catch (error) {
                 handleAxiosErrorToast(error, "No se pudieron cargar los tickets.");
                 this.tickets = [];
-                this.$nextTick(() => this.initDataTable());
+                this.$nextTick(() => {
+                    this.destroyDataTable();
+                    this.initDataTable();
+                });
             } finally {
                 this.loading = false;
             }

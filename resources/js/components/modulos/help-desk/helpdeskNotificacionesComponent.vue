@@ -27,8 +27,12 @@
                         <h4 class="card-title">Notificaciones</h4>
 
                         <div class="form-group">
-                            <label>
-                                <input type="checkbox" v-model="soloNoLeidas" />
+                            <label for="checkSoloNoLeidas">
+                                <input
+                                    id="checkSoloNoLeidas"
+                                    type="checkbox"
+                                    v-model="soloNoLeidas"
+                                />
                                 Solo no leídas
                             </label>
                         </div>
@@ -39,41 +43,62 @@
                             <div v-if="items.length === 0" class="text-muted">
                                 Sin notificaciones.
                             </div>
-                            <div
-                                v-for="n in itemsFiltradas"
-                                :key="n.id"
-                                class="alert"
-                                :class="n.read_at ? 'alert-secondary' : 'alert-info'"
-                            >
-                                <div class="d-flex justify-content-between">
-                                    <strong>{{ n.data?.evento || "EVENTO" }}</strong>
-                                    <span class="text-muted">{{
-                                        formatDateTime(n.created_at)
-                                    }}</span>
+                            <template v-else>
+                                <div
+                                    v-for="n in itemsFiltradas"
+                                    :key="n.id"
+                                    class="alert"
+                                    :class="n.read_at ? 'alert-secondary' : 'alert-info'"
+                                >
+                                    <div class="d-flex justify-content-between">
+                                        <strong>{{ n.data?.evento || "EVENTO" }}</strong>
+                                        <span class="text-muted">{{
+                                            formatDateTime(n.created_at)
+                                        }}</span>
+                                    </div>
+                                    <div>
+                                        <span v-if="n.data?.folio"
+                                            ><strong>{{ n.data.folio }}</strong> -
+                                        </span>
+                                        {{ n.data?.mensaje || "" }}
+                                    </div>
+                                    <div class="m-t-5">
+                                        <a
+                                            v-if="n.data?.ticket_id"
+                                            :href="`/helpdesk-tickets/${n.data.ticket_id}`"
+                                            @click.prevent="abrir(n)"
+                                        >
+                                            Abrir ticket
+                                        </a>
+                                        <button
+                                            v-if="!n.read_at"
+                                            class="btn btn-sm btn-outline-dark m-l-10"
+                                            @click="marcarLeida(n)"
+                                        >
+                                            Marcar leída
+                                        </button>
+                                    </div>
                                 </div>
-                                <div>
-                                    <span v-if="n.data?.folio"
-                                        ><strong>{{ n.data.folio }}</strong> -
-                                    </span>
-                                    {{ n.data?.mensaje || "" }}
-                                </div>
-                                <div class="m-t-5">
-                                    <a
-                                        v-if="n.data?.ticket_id"
-                                        :href="`/helpdesk-tickets/${n.data.ticket_id}`"
-                                        @click.prevent="abrir(n)"
-                                    >
-                                        Abrir ticket
-                                    </a>
+                                <div v-if="totalPaginas > 1" class="text-center m-t-15">
                                     <button
-                                        v-if="!n.read_at"
-                                        class="btn btn-sm btn-outline-dark m-l-10"
-                                        @click="marcarLeida(n)"
+                                        class="btn btn-sm btn-outline-dark"
+                                        :disabled="paginaActual <= 1"
+                                        @click="irPagina(paginaActual - 1)"
                                     >
-                                        Marcar leída
+                                        <i class="fa fa-chevron-left"></i> Anterior
+                                    </button>
+                                    <span class="m-x-15"
+                                        >Página {{ paginaActual }} de {{ totalPaginas }}</span
+                                    >
+                                    <button
+                                        class="btn btn-sm btn-outline-dark"
+                                        :disabled="paginaActual >= totalPaginas"
+                                        @click="irPagina(paginaActual + 1)"
+                                    >
+                                        Siguiente <i class="fa fa-chevron-right"></i>
                                     </button>
                                 </div>
-                            </div>
+                            </template>
                         </div>
                     </div>
                 </div>
@@ -83,15 +108,19 @@
 </template>
 
 <script>
-import { handleAxiosErrorToast } from "@/helpers/alerts.js";
+import { toastMessage, handleAxiosErrorToast } from "@/helpers/alerts.js";
+import { formatDateTime } from "@/helpers/dateUtils.js";
+import { helpdesk } from "@/helpers/api.js";
 
 export default {
-    props: ["usuarioactual"],
     data() {
         return {
             loading: false,
             soloNoLeidas: false,
             items: [],
+            paginaActual: 1,
+            totalPaginas: 1,
+            porPagina: 50,
         };
     },
     computed: {
@@ -105,37 +134,44 @@ export default {
     },
     methods: {
         formatDateTime(dt) {
-            if (!dt) return "";
-            try {
-                return window.dayjs(dt).tz("America/Bogota").format("YYYY-MM-DD HH:mm");
-            } catch (_) {
-                return String(dt);
-            }
+            return formatDateTime(dt);
         },
-        async cargar() {
+        async cargar(pagina) {
+            if (pagina) this.paginaActual = pagina;
             this.loading = true;
             try {
-                const res = await axios.get("/api/helpdesk-notificaciones", {
-                    params: { limit: 100 },
+                const res = await helpdesk.notificaciones({
+                    limit: this.porPagina,
+                    page: this.paginaActual,
                 });
                 this.items = res.data?.items || [];
+                this.totalPaginas = res.data?.last_page || 1;
             } catch (error) {
                 handleAxiosErrorToast(error, "No se pudieron cargar notificaciones.");
             } finally {
                 this.loading = false;
             }
         },
+        irPagina(pagina) {
+            if (pagina < 1 || pagina > this.totalPaginas) return;
+            this.cargar(pagina);
+        },
         async marcarLeida(n) {
             try {
-                await axios.post(`/api/helpdesk-notificaciones/${n.id}/read`);
+                await helpdesk.marcarLeida(n.id);
                 n.read_at = new Date().toISOString();
+                toastMessage({
+                    heading: "Ok",
+                    text: "Notificación marcada como leída.",
+                    icon: "success",
+                });
             } catch (error) {
                 handleAxiosErrorToast(error, "No se pudo marcar como leída.");
             }
         },
         async marcarTodas() {
             try {
-                await axios.post("/api/helpdesk-notificaciones/read-all");
+                await helpdesk.marcarTodasLeidas();
                 await this.cargar();
             } catch (error) {
                 handleAxiosErrorToast(error, "No se pudieron marcar todas.");
