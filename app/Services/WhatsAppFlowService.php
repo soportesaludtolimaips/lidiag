@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Helpers\AuditLogger;
 use App\Models\Agenda\AgendaCita;
 use App\Models\Citas\WhatsAppConversation;
+use App\Models\Citas\WhatsAppMensaje;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\Configuracion\ConfigSedeWhatsappNumber;
 use App\Models\Configuracion\ConfigServicioCita;
@@ -42,7 +43,6 @@ class WhatsAppFlowService
             Log::info('WhatsApp mensaje recibido', [
                 'telefono' => $telefono,
                 'tipo' => $tipoMensaje,
-                'paso_actual' => null, // se actualiza tras obtener la conversación
                 'media_path' => $mediaPath,
             ]);
 
@@ -51,35 +51,27 @@ class WhatsAppFlowService
             $mensajeLower = mb_strtolower($mensaje);
 
             $conv = $this->obtenerOCrearConversacion($telefono, $phoneNumberId);
+            $conv->update(['ultimo_mensaje' => now()]);
             $paso = $conv->paso;
 
-            $pasosBloqueados = ['pedir_foto_cedula_frente', 'pedir_foto_cedula_dorso', 'pedir_orden', 'pedir_autorizacion'];
+            $this->logMensaje($conv, 'paciente', $tipoMensaje, $mensaje ?: null, $mediaPath);
 
-            if (in_array($paso, $pasosBloqueados, true)) {
-                if ($mensajeLower === '0' || $mensajeLower === 'menu' || $mensajeLower === 'menú') {
-                    $this->resetearConversacion($conv);
+            $navCommands = ['0', 'menu', 'menú', 'atras', 'volver', 'atrás', 'hola', 'hi', 'inicio'];
 
-                    return $this->iniciarConversacion($conv);
-                }
-                if ($mensajeLower === 'hola' || $mensajeLower === 'hi' || $mensajeLower === 'inicio') {
-                    return $this->recordatorioArchivo($paso);
-                }
-            } else {
-                if ($mensajeLower === 'hola' || $mensajeLower === 'hi' || $mensajeLower === 'inicio' || $mensajeLower === '0') {
-                    return $this->iniciarConversacion($conv);
-                }
+            if (in_array($mensajeLower, $navCommands, true)) {
+                $resultado = $this->manejarNavegacion($conv, $mensajeLower, $paso);
+                if ($resultado) {
+                    $this->logMensaje($conv, 'bot', $resultado['type'] ?? 'text', $resultado['text'] ?? null);
 
-                if ($mensajeLower === 'menu' || $mensajeLower === 'menú') {
-                    $this->resetearConversacion($conv);
-
-                    return $this->iniciarConversacion($conv);
+                    return $resultado;
                 }
             }
 
-            return match ($paso) {
+            $respuesta = match ($paso) {
                 'inicio' => $this->iniciarConversacion($conv),
                 'seleccionar_sede' => $this->procesarSeleccionSede($conv, $mensaje),
                 'seleccionar_servicio' => $this->procesarSeleccionServicio($conv, $mensaje),
+                'confirmar_resumen' => $this->procesarConfirmarResumen($conv, $mensaje),
                 'pedir_documento' => $this->procesarDocumento($conv, $mensaje),
                 'confirmar_datos_completos' => $this->procesarConfirmarDatosCompletos($conv, $mensaje),
                 'pedir_nombres' => $this->procesarNombres($conv, $mensaje),
@@ -99,8 +91,14 @@ class WhatsAppFlowService
                 'pedir_foto_cedula_dorso' => $this->procesarFotoCedulaDorso($conv, $mensaje, $tipoMensaje, $mediaPath),
                 'pedir_orden' => $this->procesarOrden($conv, $mensaje, $tipoMensaje, $mediaPath),
                 'pedir_autorizacion' => $this->procesarAutorizacion($conv, $mensaje, $tipoMensaje, $mediaPath),
+                'confirmar_solicitud' => $this->procesarConfirmarSolicitud($conv, $mensaje),
+                'cita_creada' => $this->text("✅ Su cita ya fue creada. En 24 horas recibirá notificación."),
                 default => $this->iniciarConversacion($conv),
             };
+
+            $this->logMensaje($conv, 'bot', $respuesta['type'] ?? 'text', $respuesta['text'] ?? null);
+
+            return $respuesta;
         } catch (\Throwable $e) {
             Log::error('WhatsAppFlow error: '.$e->getMessage(), [
                 'telefono' => $telefono,
@@ -112,9 +110,67 @@ class WhatsAppFlowService
         }
     }
 
+    protected function logMensaje(WhatsAppConversation $conv, string $role, string $tipo, ?string $contenido = null, ?string $mediaUrl = null): void
+    {
+        try {
+            WhatsAppMensaje::create([
+                'whatsapp_conversation_id' => $conv->id,
+                'role' => $role,
+                'tipo' => $tipo,
+                'contenido' => $contenido,
+                'media_url' => $mediaUrl,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Error al guardar mensaje WhatsApp: '.$e->getMessage());
+        }
+    }
+
     protected function text(string $mensaje): array
     {
         return ['type' => 'text', 'text' => $mensaje];
+    }
+
+    protected function pasoAnterior(string $paso): ?string
+    {
+        return match ($paso) {
+            'confirmar_resumen' => 'seleccionar_servicio',
+            'confirmar_solicitud' => 'pedir_autorizacion',
+            'cita_creada' => 'confirmar_solicitud',
+            'pedir_foto_cedula_dorso' => 'pedir_foto_cedula_frente',
+            'pedir_orden' => 'pedir_foto_cedula_dorso',
+            'pedir_autorizacion' => 'pedir_orden',
+            default => null,
+        };
+    }
+
+    protected function manejarNavegacion(WhatsAppConversation $conv, string $comando, string $paso): ?array
+    {
+        if (in_array($comando, ['atras', 'volver', 'atrás'], true)) {
+            $anterior = $this->pasoAnterior($paso);
+            if ($anterior) {
+                $conv->update(['paso' => $anterior]);
+
+                return $this->recordatorioArchivo($anterior);
+            }
+
+            return $this->text("ℹ️ No puede retroceder más. Use *0* para volver al menú principal.");
+        }
+
+        if (in_array($comando, ['menu', 'menú'], true)) {
+            $this->resetearConversacion($conv);
+
+            return $this->iniciarConversacion($conv);
+        }
+
+        if ($comando === '0') {
+            return $this->iniciarConversacion($conv);
+        }
+
+        if (in_array($comando, ['hola', 'hi', 'inicio'], true)) {
+            return $this->recordatorioArchivo($paso);
+        }
+
+        return null;
     }
 
     protected function validarMedia(string $mediaPath, string $mensajePaso): ?array
@@ -152,7 +208,13 @@ class WhatsAppFlowService
                  ."Para continuar, debe adjuntar la {$documento} como archivo.\n"
                  ."📋 Solo se aceptan: *JPG, JPEG, PNG o PDF*."
                  .self::SEPARADOR
-                 .$instrucciones;
+                 .$instrucciones
+                 .self::SEPARADOR
+                 ."*Comandos:*\n"
+                 ."• *0* — Volver al menú\n"
+                 ."• *menu* — Reiniciar\n"
+                 ."• *atras* — Paso anterior\n"
+                 ."• *hola* — Ver esta ayuda";
 
         return $this->text($mensaje);
     }
@@ -358,9 +420,45 @@ class WhatsAppFlowService
 
         $this->whatsAppService->enviarMensaje($conv->telefono, "✅ *Servicio seleccionado: {$servicio->nombre}*");
 
-        $conv->update(['paso' => 'pedir_foto_cedula_frente']);
+        $sede = ConfigSede::find($conv->sede_id);
+        $sedeNombre = $sede?->nom_sede ?? '—';
+        $conv->update(['paso' => 'confirmar_resumen']);
 
-        return $this->text("📷 *Envíe la foto del frente de su cédula.*\n_(Solo se aceptan archivos JPG, JPEG, PNG o PDF)_");
+        $mensaje = "📋 *Resumen de su solicitud*\n"
+                 .self::SEPARADOR
+                 ."🏥 *Sede:* {$sedeNombre}\n"
+                 ."🩺 *Servicio:* {$servicio->nombre}\n"
+                 .self::SEPARADOR
+                 ."A continuación necesitaremos que adjunte:\n"
+                 ."1. 📷 Foto del *frente* de su cédula\n"
+                 ."2. 📷 Foto del *reverso* de su cédula\n"
+                 ."3. 📄 *Orden* médica\n"
+                 ."4. 📄 *Autorización* médica\n"
+                 .self::SEPARADOR
+                 ."¿Está listo para continuar?\n\n"
+                 ."• *1* o *Si* — Continuar\n"
+                 ."• *0* o *menu* — Cambiar de servicio";
+
+        return $this->text($mensaje);
+    }
+
+    protected function procesarConfirmarResumen(WhatsAppConversation $conv, string $respuesta): array
+    {
+        $respuesta = trim(mb_strtolower($respuesta));
+
+        if (in_array($respuesta, ['1', 'si', 'sí', 'continuar', 'listo'], true)) {
+            $conv->update(['paso' => 'pedir_foto_cedula_frente']);
+
+            return $this->text("📷 *Envíe la foto del frente de su cédula.*\n_(Solo se aceptan archivos JPG, JPEG, PNG o PDF)_");
+        }
+
+        if (in_array($respuesta, ['0', 'no', 'cancelar', 'menu'], true)) {
+            $this->resetearConversacion($conv);
+
+            return $this->iniciarConversacion($conv);
+        }
+
+        return $this->text("Opción no válida. Responda *1* para continuar o *0* para cancelar.");
     }
 
     protected function procesarDocumento(WhatsAppConversation $conv, string $documento): array
@@ -940,14 +1038,82 @@ class WhatsAppFlowService
             return $this->text("❌ Error al procesar el paciente. Por favor contacte a soporte.");
         }
 
+        $conv->update(['paso' => 'confirmar_solicitud']);
+
+        $servicio = $datos['servicio_nombre'] ?? 'Estudio';
+        $nombrePaciente = trim(($datos['nombres'] ?? '').' '.($datos['pri_ape'] ?? '').' '.($datos['seg_ape'] ?? ''));
+        $sede = $conv->sede_id ? ConfigSede::find($conv->sede_id) : null;
+        $sedeNombre = $sede?->nom_sede ?? '—';
+
+        $mensajeR = "📋 *Confirme su solicitud*";
+        $mensajeR .= self::SEPARADOR;
+        $mensajeR .= "🩺 *Servicio:* {$servicio}\n";
+        $mensajeR .= "🏥 *Sede:* {$sedeNombre}\n";
+        $mensajeR .= "👤 *Paciente:* {$nombrePaciente}\n";
+        $mensajeR .= "🆔 *Documento:* {$datos['num_docu']}\n";
+        $mensajeR .= "📞 *Tel:* {$datos['cel']}\n";
+        $mensajeR .= "📍 *Dirección:* {$datos['direccion']}\n";
+
+        if (! empty($datos['ruta_cedula_frente_media'])) {
+            $mensajeR .= "📎 Cédula frente: ✓\n";
+        }
+        if (! empty($datos['ruta_cedula_dorso_media'])) {
+            $mensajeR .= "📎 Cédula reverso: ✓\n";
+        }
+        if (! empty($datos['ruta_orden_media'])) {
+            $mensajeR .= "📎 Orden médica: ✓\n";
+        }
+        if (! empty($datos['ruta_autorizacion_media'])) {
+            $mensajeR .= "📎 Autorización: ✓\n";
+        }
+
+        $mensajeR .= self::SEPARADOR;
+        $mensajeR .= "¿*Desea enviar la solicitud?*\n\n";
+        $mensajeR .= "• *1* o *Si* — Confirmar y enviar\n";
+        $mensajeR .= "• *0* o *No* — Cancelar\n";
+        $mensajeR .= "• *menu* — Reiniciar\n";
+        $mensajeR .= "• *atras* — Volver a documentos";
+
+        return $this->text($mensajeR);
+    }
+
+    protected function procesarConfirmarSolicitud(
+        WhatsAppConversation $conv,
+        string $respuesta
+    ): array {
+        if ($conv->cita_id && AgendaCita::find($conv->cita_id)) {
+            return $this->text("✅ Su cita ya fue registrada. En 24 horas será notificado.");
+        }
+
+        $respuesta = trim(mb_strtolower($respuesta));
+
+        if (! in_array($respuesta, ['1', 'si', 'sí', 'confirmar', 'enviar'], true)) {
+            if (in_array($respuesta, ['0', 'no', 'cancelar'], true)) {
+                $this->resetearConversacion($conv);
+                $this->whatsAppService->enviarMensaje($conv->telefono, "❌ Solicitud cancelada. Puede iniciar de nuevo cuando desee.");
+
+                return $this->iniciarConversacion($conv);
+            }
+
+            return $this->text("Opción no válida. Responda *1* para confirmar o *0* para cancelar.");
+        }
+
+        $datos = $conv->datos ?: [];
+        $pacienteId = $datos['paciente_id'] ?? null;
+        $paciente = $pacienteId ? Paciente::find($pacienteId) : null;
+
+        if (! $paciente) {
+            $this->resetearConversacion($conv);
+
+            return $this->text("❌ Error al procesar el paciente. Por favor contacte a soporte.");
+        }
+
         $cita = DB::transaction(function () use ($conv, $paciente, $datos) {
             $convActual = WhatsAppConversation::lockForUpdate()->find($conv->id);
 
             if ($convActual->cita_id) {
                 $citaExistente = AgendaCita::find($convActual->cita_id);
                 if ($citaExistente) {
-                    $convActual->update(['paso' => 'confirmar_solicitud']);
-
                     return $citaExistente;
                 }
             }
@@ -970,7 +1136,7 @@ class WhatsAppFlowService
 
             $convActual->update([
                 'cita_id' => $nuevaCita->id,
-                'paso' => 'confirmar_solicitud',
+                'paso' => 'cita_creada',
             ]);
 
             return $nuevaCita;
@@ -996,7 +1162,7 @@ class WhatsAppFlowService
         }
 
         $servicio = $datos['servicio_nombre'] ?? 'Estudio';
-        $nombrePaciente = $datos['nombres'].' '.($datos['pri_ape'] ?? '').' '.($datos['seg_ape'] ?? '');
+        $nombrePaciente = trim(($datos['nombres'] ?? '').' '.($datos['pri_ape'] ?? '').' '.($datos['seg_ape'] ?? ''));
         $sede = $conv->sede_id ? ConfigSede::find($conv->sede_id) : null;
         $sedeNombre = $sede?->nom_sede ?? '—';
 

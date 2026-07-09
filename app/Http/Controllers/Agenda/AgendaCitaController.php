@@ -510,11 +510,27 @@ class AgendaCitaController extends Controller
             $messageId = $mensaje['id'] ?? null;
 
             $mediaPath = null;
+            $mediaDownloadError = false;
             if (in_array($mensaje['type'], ['image', 'document'])) {
                 $mediaId = $mensaje['media']['id'] ?? null;
                 if ($mediaId) {
                     $mediaPath = $this->whatsAppService->descargarMedia($mediaId);
+                    if (! $mediaPath) {
+                        $mediaDownloadError = true;
+                    }
                 }
+            }
+
+            if ($mediaDownloadError) {
+                $this->whatsAppService->enviarMensaje(
+                    $mensaje['from'],
+                    "❌ No pudimos descargar su archivo. Intente enviarlo nuevamente.\n_(Formatos aceptados: JPG, PNG, PDF — máx 10MB)_"
+                );
+                if ($messageId) {
+                    $this->whatsAppService->marcarComoLeido($messageId);
+                }
+
+                continue;
             }
 
             $respuesta = $this->whatsAppFlowService->procesarMensaje(
@@ -584,7 +600,7 @@ class AgendaCitaController extends Controller
 
     public function testEnviar(Request $request)
     {
-        $telefono = $request->input('telefono', '15556370875');
+        $telefono = $request->input('telefono', $request->input('phone', '15556370875'));
         $mensaje = $request->input('mensaje', 'Hola! Este es un mensaje de prueba desde LIDiag.');
 
         $resultado = $this->whatsAppService->enviarMensaje($telefono, $mensaje);
@@ -646,8 +662,11 @@ class AgendaCitaController extends Controller
         $conversacion = null;
 
         if ($cita->paciente && $cita->paciente->cel) {
-            $conversacion = WhatsAppConversation::where('telefono', 'like', '%'.$cita->paciente->cel)
-                ->first();
+            $cel = preg_replace('/[^0-9]/', '', $cita->paciente->cel);
+            $conversacion = WhatsAppConversation::whereRaw(
+                "REPLACE(REPLACE(REPLACE(telefono, ' ', ''), '-', ''), '+', '') LIKE ?",
+                ["%{$cel}"]
+            )->first();
         }
 
         return response()->json([
