@@ -724,7 +724,7 @@
 
 <script>
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
-import { listarUsuariosYSedes } from "../../../helpers/usuarios";
+import { listarUsuariosYSedes } from "@/helpers/usuarios";
 import {
     safeDestroyDataTable,
     safeInitDataTable,
