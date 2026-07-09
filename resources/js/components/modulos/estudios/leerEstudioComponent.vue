@@ -1207,7 +1207,7 @@ import {
     safeInitDataTable,
     safeRemoveDataTableRow,
 } from "@/helpers/datatables.js";
-import { handleAxiosErrorToast } from "@/helpers/alerts";
+import { handleAxiosErrorToast, toastMessage } from "@/helpers/alerts";
 import { useMedicalDictionary } from "@/composables/useMedicalDictionary";
 import { useDictationFlow } from "@/composables/useDictationFlow";
 import { useAudioUploadFlow } from "@/composables/useAudioUploadFlow";
@@ -1449,14 +1449,10 @@ export default {
 
         async listarMisPendientes() {
             if (sessionStorage.getItem("ST-sede") == null) {
-                $.toast({
+                toastMessage({
                     heading: "Upsss!!!",
                     text: "Debes establece la sede en la cual vas a trabajar.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "warning",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
             } else {
                 if (this.loadingListar) return;
@@ -1503,12 +1499,10 @@ export default {
                     this.listarMisPendientes();
                 }, this.autoRefreshInterval);
                 this.autoRefreshEnabled = true;
-                $.toast({
+                toastMessage({
                     heading: "Auto-refresh",
                     text: `Actualizando cada ${this.autoRefreshInterval / 1000} segundos`,
-                    position: "top-right",
                     icon: "success",
-                    hideAfter: 2000,
                 });
             }
         },
@@ -1519,14 +1513,10 @@ export default {
                 await this.dictationFlow.stopAll();
 
                 if (!this.registro || !this.registro.estudio_producto_id) {
-                    $.toast({
+                    toastMessage({
                         heading: "Upsss!!!",
                         text: "No hay un estudio seleccionado para guardar.",
-                        position: "top-right",
-                        loaderBg: "#ff6849",
                         icon: "warning",
-                        hideAfter: 3500,
-                        stack: 6,
                     });
                     return;
                 }
@@ -1539,14 +1529,10 @@ export default {
                         this.registro.estudio_producto_id
                     );
 
-                    $.toast({
+                    toastMessage({
                         heading: "Completado",
                         text: res.data.message,
-                        position: "top-right",
-                        loaderBg: "#ff6849",
                         icon: "success",
-                        hideAfter: 3500,
-                        stack: 6,
                     });
 
                     const estudioEliminar = this.registros.findIndex(

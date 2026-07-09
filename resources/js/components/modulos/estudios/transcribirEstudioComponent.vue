@@ -705,7 +705,7 @@
 <script>
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
-import { listarUsuariosYSedes } from "../../../helpers/usuarios";
+import { listarUsuariosYSedes } from "@/helpers/usuarios";
 import {
     safeDestroyDataTable,
     safeInitDataTable,
