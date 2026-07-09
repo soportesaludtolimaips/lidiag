@@ -360,7 +360,7 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; height: 100%">
+        <div class="right-sidebar sidebar-scroll">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -1238,5 +1238,10 @@ export default {
     .shw-rside {
         width: 100%;
     }
+}
+.sidebar-scroll {
+    overflow-x: hidden;
+    overflow-y: scroll;
+    height: 100%;
 }
 </style>

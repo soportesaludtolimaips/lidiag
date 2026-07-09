@@ -5,14 +5,7 @@
             @click="toggleSpeechRecognition"
             :aria-label="recognizing ? 'Detener grabación' : 'Iniciar grabación'"
             :aria-pressed="String(recognizing)"
-            style="
-                width: 44px;
-                height: 44px;
-                padding: 0;
-                border: none;
-                background: none;
-                cursor: pointer;
-            "
+            class="mic-btn"
         >
             <img title="Grabadora" :src="microfono" />
         </button>
@@ -21,10 +14,9 @@
                 <div class="form-group">
                     <textarea
                         v-model="registro.lectura"
-                        class="textarea_editor form-control"
+                        class="textarea_editor form-control audio-textarea"
                         rows="15"
                         id="lectura"
-                        style="height: 700px"
                         placeholder="Ingrese aquí la lectura del estudio ..."
                     ></textarea>
                 </div>
@@ -149,3 +141,16 @@ export default {
     },
 };
 </script>
+<style scoped>
+.mic-btn {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+.audio-textarea {
+    height: 700px;
+}
+</style>

@@ -246,11 +246,7 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div
-            class="right-sidebar"
-            id="right-sidebar"
-            style="overflow-x: hidden; overflow-y: scroll; height: 100%"
-        >
+        <div class="right-sidebar sidebar-scroll" id="right-sidebar">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -553,10 +549,7 @@
                                                 @input="onProductoSelect"
                                             />
                                         </div>
-                                        <div
-                                            class="col-md-12 table-responsive"
-                                            style="overflow-y: scroll; height: 250px"
-                                        >
+                                        <div class="col-md-12 table-responsive table-scroll">
                                             <table
                                                 id="myTable"
                                                 class="table table-bordered table-striped"
@@ -631,10 +624,7 @@
                                                 @input="onDiagnosticoSelect"
                                             />
                                         </div>
-                                        <div
-                                            class="col-md-12 table-responsive"
-                                            style="overflow-y: scroll; height: 250px"
-                                        >
+                                        <div class="col-md-12 table-responsive table-scroll">
                                             <table
                                                 id="myTable"
                                                 class="table table-bordered table-striped"
@@ -719,11 +709,7 @@
                                     Cancel
                                 </button>
                             </div>
-                            <div
-                                class="progress mt-2"
-                                v-if="progresoUpload !== null"
-                                style="height: 6px"
-                            >
+                            <div class="progress mt-2 progress-thin" v-if="progresoUpload !== null">
                                 <div
                                     class="progress-bar progress-bar-success"
                                     role="progressbar"
@@ -1450,6 +1436,18 @@ export default {
     }
 }
 
+.sidebar-scroll {
+    overflow-x: hidden;
+    overflow-y: scroll;
+    height: 100%;
+}
+.table-scroll {
+    overflow-y: scroll;
+    height: 250px;
+}
+.progress-thin {
+    height: 6px;
+}
 .audio {
     width: 50px;
     height: 5px;

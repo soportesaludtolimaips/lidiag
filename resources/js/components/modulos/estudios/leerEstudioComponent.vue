@@ -319,7 +319,7 @@
     <!-- Right sidebar -->
     <!-- ============================================================== -->
     <!-- .right-sidebar -->
-    <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; height: 100%">
+    <div class="right-sidebar sidebar-scroll">
         <div class="slimscrollright" style="overflow-x: hidden">
             <div class="rpanel-title">
                 {{ tituloModal }}
@@ -525,10 +525,9 @@
                                         <div class="form-group">
                                             <textarea
                                                 v-model="registro.lectura"
-                                                class="form-control"
+                                                class="form-control lectura-textarea"
                                                 rows="15"
                                                 id="lectura"
-                                                style="height: 100%"
                                                 placeholder="Ingrese aquí la lectura del estudio ..."
                                             ></textarea>
                                         </div>
@@ -1865,5 +1864,13 @@ export default {
 .audio {
     width: 50px;
     height: 5px;
+}
+.sidebar-scroll {
+    overflow-x: hidden;
+    overflow-y: scroll;
+    height: 100%;
+}
+.lectura-textarea {
+    height: 100%;
 }
 </style>
