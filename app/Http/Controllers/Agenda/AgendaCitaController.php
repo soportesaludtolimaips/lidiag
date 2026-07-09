@@ -507,47 +507,57 @@ class AgendaCitaController extends Controller
                 continue;
             }
 
-            $messageId = $mensaje['id'] ?? null;
+            try {
+                $messageId = $mensaje['id'] ?? null;
 
-            $mediaPath = null;
-            $mediaDownloadError = false;
-            if (in_array($mensaje['type'], ['image', 'document'])) {
-                $mediaId = $mensaje['media']['id'] ?? null;
-                if ($mediaId) {
-                    $mediaPath = $this->whatsAppService->descargarMedia($mediaId);
-                    if (! $mediaPath) {
-                        $mediaDownloadError = true;
+                $mediaPath = null;
+                $mediaDownloadError = false;
+                if (in_array($mensaje['type'], ['image', 'document'])) {
+                    $mediaId = $mensaje['media']['id'] ?? null;
+                    if ($mediaId) {
+                        $mediaPath = $this->whatsAppService->descargarMedia($mediaId);
+                        if (! $mediaPath) {
+                            $mediaDownloadError = true;
+                        }
                     }
                 }
-            }
 
-            if ($mediaDownloadError) {
-                $this->whatsAppService->enviarMensaje(
+                if ($mediaDownloadError) {
+                    $this->whatsAppService->enviarMensaje(
+                        $mensaje['from'],
+                        "❌ No pudimos descargar su archivo. Intente enviarlo nuevamente.\n_(Formatos aceptados: JPG, PNG, PDF — máx 10MB)_"
+                    );
+                    if ($messageId) {
+                        $this->whatsAppService->marcarComoLeido($messageId);
+                    }
+
+                    continue;
+                }
+
+                $respuesta = $this->whatsAppFlowService->procesarMensaje(
                     $mensaje['from'],
-                    "❌ No pudimos descargar su archivo. Intente enviarlo nuevamente.\n_(Formatos aceptados: JPG, PNG, PDF — máx 10MB)_"
+                    $mensaje['text'] ?? '',
+                    $mensaje['type'] ?? 'text',
+                    $mediaPath,
+                    $mensaje['media'] ?? null,
+                    $mensaje['phone_number_id'] ?? null
                 );
+
+                if ($respuesta) {
+                    $this->enviarRespuesta($mensaje['from'], $respuesta);
+                }
+
                 if ($messageId) {
                     $this->whatsAppService->marcarComoLeido($messageId);
                 }
-
-                continue;
-            }
-
-            $respuesta = $this->whatsAppFlowService->procesarMensaje(
-                $mensaje['from'],
-                $mensaje['text'] ?? '',
-                $mensaje['type'] ?? 'text',
-                $mediaPath,
-                $mensaje['media'] ?? null,
-                $mensaje['phone_number_id'] ?? null
-            );
-
-            if ($respuesta) {
-                $this->enviarRespuesta($mensaje['from'], $respuesta);
-            }
-
-            if ($messageId) {
-                $this->whatsAppService->marcarComoLeido($messageId);
+            } catch (\Throwable $e) {
+                Log::warning('WhatsApp webhook: error procesando mensaje (SAHI)', [
+                    'telefono' => $mensaje['from'],
+                    'tipo' => $mensaje['type'] ?? 'unknown',
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ]);
             }
         }
 

@@ -140,82 +140,91 @@
                         <h6 class="card-subtitle text-info">
                             Texto enviado al paciente junto con la confirmación de su cita.
                         </h6>
-                        <div class="table-responsive">
-                            <table
-                                id="example23"
-                                ref="dt"
-                                class="table table-bordered table-striped"
-                                cellspacing="0"
-                                width="100%"
-                            >
-                                <thead>
-                                    <tr>
-                                        <th>Producto</th>
-                                        <th>Recomendación</th>
-                                        <th>Estado</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="item in registros" :key="item.id">
-                                        <td>
-                                            <strong>{{ item.producto?.nom_produc || "—" }}</strong
-                                            ><br />
-                                            <small class="text-muted">{{
-                                                item.producto?.cod_cups
-                                            }}</small>
-                                        </td>
-                                        <td>
-                                            <div style="max-width: 500px; white-space: pre-wrap">
-                                                {{ item.recomendacion || "—" }}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span
-                                                class="badge"
-                                                :class="
-                                                    item.estado
-                                                        ? 'badge-success'
-                                                        : 'badge-secondary'
-                                                "
-                                            >
-                                                {{ item.estado ? "Activo" : "Inactivo" }}
-                                            </span>
-                                        </td>
-                                        <td class="text-nowrap">
-                                            <button
-                                                type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="mostrarRegistro(item)"
-                                                title="Editar"
-                                            >
-                                                <i class="fa fa-pencil"></i>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="eliminarRegistro(item.id)"
-                                                :disabled="loadingEliminarId === item.id"
-                                                title="Eliminar"
-                                            >
-                                                <i
-                                                    class="fa"
+
+                        <loading-spinner :visible="loadingBuscar" />
+
+                        <div :class="{ 'd-none': loadingBuscar }">
+                            <div class="table-responsive">
+                                <table
+                                    id="tabla-recomendaciones"
+                                    ref="dt"
+                                    class="table table-bordered table-striped"
+                                    cellspacing="0"
+                                    width="100%"
+                                >
+                                    <thead>
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th>Recomendación</th>
+                                            <th>Estado</th>
+                                            <th class="sr-only">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="item in registros" :key="item.id">
+                                            <td>
+                                                <strong>{{
+                                                    item.producto?.nom_produc || "—"
+                                                }}</strong
+                                                ><br />
+                                                <small class="text-muted">{{
+                                                    item.producto?.cod_cups
+                                                }}</small>
+                                            </td>
+                                            <td>
+                                                <div
+                                                    style="max-width: 500px; white-space: pre-wrap"
+                                                >
+                                                    {{ item.recomendacion || "—" }}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span
+                                                    class="badge"
                                                     :class="
-                                                        loadingEliminarId === item.id
-                                                            ? 'fa-spinner fa-spin'
-                                                            : 'fa-trash'
+                                                        item.estado
+                                                            ? 'badge-success'
+                                                            : 'badge-secondary'
                                                     "
-                                                ></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr v-if="registros.length === 0">
-                                        <td colspan="4" class="text-center text-muted">
-                                            No hay recomendaciones registradas
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                                                >
+                                                    {{ item.estado ? "Activo" : "Inactivo" }}
+                                                </span>
+                                            </td>
+                                            <td class="text-nowrap">
+                                                <button
+                                                    type="button"
+                                                    class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
+                                                    @click="mostrarRegistro(item)"
+                                                    title="Editar"
+                                                >
+                                                    <i class="fa fa-pencil"></i>
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
+                                                    @click="eliminarRegistro(item.id)"
+                                                    :disabled="loadingEliminarId === item.id"
+                                                    title="Eliminar"
+                                                >
+                                                    <i
+                                                        class="fa"
+                                                        :class="
+                                                            loadingEliminarId === item.id
+                                                                ? 'fa-spinner fa-spin'
+                                                                : 'fa-trash'
+                                                        "
+                                                    ></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr v-if="registros.length === 0">
+                                            <td colspan="4" class="text-center text-muted">
+                                                No hay recomendaciones registradas
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -308,12 +317,13 @@
 
 <script>
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { handleAxiosErrorToast, alertSuccess, alertError } from "@/helpers/alerts";
+import { handleAxiosErrorToast, alertSuccess, alertError, confirmAction } from "@/helpers/alerts";
 import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
+import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 
 export default {
     name: "RecomendacionProductoComponent",
-    components: { FormattedTextEditor },
+    components: { FormattedTextEditor, LoadingSpinner },
     computed: {
         filterProductoOptions() {
             return (this.productos || []).map((p) => ({
@@ -337,7 +347,7 @@ export default {
         this.buscar();
     },
     beforeUnmount() {
-        safeDestroyDataTable(this.$refs.dt || "#example23");
+        safeDestroyDataTable(this.$refs.dt || "#tabla-recomendaciones");
     },
     data() {
         return {
@@ -425,10 +435,10 @@ export default {
                 const params = {};
                 if (this.filtro.producto_id) params.producto_id = this.filtro.producto_id;
                 const res = await axios.get("/api/config-recomendacion-productos", { params });
-                safeDestroyDataTable(this.$refs.dt || "#example23");
+                safeDestroyDataTable(this.$refs.dt || "#tabla-recomendaciones");
                 this.registros = res.data || [];
                 this.$nextTick(() => {
-                    safeInitDataTable(this.$refs.dt || "#example23", {
+                    safeInitDataTable(this.$refs.dt || "#tabla-recomendaciones", {
                         dom: "Bfrtip",
                         buttons: ["copy", "csv", "excel", "pdf", "print"],
                     });
@@ -473,7 +483,12 @@ export default {
             }
         },
         async eliminarRegistro(id) {
-            if (!confirm("¿Está seguro de eliminar esta recomendación?")) return;
+            const ok = await confirmAction({
+                title: "¿Está seguro?",
+                text: "No podrá recuperar este registro.",
+                icon: "warning",
+            });
+            if (!ok) return;
             if (this.loadingEliminarId) return;
             this.loadingEliminarId = id;
             try {
