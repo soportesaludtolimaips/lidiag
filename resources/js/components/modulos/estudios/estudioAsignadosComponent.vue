@@ -8,10 +8,22 @@
                 <h3 class="text-themecolor">Estudios</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Estudios</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Estudios
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Estudios asignados</li>
                 </ol>
@@ -36,7 +48,7 @@
                                 <div class="row p-t-2">
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label>Quien asigno</label>
+                                            <label for="quien_asigno_id">Quien asigno</label>
                                             <select
                                                 v-model="busqueda.quien_asigno_id"
                                                 name="quien_asigno_id"
@@ -60,7 +72,7 @@
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label>Medicos</label>
+                                            <label for="medico_id">Medicos</label>
                                             <select
                                                 v-model="busqueda.medico_id"
                                                 name="medico_id"
@@ -1016,7 +1028,8 @@ export default {
                     typeof error.response.data === "object"
                 ) {
                     const data = error.response.data;
-                    this.errores = data.errors && typeof data.errors === "object" ? data.errors : data;
+                    this.errores =
+                        data.errors && typeof data.errors === "object" ? data.errors : data;
                 }
                 $.toast({
                     heading: "Upss!!!",

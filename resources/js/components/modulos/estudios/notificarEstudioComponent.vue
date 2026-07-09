@@ -8,10 +8,22 @@
                 <h3 class="text-themecolor">Estudios</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Estudios</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Estudios
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Notificar Estudios</li>
                 </ol>
@@ -190,6 +202,7 @@
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
                                                 @click="imprimirReporte(item)"
                                                 title="Imprimir reporte"
+                                                aria-label="Imprimir reporte"
                                                 :disabled="
                                                     loadingImprimirId === item.estudio_producto_id
                                                 "
@@ -212,6 +225,7 @@
                                                 "
                                                 @click="mostrarRegistro(item)"
                                                 title="Notificar por correo electronico"
+                                                aria-label="Notificar por correo electronico"
                                             >
                                                 <i
                                                     v-if="
@@ -230,6 +244,7 @@
                                                 "
                                                 @click="enviarPortal(item)"
                                                 title="Enviar al portal de pacientes"
+                                                aria-label="Enviar al portal de pacientes"
                                             >
                                                 <i
                                                     v-if="
@@ -461,7 +476,10 @@ export default {
                     });
                 }
 
-                this.erroresBusqueda = (error?.response?.data?.errors && typeof error.response.data.errors === "object") ? error.response.data.errors : {};
+                this.erroresBusqueda =
+                    error?.response?.data?.errors && typeof error.response.data.errors === "object"
+                        ? error.response.data.errors
+                        : {};
             } finally {
                 this.loadingBuscar = false;
             }
@@ -488,7 +506,10 @@ export default {
                     "noopener,noreferrer"
                 );
             } catch (error) {
-                this.errores = (error?.response?.data?.errors && typeof error.response.data.errors === "object") ? error.response.data.errors : {};
+                this.errores =
+                    error?.response?.data?.errors && typeof error.response.data.errors === "object"
+                        ? error.response.data.errors
+                        : {};
             } finally {
                 this.loadingImprimirId = null;
             }
