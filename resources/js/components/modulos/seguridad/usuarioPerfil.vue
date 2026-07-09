@@ -8,10 +8,10 @@
                 <h3 class="text-themecolor">Seguridad</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <a role="button" tabindex="0">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Seguridad</a>
+                        <a role="button" tabindex="0">Seguridad</a>
                     </li>
                     <li class="breadcrumb-item active">Perfil</li>
                 </ol>
@@ -31,45 +31,78 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="text-center m-t-30">
-                            <img v-if="!registro.imagen_perfil"
-                                src="@/admin-wrap/assets/images/users/avatar_default.png" :alt="registro.name"
-                                class="img-circle" width="150">
-                            <img v-else :src="registro.imagen_perfil" :alt="registro.name" class="img-circle"
-                                width="150">
+                            <img
+                                v-if="!registro.imagen_perfil"
+                                src="@/admin-wrap/assets/images/users/avatar_default.png"
+                                :alt="registro.name"
+                                class="img-circle"
+                                width="150"
+                            />
+                            <img
+                                v-else
+                                :src="registro.imagen_perfil"
+                                :alt="registro.name"
+                                class="img-circle"
+                                width="150"
+                            />
                             <h4 class="card-title m-t-10">{{ registro.name }}</h4>
                             <h6 class="card-subtitle">{{ registro.tipo_user }}</h6>
 
                             <div class="row">
                                 <div class="col-md-12">
-                                    <div class="fileupload btn btn-danger btn-rounded waves-effect waves-light">
+                                    <div
+                                        class="fileupload btn btn-danger btn-rounded waves-effect waves-light"
+                                    >
                                         <span>
                                             <i class="ion-upload m-r-5"></i>Seleccionar archivo
                                         </span>
-                                        <input type="file" class="upload" accept="image/*" @change='obtenerArchivo'>
+                                        <input
+                                            type="file"
+                                            class="upload"
+                                            accept="image/*"
+                                            @change="obtenerArchivo"
+                                        />
                                     </div>
                                 </div>
                             </div>
-                            <hr>
+                            <hr />
                             <h6 class="card-subtitle m-b-10">Firma digital</h6>
-                            <img v-if="firmaPreview" :src="firmaPreview"
-                                alt="Firma" class="m-b-10" style="max-width: 100%; max-height: 80px;">
-                            <img v-else-if="registro.firma" :src="'/' + registro.firma"
-                                alt="Firma" class="m-b-10" style="max-width: 100%; max-height: 80px;">
+                            <img
+                                v-if="firmaPreview"
+                                :src="firmaPreview"
+                                alt="Firma"
+                                class="m-b-10"
+                                style="max-width: 100%; max-height: 80px"
+                            />
+                            <img
+                                v-else-if="registro.firma"
+                                :src="'/' + registro.firma"
+                                alt="Firma"
+                                class="m-b-10"
+                                style="max-width: 100%; max-height: 80px"
+                            />
                             <p v-else class="text-muted small m-b-10">Sin firma</p>
                             <div class="row">
                                 <div class="col-md-12">
-                                    <div class="fileupload btn btn-info btn-rounded waves-effect waves-light btn-sm">
+                                    <div
+                                        class="fileupload btn btn-info btn-rounded waves-effect waves-light btn-sm"
+                                    >
                                         <span>
                                             <i class="ion-upload m-r-5"></i>Seleccionar firma
                                         </span>
-                                        <input type="file" class="upload" accept="image/*" @change='obtenerFirma'>
+                                        <input
+                                            type="file"
+                                            class="upload"
+                                            accept="image/*"
+                                            @change="obtenerFirma"
+                                        />
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div>
-                        <hr>
+                        <hr />
                     </div>
                     <div class="card-body">
                         <small class="text-muted">Email address</small>
@@ -90,7 +123,9 @@
                     <!-- Nav tabs -->
                     <ul class="nav nav-tabs profile-tab" role="tablist">
                         <li class="nav-item">
-                            <a class="nav-link active" data-toggle="tab" href="#settings" role="tab">Ajustes</a>
+                            <a class="nav-link active" data-toggle="tab" href="#settings" role="tab"
+                                >Ajustes</a
+                            >
                         </li>
                     </ul>
                     <!-- Tab panes -->
@@ -102,40 +137,72 @@
                                     <div class="form-group">
                                         <label class="col-md-6"># Documento</label>
                                         <div class="col-md-6">
-                                            <input type="text" id="num_docu" name="num_docu" v-model="registro.num_docu"
+                                            <input
+                                                type="text"
+                                                id="num_docu"
+                                                name="num_docu"
+                                                v-model="registro.num_docu"
                                                 placeholder="Ingrese aqui el número de documento"
-                                                class="form-control form-control-line">
+                                                class="form-control form-control-line"
+                                            />
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <label class="col-md-12">Nombres</label>
                                         <div class="col-md-12">
-                                            <input type="text" id="name" name="name" v-model="registro.name"
+                                            <input
+                                                type="text"
+                                                id="name"
+                                                name="name"
+                                                v-model="registro.name"
                                                 placeholder="Ingrese aqui los nombres del usuario"
-                                                class="form-control form-control-line">
+                                                class="form-control form-control-line"
+                                            />
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <label for="example-email" class="col-md-12">Email</label>
                                         <div class="col-md-12">
-                                            <input type="email" id="email" email="email" v-model="registro.email"
+                                            <input
+                                                type="email"
+                                                id="email"
+                                                email="email"
+                                                v-model="registro.email"
                                                 placeholder="Ingrese aqui el email"
-                                                class="form-control form-control-line">
+                                                class="form-control form-control-line"
+                                            />
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <label class="col-md-12">Password</label>
                                         <div class="col-md-12">
-                                            <input type="password" id="password" name="password"
-                                                v-model="registro.password" class="form-control form-control-line">
+                                            <input
+                                                type="password"
+                                                id="password"
+                                                name="password"
+                                                v-model="registro.password"
+                                                class="form-control form-control-line"
+                                            />
+                                            <small class="text-muted"
+                                                >Dejar en blanco si no desea cambiar la
+                                                contraseña</small
+                                            >
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <div class="col-sm-12">
-                                            <button type="button" class="btn btn-success m-r-5"
-                                                :disabled="loadingActualizar" @click="actualizarPerfil()">
-                                                <i v-if="loadingActualizar" class="fa fa-spinner fa-spin"></i>
-                                                <i v-else class="fa fa-pencil"></i> Actualizar Perfil
+                                            <button
+                                                type="button"
+                                                class="btn btn-success m-r-5"
+                                                :disabled="loadingActualizar"
+                                                @click="actualizarPerfil()"
+                                            >
+                                                <i
+                                                    v-if="loadingActualizar"
+                                                    class="fa fa-spinner fa-spin"
+                                                ></i>
+                                                <i v-else class="fa fa-pencil"></i> Actualizar
+                                                Perfil
                                             </button>
                                             <!-- <button type="button" class="btn btn-inverse">
                                                 <i class="fa fa-reply"></i> Cancel
@@ -160,7 +227,7 @@
 import { handleAxiosErrorToast } from "@/helpers/alerts";
 
 export default {
-    props: ['usuarioactual'],
+    props: ["usuarioactual"],
     mounted() {
         this.obtenerRegistro();
     },
@@ -170,8 +237,18 @@ export default {
     data() {
         return {
             id: this.usuarioactual.id,
-            registro: { id: this.usuarioactual.id, num_docu: '', dependencia_id: this.usuarioactual.dependencia_id, name: '', email: '', password: '', estado: 0, imagen_perfil: null, firma: null },
-            firmaPreview: '',
+            registro: {
+                id: this.usuarioactual.id,
+                num_docu: "",
+                dependencia_id: this.usuarioactual.dependencia_id,
+                name: "",
+                email: "",
+                password: "",
+                estado: 0,
+                imagen_perfil: null,
+                firma: null,
+            },
+            firmaPreview: "",
             errores: {},
             loadingObtener: false,
             loadingActualizar: false,
@@ -204,25 +281,29 @@ export default {
                 const formData = new FormData();
                 Object.keys(this.registro).forEach((key) => {
                     if (this.registro[key] !== undefined && this.registro[key] !== null) {
-                        if (key === 'password' && !this.registro.password) return;
+                        if (key === "password" && !this.registro.password) return;
                         formData.append(key, this.registro[key]);
                     }
                 });
-                const res = await axios.post('/api/seguridad-actualizar-perfil/' + this.id, formData, {
-                    headers: { "Content-Type": "multipart/form-data" }
-                });
+                const res = await axios.post(
+                    "/api/seguridad-actualizar-perfil/" + this.id,
+                    formData,
+                    {
+                        headers: { "Content-Type": "multipart/form-data" },
+                    }
+                );
                 if (res.status == 200) {
-                    this.firmaPreview = '';
+                    this.firmaPreview = "";
                     await this.obtenerRegistro();
 
                     $.toast({
-                        heading: 'Ok!!!',
+                        heading: "Ok!!!",
                         text: res.data.message,
-                        position: 'top-right',
-                        loaderBg: '#ff6849',
-                        icon: 'success',
+                        position: "top-right",
+                        loaderBg: "#ff6849",
+                        icon: "success",
                         hideAfter: 3500,
-                        stack: 6
+                        stack: 6,
                     });
                 }
             } catch (error) {
@@ -243,8 +324,8 @@ export default {
             }
             this.registro.firma = file;
         },
-    }
-}
+    },
+};
 </script>
 
 <style scoped>

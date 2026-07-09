@@ -5,10 +5,10 @@
                 <h3 class="text-themecolor">Seguridad</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <a role="button" tabindex="0">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Seguridad</a>
+                        <a role="button" tabindex="0">Seguridad</a>
                     </li>
                     <li class="breadcrumb-item active">Auditoría de Eventos</li>
                 </ol>
@@ -117,14 +117,7 @@
                                                 {{ item.evento }}
                                             </span>
                                         </td>
-                                        <td
-                                            style="
-                                                max-width: 300px;
-                                                white-space: nowrap;
-                                                overflow: hidden;
-                                                text-overflow: ellipsis;
-                                            "
-                                        >
+                                        <td class="cell-descripcion">
                                             {{ item.descripcion || "—" }}
                                         </td>
                                         <td>
@@ -266,6 +259,7 @@
 </template>
 
 <script>
+import { handleAxiosErrorToast } from "@/helpers/alerts";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 
 export default {
@@ -312,7 +306,7 @@ export default {
                 const res = await axios.get("/api/seguridad-auditoria/eventos");
                 this.eventosDisponibles = res.data;
             } catch (e) {
-                console.error("Error al cargar tipos de evento");
+                handleAxiosErrorToast(e, "Error al cargar tipos de evento");
             }
         },
         async cargarLogs() {
@@ -351,9 +345,7 @@ export default {
                     });
                 });
             } catch (error) {
-                if (error.response?.status === 403 && error.response?.data?.message) {
-                    console.error("No tiene permiso para ver auditoría");
-                }
+                handleAxiosErrorToast(error, "No fue posible cargar los registros de auditoría.");
             } finally {
                 this.loading = false;
             }
@@ -381,3 +373,12 @@ export default {
     },
 };
 </script>
+
+<style scoped>
+.cell-descripcion {
+    max-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+</style>

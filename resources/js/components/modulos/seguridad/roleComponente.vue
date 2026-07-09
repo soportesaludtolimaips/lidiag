@@ -8,17 +8,23 @@
                 <h3 class="text-themecolor">Seguridad</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <a role="button" tabindex="0">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Seguridad</a>
+                        <a role="button" tabindex="0">Seguridad</a>
                     </li>
                     <li class="breadcrumb-item active">Gestión de Roles</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
-                <button type="button" class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="actualizar = false; mostrarRegistro();">
+                <button
+                    type="button"
+                    class="btn btn-info btnDesplegarRigthSidebar"
+                    @click="
+                        actualizar = false;
+                        mostrarRegistro();
+                    "
+                >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
@@ -35,10 +41,18 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de roles</h4>
-                        <div class="table-responsive m-t-40">
-                            <table id="example23" ref="dt"
-                                class="display nowrap table table-hover table-striped table-bordered" cellspacing="0"
-                                width="100%">
+                        <div v-if="loadingListar" class="text-center p-5">
+                            <i class="fa fa-spinner fa-spin fa-3x"></i>
+                            <p class="m-t-10">Cargando roles...</p>
+                        </div>
+                        <div class="table-responsive m-t-40" v-else>
+                            <table
+                                id="example23"
+                                ref="dt"
+                                class="display nowrap table table-hover table-striped table-bordered"
+                                cellspacing="0"
+                                width="100%"
+                            >
                                 <thead>
                                     <tr>
                                         <th>Rol</th>
@@ -46,6 +60,11 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <tr v-if="!listarRoles.length">
+                                        <td colspan="2" class="text-center text-muted">
+                                            No se encontraron roles registrados.
+                                        </td>
+                                    </tr>
                                     <tr v-for="item in listarRoles" :key="item.id">
                                         <td>{{ item.name }}</td>
                                         <td class="text-nowrap">
@@ -53,27 +72,35 @@
                                                 <i class="fa fa-eye"></i>
                                             </button> -->
 
-                                            <button type="button"
+                                            <button
+                                                type="button"
+                                                title="Editar rol"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="actualizar = true; mostrarRegistro(item);">
+                                                @click="
+                                                    actualizar = true;
+                                                    mostrarRegistro(item);
+                                                "
+                                            >
                                                 <i class="fa fa-pencil"></i>
                                             </button>
 
-                                            <!-- <button type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
-                                                @click="elimnarRegistro(item.id)">
-                                                <i class="fa fa-trash"></i>
-                                            </button> -->
-
-                                            <button type="button"
+                                            <button
+                                                type="button"
+                                                title="Desactivar rol"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-success btn-sm"
-                                                @click="cambiarEstado(1, item)" v-if="item.estado == 1">
+                                                @click="cambiarEstado(1, item)"
+                                                v-if="item.estado == 1"
+                                            >
                                                 <i class="fa fa-unlock"></i>
                                             </button>
 
-                                            <button type="button"
+                                            <button
+                                                type="button"
+                                                title="Activar rol"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
-                                                @click="cambiarEstado(0, item)" v-if="item.estado == 0">
+                                                @click="cambiarEstado(0, item)"
+                                                v-if="item.estado == 0"
+                                            >
                                                 <i class="fa fa-lock"></i>
                                             </button>
                                         </td>
@@ -93,13 +120,19 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%;">
+        <div class="right-sidebar" style="overflow-y: auto; height: 100%">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span @click="btnCerralModalForm()">
+                    <button
+                        type="button"
+                        class="close"
+                        title="Cerrar"
+                        aria-label="Cerrar panel"
+                        @click="btnCerralModalForm()"
+                    >
                         <i class="ti-close right-side-toggle"></i>
-                    </span>
+                    </button>
                 </div>
                 <div class="r-panel-body">
                     <!-- ============================================================== -->
@@ -111,25 +144,44 @@
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label class="control-label">Nombre del Rol</label>
-                                        <input type="text" id="name" name="name" v-model="registro.name"
-                                            class="form-control" placeholder="Ingrese aqui el nombre del rol" />
-                                        <span class="text-danger" v-if="errores">{{ errores }}</span>
+                                        <input
+                                            type="text"
+                                            id="name"
+                                            name="name"
+                                            v-model="registro.name"
+                                            class="form-control"
+                                            placeholder="Ingrese aqui el nombre del rol"
+                                        />
+                                        <span class="text-danger" v-if="errores">{{
+                                            errores
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
 
                             <p class="text-info"><i class="fa fa-unlock"></i> Permisos</p>
-                            <span class="text-danger" v-if="erroresRpermisosElegidos">{{ erroresRpermisosElegidos
+                            <span class="text-danger" v-if="erroresRpermisosElegidos">{{
+                                erroresRpermisosElegidos
                             }}</span>
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <div class="controls">
-                                            <div v-for="itemPermiso in registro.permisosRol" :key="itemPermiso.id">
+                                            <div
+                                                v-for="itemPermiso in registro.permisosRol"
+                                                :key="itemPermiso.id"
+                                            >
                                                 <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input"
-                                                        :id="itemPermiso.name" v-model="itemPermiso.checked">
-                                                    <label class="custom-control-label" :for="itemPermiso.name">
+                                                    <input
+                                                        type="checkbox"
+                                                        class="custom-control-input"
+                                                        :id="itemPermiso.name"
+                                                        v-model="itemPermiso.checked"
+                                                    />
+                                                    <label
+                                                        class="custom-control-label"
+                                                        :for="itemPermiso.name"
+                                                    >
                                                         {{ itemPermiso.name }}
                                                     </label>
                                                 </div>
@@ -140,17 +192,31 @@
                             </div>
 
                             <div class="form-actions mt-3">
-                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
-                                    v-if="!actualizar" :disabled="loadingGuardar">
+                                <button
+                                    type="button"
+                                    class="btn btn-success m-r-5"
+                                    @click="guardarRegistro()"
+                                    v-if="!actualizar"
+                                    :disabled="loadingGuardar"
+                                >
                                     <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
                                     <i v-else class="fa fa-check"></i> Guardar
                                 </button>
-                                <button type="button" class="btn btn-warning m-r-5" v-if="actualizar"
-                                    @click="guardarRegistro()" :disabled="loadingGuardar">
+                                <button
+                                    type="button"
+                                    class="btn btn-warning m-r-5"
+                                    v-if="actualizar"
+                                    @click="guardarRegistro()"
+                                    :disabled="loadingGuardar"
+                                >
                                     <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
                                     <i v-else class="fa fa-pencil"></i> Actualizar
                                 </button>
-                                <button type="button" class="btn btn-inverse" @click="btnCerralModalForm()">
+                                <button
+                                    type="button"
+                                    class="btn btn-inverse"
+                                    @click="btnCerralModalForm()"
+                                >
                                     Cancel
                                 </button>
                             </div>
@@ -166,7 +232,7 @@
 </template>
 
 <script>
-import { handleAxiosErrorToast } from "@/helpers/alerts";
+import { handleAxiosErrorToast, confirmAction } from "@/helpers/alerts";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 
 export default {
@@ -228,7 +294,6 @@ export default {
             }
         },
         async guardarRegistro() {
-
             let totalPermisosElegido = 0;
             this.registro.permisosRol.map(function (x, y) {
                 if (x.checked == true) {
@@ -237,7 +302,7 @@ export default {
             });
 
             if (totalPermisosElegido == 0) {
-                this.erroresRpermisosElegidos = 'Debes elegir al menos un permiso para el rol';
+                this.erroresRpermisosElegidos = "Debes elegir al menos un permiso para el rol";
                 return false;
             }
 
@@ -263,9 +328,10 @@ export default {
                         this.btnCerralModalForm();
                     }
                 } else {
-                    const res = await axios.put("/api/seguridad-roles/" + this.id, { registro: this.registro });
+                    const res = await axios.put("/api/seguridad-roles/" + this.id, {
+                        registro: this.registro,
+                    });
                     if (res.status == 200) {
-
                         $.toast({
                             heading: "Ok!!!",
                             text: res.data.message,
@@ -281,7 +347,6 @@ export default {
                         this.btnCerralModalForm();
                     }
                 }
-
             } catch (error) {
                 this.errores = error?.response?.data?.message || "";
                 handleAxiosErrorToast(error, "No fue posible guardar el rol.");
@@ -294,37 +359,39 @@ export default {
 
             me.permisos.map(function (x, y) {
                 me.registro.permisosRol.push({
-                    "id": x.id,
-                    "name": x.name,
-                    "checked": false,
+                    id: x.id,
+                    name: x.name,
+                    checked: false,
                 });
             });
         },
         mostrarRegistro(data = {}) {
-
             if (this.actualizar == true) {
-
                 this.tituloModal = "Actualizar el registro: " + data.name;
                 this.id = data.id;
                 this.registro.name = data.name;
 
-                axios.get("/api/seguridad-roles/" + this.id).then((res) => {
+                axios
+                    .get("/api/seguridad-roles/" + this.id)
+                    .then((res) => {
+                        this.registro.permisos = [];
+                        const permisosDelRol = Object.keys(res.data.permisosRol);
+                        let me = this;
 
-                    this.registro.permisos = [];
-                    const permisosDelRol = Object.keys(res.data.permisosRol);
-                    let me = this;
+                        me.permisos.forEach(function (permisos, index) {
+                            me.registro.permisosRol[index].checked = false;
+                        });
 
-                    me.permisos.forEach(function (permisos, index) {
-                        me.registro.permisosRol[index].checked = false;
+                        permisosDelRol.forEach(function (permisosDelRol) {
+                            let permisoActivo = me.permisos.findIndex(
+                                (x) => x.id == permisosDelRol
+                            );
+                            me.registro.permisosRol[permisoActivo].checked = true;
+                        });
+                    })
+                    .catch((error) => {
+                        handleAxiosErrorToast(error, "No fue posible cargar los permisos del rol.");
                     });
-
-                    permisosDelRol.forEach(function (permisosDelRol) {
-                        let permisoActivo = me.permisos.findIndex((x) => x.id == permisosDelRol);
-                        me.registro.permisosRol[permisoActivo].checked = true;
-                    });
-                }).catch((error) => {
-                    handleAxiosErrorToast(error, "No fue posible cargar los permisos del rol.");
-                });
             } else {
                 this.actualizar = false;
                 this.tituloModal = "Nuevo registro";
@@ -334,6 +401,42 @@ export default {
             }
 
             this.btnCerralModalForm();
+        },
+        async cambiarEstado(estado, data = {}) {
+            const ok = await confirmAction({
+                title: "Confirmación",
+                text:
+                    "¿Estás seguro de que deseas " +
+                    (estado == 0 ? "activar" : "desactivar") +
+                    " el rol " +
+                    data.name +
+                    "?",
+                icon: "warning",
+            });
+            if (!ok) return;
+            try {
+                await axios.put("/api/seguridad-roles/estado/" + data.id, {
+                    id: data.id,
+                    estado: estado == 0 ? 1 : 0,
+                });
+                $.toast({
+                    heading: "Ok!!!",
+                    text:
+                        "El rol " +
+                        data.name +
+                        " se " +
+                        (estado == 0 ? "activó" : "desactivó") +
+                        " correctamente",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "success",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+                this.ListarDatos();
+            } catch (error) {
+                handleAxiosErrorToast(error, "No fue posible actualizar el estado del rol.");
+            }
         },
         btnCerralModalForm() {
             $(".right-sidebar").slideDown(50);
