@@ -129,9 +129,6 @@
                                     >
                                         <i class="fa fa-refresh"></i> Limpiar
                                     </button>
-
-                                    <!-- <button type="button" class="btn btn-inverse" @click="btnTraerImagenes()">Traer
-                                        imagenes</button> -->
                                 </div>
                             </div>
                         </form>

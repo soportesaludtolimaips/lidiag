@@ -481,7 +481,7 @@
                                     />
                                     <input
                                         type="hidden"
-                                        id="email"
+                                        id="email_hidden"
                                         name="email"
                                         v-model="registro.email"
                                     />
@@ -767,7 +767,6 @@ export default {
             soportesHC: [],
             registros: [],
             tituloModal: "Transcirbir estudio",
-            actualizar: false,
             registro: {
                 id_estudio: 0,
                 estudio_producto_id: 0,
@@ -1177,7 +1176,6 @@ export default {
             }
         },
         limpiar() {
-            this.actualizar = false;
             this.tituloModal = "Nuevo registro";
             this.registro.email_reportar = "";
             this.registro.email = "";

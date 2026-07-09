@@ -64,22 +64,22 @@
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label class="control-label" for="bus_fehc_ini"
+                                            <label class="control-label" for="bus_fech_ini"
                                                 >Fecha Inicio</label
                                             >
                                             <input
                                                 type="date"
-                                                id="bus_fehc_ini"
-                                                name="bus_fehc_ini"
-                                                v-model="busqueda.bus_fehc_ini"
+                                                id="bus_fech_ini"
+                                                name="bus_fech_ini"
+                                                v-model="busqueda.bus_fech_ini"
                                                 class="form-control"
                                                 @keyup.enter="buscarStudy()"
                                             />
                                             <span
                                                 class="text-danger"
-                                                v-if="erroresBusqueda.bus_fehc_ini"
+                                                v-if="erroresBusqueda.bus_fech_ini"
                                             >
-                                                {{ erroresBusqueda.bus_fehc_ini[0] }}
+                                                {{ erroresBusqueda.bus_fech_ini[0] }}
                                             </span>
                                         </div>
                                     </div>
@@ -748,7 +748,7 @@
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { handleAxiosErrorToast } from "@/helpers/alerts";
+import { confirmAction, handleAxiosErrorToast } from "@/helpers/alerts";
 import { normalizarFecha } from "@/helpers/dateUtils.js";
 import { useSede } from "@/composables/useSede";
 
@@ -846,7 +846,7 @@ export default {
             busqueda: {
                 sede_id: sedeActual,
                 bus_nom_num_docu: "",
-                bus_fehc_ini: "",
+                bus_fech_ini: "",
                 bus_fecha_fin: "",
             },
             interfaceAtenciones: [], //Ateniones disponibles del paciente
@@ -890,7 +890,7 @@ export default {
                     });
                 } else if (
                     this.busqueda.bus_nom_num_docu == "" &&
-                    this.busqueda.bus_fehc_ini == "" &&
+                    this.busqueda.bus_fech_ini == "" &&
                     this.busqueda.bus_fecha_fin == ""
                 ) {
                     $.toast({
@@ -904,7 +904,7 @@ export default {
                     });
                 } else if (
                     this.busqueda.bus_nom_num_docu == "" &&
-                    (this.busqueda.bus_fehc_ini == "" || this.busqueda.bus_fecha_fin == "")
+                    (this.busqueda.bus_fech_ini == "" || this.busqueda.bus_fecha_fin == "")
                 ) {
                     $.toast({
                         heading: "Upsss!!!",
@@ -916,9 +916,9 @@ export default {
                         stack: 6,
                     });
                 } else if (
-                    this.busqueda.bus_fehc_ini &&
+                    this.busqueda.bus_fech_ini &&
                     this.busqueda.bus_fecha_fin &&
-                    this.busqueda.bus_fehc_ini > this.busqueda.bus_fecha_fin
+                    this.busqueda.bus_fech_ini > this.busqueda.bus_fecha_fin
                 ) {
                     $.toast({
                         heading: "Upsss!!!",
@@ -1170,25 +1170,19 @@ export default {
 
             let EnfermedadActualDiagnosticos = "";
 
-            /**
-             * Enfermedad actula
-             */
             const consultas = resProuctos.data.consultas;
             EnfermedadActualDiagnosticos = "Enfermedad Actual: ";
             if (consultas.length > 0) {
-                consultas.map((consultas) => {
-                    EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos}\n ${consultas.DesEnfermedadActual} \n`;
+                consultas.forEach((c) => {
+                    EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos}\n ${c.DesEnfermedadActual} \n`;
                 });
             }
 
-            /**
-             * Diagnosticos
-             */
             const diagnosticos = resProuctos.data.diagnosticos;
             EnfermedadActualDiagnosticos += `\nDiagnosticos:`;
             if (diagnosticos.length > 0) {
-                diagnosticos.map((diagnosticos) => {
-                    EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos} \n ${diagnosticos.cod_diagnos} - ${diagnosticos.nom_diagnos}`;
+                diagnosticos.forEach((d) => {
+                    EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos} \n ${d.cod_diagnos} - ${d.nom_diagnos}`;
                 });
             }
 
@@ -1212,7 +1206,6 @@ export default {
             $(".right-sidebar").slideUp(50);
             $(".right-sidebar").removeClass("shw-rside");
         },
-        // initProductosSelect2 ya no es necesario con el wrapper Select2 local.
         abrirModal() {
             $(".right-sidebar").addClass("shw-rside");
             this.$nextTick(() => {
@@ -1356,7 +1349,15 @@ export default {
         },
         quitarProductoEstudio(indexEliminar) {
             if (!confirm("¿Está seguro de eliminar este producto?")) return;
-            this.registro.productosEstudio.splice(indexEliminar, 1);
+            confirmAction({
+                title: "¿Está seguro?",
+                text: "¿Desea eliminar este producto del estudio?",
+                icon: "warning",
+                confirmButtonText: "Sí, eliminar",
+                onConfirm: () => {
+                    this.registro.productosEstudio.splice(indexEliminar, 1);
+                },
+            });
         },
         guardarDiagnosticosEstudio() {
             const idx = this.diagnosticos.findIndex(
@@ -1380,7 +1381,15 @@ export default {
         },
         quitarDiagnosticoEstudio(indexEliminar) {
             if (!confirm("¿Está seguro de eliminar este diagnóstico?")) return;
-            this.registro.diagnosticosEstudio.splice(indexEliminar, 1);
+            confirmAction({
+                title: "¿Está seguro?",
+                text: "¿Desea eliminar este diagnóstico del estudio?",
+                icon: "warning",
+                confirmButtonText: "Sí, eliminar",
+                onConfirm: () => {
+                    this.registro.diagnosticosEstudio.splice(indexEliminar, 1);
+                },
+            });
         },
         verImagen(pat_id, study_iuid, estudio_producto_id = null) {
             if (estudio_producto_id !== null) {
