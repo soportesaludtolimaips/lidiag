@@ -353,7 +353,7 @@
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import DatosPacienteDisplay from "@/components/comunes/datosPacienteDisplayComponent.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { getUserSafeError } from "@/helpers/alerts.js";
+import { getUserSafeError, handleAxiosErrorToast } from "@/helpers/alerts.js";
 
 export default {
     props: ["usuarioactual", "permisos"],
@@ -366,7 +366,6 @@ export default {
             return this.registros.length;
         },
     },
-    mounted() {},
     beforeUnmount() {
         this.destroyDataTable();
         this.registros = [];
@@ -510,6 +509,7 @@ export default {
                     error?.response?.data?.errors && typeof error.response.data.errors === "object"
                         ? error.response.data.errors
                         : {};
+                handleAxiosErrorToast(error, "No se pudo imprimir el reporte.");
             } finally {
                 this.loadingImprimirId = null;
             }
@@ -621,6 +621,8 @@ export default {
                         hideAfter: 3500,
                         stack: 6,
                     });
+                } else {
+                    handleAxiosErrorToast(e, "No se pudo enviar al portal.");
                 }
             }
         },
