@@ -901,7 +901,7 @@ export default {
             busqueda: {
                 sede_id: this.sedeActual,
                 medico_id: this.medicoActual,
-                bus_nom_num_docu: "6341296",
+                bus_nom_num_docu: "",
                 bus_fehc_ini: "",
                 bus_fecha_fin: "",
             },
@@ -1135,7 +1135,7 @@ export default {
                 } else {
                     $.toast({
                         heading: "Upss!!!",
-                        text: res.data.message,
+                        text: ecografiaRes.data.message,
                         position: "top-right",
                         loaderBg: "#ff6849",
                         icon: "danger",
@@ -1380,14 +1380,14 @@ export default {
             this.registro.fec_naci = data.FecNacimiento;
             this.registro.direccion = data.DirCasa;
             this.registro.tel = data.TelCasa;
-            this.registro.cel = data.TelCasa;
+            this.registro.cel = data.TelCelular || data.TelCasa;
             this.registro.atencion_id = data?.IdAtencion ?? data?.atencion_id ?? null;
             this.registro.contrato = data.DesContrato;
             this.registro.plan = data.DesPlan;
             this.registro.admin_salud = data.NomTercero;
             this.registro.quien_ordeno = data.quien_ordeno;
 
-            this.registro.productosAgenda = this.registros;
+            this.registro.productosAgenda = [data];
             // Homologar tipo de documento
             const codigo = data.CodTipoDoc;
             const tipoHomologado = this.tipoDocumentoOptions.find((t) => t.codigo === codigo);

@@ -318,7 +318,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">Anular Agenda</h4>
+                    <h4 class="modal-title" id="myModalLabel">Anular Agenda</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                         ×
                     </button>
@@ -388,7 +388,7 @@ export default {
             busqueda: {
                 sede_id: this.sedeActual,
                 medico_id: this.medicoActual,
-                bus_nom_num_docu: "6341296",
+                bus_nom_num_docu: "",
                 bus_fehc_ini: "",
                 bus_fecha_fin: "",
             },
