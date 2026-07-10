@@ -33,7 +33,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros para busqueda de atención
+                            <i class="fa fa-filter"></i> Filtros para búsqueda de atención
                         </h4>
                         <form action="#">
                             <div class="form-body">
