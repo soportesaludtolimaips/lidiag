@@ -8,10 +8,22 @@
                 <h3 class="text-themecolor">Ecografias</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Ecografias</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline"
+                        >
+                            Ecografias
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Lectura de ecografias</li>
                 </ol>
@@ -304,7 +316,8 @@
                                                     actualizar = true;
                                                     mostrarRegistro(item, index);
                                                 "
-                                                title="ARealizar lectura"
+                                                title="Realizar lectura"
+                                                aria-label="Realizar lectura"
                                             >
                                                 <i class="fa fa-check"></i>
                                             </button>
@@ -325,6 +338,7 @@
                                                 "
                                                 @click="firmarConsentimientoMedico(item)"
                                                 title="Firmar consentimiento"
+                                                aria-label="Firmar consentimiento"
                                             >
                                                 <i
                                                     class="fa"
@@ -394,6 +408,8 @@
                                                         class=""
                                                         @click="toggleSpeechRecognition"
                                                         style="width: 30px; height: 30px"
+                                                        role="button"
+                                                        aria-label="Grabadora"
                                                     >
                                                         <img title="Grabadora" :src="microfono" />
                                                     </a>
@@ -568,7 +584,9 @@
         <div class="modal-dialog modal-xl" style="max-width: 70%">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title" id="myLargeModalLabel">Reporte de lectura</h4>
+                    <h4 class="modal-title" id="myLargeModalLabel-impri-repor">
+                        Reporte de lectura
+                    </h4>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                         ×
                     </button>
@@ -604,13 +622,14 @@
         class="modal fade"
         tabindex="-1"
         role="dialog"
+        aria-labelledby="modal-pendientes-consentimientos-title"
         aria-hidden="true"
         style="display: none"
     >
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">
+                    <h4 class="modal-title" id="modal-pendientes-consentimientos-title">
                         Consentimientos pendientes por firmar (día anterior)
                     </h4>
                 </div>

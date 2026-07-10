@@ -4,8 +4,24 @@
             <div class="col-md-6 align-self-center">
                 <h3 class="text-themecolor">Ecografías</h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-                    <li class="breadcrumb-item"><a href="javascript:void(0)">Ecografías</a></li>
+                    <li class="breadcrumb-item">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline"
+                        >
+                            Inicio
+                        </button>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline"
+                        >
+                            Ecografías
+                        </button>
+                    </li>
                     <li class="breadcrumb-item active">Consentimientos</li>
                 </ol>
             </div>
@@ -16,20 +32,31 @@
                 <h4 class="card-title">Buscar consentimientos</h4>
                 <div class="row">
                     <div class="col-md-4">
-                        <label>Paciente / Documento</label>
+                        <label for="filtros_q">Paciente / Documento</label>
                         <input
+                            id="filtros_q"
                             class="form-control"
                             v-model="filtros.q"
                             placeholder="Nombre o documento"
                         />
                     </div>
                     <div class="col-md-3">
-                        <label>Fecha inicio</label>
-                        <input type="date" class="form-control" v-model="filtros.desde" />
+                        <label for="filtros_desde">Fecha inicio</label>
+                        <input
+                            id="filtros_desde"
+                            type="date"
+                            class="form-control"
+                            v-model="filtros.desde"
+                        />
                     </div>
                     <div class="col-md-3">
-                        <label>Fecha fin</label>
-                        <input type="date" class="form-control" v-model="filtros.hasta" />
+                        <label for="filtros_hasta">Fecha fin</label>
+                        <input
+                            id="filtros_hasta"
+                            type="date"
+                            class="form-control"
+                            v-model="filtros.hasta"
+                        />
                     </div>
                 </div>
 
@@ -101,6 +128,7 @@
                                         type="checkbox"
                                         :checked="allSelectableSelected"
                                         @change="toggleSelectAll"
+                                        aria-label="Seleccionar todos"
                                     />
                                 </th>
                                 <th>Paciente</th>
@@ -118,6 +146,7 @@
                                         :disabled="!esSeleccionable(c)"
                                         :checked="selectedMap[c.id] === true"
                                         @change="toggleSelect(c)"
+                                        aria-label="Seleccionar consentimiento"
                                     />
                                 </td>
                                 <td>{{ pacienteNombre(c) }}</td>
