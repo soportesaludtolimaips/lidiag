@@ -5,20 +5,12 @@
                 <h3 class="text-themecolor">Ecografías</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <button
-                            type="button"
-                            class="btn btn-link p-0"
-                            style="vertical-align: baseline"
-                        >
+                        <button type="button" class="btn btn-link p-0 breadcrumb-btn">
                             Inicio
                         </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <button
-                            type="button"
-                            class="btn btn-link p-0"
-                            style="vertical-align: baseline"
-                        >
+                        <button type="button" class="btn btn-link p-0 breadcrumb-btn">
                             Ecografías
                         </button>
                     </li>
@@ -534,3 +526,9 @@ export default {
     },
 };
 </script>
+
+<style scoped>
+.breadcrumb-btn {
+    vertical-align: baseline;
+}
+</style>

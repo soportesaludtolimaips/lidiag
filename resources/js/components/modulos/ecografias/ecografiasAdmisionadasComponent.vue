@@ -8,24 +8,16 @@
                 <h3 class="text-themecolor">Ecografias</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <button
-                            type="button"
-                            class="btn btn-link p-0"
-                            style="vertical-align: baseline"
-                        >
+                        <button type="button" class="btn btn-link p-0 breadcrumb-btn">
                             Inicio
                         </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <button
-                            type="button"
-                            class="btn btn-link p-0"
-                            style="vertical-align: baseline"
-                        >
+                        <button type="button" class="btn btn-link p-0 breadcrumb-btn">
                             Ecografias
                         </button>
                     </li>
-                    <li class="breadcrumb-item active">Ecografias admiisionadas</li>
+                    <li class="breadcrumb-item active">Ecografías admisionadas</li>
                 </ol>
             </div>
         </div>
@@ -41,8 +33,8 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros para busqueda las ecografias
-                            adminisionadas.
+                            <i class="fa fa-filter"></i> Filtros para búsqueda de ecografías
+                            admisionadas.
                         </h4>
                         <form action="#">
                             <div class="form-body">
@@ -73,9 +65,6 @@
                                                 v-model="busqueda.bus_fehc_ini"
                                                 class="form-control"
                                             />
-                                            <!-- <span class="text-danger" v-if="errores.bus_fehc_ini">
-                                                {{ erroresBusqueda.bus_fehc_ini[0] }}
-                                            </span> -->
                                         </div>
                                     </div>
                                     <div class="col-md-2">
@@ -88,9 +77,6 @@
                                                 v-model="busqueda.bus_fecha_fin"
                                                 class="form-control"
                                             />
-                                            <!-- <span class="text-danger" v-if="errores.bus_fecha_fin">
-                                                {{ erroresBusqueda.bus_fecha_fin[0] }}
-                                            </span> -->
                                         </div>
                                     </div>
                                 </div>
@@ -417,7 +403,6 @@ export default {
                 quien_anulo_id: this.usuarioactual.id,
                 motivo_anula: "",
             },
-            errores: {},
             erroresBusqueda: {},
             isBuscandoAdmisionadas: false,
             isImprimiendoReporte: false,
@@ -548,13 +533,6 @@ export default {
                         stack: 6,
                     });
                 }
-                /* const res = await axios.post(`/ecografia-generar-reporte/${id}`, {
-                    responseType: 'blob'
-                });
-
-                const file = new Blob([res.data], { type: 'application/pdf' });
-                const fileURL = URL.createObjectURL(file);
-                window.open(fileURL); */
             } catch (error) {
                 handleAxiosErrorToast(error, "No fue posible generar el reporte.");
             } finally {
@@ -706,5 +684,9 @@ export default {
 .audio {
     width: 50px;
     height: 5px;
+}
+
+.breadcrumb-btn {
+    vertical-align: baseline;
 }
 </style>

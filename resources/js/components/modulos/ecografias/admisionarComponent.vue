@@ -8,20 +8,12 @@
                 <h3 class="text-themecolor">Ecografias</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <button
-                            type="button"
-                            class="btn btn-link p-0"
-                            style="vertical-align: baseline"
-                        >
+                        <button type="button" class="btn btn-link p-0 breadcrumb-btn">
                             Inicio
                         </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <button
-                            type="button"
-                            class="btn btn-link p-0"
-                            style="vertical-align: baseline"
-                        >
+                        <button type="button" class="btn btn-link p-0 breadcrumb-btn">
                             Ecografias
                         </button>
                     </li>
@@ -72,9 +64,6 @@
                                                 v-model="busqueda.bus_fehc_ini"
                                                 class="form-control"
                                             />
-                                            <!-- <span class="text-danger" v-if="errores.bus_fehc_ini">
-                                                {{ erroresBusqueda.bus_fehc_ini[0] }}
-                                            </span> -->
                                         </div>
                                     </div>
                                     <div class="col-md-2">
@@ -87,9 +76,6 @@
                                                 v-model="busqueda.bus_fecha_fin"
                                                 class="form-control"
                                             />
-                                            <!-- <span class="text-danger" v-if="errores.bus_fecha_fin">
-                                                {{ erroresBusqueda.bus_fecha_fin[0] }}
-                                            </span> -->
                                         </div>
                                     </div>
                                 </div>
@@ -381,10 +367,7 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div
-            class="right-sidebar"
-            style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%"
-        >
+        <div class="right-sidebar sidebar-scroll">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -438,9 +421,6 @@
                                                     class="form-control"
                                                     placeholder="# de Documento"
                                                 />
-                                                <!-- <span class="text-danger" v-if="errores.num_docu">
-                                                    {{ errores.num_docu[0] }}
-                                                </span> -->
                                             </div>
                                         </div>
                                     </div>
@@ -458,9 +438,6 @@
                                                     class="form-control"
                                                     placeholder="Nombres"
                                                 />
-                                                <!-- <span class="text-danger" v-if="errores.nombres">
-                                                    {{ errores.nombres[0] }}
-                                                </span> -->
                                             </div>
                                         </div>
 
@@ -477,9 +454,6 @@
                                                     class="form-control"
                                                     placeholder="seg_nom"
                                                 />
-                                                <!-- <span class="text-danger" v-if="errores.seg_nom">
-                                                    {{ errores.seg_nom[0] }}
-                                                </span> -->
                                             </div>
                                         </div>
                                     </div>
@@ -497,9 +471,6 @@
                                                     class="form-control"
                                                     placeholder="pri_ape"
                                                 />
-                                                <!-- <span class="text-danger" v-if="errores.pri_ape">
-                                                    {{ errores.pri_ape[0] }}
-                                                </span> -->
                                             </div>
                                         </div>
 
@@ -516,9 +487,6 @@
                                                     class="form-control"
                                                     placeholder="seg_ape"
                                                 />
-                                                <!-- <span class="text-danger" v-if="errores.seg_ape">
-                                                    {{ errores.seg_ape[0] }}
-                                                </span> -->
                                             </div>
                                         </div>
                                     </div>
@@ -564,9 +532,6 @@
                                                     v-model="registro.direccion"
                                                     class="form-control"
                                                 />
-                                                <!-- <span class="text-danger" v-if="errores.direccion">
-                                                    {{ errores.direccion[0] }}
-                                                </span> -->
                                             </div>
                                         </div>
                                         <div class="col-md-5">
@@ -597,8 +562,6 @@
                                                     v-model="registro.email"
                                                     class="form-control"
                                                 />
-                                                <!-- <span class="text-danger" v-if="errores.email">
-                                                    {{ errores.email[0] }}</span> -->
                                             </div>
                                         </div>
                                     </div>
@@ -972,7 +935,7 @@ export default {
     },
     data() {
         return {
-            tituloModal: "Nueva adminsión",
+            tituloModal: "Nueva admisión",
             busqueda: {
                 sede_id: this.sedeActual,
                 medico_id: this.medicoActual,
@@ -1016,7 +979,6 @@ export default {
             tipoDocumentos: [],
             sedeActual: sessionStorage.getItem("ST-sede"),
             medicoActual: sessionStorage.getItem("ST-medico"),
-            productosAgenda: [],
             productoSelecciondo: null,
             productos: [],
             isBuscandoAtenciones: false,
@@ -1534,5 +1496,15 @@ export default {
 .audio {
     width: 50px;
     height: 5px;
+}
+
+.sidebar-scroll {
+    overflow-x: hidden;
+    overflow-y: scroll;
+    height: 100%;
+}
+
+.breadcrumb-btn {
+    vertical-align: baseline;
 }
 </style>
