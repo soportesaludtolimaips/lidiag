@@ -8,10 +8,22 @@
                 <h3 class="text-themecolor">Ecografias</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Ecografias</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline"
+                        >
+                            Ecografias
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Admisionar Paciente</li>
                 </ol>
@@ -244,6 +256,8 @@
                                                                 item.ecografia_producto_id
                                                             ]
                                                         "
+                                                        title="Consultar estado SAHI"
+                                                        aria-label="Consultar estado SAHI"
                                                     >
                                                         <i
                                                             class="fa"
@@ -268,6 +282,8 @@
                                                             ] ||
                                                             item.estado_envio_sahi === 'ENVIANDO'
                                                         "
+                                                        title="Reenviar a SAHI"
+                                                        aria-label="Reenviar a SAHI"
                                                     >
                                                         <i
                                                             class="fa"
@@ -309,6 +325,7 @@
                                                 data-toggle="modal"
                                                 data-target="#responsive-modal"
                                                 v-if="item.estado_ecografia === 'EN PROCESO'"
+                                                aria-label="Anular agenda"
                                             >
                                                 <i class="fa fa-trash"></i>
                                             </button>
@@ -321,6 +338,7 @@
                                                     mostrarRegistro(item);
                                                 "
                                                 title="Agendar ecografia"
+                                                aria-label="Agendar ecografia"
                                             >
                                                 <i class="fa fa-check"></i>
                                             </button>
@@ -342,6 +360,7 @@
                                                 data-toggle="modal"
                                                 data-target="#modal-consentimiento"
                                                 @click="abrirModalConsentimiento(item)"
+                                                aria-label="Capturar firma (paciente/acompañante)"
                                             >
                                                 <i class="fa fa-pencil"></i>
                                             </button>
@@ -408,7 +427,9 @@
                                         </div>
                                         <div class="col-md-3">
                                             <div class="form-group">
-                                                <label class="control-label"># Documento</label>
+                                                <label class="control-label" for="num_docu"
+                                                    ># Documento</label
+                                                >
                                                 <input
                                                     type="text"
                                                     id="num_docu"
@@ -426,7 +447,9 @@
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label class="control-label">Primer Nombre</label>
+                                                <label class="control-label" for="nombres"
+                                                    >Primer Nombre</label
+                                                >
                                                 <input
                                                     type="text"
                                                     id="nombres"
@@ -443,7 +466,9 @@
 
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label class="control-label">Segundo Nombre</label>
+                                                <label class="control-label" for="seg_nom"
+                                                    >Segundo Nombre</label
+                                                >
                                                 <input
                                                     type="text"
                                                     id="seg_nom"
@@ -461,7 +486,9 @@
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label class="control-label">Primer Apellido</label>
+                                                <label class="control-label" for="pri_ape"
+                                                    >Primer Apellido</label
+                                                >
                                                 <input
                                                     type="text"
                                                     id="pri_ape"
@@ -478,7 +505,7 @@
 
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label class="control-label"
+                                                <label class="control-label" for="seg_ape"
                                                     >Segundo Apellido</label
                                                 >
                                                 <input
@@ -498,7 +525,7 @@
                                     <div class="row">
                                         <div class="col-md-2">
                                             <div class="form-group">
-                                                <label class="control-label">Sexo</label>
+                                                <label class="control-label" for="sexo">Sexo</label>
                                                 <input
                                                     type="text"
                                                     id="sexo"
@@ -511,7 +538,9 @@
 
                                         <div class="col-md-4">
                                             <div class="form-group">
-                                                <label class="control-label">Fec. Nacimi</label>
+                                                <label class="control-label" for="fec_naci"
+                                                    >Fec. Nacimi</label
+                                                >
                                                 <input
                                                     type="date"
                                                     id="fec_naci"
@@ -525,7 +554,9 @@
                                     <div class="row">
                                         <div class="col-md-7">
                                             <div class="form-group">
-                                                <label class="control-label">Dirección</label>
+                                                <label class="control-label" for="direccion"
+                                                    >Dirección</label
+                                                >
                                                 <input
                                                     type="text"
                                                     id="direccion"
@@ -540,7 +571,9 @@
                                         </div>
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label class="control-label">Télefono</label>
+                                                <label class="control-label" for="tel"
+                                                    >Télefono</label
+                                                >
                                                 <input
                                                     type="number"
                                                     id="tel"
@@ -554,7 +587,9 @@
                                     <div class="row">
                                         <div class="col-md-7">
                                             <div class="form-group">
-                                                <label class="control-label">E - Mail</label>
+                                                <label class="control-label" for="email"
+                                                    >E - Mail</label
+                                                >
                                                 <input
                                                     type="email"
                                                     id="email"
@@ -643,6 +678,7 @@
                                                                         item.CodLegal
                                                                     )
                                                                 "
+                                                                aria-label="Quitar producto"
                                                             >
                                                                 <i class="fa fa-trash"></i>
                                                             </button>
@@ -702,7 +738,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">Anular Agenda</h4>
+                    <h4 class="modal-title" id="myModalLabel">Anular Agenda</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                         ×
                     </button>
@@ -752,13 +788,16 @@
         class="modal fade"
         tabindex="-1"
         role="dialog"
+        aria-labelledby="modal-consentimiento-title"
         aria-hidden="true"
         style="display: none"
     >
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">Capturar firma consentimiento</h4>
+                    <h4 class="modal-title" id="modal-consentimiento-title">
+                        Capturar firma consentimiento
+                    </h4>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                         ×
                     </button>
@@ -773,8 +812,14 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="control-label">¿Quién firma?</label>
-                            <select class="form-control" v-model="consentimientoFirmanteTipo">
+                            <label class="control-label" for="consentimiento-firmante-tipo"
+                                >¿Quién firma?</label
+                            >
+                            <select
+                                class="form-control"
+                                id="consentimiento-firmante-tipo"
+                                v-model="consentimientoFirmanteTipo"
+                            >
                                 <option value="PACIENTE">Paciente</option>
                                 <option value="ACOMPANANTE">Acompañante</option>
                             </select>
@@ -783,32 +828,62 @@
                         <div v-if="consentimientoFirmanteTipo === 'ACOMPANANTE'" class="row">
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label class="control-label">Cédula</label>
-                                    <input class="form-control" v-model="acompanante.cedula" />
+                                    <label class="control-label" for="acompanante-cedula"
+                                        >Cédula</label
+                                    >
+                                    <input
+                                        id="acompanante-cedula"
+                                        class="form-control"
+                                        v-model="acompanante.cedula"
+                                    />
                                 </div>
                             </div>
                             <div class="col-md-8">
                                 <div class="form-group">
-                                    <label class="control-label">Nombres</label>
-                                    <input class="form-control" v-model="acompanante.nombres" />
+                                    <label class="control-label" for="acompanante-nombres"
+                                        >Nombres</label
+                                    >
+                                    <input
+                                        id="acompanante-nombres"
+                                        class="form-control"
+                                        v-model="acompanante.nombres"
+                                    />
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="control-label">Email</label>
-                                    <input class="form-control" v-model="acompanante.email" />
+                                    <label class="control-label" for="acompanante-email"
+                                        >Email</label
+                                    >
+                                    <input
+                                        id="acompanante-email"
+                                        class="form-control"
+                                        v-model="acompanante.email"
+                                    />
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="control-label">Teléfono</label>
-                                    <input class="form-control" v-model="acompanante.telefono" />
+                                    <label class="control-label" for="acompanante-telefono"
+                                        >Teléfono</label
+                                    >
+                                    <input
+                                        id="acompanante-telefono"
+                                        class="form-control"
+                                        v-model="acompanante.telefono"
+                                    />
                                 </div>
                             </div>
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label class="control-label">Dirección</label>
-                                    <input class="form-control" v-model="acompanante.direccion" />
+                                    <label class="control-label" for="acompanante-direccion"
+                                        >Dirección</label
+                                    >
+                                    <input
+                                        id="acompanante-direccion"
+                                        class="form-control"
+                                        v-model="acompanante.direccion"
+                                    />
                                 </div>
                             </div>
                         </div>

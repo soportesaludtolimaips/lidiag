@@ -8,10 +8,22 @@
                 <h3 class="text-themecolor">Ecografias</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Ecografias</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline"
+                        >
+                            Ecografias
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Ecografias admiisionadas</li>
                 </ol>
@@ -207,6 +219,8 @@
                                                                 item.ecografia_producto_id
                                                             ]
                                                         "
+                                                        title="Consultar estado SAHI"
+                                                        aria-label="Consultar estado SAHI"
                                                     >
                                                         <i
                                                             class="fa"
@@ -231,6 +245,8 @@
                                                             ] ||
                                                             item.estado_envio_sahi === 'ENVIANDO'
                                                         "
+                                                        title="Reenviar a SAHI"
+                                                        aria-label="Reenviar a SAHI"
                                                     >
                                                         <i
                                                             class="fa"
@@ -272,6 +288,7 @@
                                                 data-toggle="modal"
                                                 data-target="#responsive-modal"
                                                 v-if="item.estado === 'EN PROCESO'"
+                                                aria-label="Anular lectura"
                                             >
                                                 <i class="fa fa-trash"></i>
                                             </button>
@@ -281,6 +298,7 @@
                                                 class="btn waves-effect waves-info btn-rounded btn-outline-primary btn-sm m-r-5"
                                                 @click="imprimirReporte(item.id)"
                                                 title="Imprimir reporte"
+                                                aria-label="Imprimir reporte"
                                                 :disabled="isImprimiendoReporte"
                                             >
                                                 <i

@@ -4,8 +4,24 @@
             <div class="col-md-6 align-self-center">
                 <h3 class="text-themecolor">Ecografías</h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-                    <li class="breadcrumb-item"><a href="javascript:void(0)">Ecografías</a></li>
+                    <li class="breadcrumb-item">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline"
+                        >
+                            Inicio
+                        </button>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline"
+                        >
+                            Ecografías
+                        </button>
+                    </li>
                     <li class="breadcrumb-item active">Plantillas Consentimientos</li>
                 </ol>
             </div>
@@ -17,8 +33,12 @@
 
                 <div class="row">
                     <div class="col-md-4">
-                        <label>Módulo</label>
-                        <select class="form-control" v-model="filtros.config_modulo_id">
+                        <label for="config_modulo_id">Módulo</label>
+                        <select
+                            class="form-control"
+                            id="config_modulo_id"
+                            v-model="filtros.config_modulo_id"
+                        >
                             <option value="">—</option>
                             <option v-for="m in modulos" :key="m.id" :value="m.id">
                                 {{ m.modulo }}
@@ -26,8 +46,9 @@
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <label>Buscar</label>
+                        <label for="busqueda_q">Buscar</label>
                         <input
+                            id="busqueda_q"
                             class="form-control"
                             v-model="q"
                             placeholder="CUPS / Producto / Nombre"
@@ -91,6 +112,8 @@
                                         type="button"
                                         @click="previewPdf(p)"
                                         :disabled="loadingPreviewId === p.id"
+                                        title="Vista previa PDF"
+                                        aria-label="Vista previa PDF"
                                     >
                                         <i
                                             class="fa"
@@ -109,6 +132,8 @@
                                         data-toggle="modal"
                                         data-target="#modal-plantilla"
                                         @click="editar(p)"
+                                        title="Editar plantilla"
+                                        aria-label="Editar plantilla"
                                     >
                                         <i class="fa fa-pencil"></i>
                                     </button>
@@ -118,6 +143,8 @@
                                         class="btn btn-sm btn-secondary m-r-5"
                                         type="button"
                                         @click="verVersiones(p)"
+                                        title="Histórico de versiones"
+                                        aria-label="Histórico de versiones"
                                     >
                                         <i class="fa fa-history"></i>
                                     </button>
@@ -127,6 +154,8 @@
                                         class="btn btn-sm btn-danger"
                                         type="button"
                                         @click="desactivar(p)"
+                                        title="Desactivar plantilla"
+                                        aria-label="Desactivar plantilla"
                                     >
                                         <i class="fa fa-trash"></i>
                                     </button>
@@ -147,13 +176,14 @@
             class="modal fade"
             tabindex="-1"
             role="dialog"
+            aria-labelledby="modal-plantilla-title"
             aria-hidden="true"
             style="display: none"
         >
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">
+                        <h4 class="modal-title" id="modal-plantilla-title">
                             {{ form.id ? "Actualizar (nueva versión)" : "Nueva plantilla" }}
                         </h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
@@ -163,9 +193,10 @@
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <label>Producto</label>
+                                <label for="form_producto_id">Producto</label>
                                 <select
                                     class="form-control"
+                                    id="form_producto_id"
                                     v-model="form.producto_id"
                                     :disabled="!!form.id"
                                 >
@@ -176,14 +207,19 @@
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label>Nombre</label>
-                                <input class="form-control" v-model="form.nombre" />
+                                <label for="form_nombre">Nombre</label>
+                                <input
+                                    id="form_nombre"
+                                    class="form-control"
+                                    v-model="form.nombre"
+                                />
                             </div>
                         </div>
 
                         <div class="mt-3">
-                            <label>Contenido</label>
+                            <label for="form_html">Contenido</label>
                             <textarea
+                                id="form_html"
                                 class="textarea_editor form-control"
                                 rows="10"
                                 v-model="form.html"
@@ -217,13 +253,16 @@
             class="modal fade"
             tabindex="-1"
             role="dialog"
+            aria-labelledby="modal-versiones-title"
             aria-hidden="true"
             style="display: none"
         >
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">Histórico de versiones</h4>
+                        <h4 class="modal-title" id="modal-versiones-title">
+                            Histórico de versiones
+                        </h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                             ×
                         </button>
@@ -253,6 +292,8 @@
                                                 class="btn btn-sm btn-info m-r-5"
                                                 type="button"
                                                 @click="previewPdf(v)"
+                                                title="Vista previa PDF"
+                                                aria-label="Vista previa PDF"
                                             >
                                                 <i class="fa fa-file-pdf-o"></i>
                                             </button>
