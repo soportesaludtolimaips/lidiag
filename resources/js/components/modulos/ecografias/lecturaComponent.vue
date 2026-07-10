@@ -688,7 +688,8 @@
 </template>
 <script>
 import usePermissions from "@/helpers/permissions.js";
-import { handleAxiosErrorToast } from "@/helpers/alerts";
+import { handleAxiosErrorToast, toastMessage } from "@/helpers/alerts";
+import { setMapValue } from "@/helpers/sahi";
 import { createVoiceSession } from "@/helpers/voice/voiceSession";
 import medicalReplacements from "@/data/medical_replacements.json";
 import medicalTermsRaw from "@/data/terminos_medicos.txt?raw";
@@ -859,14 +860,7 @@ export default {
             this.pendientesDiaAnterior = [];
             this.bloqueoLectura = false;
         },
-        setMapValue(mapName, key, value) {
-            if (!key) return;
-            if (typeof this.$set === "function") {
-                this.$set(this[mapName], key, value);
-            } else {
-                this[mapName][key] = value;
-            }
-        },
+
         getMedicalReplacementsCompiled() {
             if (this.medicalReplCompiled) return this.medicalReplCompiled;
             const compiled = [];
@@ -1234,28 +1228,22 @@ export default {
                 onPermissionDenied: () => {
                     this.voiceState = "inactive";
                     this.microfono = "admin-wrap/assets/images/mic.gif";
-                    $.toast({
+                    toastMessage({
                         heading: "Permiso requerido",
                         text: "El navegador bloqueó el micrófono. Permite el acceso al micrófono para usar dictado.",
-                        position: "top-right",
-                        loaderBg: "#ff6849",
                         icon: "warning",
                         hideAfter: 6000,
-                        stack: 6,
                     });
                 },
                 onError: (e) => {
                     if (e && e.message === "Silencio repetido") {
                         this.voiceState = "inactive";
                         this.microfono = "admin-wrap/assets/images/mic.gif";
-                        $.toast({
+                        toastMessage({
                             heading: "Sin voz detectada",
                             text: "No se detecta voz (silencio repetido). Verifica micrófono/entrada y vuelve a iniciar el dictado.",
-                            position: "top-right",
-                            loaderBg: "#ff6849",
                             icon: "warning",
                             hideAfter: 6000,
-                            stack: 6,
                         });
                     }
                 },
@@ -1283,14 +1271,11 @@ export default {
             } catch (e) {
                 this.voiceState = "inactive";
                 this.microfono = "admin-wrap/assets/images/mic.gif";
-                $.toast({
+                toastMessage({
                     heading: "Error",
                     text: e && e.message ? e.message : "No fue posible iniciar el dictado.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "error",
                     hideAfter: 5000,
-                    stack: 6,
                 });
             }
         },
@@ -1354,27 +1339,21 @@ export default {
                 }
 
                 if (!silent) {
-                    $.toast({
+                    toastMessage({
                         heading: "SAHI",
                         text: "Estado actualizado.",
-                        position: "top-right",
-                        loaderBg: "#ff6849",
                         icon: "info",
                         hideAfter: 2500,
                     });
                 }
             } catch (error) {
                 if (!silent) {
-                    $.toast({
+                    toastMessage({
                         heading: "SAHI",
                         text:
                             error.response?.data?.message ||
                             "No se pudo consultar el estado en SAHI.",
-                        position: "top-right",
-                        loaderBg: "#ff6849",
                         icon: "warning",
-                        hideAfter: 3500,
-                        stack: 6,
                     });
                 }
             }
@@ -1482,7 +1461,7 @@ export default {
             if (!id) return;
             if (this.isFirmandoConsentimiento[id]) return;
             try {
-                this.setMapValue("isFirmandoConsentimiento", id, true);
+                setMapValue(this, "isFirmandoConsentimiento", id, true);
                 await axios.post("/api/ecografias-consentimientos/firmar-medico", {
                     consentimiento_id: id,
                 });
@@ -1497,7 +1476,7 @@ export default {
             } catch (error) {
                 handleAxiosErrorToast(error, "No fue posible firmar el consentimiento.");
             } finally {
-                this.setMapValue("isFirmandoConsentimiento", id, false);
+                setMapValue(this, "isFirmandoConsentimiento", id, false);
             }
         },
         async generarLectura() {
@@ -1510,27 +1489,15 @@ export default {
 
                 if (res.status === 201) {
                     // Mostrar notificación de éxito
-                    $.toast({
+                    toastMessage({
                         heading: "¡Éxito!",
                         text: "Lectura guardada correctamente.",
-                        position: "top-right",
-                        loaderBg: "#ff6849",
                         icon: "success",
-                        hideAfter: 3500,
-                        stack: 6,
                     });
 
                     return true;
                 } else {
-                    $.toast({
-                        heading: "Upss!!!",
-                        text: res.data.message,
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "danger",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
+                    toastMessage({ heading: "Upss!!!", text: res.data.message, icon: "error" });
 
                     return false;
                 }
@@ -1550,14 +1517,10 @@ export default {
 
             const id = this.registro.ecografia_producto_id;
             if (!id) {
-                $.toast({
+                toastMessage({
                     heading: "Advertencia",
                     text: "No se encontró ecografia_producto_id para enviar a SAHI.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "warning",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
                 return false;
             }
@@ -1567,16 +1530,12 @@ export default {
                 const res = await this.enviarEcografiaProducto(id);
 
                 const encolado = res.status === 202;
-                $.toast({
+                toastMessage({
                     heading: "SAHI",
                     text:
                         res.data?.message ||
                         (encolado ? "Envío a SAHI encolado." : "Enviado a SAHI correctamente."),
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: encolado ? "info" : "success",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
 
                 this.registro.estado_envio_sahi = encolado ? "ENVIANDO" : "ENVIADO";
@@ -1611,14 +1570,11 @@ export default {
 
                 return true;
             } catch (error) {
-                $.toast({
+                toastMessage({
                     heading: "SAHI",
                     text: error.response?.data?.message || "No se pudo enviar a SAHI.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "warning",
                     hideAfter: 4500,
-                    stack: 6,
                 });
                 this.registro.estado_envio_sahi = "ERROR";
                 this.registro.error_envio_sahi =
