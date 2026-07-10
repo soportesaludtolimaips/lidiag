@@ -1426,6 +1426,10 @@ export default {
                 $t.DataTable({
                     dom: "Bfrtip",
                     buttons: ["copy", "csv", "excel", "pdf", "print"],
+                    language: {
+                        emptyTable: "No se encontraron registros",
+                        zeroRecords: "No se encontraron registros",
+                    },
                 });
             });
         },
@@ -1682,16 +1686,7 @@ export default {
 
                 return true;
             } catch (error) {
-                $.toast({
-                    heading: "Error",
-                    text:
-                        error.response?.data?.message || "Ocurrió un error al guardar la lectura.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "error",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
+                handleAxiosErrorToast(error, "Ocurrió un error al generar el reporte.");
 
                 // Mostrar errores específicos en el formulario
                 if (error.response?.data?.errors) {
