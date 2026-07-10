@@ -486,6 +486,10 @@ export default {
                 $t.DataTable({
                     dom: "Bfrtip",
                     buttons: ["copy", "csv", "excel", "pdf", "print"],
+                    language: {
+                        emptyTable: "No se encontraron registros",
+                        zeroRecords: "No se encontraron registros",
+                    },
                 });
             });
         },
