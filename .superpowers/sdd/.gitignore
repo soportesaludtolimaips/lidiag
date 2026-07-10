@@ -1,5 +1,5 @@
 # SDD session-local artifacts — briefs, reports, review diffs
-*.brief.md
+*-brief.md
 *-report.md
 review-*.diff
 *.env
