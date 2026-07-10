@@ -370,8 +370,9 @@
 </template>
 <script>
 import usePermissions from "@/helpers/permissions.js";
-import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts.js";
+import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
 import { handleAxiosErrorToast } from "@/helpers/alerts";
+import { setMapValue } from "@/helpers/sahi";
 import { useSede } from "@/composables/useSede";
 import { useSahiInterface } from "@/composables/useSahiInterface";
 
@@ -427,14 +428,7 @@ export default {
             this.safeDestroyDataTable(this.$refs.dt || "#example23");
             this.registros = [];
         },
-        setMapValue(mapName, key, value) {
-            if (!key) return;
-            if (typeof this.$set === "function") {
-                this.$set(this[mapName], key, value);
-            } else {
-                this[mapName][key] = value;
-            }
-        },
+
         async establecerSede() {
             const sede = sessionStorage.getItem("ST-sede");
             if (sede != null) {
@@ -484,14 +478,10 @@ export default {
                 this.busqueda.bus_fehc_ini == "" &&
                 this.busqueda.bus_fecha_fin == ""
             ) {
-                $.toast({
+                toastMessage({
                     heading: "¡Atención!",
                     text: "Debe ingresar almenos un criterio de busqueda.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "warning",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
                 return;
             }
@@ -523,14 +513,10 @@ export default {
                 if (url) {
                     window.open(url, "_blank", "noopener,noreferrer");
                 } else {
-                    $.toast({
+                    toastMessage({
                         heading: "Upss!!!",
                         text: res?.data?.message || "No fue posible generar el reporte.",
-                        position: "top-right",
-                        loaderBg: "#ff6849",
                         icon: "warning",
-                        hideAfter: 3500,
-                        stack: 6,
                     });
                 }
             } catch (error) {
@@ -545,14 +531,10 @@ export default {
         },
         anularEcografia() {
             if (this.registroAnular.motivo_anula === "") {
-                $.toast({
+                toastMessage({
                     heading: "¡Atención!",
                     text: "Debe ingresar el motivo de anulación.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "warning",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
                 return;
             }
@@ -588,7 +570,7 @@ export default {
 
             const id = item.ecografia_producto_id;
             try {
-                this.setMapValue("isConsultandoSahi", id, true);
+                setMapValue(this, "isConsultandoSahi", id, true);
                 const estado = await this.consultarEstado(id);
 
                 item.estado_envio_sahi = estado.estado_envio_sahi ?? item.estado_envio_sahi;
@@ -600,17 +582,13 @@ export default {
                 this.safeDestroyDataTable(this.$refs.dt || "#example23");
                 this.safeInitDataTable(this.$refs.dt || "#example23");
             } catch (error) {
-                $.toast({
+                toastMessage({
                     heading: "SAHI",
                     text: error.response?.data?.message || "No se pudo consultar el estado SAHI.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "warning",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
             } finally {
-                this.setMapValue("isConsultandoSahi", id, false);
+                setMapValue(this, "isConsultandoSahi", id, false);
             }
         },
         async reenviarASahi(item) {
@@ -619,21 +597,13 @@ export default {
 
             const id = item.ecografia_producto_id;
             try {
-                this.setMapValue("isEnviandoSahi", id, true);
+                setMapValue(this, "isEnviandoSahi", id, true);
                 item.estado_envio_sahi = "ENVIANDO";
                 item.error_envio_sahi = null;
 
                 await this.enviarEcografiaProducto(id);
 
-                $.toast({
-                    heading: "SAHI",
-                    text: "Envío a SAHI encolado.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "info",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
+                toastMessage({ heading: "SAHI", text: "Envío a SAHI encolado.", icon: "info" });
 
                 this.safeDestroyDataTable(this.$refs.dt || "#example23");
                 this.safeInitDataTable(this.$refs.dt || "#example23");
@@ -641,17 +611,14 @@ export default {
                 item.estado_envio_sahi = "ERROR";
                 item.error_envio_sahi =
                     error.response?.data?.message || "No se pudo reenviar a SAHI.";
-                $.toast({
+                toastMessage({
                     heading: "SAHI",
                     text: item.error_envio_sahi,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "warning",
                     hideAfter: 4500,
-                    stack: 6,
                 });
             } finally {
-                this.setMapValue("isEnviandoSahi", id, false);
+                setMapValue(this, "isEnviandoSahi", id, false);
             }
         },
     },
