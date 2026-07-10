@@ -180,6 +180,10 @@
 import { handleAxiosErrorToast } from "@/helpers/alerts";
 import usePermissions from "@/helpers/permissions.js";
 
+function getSwal() {
+    return (typeof window !== "undefined" && (window.Swal || window.swal)) || null;
+}
+
 export default {
     props: ["usuarioactual", "permisos"],
     setup(props) {
@@ -307,8 +311,35 @@ export default {
         async anularSeleccionado() {
             if (this.selectedIds.length !== 1) return;
             const id = this.selectedIds[0];
-            const obs = window.prompt("Observación de anulación (obligatoria):");
-            if (!obs || !String(obs).trim()) return;
+            const Swal = getSwal();
+            if (!Swal) {
+                const obs = window.prompt("Observación de anulación (obligatoria):");
+                if (!obs || !String(obs).trim()) return;
+                await this._ejecutarAnulacion(id, obs);
+                return;
+            }
+            const result = await Swal.fire({
+                title: "Anular consentimiento",
+                text: "Indique la observación de anulación (obligatoria)",
+                icon: "warning",
+                input: "textarea",
+                inputPlaceholder: "Motivo de anulación...",
+                showCancelButton: true,
+                confirmButtonText: "Sí, anular",
+                cancelButtonText: "Cancelar",
+                confirmButtonColor: "#DD6B55",
+                preConfirm: (obs) => {
+                    if (!obs || !String(obs).trim()) {
+                        Swal.showValidationMessage("Debe indicar una observación");
+                    }
+                    return obs;
+                },
+            });
+            if (result.isConfirmed) {
+                await this._ejecutarAnulacion(id, result.value);
+            }
+        },
+        async _ejecutarAnulacion(id, obs) {
             this.loading = true;
             try {
                 await axios.post(`/api/ecografias-consentimientos/${id}/anular`, {
