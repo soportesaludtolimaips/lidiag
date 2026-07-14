@@ -11,7 +11,6 @@ use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Psr\Log\LogLevel;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
@@ -46,42 +45,49 @@ class Handler extends ExceptionHandler
         'password_confirmation',
     ];
 
-    /**
-     * Render an exception into an HTTP response.
-     *
-     * @param  Request  $request
-     * @return Response
-     */
-    public function render($request, Throwable $e)
+    public function register(): void
     {
-        if ($e instanceof HttpResponseException) {
-            return $e->getResponse();
-        }
+        $this->reportable(function (Throwable $e) {
+            //
+        });
 
-        if ($request->expectsJson()) {
-            $status = match (true) {
-                $e instanceof AuthenticationException => 401,
-                $e instanceof AuthorizationException => 403,
-                $e instanceof ModelNotFoundException => 404,
-                $e instanceof NotFoundHttpException => 404,
-                $e instanceof ValidationException => 422,
-                $e instanceof ThrottleRequestsException => 429,
-                default => method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500,
-            };
+        $this->renderable(function (Throwable $e, Request $request) {
+            if ($e instanceof HttpResponseException) {
+                return $e->getResponse();
+            }
 
-            $message = match (true) {
-                $e instanceof ValidationException => $e->getMessage(),
-                $e instanceof AuthenticationException => 'No autenticado.',
-                $e instanceof AuthorizationException => 'No autorizado.',
-                $e instanceof ModelNotFoundException => 'Recurso no encontrado.',
-                $e instanceof ThrottleRequestsException => 'Demasiadas solicitudes.',
-                $e instanceof NotFoundHttpException => 'Ruta no encontrada.',
-                default => config('app.debug') && app()->isLocal() ? $e->getMessage() : 'Error interno del servidor.',
-            };
+            if ($request->expectsJson()) {
+                $status = match (true) {
+                    $e instanceof AuthenticationException => 401,
+                    $e instanceof AuthorizationException => 403,
+                    $e instanceof ModelNotFoundException => 404,
+                    $e instanceof NotFoundHttpException => 404,
+                    $e instanceof ValidationException => 422,
+                    $e instanceof ThrottleRequestsException => 429,
+                    default => method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500,
+                };
 
-            return response()->json(['success' => false, 'message' => $message], $status);
-        }
+                $message = match (true) {
+                    $e instanceof ValidationException => $e->getMessage(),
+                    $e instanceof AuthenticationException => 'No autenticado.',
+                    $e instanceof AuthorizationException => 'No autorizado.',
+                    $e instanceof ModelNotFoundException => 'Recurso no encontrado.',
+                    $e instanceof ThrottleRequestsException => 'Demasiadas solicitudes.',
+                    $e instanceof NotFoundHttpException => 'Ruta no encontrada.',
+                    default => config('app.debug') && app()->isLocal() ? $e->getMessage() : 'Error interno del servidor.',
+                };
 
-        return parent::render($request, $e);
+                $data = $e instanceof ValidationException ? $e->errors() : null;
+
+                return response()->json([
+                    'success' => false,
+                    'data' => $data,
+                    'message' => $message,
+                    'status' => $status,
+                ], $status);
+            }
+
+            return parent::render($request, $e);
+        });
     }
 }
