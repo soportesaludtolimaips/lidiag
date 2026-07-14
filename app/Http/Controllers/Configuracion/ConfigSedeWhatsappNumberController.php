@@ -3,67 +3,43 @@
 namespace App\Http\Controllers\Configuracion;
 
 use App\Http\Controllers\Controller;
-use App\Models\Configuracion\ConfigSedeWhatsappNumber;
+use App\Http\Requests\Configuracion\StoreConfigSedeWhatsappNumberRequest;
+use App\Http\Requests\Configuracion\UpdateConfigSedeWhatsappNumberRequest;
+use App\Services\Configuracion\ConfigSedeWhatsappNumberService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ConfigSedeWhatsappNumberController extends Controller
 {
-    public function index(Request $request)
+    public function __construct(
+        private readonly ConfigSedeWhatsappNumberService $configSedeWhatsappNumberService,
+    ) {}
+
+    public function index(Request $request): JsonResponse
     {
-        $query = ConfigSedeWhatsappNumber::with('sede');
+        $result = $this->configSedeWhatsappNumberService->all($request->integer('sede_id'));
 
-        if ($request->sede_id) {
-            $query->where('sede_id', $request->sede_id);
-        }
-
-        return response()->json($query->orderBy('descripcion')->get());
+        return response()->json($result, $result['status']);
     }
 
-    public function store(Request $request)
+    public function store(StoreConfigSedeWhatsappNumberRequest $request): JsonResponse
     {
-        $request->validate([
-            'sede_id' => 'required|exists:config_sedes,id',
-            'phone_number_id' => 'required|string|max:50|unique:config_sede_whatsapp_numbers,phone_number_id',
-            'numero' => 'required|string|max:20',
-            'descripcion' => 'nullable|string|max:255',
-            'activo' => 'boolean',
-        ]);
+        $result = $this->configSedeWhatsappNumberService->create($request->validated());
 
-        $number = ConfigSedeWhatsappNumber::create([
-            'sede_id' => $request->sede_id,
-            'phone_number_id' => $request->phone_number_id,
-            'numero' => $request->numero,
-            'descripcion' => $request->descripcion,
-            'activo' => $request->boolean('activo', true),
-        ]);
-
-        return response()->json($number->load('sede'), 201);
+        return response()->json($result, $result['status']);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateConfigSedeWhatsappNumberRequest $request, int $id): JsonResponse
     {
-        $number = ConfigSedeWhatsappNumber::findOrFail($id);
+        $result = $this->configSedeWhatsappNumberService->update($id, $request->validated());
 
-        $request->validate([
-            'sede_id' => 'sometimes|exists:config_sedes,id',
-            'phone_number_id' => 'sometimes|string|max:50|unique:config_sede_whatsapp_numbers,phone_number_id,'.$id,
-            'numero' => 'sometimes|string|max:20',
-            'descripcion' => 'nullable|string|max:255',
-            'activo' => 'boolean',
-        ]);
-
-        $number->update($request->only([
-            'sede_id', 'phone_number_id', 'numero', 'descripcion', 'activo'
-        ]));
-
-        return response()->json($number->load('sede'));
+        return response()->json($result, $result['status']);
     }
 
-    public function destroy($id)
+    public function destroy(int $id): JsonResponse
     {
-        $number = ConfigSedeWhatsappNumber::findOrFail($id);
-        $number->delete();
+        $result = $this->configSedeWhatsappNumberService->delete($id);
 
-        return response()->json(['message' => 'Número eliminado correctamente.']);
+        return response()->json($result, $result['status']);
     }
 }

@@ -3,69 +3,49 @@
 namespace App\Http\Controllers\HelpDesk;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\HelpDesk\HelpDeskPrioridadRequest;
 use App\Models\HelpDesk\HelpDeskPrioridad;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use App\Services\HelpDesk\HelpDeskPrioridadService;
+use Illuminate\Http\JsonResponse;
 
 class HelpDeskPrioridadesController extends Controller
 {
-    public function index()
+    public function __construct(
+        private readonly HelpDeskPrioridadService $prioridadService,
+    ) {}
+
+    public function index(): JsonResponse
     {
-        return response()->json(
-            HelpDeskPrioridad::query()->orderBy('orden')->orderBy('nombre')->get()
-        );
+        $result = $this->prioridadService->all();
+
+        return response()->json($result['data'], $result['status']);
     }
 
-    public function store(Request $request)
+    public function store(HelpDeskPrioridadRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'nombre' => 'required|string|max:50',
-            'orden' => 'nullable|integer|min:0',
-            'activo' => 'nullable|boolean',
-        ]);
-        if ($validator->fails()) {
-            return response()->json(['message' => 'Datos inválidos', 'errors' => $validator->errors()], 422);
-        }
+        $result = $this->prioridadService->create($request->validated());
 
-        $prio = HelpDeskPrioridad::create([
-            'nombre' => $request->nombre,
-            'orden' => $request->has('orden') ? (int) $request->orden : 0,
-            'activo' => $request->has('activo') ? (bool) $request->activo : true,
-        ]);
-
-        return response()->json($prio, 201);
+        return response()->json($result['data'], $result['status']);
     }
 
-    public function show(HelpDeskPrioridad $prioridad)
+    public function show(HelpDeskPrioridad $prioridad): JsonResponse
     {
-        return response()->json($prioridad);
+        $result = $this->prioridadService->find($prioridad->id);
+
+        return response()->json($result['data'], $result['status']);
     }
 
-    public function update(Request $request, HelpDeskPrioridad $prioridad)
+    public function update(HelpDeskPrioridadRequest $request, HelpDeskPrioridad $prioridad): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'nombre' => 'required|string|max:50',
-            'orden' => 'required|integer|min:0',
-            'activo' => 'required|boolean',
-        ]);
-        if ($validator->fails()) {
-            return response()->json(['message' => 'Datos inválidos', 'errors' => $validator->errors()], 422);
-        }
+        $result = $this->prioridadService->update($prioridad->id, $request->validated());
 
-        $prioridad->update([
-            'nombre' => $request->nombre,
-            'orden' => (int) $request->orden,
-            'activo' => (bool) $request->activo,
-        ]);
-
-        return response()->json($prioridad);
+        return response()->json($result['data'], $result['status']);
     }
 
-    public function destroy(HelpDeskPrioridad $prioridad)
+    public function destroy(HelpDeskPrioridad $prioridad): JsonResponse
     {
-        $prioridad->activo = false;
-        $prioridad->save();
+        $result = $this->prioridadService->delete($prioridad->id);
 
-        return response()->json(['ok' => true]);
+        return response()->json(['ok' => true], $result['status']);
     }
 }

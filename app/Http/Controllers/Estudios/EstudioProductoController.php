@@ -3,60 +3,41 @@
 namespace App\Http\Controllers\Estudios;
 
 use App\Http\Controllers\Controller;
-use App\Models\Estudio\EstudioProducto;
+use App\Services\Estudios\EstudioProductoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 
 class EstudioProductoController extends Controller
 {
-    /**
-     * Lista los productos asociados a un estudio.
-     *
-     * @param  Request  $request  ID del estudio (`id`).
-     * @return JsonResponse Lista de productos.
-     */
-    public function index(Request $request)
-    {
-        $idEstudio = $request->id;
-        $productos = EstudioProducto::where('lectua_id', $idEstudio);
+    public function __construct(
+        private readonly EstudioProductoService $estudioProductoService,
+    ) {}
 
-        return response()->json(['productos' => $productos]);
+    public function index(Request $request): JsonResponse
+    {
+        $result = $this->estudioProductoService->listarPorEstudio($request->integer('id'));
+
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Crea un nuevo producto asociado a un estudio.
-     *
-     * @param  Request  $request  Datos del producto.
-     * @param  EstudioProducto  $estudioProducto  Instancia del modelo.
-     * @return JsonResponse Confirmación.
-     */
-    public function store(Request $request, EstudioProducto $estudioProducto)
+    public function store(Request $request): JsonResponse
     {
-        $estudioProducto->create($request->only($estudioProducto->getFillable()));
+        $result = $this->estudioProductoService->create($request->all());
 
-        return response()->json(['message' => 'Registro creado satisfactoriamente.']);
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \App\Models\Estudios\EstudioProducto  $estudioProducto
-     * @return Response
-     */
-    public function update(Request $request, EstudioProducto $estudioProducto)
+    public function update(Request $request, int $id): JsonResponse
     {
-        //
+        $result = $this->estudioProductoService->update($id, $request->all());
+
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Estudios\EstudioProducto  $estudioProducto
-     * @return Response
-     */
-    public function destroy(EstudioProducto $estudioProducto)
+    public function destroy(int $id): JsonResponse
     {
-        //
+        $result = $this->estudioProductoService->delete($id);
+
+        return response()->json($result, $result['status']);
     }
 }

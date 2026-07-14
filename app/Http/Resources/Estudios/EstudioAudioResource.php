@@ -1,0 +1,27 @@
+<?php
+
+namespace App\Http\Resources\Estudios;
+
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class EstudioAudioResource extends JsonResource
+{
+    public function toArray($request): array
+    {
+        return [
+            'id' => $this->id,
+            'estudio_id' => $this->estudio_id,
+            'estudio_producto_id' => $this->estudio_producto_id,
+            'audio' => $this->audio,
+            'tipo' => $this->tipo,
+            'nombre_original' => $this->nombre_original,
+            'formato' => $this->formato,
+            'duracion' => $this->duracion,
+            'tamano' => $this->tamano,
+            'usuario_id' => $this->usuario_id,
+            'transcripcion' => $this->transcripcion,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+        ];
+    }
+}

@@ -6,6 +6,11 @@ use App\Models\AuditLog;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Request;
 
+/**
+ * @deprecated Usar App\Providers\AppServiceProvider::registerGlobalActivityLog()
+ *             que registra automáticamente created/updated/deleted via Model eventos
+ *             en la tabla activity_log. Este helper escribe en audit_log (legacy).
+ */
 class AuditLogger
 {
     public static function log(

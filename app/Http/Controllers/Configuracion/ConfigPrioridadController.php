@@ -2,81 +2,56 @@
 
 namespace App\Http\Controllers\Configuracion;
 
-use App\Helpers\AuditLogger;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Configuracion\ConfigPrioridadRequest;
-use App\Models\Configuracion\ConfigPrioridad;
+use App\Services\Configuracion\ConfigPrioridadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ConfigPrioridadController extends Controller
 {
-    public function __construct()
-    {
-        // Catálogo público: solo proteger escrituras
-        $this->middleware('auth:sanctum')->only(['store', 'update', 'destroy']);
-        $this->middleware('permission:config.prioridades.create')->only(['store']);
-        $this->middleware('permission:config.prioridades.edit')->only(['update']);
-        $this->middleware('permission:config.prioridades.destroy')->only(['destroy']);
+    public function __construct(
+        private readonly ConfigPrioridadService $configPrioridadService,
+    ) {
+        $this->middleware('auth:sanctum')->except(['index']);
+        $this->middleware('permission:configuracion.prioridades.index')->only(['index']);
+        $this->middleware('permission:configuracion.prioridades.create')->only(['store']);
+        $this->middleware('permission:configuracion.prioridades.edit')->only(['update']);
+        $this->middleware('permission:configuracion.prioridades.destroy')->only(['destroy']);
     }
 
-    /**
-     * Lista todas las prioridades configuradas.
-     *
-     * @return JsonResponse Lista de prioridades.
-     */
-    public function index()
+    public function index(): JsonResponse
     {
-        $prioridades = ConfigPrioridad::all();
+        $result = $this->configPrioridadService->all();
 
-        return response()->json($prioridades);
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Crea una nueva prioridad.
-     *
-     * @param  ConfigPrioridadRequest  $request  Datos de la prioridad.
-     * @param  ConfigPrioridad  $configPrioridad  Instancia del modelo.
-     * @return JsonResponse Confirmación de creación.
-     */
-    public function store(ConfigPrioridadRequest $request, ConfigPrioridad $configPrioridad)
+    public function show(int $id): JsonResponse
     {
-        $configPrioridad->create($request->only(['nom_priori', 'nivel', 'tiempo', 'estado']));
+        $result = $this->configPrioridadService->find($id);
 
-        AuditLogger::crear($configPrioridad, 'Prioridad creada');
-
-        return response()->json(['message' => 'Registro creado satisfactoriamente.']);
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Actualiza una prioridad existente.
-     *
-     * @param  Request  $request  Datos actualizados.
-     * @param  ConfigPrioridad  $configPrioridad  Instancia a actualizar.
-     * @return JsonResponse Confirmación de actualización.
-     */
-    public function update(Request $request, ConfigPrioridad $configPrioridad)
+    public function store(ConfigPrioridadRequest $request): JsonResponse
     {
-        $datosViejos = $configPrioridad->toArray();
-        $configPrioridad->update($request->only(['nom_priori', 'nivel', 'tiempo', 'estado']));
+        $result = $this->configPrioridadService->create($request->validated());
 
-        AuditLogger::actualizar($configPrioridad, $datosViejos, 'Prioridad actualizada');
-
-        return response()->json(['message' => 'Registro actualizado correctamente.']);
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Elimina una prioridad.
-     *
-     * @param  ConfigPrioridad  $configPrioridad  Instancia a eliminar.
-     * @return JsonResponse Confirmación de eliminación.
-     */
-    public function destroy(ConfigPrioridad $configPrioridad)
+    public function update(Request $request, int $id): JsonResponse
     {
-        $configPrioridad->delete();
+        $result = $this->configPrioridadService->update($id, $request->all());
 
-        AuditLogger::eliminar($configPrioridad, 'Prioridad eliminada');
+        return response()->json($result, $result['status']);
+    }
 
-        return response()->json(['message' => 'Registro eliminado crrectamente.']);
+    public function destroy(int $id): JsonResponse
+    {
+        $result = $this->configPrioridadService->delete($id);
+
+        return response()->json($result, $result['status']);
     }
 }

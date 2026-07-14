@@ -2,80 +2,48 @@
 
 namespace App\Http\Controllers\Configuracion;
 
-use App\Helpers\AuditLogger;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Configuracion\ConfigDiagnosticoRequest;
-use App\Models\Configuracion\ConfigDiagnostico;
+use App\Services\Configuracion\ConfigDiagnosticoService;
 use Illuminate\Http\JsonResponse;
 
 class ConfigDiagnosticoController extends Controller
 {
-    public function __construct()
-    {
-        // Catálogo público: solo proteger escrituras
-        $this->middleware('auth:sanctum')->only(['store', 'update', 'destroy']);
-        $this->middleware('permission:config.diagnosticos.create')->only(['store']);
-        $this->middleware('permission:config.diagnosticos.edit')->only(['update']);
-        $this->middleware('permission:config.diagnosticos.destroy')->only(['destroy']);
+    public function __construct(
+        private readonly ConfigDiagnosticoService $configDiagnosticoService,
+    ) {
+        $this->middleware('auth:sanctum')->except(['index']);
+        $this->middleware('permission:configuracion.diagnosticos.index')->only(['index']);
+        $this->middleware('permission:configuracion.diagnosticos.create')->only(['store']);
+        $this->middleware('permission:configuracion.diagnosticos.edit')->only(['update']);
+        $this->middleware('permission:configuracion.diagnosticos.destroy')->only(['destroy']);
     }
 
-    /**
-     * Lista todos los diagnósticos (CIE-10) ordenados alfabéticamente.
-     *
-     * @return JsonResponse Lista de diagnósticos.
-     */
-    public function index()
+    public function index(): JsonResponse
     {
-        $diagnosticos = ConfigDiagnostico::orderBy('nom_diagnos')->get();
+        $result = $this->configDiagnosticoService->all();
 
-        return response()->json($diagnosticos);
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Crea un nuevo diagnóstico.
-     *
-     * @param  ConfigDiagnosticoRequest  $request  Datos del diagnóstico.
-     * @param  ConfigDiagnostico  $configDiagnostico  Instancia del modelo.
-     * @return JsonResponse Confirmación de creación.
-     */
-    public function store(ConfigDiagnosticoRequest $request, ConfigDiagnostico $configDiagnostico)
+    public function store(ConfigDiagnosticoRequest $request): JsonResponse
     {
-        $configDiagnostico->create($request->only(['cod_diagnos', 'nom_diagnos', 'estado']));
+        $result = $this->configDiagnosticoService->create($request->validated());
 
-        AuditLogger::crear($configDiagnostico, 'Diagnóstico creado');
-
-        return response()->json(['message' => 'Registro creado satisfactoriamente.']);
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Actualiza un diagnóstico existente.
-     *
-     * @param  ConfigDiagnosticoRequest  $request  Datos actualizados.
-     * @param  ConfigDiagnostico  $configDiagnostico  Instancia a actualizar.
-     * @return JsonResponse Confirmación de actualización.
-     */
-    public function update(ConfigDiagnosticoRequest $request, ConfigDiagnostico $configDiagnostico)
+    public function update(ConfigDiagnosticoRequest $request, int $id): JsonResponse
     {
-        $datosViejos = $configDiagnostico->toArray();
-        $configDiagnostico->update($request->only(['cod_diagnos', 'nom_diagnos', 'estado']));
+        $result = $this->configDiagnosticoService->update($id, $request->validated());
 
-        AuditLogger::actualizar($configDiagnostico, $datosViejos, 'Diagnóstico actualizado');
-
-        return response()->json(['message' => 'Registro actualizado correctamente.']);
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Elimina un diagnóstico.
-     *
-     * @param  ConfigDiagnostico  $configDiagnostico  Instancia a eliminar.
-     * @return JsonResponse Confirmación de eliminación.
-     */
-    public function destroy(ConfigDiagnostico $configDiagnostico)
+    public function destroy(int $id): JsonResponse
     {
-        $configDiagnostico->delete();
+        $result = $this->configDiagnosticoService->delete($id);
 
-        AuditLogger::eliminar($configDiagnostico, 'Diagnóstico eliminado');
-
-        return response()->json(['message' => 'Registro eliminado crrectamente.']);
+        return response()->json($result, $result['status']);
     }
 }

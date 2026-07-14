@@ -3,66 +3,49 @@
 namespace App\Http\Controllers\HelpDesk;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\HelpDesk\HelpDeskCategoriaRequest;
 use App\Models\HelpDesk\HelpDeskCategoria;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use App\Services\HelpDesk\HelpDeskCategoriaService;
+use Illuminate\Http\JsonResponse;
 
 class HelpDeskCategoriasController extends Controller
 {
-    public function index()
+    public function __construct(
+        private readonly HelpDeskCategoriaService $categoriaService,
+    ) {}
+
+    public function index(): JsonResponse
     {
-        return response()->json(
-            HelpDeskCategoria::query()->orderBy('nombre')->get()
-        );
+        $result = $this->categoriaService->all();
+
+        return response()->json($result['data'], $result['status']);
     }
 
-    public function store(Request $request)
+    public function store(HelpDeskCategoriaRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'nombre' => 'required|string|max:100',
-            'activo' => 'nullable|boolean',
-        ]);
-        if ($validator->fails()) {
-            return response()->json(['message' => 'Datos inválidos', 'errors' => $validator->errors()], 422);
-        }
+        $result = $this->categoriaService->create($request->validated());
 
-        $cat = HelpDeskCategoria::create([
-            'nombre' => $request->nombre,
-            'activo' => $request->has('activo') ? (bool) $request->activo : true,
-        ]);
-
-        return response()->json($cat, 201);
+        return response()->json($result['data'], $result['status']);
     }
 
-    public function show(HelpDeskCategoria $categoria)
+    public function show(HelpDeskCategoria $categoria): JsonResponse
     {
-        return response()->json($categoria);
+        $result = $this->categoriaService->find($categoria->id);
+
+        return response()->json($result['data'], $result['status']);
     }
 
-    public function update(Request $request, HelpDeskCategoria $categoria)
+    public function update(HelpDeskCategoriaRequest $request, HelpDeskCategoria $categoria): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'nombre' => 'required|string|max:100',
-            'activo' => 'required|boolean',
-        ]);
-        if ($validator->fails()) {
-            return response()->json(['message' => 'Datos inválidos', 'errors' => $validator->errors()], 422);
-        }
+        $result = $this->categoriaService->update($categoria->id, $request->validated());
 
-        $categoria->update([
-            'nombre' => $request->nombre,
-            'activo' => (bool) $request->activo,
-        ]);
-
-        return response()->json($categoria);
+        return response()->json($result['data'], $result['status']);
     }
 
-    public function destroy(HelpDeskCategoria $categoria)
+    public function destroy(HelpDeskCategoria $categoria): JsonResponse
     {
-        // En vez de borrar, se desactiva (patrón del proyecto)
-        $categoria->activo = false;
-        $categoria->save();
+        $result = $this->categoriaService->delete($categoria->id);
 
-        return response()->json(['ok' => true]);
+        return response()->json(['ok' => true], $result['status']);
     }
 }

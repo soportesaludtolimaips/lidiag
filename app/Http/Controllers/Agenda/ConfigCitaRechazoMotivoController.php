@@ -1,52 +1,43 @@
 <?php
 
 namespace App\Http\Controllers\Agenda;
+
 use App\Http\Controllers\Controller;
-use App\Models\Citas\ConfigCitaRechazoMotivo;
-use Illuminate\Http\Request;
+use App\Http\Requests\Agenda\ConfigCitaRechazoMotivoRequest;
+use App\Services\Agenda\ConfigCitaRechazoMotivoService;
+use Illuminate\Http\JsonResponse;
 
 class ConfigCitaRechazoMotivoController extends Controller
 {
-    public function index()
+    public function __construct(
+        private readonly ConfigCitaRechazoMotivoService $service,
+    ) {}
+
+    public function index(): JsonResponse
     {
-        return response()->json(ConfigCitaRechazoMotivo::orderBy('motivo')->get());
+        $result = $this->service->all();
+
+        return response()->json($result['data'], $result['status']);
     }
 
-    public function store(Request $request)
+    public function store(ConfigCitaRechazoMotivoRequest $request): JsonResponse
     {
-        $request->validate([
-            'motivo' => 'required|string|max:255',
-        ]);
+        $result = $this->service->create($request->validated());
 
-        $motivo = ConfigCitaRechazoMotivo::create([
-            'motivo' => $request->motivo,
-            'activo' => $request->boolean('activo', true),
-        ]);
-
-        return response()->json($motivo, 201);
+        return response()->json($result['data'], $result['status']);
     }
 
-    public function update(Request $request, $id)
+    public function update(ConfigCitaRechazoMotivoRequest $request, int $id): JsonResponse
     {
-        $motivo = ConfigCitaRechazoMotivo::findOrFail($id);
+        $result = $this->service->update($id, $request->validated());
 
-        $request->validate([
-            'motivo' => 'required|string|max:255',
-        ]);
-
-        $motivo->update([
-            'motivo' => $request->motivo,
-            'activo' => $request->boolean('activo', $motivo->activo),
-        ]);
-
-        return response()->json($motivo);
+        return response()->json($result['data'], $result['status']);
     }
 
-    public function destroy($id)
+    public function destroy(int $id): JsonResponse
     {
-        $motivo = ConfigCitaRechazoMotivo::findOrFail($id);
-        $motivo->delete();
+        $result = $this->service->delete($id);
 
-        return response()->json(['message' => 'Motivo eliminado']);
+        return response()->json($result['message'], $result['status']);
     }
 }

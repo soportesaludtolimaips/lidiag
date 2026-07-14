@@ -3,11 +3,15 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\Auth\AuthService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 
 class PasswordChangeController extends Controller
 {
+    public function __construct(
+        private readonly AuthService $authService,
+    ) {}
+
     public function showForm()
     {
         return view('auth.passwords.cambiar');
@@ -25,16 +29,15 @@ class PasswordChangeController extends Controller
             'password.confirmed' => 'La confirmación de la nueva contraseña no coincide.',
         ]);
 
-        $user = $request->user();
+        $result = $this->authService->changePassword(
+            $request->user(),
+            $request->current_password,
+            $request->password
+        );
 
-        if (! Hash::check($request->current_password, $user->password)) {
-            return back()->withErrors(['current_password' => 'La contraseña actual no es correcta.']);
+        if (! $result['success']) {
+            return back()->withErrors(['current_password' => $result['message']]);
         }
-
-        $user->update([
-            'password' => bcrypt($request->password),
-            'password_changed_at' => now(),
-        ]);
 
         return redirect()->intended(route('dashboard'))->with('success', 'Contraseña actualizada correctamente.');
     }
