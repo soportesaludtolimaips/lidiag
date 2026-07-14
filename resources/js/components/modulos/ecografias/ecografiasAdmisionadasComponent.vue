@@ -368,261 +368,239 @@
         </div>
     </div>
 </template>
-<script>
+<script setup>
+import { nextTick, onMounted, ref } from "vue";
+
 import usePermissions from "@/helpers/permissions.js";
 import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
 import { handleAxiosErrorToast } from "@/helpers/alerts";
 import { setMapValue } from "@/helpers/sahi";
 import { useSede } from "@/composables/useSede";
 import { useSahiInterface } from "@/composables/useSahiInterface";
+import axios from "axios";
 
-export default {
-    props: ["usuarioactual", "permisos"],
-    setup(props) {
-        const { can } = usePermissions(props.permisos);
-        const { sedeInterface, establecerSede } = useSede();
-        const { consultarEstado, enviarEcografiaProducto } = useSahiInterface();
+const props = defineProps({});
 
-        return { can, sedeInterface, establecerSede, consultarEstado, enviarEcografiaProducto };
-    },
-    mounted() {
-        this.establecerSede();
-    },
-    data() {
-        return {
-            busqueda: {
-                sede_id: this.sedeActual,
-                medico_id: this.medicoActual,
-                bus_nom_num_docu: "",
-                bus_fehc_ini: "",
-                bus_fecha_fin: "",
+const busqueda = ref({
+    sede_id: this.sedeActual,
+    medico_id: this.medicoActual,
+    bus_nom_num_docu: "",
+    bus_fehc_ini: "",
+    bus_fecha_fin: "",
+});
+const registros = ref([]);
+const registroAnular = ref({
+    ecografia_id: "",
+    atencion_id: "",
+    quien_anulo_id: this.usuarioactual.id,
+    motivo_anula: "",
+});
+const erroresBusqueda = ref({});
+const isBuscandoAdmisionadas = ref(false);
+const isImprimiendoReporte = ref(false);
+const isAnulandoAdmisionada = ref(false);
+const isConsultandoSahi = ref({});
+const isEnviandoSahi = ref({});
+
+function buscarStudy() {
+    // Soporte para Enter en el input de búsqueda
+    return listarAtenciones();
+}
+function btnLimpiar() {
+    // Limpia criterios de búsqueda (mantiene sede/medico del contexto)
+    busqueda.value.bus_nom_num_docu = "";
+    busqueda.value.bus_fehc_ini = "";
+    busqueda.value.bus_fecha_fin = "";
+    erroresBusqueda.value = {};
+
+    safeDestroyDataTable(dt.value || "#example23");
+    registros.value = [];
+}
+async function establecerSede() {
+    const sede = sessionStorage.getItem("ST-sede");
+    if (sede != null) {
+        busqueda.value.sede_id = sede;
+    }
+    await establecerSede();
+}
+function safeDestroyDataTable(selector = "#example23") {
+    if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
+        return;
+    const $t = window.$(selector);
+    if (!$t.length) return;
+    if (window.$.fn.DataTable.isDataTable($t)) {
+        $t.DataTable().clear().destroy();
+    }
+}
+function safeInitDataTable(selector = "#example23") {
+    if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
+        return;
+    nextTick(() => {
+        const $t = window.$(selector);
+        if (!$t.length) return;
+        if (window.$.fn.DataTable.isDataTable($t)) return;
+        $t.DataTable({
+            dom: "Bfrtip",
+            buttons: ["copy", "csv", "excel", "pdf", "print"],
+            language: {
+                emptyTable: "No se encontraron registros",
+                zeroRecords: "No se encontraron registros",
             },
-            registros: [],
-            registroAnular: {
-                ecografia_id: "",
-                atencion_id: "",
-                quien_anulo_id: this.usuarioactual.id,
-                motivo_anula: "",
-            },
-            erroresBusqueda: {},
-            isBuscandoAdmisionadas: false,
-            isImprimiendoReporte: false,
-            isAnulandoAdmisionada: false,
+        });
+    });
+}
+async function listarAtenciones() {
+    if (
+        busqueda.value.bus_nom_num_docu == "" &&
+        busqueda.value.bus_fehc_ini == "" &&
+        busqueda.value.bus_fecha_fin == ""
+    ) {
+        toastMessage({
+            heading: "¡Atención!",
+            text: "Debe ingresar almenos un criterio de busqueda.",
+            icon: "warning",
+        });
+        return;
+    }
 
-            isConsultandoSahi: {},
-            isEnviandoSahi: {},
-        };
-    },
-    methods: {
-        buscarStudy() {
-            // Soporte para Enter en el input de búsqueda
-            return this.listarAtenciones();
-        },
-        btnLimpiar() {
-            // Limpia criterios de búsqueda (mantiene sede/medico del contexto)
-            this.busqueda.bus_nom_num_docu = "";
-            this.busqueda.bus_fehc_ini = "";
-            this.busqueda.bus_fecha_fin = "";
-            this.erroresBusqueda = {};
+    try {
+        isBuscandoAdmisionadas.value = true;
 
-            this.safeDestroyDataTable(this.$refs.dt || "#example23");
-            this.registros = [];
-        },
+        const res = await axios.post("/api/ecografias-filtar", busqueda.value);
 
-        async establecerSede() {
-            const sede = sessionStorage.getItem("ST-sede");
-            if (sede != null) {
-                this.busqueda.sede_id = sede;
-            }
-            await this.establecerSede();
-        },
-        safeDestroyDataTable(selector = "#example23") {
-            if (
-                typeof window === "undefined" ||
-                !window.$ ||
-                !window.$.fn ||
-                !window.$.fn.DataTable
-            )
-                return;
-            const $t = window.$(selector);
-            if (!$t.length) return;
-            if (window.$.fn.DataTable.isDataTable($t)) {
-                $t.DataTable().clear().destroy();
-            }
-        },
-        safeInitDataTable(selector = "#example23") {
-            if (
-                typeof window === "undefined" ||
-                !window.$ ||
-                !window.$.fn ||
-                !window.$.fn.DataTable
-            )
-                return;
-            this.$nextTick(() => {
-                const $t = window.$(selector);
-                if (!$t.length) return;
-                if (window.$.fn.DataTable.isDataTable($t)) return;
-                $t.DataTable({
-                    dom: "Bfrtip",
-                    buttons: ["copy", "csv", "excel", "pdf", "print"],
-                    language: {
-                        emptyTable: "No se encontraron registros",
-                        zeroRecords: "No se encontraron registros",
-                    },
-                });
-            });
-        },
-        async listarAtenciones() {
-            if (
-                this.busqueda.bus_nom_num_docu == "" &&
-                this.busqueda.bus_fehc_ini == "" &&
-                this.busqueda.bus_fecha_fin == ""
-            ) {
-                toastMessage({
-                    heading: "¡Atención!",
-                    text: "Debe ingresar almenos un criterio de busqueda.",
-                    icon: "warning",
-                });
-                return;
-            }
+        if (res.status == 200) {
+            safeDestroyDataTable(dt.value || "#example23");
 
-            try {
-                this.isBuscandoAdmisionadas = true;
+            registros.value = res.data;
 
-                const res = await axios.post("/api/ecografias-filtar", this.busqueda);
-
-                if (res.status == 200) {
-                    this.safeDestroyDataTable(this.$refs.dt || "#example23");
-
-                    this.registros = res.data;
-
-                    this.safeInitDataTable(this.$refs.dt || "#example23");
-                }
-            } catch (error) {
-                this.erroresBusqueda = error?.response?.data?.errors || {};
-                handleAxiosErrorToast(error, "No fue posible listar ecografías admisionadas.");
-            } finally {
-                this.isBuscandoAdmisionadas = false;
-            }
-        },
-        async imprimirReporte(id) {
-            try {
-                this.isImprimiendoReporte = true;
-                const res = await axios.post(`/api/ecografia-generar-reporte/${id}`);
-                const url = res?.data?.plantilla || res?.data?.url;
-                if (url) {
-                    window.open(url, "_blank", "noopener,noreferrer");
-                } else {
-                    toastMessage({
-                        heading: "Upss!!!",
-                        text: res?.data?.message || "No fue posible generar el reporte.",
-                        icon: "warning",
-                    });
-                }
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible generar el reporte.");
-            } finally {
-                this.isImprimiendoReporte = false;
-            }
-        },
-        registroParaAnular(data) {
-            this.registroAnular.ecografia_id = data.id;
-            this.registroAnular.atencion_id = data?.atencion_id ?? data?.IdAtencion ?? "";
-        },
-        anularEcografia() {
-            if (this.registroAnular.motivo_anula === "") {
-                toastMessage({
-                    heading: "¡Atención!",
-                    text: "Debe ingresar el motivo de anulación.",
-                    icon: "warning",
-                });
-                return;
-            }
-
-            confirmAction({
-                title: "Estas seguro de anular la ecografia?",
-                text: "No podrás recuperar este registro!",
+            safeInitDataTable(dt.value || "#example23");
+        }
+    } catch (error) {
+        erroresBusqueda.value = error?.response?.data?.errors || {};
+        handleAxiosErrorToast(error, "No fue posible listar ecografías admisionadas.");
+    } finally {
+        isBuscandoAdmisionadas.value = false;
+    }
+}
+async function imprimirReporte(id) {
+    try {
+        isImprimiendoReporte.value = true;
+        const res = await axios.post(`/api/ecografia-generar-reporte/${id}`);
+        const url = res?.data?.plantilla || res?.data?.url;
+        if (url) {
+            window.open(url, "_blank", "noopener,noreferrer");
+        } else {
+            toastMessage({
+                heading: "Upss!!!",
+                text: res?.data?.message || "No fue posible generar el reporte.",
                 icon: "warning",
-            }).then(async (ok) => {
-                if (!ok) return;
-                if (this.isAnulandoAdmisionada) return;
-                this.isAnulandoAdmisionada = true;
-                try {
-                    const response = await axios.post(
-                        `/api/ecografia-anular/${this.registroAnular.ecografia_id}`,
-                        this.registroAnular
-                    );
-                    alertSuccess("Ok!", response?.data?.message || "Ecografía anulada.", "success");
-                    const cerrarModal = document.getElementById("btnCerrarModalAunular");
-                    if (cerrarModal) cerrarModal.click();
-                    await this.listarAtenciones();
-                } catch (error) {
-                    handleAxiosErrorToast(error, "No fue posible anular la ecografía.");
-                    alertError("Error", "No fue posible anular la ecografía.", "error");
-                } finally {
-                    this.isAnulandoAdmisionada = false;
-                }
             });
-        },
-        async consultarEstadoSahi(item) {
-            if (!this.sedeInterface) return;
-            if (!item?.ecografia_producto_id) return;
+        }
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible generar el reporte.");
+    } finally {
+        isImprimiendoReporte.value = false;
+    }
+}
+function registroParaAnular(data) {
+    registroAnular.value.ecografia_id = data.id;
+    registroAnular.value.atencion_id = data?.atencion_id ?? data?.IdAtencion ?? "";
+}
+function anularEcografia() {
+    if (registroAnular.value.motivo_anula === "") {
+        toastMessage({
+            heading: "¡Atención!",
+            text: "Debe ingresar el motivo de anulación.",
+            icon: "warning",
+        });
+        return;
+    }
 
-            const id = item.ecografia_producto_id;
-            try {
-                setMapValue(this, "isConsultandoSahi", id, true);
-                const estado = await this.consultarEstado(id);
+    confirmAction({
+        title: "Estas seguro de anular la ecografia?",
+        text: "No podrás recuperar este registro!",
+        icon: "warning",
+    }).then(async (ok) => {
+        if (!ok) return;
+        if (isAnulandoAdmisionada.value) return;
+        isAnulandoAdmisionada.value = true;
+        try {
+            const response = await axios.post(
+                `/api/ecografia-anular/${registroAnular.value.ecografia_id}`,
+                registroAnular.value
+            );
+            alertSuccess("Ok!", response?.data?.message || "Ecografía anulada.", "success");
+            const cerrarModal = document.getElementById("btnCerrarModalAunular");
+            if (cerrarModal) cerrarModal.click();
+            await listarAtenciones();
+        } catch (error) {
+            handleAxiosErrorToast(error, "No fue posible anular la ecografía.");
+            alertError("Error", "No fue posible anular la ecografía.", "error");
+        } finally {
+            isAnulandoAdmisionada.value = false;
+        }
+    });
+}
+async function consultarEstadoSahi(item) {
+    if (!sedeInterface) return;
+    if (!item?.ecografia_producto_id) return;
 
-                item.estado_envio_sahi = estado.estado_envio_sahi ?? item.estado_envio_sahi;
-                item.fechor_envio_sahi = estado.fechor_envio_sahi ?? item.fechor_envio_sahi;
-                item.error_envio_sahi = estado.error_envio_sahi ?? null;
-                item.sahi_esquema_149 = estado.sahi_esquema_149 ?? item.sahi_esquema_149;
-                item.sahi_esquema_150 = estado.sahi_esquema_150 ?? item.sahi_esquema_150;
+    const id = item.ecografia_producto_id;
+    try {
+        setMapValue(this, "isConsultandoSahi", id, true);
+        const estado = await consultarEstado(id);
 
-                this.safeDestroyDataTable(this.$refs.dt || "#example23");
-                this.safeInitDataTable(this.$refs.dt || "#example23");
-            } catch (error) {
-                toastMessage({
-                    heading: "SAHI",
-                    text: error.response?.data?.message || "No se pudo consultar el estado SAHI.",
-                    icon: "warning",
-                });
-            } finally {
-                setMapValue(this, "isConsultandoSahi", id, false);
-            }
-        },
-        async reenviarASahi(item) {
-            if (!this.sedeInterface) return;
-            if (!item?.ecografia_producto_id) return;
+        item.estado_envio_sahi = estado.estado_envio_sahi ?? item.estado_envio_sahi;
+        item.fechor_envio_sahi = estado.fechor_envio_sahi ?? item.fechor_envio_sahi;
+        item.error_envio_sahi = estado.error_envio_sahi ?? null;
+        item.sahi_esquema_149 = estado.sahi_esquema_149 ?? item.sahi_esquema_149;
+        item.sahi_esquema_150 = estado.sahi_esquema_150 ?? item.sahi_esquema_150;
 
-            const id = item.ecografia_producto_id;
-            try {
-                setMapValue(this, "isEnviandoSahi", id, true);
-                item.estado_envio_sahi = "ENVIANDO";
-                item.error_envio_sahi = null;
+        safeDestroyDataTable(dt.value || "#example23");
+        safeInitDataTable(dt.value || "#example23");
+    } catch (error) {
+        toastMessage({
+            heading: "SAHI",
+            text: error.response?.data?.message || "No se pudo consultar el estado SAHI.",
+            icon: "warning",
+        });
+    } finally {
+        setMapValue(this, "isConsultandoSahi", id, false);
+    }
+}
+async function reenviarASahi(item) {
+    if (!sedeInterface) return;
+    if (!item?.ecografia_producto_id) return;
 
-                await this.enviarEcografiaProducto(id);
+    const id = item.ecografia_producto_id;
+    try {
+        setMapValue(this, "isEnviandoSahi", id, true);
+        item.estado_envio_sahi = "ENVIANDO";
+        item.error_envio_sahi = null;
 
-                toastMessage({ heading: "SAHI", text: "Envío a SAHI encolado.", icon: "info" });
+        await enviarEcografiaProducto(id);
 
-                this.safeDestroyDataTable(this.$refs.dt || "#example23");
-                this.safeInitDataTable(this.$refs.dt || "#example23");
-            } catch (error) {
-                item.estado_envio_sahi = "ERROR";
-                item.error_envio_sahi =
-                    error.response?.data?.message || "No se pudo reenviar a SAHI.";
-                toastMessage({
-                    heading: "SAHI",
-                    text: item.error_envio_sahi,
-                    icon: "warning",
-                    hideAfter: 4500,
-                });
-            } finally {
-                setMapValue(this, "isEnviandoSahi", id, false);
-            }
-        },
-    },
-};
+        toastMessage({ heading: "SAHI", text: "Envío a SAHI encolado.", icon: "info" });
+
+        safeDestroyDataTable(dt.value || "#example23");
+        safeInitDataTable(dt.value || "#example23");
+    } catch (error) {
+        item.estado_envio_sahi = "ERROR";
+        item.error_envio_sahi = error.response?.data?.message || "No se pudo reenviar a SAHI.";
+        toastMessage({
+            heading: "SAHI",
+            text: item.error_envio_sahi,
+            icon: "warning",
+            hideAfter: 4500,
+        });
+    } finally {
+        setMapValue(this, "isEnviandoSahi", id, false);
+    }
+}
+
+onMounted(() => {
+    establecerSede();
+});
 </script>
 <style scoped>
 .right-sidebar {

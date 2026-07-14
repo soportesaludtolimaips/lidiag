@@ -17,8 +17,14 @@
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
-                <button type="button" class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="actualizar = false; mostrarRegistro()">
+                <button
+                    type="button"
+                    class="btn btn-info btnDesplegarRigthSidebar"
+                    @click="
+                        actualizar = false;
+                        mostrarRegistro();
+                    "
+                >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
@@ -40,13 +46,18 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de tipos de documentos</h4>
-                        <h6 class="card-subtitle">Administración de tipos de documentos para la prestación del servicio
-                            de
-                            imagenes diagnosticas.</h6>
+                        <h6 class="card-subtitle">
+                            Administración de tipos de documentos para la prestación del servicio de
+                            imagenes diagnosticas.
+                        </h6>
                         <div class="table-responsive m-t-40">
-                            <table id="example23" ref="dt"
-                                class="display nowrap table table-hover table-striped table-bordered" cellspacing="0"
-                                width="100%">
+                            <table
+                                id="example23"
+                                ref="dt"
+                                class="display nowrap table table-hover table-striped table-bordered"
+                                cellspacing="0"
+                                width="100%"
+                            >
                                 <thead>
                                     <tr>
                                         <th>Código</th>
@@ -60,21 +71,38 @@
                                         <td>{{ item.codigo }}</td>
                                         <td>{{ item.tipo_documento }}</td>
                                         <td>
-                                            <span class="label label-success" v-if="item.estado">Activo</span>
-                                            <span class="label label-danger" v-if="!item.estado">Inactivo</span>
+                                            <span class="label label-success" v-if="item.estado"
+                                                >Activo</span
+                                            >
+                                            <span class="label label-danger" v-if="!item.estado"
+                                                >Inactivo</span
+                                            >
                                         </td>
                                         <td class="text-nowrap">
-                                            <button type="button"
+                                            <button
+                                                type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="actualizar = true; mostrarRegistro(item)">
+                                                @click="
+                                                    actualizar = true;
+                                                    mostrarRegistro(item);
+                                                "
+                                            >
                                                 <i class="fa fa-pencil"></i>
                                             </button>
-                                            <button type="button"
+                                            <button
+                                                type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
                                                 @click="elimnarRegistro(item.id)"
-                                                :disabled="loadingEliminarId === item.id">
-                                                <i class="fa"
-                                                    :class="loadingEliminarId === item.id ? 'fa-spinner fa-spin' : 'fa-trash'"></i>
+                                                :disabled="loadingEliminarId === item.id"
+                                            >
+                                                <i
+                                                    class="fa"
+                                                    :class="
+                                                        loadingEliminarId === item.id
+                                                            ? 'fa-spinner fa-spin'
+                                                            : 'fa-trash'
+                                                    "
+                                                ></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -93,7 +121,10 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%;">
+        <div
+            class="right-sidebar"
+            style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%"
+        >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -111,9 +142,16 @@
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label class="control-label">Código</label>
-                                        <input type="text" id="codigo" name="codigo" v-model="registro.codigo"
-                                            class="form-control" placeholder="Código">
-                                        <span class="text-danger" v-if="errores.codigo">{{ errores.codigo[0]
+                                        <input
+                                            type="text"
+                                            id="codigo"
+                                            name="codigo"
+                                            v-model="registro.codigo"
+                                            class="form-control"
+                                            placeholder="Código"
+                                        />
+                                        <span class="text-danger" v-if="errores.codigo">{{
+                                            errores.codigo[0]
                                         }}</span>
                                     </div>
                                 </div>
@@ -123,9 +161,14 @@
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label class="control-label">Tipo de documento</label>
-                                        <input type="text" id="tipo_documento" name="tipo_documento"
-                                            v-model="registro.tipo_documento" class="form-control"
-                                            placeholder="Ingrese aquí el nombre del tipo de documento">
+                                        <input
+                                            type="text"
+                                            id="tipo_documento"
+                                            name="tipo_documento"
+                                            v-model="registro.tipo_documento"
+                                            class="form-control"
+                                            placeholder="Ingrese aquí el nombre del tipo de documento"
+                                        />
                                         <span class="text-danger" v-if="errores.tipo_documento">{{
                                             errores.tipo_documento[0]
                                         }}</span>
@@ -137,8 +180,14 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <div class="checkbox checkbox-success">
-                                            <input type="checkbox" id="estado" name="estado" v-model="registro.estado"
-                                                :true-value="1" :false-value="0">
+                                            <input
+                                                type="checkbox"
+                                                id="estado"
+                                                name="estado"
+                                                v-model="registro.estado"
+                                                :true-value="1"
+                                                :false-value="0"
+                                            />
                                             <label for="estado"> Activo </label>
                                         </div>
                                     </div>
@@ -146,20 +195,41 @@
                             </div>
 
                             <div class="form-actions mt-3">
-                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
-                                    v-if="!actualizar" :disabled="loadingGuardar">
-                                    <i class="fa" :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"></i>
+                                <button
+                                    type="button"
+                                    class="btn btn-success m-r-5"
+                                    @click="guardarRegistro()"
+                                    v-if="!actualizar"
+                                    :disabled="loadingGuardar"
+                                >
+                                    <i
+                                        class="fa"
+                                        :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"
+                                    ></i>
                                     Guardar
                                 </button>
 
-                                <button type="button" class="btn btn-warning m-r-5" v-if="actualizar"
-                                    @click="guardarRegistro()" :disabled="loadingGuardar">
-                                    <i class="fa" :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-pencil'"></i>
+                                <button
+                                    type="button"
+                                    class="btn btn-warning m-r-5"
+                                    v-if="actualizar"
+                                    @click="guardarRegistro()"
+                                    :disabled="loadingGuardar"
+                                >
+                                    <i
+                                        class="fa"
+                                        :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-pencil'"
+                                    ></i>
                                     Actualizar
                                 </button>
 
-                                <button type="button" class="btn btn-inverse"
-                                    @click="btnCerralModalForm()">Cancel</button>
+                                <button
+                                    type="button"
+                                    class="btn btn-inverse"
+                                    @click="btnCerralModalForm()"
+                                >
+                                    Cancel
+                                </button>
                             </div>
                         </div>
                     </form>
@@ -171,155 +241,154 @@
         <!-- ============================================================== -->
     </div>
 </template>
+<script setup>
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-
-<script>
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { alertError, alertSuccess, confirmAction, handleAxiosErrorToast } from "@/helpers/alerts.js";
+import {
+    alertError,
+    alertSuccess,
+    confirmAction,
+    handleAxiosErrorToast,
+} from "@/helpers/alerts.js";
+import axios from "axios";
 
-export default {
-    mounted() {
-        this.ListarDatos();
-    },
-    beforeUnmount() {
-        safeDestroyDataTable(this.$refs.dt || "#example23");
-    },
-    data() {
-        return {
-            id: 0,
-            registros: [],
-            registro: { codigo: '', tipo_documento: '', estado: true },
-            tituloModal: 'Nuevo registro',
-            actualizar: false,
-            errores: {},
-            loadingListar: false,
-            loadingGuardar: false,
-            loadingEliminarId: null,
-        };
-    },
-    methods: {
-        async ListarDatos() {
-            if (this.loadingListar) return;
-            this.loadingListar = true;
-            try {
-                const res = await axios.get("/api/config-tipos-documentos");
-                safeDestroyDataTable(this.$refs.dt || "#example23");
-                this.registros = res.data;
-                this.$nextTick(() => {
-                    safeInitDataTable(this.$refs.dt || "#example23", {
-                        dom: 'Bfrtip',
-                        buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
-                    });
-                });
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar tipos de documentos.");
-                this.registros = [];
-            } finally {
-                this.loadingListar = false;
-            }
-        },
-        async guardarRegistro() {
-            if (this.loadingGuardar) return;
-            this.loadingGuardar = true;
-            try {
-                if (this.actualizar === false) {
-                    const res = await axios.post('/api/config-tipos-documentos', this.registro);
+const id = ref(0);
+const registros = ref([]);
+const registro = ref({ codigo: "", tipo_documento: "", estado: true });
+const tituloModal = ref("Nuevo registro");
+const actualizar = ref(false);
+const errores = ref({});
+const loadingListar = ref(false);
+const loadingGuardar = ref(false);
+const loadingEliminarId = ref(null);
 
-                    if (res.status == 200) {
-
-                        this.ListarDatos()
-
-                        $.toast({
-                            heading: 'Ok!!!',
-                            text: res.data.message,
-                            position: 'top-right',
-                            loaderBg: '#ff6849',
-                            icon: 'success',
-                            hideAfter: 3500,
-                            stack: 6
-                        });
-
-                        this.btnCerralModalForm();
-                        this.limpiar();
-                    }
-                } else {
-                    const res = await axios.put('/api/config-tipos-documentos/' + this.id, this.registro);
-                    if (res.status == 200) {
-
-                        this.ListarDatos()
-
-                        $.toast({
-                            heading: 'Ok!!!',
-                            text: res.data.message,
-                            position: 'top-right',
-                            loaderBg: '#ff6849',
-                            icon: 'success',
-                            hideAfter: 3500,
-                            stack: 6
-                        });
-
-                        this.btnCerralModalForm();
-                        this.limpiar();
-                    }
-                }
-            } catch (error) {
-                this.errores = error?.response?.data?.errors || {};
-                handleAxiosErrorToast(error, "No fue posible guardar el tipo de documento.");
-            } finally {
-                this.loadingGuardar = false;
-            }
-        },
-        async elimnarRegistro(id) {
-            const ok = await confirmAction({
-                title: "¿Estas seguro?",
-                text: "No podrás recuperar este registro!",
-                icon: "warning",
+async function ListarDatos() {
+    if (loadingListar.value) return;
+    loadingListar.value = true;
+    try {
+        const res = await axios.get("/api/config-tipos-documentos");
+        safeDestroyDataTable(dt.value || "#example23");
+        registros.value = res.data;
+        nextTick(() => {
+            safeInitDataTable(dt.value || "#example23", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
-            if (!ok) return;
+        });
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar tipos de documentos.");
+        registros.value = [];
+    } finally {
+        loadingListar.value = false;
+    }
+}
+async function guardarRegistro() {
+    if (loadingGuardar.value) return;
+    loadingGuardar.value = true;
+    try {
+        if (actualizar.value === false) {
+            const res = await axios.post("/api/config-tipos-documentos", registro.value);
 
-            try {
-                if (this.loadingEliminarId) return;
-                this.loadingEliminarId = id;
-                const response = await axios.delete('/api/config-tipos-documentos/' + id);
-                alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
-                this.ListarDatos();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
-                alertError("Error", "No fue posible eliminar el registro.", "error");
-            } finally {
-                this.loadingEliminarId = null;
+            if (res.status == 200) {
+                ListarDatos();
+
+                $.toast({
+                    heading: "Ok!!!",
+                    text: res.data.message,
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "success",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+
+                btnCerralModalForm();
+                limpiar();
             }
-        },
-        mostrarRegistro(data = {}) {
-            if (this.actualizar) {
-                this.tituloModal = "Actualizar el registro: " + (data.tipo_documento || '');
-                this.id = data.id;
-                this.registro.codigo = data.codigo;
-                this.registro.tipo_documento = data.tipo_documento;
-                this.registro.estado = Boolean(data.estado);
-            } else {
-                this.actualizar = false;
-                this.tituloModal = "Nuevo registro";
-                this.id = 0;
-                this.registro.codigo = "";
-                this.registro.tipo_documento = "";
-                this.registro.estado = true;
+        } else {
+            const res = await axios.put("/api/config-tipos-documentos/" + id.value, registro.value);
+            if (res.status == 200) {
+                ListarDatos();
+
+                $.toast({
+                    heading: "Ok!!!",
+                    text: res.data.message,
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "success",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+
+                btnCerralModalForm();
+                limpiar();
             }
-        },
-        limpiar() {
-            this.actualizar = false;
-            this.tituloModal = "Nuevo registro";
-            this.id = 0;
-            this.registro.codigo = "";
-            this.registro.tipo_documento = "";
-            this.registro.estado = true;
-        },
-        btnCerralModalForm() {
-            $(".right-sidebar").slideDown(50);
-            $(".right-sidebar").toggleClass("shw-rside");
         }
-    },
-};
+    } catch (error) {
+        errores.value = error?.response?.data?.errors || {};
+        handleAxiosErrorToast(error, "No fue posible guardar el tipo de documento.");
+    } finally {
+        loadingGuardar.value = false;
+    }
+}
+async function elimnarRegistro(id) {
+    const ok = await confirmAction({
+        title: "¿Estas seguro?",
+        text: "No podrás recuperar este registro!",
+        icon: "warning",
+    });
+    if (!ok) return;
+
+    try {
+        if (loadingEliminarId.value) return;
+        loadingEliminarId.value = id;
+        const response = await axios.delete("/api/config-tipos-documentos/" + id);
+        alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
+        ListarDatos();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
+        alertError("Error", "No fue posible eliminar el registro.", "error");
+    } finally {
+        loadingEliminarId.value = null;
+    }
+}
+function mostrarRegistro(data = {}) {
+    if (actualizar.value) {
+        tituloModal.value = "Actualizar el registro: " + (data.tipo_documento || "");
+        id.value = data.id;
+        registro.value.codigo = data.codigo;
+        registro.value.tipo_documento = data.tipo_documento;
+        registro.value.estado = Boolean(data.estado);
+    } else {
+        actualizar.value = false;
+        tituloModal.value = "Nuevo registro";
+        id.value = 0;
+        registro.value.codigo = "";
+        registro.value.tipo_documento = "";
+        registro.value.estado = true;
+    }
+}
+function limpiar() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    id.value = 0;
+    registro.value.codigo = "";
+    registro.value.tipo_documento = "";
+    registro.value.estado = true;
+}
+function btnCerralModalForm() {
+    $(".right-sidebar").slideDown(50);
+    $(".right-sidebar").toggleClass("shw-rside");
+}
+
+onMounted(() => {
+    ListarDatos();
+});
+
+onBeforeUnmount(() => {
+    safeDestroyDataTable(dt.value || "#example23");
+});
 </script>
 <style scoped>
 .right-sidebar {

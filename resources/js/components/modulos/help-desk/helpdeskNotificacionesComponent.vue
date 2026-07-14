@@ -106,81 +106,72 @@
         </div>
     </div>
 </template>
+<script setup>
+import { computed, onMounted, ref } from "vue";
 
-<script>
 import { toastMessage, handleAxiosErrorToast } from "@/helpers/alerts.js";
 import { formatDateTime } from "@/helpers/dateUtils.js";
 import { helpdesk } from "@/helpers/api.js";
 
-export default {
-    data() {
-        return {
-            loading: false,
-            soloNoLeidas: false,
-            items: [],
-            paginaActual: 1,
-            totalPaginas: 1,
-            porPagina: 50,
-        };
-    },
-    computed: {
-        itemsFiltradas() {
-            if (!this.soloNoLeidas) return this.items;
-            return this.items.filter((x) => !x.read_at);
-        },
-    },
-    async mounted() {
-        await this.cargar();
-    },
-    methods: {
-        formatDateTime(dt) {
-            return formatDateTime(dt);
-        },
-        async cargar(pagina) {
-            if (pagina) this.paginaActual = pagina;
-            this.loading = true;
-            try {
-                const res = await helpdesk.notificaciones({
-                    limit: this.porPagina,
-                    page: this.paginaActual,
-                });
-                this.items = res.data?.items || [];
-                this.totalPaginas = res.data?.last_page || 1;
-            } catch (error) {
-                handleAxiosErrorToast(error, "No se pudieron cargar notificaciones.");
-            } finally {
-                this.loading = false;
-            }
-        },
-        irPagina(pagina) {
-            if (pagina < 1 || pagina > this.totalPaginas) return;
-            this.cargar(pagina);
-        },
-        async marcarLeida(n) {
-            try {
-                await helpdesk.marcarLeida(n.id);
-                n.read_at = new Date().toISOString();
-                toastMessage({
-                    heading: "Ok",
-                    text: "Notificación marcada como leída.",
-                    icon: "success",
-                });
-            } catch (error) {
-                handleAxiosErrorToast(error, "No se pudo marcar como leída.");
-            }
-        },
-        async marcarTodas() {
-            try {
-                await helpdesk.marcarTodasLeidas();
-                await this.cargar();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No se pudieron marcar todas.");
-            }
-        },
-        async abrir(n) {
-            if (!n.read_at) await this.marcarLeida(n);
-            if (n.data?.ticket_id) window.location.href = `/helpdesk-tickets/${n.data.ticket_id}`;
-        },
-    },
-};
+const loading = ref(false);
+const soloNoLeidas = ref(false);
+const items = ref([]);
+const paginaActual = ref(1);
+const totalPaginas = ref(1);
+const porPagina = ref(50);
+
+const itemsFiltradas = computed(() => {
+    if (!soloNoLeidas.value) return items.value;
+    return items.value.filter((x) => !x.read_at);
+});
+
+async function cargar(pagina) {
+    if (pagina) paginaActual.value = pagina;
+    loading.value = true;
+    try {
+        const res = await helpdesk.notificaciones({
+            limit: porPagina.value,
+            page: paginaActual.value,
+        });
+        items.value = res.data?.items || [];
+        totalPaginas.value = res.data?.last_page || 1;
+    } catch (error) {
+        handleAxiosErrorToast(error, "No se pudieron cargar notificaciones.");
+    } finally {
+        loading.value = false;
+    }
+}
+function irPagina(pagina) {
+    if (pagina < 1 || pagina > totalPaginas.value) return;
+    cargar(pagina);
+}
+async function marcarLeida(n) {
+    try {
+        await helpdesk.marcarLeida(n.id);
+        n.read_at = new Date().toISOString();
+        toastMessage({
+            heading: "Ok",
+            text: "Notificación marcada como leída.",
+            icon: "success",
+        });
+    } catch (error) {
+        handleAxiosErrorToast(error, "No se pudo marcar como leída.");
+    }
+}
+async function marcarTodas() {
+    try {
+        await helpdesk.marcarTodasLeidas();
+        await cargar();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No se pudieron marcar todas.");
+    }
+}
+async function abrir(n) {
+    if (!n.read_at) await marcarLeida(n);
+    if (n.data?.ticket_id) window.location.href = `/helpdesk-tickets/${n.data.ticket_id}`;
+}
+
+onMounted(async () => {
+    await cargar();
+});
 </script>

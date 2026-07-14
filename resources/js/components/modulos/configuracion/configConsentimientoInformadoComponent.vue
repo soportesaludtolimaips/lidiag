@@ -236,213 +236,198 @@
         <!-- ============================================================== -->
     </div>
 </template>
+<script setup>
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-<script>
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import {
-    alertError,
-    alertSuccess,
-    confirmAction,
-    handleAxiosErrorToast,
-} from "@/helpers/alerts.js";
+import axios from "axios";
 
-export default {
-    mounted() {
-        this.ListarDatos();
-        this.listarProductos();
-    },
-    beforeUnmount() {
-        safeDestroyDataTable(this.$refs.dt || "#example23");
-    },
-    data() {
-        return {
-            id: 0,
-            registros: [],
-            registro: {
-                producto_id: null,
-                sede_id: sessionStorage.getItem("ST-sede"),
-                nombre: "",
-                estado: true,
-            },
-            productoSelecciondo: null,
-            archivoFile: null,
-            tituloModal: "Nuevo registro",
-            actualizar: false,
-            errores: {},
-            productos: [],
-            loadingListar: false,
-            loadingGuardar: false,
-            loadingEliminarId: null,
-        };
-    },
-    computed: {
-        productoOptions() {
-            // Opciones para el Select2 local de productos.
-            return (this.productos || []).map((p) => ({
-                id: String(p.id),
-                cod_cups: p.cod_cups,
-                nom_produc: p.nom_produc,
-            }));
-        },
-    },
-    methods: {
-        async ListarDatos() {
-            if (this.loadingListar) return;
-            this.loadingListar = true;
-            try {
-                const res = await axios.get("/api/config-consentimiento-informado");
-                safeDestroyDataTable(this.$refs.dt || "#example23");
-                this.registros = res?.data?.data || res?.data || [];
-                this.$nextTick(() => {
-                    safeInitDataTable(this.$refs.dt || "#example23", {
-                        dom: "Bfrtip",
-                        buttons: ["copy", "csv", "excel", "pdf", "print"],
-                    });
-                });
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar consentimientos informados.");
-                this.registros = [];
-            } finally {
-                this.loadingListar = false;
-            }
-        },
-        async guardarRegistro() {
-            if (this.loadingGuardar) return;
-            this.loadingGuardar = true;
-            try {
-                const sedeId = sessionStorage.getItem("ST-sede");
-                const formData = new FormData();
-                formData.append("producto_id", String(this.registro.producto_id ?? ""));
-                formData.append("sede_id", String(this.registro.sede_id ?? sedeId ?? ""));
-                formData.append("nombre", String(this.registro.nombre ?? ""));
-                formData.append("estado", this.registro.estado ? "1" : "0");
-                if (this.archivoFile) formData.append("archivo", this.archivoFile);
+const id = ref(0);
+const registros = ref([]);
+const registro = ref({
+    producto_id: null,
+    sede_id: sessionStorage.getItem("ST-sede"),
+    nombre: "",
+    estado: true,
+});
+const productoSelecciondo = ref(null);
+const archivoFile = ref(null);
+const tituloModal = ref("Nuevo registro");
+const actualizar = ref(false);
+const errores = ref({});
+const productos = ref([]);
+const loadingListar = ref(false);
+const loadingGuardar = ref(false);
+const loadingEliminarId = ref(null);
 
-                let res;
-                if (!this.actualizar) {
-                    res = await axios.post("/api/config-consentimiento-informado", formData, {
-                        headers: { "Content-Type": "multipart/form-data" },
-                    });
-                } else {
-                    formData.append("_method", "PUT");
-                    res = await axios.post(
-                        "/api/config-consentimiento-informado/" + this.id,
-                        formData,
-                        {
-                            headers: { "Content-Type": "multipart/form-data" },
-                        }
-                    );
-                }
+const productoOptions = computed(() => {
+    // Opciones para el Select2 local de productos.
+    return (productos.value || []).map((p) => ({
+        id: String(p.id),
+        cod_cups: p.cod_cups,
+        nom_produc: p.nom_produc,
+    }));
+});
 
-                if (res.status === 200 || res.status === 201) {
-                    $.toast({
-                        heading: "Ok!!!",
-                        text: res.data.message || "Guardado correctamente.",
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "success",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                    this.ListarDatos();
-                    this.limpiarFormulario();
-                    this.btnCerralModalForm();
-                }
-            } catch (error) {
-                this.errores = error?.response?.data?.errors || {};
-                handleAxiosErrorToast(error, "No fue posible guardar el consentimiento informado.");
-            } finally {
-                this.loadingGuardar = false;
-            }
-        },
-        async elimnarRegistro(id, nom) {
-            const ok = await confirmAction({
-                title: `Estas seguro de eliminar el consentimiento informado ${nom}?`,
-                text: "No podrás recuperar este registro!",
-                icon: "warning",
+async function ListarDatos() {
+    if (loadingListar.value) return;
+    loadingListar.value = true;
+    try {
+        const res = await axios.get("/api/config-consentimiento-informado");
+        safeDestroyDataTable(dt.value || "#example23");
+        registros.value = res?.data?.data || res?.data || [];
+        nextTick(() => {
+            safeInitDataTable(dt.value || "#example23", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
-            if (!ok) return;
+        });
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar consentimientos informados.");
+        registros.value = [];
+    } finally {
+        loadingListar.value = false;
+    }
+}
+async function guardarRegistro() {
+    if (loadingGuardar.value) return;
+    loadingGuardar.value = true;
+    try {
+        const sedeId = sessionStorage.getItem("ST-sede");
+        const formData = new FormData();
+        formData.append("producto_id", String(registro.value.producto_id ?? ""));
+        formData.append("sede_id", String(registro.value.sede_id ?? sedeId ?? ""));
+        formData.append("nombre", String(registro.value.nombre ?? ""));
+        formData.append("estado", registro.value.estado ? "1" : "0");
+        if (archivoFile.value) formData.append("archivo", archivoFile.value);
 
-            try {
-                if (this.loadingEliminarId) return;
-                this.loadingEliminarId = id;
-                const response = await axios.delete("/api/config-consentimiento-informado/" + id);
-                alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
-                this.ListarDatos();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
-                alertError("Error", "No fue posible eliminar el registro.", "error");
-            } finally {
-                this.loadingEliminarId = null;
-            }
-        },
-        async listarProductos() {
-            try {
-                const res = await axios.get("/api/config-productos");
-                this.productos = res.data;
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar productos.");
-            }
-        },
-        obtenerArchivo(e) {
-            this.archivoFile = e.target.files?.[0] || null;
-        },
-        onProductoSelect(value) {
-            let selectedId = null;
-            if (Array.isArray(value) && value.length > 0) {
-                const v = value[0];
-                selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
-            } else if (value && typeof value === "object" && value.id != null) {
-                selectedId = String(value.id);
-            } else if (value != null) {
-                selectedId = String(value);
-            }
-            this.registro.producto_id = selectedId ? Number(selectedId) : null;
-            this.productoSelecciondo = selectedId;
-        },
-        archivoUrl(item) {
-            if (!item?.archivo) return null;
-            return `/storage/${item.archivo}`;
-        },
-        mostrarRegistro(data = {}) {
-            if (this.actualizar == true) {
-                this.tituloModal = "Actualizar el registro: " + (data.nombre || "");
-                this.id = data.id;
-                this.registro.producto_id = data.producto_id;
-                this.productoSelecciondo = String(data.producto_id ?? "");
-                this.registro.sede_id = data.sede_id;
-                this.registro.nombre = data.nombre;
-                this.registro.estado = !!data.estado;
-                this.archivoFile = null;
-            } else {
-                this.actualizar = false;
-                this.tituloModal = "Nuevo registro";
-                this.id = 0;
-                this.limpiarFormulario();
-            }
+        let res;
+        if (!actualizar.value) {
+            res = await axios.post("/api/config-consentimiento-informado", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+        } else {
+            formData.append("_method", "PUT");
+            res = await axios.post("/api/config-consentimiento-informado/" + id.value, formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+        }
 
-            this.btnCerralModalForm();
-        },
-        limpiarFormulario() {
-            this.actualizar = false;
-            this.tituloModal = "Nuevo registro";
-            this.id = 0;
-            this.errores = {};
-            this.registro.producto_id = null;
-            this.registro.sede_id = sessionStorage.getItem("ST-sede");
-            this.registro.nombre = "";
-            this.registro.estado = true;
-            this.productoSelecciondo = null;
-            this.archivoFile = null;
-        },
-        btnCerralModalForm() {
-            $(".right-sidebar").slideDown(50);
-            $(".right-sidebar").toggleClass("shw-rside");
-        },
-    },
-};
+        if (res.status === 200 || res.status === 201) {
+            $.toast({
+                heading: "Ok!!!",
+                text: res.data.message || "Guardado correctamente.",
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "success",
+                hideAfter: 3500,
+                stack: 6,
+            });
+            ListarDatos();
+            limpiarFormulario();
+            btnCerralModalForm();
+        }
+    } catch (error) {
+        errores.value = error?.response?.data?.errors || {};
+        handleAxiosErrorToast(error, "No fue posible guardar el consentimiento informado.");
+    } finally {
+        loadingGuardar.value = false;
+    }
+}
+async function elimnarRegistro(id, nom) {
+    const ok = await confirmAction({
+        title: `Estas seguro de eliminar el consentimiento informado ${nom}?`,
+        text: "No podrás recuperar este registro!",
+        icon: "warning",
+    });
+    if (!ok) return;
+
+    try {
+        if (loadingEliminarId.value) return;
+        loadingEliminarId.value = id;
+        const response = await axios.delete("/api/config-consentimiento-informado/" + id);
+        alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
+        ListarDatos();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
+        alertError("Error", "No fue posible eliminar el registro.", "error");
+    } finally {
+        loadingEliminarId.value = null;
+    }
+}
+async function listarProductos() {
+    try {
+        const res = await axios.get("/api/config-productos");
+        productos.value = res.data;
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar productos.");
+    }
+}
+function obtenerArchivo(e) {
+    archivoFile.value = e.target.files?.[0] || null;
+}
+function onProductoSelect(value) {
+    let selectedId = null;
+    if (Array.isArray(value) && value.length > 0) {
+        const v = value[0];
+        selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
+    } else if (value && typeof value === "object" && value.id != null) {
+        selectedId = String(value.id);
+    } else if (value != null) {
+        selectedId = String(value);
+    }
+    registro.value.producto_id = selectedId ? Number(selectedId) : null;
+    productoSelecciondo.value = selectedId;
+}
+function archivoUrl(item) {
+    if (!item?.archivo) return null;
+    return `/storage/${item.archivo}`;
+}
+function mostrarRegistro(data = {}) {
+    if (actualizar.value == true) {
+        tituloModal.value = "Actualizar el registro: " + (data.nombre || "");
+        id.value = data.id;
+        registro.value.producto_id = data.producto_id;
+        productoSelecciondo.value = String(data.producto_id ?? "");
+        registro.value.sede_id = data.sede_id;
+        registro.value.nombre = data.nombre;
+        registro.value.estado = !!data.estado;
+        archivoFile.value = null;
+    } else {
+        actualizar.value = false;
+        tituloModal.value = "Nuevo registro";
+        id.value = 0;
+        limpiarFormulario();
+    }
+
+    btnCerralModalForm();
+}
+function limpiarFormulario() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    id.value = 0;
+    errores.value = {};
+    registro.value.producto_id = null;
+    registro.value.sede_id = sessionStorage.getItem("ST-sede");
+    registro.value.nombre = "";
+    registro.value.estado = true;
+    productoSelecciondo.value = null;
+    archivoFile.value = null;
+}
+function btnCerralModalForm() {
+    $(".right-sidebar").slideDown(50);
+    $(".right-sidebar").toggleClass("shw-rside");
+}
+
+onMounted(() => {
+    ListarDatos();
+    listarProductos();
+});
+
+onBeforeUnmount(() => {
+    safeDestroyDataTable(dt.value || "#example23");
+});
 </script>
-
 <style scoped>
 .right-sidebar {
     position: fixed;

@@ -52,44 +52,41 @@
         </div>
     </div>
 </template>
+<script setup>
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-<script>
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { handleAxiosErrorToast } from "@/helpers/alerts.js";
+import axios from "axios";
 
-export default {
-    mounted() {
-        this.listar();
-    },
-    beforeUnmount() {
-        safeDestroyDataTable(this.$refs.dt || "#example23");
-    },
-    data() {
-        return {
-            registros: [],
-            loadingListar: false,
-        };
-    },
-    methods: {
-        async listar() {
-            if (this.loadingListar) return;
-            this.loadingListar = true;
-            try {
-                const res = await axios.get("/api/helpdesk-estados");
-                safeDestroyDataTable(this.$refs.dt || "#example23");
-                this.registros = res.data || [];
-                this.$nextTick(() => {
-                    safeInitDataTable(this.$refs.dt || "#example23", {
-                        dom: "Bfrtip",
-                        buttons: ["copy", "csv", "excel", "pdf", "print"],
-                    });
-                });
-            } catch (error) {
-                handleAxiosErrorToast(error, "No se pudo listar.");
-            } finally {
-                this.loadingListar = false;
-            }
-        },
-    },
-};
+const registros = ref([]);
+const loadingListar = ref(false);
+
+async function listar() {
+    if (loadingListar.value) return;
+    loadingListar.value = true;
+    try {
+        const res = await axios.get("/api/helpdesk-estados");
+        safeDestroyDataTable(dt.value || "#example23");
+        registros.value = res.data || [];
+        nextTick(() => {
+            safeInitDataTable(dt.value || "#example23", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
+            });
+        });
+    } catch (error) {
+        handleAxiosErrorToast(error, "No se pudo listar.");
+    } finally {
+        loadingListar.value = false;
+    }
+}
+
+onMounted(() => {
+    listar();
+});
+
+onBeforeUnmount(() => {
+    safeDestroyDataTable(dt.value || "#example23");
+});
 </script>

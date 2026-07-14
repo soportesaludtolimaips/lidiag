@@ -262,139 +262,131 @@
         </div>
     </div>
 </template>
+<script setup>
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-<script>
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { handleAxiosErrorToast } from "@/helpers/alerts.js";
 import { formatDateTime } from "@/helpers/dateUtils.js";
 import { helpdesk } from "@/helpers/api.js";
 
-export default {
-    data() {
-        return {
-            scope: "mine",
-            loading: false,
-            tickets: [],
-            categorias: [],
-            prioridades: [],
-            estados: [],
-            sedes: [],
-            filters: {
-                estado_id: "",
-                categoria_id: "",
-                prioridad_id: "",
-                sede_id: "",
-                desde: "",
-                hasta: "",
-                q: "",
-            },
-        };
-    },
-    async mounted() {
-        try {
-            // sede activa por defecto
-            const sedeActiva = sessionStorage.getItem("ST-sede");
-            if (sedeActiva) this.filters.sede_id = sedeActiva;
-        } catch (e) {
-            console.warn("No se pudo leer sede activa de sessionStorage", e);
-        }
+const scope = ref("mine");
+const loading = ref(false);
+const tickets = ref([]);
+const categorias = ref([]);
+const prioridades = ref([]);
+const estados = ref([]);
+const sedes = ref([]);
+const filters = ref({
+    estado_id: "",
+    categoria_id: "",
+    prioridad_id: "",
+    sede_id: "",
+    desde: "",
+    hasta: "",
+    q: "",
+});
 
-        await this.cargarCatalogos();
-        await this.buscar();
-    },
-    beforeUnmount() {
-        this.destroyDataTable();
-    },
-    methods: {
-        formatDateTime(dt) {
-            return formatDateTime(dt);
-        },
-        prioridadRowClass(nombre) {
-            if (!nombre) return "";
-            const p = nombre.toLowerCase();
-            if (p.includes("alta") || p.includes("critico") || p.includes("critica"))
-                return "table-danger";
-            if (p.includes("media") || p.includes("normal")) return "table-warning";
-            return "";
-        },
-        async cargarCatalogos() {
-            try {
-                const [cats, prios, ests, sedes] = await Promise.all([
-                    helpdesk.categorias(),
-                    helpdesk.prioridades(),
-                    helpdesk.estados(),
-                    helpdesk.sedesActivas(),
-                ]);
-                this.categorias = (cats.data || []).filter((x) => x.activo);
-                this.prioridades = (prios.data || []).filter((x) => x.activo);
-                this.estados = (ests.data || []).filter((x) => x.activo);
-                this.sedes = sedes.data || [];
-            } catch (error) {
-                handleAxiosErrorToast(error, "No se pudieron cargar catálogos.");
-            }
-        },
-        setScope(scope) {
-            this.scope = scope;
-            this.buscar();
-        },
-        limpiar() {
-            this.filters = {
-                estado_id: "",
-                categoria_id: "",
-                prioridad_id: "",
-                sede_id: "",
-                desde: "",
-                hasta: "",
-                q: "",
-            };
-            try {
-                const sedeActiva = sessionStorage.getItem("ST-sede");
-                if (sedeActiva) this.filters.sede_id = sedeActiva;
-            } catch (e) {
-                console.warn("No se pudo leer sede activa de sessionStorage", e);
-            }
-            this.buscar();
-        },
-        initDataTable() {
-            safeInitDataTable(this.$refs.dt || "#helpdeskTicketsTable", {
-                dom: "Bfrtip",
-                buttons: [
-                    { extend: "copy", titleAttr: "Copiar al portapapeles" },
-                    { extend: "csv", titleAttr: "Exportar a CSV" },
-                    { extend: "excel", titleAttr: "Exportar a Excel" },
-                    { extend: "pdf", titleAttr: "Exportar a PDF" },
-                    { extend: "print", titleAttr: "Imprimir" },
-                ],
-                retrieve: true,
-                order: [],
-            });
-        },
-        destroyDataTable() {
-            safeDestroyDataTable(this.$refs.dt || "#helpdeskTicketsTable");
-        },
-        async buscar() {
-            this.loading = true;
-            try {
-                const res = await helpdesk.tickets({
-                    scope: this.scope,
-                    ...this.filters,
-                });
-                this.tickets = res.data || [];
-                this.$nextTick(() => {
-                    this.destroyDataTable();
-                    this.initDataTable();
-                });
-            } catch (error) {
-                handleAxiosErrorToast(error, "No se pudieron cargar los tickets.");
-                this.tickets = [];
-                this.$nextTick(() => {
-                    this.destroyDataTable();
-                    this.initDataTable();
-                });
-            } finally {
-                this.loading = false;
-            }
-        },
-    },
-};
+function prioridadRowClass(nombre) {
+    if (!nombre) return "";
+    const p = nombre.toLowerCase();
+    if (p.includes("alta") || p.includes("critico") || p.includes("critica")) return "table-danger";
+    if (p.includes("media") || p.includes("normal")) return "table-warning";
+    return "";
+}
+async function cargarCatalogos() {
+    try {
+        const [cats, prios, ests, sedes] = await Promise.all([
+            helpdesk.categorias(),
+            helpdesk.prioridades(),
+            helpdesk.estados(),
+            helpdesk.sedesActivas(),
+        ]);
+        categorias.value = (cats.data || []).filter((x) => x.activo);
+        prioridades.value = (prios.data || []).filter((x) => x.activo);
+        estados.value = (ests.data || []).filter((x) => x.activo);
+        sedes.value = sedes.data || [];
+    } catch (error) {
+        handleAxiosErrorToast(error, "No se pudieron cargar catálogos.");
+    }
+}
+function setScope(scope) {
+    scope.value = scope;
+    buscar();
+}
+function limpiar() {
+    filters.value = {
+        estado_id: "",
+        categoria_id: "",
+        prioridad_id: "",
+        sede_id: "",
+        desde: "",
+        hasta: "",
+        q: "",
+    };
+    try {
+        const sedeActiva = sessionStorage.getItem("ST-sede");
+        if (sedeActiva) filters.value.sede_id = sedeActiva;
+    } catch (e) {
+        console.warn("No se pudo leer sede activa de sessionStorage", e);
+    }
+    buscar();
+}
+function initDataTable() {
+    safeInitDataTable(dt.value || "#helpdeskTicketsTable", {
+        dom: "Bfrtip",
+        buttons: [
+            { extend: "copy", titleAttr: "Copiar al portapapeles" },
+            { extend: "csv", titleAttr: "Exportar a CSV" },
+            { extend: "excel", titleAttr: "Exportar a Excel" },
+            { extend: "pdf", titleAttr: "Exportar a PDF" },
+            { extend: "print", titleAttr: "Imprimir" },
+        ],
+        retrieve: true,
+        order: [],
+    });
+}
+function destroyDataTable() {
+    safeDestroyDataTable(dt.value || "#helpdeskTicketsTable");
+}
+async function buscar() {
+    loading.value = true;
+    try {
+        const res = await helpdesk.tickets({
+            scope: scope.value,
+            ...filters.value,
+        });
+        tickets.value = res.data || [];
+        nextTick(() => {
+            destroyDataTable();
+            initDataTable();
+        });
+    } catch (error) {
+        handleAxiosErrorToast(error, "No se pudieron cargar los tickets.");
+        tickets.value = [];
+        nextTick(() => {
+            destroyDataTable();
+            initDataTable();
+        });
+    } finally {
+        loading.value = false;
+    }
+}
+
+onMounted(async () => {
+    try {
+        // sede activa por defecto
+        const sedeActiva = sessionStorage.getItem("ST-sede");
+        if (sedeActiva) filters.value.sede_id = sedeActiva;
+    } catch (e) {
+        console.warn("No se pudo leer sede activa de sessionStorage", e);
+    }
+
+    await cargarCatalogos();
+    await buscar();
+});
+
+onBeforeUnmount(() => {
+    destroyDataTable();
+});
 </script>

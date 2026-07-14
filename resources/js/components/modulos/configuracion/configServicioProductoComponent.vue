@@ -201,211 +201,192 @@
         </div>
     </div>
 </template>
+<script setup>
+import { computed, onMounted, ref } from "vue";
 
-<script>
 import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts.js";
 import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
+import axios from "axios";
 
-export default {
-    components: { FormattedTextEditor },
-    data: function () {
+const servicios = ref([]);
+const servicioSeleccionado = ref(null);
+const servicioActual = ref(null);
+const productosVinculados = ref([]);
+const productosDisponibles = ref([]);
+const productoSeleccionado = ref("");
+const recomendacion = ref("");
+const loadingGuardar = ref(false);
+const loadingListar = ref(false);
+
+const servicioIdDesdeUrl = computed(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("servicio_id");
+});
+const productosDisponiblesOptions = computed(() => {
+    return (productosDisponibles.value || []).map(function (p) {
         return {
-            servicios: [],
-            servicioSeleccionado: null,
-            servicioActual: null,
-            productosVinculados: [],
-            productosDisponibles: [],
-            productoSeleccionado: "",
-            recomendacion: "",
-            loadingGuardar: false,
-            loadingListar: false,
+            id: String(p.id),
+            cod_cups: p.cod_cups,
+            nom_produc: p.nom_produc,
         };
-    },
+    });
+});
 
-    mounted: function () {
-        this.cargarServicios();
-    },
+function cargarServicios() {
+    var thisVue = this;
 
-    computed: {
-        servicioIdDesdeUrl: function () {
-            const params = new URLSearchParams(window.location.search);
-            return params.get("servicio_id");
-        },
-        productosDisponiblesOptions: function () {
-            return (this.productosDisponibles || []).map(function (p) {
-                return {
-                    id: String(p.id),
-                    cod_cups: p.cod_cups,
-                    nom_produc: p.nom_produc,
-                };
-            });
-        },
-    },
+    axios
+        .get("/api/config-servicio-citas/mis-servicios")
+        .then(function (response) {
+            thisVue.servicios = response.data;
 
-    methods: {
-        cargarServicios: function () {
-            var thisVue = this;
-
-            axios
-                .get("/api/config-servicio-citas/mis-servicios")
-                .then(function (response) {
-                    thisVue.servicios = response.data;
-
-                    var servicioIdUrl = thisVue.servicioIdDesdeUrl;
-                    if (servicioIdUrl) {
-                        var encontrado = thisVue.servicios.find(function (s) {
-                            return s.id == servicioIdUrl;
-                        });
-                        if (encontrado) {
-                            thisVue.seleccionarServicio(encontrado);
-                            return;
-                        }
-                    }
-
-                    if (thisVue.servicios.length > 0) {
-                        thisVue.seleccionarServicio(thisVue.servicios[0]);
-                    }
-                })
-                .catch(function (error) {
-                    console.error("Error:", error);
+            var servicioIdUrl = thisVue.servicioIdDesdeUrl;
+            if (servicioIdUrl) {
+                var encontrado = thisVue.servicios.find(function (s) {
+                    return s.id == servicioIdUrl;
                 });
-        },
-
-        seleccionarServicio: function (servicio) {
-            this.servicioSeleccionado = servicio.id;
-            this.servicioActual = servicio;
-            this.cargarProductosVinculados();
-        },
-
-        cargarProductosVinculados: function () {
-            var thisVue = this;
-
-            if (!thisVue.servicioSeleccionado) {
-                return;
+                if (encontrado) {
+                    thisVue.seleccionarServicio(encontrado);
+                    return;
+                }
             }
 
-            axios
-                .get("/api/servicio-producto", {
-                    params: { servicio_cita_id: thisVue.servicioSeleccionado },
-                })
-                .then(function (response) {
-                    thisVue.productosVinculados = response.data;
-                })
-                .catch(function (error) {
-                    console.error("Error:", error);
-                });
-        },
-
-        mostrarModalAgregar: function () {
-            var thisVue = this;
-
-            thisVue.productoSeleccionado = "";
-            thisVue.recomendacion = "";
-            thisVue.loadingGuardar = false;
-
-            axios
-                .get("/api/servicio-producto/productos-no-vinculados", {
-                    params: { servicio_cita_id: thisVue.servicioSeleccionado },
-                })
-                .then(function (response) {
-                    thisVue.productosDisponibles = response.data;
-                    thisVue.abrirModal();
-                })
-                .catch(function (error) {
-                    console.error("Error:", error);
-                });
-        },
-
-        onProductoSelect: function (value) {
-            this.productoSeleccionado = value || "";
-
-            var encontrado = this.productosDisponibles.find(function (p) {
-                return String(p.id) === String(value);
-            });
-            this.recomendacion =
-                (encontrado &&
-                    encontrado.recomendacion_producto &&
-                    encontrado.recomendacion_producto.recomendacion) ||
-                "";
-        },
-
-        abrirModal: function () {
-            $(".right-sidebar").addClass("shw-rside");
-        },
-
-        cerrarModal: function () {
-            $(".right-sidebar").removeClass("shw-rside");
-        },
-
-        agregarProducto: function () {
-            var thisVue = this;
-
-            if (!thisVue.productoSeleccionado) {
-                return;
+            if (thisVue.servicios.length > 0) {
+                thisVue.seleccionarServicio(thisVue.servicios[0]);
             }
+        })
+        .catch(function (error) {
+            console.error("Error:", error);
+        });
+}
+function seleccionarServicio(servicio) {
+    servicioSeleccionado.value = servicio.id;
+    servicioActual.value = servicio;
+    cargarProductosVinculados();
+}
+function cargarProductosVinculados() {
+    var thisVue = this;
 
-            thisVue.loadingGuardar = true;
+    if (!thisVue.servicioSeleccionado) {
+        return;
+    }
 
-            axios
-                .post("/api/servicio-producto", {
-                    servicio_cita_id: thisVue.servicioSeleccionado,
+    axios
+        .get("/api/servicio-producto", {
+            params: { servicio_cita_id: thisVue.servicioSeleccionado },
+        })
+        .then(function (response) {
+            thisVue.productosVinculados = response.data;
+        })
+        .catch(function (error) {
+            console.error("Error:", error);
+        });
+}
+function mostrarModalAgregar() {
+    var thisVue = this;
+
+    thisVue.productoSeleccionado = "";
+    thisVue.recomendacion = "";
+    thisVue.loadingGuardar = false;
+
+    axios
+        .get("/api/servicio-producto/productos-no-vinculados", {
+            params: { servicio_cita_id: thisVue.servicioSeleccionado },
+        })
+        .then(function (response) {
+            thisVue.productosDisponibles = response.data;
+            thisVue.abrirModal();
+        })
+        .catch(function (error) {
+            console.error("Error:", error);
+        });
+}
+function onProductoSelect(value) {
+    productoSeleccionado.value = value || "";
+
+    var encontrado = productosDisponibles.value.find(function (p) {
+        return String(p.id) === String(value);
+    });
+    recomendacion.value =
+        (encontrado &&
+            encontrado.recomendacion_producto &&
+            encontrado.recomendacion_producto.recomendacion) ||
+        "";
+}
+function abrirModal() {
+    $(".right-sidebar").addClass("shw-rside");
+}
+function cerrarModal() {
+    $(".right-sidebar").removeClass("shw-rside");
+}
+function agregarProducto() {
+    var thisVue = this;
+
+    if (!thisVue.productoSeleccionado) {
+        return;
+    }
+
+    thisVue.loadingGuardar = true;
+
+    axios
+        .post("/api/servicio-producto", {
+            servicio_cita_id: thisVue.servicioSeleccionado,
+            producto_id: thisVue.productoSeleccionado,
+        })
+        .then(function (response) {
+            // Guardar también la recomendación si se ingresó texto
+            if (thisVue.recomendacion && thisVue.recomendacion.trim()) {
+                return axios.post("/api/config-recomendacion-productos", {
                     producto_id: thisVue.productoSeleccionado,
-                })
-                .then(function (response) {
-                    // Guardar también la recomendación si se ingresó texto
-                    if (thisVue.recomendacion && thisVue.recomendacion.trim()) {
-                        return axios.post("/api/config-recomendacion-productos", {
-                            producto_id: thisVue.productoSeleccionado,
-                            recomendacion: thisVue.recomendacion,
-                        });
-                    }
-                })
+                    recomendacion: thisVue.recomendacion,
+                });
+            }
+        })
+        .then(function () {
+            thisVue.mostrarExito("Producto agregado correctamente");
+            thisVue.cerrarModal();
+            thisVue.cargarProductosVinculados();
+        })
+        .catch(function (error) {
+            thisVue.mostrarError(error);
+        })
+        .then(function () {
+            thisVue.loadingGuardar = false;
+        });
+}
+function eliminarVinculo(id) {
+    var thisVue = this;
+
+    confirmAction({
+        title: "¿Está seguro?",
+        text: "El producto se desvinculará del servicio.",
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar",
+    }).then(function (confirmado) {
+        if (confirmado) {
+            axios
+                .delete("/api/servicio-producto/" + id)
                 .then(function () {
-                    thisVue.mostrarExito("Producto agregado correctamente");
-                    thisVue.cerrarModal();
+                    thisVue.mostrarExito("Producto desvinculado");
                     thisVue.cargarProductosVinculados();
                 })
                 .catch(function (error) {
                     thisVue.mostrarError(error);
-                })
-                .then(function () {
-                    thisVue.loadingGuardar = false;
                 });
-        },
+        }
+    });
+}
+function mostrarError(error) {
+    var mensaje = error.response?.data?.message || error.message || "Error desconocido";
+    alertError("Error", mensaje);
+}
+function mostrarExito(mensaje) {
+    alertSuccess("Éxito", mensaje);
+}
 
-        eliminarVinculo: function (id) {
-            var thisVue = this;
-
-            confirmAction({
-                title: "¿Está seguro?",
-                text: "El producto se desvinculará del servicio.",
-                confirmButtonText: "Sí, eliminar",
-                cancelButtonText: "Cancelar",
-            }).then(function (confirmado) {
-                if (confirmado) {
-                    axios
-                        .delete("/api/servicio-producto/" + id)
-                        .then(function () {
-                            thisVue.mostrarExito("Producto desvinculado");
-                            thisVue.cargarProductosVinculados();
-                        })
-                        .catch(function (error) {
-                            thisVue.mostrarError(error);
-                        });
-                }
-            });
-        },
-
-        mostrarError: function (error) {
-            var mensaje = error.response?.data?.message || error.message || "Error desconocido";
-            alertError("Error", mensaje);
-        },
-
-        mostrarExito: function (mensaje) {
-            alertSuccess("Éxito", mensaje);
-        },
-    },
-};
+onMounted(() => {
+    cargarServicios();
+});
 </script>
 <style scoped>
 .right-sidebar {
@@ -431,7 +412,6 @@ export default {
     display: block;
 }
 </style>
-
 <style>
 #producto-parent .select2-container--default .select2-selection--single {
     height: 36px;

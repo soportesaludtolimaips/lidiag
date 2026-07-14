@@ -154,167 +154,157 @@
         </div>
     </div>
 </template>
+<script setup>
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-<script>
 import { toastMessage, handleAxiosErrorToast } from "@/helpers/alerts.js";
 import { initWysiwyg, getWysiwygValue, isHtmlEffectivelyEmpty } from "@/helpers/wysiwyg.js";
 import { helpdesk } from "@/helpers/api.js";
 
-export default {
-    beforeUnmount() {
-        try {
-            const $root = $(this.$el);
-            $root.find(".textarea_editor").each((_, el) => {
-                const $el = $(el);
-                const inst = $el.data("wysihtml5");
-                if (inst && inst.editor) inst.editor.destroy();
-            });
-        } catch (_) {}
-    },
-    data() {
-        return {
-            loading: false,
-            categorias: [],
-            prioridades: [],
-            asignables: [],
-            form: {
-                titulo: "",
-                descripcion: "",
-                categoria_id: "",
-                prioridad_id: "",
-                asignado_id: "",
-                sede_id: "",
-            },
-        };
-    },
-    async mounted() {
-        this.$nextTick(() => this.initWysiwyg());
+const loading = ref(false);
+const categorias = ref([]);
+const prioridades = ref([]);
+const asignables = ref([]);
+const form = ref({
+    titulo: "",
+    descripcion: "",
+    categoria_id: "",
+    prioridad_id: "",
+    asignado_id: "",
+    sede_id: "",
+});
 
-        try {
-            const sedeActiva = sessionStorage.getItem("ST-sede");
-            if (sedeActiva) this.form.sede_id = sedeActiva;
-        } catch (e) {
-            console.warn("No se pudo leer sede activa de sessionStorage", e);
+function getDescripcionFromEditor() {
+    return getWysiwygValue($el) || form.value.descripcion || "";
+}
+async function cargar() {
+    try {
+        const [cats, prios, asignables] = await Promise.all([
+            helpdesk.categorias(),
+            helpdesk.prioridades(),
+            helpdesk.asignables(),
+        ]);
+        categorias.value = (cats.data || []).filter((x) => x.activo);
+        prioridades.value = (prios.data || []).filter((x) => x.activo);
+        asignables.value = asignables.data || [];
+    } catch (error) {
+        handleAxiosErrorToast(error, "No se pudieron cargar datos para el formulario.");
+    }
+}
+async function guardar() {
+    if (!form.value.sede_id) {
+        toastMessage({
+            heading: "Upss!!!",
+            text: "No hay sede activa seleccionada.",
+            icon: "warning",
+        });
+        return;
+    }
+    if (!String(form.value.titulo || "").trim()) {
+        toastMessage({
+            heading: "Upss!!!",
+            text: "El título es obligatorio.",
+            icon: "warning",
+        });
+        nextTick(() => primerCampo.value?.focus());
+        return;
+    }
+    if (!form.value.categoria_id) {
+        toastMessage({
+            heading: "Upss!!!",
+            text: "La categoría es obligatoria.",
+            icon: "warning",
+        });
+        nextTick(() => document.getElementById("crearCategoria")?.focus());
+        return;
+    }
+    if (!form.value.prioridad_id) {
+        toastMessage({
+            heading: "Upss!!!",
+            text: "La prioridad es obligatoria.",
+            icon: "warning",
+        });
+        nextTick(() => document.getElementById("crearPrioridad")?.focus());
+        return;
+    }
+    if (!form.value.asignado_id) {
+        toastMessage({
+            heading: "Upss!!!",
+            text: "Debes seleccionar a quién asignar.",
+            icon: "warning",
+        });
+        nextTick(() => document.getElementById("crearAsignado")?.focus());
+        return;
+    }
+    // Importante: WYSIHTML5 usa iframe; sincronizamos el valor real antes de validar.
+    form.value.descripcion = getDescripcionFromEditor();
+    if (isHtmlEffectivelyEmpty(form.value.descripcion)) {
+        toastMessage({
+            heading: "Upss!!!",
+            text: "La descripción es obligatoria.",
+            icon: "warning",
+        });
+        nextTick(() => document.getElementById("crearDescripcion")?.focus());
+        return;
+    }
+
+    loading.value = true;
+    try {
+        const res = await helpdesk.crearTicket({
+            titulo: form.value.titulo,
+            descripcion: form.value.descripcion,
+            categoria_id: form.value.categoria_id,
+            prioridad_id: form.value.prioridad_id,
+            sede_id: form.value.sede_id,
+            asignado_id: form.value.asignado_id,
+        });
+
+        const ticket = res.data;
+
+        // Adjuntos iniciales (si hay)
+        const input = files.value;
+        const files = input && input.files ? Array.from(input.files) : [];
+        if (files.length) {
+            const fd = new FormData();
+            files.forEach((f) => fd.append("files[]", f));
+            fd.append("comentario", "Adjuntos iniciales.");
+            await helpdesk.subirAdjuntos(ticket.id, fd);
         }
 
-        await this.cargar();
-    },
-    methods: {
-        initWysiwyg() {
-            initWysiwyg(this.$el);
-        },
-        getDescripcionFromEditor() {
-            return getWysiwygValue(this.$el) || this.form.descripcion || "";
-        },
-        isHtmlEffectivelyEmpty(html) {
-            return isHtmlEffectivelyEmpty(html);
-        },
-        async cargar() {
-            try {
-                const [cats, prios, asignables] = await Promise.all([
-                    helpdesk.categorias(),
-                    helpdesk.prioridades(),
-                    helpdesk.asignables(),
-                ]);
-                this.categorias = (cats.data || []).filter((x) => x.activo);
-                this.prioridades = (prios.data || []).filter((x) => x.activo);
-                this.asignables = asignables.data || [];
-            } catch (error) {
-                handleAxiosErrorToast(error, "No se pudieron cargar datos para el formulario.");
-            }
-        },
-        async guardar() {
-            if (!this.form.sede_id) {
-                toastMessage({
-                    heading: "Upss!!!",
-                    text: "No hay sede activa seleccionada.",
-                    icon: "warning",
-                });
-                return;
-            }
-            if (!String(this.form.titulo || "").trim()) {
-                toastMessage({
-                    heading: "Upss!!!",
-                    text: "El título es obligatorio.",
-                    icon: "warning",
-                });
-                this.$nextTick(() => this.$refs.primerCampo?.focus());
-                return;
-            }
-            if (!this.form.categoria_id) {
-                toastMessage({
-                    heading: "Upss!!!",
-                    text: "La categoría es obligatoria.",
-                    icon: "warning",
-                });
-                this.$nextTick(() => document.getElementById("crearCategoria")?.focus());
-                return;
-            }
-            if (!this.form.prioridad_id) {
-                toastMessage({
-                    heading: "Upss!!!",
-                    text: "La prioridad es obligatoria.",
-                    icon: "warning",
-                });
-                this.$nextTick(() => document.getElementById("crearPrioridad")?.focus());
-                return;
-            }
-            if (!this.form.asignado_id) {
-                toastMessage({
-                    heading: "Upss!!!",
-                    text: "Debes seleccionar a quién asignar.",
-                    icon: "warning",
-                });
-                this.$nextTick(() => document.getElementById("crearAsignado")?.focus());
-                return;
-            }
-            // Importante: WYSIHTML5 usa iframe; sincronizamos el valor real antes de validar.
-            this.form.descripcion = this.getDescripcionFromEditor();
-            if (this.isHtmlEffectivelyEmpty(this.form.descripcion)) {
-                toastMessage({
-                    heading: "Upss!!!",
-                    text: "La descripción es obligatoria.",
-                    icon: "warning",
-                });
-                this.$nextTick(() => document.getElementById("crearDescripcion")?.focus());
-                return;
-            }
+        toastMessage({
+            heading: "Ok",
+            text: `Se creó el ticket ${ticket.folio || "#" + ticket.id}.`,
+            icon: "success",
+        });
+        window.location.href = `/helpdesk-tickets/${ticket.id}`;
+    } catch (error) {
+        handleAxiosErrorToast(error, "No se pudo crear el ticket.");
+    } finally {
+        loading.value = false;
+    }
+}
 
-            this.loading = true;
-            try {
-                const res = await helpdesk.crearTicket({
-                    titulo: this.form.titulo,
-                    descripcion: this.form.descripcion,
-                    categoria_id: this.form.categoria_id,
-                    prioridad_id: this.form.prioridad_id,
-                    sede_id: this.form.sede_id,
-                    asignado_id: this.form.asignado_id,
-                });
+onMounted(async () => {
+    nextTick(() => initWysiwyg());
 
-                const ticket = res.data;
+    try {
+        const sedeActiva = sessionStorage.getItem("ST-sede");
+        if (sedeActiva) form.value.sede_id = sedeActiva;
+    } catch (e) {
+        console.warn("No se pudo leer sede activa de sessionStorage", e);
+    }
 
-                // Adjuntos iniciales (si hay)
-                const input = this.$refs.files;
-                const files = input && input.files ? Array.from(input.files) : [];
-                if (files.length) {
-                    const fd = new FormData();
-                    files.forEach((f) => fd.append("files[]", f));
-                    fd.append("comentario", "Adjuntos iniciales.");
-                    await helpdesk.subirAdjuntos(ticket.id, fd);
-                }
+    await cargar();
+});
 
-                toastMessage({
-                    heading: "Ok",
-                    text: `Se creó el ticket ${ticket.folio || "#" + ticket.id}.`,
-                    icon: "success",
-                });
-                window.location.href = `/helpdesk-tickets/${ticket.id}`;
-            } catch (error) {
-                handleAxiosErrorToast(error, "No se pudo crear el ticket.");
-            } finally {
-                this.loading = false;
-            }
-        },
-    },
-};
+onBeforeUnmount(() => {
+    try {
+        const $root = $($el);
+        $root.find(".textarea_editor").each((_, el) => {
+            const $el = $(el);
+            const inst = $el.data("wysihtml5");
+            if (inst && inst.editor) inst.editor.destroy();
+        });
+    } catch (_) {}
+});
 </script>

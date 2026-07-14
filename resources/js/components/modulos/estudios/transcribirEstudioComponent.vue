@@ -701,523 +701,471 @@
         <!-- ============================================================== -->
     </div>
 </template>
+<script setup>
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-<script>
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { listarUsuariosYSedes } from "@/helpers/usuarios";
-import {
-    safeDestroyDataTable,
-    safeInitDataTable,
-    safeRemoveDataTableRow,
-} from "@/helpers/datatables.js";
-import {
-    alertError,
-    alertSuccess,
-    confirmAction,
-    getUserSafeError,
-    handleAxiosErrorToast,
-} from "@/helpers/alerts.js";
-
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import axios from "axios";
 
-dayjs.extend(utc);
-dayjs.extend(timezone);
+const props = defineProps({});
 
-export default {
-    props: ["usuarioactual"],
-    components: {
-        LoadingSpinner,
-        FormPaciente,
-    },
-    computed: {
-        contadorRegistros() {
-            return this.registros.length;
-        },
-    },
-    async mounted() {
-        this.$nextTick(() => this.initWysiwyg());
-        this.busqueda.sede_id = sessionStorage.getItem("ST-sede");
+const id = ref(0);
+const diagnosticosEstudio = ref([]);
+const soportesHC = ref([]);
+const registros = ref([]);
+const tituloModal = ref("Transcirbir estudio");
+const registro = ref({
+    id_estudio: 0,
+    estudio_producto_id: 0,
+    lectura: "",
+    fec_lectura: "",
+    fec_estudio: "",
+    accession_no: "",
+    study_desc: "",
+    observaciones: "",
+    email_reportar: "",
+    num_docu: "",
+    nom_pacien: "",
+    sexo: "",
+    fec_naci: "",
+    email: "",
+    diagnosticosEstudio: [],
+    sede_id: "",
+    atencion: null,
+    servicio: null,
+    eps: null,
+    contrato: null,
+    medico_id: null,
+    cod_cups: "",
+    nom_produc: "",
+    num_docu_medico: "",
+    reg_medico: "",
+    nombres_medico: "",
+    firma_medico: "",
+    url_oviyam: null,
+    tap_oviyam: null,
+    study_iuid: null,
+});
+const busqueda = ref({
+    estudioParaTranscibir: "si",
+    quien_asigno_id: "",
+    medico_id: "",
+    sede_id: "",
+    bus_nom_num_docu: "",
+    bus_fehc_ini: fechaDefectoIni,
+    bus_fecha_fin: fechaDefectoFin,
+    destino_estudio: "Salud Tolima",
+});
+const datosImagen = ref({ urlOviyam: "", patientId: "", studyUID: "", serverName: "" });
+const audiosDeEstudio = ref([]);
+const quienes_asignaron = ref([]);
+const medicos = ref([]);
+const errores = ref({});
+const idRow = ref(null);
+const loadingBuscar = ref(false);
+const loadingGuardar = ref(false);
+const loadingAbrirRegistroId = ref(null);
+const loadingAnularId = ref(null);
+const loadingDescargaSoporte = ref(null);
+const loadingAudios = ref(false);
+const loadingImagen = ref(false);
 
-        await listarUsuariosYSedes(this, { moduloId: "1" });
+const contadorRegistros = computed(() => {
+    return registros.value.length;
+});
 
-        this.applyDashboardPrefill();
-
-        this.emitter.on("sedeSeleccionada", (data) => {
-            this.busqueda.sede_id = data.idSede;
-            this.destroyDataTable();
-            this.listarPendientesTrascribir();
+function applyDashboardPrefill() {
+    try {
+        const accession = sessionStorage.getItem("ST-accession");
+        if (accession && String(accession).trim()) {
+            busqueda.value.bus_nom_num_docu = String(accession).trim();
+            // Consumir para no “pegar” el filtro en siguientes visitas
+            sessionStorage.removeItem("ST-accession");
+            // Lanzar búsqueda
+            destroyDataTable();
+            listarPendientesTrascribir();
+        }
+    } catch (e) {
+        listarPendientesTrascribir();
+    }
+}
+function initWysiwyg() {
+    try {
+        const $root = $($el);
+        // soporte legacy: id textarea_editor y/o clase textarea_editor
+        const $targets = $root.find("#textarea_editor, .textarea_editor");
+        $targets.each((_, el) => {
+            const $el = $(el);
+            // si ya tiene toolbar asociada, no reinicializar
+            if ($el.data("wysihtml5")) return;
+            if ($el.prevAll(".wysihtml5-toolbar").length) return;
+            $el.wysihtml5({ stylesheets: ["/lib/css/wysiwyg-color.css"] });
         });
-    },
-    beforeUnmount() {
-        this.destroyDataTable();
-        this.registros = [];
-        this.registro = { productosEstudio: [], diagnosticosEstudio: [], soportesHC: [] };
-        this.soportesHC = [];
-        this.audiosDeEstudio = [];
-    },
-    data() {
-        const hoy = new Date();
-        const yearActual = hoy.getFullYear();
-        const fechaDefectoIni = yearActual + "-01-01";
-        const fechaDefectoFin = hoy.toISOString().slice(0, 10);
-        return {
-            id: 0,
-            diagnosticosEstudio: [],
-            soportesHC: [],
-            registros: [],
-            tituloModal: "Transcirbir estudio",
-            registro: {
-                id_estudio: 0,
-                estudio_producto_id: 0,
-                lectura: "",
-                fec_lectura: "",
-                fec_estudio: "",
-                accession_no: "",
-                study_desc: "",
-                observaciones: "",
-                email_reportar: "",
-                num_docu: "",
-                nom_pacien: "",
-                sexo: "",
-                fec_naci: "",
-                email: "",
-                diagnosticosEstudio: [],
-                sede_id: "",
-                atencion: null,
-                servicio: null,
-                eps: null,
-                contrato: null,
-                medico_id: null,
-                cod_cups: "",
-                nom_produc: "",
-                num_docu_medico: "",
-                reg_medico: "",
-                nombres_medico: "",
-                firma_medico: "",
-                url_oviyam: null,
-                tap_oviyam: null,
-                study_iuid: null,
-            },
-            busqueda: {
-                estudioParaTranscibir: "si",
-                quien_asigno_id: "",
-                medico_id: "",
-                sede_id: "",
-                bus_nom_num_docu: "",
-                bus_fehc_ini: fechaDefectoIni,
-                bus_fecha_fin: fechaDefectoFin,
-                destino_estudio: "Salud Tolima",
-            },
-            datosImagen: { urlOviyam: "", patientId: "", studyUID: "", serverName: "" },
-            audiosDeEstudio: [],
-            quienes_asignaron: [],
-            medicos: [],
-            errores: {},
-            idRow: null,
-            loadingBuscar: false,
-            loadingGuardar: false,
-            loadingAbrirRegistroId: null,
-            loadingAnularId: null,
-            loadingDescargaSoporte: null,
-            loadingAudios: false,
-            loadingImagen: false,
-        };
-    },
-    methods: {
-        applyDashboardPrefill() {
-            try {
-                const accession = sessionStorage.getItem("ST-accession");
-                if (accession && String(accession).trim()) {
-                    this.busqueda.bus_nom_num_docu = String(accession).trim();
-                    // Consumir para no “pegar” el filtro en siguientes visitas
-                    sessionStorage.removeItem("ST-accession");
-                    // Lanzar búsqueda
-                    this.destroyDataTable();
-                    this.listarPendientesTrascribir();
-                }
-            } catch (e) {
-                this.listarPendientesTrascribir();
-            }
-        },
-        initWysiwyg() {
-            try {
-                const $root = $(this.$el);
-                // soporte legacy: id textarea_editor y/o clase textarea_editor
-                const $targets = $root.find("#textarea_editor, .textarea_editor");
-                $targets.each((_, el) => {
-                    const $el = $(el);
-                    // si ya tiene toolbar asociada, no reinicializar
-                    if ($el.data("wysihtml5")) return;
-                    if ($el.prevAll(".wysihtml5-toolbar").length) return;
-                    $el.wysihtml5({ stylesheets: ["/lib/css/wysiwyg-color.css"] });
-                });
-            } catch (e) {}
-        },
-        destroyDataTable() {
-            safeDestroyDataTable(this.$refs.dt || "#example23");
-        },
-        btnLimpiar() {
-            const hoy = new Date();
-            const yearActual = hoy.getFullYear();
-            this.busqueda.quien_asigno_id = "";
-            this.busqueda.medico_id = "";
-            this.busqueda.bus_nom_num_docu = "";
-            this.busqueda.bus_fehc_ini = yearActual + "-01-01";
-            this.busqueda.bus_fecha_fin = hoy.toISOString().slice(0, 10);
-            this.errores = {};
-            this.destroyDataTable();
-            this.registros = [];
-        },
-        async listarPendientesTrascribir() {
-            if (this.loadingBuscar) return;
-            this.loadingBuscar = true;
-            try {
-                if (sessionStorage.getItem("ST-sede") == null) {
-                    $.toast({
-                        heading: "Upsss!!!",
-                        text: "Debes establece la sede en la cual vas a trabajar.",
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "warning",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                } else {
-                    this.destroyDataTable();
-
-                    const res = await axios.post(
-                        "/api/estudio-listarPendientesTrascribir",
-                        this.busqueda
-                    );
-
-                    this.registros = res.data;
-
-                    this.$nextTick(() => {
-                        safeInitDataTable(this.$refs.dt || "#example23", {
-                            dom: "Bfrtip",
-                            buttons: ["copy", "csv", "excel", "pdf", "print"],
-                        });
-                    });
-                }
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar los pendientes.");
-            } finally {
-                this.loadingBuscar = false;
-            }
-        },
-        async guardarRegistro() {
-            if (this.loadingGuardar) return;
-            this.loadingGuardar = true;
-            try {
-                $.toast({
-                    heading: "Procesando...",
-                    text: "Enviando lectura, por favor espere",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "info",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
-
-                const res = await axios.post("/api/estudio-guardarTranscripcion", this.registro);
-
-                if (res.status == 200) {
-                    const estudioEliminar = this.registros.findIndex(
-                        (x) => x.estudio_producto_id == this.idRow
-                    );
-                    if (estudioEliminar >= 0) {
-                        // No destruir/reinicializar: remover solo la fila guardada.
-                        try {
-                            safeRemoveDataTableRow(
-                                this.$refs.dt || "#example23",
-                                "#row-" + this.idRow
-                            );
-                        } catch (e) {}
-                        this.registros.splice(estudioEliminar, 1);
-                    }
-
-                    $.toast({
-                        heading: "Completado",
-                        text: res.data.message,
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "success",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-
-                    this.$refs.btnCerrarForm.click();
-                    this.btnCerralModalForm();
-                    this.limpiar();
-                } else {
-                    $.toast({
-                        heading: "Upss!!!",
-                        text: res.data.message,
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "danger",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                }
-            } catch (error) {
-                const status = error?.response?.status;
-                // Errores de validación (400) vienen como objeto con campos
-                if (
-                    status == 400 &&
-                    error?.response?.data &&
-                    typeof error.response.data === "object"
-                ) {
-                    const data = error.response.data;
-                    this.errores =
-                        data.errors && typeof data.errors === "object" ? data.errors : data;
-                }
-                if (status == 402) {
-                    $.toast({
-                        heading: "Upss!!!",
-                        text: getUserSafeError(
-                            error,
-                            "La plantilla no está configurada para esta sede."
-                        ),
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "error",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                } else {
-                    $.toast({
-                        heading: "Upss!!!",
-                        text: getUserSafeError(error, "No fue posible guardar la transcripción."),
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "error",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                }
-            } finally {
-                this.loadingGuardar = false;
-            }
-        },
-        descargaSoportte(nomArchivoEncriptado) {
-            if (this.loadingDescargaSoporte) return;
-            this.loadingDescargaSoporte = nomArchivoEncriptado;
-            const url = `/api/descarga-soportes-hc/${nomArchivoEncriptado}`;
-            axios
-                .get(url, { responseType: "blob" })
-                .then((response) => {
-                    const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
-                    const link = document.createElement("a");
-                    link.href = blobUrl;
-                    link.setAttribute("download", nomArchivoEncriptado);
-                    document.body.appendChild(link);
-                    link.click();
-                    // cleanup best-effort
-                    setTimeout(() => window.URL.revokeObjectURL(blobUrl), 2000);
-                })
-                .catch(() => {})
-                .finally(() => {
-                    this.loadingDescargaSoporte = null;
-                });
-        },
-        async anularAsignacion(idProductoEstudio, paciente, producto) {
-            const ok = await confirmAction({
-                title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
-                text: "No podrás recuperar este registro!",
+    } catch (e) {}
+}
+function destroyDataTable() {
+    safeDestroyDataTable(dt.value || "#example23");
+}
+function btnLimpiar() {
+    const hoy = new Date();
+    const yearActual = hoy.getFullYear();
+    busqueda.value.quien_asigno_id = "";
+    busqueda.value.medico_id = "";
+    busqueda.value.bus_nom_num_docu = "";
+    busqueda.value.bus_fehc_ini = yearActual + "-01-01";
+    busqueda.value.bus_fecha_fin = hoy.toISOString().slice(0, 10);
+    errores.value = {};
+    destroyDataTable();
+    registros.value = [];
+}
+async function listarPendientesTrascribir() {
+    if (loadingBuscar.value) return;
+    loadingBuscar.value = true;
+    try {
+        if (sessionStorage.getItem("ST-sede") == null) {
+            $.toast({
+                heading: "Upsss!!!",
+                text: "Debes establece la sede en la cual vas a trabajar.",
+                position: "top-right",
+                loaderBg: "#ff6849",
                 icon: "warning",
+                hideAfter: 3500,
+                stack: 6,
             });
-            if (!ok) return;
-            if (this.loadingAnularId) return;
+        } else {
+            destroyDataTable();
 
-            this.loadingAnularId = idProductoEstudio;
-            try {
-                const res = await axios.post("/api/estudio-anular-asignacion", {
-                    id: idProductoEstudio,
+            const res = await axios.post("/api/estudio-listarPendientesTrascribir", busqueda.value);
+
+            registros.value = res.data;
+
+            nextTick(() => {
+                safeInitDataTable(dt.value || "#example23", {
+                    dom: "Bfrtip",
+                    buttons: ["copy", "csv", "excel", "pdf", "print"],
                 });
-                if (res.status === 200) {
-                    const idx = this.registros.findIndex(
-                        (x) => x.estudio_producto_id == idProductoEstudio
-                    );
-                    if (idx >= 0) {
-                        try {
-                            safeRemoveDataTableRow(
-                                this.$refs.dt || "#example23",
-                                "#row-" + idProductoEstudio
-                            );
-                        } catch (e) {}
-                        this.registros.splice(idx, 1);
-                    }
-                    alertSuccess("Anulado!", "El producto se anulo correctamente.", "success");
-                } else {
-                    alertError("Ups!", "No fue posible anular el producto.", "error");
-                }
-            } catch (err) {
-                handleAxiosErrorToast(err, "No fue posible anular el producto.");
-                alertError("Error", "No fue posible anular el producto.", "error");
-            } finally {
-                this.loadingAnularId = null;
-            }
-        },
-        verImagen() {
-            if (this.loadingImagen) return;
-            this.loadingImagen = true;
-            try {
-                const base = this.datosImagen.urlOviyam || "";
-                const params = new URLSearchParams({
-                    patientID: String(this.datosImagen.patientId ?? ""),
-                    studyUID: String(this.datosImagen.studyUID ?? ""),
-                    serverName: String(this.datosImagen.serverName ?? ""),
-                });
-                window.open(`${base}?${params.toString()}`, "_blank", "noopener,noreferrer");
-            } finally {
-                setTimeout(() => {
-                    this.loadingImagen = false;
-                }, 500);
-            }
-        },
-        async listarAudios(estudioProductoId) {
-            this.loadingAudios = true;
-            try {
-                const url = "/api/listar-audios-estudio/" + estudioProductoId;
-                const res = await axios.get(url);
-                this.audiosDeEstudio = res.data;
-            } catch (e) {
-                handleAxiosErrorToast(e, "No fue posible listar audios.");
-                this.audiosDeEstudio = [];
-            } finally {
-                this.loadingAudios = false;
-            }
-        },
-
-        audioUrl(item) {
-            if (!item || !item.audio) return null;
-            return "/audios/" + item.audio;
-        },
-
-        formatDuracion(segundos) {
-            if (!segundos) return "0:00";
-            const mins = Math.floor(segundos / 60);
-            const secs = Math.floor(segundos % 60);
-            return mins + ":" + (secs < 10 ? "0" : "") + secs;
-        },
-
-        previewTranscripcion(texto, maxLen) {
-            if (!texto) return "";
-            if (texto.length <= maxLen) return texto;
-            return texto.substring(0, maxLen);
-        },
-        establecerSede() {
-            this.busqueda.sede_id = sessionStorage.getItem("ST-sede");
-            this.registros = [];
-        },
-        formatDate(timestamp) {
-            return dayjs.utc(timestamp).local().format("YYYY-MM-DD HH:mm:ss");
-        },
-        async mostrarRegistro(data = {}) {
-            if (this.loadingAbrirRegistroId !== null) return;
-            this.loadingAbrirRegistroId = data.estudio_producto_id;
-
-            try {
-                const date = new Date();
-                const fechaActual =
-                    ("0" + date.getDate()).slice(-2) +
-                    "-" +
-                    ("0" + (date.getMonth() + 1)).slice(-2) +
-                    "-" +
-                    date.getFullYear() +
-                    " " +
-                    ("0" + date.getHours()).slice(-2) +
-                    ":" +
-                    ("0" + date.getMinutes()).slice(-2) +
-                    ":" +
-                    ("0" + date.getSeconds()).slice(-2);
-
-                this.tituloModal = "Transcribir la lectura del paciente: " + data.nom_pacien;
-                this.id = data.id;
-                this.idRow = data.estudio_producto_id;
-                this.registro.estudio_producto_id = data.estudio_producto_id;
-                this.registro.fec_estudio = data.fec_estudio;
-                this.registro.fec_lectura = data.fechor_lectura;
-                this.registro.accession_no = data.accession_no;
-                this.registro.study_desc = data.study_desc;
-                this.registro.email_reportar = data.email_reportar;
-                this.registro.atencion = data.atencion;
-                this.registro.medico_id = data.medico_id;
-                this.registro.num_docu = data.num_docu;
-                this.registro.nom_pacien = data.nom_pacien;
-                this.registro.direccion = data.direccion;
-                this.registro.email = data.email;
-                // Unificar campo teléfono: el backend espera `tel`
-                this.registro.tel = data.tel;
-                // El backend devuelve `pacien.sexo` y `pacien.fec_naci`
-                this.registro.sexo = data.sexo;
-                this.registro.fec_naci = data.fec_naci;
-                this.registro.cod_cups = data.cod_cups;
-                this.registro.nom_produc = data.nom_produc;
-                this.registro.num_docu_medico = data.num_docu_medico;
-                this.registro.reg_medico = data.reg_medico;
-                this.registro.nombres_medico = data.nombres_medico;
-                this.registro.firma_medico = data.firma_medico;
-                this.registro.lectura = `Atención: ${data.atencion}\nFecha y Hora del estudio: ${data.fec_estudio}\nFecha y Hora de transcripción: ${fechaActual}\n\n${data.nom_produc}\n\n${data.lectura}`;
-                this.datosImagen.urlOviyam = data.url_oviyam;
-                this.datosImagen.patientId = data.num_docu;
-                this.datosImagen.studyUID = data.study_iuid;
-                this.datosImagen.serverName = data.tap_oviyam;
-
-                this.registro.sede_id = data.sede_id;
-                this.registro.nom_sede = data.nom_sede;
-
-                this.registro.url_oviyam = data.url_oviyam;
-                this.registro.study_iuid = data.study_iuid;
-                this.registro.tap_oviyam = data.tap_oviyam;
-
-                const res = await axios.get(
-                    "/api/study-listar-diagnostico-por-estudio?id=" + this.id
-                );
-                this.diagnosticosEstudio = res.data;
-
-                const resSoportesHC = await axios.get(
-                    "/api/listar-soportes-hc-estudio?id=" + this.id
-                );
-                this.soportesHC = resSoportesHC.data;
-
-                this.audiosDeEstudio = [];
-                this.abrirModal();
-
-                await this.listarAudios(this.registro.estudio_producto_id);
-                this.errores = {};
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible cargar el estudio seleccionado.");
-            } finally {
-                this.loadingAbrirRegistroId = null;
-            }
-        },
-        limpiar() {
-            this.actualizar = false;
-            this.tituloModal = "Nuevo registro";
-            this.registro.email_reportar = "";
-            this.registro.email = "";
-
-            this.btnCerralModalForm();
-            this.errores = {};
-        },
-        abrirModal() {
-            $(".right-sidebar").addClass("shw-rside");
-            this.$nextTick(() => {
-                this.$refs.primerInput?.focus();
             });
-        },
-        btnCerralModalForm() {
-            $(".right-sidebar").removeClass("shw-rside");
-        },
-    },
-};
+        }
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar los pendientes.");
+    } finally {
+        loadingBuscar.value = false;
+    }
+}
+async function guardarRegistro() {
+    if (loadingGuardar.value) return;
+    loadingGuardar.value = true;
+    try {
+        $.toast({
+            heading: "Procesando...",
+            text: "Enviando lectura, por favor espere",
+            position: "top-right",
+            loaderBg: "#ff6849",
+            icon: "info",
+            hideAfter: 3500,
+            stack: 6,
+        });
+
+        const res = await axios.post("/api/estudio-guardarTranscripcion", registro.value);
+
+        if (res.status == 200) {
+            const estudioEliminar = registros.value.findIndex(
+                (x) => x.estudio_producto_id == idRow.value
+            );
+            if (estudioEliminar >= 0) {
+                // No destruir/reinicializar: remover solo la fila guardada.
+                try {
+                    safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idRow.value);
+                } catch (e) {}
+                registros.value.splice(estudioEliminar, 1);
+            }
+
+            $.toast({
+                heading: "Completado",
+                text: res.data.message,
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "success",
+                hideAfter: 3500,
+                stack: 6,
+            });
+
+            btnCerrarForm.value.click();
+            btnCerralModalForm();
+            limpiar();
+        } else {
+            $.toast({
+                heading: "Upss!!!",
+                text: res.data.message,
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "danger",
+                hideAfter: 3500,
+                stack: 6,
+            });
+        }
+    } catch (error) {
+        const status = error?.response?.status;
+        // Errores de validación (400) vienen como objeto con campos
+        if (status == 400 && error?.response?.data && typeof error.response.data === "object") {
+            const data = error.response.data;
+            errores.value = data.errors && typeof data.errors === "object" ? data.errors : data;
+        }
+        if (status == 402) {
+            $.toast({
+                heading: "Upss!!!",
+                text: getUserSafeError(error, "La plantilla no está configurada para esta sede."),
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "error",
+                hideAfter: 3500,
+                stack: 6,
+            });
+        } else {
+            $.toast({
+                heading: "Upss!!!",
+                text: getUserSafeError(error, "No fue posible guardar la transcripción."),
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "error",
+                hideAfter: 3500,
+                stack: 6,
+            });
+        }
+    } finally {
+        loadingGuardar.value = false;
+    }
+}
+function descargaSoportte(nomArchivoEncriptado) {
+    if (loadingDescargaSoporte.value) return;
+    loadingDescargaSoporte.value = nomArchivoEncriptado;
+    const url = `/api/descarga-soportes-hc/${nomArchivoEncriptado}`;
+    axios
+        .get(url, { responseType: "blob" })
+        .then((response) => {
+            const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement("a");
+            link.href = blobUrl;
+            link.setAttribute("download", nomArchivoEncriptado);
+            document.body.appendChild(link);
+            link.click();
+            // cleanup best-effort
+            setTimeout(() => window.URL.revokeObjectURL(blobUrl), 2000);
+        })
+        .catch(() => {})
+        .finally(() => {
+            loadingDescargaSoporte.value = null;
+        });
+}
+async function anularAsignacion(idProductoEstudio, paciente, producto) {
+    const ok = await confirmAction({
+        title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
+        text: "No podrás recuperar este registro!",
+        icon: "warning",
+    });
+    if (!ok) return;
+    if (loadingAnularId.value) return;
+
+    loadingAnularId.value = idProductoEstudio;
+    try {
+        const res = await axios.post("/api/estudio-anular-asignacion", {
+            id: idProductoEstudio,
+        });
+        if (res.status === 200) {
+            const idx = registros.value.findIndex(
+                (x) => x.estudio_producto_id == idProductoEstudio
+            );
+            if (idx >= 0) {
+                try {
+                    safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idProductoEstudio);
+                } catch (e) {}
+                registros.value.splice(idx, 1);
+            }
+            alertSuccess("Anulado!", "El producto se anulo correctamente.", "success");
+        } else {
+            alertError("Ups!", "No fue posible anular el producto.", "error");
+        }
+    } catch (err) {
+        handleAxiosErrorToast(err, "No fue posible anular el producto.");
+        alertError("Error", "No fue posible anular el producto.", "error");
+    } finally {
+        loadingAnularId.value = null;
+    }
+}
+function verImagen() {
+    if (loadingImagen.value) return;
+    loadingImagen.value = true;
+    try {
+        const base = datosImagen.value.urlOviyam || "";
+        const params = new URLSearchParams({
+            patientID: String(datosImagen.value.patientId ?? ""),
+            studyUID: String(datosImagen.value.studyUID ?? ""),
+            serverName: String(datosImagen.value.serverName ?? ""),
+        });
+        window.open(`${base}?${params.toString()}`, "_blank", "noopener,noreferrer");
+    } finally {
+        setTimeout(() => {
+            loadingImagen.value = false;
+        }, 500);
+    }
+}
+async function listarAudios(estudioProductoId) {
+    loadingAudios.value = true;
+    try {
+        const url = "/api/listar-audios-estudio/" + estudioProductoId;
+        const res = await axios.get(url);
+        audiosDeEstudio.value = res.data;
+    } catch (e) {
+        handleAxiosErrorToast(e, "No fue posible listar audios.");
+        audiosDeEstudio.value = [];
+    } finally {
+        loadingAudios.value = false;
+    }
+}
+function audioUrl(item) {
+    if (!item || !item.audio) return null;
+    return "/audios/" + item.audio;
+}
+function formatDuracion(segundos) {
+    if (!segundos) return "0:00";
+    const mins = Math.floor(segundos / 60);
+    const secs = Math.floor(segundos % 60);
+    return mins + ":" + (secs < 10 ? "0" : "") + secs;
+}
+function previewTranscripcion(texto, maxLen) {
+    if (!texto) return "";
+    if (texto.length <= maxLen) return texto;
+    return texto.substring(0, maxLen);
+}
+function establecerSede() {
+    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
+    registros.value = [];
+}
+function formatDate(timestamp) {
+    return dayjs.utc(timestamp).local().format("YYYY-MM-DD HH:mm:ss");
+}
+async function mostrarRegistro(data = {}) {
+    if (loadingAbrirRegistroId.value !== null) return;
+    loadingAbrirRegistroId.value = data.estudio_producto_id;
+
+    try {
+        const date = new Date();
+        const fechaActual =
+            ("0" + date.getDate()).slice(-2) +
+            "-" +
+            ("0" + (date.getMonth() + 1)).slice(-2) +
+            "-" +
+            date.getFullYear() +
+            " " +
+            ("0" + date.getHours()).slice(-2) +
+            ":" +
+            ("0" + date.getMinutes()).slice(-2) +
+            ":" +
+            ("0" + date.getSeconds()).slice(-2);
+
+        tituloModal.value = "Transcribir la lectura del paciente: " + data.nom_pacien;
+        id.value = data.id;
+        idRow.value = data.estudio_producto_id;
+        registro.value.estudio_producto_id = data.estudio_producto_id;
+        registro.value.fec_estudio = data.fec_estudio;
+        registro.value.fec_lectura = data.fechor_lectura;
+        registro.value.accession_no = data.accession_no;
+        registro.value.study_desc = data.study_desc;
+        registro.value.email_reportar = data.email_reportar;
+        registro.value.atencion = data.atencion;
+        registro.value.medico_id = data.medico_id;
+        registro.value.num_docu = data.num_docu;
+        registro.value.nom_pacien = data.nom_pacien;
+        registro.value.direccion = data.direccion;
+        registro.value.email = data.email;
+        // Unificar campo teléfono: el backend espera `tel`
+        registro.value.tel = data.tel;
+        // El backend devuelve `pacien.sexo` y `pacien.fec_naci`
+        registro.value.sexo = data.sexo;
+        registro.value.fec_naci = data.fec_naci;
+        registro.value.cod_cups = data.cod_cups;
+        registro.value.nom_produc = data.nom_produc;
+        registro.value.num_docu_medico = data.num_docu_medico;
+        registro.value.reg_medico = data.reg_medico;
+        registro.value.nombres_medico = data.nombres_medico;
+        registro.value.firma_medico = data.firma_medico;
+        registro.value.lectura = `Atención: ${data.atencion}\nFecha y Hora del estudio: ${data.fec_estudio}\nFecha y Hora de transcripción: ${fechaActual}\n\n${data.nom_produc}\n\n${data.lectura}`;
+        datosImagen.value.urlOviyam = data.url_oviyam;
+        datosImagen.value.patientId = data.num_docu;
+        datosImagen.value.studyUID = data.study_iuid;
+        datosImagen.value.serverName = data.tap_oviyam;
+
+        registro.value.sede_id = data.sede_id;
+        registro.value.nom_sede = data.nom_sede;
+
+        registro.value.url_oviyam = data.url_oviyam;
+        registro.value.study_iuid = data.study_iuid;
+        registro.value.tap_oviyam = data.tap_oviyam;
+
+        const res = await axios.get("/api/study-listar-diagnostico-por-estudio?id=" + id.value);
+        diagnosticosEstudio.value = res.data;
+
+        const resSoportesHC = await axios.get("/api/listar-soportes-hc-estudio?id=" + id.value);
+        soportesHC.value = resSoportesHC.data;
+
+        audiosDeEstudio.value = [];
+        abrirModal();
+
+        await listarAudios(registro.value.estudio_producto_id);
+        errores.value = {};
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible cargar el estudio seleccionado.");
+    } finally {
+        loadingAbrirRegistroId.value = null;
+    }
+}
+function limpiar() {
+    actualizar = false;
+    tituloModal.value = "Nuevo registro";
+    registro.value.email_reportar = "";
+    registro.value.email = "";
+
+    btnCerralModalForm();
+    errores.value = {};
+}
+function abrirModal() {
+    $(".right-sidebar").addClass("shw-rside");
+    nextTick(() => {
+        primerInput.value?.focus();
+    });
+}
+function btnCerralModalForm() {
+    $(".right-sidebar").removeClass("shw-rside");
+}
+
+onMounted(async () => {
+    nextTick(() => initWysiwyg());
+    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
+
+    await listarUsuariosYSedes(this, { moduloId: "1" });
+
+    applyDashboardPrefill();
+
+    emitter.on("sedeSeleccionada", (data) => {
+        busqueda.value.sede_id = data.idSede;
+        destroyDataTable();
+        listarPendientesTrascribir();
+    });
+});
+
+onBeforeUnmount(() => {
+    destroyDataTable();
+    registros.value = [];
+    registro.value = { productosEstudio: [], diagnosticosEstudio: [], soportesHC: [] };
+    soportesHC.value = [];
+    audiosDeEstudio.value = [];
+});
 </script>
-
 <style scoped>
 .right-sidebar {
     position: fixed;

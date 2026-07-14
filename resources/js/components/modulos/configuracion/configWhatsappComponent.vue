@@ -921,539 +921,490 @@
         </div>
     </div>
 </template>
+<script setup>
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-<script>
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import {
-    alertError,
-    alertSuccess,
-    confirmAction,
-    handleAxiosErrorToast,
-} from "@/helpers/alerts.js";
 import Select2 from "@/components/shared/Select2.vue";
 import EmojiPicker from "@/components/shared/EmojiPicker.vue";
 import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
+import axios from "axios";
 
-const INIT_FORM_NUMEROS = {
-    sede_id: "",
-    phone_number_id: "",
-    numero: "",
-    descripcion: "",
-    activo: 1,
-};
+const tabActivo = ref("numeros");
+const id = ref(0);
+const registrosNumeros = ref([]);
+const registrosSaludos = ref([]);
+const sedes = ref([]);
+const servicios = ref([]);
+const form = ref({ ...INIT_FORM_NUMEROS });
+const tituloModal = ref("Nuevo registro");
+const actualizar = ref(false);
+const errores = ref({});
+const loadingNumeros = ref(false);
+const loadingSaludos = ref(false);
+const errorNumeros = ref("");
+const errorSaludos = ref("");
+const loadingGuardar = ref(false);
+const loadingEliminarId = ref(null);
+const serviciosProductos = ref([]);
+const loadingServiciosProductos = ref(false);
+const errorServiciosProductos = ref("");
+const servicioSeleccionado = ref(null);
+const servicioActual = ref(null);
+const productosVinculados = ref([]);
+const productosDisponibles = ref([]);
+const productoSeleccionado = ref("");
+const recomendacion = ref("");
+const loadingAgregarProducto = ref(false);
+const previewMensaje = ref("");
+const testPhoneNumber = ref("");
+const testResultado = ref(null);
+const loadingTestEnvio = ref(false);
 
-const INIT_FORM_SALUDOS = {
-    sede_id: "",
-    servicio_cita_id: "",
-    mensaje_bienvenida: "",
-    activo: 1,
-};
-
-export default {
-    components: { Select2, EmojiPicker, FormattedTextEditor },
-    mounted() {
-        this.listarNumeros();
-        this.listarSaludos();
-        this.listarSedes();
-        this.listarServicios();
-        this.cargarServiciosProductos();
-    },
-    beforeUnmount() {
-        safeDestroyDataTable(this.$refs.dtNumeros || "#tblWhatsappNumbers");
-        safeDestroyDataTable(this.$refs.dtSaludos || "#tblWhatsappSaludos");
-    },
-    data() {
+const productosDisponiblesOptions = computed(() => {
+    return (productosDisponibles.value || []).map(function (p) {
         return {
-            tabActivo: "numeros",
-            id: 0,
-            registrosNumeros: [],
-            registrosSaludos: [],
-            sedes: [],
-            servicios: [],
-            form: { ...INIT_FORM_NUMEROS },
-            tituloModal: "Nuevo registro",
-            actualizar: false,
-            errores: {},
-            loadingNumeros: false,
-            loadingSaludos: false,
-            errorNumeros: "",
-            errorSaludos: "",
-            loadingGuardar: false,
-            loadingEliminarId: null,
-
-            serviciosProductos: [],
-            loadingServiciosProductos: false,
-            errorServiciosProductos: "",
-            servicioSeleccionado: null,
-            servicioActual: null,
-            productosVinculados: [],
-            productosDisponibles: [],
-            productoSeleccionado: "",
-            recomendacion: "",
-            loadingAgregarProducto: false,
-            previewMensaje: "",
-            testPhoneNumber: "",
-            testResultado: null,
-            loadingTestEnvio: false,
+            id: String(p.id),
+            cod_cups: p.cod_cups,
+            nom_produc: p.nom_produc,
+            recomendacion_producto: p.recomendacion_producto,
         };
-    },
-    computed: {
-        productosDisponiblesOptions() {
-            return (this.productosDisponibles || []).map(function (p) {
-                return {
-                    id: String(p.id),
-                    cod_cups: p.cod_cups,
-                    nom_produc: p.nom_produc,
-                    recomendacion_producto: p.recomendacion_producto,
-                };
+    });
+});
+
+function cambiarTab(tab) {
+    tabActivo.value = tab;
+    errores.value = {};
+    if (tab === "productos") {
+        cargarServiciosProductos();
+    }
+    nextTick(() => {
+        if (tab === "numeros") {
+            safeInitDataTable(dtNumeros.value || "#tblWhatsappNumbers", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
-        },
-    },
-    methods: {
-        cambiarTab(tab) {
-            this.tabActivo = tab;
-            this.errores = {};
-            if (tab === "productos") {
-                this.cargarServiciosProductos();
-            }
-            this.$nextTick(() => {
-                if (tab === "numeros") {
-                    safeInitDataTable(this.$refs.dtNumeros || "#tblWhatsappNumbers", {
-                        dom: "Bfrtip",
-                        buttons: ["copy", "csv", "excel", "pdf", "print"],
-                    });
-                } else if (tab === "saludos") {
-                    safeInitDataTable(this.$refs.dtSaludos || "#tblWhatsappSaludos", {
-                        dom: "Bfrtip",
-                        buttons: ["copy", "csv", "excel", "pdf", "print"],
-                    });
-                }
+        } else if (tab === "saludos") {
+            safeInitDataTable(dtSaludos.value || "#tblWhatsappSaludos", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
-        },
-        async listarNumeros() {
-            if (this.loadingNumeros) return;
-            this.loadingNumeros = true;
-            this.errorNumeros = "";
-            try {
-                const res = await axios.get("/api/config-sede-whatsapp-numbers");
-                safeDestroyDataTable(this.$refs.dtNumeros || "#tblWhatsappNumbers");
-                this.registrosNumeros = res.data;
-                this.$nextTick(() => {
-                    if (this.tabActivo === "numeros") {
-                        safeInitDataTable(this.$refs.dtNumeros || "#tblWhatsappNumbers", {
-                            dom: "Bfrtip",
-                            buttons: ["copy", "csv", "excel", "pdf", "print"],
-                        });
-                    }
+        }
+    });
+}
+async function listarNumeros() {
+    if (loadingNumeros.value) return;
+    loadingNumeros.value = true;
+    errorNumeros.value = "";
+    try {
+        const res = await axios.get("/api/config-sede-whatsapp-numbers");
+        safeDestroyDataTable(dtNumeros.value || "#tblWhatsappNumbers");
+        registrosNumeros.value = res.data;
+        nextTick(() => {
+            if (tabActivo.value === "numeros") {
+                safeInitDataTable(dtNumeros.value || "#tblWhatsappNumbers", {
+                    dom: "Bfrtip",
+                    buttons: ["copy", "csv", "excel", "pdf", "print"],
                 });
-            } catch (error) {
-                this.errorNumeros =
-                    error?.response?.data?.message || "No fue posible cargar los números WhatsApp.";
-                handleAxiosErrorToast(error, "No fue posible listar números WhatsApp.");
-                this.registrosNumeros = [];
-            } finally {
-                this.loadingNumeros = false;
             }
-        },
-        async listarSaludos() {
-            if (this.loadingSaludos) return;
-            this.loadingSaludos = true;
-            this.errorSaludos = "";
-            try {
-                const res = await axios.get("/api/config-whatsapp");
-                safeDestroyDataTable(this.$refs.dtSaludos || "#tblWhatsappSaludos");
-                this.registrosSaludos = res.data;
-                this.$nextTick(() => {
-                    if (this.tabActivo === "saludos") {
-                        safeInitDataTable(this.$refs.dtSaludos || "#tblWhatsappSaludos", {
-                            dom: "Bfrtip",
-                            buttons: ["copy", "csv", "excel", "pdf", "print"],
-                        });
-                    }
+        });
+    } catch (error) {
+        errorNumeros.value =
+            error?.response?.data?.message || "No fue posible cargar los números WhatsApp.";
+        handleAxiosErrorToast(error, "No fue posible listar números WhatsApp.");
+        registrosNumeros.value = [];
+    } finally {
+        loadingNumeros.value = false;
+    }
+}
+async function listarSaludos() {
+    if (loadingSaludos.value) return;
+    loadingSaludos.value = true;
+    errorSaludos.value = "";
+    try {
+        const res = await axios.get("/api/config-whatsapp");
+        safeDestroyDataTable(dtSaludos.value || "#tblWhatsappSaludos");
+        registrosSaludos.value = res.data;
+        nextTick(() => {
+            if (tabActivo.value === "saludos") {
+                safeInitDataTable(dtSaludos.value || "#tblWhatsappSaludos", {
+                    dom: "Bfrtip",
+                    buttons: ["copy", "csv", "excel", "pdf", "print"],
                 });
-            } catch (error) {
-                this.errorSaludos =
-                    error?.response?.data?.message || "No fue posible cargar los saludos.";
-                handleAxiosErrorToast(error, "No fue posible listar saludos.");
-                this.registrosSaludos = [];
-            } finally {
-                this.loadingSaludos = false;
             }
-        },
-        async listarSedes() {
-            try {
-                const res = await axios.get("/api/config-sedes/listar/sedes/activas");
-                this.sedes = res.data;
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        async listarServicios() {
-            try {
-                const res = await axios.get("/api/config-servicio-citas");
-                this.servicios = res.data;
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        async guardarRegistro() {
-            if (this.loadingGuardar) return;
-            this.errores = {};
+        });
+    } catch (error) {
+        errorSaludos.value = error?.response?.data?.message || "No fue posible cargar los saludos.";
+        handleAxiosErrorToast(error, "No fue posible listar saludos.");
+        registrosSaludos.value = [];
+    } finally {
+        loadingSaludos.value = false;
+    }
+}
+async function listarSedes() {
+    try {
+        const res = await axios.get("/api/config-sedes/listar/sedes/activas");
+        sedes.value = res.data;
+    } catch (error) {
+        console.error(error);
+    }
+}
+async function listarServicios() {
+    try {
+        const res = await axios.get("/api/config-servicio-citas");
+        servicios.value = res.data;
+    } catch (error) {
+        console.error(error);
+    }
+}
+async function guardarRegistro() {
+    if (loadingGuardar.value) return;
+    errores.value = {};
 
-            if (this.tabActivo === "numeros") {
-                const errs = {};
-                if (!this.form.sede_id) errs.sede_id = ["La sede es obligatoria."];
-                if (!this.form.phone_number_id)
-                    errs.phone_number_id = ["El Phone Number ID es obligatorio."];
-                if (!this.form.numero) errs.numero = ["El número es obligatorio."];
-                if (Object.keys(errs).length > 0) {
-                    this.errores = errs;
-                    return;
-                }
-            } else if (this.tabActivo === "saludos") {
-                const errs = {};
-                if (!this.form.mensaje_bienvenida || !this.form.mensaje_bienvenida.trim()) {
-                    errs.mensaje_bienvenida = ["El mensaje de bienvenida es obligatorio."];
-                }
-                if (Object.keys(errs).length > 0) {
-                    this.errores = errs;
-                    return;
-                }
-            }
+    if (tabActivo.value === "numeros") {
+        const errs = {};
+        if (!form.value.sede_id) errs.sede_id = ["La sede es obligatoria."];
+        if (!form.value.phone_number_id)
+            errs.phone_number_id = ["El Phone Number ID es obligatorio."];
+        if (!form.value.numero) errs.numero = ["El número es obligatorio."];
+        if (Object.keys(errs).length > 0) {
+            errores.value = errs;
+            return;
+        }
+    } else if (tabActivo.value === "saludos") {
+        const errs = {};
+        if (!form.value.mensaje_bienvenida || !form.value.mensaje_bienvenida.trim()) {
+            errs.mensaje_bienvenida = ["El mensaje de bienvenida es obligatorio."];
+        }
+        if (Object.keys(errs).length > 0) {
+            errores.value = errs;
+            return;
+        }
+    }
 
-            this.loadingGuardar = true;
-            try {
-                const payload = {
-                    ...this.form,
-                    activo: this.form.activo === 1 || this.form.activo === true,
-                };
+    loadingGuardar.value = true;
+    try {
+        const payload = {
+            ...form.value,
+            activo: form.value.activo === 1 || form.value.activo === true,
+        };
 
-                const esNumero = this.tabActivo === "numeros";
-                const baseUrl = esNumero
-                    ? "/api/config-sede-whatsapp-numbers"
-                    : "/api/config-whatsapp";
+        const esNumero = tabActivo.value === "numeros";
+        const baseUrl = esNumero ? "/api/config-sede-whatsapp-numbers" : "/api/config-whatsapp";
 
-                if (this.actualizar === false) {
-                    const res = await axios.post(baseUrl, payload);
-                    if (res.status == 201 || res.status == 200) {
-                        this.recargarTabActivo();
-                        $.toast({
-                            heading: "Ok!!!",
-                            text: "Registro guardado correctamente.",
-                            position: "top-right",
-                            loaderBg: "#ff6849",
-                            icon: "success",
-                            hideAfter: 3500,
-                            stack: 6,
-                        });
-                        this.cerrarFormSidebar();
-                        this.limpiar();
-                    }
-                } else {
-                    const res = await axios.put(`${baseUrl}/${this.id}`, payload);
-                    if (res.status == 200) {
-                        this.recargarTabActivo();
-                        $.toast({
-                            heading: "Ok!!!",
-                            text: "Registro actualizado correctamente.",
-                            position: "top-right",
-                            loaderBg: "#ff6849",
-                            icon: "success",
-                            hideAfter: 3500,
-                            stack: 6,
-                        });
-                        this.cerrarFormSidebar();
-                        this.limpiar();
-                    }
-                }
-            } catch (error) {
-                this.errores = error?.response?.data?.errors || {};
-                handleAxiosErrorToast(error, "No fue posible guardar el registro.");
-            } finally {
-                this.loadingGuardar = false;
-            }
-        },
-        async eliminarRegistro(id) {
-            const ok = await confirmAction({
-                title: "¿Estas seguro?",
-                text: "No podrás recuperar este registro!",
-                icon: "warning",
-            });
-            if (!ok) return;
-
-            try {
-                if (this.loadingEliminarId) return;
-                this.loadingEliminarId = id;
-                const baseUrl =
-                    this.tabActivo === "numeros"
-                        ? "/api/config-sede-whatsapp-numbers"
-                        : "/api/config-whatsapp";
-                const response = await axios.delete(`${baseUrl}/${id}`);
-                alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
-                this.recargarTabActivo();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
-                alertError("Error", "No fue posible eliminar el registro.", "error");
-            } finally {
-                this.loadingEliminarId = null;
-            }
-        },
-        mostrarRegistro(data = {}) {
-            if (this.tabActivo === "productos") return;
-            if (this.tabActivo === "numeros") {
-                if (this.actualizar) {
-                    this.tituloModal = "Actualizar número WhatsApp";
-                    this.id = data.id;
-                    this.form = {
-                        sede_id: data.sede_id || "",
-                        phone_number_id: data.phone_number_id || "",
-                        numero: data.numero || "",
-                        descripcion: data.descripcion || "",
-                        activo: data.activo ? 1 : 0,
-                    };
-                } else {
-                    this.tituloModal = "Nuevo número WhatsApp";
-                    this.id = 0;
-                    this.form = { ...INIT_FORM_NUMEROS };
-                }
-            } else {
-                if (this.actualizar) {
-                    this.tituloModal =
-                        "Actualizar saludo: " + (data.sede?.nom_sede || "Todas las sedes");
-                    this.id = data.id;
-                    this.form = {
-                        sede_id: data.sede_id || "",
-                        servicio_cita_id: data.servicio_cita_id || "",
-                        mensaje_bienvenida: data.mensaje_bienvenida || "",
-                        activo: data.activo ? 1 : 0,
-                    };
-                } else {
-                    this.tituloModal = "Nuevo saludo";
-                    this.id = 0;
-                    this.form = { ...INIT_FORM_SALUDOS };
-                }
-            }
-            this.btnCerrarModalForm();
-        },
-        recargarTabActivo() {
-            if (this.tabActivo === "numeros") {
-                this.listarNumeros();
-            } else {
-                this.listarSaludos();
-            }
-        },
-        limpiar() {
-            this.actualizar = false;
-            this.tituloModal = "Nuevo registro";
-            this.id = 0;
-            if (this.tabActivo === "numeros") {
-                this.form = { ...INIT_FORM_NUMEROS };
-            } else {
-                this.form = { ...INIT_FORM_SALUDOS };
-            }
-        },
-        btnCerrarModalForm() {
-            $(".right-sidebar").slideDown(50);
-            $(".right-sidebar").addClass("shw-rside");
-        },
-        cerrarFormSidebar() {
-            $(".right-sidebar").slideUp(50);
-            $(".right-sidebar").removeClass("shw-rside");
-        },
-
-        async cargarServiciosProductos() {
-            this.loadingServiciosProductos = true;
-            this.errorServiciosProductos = "";
-            try {
-                const res = await axios.get("/api/config-servicio-citas");
-                this.serviciosProductos = res.data;
-                if (this.serviciosProductos.length > 0) {
-                    this.seleccionarServicio(this.serviciosProductos[0]);
-                }
-            } catch (error) {
-                const msg =
-                    error?.response?.data?.message || error.message || "Error al cargar servicios";
-                this.errorServiciosProductos = msg;
-                this.serviciosProductos = [];
-            } finally {
-                this.loadingServiciosProductos = false;
-            }
-        },
-
-        seleccionarServicio(servicio) {
-            this.servicioSeleccionado = servicio.id;
-            this.servicioActual = servicio;
-            this.cargarProductosVinculados();
-        },
-
-        async cargarProductosVinculados() {
-            if (!this.servicioSeleccionado) return;
-            try {
-                const res = await axios.get("/api/servicio-producto", {
-                    params: { servicio_cita_id: this.servicioSeleccionado },
+        if (actualizar.value === false) {
+            const res = await axios.post(baseUrl, payload);
+            if (res.status == 201 || res.status == 200) {
+                recargarTabActivo();
+                $.toast({
+                    heading: "Ok!!!",
+                    text: "Registro guardado correctamente.",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "success",
+                    hideAfter: 3500,
+                    stack: 6,
                 });
-                this.productosVinculados = res.data;
-            } catch (error) {
-                console.error("Error al cargar productos vinculados:", error);
+                cerrarFormSidebar();
+                limpiar();
             }
-        },
-
-        async mostrarModalAgregar() {
-            this.tituloModal = "Agregar producto a: " + (this.servicioActual?.nombre || "");
-            this.productoSeleccionado = "";
-            this.recomendacion = "";
-            this.loadingAgregarProducto = false;
-            try {
-                const res = await axios.get("/api/servicio-producto/productos-no-vinculados", {
-                    params: { servicio_cita_id: this.servicioSeleccionado },
+        } else {
+            const res = await axios.put(`${baseUrl}/${id.value}`, payload);
+            if (res.status == 200) {
+                recargarTabActivo();
+                $.toast({
+                    heading: "Ok!!!",
+                    text: "Registro actualizado correctamente.",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "success",
+                    hideAfter: 3500,
+                    stack: 6,
                 });
-                this.productosDisponibles = res.data;
-                this.abrirModal();
-            } catch (error) {
-                console.error("Error al cargar productos disponibles:", error);
+                cerrarFormSidebar();
+                limpiar();
             }
-        },
+        }
+    } catch (error) {
+        errores.value = error?.response?.data?.errors || {};
+        handleAxiosErrorToast(error, "No fue posible guardar el registro.");
+    } finally {
+        loadingGuardar.value = false;
+    }
+}
+async function eliminarRegistro(id) {
+    const ok = await confirmAction({
+        title: "¿Estas seguro?",
+        text: "No podrás recuperar este registro!",
+        icon: "warning",
+    });
+    if (!ok) return;
 
-        onProductoSelect(value) {
-            this.productoSeleccionado = value || "";
-            const encontrado = this.productosDisponibles.find(function (p) {
-                return String(p.id) === String(value);
+    try {
+        if (loadingEliminarId.value) return;
+        loadingEliminarId.value = id;
+        const baseUrl =
+            tabActivo.value === "numeros"
+                ? "/api/config-sede-whatsapp-numbers"
+                : "/api/config-whatsapp";
+        const response = await axios.delete(`${baseUrl}/${id}`);
+        alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
+        recargarTabActivo();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
+        alertError("Error", "No fue posible eliminar el registro.", "error");
+    } finally {
+        loadingEliminarId.value = null;
+    }
+}
+function mostrarRegistro(data = {}) {
+    if (tabActivo.value === "productos") return;
+    if (tabActivo.value === "numeros") {
+        if (actualizar.value) {
+            tituloModal.value = "Actualizar número WhatsApp";
+            id.value = data.id;
+            form.value = {
+                sede_id: data.sede_id || "",
+                phone_number_id: data.phone_number_id || "",
+                numero: data.numero || "",
+                descripcion: data.descripcion || "",
+                activo: data.activo ? 1 : 0,
+            };
+        } else {
+            tituloModal.value = "Nuevo número WhatsApp";
+            id.value = 0;
+            form.value = { ...INIT_FORM_NUMEROS };
+        }
+    } else {
+        if (actualizar.value) {
+            tituloModal.value = "Actualizar saludo: " + (data.sede?.nom_sede || "Todas las sedes");
+            id.value = data.id;
+            form.value = {
+                sede_id: data.sede_id || "",
+                servicio_cita_id: data.servicio_cita_id || "",
+                mensaje_bienvenida: data.mensaje_bienvenida || "",
+                activo: data.activo ? 1 : 0,
+            };
+        } else {
+            tituloModal.value = "Nuevo saludo";
+            id.value = 0;
+            form.value = { ...INIT_FORM_SALUDOS };
+        }
+    }
+    btnCerrarModalForm();
+}
+function recargarTabActivo() {
+    if (tabActivo.value === "numeros") {
+        listarNumeros();
+    } else {
+        listarSaludos();
+    }
+}
+function limpiar() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    id.value = 0;
+    if (tabActivo.value === "numeros") {
+        form.value = { ...INIT_FORM_NUMEROS };
+    } else {
+        form.value = { ...INIT_FORM_SALUDOS };
+    }
+}
+function btnCerrarModalForm() {
+    $(".right-sidebar").slideDown(50);
+    $(".right-sidebar").addClass("shw-rside");
+}
+function cerrarFormSidebar() {
+    $(".right-sidebar").slideUp(50);
+    $(".right-sidebar").removeClass("shw-rside");
+}
+async function cargarServiciosProductos() {
+    loadingServiciosProductos.value = true;
+    errorServiciosProductos.value = "";
+    try {
+        const res = await axios.get("/api/config-servicio-citas");
+        serviciosProductos.value = res.data;
+        if (serviciosProductos.value.length > 0) {
+            seleccionarServicio(serviciosProductos.value[0]);
+        }
+    } catch (error) {
+        const msg = error?.response?.data?.message || error.message || "Error al cargar servicios";
+        errorServiciosProductos.value = msg;
+        serviciosProductos.value = [];
+    } finally {
+        loadingServiciosProductos.value = false;
+    }
+}
+function seleccionarServicio(servicio) {
+    servicioSeleccionado.value = servicio.id;
+    servicioActual.value = servicio;
+    cargarProductosVinculados();
+}
+async function cargarProductosVinculados() {
+    if (!servicioSeleccionado.value) return;
+    try {
+        const res = await axios.get("/api/servicio-producto", {
+            params: { servicio_cita_id: servicioSeleccionado.value },
+        });
+        productosVinculados.value = res.data;
+    } catch (error) {
+        console.error("Error al cargar productos vinculados:", error);
+    }
+}
+async function mostrarModalAgregar() {
+    tituloModal.value = "Agregar producto a: " + (servicioActual.value?.nombre || "");
+    productoSeleccionado.value = "";
+    recomendacion.value = "";
+    loadingAgregarProducto.value = false;
+    try {
+        const res = await axios.get("/api/servicio-producto/productos-no-vinculados", {
+            params: { servicio_cita_id: servicioSeleccionado.value },
+        });
+        productosDisponibles.value = res.data;
+        abrirModal();
+    } catch (error) {
+        console.error("Error al cargar productos disponibles:", error);
+    }
+}
+function onProductoSelect(value) {
+    productoSeleccionado.value = value || "";
+    const encontrado = productosDisponibles.value.find(function (p) {
+        return String(p.id) === String(value);
+    });
+    recomendacion.value =
+        (encontrado &&
+            encontrado.recomendacion_producto &&
+            encontrado.recomendacion_producto.recomendacion) ||
+        "";
+}
+function abrirModal() {
+    $(".right-sidebar").slideDown(50);
+    $(".right-sidebar").addClass("shw-rside");
+}
+function cerrarModal() {
+    $(".right-sidebar").removeClass("shw-rside");
+}
+async function agregarProducto() {
+    if (!productoSeleccionado.value) return;
+    loadingGuardar.value = true;
+    try {
+        await axios.post("/api/servicio-producto", {
+            servicio_cita_id: servicioSeleccionado.value,
+            producto_id: productoSeleccionado.value,
+        });
+        if (recomendacion.value && recomendacion.value.trim()) {
+            await axios.post("/api/config-recomendacion-productos", {
+                producto_id: productoSeleccionado.value,
+                recomendacion: recomendacion.value,
             });
-            this.recomendacion =
-                (encontrado &&
-                    encontrado.recomendacion_producto &&
-                    encontrado.recomendacion_producto.recomendacion) ||
-                "";
-        },
+        }
+        alertSuccess("Éxito", "Producto agregado correctamente");
+        cerrarModal();
+        cargarProductosVinculados();
+        cargarServiciosProductos();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible agregar el producto.");
+    } finally {
+        loadingGuardar.value = false;
+    }
+}
+async function eliminarVinculo(id) {
+    const ok = await confirmAction({
+        title: "¿Está seguro?",
+        text: "El producto se desvinculará del servicio.",
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar",
+    });
+    if (!ok) return;
+    try {
+        await axios.delete("/api/servicio-producto/" + id);
+        alertSuccess("Éxito", "Producto desvinculado");
+        cargarProductosVinculados();
+        cargarServiciosProductos();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible eliminar el producto.");
+    }
+}
+function abrirProbarEnvio() {
+    testPhoneNumber.value = "";
+    testResultado.value = null;
+    $("#modalProbarEnvio").modal("show");
+}
+function mostrarPreviewSaludo() {
+    if (!form.value.mensaje_bienvenida) return;
+    previewMensaje.value = form.value.mensaje_bienvenida
+        .replace(/\$\{num_docu_paciente\}/g, "1234567890")
+        .replace(/\$\{nom_paciente\}/g, "Paciente")
+        .replace(/\$\{cod_cups\}/g, "CUPS001")
+        .replace(/\$\{nom_produc\}/g, "Nombre del producto");
+    $("#modalPreviewSaludo").modal("show");
+}
+function insertFormat(before, after) {
+    const ta = mensajeTextarea.value;
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const text = form.value.mensaje_bienvenida || "";
+    const selected = text.substring(start, end);
+    const replacement = before + selected + after;
+    form.value.mensaje_bienvenida = text.substring(0, start) + replacement + text.substring(end);
+    nextTick(() => {
+        ta.focus();
+        ta.selectionStart = start + before.length;
+        ta.selectionEnd = start + before.length + selected.length;
+    });
+}
+function insertEmoji(emoji) {
+    const ta = mensajeTextarea.value;
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const text = form.value.mensaje_bienvenida || "";
+    form.value.mensaje_bienvenida = text.substring(0, start) + emoji + text.substring(end);
+    nextTick(() => {
+        ta.focus();
+        const pos = start + emoji.length;
+        ta.selectionStart = pos;
+        ta.selectionEnd = pos;
+    });
+}
+async function probarEnvio() {
+    if (!testPhoneNumber.value || loadingTestEnvio.value) return;
+    loadingTestEnvio.value = true;
+    testResultado.value = null;
+    try {
+        const res = await axios.post("/api/citas/test/enviar", {
+            phone: testPhoneNumber.value,
+        });
+        testResultado.value = {
+            ok: true,
+            mensaje: res.data?.message || "Mensaje enviado correctamente.",
+        };
+    } catch (error) {
+        const msg =
+            error?.response?.data?.message || error.message || "Error al enviar el mensaje.";
+        testResultado.value = {
+            ok: false,
+            mensaje: msg,
+        };
+        handleAxiosErrorToast(error, "No fue posible enviar el mensaje de prueba.");
+    } finally {
+        loadingTestEnvio.value = false;
+    }
+}
 
-        abrirModal() {
-            $(".right-sidebar").slideDown(50);
-            $(".right-sidebar").addClass("shw-rside");
-        },
+onMounted(() => {
+    listarNumeros();
+    listarSaludos();
+    listarSedes();
+    listarServicios();
+    cargarServiciosProductos();
+});
 
-        cerrarModal() {
-            $(".right-sidebar").removeClass("shw-rside");
-        },
-
-        async agregarProducto() {
-            if (!this.productoSeleccionado) return;
-            this.loadingGuardar = true;
-            try {
-                await axios.post("/api/servicio-producto", {
-                    servicio_cita_id: this.servicioSeleccionado,
-                    producto_id: this.productoSeleccionado,
-                });
-                if (this.recomendacion && this.recomendacion.trim()) {
-                    await axios.post("/api/config-recomendacion-productos", {
-                        producto_id: this.productoSeleccionado,
-                        recomendacion: this.recomendacion,
-                    });
-                }
-                alertSuccess("Éxito", "Producto agregado correctamente");
-                this.cerrarModal();
-                this.cargarProductosVinculados();
-                this.cargarServiciosProductos();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible agregar el producto.");
-            } finally {
-                this.loadingGuardar = false;
-            }
-        },
-
-        async eliminarVinculo(id) {
-            const ok = await confirmAction({
-                title: "¿Está seguro?",
-                text: "El producto se desvinculará del servicio.",
-                confirmButtonText: "Sí, eliminar",
-                cancelButtonText: "Cancelar",
-            });
-            if (!ok) return;
-            try {
-                await axios.delete("/api/servicio-producto/" + id);
-                alertSuccess("Éxito", "Producto desvinculado");
-                this.cargarProductosVinculados();
-                this.cargarServiciosProductos();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible eliminar el producto.");
-            }
-        },
-
-        abrirProbarEnvio() {
-            this.testPhoneNumber = "";
-            this.testResultado = null;
-            $("#modalProbarEnvio").modal("show");
-        },
-
-        mostrarPreviewSaludo() {
-            if (!this.form.mensaje_bienvenida) return;
-            this.previewMensaje = this.form.mensaje_bienvenida
-                .replace(/\$\{num_docu_paciente\}/g, "1234567890")
-                .replace(/\$\{nom_paciente\}/g, "Paciente")
-                .replace(/\$\{cod_cups\}/g, "CUPS001")
-                .replace(/\$\{nom_produc\}/g, "Nombre del producto");
-            $("#modalPreviewSaludo").modal("show");
-        },
-
-        insertFormat(before, after) {
-            const ta = this.$refs.mensajeTextarea;
-            if (!ta) return;
-            const start = ta.selectionStart;
-            const end = ta.selectionEnd;
-            const text = this.form.mensaje_bienvenida || "";
-            const selected = text.substring(start, end);
-            const replacement = before + selected + after;
-            this.form.mensaje_bienvenida =
-                text.substring(0, start) + replacement + text.substring(end);
-            this.$nextTick(() => {
-                ta.focus();
-                ta.selectionStart = start + before.length;
-                ta.selectionEnd = start + before.length + selected.length;
-            });
-        },
-
-        insertEmoji(emoji) {
-            const ta = this.$refs.mensajeTextarea;
-            if (!ta) return;
-            const start = ta.selectionStart;
-            const end = ta.selectionEnd;
-            const text = this.form.mensaje_bienvenida || "";
-            this.form.mensaje_bienvenida = text.substring(0, start) + emoji + text.substring(end);
-            this.$nextTick(() => {
-                ta.focus();
-                const pos = start + emoji.length;
-                ta.selectionStart = pos;
-                ta.selectionEnd = pos;
-            });
-        },
-
-        async probarEnvio() {
-            if (!this.testPhoneNumber || this.loadingTestEnvio) return;
-            this.loadingTestEnvio = true;
-            this.testResultado = null;
-            try {
-                const res = await axios.post("/api/citas/test/enviar", {
-                    phone: this.testPhoneNumber,
-                });
-                this.testResultado = {
-                    ok: true,
-                    mensaje: res.data?.message || "Mensaje enviado correctamente.",
-                };
-            } catch (error) {
-                const msg =
-                    error?.response?.data?.message ||
-                    error.message ||
-                    "Error al enviar el mensaje.";
-                this.testResultado = {
-                    ok: false,
-                    mensaje: msg,
-                };
-                handleAxiosErrorToast(error, "No fue posible enviar el mensaje de prueba.");
-            } finally {
-                this.loadingTestEnvio = false;
-            }
-        },
-    },
-};
+onBeforeUnmount(() => {
+    safeDestroyDataTable(dtNumeros.value || "#tblWhatsappNumbers");
+    safeDestroyDataTable(dtSaludos.value || "#tblWhatsappSaludos");
+});
 </script>
 <style scoped>
 .right-sidebar {

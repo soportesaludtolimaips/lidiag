@@ -346,335 +346,324 @@
         <!-- ============================================================== -->
     </div>
 </template>
-<script>
+<script setup>
+import { computed, nextTick, onBeforeUnmount, ref } from "vue";
+
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import DatosPacienteDisplay from "@/components/comunes/datosPacienteDisplayComponent.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { getUserSafeError, handleAxiosErrorToast } from "@/helpers/alerts.js";
+import axios from "axios";
 
-export default {
-    props: ["usuarioactual", "permisos"],
-    components: {
-        LoadingSpinner,
-        DatosPacienteDisplay,
-    },
-    computed: {
-        contadorRegistros() {
-            return this.registros.length;
-        },
-    },
-    beforeUnmount() {
-        this.destroyDataTable();
-        this.registros = [];
-        this.registro = {};
-    },
-    data() {
-        return {
-            registros: [],
-            tituloModal: "Nuevo registro",
-            registro: {
-                num_docu: "",
-                nombres: "",
-                sexo: "",
-                fec_naci: "",
-                email: "",
-                email_reportar: "",
-                direccion: "",
-                tel: "",
-                nom_produc: "",
-                id_producto_lectura: null,
-            },
-            estudio: null,
-            busqueda: { bus_num_docu: "", bus_nom: "", bus_fehc_ini: "", bus_fecha_fin: "" },
-            errores: {},
-            erroresBusqueda: {},
-            loadingBuscar: false,
-            loadingNotificar: false,
-            loadingImprimirId: null,
-            loadingAbrirId: null,
-            loadingPortalId: null,
-        };
-    },
-    methods: {
-        destroyDataTable() {
-            safeDestroyDataTable(this.$refs.dt || "#example23");
-        },
-        btnLimpiar() {
-            this.busqueda.bus_num_docu = "";
-            this.busqueda.bus_nom = "";
-            this.busqueda.bus_fehc_ini = "";
-            this.busqueda.bus_fecha_fin = "";
-            this.erroresBusqueda = {};
-            this.destroyDataTable();
-            this.registros = [];
-        },
-        async buscarStudy() {
-            if (this.loadingBuscar) return;
-            this.loadingBuscar = true;
-            this.destroyDataTable();
-            this.registros = [];
-            try {
-                if (
-                    this.busqueda.bus_num_docu == "" &&
-                    this.busqueda.bus_fehc_ini == "" &&
-                    this.busqueda.bus_fecha_fin == "" &&
-                    this.busqueda.bus_nom == ""
-                ) {
-                    $.toast({
-                        heading: "Upsss!!!",
-                        text: "Debe indicar documento, nombre o un rango de fechas para la búsqueda.",
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "warning",
-                        hideAfter: 3500,
-                        stack: 6,
+const props = defineProps({});
+
+const registros = ref([]);
+const tituloModal = ref("Nuevo registro");
+const registro = ref({
+    num_docu: "",
+    nombres: "",
+    sexo: "",
+    fec_naci: "",
+    email: "",
+    email_reportar: "",
+    direccion: "",
+    tel: "",
+    nom_produc: "",
+    id_producto_lectura: null,
+});
+const estudio = ref(null);
+const busqueda = ref({ bus_num_docu: "", bus_nom: "", bus_fehc_ini: "", bus_fecha_fin: "" });
+const errores = ref({});
+const erroresBusqueda = ref({});
+const loadingBuscar = ref(false);
+const loadingNotificar = ref(false);
+const loadingImprimirId = ref(null);
+const loadingAbrirId = ref(null);
+const loadingPortalId = ref(null);
+
+const contadorRegistros = computed(() => {
+    return registros.value.length;
+});
+
+function destroyDataTable() {
+    safeDestroyDataTable(dt.value || "#example23");
+}
+function btnLimpiar() {
+    busqueda.value.bus_num_docu = "";
+    busqueda.value.bus_nom = "";
+    busqueda.value.bus_fehc_ini = "";
+    busqueda.value.bus_fecha_fin = "";
+    erroresBusqueda.value = {};
+    destroyDataTable();
+    registros.value = [];
+}
+async function buscarStudy() {
+    if (loadingBuscar.value) return;
+    loadingBuscar.value = true;
+    destroyDataTable();
+    registros.value = [];
+    try {
+        if (
+            busqueda.value.bus_num_docu == "" &&
+            busqueda.value.bus_fehc_ini == "" &&
+            busqueda.value.bus_fecha_fin == "" &&
+            busqueda.value.bus_nom == ""
+        ) {
+            $.toast({
+                heading: "Upsss!!!",
+                text: "Debe indicar documento, nombre o un rango de fechas para la búsqueda.",
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "warning",
+                hideAfter: 3500,
+                stack: 6,
+            });
+        } else {
+            const res = await axios.post("/api/listar.estudios.notificaciones", busqueda.value);
+
+            if (res.status == 200) {
+                registros.value = res.data || [];
+
+                nextTick(() => {
+                    safeInitDataTable(dt.value || "#example23", {
+                        dom: "Bfrtip",
+                        buttons: ["copy", "csv", "excel", "pdf", "print"],
                     });
-                } else {
-                    const res = await axios.post(
-                        "/api/listar.estudios.notificaciones",
-                        this.busqueda
-                    );
-
-                    if (res.status == 200) {
-                        this.registros = res.data || [];
-
-                        this.$nextTick(() => {
-                            safeInitDataTable(this.$refs.dt || "#example23", {
-                                dom: "Bfrtip",
-                                buttons: ["copy", "csv", "excel", "pdf", "print"],
-                            });
-                        });
-                    } else if (res.status == 500) {
-                        $.toast({
-                            heading: "Upsss!!!",
-                            text: res.data.message,
-                            position: "top-right",
-                            loaderBg: "#ff6849",
-                            icon: "danger",
-                            hideAfter: 3500,
-                            stack: 6,
-                        });
-                    }
-                }
-            } catch (error) {
-                this.registros = [];
-
-                const status = error?.response?.status;
-                if (status == 500) {
-                    $.toast({
-                        heading: "Upss!!!",
-                        text: getUserSafeError(error, "Error al listar estudios."),
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "error",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                }
-
-                this.erroresBusqueda =
-                    error?.response?.data?.errors && typeof error.response.data.errors === "object"
-                        ? error.response.data.errors
-                        : {};
-            } finally {
-                this.loadingBuscar = false;
-            }
-        },
-        async imprimirReporte(estudio) {
-            if (this.loadingImprimirId) return;
-            this.loadingImprimirId = estudio.estudio_producto_id;
-            try {
+                });
+            } else if (res.status == 500) {
                 $.toast({
-                    heading: "Procesando...",
-                    text: "Generando reportes, por favor espere",
+                    heading: "Upsss!!!",
+                    text: res.data.message,
                     position: "top-right",
                     loaderBg: "#ff6849",
-                    icon: "info",
+                    icon: "danger",
                     hideAfter: 3500,
                     stack: 6,
                 });
-
-                const res = await axios.post("/api/edit-word", estudio);
-
-                window.open(
-                    `/descargar.pdf.lectura/${res.data.plantilla}`,
-                    "_blank",
-                    "noopener,noreferrer"
-                );
-            } catch (error) {
-                this.errores =
-                    error?.response?.data?.errors && typeof error.response.data.errors === "object"
-                        ? error.response.data.errors
-                        : {};
-                handleAxiosErrorToast(error, "No se pudo imprimir el reporte.");
-            } finally {
-                this.loadingImprimirId = null;
             }
-        },
-        async notificar() {
-            if (this.loadingNotificar) return;
-            this.loadingNotificar = true;
-            try {
-                $.toast({
-                    heading: "Procesando...",
-                    text: "Generando reporte, por favor espere.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "info",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
+        }
+    } catch (error) {
+        registros.value = [];
 
-                this.estudio.email = this.registro.email;
-                this.estudio.tel = this.registro.tel;
-                const res = await axios.post("/api/notificar.email", this.estudio);
+        const status = error?.response?.status;
+        if (status == 500) {
+            $.toast({
+                heading: "Upss!!!",
+                text: getUserSafeError(error, "Error al listar estudios."),
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "error",
+                hideAfter: 3500,
+                stack: 6,
+            });
+        }
 
-                if (res.status == 200) {
-                    $.toast({
-                        heading: "Completado",
-                        text: "La notificación se realizó correctamente, estamos enviando el correo electronico, por favor espere..",
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "success",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                }
+        erroresBusqueda.value =
+            error?.response?.data?.errors && typeof error.response.data.errors === "object"
+                ? error.response.data.errors
+                : {};
+    } finally {
+        loadingBuscar.value = false;
+    }
+}
+async function imprimirReporte(estudio) {
+    if (loadingImprimirId.value) return;
+    loadingImprimirId.value = estudio.estudio_producto_id;
+    try {
+        $.toast({
+            heading: "Procesando...",
+            text: "Generando reportes, por favor espere",
+            position: "top-right",
+            loaderBg: "#ff6849",
+            icon: "info",
+            hideAfter: 3500,
+            stack: 6,
+        });
 
-                this.btnCerralModalForm();
-                this.limpiar();
-            } catch (e) {
-                const status = e?.response?.status;
-                if (status == 402) {
-                    $.toast({
-                        heading: "Error",
-                        text: getUserSafeError(e, "Saldo insuficiente."),
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "error",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                } else {
-                    $.toast({
-                        heading: "Upss!!!",
-                        text: getUserSafeError(e, "No fue posible notificar."),
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "error",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                }
-            } finally {
-                this.loadingNotificar = false;
-            }
-        },
-        async enviarPortal(item) {
-            if (this.loadingPortalId) return;
-            this.loadingPortalId = item.estudio_producto_id;
-            try {
-                this.setarDatosPortalPacientes(item);
-                await this.enviarPortalPacientes();
-            } finally {
-                this.loadingPortalId = null;
-            }
-        },
-        async enviarPortalPacientes() {
-            try {
-                $.toast({
-                    heading: "Procesando...",
-                    text: "Enviando al portal de pacientes, por favor espere.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "info",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
+        const res = await axios.post("/api/edit-word", estudio);
 
-                const res = await axios.post("/api/enviar-portal-pacientes", this.estudio);
+        window.open(
+            `/descargar.pdf.lectura/${res.data.plantilla}`,
+            "_blank",
+            "noopener,noreferrer"
+        );
+    } catch (error) {
+        errores.value =
+            error?.response?.data?.errors && typeof error.response.data.errors === "object"
+                ? error.response.data.errors
+                : {};
+        handleAxiosErrorToast(error, "No se pudo imprimir el reporte.");
+    } finally {
+        loadingImprimirId.value = null;
+    }
+}
+async function notificar() {
+    if (loadingNotificar.value) return;
+    loadingNotificar.value = true;
+    try {
+        $.toast({
+            heading: "Procesando...",
+            text: "Generando reporte, por favor espere.",
+            position: "top-right",
+            loaderBg: "#ff6849",
+            icon: "info",
+            hideAfter: 3500,
+            stack: 6,
+        });
 
-                if (res.status == 200) {
-                    $.toast({
-                        heading: "Completado",
-                        text: "Enviado al portal de pacientes.",
-                        position: "top-right",
-                        loaderBg: "#39cb14",
-                        icon: "success",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
+        estudio.value.email = registro.value.email;
+        estudio.value.tel = registro.value.tel;
+        const res = await axios.post("/api/notificar.email", estudio.value);
 
-                    this.limpiar();
-                }
-            } catch (e) {
-                if (e.response && e.response.status == 402) {
-                    $.toast({
-                        heading: "Error",
-                        text: getUserSafeError(e, "Saldo insuficiente."),
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "error",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                } else {
-                    handleAxiosErrorToast(e, "No se pudo enviar al portal.");
-                }
-            }
-        },
-        abrirModal() {
-            $(".right-sidebar").slideDown(50);
-            $(".right-sidebar").addClass("shw-rside");
-        },
-        btnCerralModalForm() {
-            $(".right-sidebar").slideUp(50);
-            $(".right-sidebar").removeClass("shw-rside");
-        },
-        mostrarRegistro(data = {}) {
-            if (this.loadingAbrirId) return;
-            this.loadingAbrirId = data.estudio_producto_id;
-            this.estudio = data;
-            this.tituloModal = "Notificar al paciente: " + data.nom_pacien;
+        if (res.status == 200) {
+            $.toast({
+                heading: "Completado",
+                text: "La notificación se realizó correctamente, estamos enviando el correo electronico, por favor espere..",
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "success",
+                hideAfter: 3500,
+                stack: 6,
+            });
+        }
 
-            this.registro.num_docu = data.num_docu;
-            this.registro.nombres = data.nom_pacien;
-            this.registro.sexo = data.sexo;
-            this.registro.fec_naci = data.fec_naci;
-            this.registro.tel = data.tel;
-            this.registro.email = data.email;
-            this.registro.nom_produc = data.nom_produc;
-            this.registro.id_producto_lectura = data.id;
+        btnCerralModalForm();
+        limpiar();
+    } catch (e) {
+        const status = e?.response?.status;
+        if (status == 402) {
+            $.toast({
+                heading: "Error",
+                text: getUserSafeError(e, "Saldo insuficiente."),
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "error",
+                hideAfter: 3500,
+                stack: 6,
+            });
+        } else {
+            $.toast({
+                heading: "Upss!!!",
+                text: getUserSafeError(e, "No fue posible notificar."),
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "error",
+                hideAfter: 3500,
+                stack: 6,
+            });
+        }
+    } finally {
+        loadingNotificar.value = false;
+    }
+}
+async function enviarPortal(item) {
+    if (loadingPortalId.value) return;
+    loadingPortalId.value = item.estudio_producto_id;
+    try {
+        setarDatosPortalPacientes(item);
+        await enviarPortalPacientes();
+    } finally {
+        loadingPortalId.value = null;
+    }
+}
+async function enviarPortalPacientes() {
+    try {
+        $.toast({
+            heading: "Procesando...",
+            text: "Enviando al portal de pacientes, por favor espere.",
+            position: "top-right",
+            loaderBg: "#ff6849",
+            icon: "info",
+            hideAfter: 3500,
+            stack: 6,
+        });
 
-            this.abrirModal();
-            this.loadingAbrirId = null;
-        },
-        setarDatosPortalPacientes(data = {}) {
-            this.estudio = data;
-            this.tituloModal = "Notificar al paciente: " + data.nom_pacien;
+        const res = await axios.post("/api/enviar-portal-pacientes", estudio.value);
 
-            this.registro.num_docu = data.num_docu;
-            this.registro.nombres = data.nom_pacien;
-            this.registro.sexo = data.sexo;
-            this.registro.fec_naci = data.fec_naci;
-            this.registro.tel = data.tel;
-            this.registro.email = data.email;
-            this.registro.nom_produc = data.nom_produc;
-            this.registro.id_producto_lectura = data.id;
-        },
-        limpiar() {
-            this.registro.num_docu = "";
-            this.registro.nombres = "";
-            this.registro.sexo = "";
-            this.registro.fec_naci = "";
-            this.registro.tel = "";
-            this.registro.nom_produc = "";
-            this.registro.id_producto_lectura = "";
-        },
-    },
-};
+        if (res.status == 200) {
+            $.toast({
+                heading: "Completado",
+                text: "Enviado al portal de pacientes.",
+                position: "top-right",
+                loaderBg: "#39cb14",
+                icon: "success",
+                hideAfter: 3500,
+                stack: 6,
+            });
+
+            limpiar();
+        }
+    } catch (e) {
+        if (e.response && e.response.status == 402) {
+            $.toast({
+                heading: "Error",
+                text: getUserSafeError(e, "Saldo insuficiente."),
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "error",
+                hideAfter: 3500,
+                stack: 6,
+            });
+        } else {
+            handleAxiosErrorToast(e, "No se pudo enviar al portal.");
+        }
+    }
+}
+function abrirModal() {
+    $(".right-sidebar").slideDown(50);
+    $(".right-sidebar").addClass("shw-rside");
+}
+function btnCerralModalForm() {
+    $(".right-sidebar").slideUp(50);
+    $(".right-sidebar").removeClass("shw-rside");
+}
+function mostrarRegistro(data = {}) {
+    if (loadingAbrirId.value) return;
+    loadingAbrirId.value = data.estudio_producto_id;
+    estudio.value = data;
+    tituloModal.value = "Notificar al paciente: " + data.nom_pacien;
+
+    registro.value.num_docu = data.num_docu;
+    registro.value.nombres = data.nom_pacien;
+    registro.value.sexo = data.sexo;
+    registro.value.fec_naci = data.fec_naci;
+    registro.value.tel = data.tel;
+    registro.value.email = data.email;
+    registro.value.nom_produc = data.nom_produc;
+    registro.value.id_producto_lectura = data.id;
+
+    abrirModal();
+    loadingAbrirId.value = null;
+}
+function setarDatosPortalPacientes(data = {}) {
+    estudio.value = data;
+    tituloModal.value = "Notificar al paciente: " + data.nom_pacien;
+
+    registro.value.num_docu = data.num_docu;
+    registro.value.nombres = data.nom_pacien;
+    registro.value.sexo = data.sexo;
+    registro.value.fec_naci = data.fec_naci;
+    registro.value.tel = data.tel;
+    registro.value.email = data.email;
+    registro.value.nom_produc = data.nom_produc;
+    registro.value.id_producto_lectura = data.id;
+}
+function limpiar() {
+    registro.value.num_docu = "";
+    registro.value.nombres = "";
+    registro.value.sexo = "";
+    registro.value.fec_naci = "";
+    registro.value.tel = "";
+    registro.value.nom_produc = "";
+    registro.value.id_producto_lectura = "";
+}
+
+onBeforeUnmount(() => {
+    destroyDataTable();
+    registros.value = [];
+    registro.value = {};
+});
 </script>
-
 <style scoped>
 .right-sidebar {
     position: fixed;

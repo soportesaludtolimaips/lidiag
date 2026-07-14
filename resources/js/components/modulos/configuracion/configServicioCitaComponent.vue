@@ -14,8 +14,11 @@
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
-                <button type="button" class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="abrirFormularioNuevo()">
+                <button
+                    type="button"
+                    class="btn btn-info btnDesplegarRigthSidebar"
+                    @click="abrirFormularioNuevo()"
+                >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
@@ -26,24 +29,36 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de servicios de citas</h4>
-                        <h6 class="card-subtitle">Administración de servicios disponibles para agendar citas.</h6>
+                        <h6 class="card-subtitle">
+                            Administración de servicios disponibles para agendar citas.
+                        </h6>
 
                         <div class="row m-t-20 m-b-20">
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label>Filtrar por sede</label>
-                                    <select class="form-control" v-model="filtroSede" @change="ListarDatos">
+                                    <select
+                                        class="form-control"
+                                        v-model="filtroSede"
+                                        @change="ListarDatos"
+                                    >
                                         <option value="">Todas las sedes</option>
-                                        <option v-for="s in sedes" :key="s.id" :value="s.id">{{ s.nom_sede }}</option>
+                                        <option v-for="s in sedes" :key="s.id" :value="s.id">
+                                            {{ s.nom_sede }}
+                                        </option>
                                     </select>
                                 </div>
                             </div>
                         </div>
 
                         <div class="table-responsive m-t-40">
-                            <table id="tablaServicios" ref="dt"
-                                class="display nowrap table table-hover table-striped table-bordered" cellspacing="0"
-                                width="100%">
+                            <table
+                                id="tablaServicios"
+                                ref="dt"
+                                class="display nowrap table table-hover table-striped table-bordered"
+                                cellspacing="0"
+                                width="100%"
+                            >
                                 <thead>
                                     <tr>
                                         <th>Servicio</th>
@@ -55,23 +70,37 @@
                                 <tbody>
                                     <tr v-for="item in registros" :key="item.id">
                                         <td>{{ item.nombre }}</td>
-                                        <td>{{ item.sede?.nom_sede || '—' }}</td>
+                                        <td>{{ item.sede?.nom_sede || "—" }}</td>
                                         <td>
-                                            <span class="label label-success" v-if="item.estado">Activo</span>
-                                            <span class="label label-info" v-if="!item.estado">Inactivo</span>
+                                            <span class="label label-success" v-if="item.estado"
+                                                >Activo</span
+                                            >
+                                            <span class="label label-info" v-if="!item.estado"
+                                                >Inactivo</span
+                                            >
                                         </td>
                                         <td class="text-nowrap">
-                                            <button type="button"
+                                            <button
+                                                type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="abrirFormularioEditar(item)">
+                                                @click="abrirFormularioEditar(item)"
+                                            >
                                                 <i class="fa fa-pencil"></i>
                                             </button>
-                                            <button type="button"
+                                            <button
+                                                type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
                                                 @click="eliminarRegistro(item.id)"
-                                                :disabled="loadingEliminarId === item.id">
-                                                <i class="fa"
-                                                    :class="loadingEliminarId === item.id ? 'fa-spinner fa-spin' : 'fa-trash'"></i>
+                                                :disabled="loadingEliminarId === item.id"
+                                            >
+                                                <i
+                                                    class="fa"
+                                                    :class="
+                                                        loadingEliminarId === item.id
+                                                            ? 'fa-spinner fa-spin'
+                                                            : 'fa-trash'
+                                                    "
+                                                ></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -98,9 +127,15 @@
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label class="control-label">Servicio</label>
-                                        <input type="text" v-model="form.nombre" class="form-control"
-                                            placeholder="Ingrese el nombre del servicio">
-                                        <span class="text-danger" v-if="errores.nombre">{{ errores.nombre[0] }}</span>
+                                        <input
+                                            type="text"
+                                            v-model="form.nombre"
+                                            class="form-control"
+                                            placeholder="Ingrese el nombre del servicio"
+                                        />
+                                        <span class="text-danger" v-if="errores.nombre">{{
+                                            errores.nombre[0]
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -110,34 +145,59 @@
                                         <label class="control-label">Sede</label>
                                         <select class="form-control" v-model="form.sede_id">
                                             <option value="">Seleccione una sede</option>
-                                            <option v-for="s in sedes" :key="s.id" :value="s.id">{{ s.nom_sede }}</option>
+                                            <option v-for="s in sedes" :key="s.id" :value="s.id">
+                                                {{ s.nom_sede }}
+                                            </option>
                                         </select>
-                                        <span class="text-danger" v-if="errores.sede_id">{{ errores.sede_id[0] }}</span>
+                                        <span class="text-danger" v-if="errores.sede_id">{{
+                                            errores.sede_id[0]
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="checkbox checkbox-success">
-                                        <input type="checkbox" id="estado_servicio" v-model="form.estado"
-                                            :true-value="1" :false-value="0">
+                                        <input
+                                            type="checkbox"
+                                            id="estado_servicio"
+                                            v-model="form.estado"
+                                            :true-value="1"
+                                            :false-value="0"
+                                        />
                                         <label for="estado_servicio"> Activo </label>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="form-actions mt-3">
-                                <button type="submit" class="btn btn-success m-r-5" v-if="!editando"
-                                    :disabled="loadingGuardar">
-                                    <i class="fa" :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"></i>
+                                <button
+                                    type="submit"
+                                    class="btn btn-success m-r-5"
+                                    v-if="!editando"
+                                    :disabled="loadingGuardar"
+                                >
+                                    <i
+                                        class="fa"
+                                        :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"
+                                    ></i>
                                     Guardar
                                 </button>
-                                <button type="submit" class="btn btn-warning m-r-5" v-if="editando"
-                                    :disabled="loadingGuardar">
-                                    <i class="fa" :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-pencil'"></i>
+                                <button
+                                    type="submit"
+                                    class="btn btn-warning m-r-5"
+                                    v-if="editando"
+                                    :disabled="loadingGuardar"
+                                >
+                                    <i
+                                        class="fa"
+                                        :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-pencil'"
+                                    ></i>
                                     Actualizar
                                 </button>
-                                <button type="button" class="btn btn-inverse" @click="cerrarModal">Cancelar</button>
+                                <button type="button" class="btn btn-inverse" @click="cerrarModal">
+                                    Cancelar
+                                </button>
                             </div>
                         </div>
                     </form>
@@ -146,124 +206,125 @@
         </div>
     </div>
 </template>
+<script setup>
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-<script>
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { alertError, alertSuccess, confirmAction, handleAxiosErrorToast } from "@/helpers/alerts.js";
+import {
+    alertError,
+    alertSuccess,
+    confirmAction,
+    handleAxiosErrorToast,
+} from "@/helpers/alerts.js";
+import axios from "axios";
 
-export default {
-    mounted() {
-        this.cargarSedes();
-        this.ListarDatos();
-    },
-    beforeUnmount() {
-        safeDestroyDataTable(this.$refs.dt || "#tablaServicios");
-    },
-    data() {
-        return {
-            registros: [],
-            sedes: [],
-            filtroSede: '',
-            form: { nombre: '', sede_id: '', estado: 1 },
-            tituloModal: 'Nuevo registro',
-            editando: false,
-            errores: {},
-            loadingGuardar: false,
-            loadingEliminarId: null,
-        };
-    },
-    methods: {
-        async cargarSedes() {
-            try {
-                const res = await axios.get('/api/config-sedes');
-                this.sedes = res.data;
-            } catch (e) {
-                handleAxiosErrorToast(e, 'No fue posible cargar sedes.');
-            }
-        },
-        async ListarDatos() {
-            try {
-                const params = {};
-                if (this.filtroSede) params.sede_id = this.filtroSede;
-                const res = await axios.get('/api/config-servicio-citas', { params });
-                safeDestroyDataTable(this.$refs.dt || "#tablaServicios");
-                this.registros = res.data;
-                this.$nextTick(() => {
-                    safeInitDataTable(this.$refs.dt || "#tablaServicios", {
-                        dom: 'Bfrtip',
-                        buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
-                    });
-                });
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar servicios.");
-                this.registros = [];
-            }
-        },
-        abrirFormularioNuevo() {
-            this.editando = false;
-            this.tituloModal = 'Nuevo registro';
-            this.form = { nombre: '', sede_id: '', estado: 1 };
-            this.errores = {};
-            $('#btnCerrarModal').click();
-        },
-        abrirFormularioEditar(item) {
-            this.editando = true;
-            this.tituloModal = 'Actualizar: ' + item.nombre;
-            this.form = {
-                id: item.id,
-                nombre: item.nombre,
-                sede_id: item.sede_id,
-                estado: item.estado ? 1 : 0,
-            };
-            this.errores = {};
-            $('#btnCerrarModal').click();
-        },
-        async guardarRegistro() {
-            if (this.loadingGuardar) return;
-            this.loadingGuardar = true;
-            try {
-                if (this.editando) {
-                    const res = await axios.put('/api/config-servicio-citas/' + this.form.id, this.form);
-                    alertSuccess("Ok!", "Servicio actualizado correctamente.");
-                } else {
-                    const res = await axios.post('/api/config-servicio-citas', this.form);
-                    alertSuccess("Ok!", "Servicio creado correctamente.");
-                }
-                this.ListarDatos();
-                this.cerrarModal();
-            } catch (error) {
-                this.errores = error?.response?.data?.errors || {};
-                handleAxiosErrorToast(error, "No fue posible guardar el servicio.");
-            } finally {
-                this.loadingGuardar = false;
-            }
-        },
-        async eliminarRegistro(id) {
-            const ok = await confirmAction({
-                title: "¿Estas seguro?",
-                text: "No podras recuperar este registro!",
-                icon: "warning",
+const registros = ref([]);
+const sedes = ref([]);
+const filtroSede = ref("");
+const form = ref({ nombre: "", sede_id: "", estado: 1 });
+const tituloModal = ref("Nuevo registro");
+const editando = ref(false);
+const errores = ref({});
+const loadingGuardar = ref(false);
+const loadingEliminarId = ref(null);
+
+async function cargarSedes() {
+    try {
+        const res = await axios.get("/api/config-sedes");
+        sedes.value = res.data;
+    } catch (e) {
+        handleAxiosErrorToast(e, "No fue posible cargar sedes.");
+    }
+}
+async function ListarDatos() {
+    try {
+        const params = {};
+        if (filtroSede.value) params.sede_id = filtroSede.value;
+        const res = await axios.get("/api/config-servicio-citas", { params });
+        safeDestroyDataTable(dt.value || "#tablaServicios");
+        registros.value = res.data;
+        nextTick(() => {
+            safeInitDataTable(dt.value || "#tablaServicios", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
-            if (!ok) return;
-            try {
-                this.loadingEliminarId = id;
-                const response = await axios.delete('/api/config-servicio-citas/' + id);
-                alertSuccess("Ok!", response?.data?.message || "Registro eliminado.");
-                this.ListarDatos();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
-            } finally {
-                this.loadingEliminarId = null;
-            }
-        },
-        cerrarModal() {
-            $(".right-sidebar").slideDown(50);
-            $(".right-sidebar").toggleClass("shw-rside");
+        });
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar servicios.");
+        registros.value = [];
+    }
+}
+function abrirFormularioNuevo() {
+    editando.value = false;
+    tituloModal.value = "Nuevo registro";
+    form.value = { nombre: "", sede_id: "", estado: 1 };
+    errores.value = {};
+    $("#btnCerrarModal").click();
+}
+function abrirFormularioEditar(item) {
+    editando.value = true;
+    tituloModal.value = "Actualizar: " + item.nombre;
+    form.value = {
+        id: item.id,
+        nombre: item.nombre,
+        sede_id: item.sede_id,
+        estado: item.estado ? 1 : 0,
+    };
+    errores.value = {};
+    $("#btnCerrarModal").click();
+}
+async function guardarRegistro() {
+    if (loadingGuardar.value) return;
+    loadingGuardar.value = true;
+    try {
+        if (editando.value) {
+            const res = await axios.put("/api/config-servicio-citas/" + form.value.id, form.value);
+            alertSuccess("Ok!", "Servicio actualizado correctamente.");
+        } else {
+            const res = await axios.post("/api/config-servicio-citas", form.value);
+            alertSuccess("Ok!", "Servicio creado correctamente.");
         }
-    },
-};
-</script>
+        ListarDatos();
+        cerrarModal();
+    } catch (error) {
+        errores.value = error?.response?.data?.errors || {};
+        handleAxiosErrorToast(error, "No fue posible guardar el servicio.");
+    } finally {
+        loadingGuardar.value = false;
+    }
+}
+async function eliminarRegistro(id) {
+    const ok = await confirmAction({
+        title: "¿Estas seguro?",
+        text: "No podras recuperar este registro!",
+        icon: "warning",
+    });
+    if (!ok) return;
+    try {
+        loadingEliminarId.value = id;
+        const response = await axios.delete("/api/config-servicio-citas/" + id);
+        alertSuccess("Ok!", response?.data?.message || "Registro eliminado.");
+        ListarDatos();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
+    } finally {
+        loadingEliminarId.value = null;
+    }
+}
+function cerrarModal() {
+    $(".right-sidebar").slideDown(50);
+    $(".right-sidebar").toggleClass("shw-rside");
+}
 
+onMounted(() => {
+    cargarSedes();
+    ListarDatos();
+});
+
+onBeforeUnmount(() => {
+    safeDestroyDataTable(dt.value || "#tablaServicios");
+});
+</script>
 <style scoped>
 .right-sidebar {
     position: fixed;
