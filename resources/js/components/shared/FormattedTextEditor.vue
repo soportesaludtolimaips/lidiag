@@ -66,7 +66,7 @@ function insertFormat(before, after) {
     if (!ta) return;
     const start = ta.selectionStart;
     const end = ta.selectionEnd;
-    const text = modelValue || "";
+    const text = props.modelValue || "";
     const selected = text.substring(start, end);
     const replacement = before + selected + after;
     emit("update:modelValue", text.substring(0, start) + replacement + text.substring(end));
@@ -81,7 +81,7 @@ function insertEmoji(emoji) {
     if (!ta) return;
     const start = ta.selectionStart;
     const end = ta.selectionEnd;
-    const text = modelValue || "";
+    const text = props.modelValue || "";
     emit("update:modelValue", text.substring(0, start) + emoji + text.substring(end));
     nextTick(() => {
         ta.focus();
