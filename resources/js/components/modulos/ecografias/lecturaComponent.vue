@@ -686,7 +686,9 @@
         </div>
     </div>
 </template>
-<script>
+<script setup>
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+
 import usePermissions from "@/helpers/permissions.js";
 import { handleAxiosErrorToast, toastMessage } from "@/helpers/alerts";
 import { setMapValue } from "@/helpers/sahi";
@@ -695,1070 +697,1000 @@ import medicalReplacements from "@/data/medical_replacements.json";
 import medicalTermsRaw from "@/data/terminos_medicos.txt?raw";
 import { useSede } from "@/composables/useSede";
 import { useSahiInterface } from "@/composables/useSahiInterface";
+import axios from "axios";
 
-const MEDICAL_REPLACEMENTS_FROM_JSON = Array.isArray(medicalReplacements)
-    ? medicalReplacements
-    : [];
-const MEDICAL_TERMS_FROM_TXT = String(medicalTermsRaw || "")
-    .split(/\r?\n/)
-    .map((l) => String(l).trim())
-    .filter((l) => l && !l.startsWith("#"));
+const props = defineProps({});
 
-export default {
-    props: ["usuarioactual", "permisos"],
-    setup(props) {
-        const { can } = usePermissions(props.permisos);
-        const { sedeInterface, establecerSede } = useSede();
-        const {
-            isEnviando,
-            isConsultando,
-            enviarEcografiaProducto,
-            consultarEstado,
-            startPolling,
-            stopPolling,
-        } = useSahiInterface();
-        return {
-            can,
-            sedeInterface,
-            establecerSede,
-            isEnviando,
-            isConsultando,
-            enviarEcografiaProducto,
-            consultarEstado,
-            startPolling,
-            stopPolling,
-        };
-    },
-    mounted() {
-        this.establecerSede();
-        this.listarTiposPlantillas();
-        this.establecerMedico();
-        this.rebuildMedicalVocabulary();
+const tituloModal = ref("Nueva admisión");
+const subTituloModal = ref("");
+const tituloAtencion = ref("");
+const busqueda = ref({
+    sede_id: this.sedeActual,
+    medico_id: "",
+    bus_nom_num_docu: "",
+    bus_fehc_ini: "",
+    bus_fecha_fin: "",
+});
+const registros = ref([]);
+const registro = ref({
+    ecografia_id: "",
+    ecografia_producto_id: "",
+    producto_id: "",
+    sede_id: this.sedeActual,
+    medico_id: "",
+    quien_registro_id: this.usuarioactual.id,
+    atencion_id: null,
+    lectura: null,
+    opinion: null,
+    tipo_estudio: null,
+    nom_pacien: null,
+    estado_envio_sahi: null,
+    fechor_envio_sahi: null,
+    error_envio_sahi: null,
+    sahi_esquema_149: null,
+    sahi_esquema_150: null,
+});
+const errores = ref({});
+const erroresBusqueda = ref({});
+const medicos = ref([]);
+const accion = ref(null);
+const productosAgenda = ref([]);
+const tiposPlantillas = ref([]);
+const plantillas = ref([]);
+const url = ref("");
+const microfono = ref("admin-wrap/assets/images/mic.gif");
+const voiceSession = ref(null);
+const voiceState = ref("inactive");
+const uppercase = ref(false);
+const capitalizeNext = ref(false);
+const medicalReplCompiled = ref(null);
+const medicalVocabularyMap = ref({});
+const medicalVocabularyKeys = ref([]);
+const medicalVocabularyIndex = ref({});
+const isGuardandoLectura = ref(false);
+const isBuscandoPendientes = ref(false);
+const bloqueoLectura = ref(false);
+const pendientesDiaAnterior = ref([]);
+const isFirmandoConsentimiento = ref({});
 
-        this.emitter.on("sedeSeleccionada", (data) => {
-            this.registro.sede_id = data.idSede;
-            this.establecerSede();
-        });
+const tiposPlantillasOptions = computed(() => {
+    // Opciones para el Select2 local de medicos.
+    return (tiposPlantillas.value || []).map((p) => ({
+        id: String(p.id),
+        nom_tipo: p.nom_tipo,
+    }));
+});
+const plantillasOptions = computed(() => {
+    // Opciones para el Select2 local de medicos.
+    return (plantillas.value || []).map((p) => ({
+        id: String(p.id),
+        nom_plantilla: p.nom_plantilla,
+        plantilla: p.plantilla,
+        opinion: p.opinion,
+    }));
+});
 
-        this.emitter.on("medicoSeleccionado", (data) => {
-            this.registro.medico_id = data.idMedico;
-            this.establecerMedico();
-            this.listarPendiestePorLectura();
-        });
+function buscarStudy() {
+    // Soporte para Enter en el input de búsqueda
+    return listarPendiestePorLectura();
+}
+function btnLimpiar() {
+    // Limpia criterios de búsqueda (mantiene sede/medico del contexto)
+    busqueda.value.bus_nom_num_docu = "";
+    busqueda.value.bus_fehc_ini = "";
+    busqueda.value.bus_fecha_fin = "";
+    erroresBusqueda.value = {};
 
-        this.url = window.location.pathname;
-        this.establecerMedico();
-    },
-    beforeUnmount() {
-        this.stopSahiPolling();
+    safeDestroyDataTable(dt.value || "#example23");
+    registros.value = [];
+    pendientesDiaAnterior.value = [];
+    bloqueoLectura.value = false;
+}
+function getMedicalReplacementsCompiled() {
+    if (medicalReplCompiled.value) return medicalReplCompiled.value;
+    const compiled = [];
+    MEDICAL_REPLACEMENTS_FROM_JSON.forEach((rule) => {
+        if (!Array.isArray(rule) || rule.length < 3) return;
+        const [regexString, flags, replacement] = rule;
         try {
-            this.stopVoice();
+            compiled.push([
+                new RegExp(String(regexString), String(flags || "")),
+                String(replacement),
+            ]);
         } catch (e) {
-            /* noop */
+            // ignore regla inválida
         }
-    },
-    beforeDestroy() {
-        // compat Vue 2/3 (según build)
-        this.stopSahiPolling();
-        try {
-            this.stopVoice();
-        } catch (e) {
-            /* noop */
+    });
+    medicalReplCompiled.value = compiled;
+    return compiled;
+}
+function applyMedicalReplacements(text) {
+    let out = String(text ?? "");
+    const compiled = getMedicalReplacementsCompiled();
+    compiled.forEach(([re, rep]) => {
+        out = out.replace(re, rep);
+    });
+    return out;
+}
+function stripDiacritics(text) {
+    try {
+        return String(text)
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+    } catch (e) {
+        return String(text);
+    }
+}
+function escapeRegExp(text) {
+    return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+function normalizeWord(text) {
+    return stripDiacritics(String(text))
+        .toLowerCase()
+        .replace(/[^a-z0-9ñ]+/gi, "");
+}
+function levenshteinMax(a, b, maxDist = 2) {
+    if (a === b) return 0;
+    if (!a || !b) return Math.max(a ? a.length : 0, b ? b.length : 0);
+    const la = a.length;
+    const lb = b.length;
+    if (Math.abs(la - lb) > maxDist) return maxDist + 1;
+
+    let prev = new Array(lb + 1);
+    let curr = new Array(lb + 1);
+    for (let j = 0; j <= lb; j++) prev[j] = j;
+
+    for (let i = 1; i <= la; i++) {
+        curr[0] = i;
+        let minInRow = curr[0];
+        const ca = a.charCodeAt(i - 1);
+        for (let j = 1; j <= lb; j++) {
+            const cost = ca === b.charCodeAt(j - 1) ? 0 : 1;
+            const v = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+            curr[j] = v;
+            if (v < minInRow) minInRow = v;
         }
-    },
-    data() {
-        return {
-            tituloModal: "Nueva admisión",
-            subTituloModal: "",
-            tituloAtencion: "",
-            busqueda: {
-                sede_id: this.sedeActual,
-                medico_id: "",
-                bus_nom_num_docu: "",
-                bus_fehc_ini: "",
-                bus_fecha_fin: "",
-            },
-            registros: [],
-            registro: {
-                ecografia_id: "",
-                ecografia_producto_id: "",
-                producto_id: "",
-                sede_id: this.sedeActual,
-                medico_id: "",
-                quien_registro_id: this.usuarioactual.id,
-                atencion_id: null,
-                lectura: null,
-                opinion: null,
-                tipo_estudio: null,
-                nom_pacien: null,
-                estado_envio_sahi: null,
-                fechor_envio_sahi: null,
-                error_envio_sahi: null,
-                sahi_esquema_149: null,
-                sahi_esquema_150: null,
-            },
-            errores: {},
-            erroresBusqueda: {},
-            medicos: [],
-            accion: null,
-            productosAgenda: [],
-            tiposPlantillas: [],
-            plantillas: [],
-            url: "",
+        if (minInRow > maxDist) return maxDist + 1;
+        const tmp = prev;
+        prev = curr;
+        curr = tmp;
+    }
+    return prev[lb];
+}
+function rebuildMedicalVocabulary() {
+    const map = {};
+    const addPhrase = (phrase) => {
+        if (!phrase) return;
+        const s = String(phrase).trim();
+        if (!s) return;
 
-            microfono: "admin-wrap/assets/images/mic.gif",
-            voiceSession: null,
-            voiceState: "inactive", // inactive | active | paused
-            uppercase: false,
-            capitalizeNext: false,
-            medicalReplCompiled: null,
-            medicalVocabularyMap: {}, // normalized -> canonical
-            medicalVocabularyKeys: [],
-            medicalVocabularyIndex: {}, // firstLetter -> length -> array<normalizedKey>
+        const nFull = normalizeWord(s);
+        if (nFull) map[nFull] = s;
 
-            isGuardandoLectura: false,
-            isBuscandoPendientes: false,
+        const tokens = s.split(/[\s/,-]+/g).filter(Boolean);
+        tokens.forEach((t) => {
+            const nt = normalizeWord(t);
+            if (nt && nt.length >= 4 && !map[nt]) map[nt] = t;
+        });
+    };
 
-            // Consentimientos
-            bloqueoLectura: false,
-            pendientesDiaAnterior: [],
-            isFirmandoConsentimiento: {},
-        };
-    },
-    computed: {
-        tiposPlantillasOptions() {
-            // Opciones para el Select2 local de medicos.
-            return (this.tiposPlantillas || []).map((p) => ({
-                id: String(p.id),
-                nom_tipo: p.nom_tipo,
-            }));
-        },
-        plantillasOptions() {
-            // Opciones para el Select2 local de medicos.
-            return (this.plantillas || []).map((p) => ({
-                id: String(p.id),
-                nom_plantilla: p.nom_plantilla,
-                plantilla: p.plantilla,
-                opinion: p.opinion,
-            }));
-        },
-    },
-    methods: {
-        buscarStudy() {
-            // Soporte para Enter en el input de búsqueda
-            return this.listarPendiestePorLectura();
-        },
-        btnLimpiar() {
-            // Limpia criterios de búsqueda (mantiene sede/medico del contexto)
-            this.busqueda.bus_nom_num_docu = "";
-            this.busqueda.bus_fehc_ini = "";
-            this.busqueda.bus_fecha_fin = "";
-            this.erroresBusqueda = {};
+    // Fuente principal: archivo grande de términos
+    MEDICAL_TERMS_FROM_TXT.forEach(addPhrase);
 
-            this.safeDestroyDataTable(this.$refs.dt || "#example23");
-            this.registros = [];
-            this.pendientesDiaAnterior = [];
-            this.bloqueoLectura = false;
-        },
+    medicalVocabularyMap.value = map;
+    const keys = Object.keys(map);
+    medicalVocabularyKeys.value = keys;
 
-        getMedicalReplacementsCompiled() {
-            if (this.medicalReplCompiled) return this.medicalReplCompiled;
-            const compiled = [];
-            MEDICAL_REPLACEMENTS_FROM_JSON.forEach((rule) => {
-                if (!Array.isArray(rule) || rule.length < 3) return;
-                const [regexString, flags, replacement] = rule;
-                try {
-                    compiled.push([
-                        new RegExp(String(regexString), String(flags || "")),
-                        String(replacement),
-                    ]);
-                } catch (e) {
-                    // ignore regla inválida
-                }
-            });
-            this.medicalReplCompiled = compiled;
-            return compiled;
-        },
-        applyMedicalReplacements(text) {
-            let out = String(text ?? "");
-            const compiled = this.getMedicalReplacementsCompiled();
-            compiled.forEach(([re, rep]) => {
-                out = out.replace(re, rep);
-            });
-            return out;
-        },
-        stripDiacritics(text) {
-            try {
-                return String(text)
-                    .normalize("NFD")
-                    .replace(/[\u0300-\u036f]/g, "");
-            } catch (e) {
-                return String(text);
-            }
-        },
-        escapeRegExp(text) {
-            return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        },
-        normalizeWord(text) {
-            return this.stripDiacritics(String(text))
-                .toLowerCase()
-                .replace(/[^a-z0-9ñ]+/gi, "");
-        },
-        levenshteinMax(a, b, maxDist = 2) {
-            if (a === b) return 0;
-            if (!a || !b) return Math.max(a ? a.length : 0, b ? b.length : 0);
-            const la = a.length;
-            const lb = b.length;
-            if (Math.abs(la - lb) > maxDist) return maxDist + 1;
+    const index = {};
+    keys.forEach((k) => {
+        if (!k) return;
+        const first = k[0];
+        const len = k.length;
+        if (!index[first]) index[first] = {};
+        if (!index[first][len]) index[first][len] = [];
+        index[first][len].push(k);
+    });
+    medicalVocabularyIndex.value = index;
+}
+function applyMedicalCorrections(text) {
+    // 1) Normalizaciones (regex)
+    let out = applyMedicalReplacements(text);
 
-            let prev = new Array(lb + 1);
-            let curr = new Array(lb + 1);
-            for (let j = 0; j <= lb; j++) prev[j] = j;
+    // 2) Corrección por vocabulario (exact + fuzzy indexado)
+    const vocabMap = medicalVocabularyMap.value || {};
+    const vocabIndex = medicalVocabularyIndex.value || {};
+    if (!vocabMap || !Object.keys(vocabMap).length) return out;
 
-            for (let i = 1; i <= la; i++) {
-                curr[0] = i;
-                let minInRow = curr[0];
-                const ca = a.charCodeAt(i - 1);
-                for (let j = 1; j <= lb; j++) {
-                    const cost = ca === b.charCodeAt(j - 1) ? 0 : 1;
-                    const v = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
-                    curr[j] = v;
-                    if (v < minInRow) minInRow = v;
-                }
-                if (minInRow > maxDist) return maxDist + 1;
-                const tmp = prev;
-                prev = curr;
-                curr = tmp;
-            }
-            return prev[lb];
-        },
-        rebuildMedicalVocabulary() {
-            const map = {};
-            const addPhrase = (phrase) => {
-                if (!phrase) return;
-                const s = String(phrase).trim();
-                if (!s) return;
+    out = String(out).replace(/[\p{L}\p{N}]+/gu, (token) => {
+        if (/^\d+$/u.test(token)) return token;
+        if (token.length < 4) return token;
+        const n = normalizeWord(token);
+        if (!n) return token;
 
-                const nFull = this.normalizeWord(s);
-                if (nFull) map[nFull] = s;
+        if (vocabMap[n]) return String(vocabMap[n]);
 
-                const tokens = s.split(/[\s/,-]+/g).filter(Boolean);
-                tokens.forEach((t) => {
-                    const nt = this.normalizeWord(t);
-                    if (nt && nt.length >= 4 && !map[nt]) map[nt] = t;
-                });
-            };
+        const first = n[0];
+        const bucketByLen = vocabIndex[first] || null;
+        if (!bucketByLen) return token;
 
-            // Fuente principal: archivo grande de términos
-            MEDICAL_TERMS_FROM_TXT.forEach(addPhrase);
-
-            this.medicalVocabularyMap = map;
-            const keys = Object.keys(map);
-            this.medicalVocabularyKeys = keys;
-
-            const index = {};
-            keys.forEach((k) => {
-                if (!k) return;
-                const first = k[0];
-                const len = k.length;
-                if (!index[first]) index[first] = {};
-                if (!index[first][len]) index[first][len] = [];
-                index[first][len].push(k);
-            });
-            this.medicalVocabularyIndex = index;
-        },
-        applyMedicalCorrections(text) {
-            // 1) Normalizaciones (regex)
-            let out = this.applyMedicalReplacements(text);
-
-            // 2) Corrección por vocabulario (exact + fuzzy indexado)
-            const vocabMap = this.medicalVocabularyMap || {};
-            const vocabIndex = this.medicalVocabularyIndex || {};
-            if (!vocabMap || !Object.keys(vocabMap).length) return out;
-
-            out = String(out).replace(/[\p{L}\p{N}]+/gu, (token) => {
-                if (/^\d+$/u.test(token)) return token;
-                if (token.length < 4) return token;
-                const n = this.normalizeWord(token);
-                if (!n) return token;
-
-                if (vocabMap[n]) return String(vocabMap[n]);
-
-                const first = n[0];
-                const bucketByLen = vocabIndex[first] || null;
-                if (!bucketByLen) return token;
-
-                let best = null;
-                let bestDist = 3;
-                for (let L = n.length - 2; L <= n.length + 2; L++) {
-                    const arr = bucketByLen[L];
-                    if (!arr || !arr.length) continue;
-                    for (let i = 0; i < arr.length; i++) {
-                        const k = arr[i];
-                        const d = this.levenshteinMax(n, k, 2);
-                        if (d < bestDist) {
-                            bestDist = d;
-                            best = k;
-                            if (bestDist === 1) break;
-                        }
-                    }
+        let best = null;
+        let bestDist = 3;
+        for (let L = n.length - 2; L <= n.length + 2; L++) {
+            const arr = bucketByLen[L];
+            if (!arr || !arr.length) continue;
+            for (let i = 0; i < arr.length; i++) {
+                const k = arr[i];
+                const d = levenshteinMax(n, k, 2);
+                if (d < bestDist) {
+                    bestDist = d;
+                    best = k;
                     if (bestDist === 1) break;
                 }
-                if (best && bestDist <= 2 && vocabMap[best]) return String(vocabMap[best]);
-                return token;
-            });
-
-            return out;
-        },
-        applyCommandMap(text, commandMap, { onEachMatch } = {}) {
-            if (!commandMap) return text;
-            const keys = Object.keys(commandMap).sort((a, b) => b.length - a.length);
-            keys.forEach((command) => {
-                const escaped = this.escapeRegExp(command);
-                const re = new RegExp(
-                    `(^|[^\\p{L}\\p{N}_])(${escaped})(?=$|[^\\p{L}\\p{N}_])`,
-                    "giu"
-                );
-                text = text.replace(re, (match, prefix) => {
-                    if (typeof onEachMatch === "function") {
-                        try {
-                            onEachMatch(command);
-                        } catch (e) {
-                            /* noop */
-                        }
-                    }
-                    const fn = commandMap[command];
-                    const replacement = typeof fn === "function" ? fn() : String(fn);
-                    return `${prefix}${replacement}`;
-                });
-            });
-            return text;
-        },
-        getUppercaseCommands() {
-            return {
-                "iniciar mayúscula sostenida": () => {
-                    this.uppercase = true;
-                    return "";
-                },
-                "iniciar mayúsculas sostenida": () => {
-                    this.uppercase = true;
-                    return "";
-                },
-                "iniciar mayúsculas": () => {
-                    this.uppercase = true;
-                    return "";
-                },
-                "iniciar mayúscula": () => {
-                    this.uppercase = true;
-                    return "";
-                },
-                "mayúsculas sostenida": () => {
-                    this.uppercase = true;
-                    return "";
-                },
-                "mayúscula sostenida": () => {
-                    this.uppercase = true;
-                    return "";
-                },
-                "activar mayúsculas": () => {
-                    this.uppercase = true;
-                    return "";
-                },
-                "activar mayúscula": () => {
-                    this.uppercase = true;
-                    return "";
-                },
-                "habilitar mayúsculas": () => {
-                    this.uppercase = true;
-                    return "";
-                },
-                "habilitar mayúscula": () => {
-                    this.uppercase = true;
-                    return "";
-                },
-                "desactivar mayúsculas": () => {
-                    this.uppercase = false;
-                    return "";
-                },
-                "desactivar mayúscula": () => {
-                    this.uppercase = false;
-                    return "";
-                },
-                "terminar mayúsculas": () => {
-                    this.uppercase = false;
-                    return "";
-                },
-                "terminar mayúscula": () => {
-                    this.uppercase = false;
-                    return "";
-                },
-                "fin mayúsculas": () => {
-                    this.uppercase = false;
-                    return "";
-                },
-                "fin mayúscula": () => {
-                    this.uppercase = false;
-                    return "";
-                },
-                "finaliza mayúsculas": () => {
-                    this.uppercase = false;
-                    return "";
-                },
-                "finaliza mayúscula": () => {
-                    this.uppercase = false;
-                    return "";
-                },
-                "finalizar mayúsculas": () => {
-                    this.uppercase = false;
-                    return "";
-                },
-                "finalizar mayúscula": () => {
-                    this.uppercase = false;
-                    return "";
-                },
-            };
-        },
-        getLineBreakCommands() {
-            return {
-                "punto aparte": () => ".\n\n",
-                "salto de línea": () => "\n",
-                "doble salto de línea": () => "\n\n",
-                enter: () => "\n",
-                "doble enter": () => "\n\n",
-                "línea en blanco": () => "\n\n",
-            };
-        },
-        getPunctuationCommands() {
-            return {
-                punto: () => {
-                    this.capitalizeNext = true;
-                    return ".";
-                },
-                coma: () => ",",
-                "dos puntos": () => ":",
-                "punto y coma": () => ";",
-                "dar espacio": () => " ",
-                "un espacio": () => " ",
-                "dos espacio": () => "  ",
-                "doble espacio": () => "  ",
-                "abrir paréntesis": () => "(",
-                "cerrar paréntesis": () => ")",
-                "abrir corchetes": () => "[",
-                "cerrar corchetes": () => "]",
-                "abrir llaves": () => "{",
-                "cerrar llaves": () => "}",
-                "abrir comillas": () => '"',
-                "cerrar comillas": () => '"',
-                "abrir comillas simples": () => "'",
-                "cerrar comillas simples": () => "'",
-                guion: () => "-",
-                "guion bajo": () => "_",
-                "barra diagonal": () => "/",
-                "barra invertida": () => "\\",
-                "nueva oración": () => ". ",
-            };
-        },
-        getAllVoiceCommands() {
-            // Agrega claves sin tildes para tolerar dictado sin acentos
-            const uppercaseCommands = this.getUppercaseCommands();
-            const lineBreakCommands = this.getLineBreakCommands();
-            const punctuationCommands = this.getPunctuationCommands();
-
-            const addNormalizedKeys = (obj) => {
-                const keys = Object.keys(obj);
-                keys.forEach((k) => {
-                    const normalized = this.stripDiacritics(k).toLowerCase();
-                    if (!Object.prototype.hasOwnProperty.call(obj, normalized)) {
-                        obj[normalized] = obj[k];
-                    }
-                });
-            };
-            addNormalizedKeys(uppercaseCommands);
-            addNormalizedKeys(lineBreakCommands);
-            addNormalizedKeys(punctuationCommands);
-            return { uppercaseCommands, lineBreakCommands, punctuationCommands };
-        },
-        processCommands(text) {
-            const { uppercaseCommands, lineBreakCommands, punctuationCommands } =
-                this.getAllVoiceCommands();
-            let out = String(text ?? "");
-            out = this.applyCommandMap(out, uppercaseCommands);
-            out = this.applyCommandMap(out, lineBreakCommands, {
-                onEachMatch: () => {
-                    this.capitalizeNext = true;
-                },
-            });
-            out = this.applyCommandMap(out, punctuationCommands);
-            out = this.uppercase ? out.toUpperCase() : out;
-            if (this.capitalizeNext) {
-                out = out.replace(/(^|\n)(\s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
-                    this.capitalizeNext = false;
-                    return `${start}${spaces}${first.toUpperCase()}`;
-                });
             }
-            return out;
-        },
-        ensureVoiceSession() {
-            if (this.voiceSession) return this.voiceSession;
-            const { uppercaseCommands, lineBreakCommands, punctuationCommands } =
-                this.getAllVoiceCommands();
-            const grammarCommands = [
-                ...Object.keys(uppercaseCommands),
-                ...Object.keys(lineBreakCommands),
-                ...Object.keys(punctuationCommands),
-            ];
+            if (bestDist === 1) break;
+        }
+        if (best && bestDist <= 2 && vocabMap[best]) return String(vocabMap[best]);
+        return token;
+    });
 
-            this.voiceSession = createVoiceSession({
-                enableAudio: false, // Ecografías: solo dictado (no grabación)
-                enableDictation: true,
-                lang: "es-ES",
-                grammarCommands,
-                maxNoSpeechRetries: 6,
-                onFinalText: (raw) => {
-                    let text = String(raw || "").trim();
-                    if (!text) return;
-                    text = this.processCommands(text);
-                    text = this.applyMedicalCorrections(text);
-                    if (!text) return;
-
-                    // Añadir a lectura (mantener comportamiento: espacio si no termina en espacio/salto)
-                    const suffix = /[ \n]$/.test(text) ? "" : " ";
-                    this.registro.lectura = String(this.registro.lectura || "") + text + suffix;
-                },
-                onPermissionDenied: () => {
-                    this.voiceState = "inactive";
-                    this.microfono = "admin-wrap/assets/images/mic.gif";
-                    toastMessage({
-                        heading: "Permiso requerido",
-                        text: "El navegador bloqueó el micrófono. Permite el acceso al micrófono para usar dictado.",
-                        icon: "warning",
-                        hideAfter: 6000,
-                    });
-                },
-                onError: (e) => {
-                    if (e && e.message === "Silencio repetido") {
-                        this.voiceState = "inactive";
-                        this.microfono = "admin-wrap/assets/images/mic.gif";
-                        toastMessage({
-                            heading: "Sin voz detectada",
-                            text: "No se detecta voz (silencio repetido). Verifica micrófono/entrada y vuelve a iniciar el dictado.",
-                            icon: "warning",
-                            hideAfter: 6000,
-                        });
-                    }
-                },
-            });
-            return this.voiceSession;
-        },
-        async toggleSpeechRecognition() {
-            // Mantener el ícono/animación actual, sin tocar template.
-            try {
-                const vs = this.ensureVoiceSession();
-                if (this.voiceState === "inactive") {
-                    await vs.start();
-                    this.voiceState = "active";
-                    this.microfono = "admin-wrap/assets/images/mic-animate.gif";
-                } else if (this.voiceState === "active") {
-                    vs.pause();
-                    this.voiceState = "paused";
-                    this.microfono = "admin-wrap/assets/images/mic.gif";
-                } else {
-                    // paused -> resume
-                    vs.resume();
-                    this.voiceState = "active";
-                    this.microfono = "admin-wrap/assets/images/mic-animate.gif";
-                }
-            } catch (e) {
-                this.voiceState = "inactive";
-                this.microfono = "admin-wrap/assets/images/mic.gif";
-                toastMessage({
-                    heading: "Error",
-                    text: e && e.message ? e.message : "No fue posible iniciar el dictado.",
-                    icon: "error",
-                    hideAfter: 5000,
-                });
-            }
-        },
-        stopVoice() {
-            if (this.voiceSession) {
+    return out;
+}
+function applyCommandMap(text, commandMap, { onEachMatch } = {}) {
+    if (!commandMap) return text;
+    const keys = Object.keys(commandMap).sort((a, b) => b.length - a.length);
+    keys.forEach((command) => {
+        const escaped = escapeRegExp(command);
+        const re = new RegExp(`(^|[^\\p{L}\\p{N}_])(${escaped})(?=$|[^\\p{L}\\p{N}_])`, "giu");
+        text = text.replace(re, (match, prefix) => {
+            if (typeof onEachMatch === "function") {
                 try {
-                    this.voiceSession.destroy();
+                    onEachMatch(command);
                 } catch (e) {
                     /* noop */
                 }
-                this.voiceSession = null;
             }
-            this.voiceState = "inactive";
-            this.microfono = "admin-wrap/assets/images/mic.gif";
+            const fn = commandMap[command];
+            const replacement = typeof fn === "function" ? fn() : String(fn);
+            return `${prefix}${replacement}`;
+        });
+    });
+    return text;
+}
+function getUppercaseCommands() {
+    return {
+        "iniciar mayúscula sostenida": () => {
+            uppercase.value = true;
+            return "";
         },
-        startSahiPolling() {
-            if (!this.sedeInterface) return;
-            if (!this.registro?.ecografia_producto_id) return;
+        "iniciar mayúsculas sostenida": () => {
+            uppercase.value = true;
+            return "";
+        },
+        "iniciar mayúsculas": () => {
+            uppercase.value = true;
+            return "";
+        },
+        "iniciar mayúscula": () => {
+            uppercase.value = true;
+            return "";
+        },
+        "mayúsculas sostenida": () => {
+            uppercase.value = true;
+            return "";
+        },
+        "mayúscula sostenida": () => {
+            uppercase.value = true;
+            return "";
+        },
+        "activar mayúsculas": () => {
+            uppercase.value = true;
+            return "";
+        },
+        "activar mayúscula": () => {
+            uppercase.value = true;
+            return "";
+        },
+        "habilitar mayúsculas": () => {
+            uppercase.value = true;
+            return "";
+        },
+        "habilitar mayúscula": () => {
+            uppercase.value = true;
+            return "";
+        },
+        "desactivar mayúsculas": () => {
+            uppercase.value = false;
+            return "";
+        },
+        "desactivar mayúscula": () => {
+            uppercase.value = false;
+            return "";
+        },
+        "terminar mayúsculas": () => {
+            uppercase.value = false;
+            return "";
+        },
+        "terminar mayúscula": () => {
+            uppercase.value = false;
+            return "";
+        },
+        "fin mayúsculas": () => {
+            uppercase.value = false;
+            return "";
+        },
+        "fin mayúscula": () => {
+            uppercase.value = false;
+            return "";
+        },
+        "finaliza mayúsculas": () => {
+            uppercase.value = false;
+            return "";
+        },
+        "finaliza mayúscula": () => {
+            uppercase.value = false;
+            return "";
+        },
+        "finalizar mayúsculas": () => {
+            uppercase.value = false;
+            return "";
+        },
+        "finalizar mayúscula": () => {
+            uppercase.value = false;
+            return "";
+        },
+    };
+}
+function getLineBreakCommands() {
+    return {
+        "punto aparte": () => ".\n\n",
+        "salto de línea": () => "\n",
+        "doble salto de línea": () => "\n\n",
+        enter: () => "\n",
+        "doble enter": () => "\n\n",
+        "línea en blanco": () => "\n\n",
+    };
+}
+function getPunctuationCommands() {
+    return {
+        punto: () => {
+            capitalizeNext.value = true;
+            return ".";
+        },
+        coma: () => ",",
+        "dos puntos": () => ":",
+        "punto y coma": () => ";",
+        "dar espacio": () => " ",
+        "un espacio": () => " ",
+        "dos espacio": () => "  ",
+        "doble espacio": () => "  ",
+        "abrir paréntesis": () => "(",
+        "cerrar paréntesis": () => ")",
+        "abrir corchetes": () => "[",
+        "cerrar corchetes": () => "]",
+        "abrir llaves": () => "{",
+        "cerrar llaves": () => "}",
+        "abrir comillas": () => '"',
+        "cerrar comillas": () => '"',
+        "abrir comillas simples": () => "'",
+        "cerrar comillas simples": () => "'",
+        guion: () => "-",
+        "guion bajo": () => "_",
+        "barra diagonal": () => "/",
+        "barra invertida": () => "\\",
+        "nueva oración": () => ". ",
+    };
+}
+function getAllVoiceCommands() {
+    // Agrega claves sin tildes para tolerar dictado sin acentos
+    const uppercaseCommands = getUppercaseCommands();
+    const lineBreakCommands = getLineBreakCommands();
+    const punctuationCommands = getPunctuationCommands();
 
-            const id = this.registro.ecografia_producto_id;
+    const addNormalizedKeys = (obj) => {
+        const keys = Object.keys(obj);
+        keys.forEach((k) => {
+            const normalized = stripDiacritics(k).toLowerCase();
+            if (!Object.prototype.hasOwnProperty.call(obj, normalized)) {
+                obj[normalized] = obj[k];
+            }
+        });
+    };
+    addNormalizedKeys(uppercaseCommands);
+    addNormalizedKeys(lineBreakCommands);
+    addNormalizedKeys(punctuationCommands);
+    return { uppercaseCommands, lineBreakCommands, punctuationCommands };
+}
+function processCommands(text) {
+    const { uppercaseCommands, lineBreakCommands, punctuationCommands } = getAllVoiceCommands();
+    let out = String(text ?? "");
+    out = applyCommandMap(out, uppercaseCommands);
+    out = applyCommandMap(out, lineBreakCommands, {
+        onEachMatch: () => {
+            capitalizeNext.value = true;
+        },
+    });
+    out = applyCommandMap(out, punctuationCommands);
+    out = uppercase.value ? out.toUpperCase() : out;
+    if (capitalizeNext.value) {
+        out = out.replace(/(^|\n)(\s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
+            capitalizeNext.value = false;
+            return `${start}${spaces}${first.toUpperCase()}`;
+        });
+    }
+    return out;
+}
+function ensureVoiceSession() {
+    if (voiceSession.value) return voiceSession.value;
+    const { uppercaseCommands, lineBreakCommands, punctuationCommands } = getAllVoiceCommands();
+    const grammarCommands = [
+        ...Object.keys(uppercaseCommands),
+        ...Object.keys(lineBreakCommands),
+        ...Object.keys(punctuationCommands),
+    ];
+
+    voiceSession.value = createVoiceSession({
+        enableAudio: false, // Ecografías: solo dictado (no grabación)
+        enableDictation: true,
+        lang: "es-ES",
+        grammarCommands,
+        maxNoSpeechRetries: 6,
+        onFinalText: (raw) => {
+            let text = String(raw || "").trim();
+            if (!text) return;
+            text = processCommands(text);
+            text = applyMedicalCorrections(text);
+            if (!text) return;
+
+            // Añadir a lectura (mantener comportamiento: espacio si no termina en espacio/salto)
+            const suffix = /[ \n]$/.test(text) ? "" : " ";
+            registro.value.lectura = String(registro.value.lectura || "") + text + suffix;
+        },
+        onPermissionDenied: () => {
+            voiceState.value = "inactive";
+            microfono.value = "admin-wrap/assets/images/mic.gif";
+            toastMessage({
+                heading: "Permiso requerido",
+                text: "El navegador bloqueó el micrófono. Permite el acceso al micrófono para usar dictado.",
+                icon: "warning",
+                hideAfter: 6000,
+            });
+        },
+        onError: (e) => {
+            if (e && e.message === "Silencio repetido") {
+                voiceState.value = "inactive";
+                microfono.value = "admin-wrap/assets/images/mic.gif";
+                toastMessage({
+                    heading: "Sin voz detectada",
+                    text: "No se detecta voz (silencio repetido). Verifica micrófono/entrada y vuelve a iniciar el dictado.",
+                    icon: "warning",
+                    hideAfter: 6000,
+                });
+            }
+        },
+    });
+    return voiceSession.value;
+}
+async function toggleSpeechRecognition() {
+    // Mantener el ícono/animación actual, sin tocar template.
+    try {
+        const vs = ensureVoiceSession();
+        if (voiceState.value === "inactive") {
+            await vs.start();
+            voiceState.value = "active";
+            microfono.value = "admin-wrap/assets/images/mic-animate.gif";
+        } else if (voiceState.value === "active") {
+            vs.pause();
+            voiceState.value = "paused";
+            microfono.value = "admin-wrap/assets/images/mic.gif";
+        } else {
+            // paused -> resume
+            vs.resume();
+            voiceState.value = "active";
+            microfono.value = "admin-wrap/assets/images/mic-animate.gif";
+        }
+    } catch (e) {
+        voiceState.value = "inactive";
+        microfono.value = "admin-wrap/assets/images/mic.gif";
+        toastMessage({
+            heading: "Error",
+            text: e && e.message ? e.message : "No fue posible iniciar el dictado.",
+            icon: "error",
+            hideAfter: 5000,
+        });
+    }
+}
+function stopVoice() {
+    if (voiceSession.value) {
+        try {
+            voiceSession.value.destroy();
+        } catch (e) {
+            /* noop */
+        }
+        voiceSession.value = null;
+    }
+    voiceState.value = "inactive";
+    microfono.value = "admin-wrap/assets/images/mic.gif";
+}
+function startSahiPolling() {
+    if (!sedeInterface) return;
+    if (!registro.value?.ecografia_producto_id) return;
+
+    const id = registro.value.ecografia_producto_id;
+    const onUpdate = (estado) => {
+        if (estado.estado_envio_sahi != null)
+            registro.value.estado_envio_sahi = estado.estado_envio_sahi;
+        registro.value.fechor_envio_sahi =
+            estado.fechor_envio_sahi ?? registro.value.fechor_envio_sahi;
+        registro.value.error_envio_sahi = estado.error_envio_sahi ?? null;
+        registro.value.sahi_esquema_149 =
+            estado.sahi_esquema_149 ?? registro.value.sahi_esquema_149;
+        registro.value.sahi_esquema_150 =
+            estado.sahi_esquema_150 ?? registro.value.sahi_esquema_150;
+    };
+    const onError = (error) => {
+        registro.value.estado_envio_sahi = "ERROR";
+        registro.value.error_envio_sahi =
+            error.response?.data?.message || "Error consultando SAHI.";
+    };
+    startPolling(id, onUpdate, onError);
+}
+function stopSahiPolling() {
+    stopPolling();
+}
+async function consultarEstadoSahi(silent = false) {
+    if (!sedeInterface) return;
+    const id = registro.value.ecografia_producto_id;
+    if (!id) return;
+
+    try {
+        const estado = await consultarEstado(id);
+        if (estado.estado_envio_sahi != null)
+            registro.value.estado_envio_sahi = estado.estado_envio_sahi;
+        registro.value.fechor_envio_sahi =
+            estado.fechor_envio_sahi ?? registro.value.fechor_envio_sahi;
+        registro.value.error_envio_sahi = estado.error_envio_sahi ?? null;
+        registro.value.sahi_esquema_149 =
+            estado.sahi_esquema_149 ?? registro.value.sahi_esquema_149;
+        registro.value.sahi_esquema_150 =
+            estado.sahi_esquema_150 ?? registro.value.sahi_esquema_150;
+
+        if (registro.value.estado_envio_sahi !== "ENVIANDO") {
+            stopPolling();
+        }
+
+        if (!silent) {
+            toastMessage({
+                heading: "SAHI",
+                text: "Estado actualizado.",
+                icon: "info",
+                hideAfter: 2500,
+            });
+        }
+    } catch (error) {
+        if (!silent) {
+            toastMessage({
+                heading: "SAHI",
+                text: error.response?.data?.message || "No se pudo consultar el estado en SAHI.",
+                icon: "warning",
+            });
+        }
+    }
+}
+function safeDestroyDataTable(selector = "#example23") {
+    if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
+        return;
+    const $t = window.$(selector);
+    if (!$t.length) return;
+    if (window.$.fn.DataTable.isDataTable($t)) {
+        $t.DataTable().clear().destroy();
+    }
+}
+function safeInitDataTable(selector = "#example23") {
+    if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
+        return;
+    nextTick(() => {
+        const $t = window.$(selector);
+        if (!$t.length) return;
+        if (window.$.fn.DataTable.isDataTable($t)) return;
+        $t.DataTable({
+            dom: "Bfrtip",
+            buttons: ["copy", "csv", "excel", "pdf", "print"],
+            language: {
+                emptyTable: "No se encontraron registros",
+                zeroRecords: "No se encontraron registros",
+            },
+        });
+    });
+}
+async function listarPendiestePorLectura() {
+    // Evita llamar al backend con "null"/vacío (causa 404 "El medico no se encontro")
+    const medicoId = String(busqueda.value?.medico_id ?? "").trim();
+    if (!medicoId || medicoId === "null" || medicoId === "undefined") {
+        registros.value = [];
+        handleAxiosErrorToast(
+            {
+                response: {
+                    data: { message: "No hay médico seleccionado para listar pendientes." },
+                },
+            },
+            "No fue posible listar pendientes por lectura."
+        );
+        return;
+    }
+    try {
+        isBuscandoPendientes.value = true;
+
+        const res = await axios.post("/api/ecografia-listarPendientesPorLectura/" + medicoId);
+        if (res.status == 200) {
+            safeDestroyDataTable(dt.value || "#example23");
+
+            registros.value = res.data.ecografias;
+
+            safeInitDataTable(dt.value || "#example23");
+
+            evaluarPendientesConsentimientosDiaAnterior();
+        }
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar pendientes por lectura.");
+        registros.value = [];
+    } finally {
+        isBuscandoPendientes.value = false;
+    }
+}
+function evaluarPendientesConsentimientosDiaAnterior() {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const pendientes = (registros.value || []).filter((r) => {
+        if (r?.consentimiento_estado !== "PENDIENTE_MEDICO") return false;
+        if (!r?.consentimiento_firma_paciente_at) return false;
+        const ts = new Date(r.consentimiento_firma_paciente_at).getTime();
+        if (!Number.isFinite(ts)) return false;
+        return ts < todayStart.getTime();
+    });
+
+    pendientesDiaAnterior.value = pendientes;
+    bloqueoLectura.value = pendientes.length > 0;
+
+    if (bloqueoLectura.value && window.$) {
+        window
+            .$("#modal-pendientes-consentimientos")
+            .modal({ backdrop: "static", keyboard: false });
+    } else if (!bloqueoLectura.value && window.$) {
+        window.$("#modal-pendientes-consentimientos").modal("hide");
+    }
+}
+async function firmarConsentimientoMedico(item) {
+    const id = item?.consentimiento_id;
+    if (!id) return;
+    if (isFirmandoConsentimiento.value[id]) return;
+    try {
+        setMapValue(this, "isFirmandoConsentimiento", id, true);
+        await axios.post("/api/ecografias-consentimientos/firmar-medico", {
+            consentimiento_id: id,
+        });
+
+        item.consentimiento_estado = "COMPLETO";
+        item.consentimiento_firma_medico_at = new Date()
+            .toISOString()
+            .slice(0, 19)
+            .replace("T", " ");
+
+        evaluarPendientesConsentimientosDiaAnterior();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible firmar el consentimiento.");
+    } finally {
+        setMapValue(this, "isFirmandoConsentimiento", id, false);
+    }
+}
+async function generarLectura() {
+    try {
+        // Enviar solicitud para guardar la ecografía
+        const res = await axios.put("/api/ecografia-lectura/" + registro.value.ecografia_id, {
+            accion: accion.value,
+            registro: registro.value,
+        });
+
+        if (res.status === 201) {
+            // Mostrar notificación de éxito
+            toastMessage({
+                heading: "¡Éxito!",
+                text: "Lectura guardada correctamente.",
+                icon: "success",
+            });
+
+            return true;
+        } else {
+            toastMessage({ heading: "Upss!!!", text: res.data.message, icon: "error" });
+
+            return false;
+        }
+    } catch (error) {
+        handleAxiosErrorToast(error, "Ocurrió un error al guardar la lectura.");
+
+        // Mostrar errores específicos en el formulario
+        if (error.response?.data?.errors) {
+            errores.value = error.response.data.errors;
+        }
+
+        return false;
+    }
+}
+async function enviarASahiEcografiaProducto() {
+    if (!sedeInterface) return true;
+
+    const id = registro.value.ecografia_producto_id;
+    if (!id) {
+        toastMessage({
+            heading: "Advertencia",
+            text: "No se encontró ecografia_producto_id para enviar a SAHI.",
+            icon: "warning",
+        });
+        return false;
+    }
+
+    try {
+        registro.value.estado_envio_sahi = "ENVIANDO";
+        const res = await enviarEcografiaProducto(id);
+
+        const encolado = res.status === 202;
+        toastMessage({
+            heading: "SAHI",
+            text:
+                res.data?.message ||
+                (encolado ? "Envío a SAHI encolado." : "Enviado a SAHI correctamente."),
+            icon: encolado ? "info" : "success",
+        });
+
+        registro.value.estado_envio_sahi = encolado ? "ENVIANDO" : "ENVIADO";
+        registro.value.fechor_envio_sahi = new Date().toISOString();
+        registro.value.error_envio_sahi = null;
+        if (!encolado && res.data?.data) {
+            registro.value.sahi_esquema_149 =
+                res.data.data.IdEsquemaEncabezado149 ?? registro.value.sahi_esquema_149;
+            registro.value.sahi_esquema_150 =
+                res.data.data.IdEsquemaEncabezado150 ?? registro.value.sahi_esquema_150;
+        }
+
+        if (encolado) {
             const onUpdate = (estado) => {
                 if (estado.estado_envio_sahi != null)
-                    this.registro.estado_envio_sahi = estado.estado_envio_sahi;
-                this.registro.fechor_envio_sahi =
-                    estado.fechor_envio_sahi ?? this.registro.fechor_envio_sahi;
-                this.registro.error_envio_sahi = estado.error_envio_sahi ?? null;
-                this.registro.sahi_esquema_149 =
-                    estado.sahi_esquema_149 ?? this.registro.sahi_esquema_149;
-                this.registro.sahi_esquema_150 =
-                    estado.sahi_esquema_150 ?? this.registro.sahi_esquema_150;
+                    registro.value.estado_envio_sahi = estado.estado_envio_sahi;
+                registro.value.fechor_envio_sahi =
+                    estado.fechor_envio_sahi ?? registro.value.fechor_envio_sahi;
+                registro.value.error_envio_sahi = estado.error_envio_sahi ?? null;
+                registro.value.sahi_esquema_149 =
+                    estado.sahi_esquema_149 ?? registro.value.sahi_esquema_149;
+                registro.value.sahi_esquema_150 =
+                    estado.sahi_esquema_150 ?? registro.value.sahi_esquema_150;
             };
             const onError = (error) => {
-                this.registro.estado_envio_sahi = "ERROR";
-                this.registro.error_envio_sahi =
+                registro.value.estado_envio_sahi = "ERROR";
+                registro.value.error_envio_sahi =
                     error.response?.data?.message || "Error consultando SAHI.";
             };
-            this.startPolling(id, onUpdate, onError);
-        },
-        stopSahiPolling() {
-            this.stopPolling();
-        },
-        async consultarEstadoSahi(silent = false) {
-            if (!this.sedeInterface) return;
-            const id = this.registro.ecografia_producto_id;
-            if (!id) return;
+            startPolling(id, onUpdate, onError);
+        }
 
-            try {
-                const estado = await this.consultarEstado(id);
-                if (estado.estado_envio_sahi != null)
-                    this.registro.estado_envio_sahi = estado.estado_envio_sahi;
-                this.registro.fechor_envio_sahi =
-                    estado.fechor_envio_sahi ?? this.registro.fechor_envio_sahi;
-                this.registro.error_envio_sahi = estado.error_envio_sahi ?? null;
-                this.registro.sahi_esquema_149 =
-                    estado.sahi_esquema_149 ?? this.registro.sahi_esquema_149;
-                this.registro.sahi_esquema_150 =
-                    estado.sahi_esquema_150 ?? this.registro.sahi_esquema_150;
+        return true;
+    } catch (error) {
+        toastMessage({
+            heading: "SAHI",
+            text: error.response?.data?.message || "No se pudo enviar a SAHI.",
+            icon: "warning",
+            hideAfter: 4500,
+        });
+        registro.value.estado_envio_sahi = "ERROR";
+        registro.value.error_envio_sahi =
+            error.response?.data?.message || "No se pudo enviar a SAHI.";
+        return false;
+    }
+}
+async function guardarRegistro() {
+    const accionActual = "TERMINAR_LECTURA";
+    accion.value = accionActual;
 
-                if (this.registro.estado_envio_sahi !== "ENVIANDO") {
-                    this.stopPolling();
-                }
+    isGuardandoLectura.value = true;
+    const guardadoOk = await generarLectura();
+    accion.value = null;
+    isGuardandoLectura.value = false;
 
-                if (!silent) {
-                    toastMessage({
-                        heading: "SAHI",
-                        text: "Estado actualizado.",
-                        icon: "info",
-                        hideAfter: 2500,
-                    });
-                }
-            } catch (error) {
-                if (!silent) {
-                    toastMessage({
-                        heading: "SAHI",
-                        text:
-                            error.response?.data?.message ||
-                            "No se pudo consultar el estado en SAHI.",
-                        icon: "warning",
-                    });
-                }
-            }
-        },
-        safeDestroyDataTable(selector = "#example23") {
-            if (
-                typeof window === "undefined" ||
-                !window.$ ||
-                !window.$.fn ||
-                !window.$.fn.DataTable
-            )
-                return;
-            const $t = window.$(selector);
-            if (!$t.length) return;
-            if (window.$.fn.DataTable.isDataTable($t)) {
-                $t.DataTable().clear().destroy();
-            }
-        },
-        safeInitDataTable(selector = "#example23") {
-            if (
-                typeof window === "undefined" ||
-                !window.$ ||
-                !window.$.fn ||
-                !window.$.fn.DataTable
-            )
-                return;
-            this.$nextTick(() => {
-                const $t = window.$(selector);
-                if (!$t.length) return;
-                if (window.$.fn.DataTable.isDataTable($t)) return;
-                $t.DataTable({
-                    dom: "Bfrtip",
-                    buttons: ["copy", "csv", "excel", "pdf", "print"],
-                    language: {
-                        emptyTable: "No se encontraron registros",
-                        zeroRecords: "No se encontraron registros",
-                    },
-                });
-            });
-        },
-        async listarPendiestePorLectura() {
-            // Evita llamar al backend con "null"/vacío (causa 404 "El medico no se encontro")
-            const medicoId = String(this.busqueda?.medico_id ?? "").trim();
-            if (!medicoId || medicoId === "null" || medicoId === "undefined") {
-                this.registros = [];
-                handleAxiosErrorToast(
-                    {
-                        response: {
-                            data: { message: "No hay médico seleccionado para listar pendientes." },
-                        },
-                    },
-                    "No fue posible listar pendientes por lectura."
-                );
-                return;
-            }
-            try {
-                this.isBuscandoPendientes = true;
+    if (!guardadoOk) return;
 
-                const res = await axios.post(
-                    "/api/ecografia-listarPendientesPorLectura/" + medicoId
-                );
-                if (res.status == 200) {
-                    this.safeDestroyDataTable(this.$refs.dt || "#example23");
+    // Enviar a SAHI solo si la sede tiene interface y la acción fue TERMINAR_LECTURA
+    if (sedeInterface && accionActual === "TERMINAR_LECTURA") {
+        await enviarASahiEcografiaProducto();
+    }
 
-                    this.registros = res.data.ecografias;
+    listarPendiestePorLectura();
+    limpiarFormulario();
+    btnCerralModalForm();
+}
+async function generarReporte() {
+    try {
+        accion.value = "IMPRIMIR_LECTURA";
+        generarLectura();
+        accion.value = null;
 
-                    this.safeInitDataTable(this.$refs.dt || "#example23");
+        const iframe = document.getElementById("ifrReporteEcografia");
+        iframe.src = "";
 
-                    this.evaluarPendientesConsentimientosDiaAnterior();
-                }
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar pendientes por lectura.");
-                this.registros = [];
-            } finally {
-                this.isBuscandoPendientes = false;
-            }
-        },
+        const res = await axios.post(
+            "/api/ecografia-generar-reporte/" + registro.value.ecografia_id,
+            registro.value
+        );
+        const pathReporte = res.data.plantilla;
 
-        evaluarPendientesConsentimientosDiaAnterior() {
-            const todayStart = new Date();
-            todayStart.setHours(0, 0, 0, 0);
+        // Mostrar el reporte en el iframe
+        iframe.src = pathReporte;
 
-            const pendientes = (this.registros || []).filter((r) => {
-                if (r?.consentimiento_estado !== "PENDIENTE_MEDICO") return false;
-                if (!r?.consentimiento_firma_paciente_at) return false;
-                const ts = new Date(r.consentimiento_firma_paciente_at).getTime();
-                if (!Number.isFinite(ts)) return false;
-                return ts < todayStart.getTime();
-            });
+        listarPendiestePorLectura();
 
-            this.pendientesDiaAnterior = pendientes;
-            this.bloqueoLectura = pendientes.length > 0;
+        return true;
+    } catch (error) {
+        handleAxiosErrorToast(error, "Ocurrió un error al generar el reporte.");
 
-            if (this.bloqueoLectura && window.$) {
-                window
-                    .$("#modal-pendientes-consentimientos")
-                    .modal({ backdrop: "static", keyboard: false });
-            } else if (!this.bloqueoLectura && window.$) {
-                window.$("#modal-pendientes-consentimientos").modal("hide");
-            }
-        },
+        // Mostrar errores específicos en el formulario
+        if (error.response?.data?.errors) {
+            errores.value = error.response.data.errors;
+        }
+    }
+}
+async function establecerSede() {
+    registro.value.sede_id = sessionStorage.getItem("ST-sede");
+    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
+    sedeActual = sessionStorage.getItem("ST-sede");
+    await establecerSede(); // composable call
+    registros.value = [];
+}
+function establecerMedico() {
+    // Siempre usar el usuario logueado como médico (evita null y evita depender de sessionStorage)
+    const medicoId = usuarioactual?.id != null ? String(usuarioactual.id) : "";
 
-        async firmarConsentimientoMedico(item) {
-            const id = item?.consentimiento_id;
-            if (!id) return;
-            if (this.isFirmandoConsentimiento[id]) return;
-            try {
-                setMapValue(this, "isFirmandoConsentimiento", id, true);
-                await axios.post("/api/ecografias-consentimientos/firmar-medico", {
-                    consentimiento_id: id,
-                });
+    busqueda.value.medico_id = medicoId;
+    registro.value.medico_id = medicoId;
 
-                item.consentimiento_estado = "COMPLETO";
-                item.consentimiento_firma_medico_at = new Date()
-                    .toISOString()
-                    .slice(0, 19)
-                    .replace("T", " ");
+    // Opcional: sincronizamos para otras pantallas que lean ST-medico
+    if (medicoId) sessionStorage.setItem("ST-medico", medicoId);
 
-                this.evaluarPendientesConsentimientosDiaAnterior();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible firmar el consentimiento.");
-            } finally {
-                setMapValue(this, "isFirmandoConsentimiento", id, false);
-            }
-        },
-        async generarLectura() {
-            try {
-                // Enviar solicitud para guardar la ecografía
-                const res = await axios.put(
-                    "/api/ecografia-lectura/" + this.registro.ecografia_id,
-                    { accion: this.accion, registro: this.registro }
-                );
+    listarPendiestePorLectura();
+}
+async function listarTiposPlantillas() {
+    try {
+        const res = await axios.get("/api/config-tipos-plantillas/listar/activos");
+        tiposPlantillas.value = res.data;
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar tipos de plantillas.");
+        tiposPlantillas.value = [];
+    }
+}
+async function onTipoPlantillaSelect(value) {
+    let selectedId = value || null;
+    if (selectedId == null) return;
 
-                if (res.status === 201) {
-                    // Mostrar notificación de éxito
-                    toastMessage({
-                        heading: "¡Éxito!",
-                        text: "Lectura guardada correctamente.",
-                        icon: "success",
-                    });
+    try {
+        const res = await axios.get(`/api/config-plantillas/listar/activos/${selectedId}`);
 
-                    return true;
-                } else {
-                    toastMessage({ heading: "Upss!!!", text: res.data.message, icon: "error" });
+        plantillas.value = res.data;
+        plantillasOptions.value;
+        var tipo = tiposPlantillasOptions.value.find(function (t) {
+            return String(t.id) === String(selectedId);
+        });
+        registro.value.tipo_estudio = (tipo && tipo.nom_tipo) || "";
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar plantillas.");
+    }
+}
+function onPlantillaSelect(value) {
+    var plantilla = plantillasOptions.value.find(function (p) {
+        return String(p.id) === String(value);
+    });
+    registro.value.lectura = (plantilla && plantilla.plantilla) || null;
+    registro.value.opinion = (plantilla && plantilla.opinion) || null;
+}
+function btnCerralModalForm() {
+    $(".right-sidebar").slideDown(50);
+    $(".right-sidebar").toggleClass("shw-rside");
+    // al cerrar, detenemos polling para evitar fugas
+    stopSahiPolling();
+}
+function mostrarRegistro(data = {}) {
+    tituloAtencion.value = `Atención N°: ${data.atencion_id}`;
+    tituloModal.value = `Paciente: ${data.paciente.num_docu} - Nombres: ${data.paciente.nombres} ${data.paciente.seg_nom} ${data.paciente.pri_ape} ${data.paciente.seg_ape} `;
+    subTituloModal.value = `Examen: ${data.nom_produc} - Valor: ${data.ValProduc}`;
 
-                    return false;
-                }
-            } catch (error) {
-                handleAxiosErrorToast(error, "Ocurrió un error al guardar la lectura.");
+    registro.value.ecografia_id = data.id;
+    registro.value.ecografia_producto_id = data.ecografia_producto_id;
+    registro.value.producto_id = data.producto_id;
+    registro.value.atencion_id = data.atencion_id;
+    registro.value.paciente_id = data.paciente_id;
+    registro.value.num_docu = data.paciente.num_docu;
+    registro.value.nom_pacien = data.paciente.nombres;
+    registro.value.seg_nom = data.paciente.seg_nom;
+    registro.value.pri_ape = data.paciente.pri_ape;
+    registro.value.seg_ape = data.paciente.seg_ape;
+    registro.value.sexo = data.paciente.sexo;
+    registro.value.fec_naci = data.paciente.fec_naci;
+    registro.value.direccion = data.paciente.direccion;
+    registro.value.tel = data.paciente.tel;
+    registro.value.cel = data.paciente.cel;
+    registro.value.atencion_id = data.atencion_id;
+    registro.value.contrato = data.contrato;
+    registro.value.plan = data.plan;
+    registro.value.admin_salud = data.admin_salud.nom_admin_salud;
 
-                // Mostrar errores específicos en el formulario
-                if (error.response?.data?.errors) {
-                    this.errores = error.response.data.errors;
-                }
+    registro.value.lectura = data.lectura;
+    registro.value.opinion = data.opinion;
 
-                return false;
-            }
-        },
-        async enviarASahiEcografiaProducto() {
-            if (!this.sedeInterface) return true;
+    // Estado de envío a SAHI (si viene en el select)
+    registro.value.estado_envio_sahi = data.estado_envio_sahi || null;
+    registro.value.fechor_envio_sahi = data.fechor_envio_sahi || null;
+    registro.value.error_envio_sahi = data.error_envio_sahi || null;
+    registro.value.sahi_esquema_149 = data.sahi_esquema_149 || null;
+    registro.value.sahi_esquema_150 = data.sahi_esquema_150 || null;
 
-            const id = this.registro.ecografia_producto_id;
-            if (!id) {
-                toastMessage({
-                    heading: "Advertencia",
-                    text: "No se encontró ecografia_producto_id para enviar a SAHI.",
-                    icon: "warning",
-                });
-                return false;
-            }
+    if (sedeInterface && registro.value.estado_envio_sahi === "ENVIANDO") {
+        startSahiPolling();
+    } else {
+        stopSahiPolling();
+    }
 
-            try {
-                this.registro.estado_envio_sahi = "ENVIANDO";
-                const res = await this.enviarEcografiaProducto(id);
+    btnCerralModalForm();
+}
+function limpiarFormulario() {
+    tituloModal.value = "";
+    stopSahiPolling();
 
-                const encolado = res.status === 202;
-                toastMessage({
-                    heading: "SAHI",
-                    text:
-                        res.data?.message ||
-                        (encolado ? "Envío a SAHI encolado." : "Enviado a SAHI correctamente."),
-                    icon: encolado ? "info" : "success",
-                });
+    registro.value.paciente_id = "";
+    registro.value.num_docu = "";
+    registro.value.nombres = "";
+    registro.value.seg_nom = "";
+    registro.value.pri_ape = "";
+    registro.value.seg_ape = "";
+    registro.value.sexo = "";
+    registro.value.fec_naci = "";
+    registro.value.direccion = "";
+    registro.value.tel = "";
+    registro.value.cel = "";
+    registro.value.atencion_id = "";
+    registro.value.contrato = "";
+    registro.value.plan = "";
+    registro.value.admin_salud = "";
+    registro.value.quien_ordeno = "";
+    registro.value.lectura = "";
+    registro.value.opinion = "";
+    errores.value = {};
+}
 
-                this.registro.estado_envio_sahi = encolado ? "ENVIANDO" : "ENVIADO";
-                this.registro.fechor_envio_sahi = new Date().toISOString();
-                this.registro.error_envio_sahi = null;
-                if (!encolado && res.data?.data) {
-                    this.registro.sahi_esquema_149 =
-                        res.data.data.IdEsquemaEncabezado149 ?? this.registro.sahi_esquema_149;
-                    this.registro.sahi_esquema_150 =
-                        res.data.data.IdEsquemaEncabezado150 ?? this.registro.sahi_esquema_150;
-                }
+onMounted(() => {
+    establecerSede();
+    listarTiposPlantillas();
+    establecerMedico();
+    rebuildMedicalVocabulary();
 
-                if (encolado) {
-                    const onUpdate = (estado) => {
-                        if (estado.estado_envio_sahi != null)
-                            this.registro.estado_envio_sahi = estado.estado_envio_sahi;
-                        this.registro.fechor_envio_sahi =
-                            estado.fechor_envio_sahi ?? this.registro.fechor_envio_sahi;
-                        this.registro.error_envio_sahi = estado.error_envio_sahi ?? null;
-                        this.registro.sahi_esquema_149 =
-                            estado.sahi_esquema_149 ?? this.registro.sahi_esquema_149;
-                        this.registro.sahi_esquema_150 =
-                            estado.sahi_esquema_150 ?? this.registro.sahi_esquema_150;
-                    };
-                    const onError = (error) => {
-                        this.registro.estado_envio_sahi = "ERROR";
-                        this.registro.error_envio_sahi =
-                            error.response?.data?.message || "Error consultando SAHI.";
-                    };
-                    this.startPolling(id, onUpdate, onError);
-                }
+    emitter.on("sedeSeleccionada", (data) => {
+        registro.value.sede_id = data.idSede;
+        establecerSede();
+    });
 
-                return true;
-            } catch (error) {
-                toastMessage({
-                    heading: "SAHI",
-                    text: error.response?.data?.message || "No se pudo enviar a SAHI.",
-                    icon: "warning",
-                    hideAfter: 4500,
-                });
-                this.registro.estado_envio_sahi = "ERROR";
-                this.registro.error_envio_sahi =
-                    error.response?.data?.message || "No se pudo enviar a SAHI.";
-                return false;
-            }
-        },
-        async guardarRegistro() {
-            const accionActual = "TERMINAR_LECTURA";
-            this.accion = accionActual;
+    emitter.on("medicoSeleccionado", (data) => {
+        registro.value.medico_id = data.idMedico;
+        establecerMedico();
+        listarPendiestePorLectura();
+    });
 
-            this.isGuardandoLectura = true;
-            const guardadoOk = await this.generarLectura();
-            this.accion = null;
-            this.isGuardandoLectura = false;
+    url.value = window.location.pathname;
+    establecerMedico();
+});
 
-            if (!guardadoOk) return;
-
-            // Enviar a SAHI solo si la sede tiene interface y la acción fue TERMINAR_LECTURA
-            if (this.sedeInterface && accionActual === "TERMINAR_LECTURA") {
-                await this.enviarASahiEcografiaProducto();
-            }
-
-            this.listarPendiestePorLectura();
-            this.limpiarFormulario();
-            this.btnCerralModalForm();
-        },
-        async generarReporte() {
-            try {
-                this.accion = "IMPRIMIR_LECTURA";
-                this.generarLectura();
-                this.accion = null;
-
-                const iframe = document.getElementById("ifrReporteEcografia");
-                iframe.src = "";
-
-                const res = await axios.post(
-                    "/api/ecografia-generar-reporte/" + this.registro.ecografia_id,
-                    this.registro
-                );
-                const pathReporte = res.data.plantilla;
-
-                // Mostrar el reporte en el iframe
-                iframe.src = pathReporte;
-
-                this.listarPendiestePorLectura();
-
-                return true;
-            } catch (error) {
-                handleAxiosErrorToast(error, "Ocurrió un error al generar el reporte.");
-
-                // Mostrar errores específicos en el formulario
-                if (error.response?.data?.errors) {
-                    this.errores = error.response.data.errors;
-                }
-            }
-        },
-        async establecerSede() {
-            this.registro.sede_id = sessionStorage.getItem("ST-sede");
-            this.busqueda.sede_id = sessionStorage.getItem("ST-sede");
-            this.sedeActual = sessionStorage.getItem("ST-sede");
-            await this.establecerSede(); // composable call
-            this.registros = [];
-        },
-        establecerMedico() {
-            // Siempre usar el usuario logueado como médico (evita null y evita depender de sessionStorage)
-            const medicoId = this.usuarioactual?.id != null ? String(this.usuarioactual.id) : "";
-
-            this.busqueda.medico_id = medicoId;
-            this.registro.medico_id = medicoId;
-
-            // Opcional: sincronizamos para otras pantallas que lean ST-medico
-            if (medicoId) sessionStorage.setItem("ST-medico", medicoId);
-
-            this.listarPendiestePorLectura();
-        },
-        async listarTiposPlantillas() {
-            try {
-                const res = await axios.get("/api/config-tipos-plantillas/listar/activos");
-                this.tiposPlantillas = res.data;
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar tipos de plantillas.");
-                this.tiposPlantillas = [];
-            }
-        },
-        async onTipoPlantillaSelect(value) {
-            let selectedId = value || null;
-            if (selectedId == null) return;
-
-            try {
-                const res = await axios.get(`/api/config-plantillas/listar/activos/${selectedId}`);
-
-                this.plantillas = res.data;
-                this.plantillasOptions;
-                var tipo = this.tiposPlantillasOptions.find(function (t) {
-                    return String(t.id) === String(selectedId);
-                });
-                this.registro.tipo_estudio = (tipo && tipo.nom_tipo) || "";
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar plantillas.");
-            }
-        },
-        onPlantillaSelect(value) {
-            var plantilla = this.plantillasOptions.find(function (p) {
-                return String(p.id) === String(value);
-            });
-            this.registro.lectura = (plantilla && plantilla.plantilla) || null;
-            this.registro.opinion = (plantilla && plantilla.opinion) || null;
-        },
-        btnCerralModalForm() {
-            $(".right-sidebar").slideDown(50);
-            $(".right-sidebar").toggleClass("shw-rside");
-            // al cerrar, detenemos polling para evitar fugas
-            this.stopSahiPolling();
-        },
-        mostrarRegistro(data = {}) {
-            this.tituloAtencion = `Atención N°: ${data.atencion_id}`;
-            this.tituloModal = `Paciente: ${data.paciente.num_docu} - Nombres: ${data.paciente.nombres} ${data.paciente.seg_nom} ${data.paciente.pri_ape} ${data.paciente.seg_ape} `;
-            this.subTituloModal = `Examen: ${data.nom_produc} - Valor: ${data.ValProduc}`;
-
-            this.registro.ecografia_id = data.id;
-            this.registro.ecografia_producto_id = data.ecografia_producto_id;
-            this.registro.producto_id = data.producto_id;
-            this.registro.atencion_id = data.atencion_id;
-            this.registro.paciente_id = data.paciente_id;
-            this.registro.num_docu = data.paciente.num_docu;
-            this.registro.nom_pacien = data.paciente.nombres;
-            this.registro.seg_nom = data.paciente.seg_nom;
-            this.registro.pri_ape = data.paciente.pri_ape;
-            this.registro.seg_ape = data.paciente.seg_ape;
-            this.registro.sexo = data.paciente.sexo;
-            this.registro.fec_naci = data.paciente.fec_naci;
-            this.registro.direccion = data.paciente.direccion;
-            this.registro.tel = data.paciente.tel;
-            this.registro.cel = data.paciente.cel;
-            this.registro.atencion_id = data.atencion_id;
-            this.registro.contrato = data.contrato;
-            this.registro.plan = data.plan;
-            this.registro.admin_salud = data.admin_salud.nom_admin_salud;
-
-            this.registro.lectura = data.lectura;
-            this.registro.opinion = data.opinion;
-
-            // Estado de envío a SAHI (si viene en el select)
-            this.registro.estado_envio_sahi = data.estado_envio_sahi || null;
-            this.registro.fechor_envio_sahi = data.fechor_envio_sahi || null;
-            this.registro.error_envio_sahi = data.error_envio_sahi || null;
-            this.registro.sahi_esquema_149 = data.sahi_esquema_149 || null;
-            this.registro.sahi_esquema_150 = data.sahi_esquema_150 || null;
-
-            if (this.sedeInterface && this.registro.estado_envio_sahi === "ENVIANDO") {
-                this.startSahiPolling();
-            } else {
-                this.stopSahiPolling();
-            }
-
-            this.btnCerralModalForm();
-        },
-        limpiarFormulario() {
-            this.tituloModal = "";
-            this.stopSahiPolling();
-
-            this.registro.paciente_id = "";
-            this.registro.num_docu = "";
-            this.registro.nombres = "";
-            this.registro.seg_nom = "";
-            this.registro.pri_ape = "";
-            this.registro.seg_ape = "";
-            this.registro.sexo = "";
-            this.registro.fec_naci = "";
-            this.registro.direccion = "";
-            this.registro.tel = "";
-            this.registro.cel = "";
-            this.registro.atencion_id = "";
-            this.registro.contrato = "";
-            this.registro.plan = "";
-            this.registro.admin_salud = "";
-            this.registro.quien_ordeno = "";
-            this.registro.lectura = "";
-            this.registro.opinion = "";
-            this.errores = {};
-        },
-    },
-};
+onBeforeUnmount(() => {
+    stopSahiPolling();
+    try {
+        stopVoice();
+    } catch (e) {
+        /* noop */
+    }
+});
 </script>
 <style scoped>
 .right-sidebar {

@@ -897,7 +897,9 @@
         </div>
     </div>
 </template>
-<script>
+<script setup>
+import { computed, nextTick, onMounted, ref } from "vue";
+
 import usePermissions from "@/helpers/permissions.js";
 import { formatoMoneda } from "@/helpers/funciones.js";
 import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
@@ -905,536 +907,496 @@ import { handleAxiosErrorToast } from "@/helpers/alerts";
 import { setMapValue } from "@/helpers/sahi";
 import { useSede } from "@/composables/useSede";
 import { useSahiInterface } from "@/composables/useSahiInterface";
+import axios from "axios";
 
-export default {
-    props: ["usuarioactual", "permisos"],
-    setup(props) {
-        const { can } = usePermissions(props.permisos);
-        const { sedeInterface, establecerSede } = useSede();
-        const { consultarEstado, enviarEcografiaProducto } = useSahiInterface();
+const props = defineProps({});
 
-        return {
-            can,
-            formatoMoneda,
-            sedeInterface,
-            establecerSede,
-            consultarEstado,
-            enviarEcografiaProducto,
-        };
-    },
-    mounted() {
-        this.listarMedicos();
-        this.establecerSede();
-        this.listarTipoDocumentos();
-        this.listarProductos();
+const tituloModal = ref("Nueva admisión");
+const busqueda = ref({
+    sede_id: this.sedeActual,
+    medico_id: this.medicoActual,
+    bus_nom_num_docu: "",
+    bus_fehc_ini: "",
+    bus_fecha_fin: "",
+});
+const registros = ref([]);
+const registro = ref({
+    paciente_id: "",
+    tipo_documento_id: "",
+    num_docu: "",
+    nombres: "",
+    seg_nom: "",
+    pri_ape: "",
+    seg_ape: "",
+    sexo: "",
+    fec_naci: "",
+    direccion: "",
+    tel: "",
+    sede_id: this.sedeActual,
+    medico_id: this.medicoActual,
+    quien_registro_id: this.usuarioactual.id,
+    cel: "",
+    atencion_id: null,
+    productosAgenda: [],
+    contrato: null,
+    plan: null,
+    admin_salud: null,
+    quien_ordeno: null,
+});
+const registroAnular = ref({
+    ecografia_id: "",
+    atencion_id: "",
+    quien_anulo_id: this.usuarioactual.id,
+    motivo_anula: "",
+});
+const errores = ref({});
+const erroresBusqueda = ref({});
+const medicos = ref([]);
+const tipoDocumentos = ref([]);
+const sedeActual = ref(sessionStorage.getItem("ST-sede"));
+const medicoActual = ref(sessionStorage.getItem("ST-medico"));
+const productoSelecciondo = ref(null);
+const productos = ref([]);
+const isBuscandoAtenciones = ref(false);
+const isGuardandoEcografia = ref(false);
+const isAnulandoEcografia = ref(false);
+const isConsultandoSahi = ref({});
+const isEnviandoSahi = ref({});
+const consentimientoItem = ref(null);
+const consentimientoFirmanteTipo = ref("PACIENTE");
+const acompanante = ref({ cedula: "", nombres: "", email: "", direccion: "", telefono: "" });
+const isGenerandoLinkFirma = ref(false);
+const consentimientoUrl = ref("");
 
-        this.emitter.on("sedeSeleccionada", (data) => {
-            this.registro.sede_id = data.idSede;
-            this.establecerSede();
-            this.establecerMedico();
+const medicoOptions = computed(() => {
+    // Opciones para el Select2 local de medicos.
+    return (medicos.value || []).map((p) => ({ id: String(p.id), name: p.name }));
+});
+const tipoDocumentoOptions = computed(() => {
+    // Opciones para el Select2 local de medicos.
+    return (tipoDocumentos.value || []).map((p) => ({
+        id: String(p.id),
+        codigo: p.codigo,
+        tipo_documento: p.tipo_documento,
+    }));
+});
+const productoOptions = computed(() => {
+    // Opciones para el Select2 local de productos.
+    return (productos.value || []).map((p) => ({
+        id: String(p.id),
+        cod_cups: p.cod_cups,
+        nom_produc: p.nom_produc,
+    }));
+});
+
+function buscarStudy() {
+    // Soporte para Enter en el input de búsqueda
+    return listarAtenciones();
+}
+function btnLimpiar() {
+    // Limpia criterios de búsqueda (mantiene sede/medico del contexto)
+    busqueda.value.bus_nom_num_docu = "";
+    busqueda.value.bus_fehc_ini = "";
+    busqueda.value.bus_fecha_fin = "";
+    erroresBusqueda.value = {};
+
+    safeDestroyDataTable(dt.value || "#example23");
+    registros.value = [];
+}
+function safeDestroyDataTable(selector = "#example23") {
+    if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
+        return;
+    const $t = window.$(selector);
+    if (!$t.length) return;
+    if (window.$.fn.DataTable.isDataTable($t)) {
+        $t.DataTable().clear().destroy();
+    }
+}
+function safeInitDataTable(selector = "#example23") {
+    if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
+        return;
+    nextTick(() => {
+        const $t = window.$(selector);
+        if (!$t.length) return;
+        if (window.$.fn.DataTable.isDataTable($t)) return;
+        $t.DataTable({
+            dom: "Bfrtip",
+            buttons: ["copy", "csv", "excel", "pdf", "print"],
+            language: {
+                emptyTable: "No se encontraron registros",
+                zeroRecords: "No se encontraron registros",
+            },
         });
-    },
-    data() {
-        return {
-            tituloModal: "Nueva admisión",
-            busqueda: {
-                sede_id: this.sedeActual,
-                medico_id: this.medicoActual,
-                bus_nom_num_docu: "",
-                bus_fehc_ini: "",
-                bus_fecha_fin: "",
-            },
-            registros: [],
-            registro: {
-                paciente_id: "",
-                tipo_documento_id: "",
-                num_docu: "",
-                nombres: "",
-                seg_nom: "",
-                pri_ape: "",
-                seg_ape: "",
-                sexo: "",
-                fec_naci: "",
-                direccion: "",
-                tel: "",
-                sede_id: this.sedeActual,
-                medico_id: this.medicoActual,
-                quien_registro_id: this.usuarioactual.id,
-                cel: "",
-                atencion_id: null,
-                productosAgenda: [],
-                contrato: null,
-                plan: null,
-                admin_salud: null,
-                quien_ordeno: null,
-            },
-            registroAnular: {
-                ecografia_id: "",
-                atencion_id: "",
-                quien_anulo_id: this.usuarioactual.id,
-                motivo_anula: "",
-            },
-            errores: {},
-            erroresBusqueda: {},
-            medicos: [],
-            tipoDocumentos: [],
-            sedeActual: sessionStorage.getItem("ST-sede"),
-            medicoActual: sessionStorage.getItem("ST-medico"),
-            productoSelecciondo: null,
-            productos: [],
-            isBuscandoAtenciones: false,
-            isGuardandoEcografia: false,
-            isAnulandoEcografia: false,
-            isConsultandoSahi: {},
-            isEnviandoSahi: {},
+    });
+}
+async function listarAtenciones() {
+    try {
+        isBuscandoAtenciones.value = true;
 
-            // Consentimientos
-            consentimientoItem: null,
-            consentimientoFirmanteTipo: "PACIENTE",
-            acompanante: { cedula: "", nombres: "", email: "", direccion: "", telefono: "" },
-            isGenerandoLinkFirma: false,
-            consentimientoUrl: "",
+        const res = await axios.post(
+            "/api/interface-sahi-ecografias/listar/productos/atencion",
+            busqueda.value
+        );
+
+        if (res.status == 200) {
+            safeDestroyDataTable(dt.value || "#example23");
+
+            registros.value = res.data;
+
+            safeInitDataTable(dt.value || "#example23");
+        }
+    } catch (error) {
+        erroresBusqueda.value = error?.response?.data?.errors || {};
+        handleAxiosErrorToast(error, "No fue posible listar atenciones.");
+    } finally {
+        isBuscandoAtenciones.value = false;
+    }
+}
+function abrirModalConsentimiento(item) {
+    consentimientoItem.value = item;
+    consentimientoFirmanteTipo.value = "PACIENTE";
+    acompanante.value = { cedula: "", nombres: "", email: "", direccion: "", telefono: "" };
+    consentimientoUrl.value = "";
+}
+async function generarLinkFirma() {
+    if (!consentimientoItem.value?.ecografia_producto_id) return;
+    try {
+        isGenerandoLinkFirma.value = true;
+        const payload = {
+            ecografia_producto_id: consentimientoItem.value.ecografia_producto_id,
+            sede_id: busqueda.value?.sede_id || sessionStorage.getItem("ST-sede") || null,
+            firmante_tipo: consentimientoFirmanteTipo.value,
         };
-    },
-    computed: {
-        medicoOptions() {
-            // Opciones para el Select2 local de medicos.
-            return (this.medicos || []).map((p) => ({ id: String(p.id), name: p.name }));
-        },
-        tipoDocumentoOptions() {
-            // Opciones para el Select2 local de medicos.
-            return (this.tipoDocumentos || []).map((p) => ({
-                id: String(p.id),
-                codigo: p.codigo,
-                tipo_documento: p.tipo_documento,
-            }));
-        },
-        productoOptions() {
-            // Opciones para el Select2 local de productos.
-            return (this.productos || []).map((p) => ({
-                id: String(p.id),
-                cod_cups: p.cod_cups,
-                nom_produc: p.nom_produc,
-            }));
-        },
-    },
-    methods: {
-        buscarStudy() {
-            // Soporte para Enter en el input de búsqueda
-            return this.listarAtenciones();
-        },
-        btnLimpiar() {
-            // Limpia criterios de búsqueda (mantiene sede/medico del contexto)
-            this.busqueda.bus_nom_num_docu = "";
-            this.busqueda.bus_fehc_ini = "";
-            this.busqueda.bus_fecha_fin = "";
-            this.erroresBusqueda = {};
+        if (consentimientoFirmanteTipo.value === "ACOMPANANTE") {
+            payload.acompanante = { ...acompanante.value };
+        }
+        const res = await axios.post("/api/ecografias-consentimientos/token", payload);
+        consentimientoUrl.value = res?.data?.url || "";
+        // refrescar estado del consentimiento en el listado
+        await refrescarConsentimientoItem();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible generar el link de firma.");
+    } finally {
+        isGenerandoLinkFirma.value = false;
+    }
+}
+function abrirLinkFirma() {
+    if (!consentimientoUrl.value) return;
+    window.open(consentimientoUrl.value, "_blank", "noopener,noreferrer");
+}
+async function refrescarConsentimientoItem() {
+    if (!consentimientoItem.value?.ecografia_producto_id) return;
+    try {
+        const res = await axios.get(
+            `/api/ecografias-consentimientos/vigente/${consentimientoItem.value.ecografia_producto_id}`
+        );
+        const c = res?.data;
+        consentimientoItem.value.consentimiento_id = c?.id ?? null;
+        consentimientoItem.value.consentimiento_estado = c?.estado ?? null;
+        consentimientoItem.value.consentimiento_bloquea =
+            consentimientoItem.value.tiene_plantilla_consentimiento &&
+            c?.estado === "PENDIENTE_PACIENTE";
+    } catch (_) {
+        // best-effort
+    }
+}
+async function guardarRegistro() {
+    try {
+        isGuardandoEcografia.value = true;
 
-            this.safeDestroyDataTable(this.$refs.dt || "#example23");
-            this.registros = [];
-        },
+        const ecografiaRes = await axios.post("/api/ecografias", registro.value);
 
-        safeDestroyDataTable(selector = "#example23") {
-            if (
-                typeof window === "undefined" ||
-                !window.$ ||
-                !window.$.fn ||
-                !window.$.fn.DataTable
-            )
-                return;
-            const $t = window.$(selector);
-            if (!$t.length) return;
-            if (window.$.fn.DataTable.isDataTable($t)) {
-                $t.DataTable().clear().destroy();
-            }
-        },
-        safeInitDataTable(selector = "#example23") {
-            if (
-                typeof window === "undefined" ||
-                !window.$ ||
-                !window.$.fn ||
-                !window.$.fn.DataTable
-            )
-                return;
-            this.$nextTick(() => {
-                const $t = window.$(selector);
-                if (!$t.length) return;
-                if (window.$.fn.DataTable.isDataTable($t)) return;
-                $t.DataTable({
-                    dom: "Bfrtip",
-                    buttons: ["copy", "csv", "excel", "pdf", "print"],
-                    language: {
-                        emptyTable: "No se encontraron registros",
-                        zeroRecords: "No se encontraron registros",
-                    },
-                });
+        if (ecografiaRes.status === 201) {
+            // Mostrar notificación de éxito
+            toastMessage({
+                heading: "¡Éxito!",
+                text: "Agenda guardada correctamente.",
+                icon: "success",
             });
-        },
-        async listarAtenciones() {
-            try {
-                this.isBuscandoAtenciones = true;
 
-                const res = await axios.post(
-                    "/api/interface-sahi-ecografias/listar/productos/atencion",
-                    this.busqueda
-                );
-
-                if (res.status == 200) {
-                    this.safeDestroyDataTable(this.$refs.dt || "#example23");
-
-                    this.registros = res.data;
-
-                    this.safeInitDataTable(this.$refs.dt || "#example23");
-                }
-            } catch (error) {
-                this.erroresBusqueda = error?.response?.data?.errors || {};
-                handleAxiosErrorToast(error, "No fue posible listar atenciones.");
-            } finally {
-                this.isBuscandoAtenciones = false;
-            }
-        },
-
-        abrirModalConsentimiento(item) {
-            this.consentimientoItem = item;
-            this.consentimientoFirmanteTipo = "PACIENTE";
-            this.acompanante = { cedula: "", nombres: "", email: "", direccion: "", telefono: "" };
-            this.consentimientoUrl = "";
-        },
-
-        async generarLinkFirma() {
-            if (!this.consentimientoItem?.ecografia_producto_id) return;
-            try {
-                this.isGenerandoLinkFirma = true;
-                const payload = {
-                    ecografia_producto_id: this.consentimientoItem.ecografia_producto_id,
-                    sede_id: this.busqueda?.sede_id || sessionStorage.getItem("ST-sede") || null,
-                    firmante_tipo: this.consentimientoFirmanteTipo,
-                };
-                if (this.consentimientoFirmanteTipo === "ACOMPANANTE") {
-                    payload.acompanante = { ...this.acompanante };
-                }
-                const res = await axios.post("/api/ecografias-consentimientos/token", payload);
-                this.consentimientoUrl = res?.data?.url || "";
-                // refrescar estado del consentimiento en el listado
-                await this.refrescarConsentimientoItem();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible generar el link de firma.");
-            } finally {
-                this.isGenerandoLinkFirma = false;
-            }
-        },
-
-        abrirLinkFirma() {
-            if (!this.consentimientoUrl) return;
-            window.open(this.consentimientoUrl, "_blank", "noopener,noreferrer");
-        },
-
-        async refrescarConsentimientoItem() {
-            if (!this.consentimientoItem?.ecografia_producto_id) return;
-            try {
-                const res = await axios.get(
-                    `/api/ecografias-consentimientos/vigente/${this.consentimientoItem.ecografia_producto_id}`
-                );
-                const c = res?.data;
-                this.consentimientoItem.consentimiento_id = c?.id ?? null;
-                this.consentimientoItem.consentimiento_estado = c?.estado ?? null;
-                this.consentimientoItem.consentimiento_bloquea =
-                    this.consentimientoItem.tiene_plantilla_consentimiento &&
-                    c?.estado === "PENDIENTE_PACIENTE";
-            } catch (_) {
-                // best-effort
-            }
-        },
-        async guardarRegistro() {
-            try {
-                this.isGuardandoEcografia = true;
-
-                const ecografiaRes = await axios.post("/api/ecografias", this.registro);
-
-                if (ecografiaRes.status === 201) {
-                    // Mostrar notificación de éxito
-                    toastMessage({
-                        heading: "¡Éxito!",
-                        text: "Agenda guardada correctamente.",
-                        icon: "success",
-                    });
-
-                    // Actualizar la lista de datos y limpiar el formulario
-                    this.listarAtenciones();
-                    this.limpiarFormulario();
-                    this.btnCerralModalForm();
-                } else {
-                    toastMessage({
-                        heading: "Upss!!!",
-                        text: ecografiaRes.data.message,
-                        icon: "error",
-                    });
-                }
-            } catch (error) {
-                handleAxiosErrorToast(error, "Ocurrió un error al guardar la agenda.");
-
-                // Mostrar errores específicos en el formulario
-                if (error.response?.data?.errors) {
-                    this.errores = error.response.data.errors;
-                }
-            } finally {
-                this.isGuardandoEcografia = false;
-            }
-        },
-        registroParaAnular(data) {
-            this.registroAnular.ecografia_id = data.id;
-            this.registroAnular.atencion_id = data?.atencion_id ?? data?.IdAtencion ?? "";
-        },
-        anularEcografia() {
-            if (this.registroAnular.motivo_anula === "") {
-                toastMessage({
-                    heading: "¡Atención!",
-                    text: "Debe ingresar el motivo de anulación.",
-                    icon: "warning",
-                });
-                return;
-            }
-
-            confirmAction({
-                title: "Estas seguro de anular la ecografia?",
-                text: "No podrás recuperar este registro!",
-                icon: "warning",
-            }).then(async (ok) => {
-                if (!ok) return;
-                if (this.isAnulandoEcografia) return;
-                this.isAnulandoEcografia = true;
-                try {
-                    const response = await axios.post(
-                        `/api/ecografia-anular/${this.registroAnular.ecografia_id}`,
-                        this.registroAnular
-                    );
-                    alertSuccess("Ok!", response?.data?.message || "Ecografía anulada.", "success");
-                    const cerrarModal = document.getElementById("btnCerrarModalAunular");
-                    if (cerrarModal) cerrarModal.click();
-                    await this.listarAtenciones();
-                } catch (error) {
-                    handleAxiosErrorToast(error, "No fue posible anular la ecografía.");
-                    alertError("Error", "No fue posible anular la ecografía.", "error");
-                } finally {
-                    this.isAnulandoEcografia = false;
-                }
+            // Actualizar la lista de datos y limpiar el formulario
+            listarAtenciones();
+            limpiarFormulario();
+            btnCerralModalForm();
+        } else {
+            toastMessage({
+                heading: "Upss!!!",
+                text: ecografiaRes.data.message,
+                icon: "error",
             });
-        },
-        async establecerSede() {
-            this.registro.sede_id = sessionStorage.getItem("ST-sede");
-            this.busqueda.sede_id = sessionStorage.getItem("ST-sede");
-            this.sedeActual = sessionStorage.getItem("ST-sede");
-            await this.establecerSede();
-            this.registros = [];
-        },
-        async establecerMedico() {
-            this.registro.sede_id = sessionStorage.getItem("ST-sede");
-            this.busqueda.sede_id = sessionStorage.getItem("ST-sede");
-            this.medicoActual = sessionStorage.getItem("ST-medico");
+        }
+    } catch (error) {
+        handleAxiosErrorToast(error, "Ocurrió un error al guardar la agenda.");
 
-            try {
-                const res = await axios.get(
-                    `/api/config-sedes/${this.registro.sede_id}/buscarPorId`
-                );
-                this.sedeInterface = res?.data?.interface_software === "SAHI";
-            } catch (error) {
-                this.sedeInterface = false;
-            }
-            this.registros = [];
-        },
-        async consultarEstadoSahi(item) {
-            if (!this.sedeInterface) return;
-            if (!item?.ecografia_producto_id) return;
+        // Mostrar errores específicos en el formulario
+        if (error.response?.data?.errors) {
+            errores.value = error.response.data.errors;
+        }
+    } finally {
+        isGuardandoEcografia.value = false;
+    }
+}
+function registroParaAnular(data) {
+    registroAnular.value.ecografia_id = data.id;
+    registroAnular.value.atencion_id = data?.atencion_id ?? data?.IdAtencion ?? "";
+}
+function anularEcografia() {
+    if (registroAnular.value.motivo_anula === "") {
+        toastMessage({
+            heading: "¡Atención!",
+            text: "Debe ingresar el motivo de anulación.",
+            icon: "warning",
+        });
+        return;
+    }
 
-            const id = item.ecografia_producto_id;
-            try {
-                setMapValue(this, "isConsultandoSahi", id, true);
-                const estado = await this.consultarEstado(id);
-
-                item.estado_envio_sahi = estado.estado_envio_sahi ?? item.estado_envio_sahi;
-                item.fechor_envio_sahi = estado.fechor_envio_sahi ?? item.fechor_envio_sahi;
-                item.error_envio_sahi = estado.error_envio_sahi ?? null;
-                item.sahi_esquema_149 = estado.sahi_esquema_149 ?? item.sahi_esquema_149;
-                item.sahi_esquema_150 = estado.sahi_esquema_150 ?? item.sahi_esquema_150;
-            } catch (error) {
-                toastMessage({
-                    heading: "SAHI",
-                    text: error.response?.data?.message || "No se pudo consultar el estado SAHI.",
-                    icon: "warning",
-                });
-            } finally {
-                setMapValue(this, "isConsultandoSahi", id, false);
-            }
-        },
-        async reenviarASahi(item) {
-            if (!this.sedeInterface) return;
-            if (!item?.ecografia_producto_id) return;
-
-            const id = item.ecografia_producto_id;
-            try {
-                setMapValue(this, "isEnviandoSahi", id, true);
-                item.estado_envio_sahi = "ENVIANDO";
-                item.error_envio_sahi = null;
-
-                await this.enviarEcografiaProducto(id);
-
-                toastMessage({ heading: "SAHI", text: "Envío a SAHI encolado.", icon: "info" });
-            } catch (error) {
-                item.estado_envio_sahi = "ERROR";
-                item.error_envio_sahi =
-                    error.response?.data?.message || "No se pudo reenviar a SAHI.";
-                toastMessage({
-                    heading: "SAHI",
-                    text: item.error_envio_sahi,
-                    icon: "warning",
-                    hideAfter: 4500,
-                });
-            } finally {
-                setMapValue(this, "isEnviandoSahi", id, false);
-            }
-        },
-        async listarMedicos() {
-            try {
-                const pathname = String(window?.location?.pathname || "").toLowerCase();
-                const moduloId =
-                    sessionStorage.getItem("ST-modulo") ||
-                    (pathname.includes("ecografia") ? "2" : "1");
-                const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
-                this.medicos = res.data;
-            } catch (error) {
-                this.medicos = [];
-                handleAxiosErrorToast(error, "No fue posible listar médicos.");
-            }
-        },
-        async listarTipoDocumentos() {
-            try {
-                const res = await axios.get("/api/config-tipos-documentos/listar/activos");
-                this.tipoDocumentos = res.data;
-            } catch (error) {
-                this.tipoDocumentos = [];
-                handleAxiosErrorToast(error, "No fue posible listar tipos de documento.");
-            }
-        },
-        async listarProductos() {
-            try {
-                const res = await axios.get("/api/config-productos");
-                this.productos = res.data;
-            } catch (error) {
-                this.productos = [];
-                handleAxiosErrorToast(error, "No fue posible listar productos.");
-            }
-        },
-        onMedicoSelect(value) {
-            let selectedId = null;
-            if (Array.isArray(value) && value.length > 0) {
-                const v = value[0];
-                selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
-            } else if (value && typeof value === "object" && value.id != null) {
-                selectedId = String(value.id);
-            } else if (value != null) {
-                selectedId = String(value);
-            }
-            this.registro.medico_id = selectedId || "";
-        },
-        onTipoDocumentoSelect(value) {
-            let selectedId = null;
-            if (Array.isArray(value) && value.length > 0) {
-                const v = value[0];
-                selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
-            } else if (value && typeof value === "object" && value.id != null) {
-                selectedId = String(value.id);
-            } else if (value != null) {
-                selectedId = String(value);
-            }
-            this.registro.tipo_documento_id = selectedId || "";
-        },
-        onProductoSelect(value) {
-            let selectedId = value || null;
-            if (selectedId != null) {
-                var prod = this.productos.find(function (p) {
-                    return String(p.id) === String(selectedId);
-                });
-                if (prod) {
-                    const yaExiste = this.registro.productosAgenda.some((p) => p.id == prod.id);
-                    if (!yaExiste) {
-                        this.registro.productosAgenda.push({
-                            IdProducto: prod.id,
-                            CodLegal: prod.cod_cups,
-                            NomProducto: prod.nom_produc,
-                            Cantidad: 1,
-                            ValProduc: prod.val_produc,
-                        });
-                    }
-
-                    // Limpiar selección
-                    this.productoSelecciondo = "";
-                }
-            }
-        },
-        btnCerralModalForm() {
-            $(".right-sidebar").slideDown(50);
-            $(".right-sidebar").toggleClass("shw-rside");
-        },
-        mostrarRegistro(data = {}) {
-            this.tituloModal = `Admisionar al paciente: ${data.PrimerNombre} ${data.SegundoNombre}`;
-
-            this.registro.paciente_id = data.paciente_id;
-            this.registro.num_docu = data.NumDocumento;
-            this.registro.nombres = data.PrimerNombre;
-            this.registro.seg_nom = data.SegundoNombre;
-            this.registro.pri_ape = data.PrimerApellido;
-            this.registro.seg_ape = data.SegundoApellido;
-            this.registro.sexo = data.IdSexo;
-            this.registro.fec_naci = data.FecNacimiento;
-            this.registro.direccion = data.DirCasa;
-            this.registro.tel = data.TelCasa;
-            this.registro.cel = data.TelCelular || data.TelCasa;
-            this.registro.atencion_id = data?.IdAtencion ?? data?.atencion_id ?? null;
-            this.registro.contrato = data.DesContrato;
-            this.registro.plan = data.DesPlan;
-            this.registro.admin_salud = data.NomTercero;
-            this.registro.quien_ordeno = data.quien_ordeno;
-
-            this.registro.productosAgenda = [data];
-            // Homologar tipo de documento
-            const codigo = data.CodTipoDoc;
-            const tipoHomologado = this.tipoDocumentoOptions.find((t) => t.codigo === codigo);
-
-            if (tipoHomologado) {
-                this.registro.tipo_documento_id = tipoHomologado.id;
-            }
-
-            this.btnCerralModalForm();
-        },
-        limpiarFormulario() {
-            this.tituloModal = "";
-
-            this.registro.paciente_id = "";
-            this.registro.num_docu = "";
-            this.registro.nombres = "";
-            this.registro.seg_nom = "";
-            this.registro.pri_ape = "";
-            this.registro.seg_ape = "";
-            this.registro.sexo = "";
-            this.registro.fec_naci = "";
-            this.registro.direccion = "";
-            this.registro.tel = "";
-            this.registro.cel = "";
-            this.registro.atencion_id = "";
-            this.registro.contrato = "";
-            this.registro.plan = "";
-            this.registro.admin_salud = "";
-            this.registro.quien_ordeno = "";
-
-            this.registro.productosAgenda = [];
-        },
-        quitarProductoAgenda(codProduc) {
-            this.registro.productosAgenda = this.registro.productosAgenda.filter(
-                (x) => x.CodLegal !== codProduc
+    confirmAction({
+        title: "Estas seguro de anular la ecografia?",
+        text: "No podrás recuperar este registro!",
+        icon: "warning",
+    }).then(async (ok) => {
+        if (!ok) return;
+        if (isAnulandoEcografia.value) return;
+        isAnulandoEcografia.value = true;
+        try {
+            const response = await axios.post(
+                `/api/ecografia-anular/${registroAnular.value.ecografia_id}`,
+                registroAnular.value
             );
-        },
-    },
-};
+            alertSuccess("Ok!", response?.data?.message || "Ecografía anulada.", "success");
+            const cerrarModal = document.getElementById("btnCerrarModalAunular");
+            if (cerrarModal) cerrarModal.click();
+            await listarAtenciones();
+        } catch (error) {
+            handleAxiosErrorToast(error, "No fue posible anular la ecografía.");
+            alertError("Error", "No fue posible anular la ecografía.", "error");
+        } finally {
+            isAnulandoEcografia.value = false;
+        }
+    });
+}
+async function establecerSede() {
+    registro.value.sede_id = sessionStorage.getItem("ST-sede");
+    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
+    sedeActual.value = sessionStorage.getItem("ST-sede");
+    await establecerSede();
+    registros.value = [];
+}
+async function establecerMedico() {
+    registro.value.sede_id = sessionStorage.getItem("ST-sede");
+    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
+    medicoActual.value = sessionStorage.getItem("ST-medico");
+
+    try {
+        const res = await axios.get(`/api/config-sedes/${registro.value.sede_id}/buscarPorId`);
+        sedeInterface = res?.data?.interface_software === "SAHI";
+    } catch (error) {
+        sedeInterface = false;
+    }
+    registros.value = [];
+}
+async function consultarEstadoSahi(item) {
+    if (!sedeInterface) return;
+    if (!item?.ecografia_producto_id) return;
+
+    const id = item.ecografia_producto_id;
+    try {
+        setMapValue(this, "isConsultandoSahi", id, true);
+        const estado = await consultarEstado(id);
+
+        item.estado_envio_sahi = estado.estado_envio_sahi ?? item.estado_envio_sahi;
+        item.fechor_envio_sahi = estado.fechor_envio_sahi ?? item.fechor_envio_sahi;
+        item.error_envio_sahi = estado.error_envio_sahi ?? null;
+        item.sahi_esquema_149 = estado.sahi_esquema_149 ?? item.sahi_esquema_149;
+        item.sahi_esquema_150 = estado.sahi_esquema_150 ?? item.sahi_esquema_150;
+    } catch (error) {
+        toastMessage({
+            heading: "SAHI",
+            text: error.response?.data?.message || "No se pudo consultar el estado SAHI.",
+            icon: "warning",
+        });
+    } finally {
+        setMapValue(this, "isConsultandoSahi", id, false);
+    }
+}
+async function reenviarASahi(item) {
+    if (!sedeInterface) return;
+    if (!item?.ecografia_producto_id) return;
+
+    const id = item.ecografia_producto_id;
+    try {
+        setMapValue(this, "isEnviandoSahi", id, true);
+        item.estado_envio_sahi = "ENVIANDO";
+        item.error_envio_sahi = null;
+
+        await enviarEcografiaProducto(id);
+
+        toastMessage({ heading: "SAHI", text: "Envío a SAHI encolado.", icon: "info" });
+    } catch (error) {
+        item.estado_envio_sahi = "ERROR";
+        item.error_envio_sahi = error.response?.data?.message || "No se pudo reenviar a SAHI.";
+        toastMessage({
+            heading: "SAHI",
+            text: item.error_envio_sahi,
+            icon: "warning",
+            hideAfter: 4500,
+        });
+    } finally {
+        setMapValue(this, "isEnviandoSahi", id, false);
+    }
+}
+async function listarMedicos() {
+    try {
+        const pathname = String(window?.location?.pathname || "").toLowerCase();
+        const moduloId =
+            sessionStorage.getItem("ST-modulo") || (pathname.includes("ecografia") ? "2" : "1");
+        const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
+        medicos.value = res.data;
+    } catch (error) {
+        medicos.value = [];
+        handleAxiosErrorToast(error, "No fue posible listar médicos.");
+    }
+}
+async function listarTipoDocumentos() {
+    try {
+        const res = await axios.get("/api/config-tipos-documentos/listar/activos");
+        tipoDocumentos.value = res.data;
+    } catch (error) {
+        tipoDocumentos.value = [];
+        handleAxiosErrorToast(error, "No fue posible listar tipos de documento.");
+    }
+}
+async function listarProductos() {
+    try {
+        const res = await axios.get("/api/config-productos");
+        productos.value = res.data;
+    } catch (error) {
+        productos.value = [];
+        handleAxiosErrorToast(error, "No fue posible listar productos.");
+    }
+}
+function onMedicoSelect(value) {
+    let selectedId = null;
+    if (Array.isArray(value) && value.length > 0) {
+        const v = value[0];
+        selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
+    } else if (value && typeof value === "object" && value.id != null) {
+        selectedId = String(value.id);
+    } else if (value != null) {
+        selectedId = String(value);
+    }
+    registro.value.medico_id = selectedId || "";
+}
+function onTipoDocumentoSelect(value) {
+    let selectedId = null;
+    if (Array.isArray(value) && value.length > 0) {
+        const v = value[0];
+        selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
+    } else if (value && typeof value === "object" && value.id != null) {
+        selectedId = String(value.id);
+    } else if (value != null) {
+        selectedId = String(value);
+    }
+    registro.value.tipo_documento_id = selectedId || "";
+}
+function onProductoSelect(value) {
+    let selectedId = value || null;
+    if (selectedId != null) {
+        var prod = productos.value.find(function (p) {
+            return String(p.id) === String(selectedId);
+        });
+        if (prod) {
+            const yaExiste = registro.value.productosAgenda.some((p) => p.id == prod.id);
+            if (!yaExiste) {
+                registro.value.productosAgenda.push({
+                    IdProducto: prod.id,
+                    CodLegal: prod.cod_cups,
+                    NomProducto: prod.nom_produc,
+                    Cantidad: 1,
+                    ValProduc: prod.val_produc,
+                });
+            }
+
+            // Limpiar selección
+            productoSelecciondo.value = "";
+        }
+    }
+}
+function btnCerralModalForm() {
+    $(".right-sidebar").slideDown(50);
+    $(".right-sidebar").toggleClass("shw-rside");
+}
+function mostrarRegistro(data = {}) {
+    tituloModal.value = `Admisionar al paciente: ${data.PrimerNombre} ${data.SegundoNombre}`;
+
+    registro.value.paciente_id = data.paciente_id;
+    registro.value.num_docu = data.NumDocumento;
+    registro.value.nombres = data.PrimerNombre;
+    registro.value.seg_nom = data.SegundoNombre;
+    registro.value.pri_ape = data.PrimerApellido;
+    registro.value.seg_ape = data.SegundoApellido;
+    registro.value.sexo = data.IdSexo;
+    registro.value.fec_naci = data.FecNacimiento;
+    registro.value.direccion = data.DirCasa;
+    registro.value.tel = data.TelCasa;
+    registro.value.cel = data.TelCelular || data.TelCasa;
+    registro.value.atencion_id = data?.IdAtencion ?? data?.atencion_id ?? null;
+    registro.value.contrato = data.DesContrato;
+    registro.value.plan = data.DesPlan;
+    registro.value.admin_salud = data.NomTercero;
+    registro.value.quien_ordeno = data.quien_ordeno;
+
+    registro.value.productosAgenda = [data];
+    // Homologar tipo de documento
+    const codigo = data.CodTipoDoc;
+    const tipoHomologado = tipoDocumentoOptions.value.find((t) => t.codigo === codigo);
+
+    if (tipoHomologado) {
+        registro.value.tipo_documento_id = tipoHomologado.id;
+    }
+
+    btnCerralModalForm();
+}
+function limpiarFormulario() {
+    tituloModal.value = "";
+
+    registro.value.paciente_id = "";
+    registro.value.num_docu = "";
+    registro.value.nombres = "";
+    registro.value.seg_nom = "";
+    registro.value.pri_ape = "";
+    registro.value.seg_ape = "";
+    registro.value.sexo = "";
+    registro.value.fec_naci = "";
+    registro.value.direccion = "";
+    registro.value.tel = "";
+    registro.value.cel = "";
+    registro.value.atencion_id = "";
+    registro.value.contrato = "";
+    registro.value.plan = "";
+    registro.value.admin_salud = "";
+    registro.value.quien_ordeno = "";
+
+    registro.value.productosAgenda = [];
+}
+function quitarProductoAgenda(codProduc) {
+    registro.value.productosAgenda = registro.value.productosAgenda.filter(
+        (x) => x.CodLegal !== codProduc
+    );
+}
+
+onMounted(() => {
+    listarMedicos();
+    establecerSede();
+    listarTipoDocumentos();
+    listarProductos();
+
+    emitter.on("sedeSeleccionada", (data) => {
+        registro.value.sede_id = data.idSede;
+        establecerSede();
+        establecerMedico();
+    });
+});
 </script>
 <style scoped>
 .right-sidebar {

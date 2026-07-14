@@ -61,169 +61,162 @@
         </div>
     </div>
 </template>
+<script setup>
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-<script>
 import DOMPurify from "dompurify";
+import axios from "axios";
 
-export default {
-    props: {
-        token: { type: String, required: true },
-    },
-    data() {
-        return {
-            loading: true,
-            saving: false,
-            error: null,
-            okMsg: "",
-            html: "",
-            info: null,
-            canvasW: 900,
-            canvasH: 220,
-            drawing: false,
-            last: null,
-            hasInk: false,
-            timer: null,
-            nowTs: Date.now(),
-        };
-    },
-    computed: {
-        pacienteLabel() {
-            const p = this.info?.paciente;
-            const prod = this.info?.producto;
-            const nom = p?.nombres || "Paciente";
-            const doc = p?.num_docu ? ` (${p.num_docu})` : "";
-            const ex = prod?.nombre ? ` · ${prod.nombre}` : "";
-            return `${nom}${doc}${ex}`;
-        },
-        tiempoRestanteLabel() {
-            const exp = this.info?.expires_at;
-            if (!exp) return "";
-            const expTs = new Date(exp).getTime();
-            const diff = expTs - this.nowTs;
-            if (!Number.isFinite(diff) || diff <= 0) return "Enlace expirado";
-            const sec = Math.floor(diff / 1000);
-            const mm = String(Math.floor(sec / 60)).padStart(2, "0");
-            const ss = String(sec % 60).padStart(2, "0");
-            return `Tiempo restante: ${mm}:${ss}`;
-        },
-    },
-    mounted() {
-        this.fetchInfo();
-        this.initCanvas();
-        this.timer = setInterval(() => (this.nowTs = Date.now()), 1000);
-        window.addEventListener("resize", this.resizeCanvas);
-    },
-    beforeUnmount() {
-        if (this.timer) clearInterval(this.timer);
-        window.removeEventListener("resize", this.resizeCanvas);
-    },
-    methods: {
-        async fetchInfo() {
-            this.loading = true;
-            this.error = null;
-            try {
-                const res = await axios.get(`/firma/consentimiento-ecografia/${this.token}/info`);
-                this.info = res.data;
-                this.html = DOMPurify.sanitize(res.data?.html || "");
-            } catch (e) {
-                this.error =
-                    e?.response?.data?.message || "No fue posible cargar el consentimiento.";
-            } finally {
-                this.loading = false;
-            }
-        },
-        initCanvas() {
-            this.$nextTick(() => {
-                const c = this.$refs.canvas;
-                if (!c) return;
-                const ctx = c.getContext("2d");
-                ctx.lineWidth = 2.5;
-                ctx.lineCap = "round";
-                ctx.strokeStyle = "#111";
-                this.clear();
+const props = defineProps({
+    token: { type: String, required: true },
+});
 
-                c.addEventListener("pointerdown", this.onDown);
-                c.addEventListener("pointermove", this.onMove);
-                c.addEventListener("pointerup", this.onUp);
-                c.addEventListener("pointercancel", this.onUp);
-                this.resizeCanvas();
-            });
-        },
-        resizeCanvas() {
-            const c = this.$refs.canvas;
-            if (!c) return;
-            const parent = c.parentElement;
-            if (!parent) return;
-            // Mantener firma, pero por simplicidad reiniciamos al cambiar tamaño
-            const w = Math.max(300, Math.floor(parent.clientWidth));
-            c.width = w * 2; // más resolución
-            c.height = this.canvasH;
-            const ctx = c.getContext("2d");
-            ctx.lineWidth = 2.5;
-            ctx.lineCap = "round";
-            ctx.strokeStyle = "#111";
-            this.hasInk = false;
-            ctx.clearRect(0, 0, c.width, c.height);
-        },
-        relPos(e) {
-            const c = this.$refs.canvas;
-            const rect = c.getBoundingClientRect();
-            const x = (e.clientX - rect.left) * (c.width / rect.width);
-            const y = (e.clientY - rect.top) * (c.height / rect.height);
-            return { x, y };
-        },
-        onDown(e) {
-            if (this.saving) return;
-            this.drawing = true;
-            this.last = this.relPos(e);
-            e.preventDefault();
-        },
-        onMove(e) {
-            if (!this.drawing || this.saving) return;
-            const c = this.$refs.canvas;
-            const ctx = c.getContext("2d");
-            const p = this.relPos(e);
-            ctx.beginPath();
-            ctx.moveTo(this.last.x, this.last.y);
-            ctx.lineTo(p.x, p.y);
-            ctx.stroke();
-            this.last = p;
-            this.hasInk = true;
-            e.preventDefault();
-        },
-        onUp(e) {
-            this.drawing = false;
-            this.last = null;
-            e.preventDefault();
-        },
-        clear() {
-            const c = this.$refs.canvas;
-            if (!c) return;
-            const ctx = c.getContext("2d");
-            ctx.clearRect(0, 0, c.width, c.height);
-            this.hasInk = false;
-        },
-        async submit() {
-            if (!this.hasInk || this.saving) return;
-            this.saving = true;
-            this.error = null;
-            this.okMsg = "";
-            try {
-                const c = this.$refs.canvas;
-                const dataUrl = c.toDataURL("image/png");
-                const res = await axios.post(
-                    `/firma/consentimiento-ecografia/${this.token}/firmar`,
-                    {
-                        firma_png: dataUrl,
-                    }
-                );
-                this.okMsg = res?.data?.message || "Firma registrada correctamente.";
-            } catch (e) {
-                this.error = e?.response?.data?.message || "No fue posible registrar la firma.";
-            } finally {
-                this.saving = false;
-            }
-        },
-    },
-};
+const loading = ref(true);
+const saving = ref(false);
+const error = ref(null);
+const okMsg = ref("");
+const html = ref("");
+const info = ref(null);
+const canvasW = ref(900);
+const canvasH = ref(220);
+const drawing = ref(false);
+const last = ref(null);
+const hasInk = ref(false);
+const timer = ref(null);
+const nowTs = ref(Date.now());
+
+const pacienteLabel = computed(() => {
+    const p = info.value?.paciente;
+    const prod = info.value?.producto;
+    const nom = p?.nombres || "Paciente";
+    const doc = p?.num_docu ? ` (${p.num_docu})` : "";
+    const ex = prod?.nombre ? ` · ${prod.nombre}` : "";
+    return `${nom}${doc}${ex}`;
+});
+const tiempoRestanteLabel = computed(() => {
+    const exp = info.value?.expires_at;
+    if (!exp) return "";
+    const expTs = new Date(exp).getTime();
+    const diff = expTs - nowTs.value;
+    if (!Number.isFinite(diff) || diff <= 0) return "Enlace expirado";
+    const sec = Math.floor(diff / 1000);
+    const mm = String(Math.floor(sec / 60)).padStart(2, "0");
+    const ss = String(sec % 60).padStart(2, "0");
+    return `Tiempo restante: ${mm}:${ss}`;
+});
+
+async function fetchInfo() {
+    loading.value = true;
+    error.value = null;
+    try {
+        const res = await axios.get(`/firma/consentimiento-ecografia/${token}/info`);
+        info.value = res.data;
+        html.value = DOMPurify.sanitize(res.data?.html || "");
+    } catch (e) {
+        error.value = e?.response?.data?.message || "No fue posible cargar el consentimiento.";
+    } finally {
+        loading.value = false;
+    }
+}
+function initCanvas() {
+    nextTick(() => {
+        const c = canvas.value;
+        if (!c) return;
+        const ctx = c.getContext("2d");
+        ctx.lineWidth = 2.5;
+        ctx.lineCap = "round";
+        ctx.strokeStyle = "#111";
+        clear();
+
+        c.addEventListener("pointerdown", onDown);
+        c.addEventListener("pointermove", onMove);
+        c.addEventListener("pointerup", onUp);
+        c.addEventListener("pointercancel", onUp);
+        resizeCanvas();
+    });
+}
+function resizeCanvas() {
+    const c = canvas.value;
+    if (!c) return;
+    const parent = c.parentElement;
+    if (!parent) return;
+    // Mantener firma, pero por simplicidad reiniciamos al cambiar tamaño
+    const w = Math.max(300, Math.floor(parent.clientWidth));
+    c.width = w * 2; // más resolución
+    c.height = canvasH.value;
+    const ctx = c.getContext("2d");
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#111";
+    hasInk.value = false;
+    ctx.clearRect(0, 0, c.width, c.height);
+}
+function relPos(e) {
+    const c = canvas.value;
+    const rect = c.getBoundingClientRect();
+    const x = (e.clientX - rect.left) * (c.width / rect.width);
+    const y = (e.clientY - rect.top) * (c.height / rect.height);
+    return { x, y };
+}
+function onDown(e) {
+    if (saving.value) return;
+    drawing.value = true;
+    last.value = relPos(e);
+    e.preventDefault();
+}
+function onMove(e) {
+    if (!drawing.value || saving.value) return;
+    const c = canvas.value;
+    const ctx = c.getContext("2d");
+    const p = relPos(e);
+    ctx.beginPath();
+    ctx.moveTo(last.value.x, last.value.y);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    last.value = p;
+    hasInk.value = true;
+    e.preventDefault();
+}
+function onUp(e) {
+    drawing.value = false;
+    last.value = null;
+    e.preventDefault();
+}
+function clear() {
+    const c = canvas.value;
+    if (!c) return;
+    const ctx = c.getContext("2d");
+    ctx.clearRect(0, 0, c.width, c.height);
+    hasInk.value = false;
+}
+async function submit() {
+    if (!hasInk.value || saving.value) return;
+    saving.value = true;
+    error.value = null;
+    okMsg.value = "";
+    try {
+        const c = canvas.value;
+        const dataUrl = c.toDataURL("image/png");
+        const res = await axios.post(`/firma/consentimiento-ecografia/${token}/firmar`, {
+            firma_png: dataUrl,
+        });
+        okMsg.value = res?.data?.message || "Firma registrada correctamente.";
+    } catch (e) {
+        error.value = e?.response?.data?.message || "No fue posible registrar la firma.";
+    } finally {
+        saving.value = false;
+    }
+}
+
+onMounted(() => {
+    fetchInfo();
+    initCanvas();
+    timer.value = setInterval(() => (nowTs.value = Date.now()), 1000);
+    window.addEventListener("resize", resizeCanvas);
+});
+
+onBeforeUnmount(() => {
+    if (timer.value) clearInterval(timer.value);
+    window.removeEventListener("resize", resizeCanvas);
+});
 </script>

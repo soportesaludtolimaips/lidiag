@@ -175,115 +175,112 @@
         </div>
     </div>
 </template>
+<script setup>
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-<script>
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { toastMessage, confirmAction, handleAxiosErrorToast } from "@/helpers/alerts.js";
+import axios from "axios";
 
-export default {
-    mounted() {
-        this.listar();
-    },
-    beforeUnmount() {
-        safeDestroyDataTable(this.$refs.dt || "#example23");
-    },
-    data() {
-        return {
-            registros: [],
-            registro: { id: 0, nombre: "", activo: true },
-            tituloModal: "Nuevo registro",
-            actualizar: false,
-            errores: {},
-            loadingListar: false,
-            loadingGuardar: false,
-            loadingEliminarId: null,
-        };
-    },
-    methods: {
-        async listar() {
-            if (this.loadingListar) return;
-            this.loadingListar = true;
-            try {
-                const res = await axios.get("/api/helpdesk-categorias");
-                safeDestroyDataTable(this.$refs.dt || "#example23");
-                this.registros = res.data || [];
-                this.$nextTick(() => {
-                    safeInitDataTable(this.$refs.dt || "#example23", {
-                        dom: "Bfrtip",
-                        buttons: ["copy", "csv", "excel", "pdf", "print"],
-                    });
-                });
-            } catch (error) {
-                handleAxiosErrorToast(error, "No se pudo listar.");
-            } finally {
-                this.loadingListar = false;
-            }
-        },
-        mostrarRegistro(item = null) {
-            this.errores = {};
-            if (item) {
-                this.tituloModal = "Actualizar registro";
-                this.registro = { id: item.id, nombre: item.nombre, activo: !!item.activo };
-            } else {
-                this.tituloModal = "Nuevo registro";
-                this.registro = { id: 0, nombre: "", activo: true };
-            }
-            $(".right-side-toggle").click();
-        },
-        btnCerralModalForm() {
-            $("#btnCerralModalForm").click();
-        },
-        async guardarRegistro() {
-            if (this.loadingGuardar) return;
-            this.loadingGuardar = true;
-            this.errores = {};
-            try {
-                if (!this.actualizar) {
-                    await axios.post("/api/helpdesk-categorias", {
-                        nombre: this.registro.nombre,
-                        activo: this.registro.activo ? 1 : 0,
-                    });
-                    toastMessage({ heading: "Ok", text: "Categoría creada.", icon: "success" });
-                } else {
-                    await axios.put(`/api/helpdesk-categorias/${this.registro.id}`, {
-                        nombre: this.registro.nombre,
-                        activo: this.registro.activo ? 1 : 0,
-                    });
-                    toastMessage({
-                        heading: "Ok",
-                        text: "Categoría actualizada.",
-                        icon: "success",
-                    });
-                }
-                this.btnCerralModalForm();
-                await this.listar();
-            } catch (error) {
-                if (error?.response?.status === 422) {
-                    this.errores = error.response.data.errors || {};
-                } else {
-                    handleAxiosErrorToast(error, "No se pudo guardar.");
-                }
-            } finally {
-                this.loadingGuardar = false;
-            }
-        },
-        async desactivarRegistro(item) {
-            const ok = await confirmAction({
-                title: "¿Desactivar?",
-                text: "El registro quedará inactivo.",
+const registros = ref([]);
+const registro = ref({ id: 0, nombre: "", activo: true });
+const tituloModal = ref("Nuevo registro");
+const actualizar = ref(false);
+const errores = ref({});
+const loadingListar = ref(false);
+const loadingGuardar = ref(false);
+const loadingEliminarId = ref(null);
+
+async function listar() {
+    if (loadingListar.value) return;
+    loadingListar.value = true;
+    try {
+        const res = await axios.get("/api/helpdesk-categorias");
+        safeDestroyDataTable(dt.value || "#example23");
+        registros.value = res.data || [];
+        nextTick(() => {
+            safeInitDataTable(dt.value || "#example23", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
-            if (!ok) return;
-            this.loadingEliminarId = item.id;
-            try {
-                await axios.delete(`/api/helpdesk-categorias/${item.id}`);
-                toastMessage({ heading: "Ok", text: "Categoría desactivada.", icon: "success" });
-                await this.listar();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No se pudo desactivar.");
-            } finally {
-                this.loadingEliminarId = null;
-            }
-        },
-    },
-};
+        });
+    } catch (error) {
+        handleAxiosErrorToast(error, "No se pudo listar.");
+    } finally {
+        loadingListar.value = false;
+    }
+}
+function mostrarRegistro(item = null) {
+    errores.value = {};
+    if (item) {
+        tituloModal.value = "Actualizar registro";
+        registro.value = { id: item.id, nombre: item.nombre, activo: !!item.activo };
+    } else {
+        tituloModal.value = "Nuevo registro";
+        registro.value = { id: 0, nombre: "", activo: true };
+    }
+    $(".right-side-toggle").click();
+}
+function btnCerralModalForm() {
+    $("#btnCerralModalForm").click();
+}
+async function guardarRegistro() {
+    if (loadingGuardar.value) return;
+    loadingGuardar.value = true;
+    errores.value = {};
+    try {
+        if (!actualizar.value) {
+            await axios.post("/api/helpdesk-categorias", {
+                nombre: registro.value.nombre,
+                activo: registro.value.activo ? 1 : 0,
+            });
+            toastMessage({ heading: "Ok", text: "Categoría creada.", icon: "success" });
+        } else {
+            await axios.put(`/api/helpdesk-categorias/${registro.value.id}`, {
+                nombre: registro.value.nombre,
+                activo: registro.value.activo ? 1 : 0,
+            });
+            toastMessage({
+                heading: "Ok",
+                text: "Categoría actualizada.",
+                icon: "success",
+            });
+        }
+        btnCerralModalForm();
+        await listar();
+    } catch (error) {
+        if (error?.response?.status === 422) {
+            errores.value = error.response.data.errors || {};
+        } else {
+            handleAxiosErrorToast(error, "No se pudo guardar.");
+        }
+    } finally {
+        loadingGuardar.value = false;
+    }
+}
+async function desactivarRegistro(item) {
+    const ok = await confirmAction({
+        title: "¿Desactivar?",
+        text: "El registro quedará inactivo.",
+    });
+    if (!ok) return;
+    loadingEliminarId.value = item.id;
+    try {
+        await axios.delete(`/api/helpdesk-categorias/${item.id}`);
+        toastMessage({ heading: "Ok", text: "Categoría desactivada.", icon: "success" });
+        await listar();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No se pudo desactivar.");
+    } finally {
+        loadingEliminarId.value = null;
+    }
+}
+
+onMounted(() => {
+    listar();
+});
+
+onBeforeUnmount(() => {
+    safeDestroyDataTable(dt.value || "#example23");
+});
 </script>

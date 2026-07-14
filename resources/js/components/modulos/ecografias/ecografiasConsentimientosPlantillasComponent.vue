@@ -323,210 +323,202 @@
         </div>
     </div>
 </template>
+<script setup>
+import { nextTick, onMounted, ref } from "vue";
 
-<script>
 import usePermissions from "@/helpers/permissions.js";
 import { handleAxiosErrorToast, confirmAction } from "@/helpers/alerts";
+import axios from "axios";
 
-export default {
-    props: ["usuarioactual", "permisos"],
-    setup(props) {
-        const { can } = usePermissions(props.permisos || []);
-        return { can };
-    },
-    data() {
-        return {
-            q: "",
-            loading: false,
-            loadingGuardar: false,
-            loadingPreviewId: null,
-            registros: [],
-            productos: [],
-            modulos: [],
-            filtros: { config_modulo_id: "" },
-            form: { id: null, producto_id: "", nombre: "", html: "" },
-            versions: [],
-            loadingVersions: false,
-            productoVersionsId: null,
+const props = defineProps({});
+
+const q = ref("");
+const loading = ref(false);
+const loadingGuardar = ref(false);
+const loadingPreviewId = ref(null);
+const registros = ref([]);
+const productos = ref([]);
+const modulos = ref([]);
+const filtros = ref({ config_modulo_id: "" });
+const form = ref({ id: null, producto_id: "", nombre: "", html: "" });
+const versions = ref([]);
+const loadingVersions = ref(false);
+const productoVersionsId = ref(null);
+
+function initWysiwyg() {
+    try {
+        const $root = $($el);
+        $root.find(".textarea_editor").each((_, el) => {
+            const $el = $(el);
+            if ($el.data("wysihtml5")) return;
+            if ($el.prevAll(".wysihtml5-toolbar").length) return;
+            $el.wysihtml5({ stylesheets: ["/lib/css/wysiwyg-color.css"] });
+        });
+    } catch (e) {}
+}
+function getHtmlFromEditor() {
+    try {
+        const $el = $($el).find("textarea.textarea_editor").first();
+        if (!$el.length) return form.value.html || "";
+        const inst = $el.data("wysihtml5");
+        if (inst && inst.editor && typeof inst.editor.getValue === "function") {
+            return inst.editor.getValue();
+        }
+        return $el.val() || form.value.html || "";
+    } catch (_) {
+        return form.value.html || "";
+    }
+}
+async function listarProductos() {
+    try {
+        const res = await axios.get("/api/config-productos");
+        productos.value = Array.isArray(res.data) ? res.data : [];
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar productos.");
+    }
+}
+async function listarModulos() {
+    try {
+        const res = await axios.get("/api/config-modulos-listar");
+        modulos.value = Array.isArray(res.data) ? res.data : [];
+        // default Ecografías (id=2) si existe
+        if (!filtros.value.config_modulo_id) {
+            const eco = modulos.value.find((m) => Number(m.id) === 2);
+            if (eco) filtros.value.config_modulo_id = eco.id;
+        }
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar módulos.");
+    }
+}
+async function listar() {
+    if (!filtros.value.config_modulo_id) {
+        handleAxiosErrorToast(
+            { response: { data: { message: "Seleccione un módulo." } } },
+            "Seleccione un módulo."
+        );
+        return;
+    }
+    loading.value = true;
+    try {
+        const res = await axios.get("/api/consentimientos-plantillas", {
+            params: {
+                q: q.value,
+                vigentes: 1,
+                config_modulo_id: filtros.value.config_modulo_id,
+            },
+        });
+        registros.value = Array.isArray(res.data) ? res.data : [];
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar plantillas.");
+        registros.value = [];
+    } finally {
+        loading.value = false;
+    }
+}
+function nuevo() {
+    form.value = { id: null, producto_id: "", nombre: "", html: "" };
+    nextTick(() => initWysiwyg());
+}
+function editar(p) {
+    form.value = { id: p.id, producto_id: p.producto_id, nombre: p.nombre, html: p.html };
+    nextTick(() => initWysiwyg());
+}
+async function guardar() {
+    if (!form.value.producto_id) return;
+    if (!filtros.value.config_modulo_id) return;
+    loadingGuardar.value = true;
+    try {
+        const payload = {
+            config_modulo_id: filtros.value.config_modulo_id,
+            producto_id: form.value.producto_id,
+            nombre: form.value.nombre,
+            html: getHtmlFromEditor(),
         };
-    },
-    mounted() {
-        this.listarProductos();
-        this.listarModulos();
-        this.listar();
-        this.$nextTick(() => this.initWysiwyg());
-    },
-    methods: {
-        initWysiwyg() {
-            try {
-                const $root = $(this.$el);
-                $root.find(".textarea_editor").each((_, el) => {
-                    const $el = $(el);
-                    if ($el.data("wysihtml5")) return;
-                    if ($el.prevAll(".wysihtml5-toolbar").length) return;
-                    $el.wysihtml5({ stylesheets: ["/lib/css/wysiwyg-color.css"] });
-                });
-            } catch (e) {}
-        },
-        getHtmlFromEditor() {
-            try {
-                const $el = $(this.$el).find("textarea.textarea_editor").first();
-                if (!$el.length) return this.form.html || "";
-                const inst = $el.data("wysihtml5");
-                if (inst && inst.editor && typeof inst.editor.getValue === "function") {
-                    return inst.editor.getValue();
+        if (!form.value.id) {
+            await axios.post("/api/consentimientos-plantillas", payload);
+        } else {
+            await axios.put(`/api/consentimientos-plantillas/${form.value.id}`, payload);
+        }
+        await listar();
+        $("#modal-plantilla").modal("hide");
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible guardar la plantilla.");
+    } finally {
+        loadingGuardar.value = false;
+    }
+}
+async function previewPdf(p) {
+    try {
+        loadingPreviewId.value = p.id;
+        window.open(
+            `/api/consentimientos-plantillas/${p.id}/preview-pdf`,
+            "_blank",
+            "noopener,noreferrer"
+        );
+    } finally {
+        loadingPreviewId.value = null;
+    }
+}
+async function verVersiones(p) {
+    if (!filtros.value.config_modulo_id) return;
+    loadingVersions.value = true;
+    versions.value = [];
+    productoVersionsId.value = p.producto_id;
+    try {
+        const res = await axios.get(
+            `/api/consentimientos-plantillas/producto/${p.producto_id}/versions`,
+            {
+                params: { config_modulo_id: filtros.value.config_modulo_id },
+            }
+        );
+        versions.value = Array.isArray(res.data) ? res.data : [];
+        $("#modal-versiones").modal("show");
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible cargar versiones.");
+    } finally {
+        loadingVersions.value = false;
+    }
+}
+async function activarVersion(v) {
+    try {
+        await axios.post(`/api/consentimientos-plantillas/${v.id}/vigente`);
+        // refrescar modal y listado
+        if (productoVersionsId.value) {
+            const res = await axios.get(
+                `/api/consentimientos-plantillas/producto/${productoVersionsId.value}/versions`,
+                {
+                    params: { config_modulo_id: filtros.value.config_modulo_id },
                 }
-                return $el.val() || this.form.html || "";
-            } catch (_) {
-                return this.form.html || "";
-            }
-        },
-        async listarProductos() {
-            try {
-                const res = await axios.get("/api/config-productos");
-                this.productos = Array.isArray(res.data) ? res.data : [];
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar productos.");
-            }
-        },
-        async listarModulos() {
-            try {
-                const res = await axios.get("/api/config-modulos-listar");
-                this.modulos = Array.isArray(res.data) ? res.data : [];
-                // default Ecografías (id=2) si existe
-                if (!this.filtros.config_modulo_id) {
-                    const eco = this.modulos.find((m) => Number(m.id) === 2);
-                    if (eco) this.filtros.config_modulo_id = eco.id;
-                }
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar módulos.");
-            }
-        },
-        async listar() {
-            if (!this.filtros.config_modulo_id) {
-                handleAxiosErrorToast(
-                    { response: { data: { message: "Seleccione un módulo." } } },
-                    "Seleccione un módulo."
-                );
-                return;
-            }
-            this.loading = true;
-            try {
-                const res = await axios.get("/api/consentimientos-plantillas", {
-                    params: {
-                        q: this.q,
-                        vigentes: 1,
-                        config_modulo_id: this.filtros.config_modulo_id,
-                    },
-                });
-                this.registros = Array.isArray(res.data) ? res.data : [];
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar plantillas.");
-                this.registros = [];
-            } finally {
-                this.loading = false;
-            }
-        },
-        nuevo() {
-            this.form = { id: null, producto_id: "", nombre: "", html: "" };
-            this.$nextTick(() => this.initWysiwyg());
-        },
-        editar(p) {
-            this.form = { id: p.id, producto_id: p.producto_id, nombre: p.nombre, html: p.html };
-            this.$nextTick(() => this.initWysiwyg());
-        },
-        async guardar() {
-            if (!this.form.producto_id) return;
-            if (!this.filtros.config_modulo_id) return;
-            this.loadingGuardar = true;
-            try {
-                const payload = {
-                    config_modulo_id: this.filtros.config_modulo_id,
-                    producto_id: this.form.producto_id,
-                    nombre: this.form.nombre,
-                    html: this.getHtmlFromEditor(),
-                };
-                if (!this.form.id) {
-                    await axios.post("/api/consentimientos-plantillas", payload);
-                } else {
-                    await axios.put(`/api/consentimientos-plantillas/${this.form.id}`, payload);
-                }
-                await this.listar();
-                $("#modal-plantilla").modal("hide");
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible guardar la plantilla.");
-            } finally {
-                this.loadingGuardar = false;
-            }
-        },
-        async previewPdf(p) {
-            try {
-                this.loadingPreviewId = p.id;
-                window.open(
-                    `/api/consentimientos-plantillas/${p.id}/preview-pdf`,
-                    "_blank",
-                    "noopener,noreferrer"
-                );
-            } finally {
-                this.loadingPreviewId = null;
-            }
-        },
-        async verVersiones(p) {
-            if (!this.filtros.config_modulo_id) return;
-            this.loadingVersions = true;
-            this.versions = [];
-            this.productoVersionsId = p.producto_id;
-            try {
-                const res = await axios.get(
-                    `/api/consentimientos-plantillas/producto/${p.producto_id}/versions`,
-                    {
-                        params: { config_modulo_id: this.filtros.config_modulo_id },
-                    }
-                );
-                this.versions = Array.isArray(res.data) ? res.data : [];
-                $("#modal-versiones").modal("show");
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible cargar versiones.");
-            } finally {
-                this.loadingVersions = false;
-            }
-        },
-        async activarVersion(v) {
-            try {
-                await axios.post(`/api/consentimientos-plantillas/${v.id}/vigente`);
-                // refrescar modal y listado
-                if (this.productoVersionsId) {
-                    const res = await axios.get(
-                        `/api/consentimientos-plantillas/producto/${this.productoVersionsId}/versions`,
-                        {
-                            params: { config_modulo_id: this.filtros.config_modulo_id },
-                        }
-                    );
-                    this.versions = Array.isArray(res.data) ? res.data : [];
-                }
-                await this.listar();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible activar la versión.");
-            }
-        },
-        async desactivar(p) {
-            const ok = await confirmAction({
-                title: "¿Desactivar plantilla?",
-                text: "La plantilla dejará de estar vigente.",
-                icon: "warning",
-            });
-            if (!ok) return;
-            try {
-                await axios.delete(`/api/consentimientos-plantillas/${p.id}`);
-                await this.listar();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible desactivar la plantilla.");
-            }
-        },
-    },
-};
-</script>
+            );
+            versions.value = Array.isArray(res.data) ? res.data : [];
+        }
+        await listar();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible activar la versión.");
+    }
+}
+async function desactivar(p) {
+    const ok = await confirmAction({
+        title: "¿Desactivar plantilla?",
+        text: "La plantilla dejará de estar vigente.",
+        icon: "warning",
+    });
+    if (!ok) return;
+    try {
+        await axios.delete(`/api/consentimientos-plantillas/${p.id}`);
+        await listar();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible desactivar la plantilla.");
+    }
+}
 
+onMounted(() => {
+    listarProductos();
+    listarModulos();
+    listar();
+    nextTick(() => initWysiwyg());
+});
+</script>
 <style scoped>
 .breadcrumb-btn {
     vertical-align: baseline;

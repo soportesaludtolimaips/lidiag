@@ -377,180 +377,167 @@
         </div>
     </div>
 </template>
+<script setup>
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-<script>
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { toastMessage, handleAxiosErrorToast } from "@/helpers/alerts.js";
 import { formatDateTime } from "@/helpers/dateUtils.js";
 import { helpdesk } from "@/helpers/api.js";
 
-export default {
-    data() {
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, "0");
-        const dd = String(today.getDate()).padStart(2, "0");
-        const todayStr = `${yyyy}-${mm}-${dd}`;
-        return {
-            loading: false,
-            limit: 500,
-            indicadores: null,
-            detallado: [],
-            sedes: [],
-            estados: [],
-            categorias: [],
-            prioridades: [],
-            filters: {
-                fechaIni: todayStr,
-                fechaFin: todayStr,
-                sedeId: "",
-                estadoId: "",
-                categoriaId: "",
-                prioridadId: "",
-                solicitanteId: "",
-                tecnicoId: "",
-            },
-        };
-    },
-    computed: {
-        canExport() {
-            return !!(this.filters.fechaIni && this.filters.fechaFin);
-        },
-    },
-    async mounted() {
-        // sede activa por defecto
-        try {
-            const sedeActiva = sessionStorage.getItem("ST-sede");
-            if (sedeActiva) this.filters.sedeId = sedeActiva;
-        } catch (e) {
-            console.warn("No se pudo leer sede activa de sessionStorage", e);
-        }
-        await this.cargarCatalogos();
-        await this.buscar();
-    },
-    beforeUnmount() {
-        safeDestroyDataTable(this.$refs.dt || "#helpdeskReportesDetallado");
-    },
-    methods: {
-        formatDateTime(dt) {
-            return formatDateTime(dt);
-        },
-        formatHoras(segundos) {
-            if (!segundos) return "";
-            const h = Number(segundos) / 3600;
-            if (Number.isNaN(h)) return "";
-            return h.toFixed(2);
-        },
-        async cargarCatalogos() {
-            try {
-                const [cats, prios, ests, sedes] = await Promise.all([
-                    helpdesk.categorias(),
-                    helpdesk.prioridades(),
-                    helpdesk.estados(),
-                    helpdesk.sedesActivas(),
-                ]);
-                this.categorias = (cats.data || []).filter((x) => x.activo);
-                this.prioridades = (prios.data || []).filter((x) => x.activo);
-                this.estados = (ests.data || []).filter((x) => x.activo);
-                this.sedes = sedes.data || [];
-            } catch (error) {
-                handleAxiosErrorToast(error, "No se pudieron cargar catálogos.");
-            }
-        },
-        limpiar() {
-            const today = new Date();
-            const yyyy = today.getFullYear();
-            const mm = String(today.getMonth() + 1).padStart(2, "0");
-            const dd = String(today.getDate()).padStart(2, "0");
-            const todayStr = `${yyyy}-${mm}-${dd}`;
-            this.filters = {
-                fechaIni: todayStr,
-                fechaFin: todayStr,
-                sedeId: "",
-                estadoId: "",
-                categoriaId: "",
-                prioridadId: "",
-                solicitanteId: "",
-                tecnicoId: "",
-            };
-            try {
-                const sedeActiva = sessionStorage.getItem("ST-sede");
-                if (sedeActiva) this.filters.sedeId = sedeActiva;
-            } catch (e) {
-                console.warn("No se pudo leer sede activa de sessionStorage", e);
-            }
-            this.buscar();
-        },
-        buildParams(extra = {}) {
-            return {
-                fechaIni: this.filters.fechaIni,
-                fechaFin: this.filters.fechaFin,
-                sedeId: this.filters.sedeId || "",
-                estadoId: this.filters.estadoId || "",
-                categoriaId: this.filters.categoriaId || "",
-                prioridadId: this.filters.prioridadId || "",
-                solicitanteId: this.filters.solicitanteId || "",
-                tecnicoId: this.filters.tecnicoId || "",
-                ...extra,
-            };
-        },
-        initDT() {
-            safeInitDataTable(this.$refs.dt || "#helpdeskReportesDetallado", {
-                dom: "Bfrtip",
-                buttons: [
-                    { extend: "copy", titleAttr: "Copiar al portapapeles" },
-                    { extend: "csv", titleAttr: "Exportar a CSV" },
-                    { extend: "excel", titleAttr: "Exportar a Excel" },
-                    { extend: "pdf", titleAttr: "Exportar a PDF" },
-                    { extend: "print", titleAttr: "Imprimir" },
-                ],
-                retrieve: true,
-                order: [],
-            });
-        },
-        async buscar() {
-            if (!this.canExport) return;
-            if (this.loading) return;
-            if (
-                this.filters.fechaIni &&
-                this.filters.fechaFin &&
-                this.filters.fechaFin < this.filters.fechaIni
-            ) {
-                toastMessage({
-                    heading: "Upss!!!",
-                    text: "La fecha 'Hasta' no puede ser anterior a 'Desde'.",
-                    icon: "warning",
-                });
-                this.$nextTick(() => document.getElementById("reporteFechaFin")?.focus());
-                return;
-            }
-            this.loading = true;
-            try {
-                const params = this.buildParams({ limit: this.limit });
-                const [ind, det] = await Promise.all([
-                    helpdesk.indicadores(params),
-                    helpdesk.detallado(params),
-                ]);
-                this.indicadores = ind.data || null;
-                this.detallado = det.data?.items || [];
-                this.$nextTick(() => {
-                    safeDestroyDataTable(this.$refs.dt || "#helpdeskReportesDetallado");
-                    this.initDT();
-                });
-            } catch (error) {
-                handleAxiosErrorToast(error, "No se pudo generar el reporte.");
-            } finally {
-                this.loading = false;
-            }
-        },
-        exportExcel() {
-            const params = new URLSearchParams(this.buildParams());
-            window.open(helpdesk.exportExcelUrl(params), "_blank", "noopener,noreferrer");
-        },
-        exportPdf() {
-            const params = new URLSearchParams(this.buildParams());
-            window.open(helpdesk.exportPdfUrl(params), "_blank", "noopener,noreferrer");
-        },
-    },
-};
+const loading = ref(false);
+const limit = ref(500);
+const indicadores = ref(null);
+const detallado = ref([]);
+const sedes = ref([]);
+const estados = ref([]);
+const categorias = ref([]);
+const prioridades = ref([]);
+const filters = ref({
+    fechaIni: todayStr,
+    fechaFin: todayStr,
+    sedeId: "",
+    estadoId: "",
+    categoriaId: "",
+    prioridadId: "",
+    solicitanteId: "",
+    tecnicoId: "",
+});
+
+const canExport = computed(() => {
+    return !!(filters.value.fechaIni && filters.value.fechaFin);
+});
+
+function formatHoras(segundos) {
+    if (!segundos) return "";
+    const h = Number(segundos) / 3600;
+    if (Number.isNaN(h)) return "";
+    return h.toFixed(2);
+}
+async function cargarCatalogos() {
+    try {
+        const [cats, prios, ests, sedes] = await Promise.all([
+            helpdesk.categorias(),
+            helpdesk.prioridades(),
+            helpdesk.estados(),
+            helpdesk.sedesActivas(),
+        ]);
+        categorias.value = (cats.data || []).filter((x) => x.activo);
+        prioridades.value = (prios.data || []).filter((x) => x.activo);
+        estados.value = (ests.data || []).filter((x) => x.activo);
+        sedes.value = sedes.data || [];
+    } catch (error) {
+        handleAxiosErrorToast(error, "No se pudieron cargar catálogos.");
+    }
+}
+function limpiar() {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    const todayStr = `${yyyy}-${mm}-${dd}`;
+    filters.value = {
+        fechaIni: todayStr,
+        fechaFin: todayStr,
+        sedeId: "",
+        estadoId: "",
+        categoriaId: "",
+        prioridadId: "",
+        solicitanteId: "",
+        tecnicoId: "",
+    };
+    try {
+        const sedeActiva = sessionStorage.getItem("ST-sede");
+        if (sedeActiva) filters.value.sedeId = sedeActiva;
+    } catch (e) {
+        console.warn("No se pudo leer sede activa de sessionStorage", e);
+    }
+    buscar();
+}
+function buildParams(extra = {}) {
+    return {
+        fechaIni: filters.value.fechaIni,
+        fechaFin: filters.value.fechaFin,
+        sedeId: filters.value.sedeId || "",
+        estadoId: filters.value.estadoId || "",
+        categoriaId: filters.value.categoriaId || "",
+        prioridadId: filters.value.prioridadId || "",
+        solicitanteId: filters.value.solicitanteId || "",
+        tecnicoId: filters.value.tecnicoId || "",
+        ...extra,
+    };
+}
+function initDT() {
+    safeInitDataTable(dt.value || "#helpdeskReportesDetallado", {
+        dom: "Bfrtip",
+        buttons: [
+            { extend: "copy", titleAttr: "Copiar al portapapeles" },
+            { extend: "csv", titleAttr: "Exportar a CSV" },
+            { extend: "excel", titleAttr: "Exportar a Excel" },
+            { extend: "pdf", titleAttr: "Exportar a PDF" },
+            { extend: "print", titleAttr: "Imprimir" },
+        ],
+        retrieve: true,
+        order: [],
+    });
+}
+async function buscar() {
+    if (!canExport.value) return;
+    if (loading.value) return;
+    if (
+        filters.value.fechaIni &&
+        filters.value.fechaFin &&
+        filters.value.fechaFin < filters.value.fechaIni
+    ) {
+        toastMessage({
+            heading: "Upss!!!",
+            text: "La fecha 'Hasta' no puede ser anterior a 'Desde'.",
+            icon: "warning",
+        });
+        nextTick(() => document.getElementById("reporteFechaFin")?.focus());
+        return;
+    }
+    loading.value = true;
+    try {
+        const params = buildParams({ limit: limit.value });
+        const [ind, det] = await Promise.all([
+            helpdesk.indicadores(params),
+            helpdesk.detallado(params),
+        ]);
+        indicadores.value = ind.data || null;
+        detallado.value = det.data?.items || [];
+        nextTick(() => {
+            safeDestroyDataTable(dt.value || "#helpdeskReportesDetallado");
+            initDT();
+        });
+    } catch (error) {
+        handleAxiosErrorToast(error, "No se pudo generar el reporte.");
+    } finally {
+        loading.value = false;
+    }
+}
+function exportExcel() {
+    const params = new URLSearchParams(buildParams());
+    window.open(helpdesk.exportExcelUrl(params), "_blank", "noopener,noreferrer");
+}
+function exportPdf() {
+    const params = new URLSearchParams(buildParams());
+    window.open(helpdesk.exportPdfUrl(params), "_blank", "noopener,noreferrer");
+}
+
+onMounted(async () => {
+    // sede activa por defecto
+    try {
+        const sedeActiva = sessionStorage.getItem("ST-sede");
+        if (sedeActiva) filters.value.sedeId = sedeActiva;
+    } catch (e) {
+        console.warn("No se pudo leer sede activa de sessionStorage", e);
+    }
+    await cargarCatalogos();
+    await buscar();
+});
+
+onBeforeUnmount(() => {
+    safeDestroyDataTable(dt.value || "#helpdeskReportesDetallado");
+});
 </script>

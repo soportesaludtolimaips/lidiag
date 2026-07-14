@@ -167,187 +167,173 @@
         </div>
     </div>
 </template>
+<script setup>
+import { computed, onMounted, ref } from "vue";
 
-<script>
 import { handleAxiosErrorToast } from "@/helpers/alerts";
 import usePermissions from "@/helpers/permissions.js";
+import axios from "axios";
 
-function getSwal() {
-    return (typeof window !== "undefined" && (window.Swal || window.swal)) || null;
+const props = defineProps({});
+
+const filtros = ref({
+    q: "",
+    desde: "",
+    hasta: "",
+    sede_id: sessionStorage.getItem("ST-sede") || "",
+});
+const registros = ref([]);
+const loading = ref(false);
+const selectedMap = ref({});
+
+const selectedIds = computed(() => {
+    return Object.keys(selectedMap.value)
+        .filter((k) => selectedMap.value[k])
+        .map((k) => Number(k));
+});
+const selectedConsentimiento = computed(() => {
+    if (selectedIds.value.length !== 1) return null;
+    const id = selectedIds.value[0];
+    return registros.value.find((r) => Number(r.id) === Number(id)) || null;
+});
+const allSelectableSelected = computed(() => {
+    const selectable = registros.value.filter(esSeleccionable);
+    if (selectable.length === 0) return false;
+    return selectable.every((r) => selectedMap.value[r.id] === true);
+});
+
+function pacienteNombre(c) {
+    const p = c?.ecografia_producto?.ecografia?.paciente;
+    if (!p) return "—";
+    return String(p.nombres || "").trim();
+}
+function esSeleccionable(c) {
+    return c?.estado === "COMPLETO";
+}
+function toggleSelect(c) {
+    const id = Number(c.id);
+    if (!esSeleccionable(c)) return;
+    selectedMap.value[id] = !selectedMap.value[id];
+}
+function toggleSelectAll(e) {
+    const checked = !!e.target.checked;
+    const next = { ...selectedMap.value };
+    registros.value.forEach((r) => {
+        if (!esSeleccionable(r)) return;
+        next[r.id] = checked;
+    });
+    selectedMap.value = next;
+}
+async function buscar() {
+    loading.value = true;
+    selectedMap.value = {};
+    try {
+        const res = await axios.get("/api/ecografias-consentimientos", {
+            params: filtros.value,
+        });
+        registros.value = Array.isArray(res.data) ? res.data : [];
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar consentimientos.");
+        registros.value = [];
+    } finally {
+        loading.value = false;
+    }
+}
+async function generarPdfSeleccionado() {
+    if (selectedIds.value.length !== 1) return;
+    const id = selectedIds.value[0];
+    loading.value = true;
+    try {
+        await axios.post(`/api/ecografias-consentimientos/${id}/pdf`);
+        await buscar();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible generar el PDF.");
+    } finally {
+        loading.value = false;
+    }
+}
+function descargarPdfSeleccionado() {
+    const c = selectedConsentimiento.value;
+    if (!c?.id || !c?.pdf_path) return;
+    window.open(
+        `/api/ecografias-consentimientos/${c.id}/pdf/download`,
+        "_blank",
+        "noopener,noreferrer"
+    );
+}
+async function generarZip() {
+    if (selectedIds.value.length < 2) return;
+    loading.value = true;
+    try {
+        const res = await axios.post(
+            "/api/ecografias-consentimientos/zip",
+            { ids: selectedIds.value },
+            { responseType: "blob" }
+        );
+        const blob = new Blob([res.data], { type: "application/zip" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "consentimientos.zip";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible generar el ZIP.");
+    } finally {
+        loading.value = false;
+    }
+}
+async function anularSeleccionado() {
+    if (selectedIds.value.length !== 1) return;
+    const id = selectedIds.value[0];
+    const Swal = getSwal();
+    if (!Swal) {
+        const obs = window.prompt("Observación de anulación (obligatoria):");
+        if (!obs || !String(obs).trim()) return;
+        await _ejecutarAnulacion(id, obs);
+        return;
+    }
+    const result = await Swal.fire({
+        title: "Anular consentimiento",
+        text: "Indique la observación de anulación (obligatoria)",
+        icon: "warning",
+        input: "textarea",
+        inputPlaceholder: "Motivo de anulación...",
+        showCancelButton: true,
+        confirmButtonText: "Sí, anular",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#DD6B55",
+        preConfirm: (obs) => {
+            if (!obs || !String(obs).trim()) {
+                Swal.showValidationMessage("Debe indicar una observación");
+            }
+            return obs;
+        },
+    });
+    if (result.isConfirmed) {
+        await _ejecutarAnulacion(id, result.value);
+    }
+}
+async function _ejecutarAnulacion(id, obs) {
+    loading.value = true;
+    try {
+        await axios.post(`/api/ecografias-consentimientos/${id}/anular`, {
+            observacion: String(obs).trim(),
+        });
+        await buscar();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible anular el consentimiento.");
+    } finally {
+        loading.value = false;
+    }
 }
 
-export default {
-    props: ["usuarioactual", "permisos"],
-    setup(props) {
-        const { can } = usePermissions(props.permisos || []);
-        return { can };
-    },
-    data() {
-        return {
-            filtros: {
-                q: "",
-                desde: "",
-                hasta: "",
-                sede_id: sessionStorage.getItem("ST-sede") || "",
-            },
-            registros: [],
-            loading: false,
-            selectedMap: {},
-        };
-    },
-    computed: {
-        selectedIds() {
-            return Object.keys(this.selectedMap)
-                .filter((k) => this.selectedMap[k])
-                .map((k) => Number(k));
-        },
-        selectedConsentimiento() {
-            if (this.selectedIds.length !== 1) return null;
-            const id = this.selectedIds[0];
-            return this.registros.find((r) => Number(r.id) === Number(id)) || null;
-        },
-        allSelectableSelected() {
-            const selectable = this.registros.filter(this.esSeleccionable);
-            if (selectable.length === 0) return false;
-            return selectable.every((r) => this.selectedMap[r.id] === true);
-        },
-    },
-    mounted() {
-        this.buscar();
-    },
-    methods: {
-        pacienteNombre(c) {
-            const p = c?.ecografia_producto?.ecografia?.paciente;
-            if (!p) return "—";
-            return String(p.nombres || "").trim();
-        },
-        esSeleccionable(c) {
-            return c?.estado === "COMPLETO";
-        },
-        toggleSelect(c) {
-            const id = Number(c.id);
-            if (!this.esSeleccionable(c)) return;
-            this.selectedMap[id] = !this.selectedMap[id];
-        },
-        toggleSelectAll(e) {
-            const checked = !!e.target.checked;
-            const next = { ...this.selectedMap };
-            this.registros.forEach((r) => {
-                if (!this.esSeleccionable(r)) return;
-                next[r.id] = checked;
-            });
-            this.selectedMap = next;
-        },
-        async buscar() {
-            this.loading = true;
-            this.selectedMap = {};
-            try {
-                const res = await axios.get("/api/ecografias-consentimientos", {
-                    params: this.filtros,
-                });
-                this.registros = Array.isArray(res.data) ? res.data : [];
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar consentimientos.");
-                this.registros = [];
-            } finally {
-                this.loading = false;
-            }
-        },
-        async generarPdfSeleccionado() {
-            if (this.selectedIds.length !== 1) return;
-            const id = this.selectedIds[0];
-            this.loading = true;
-            try {
-                await axios.post(`/api/ecografias-consentimientos/${id}/pdf`);
-                await this.buscar();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible generar el PDF.");
-            } finally {
-                this.loading = false;
-            }
-        },
-        descargarPdfSeleccionado() {
-            const c = this.selectedConsentimiento;
-            if (!c?.id || !c?.pdf_path) return;
-            window.open(
-                `/api/ecografias-consentimientos/${c.id}/pdf/download`,
-                "_blank",
-                "noopener,noreferrer"
-            );
-        },
-        async generarZip() {
-            if (this.selectedIds.length < 2) return;
-            this.loading = true;
-            try {
-                const res = await axios.post(
-                    "/api/ecografias-consentimientos/zip",
-                    { ids: this.selectedIds },
-                    { responseType: "blob" }
-                );
-                const blob = new Blob([res.data], { type: "application/zip" });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = "consentimientos.zip";
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                window.URL.revokeObjectURL(url);
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible generar el ZIP.");
-            } finally {
-                this.loading = false;
-            }
-        },
-
-        async anularSeleccionado() {
-            if (this.selectedIds.length !== 1) return;
-            const id = this.selectedIds[0];
-            const Swal = getSwal();
-            if (!Swal) {
-                const obs = window.prompt("Observación de anulación (obligatoria):");
-                if (!obs || !String(obs).trim()) return;
-                await this._ejecutarAnulacion(id, obs);
-                return;
-            }
-            const result = await Swal.fire({
-                title: "Anular consentimiento",
-                text: "Indique la observación de anulación (obligatoria)",
-                icon: "warning",
-                input: "textarea",
-                inputPlaceholder: "Motivo de anulación...",
-                showCancelButton: true,
-                confirmButtonText: "Sí, anular",
-                cancelButtonText: "Cancelar",
-                confirmButtonColor: "#DD6B55",
-                preConfirm: (obs) => {
-                    if (!obs || !String(obs).trim()) {
-                        Swal.showValidationMessage("Debe indicar una observación");
-                    }
-                    return obs;
-                },
-            });
-            if (result.isConfirmed) {
-                await this._ejecutarAnulacion(id, result.value);
-            }
-        },
-        async _ejecutarAnulacion(id, obs) {
-            this.loading = true;
-            try {
-                await axios.post(`/api/ecografias-consentimientos/${id}/anular`, {
-                    observacion: String(obs).trim(),
-                });
-                await this.buscar();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible anular el consentimiento.");
-            } finally {
-                this.loading = false;
-            }
-        },
-    },
-};
+onMounted(() => {
+    buscar();
+});
 </script>
-
 <style scoped>
 .breadcrumb-btn {
     vertical-align: baseline;

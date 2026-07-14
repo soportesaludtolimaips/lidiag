@@ -269,187 +269,177 @@
         </div>
     </div>
 </template>
+<script setup>
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-<script>
 import DOMPurify from "dompurify";
 import { toastMessage, handleAxiosErrorToast, confirmAction } from "@/helpers/alerts.js";
 import { formatDateTime } from "@/helpers/dateUtils.js";
 import { initWysiwyg } from "@/helpers/wysiwyg.js";
 import { helpdesk } from "@/helpers/api.js";
 
-export default {
-    props: ["ticketId"],
-    beforeUnmount() {
+const props = defineProps({});
+
+const loading = ref(false);
+const savingComentario = ref(false);
+const savingEstado = ref(false);
+const savingReasignar = ref(false);
+const savingAdjuntos = ref(false);
+const ticket = ref(null);
+const estados = ref([]);
+const asignables = ref([]);
+const nuevoComentario = ref("");
+const accion = ref({
+    estado_id: "",
+    comentario: "",
+    descripcion_solucion: "",
+});
+const reasignacion = ref({
+    asignado_id: "",
+    comentario: "",
+});
+
+const estadoSeleccionadoNombre = computed(() => {
+    const e = estados.value.find((x) => String(x.id) === String(accion.value.estado_id));
+    return e ? e.nombre : "";
+});
+
+function sanitize(dirty) {
+    return DOMPurify.sanitize(dirty || "");
+}
+async function recargarTicket() {
+    try {
+        const ticketRes = await helpdesk.ticket(ticketId);
+        ticket.value = ticketRes.data;
+    } catch (error) {
+        handleAxiosErrorToast(error, "No se pudo actualizar el ticket.");
+    }
+}
+async function cargar() {
+    loading.value = true;
+    try {
+        const ticketRes = await helpdesk.ticket(ticketId);
+        ticket.value = ticketRes.data;
+
+        // Estados (puede fallar por permisos; no bloquea el detalle)
         try {
-            const $root = $(this.$el);
-            $root.find(".textarea_editor").each((_, el) => {
-                const $el = $(el);
-                const inst = $el.data("wysihtml5");
-                if (inst && inst.editor) inst.editor.destroy();
-            });
-        } catch (_) {}
-    },
-    data() {
-        return {
-            loading: false,
-            savingComentario: false,
-            savingEstado: false,
-            savingReasignar: false,
-            savingAdjuntos: false,
-            ticket: null,
-            estados: [],
-            asignables: [],
-            nuevoComentario: "",
-            accion: {
-                estado_id: "",
-                comentario: "",
-                descripcion_solucion: "",
-            },
-            reasignacion: {
-                asignado_id: "",
-                comentario: "",
-            },
-        };
-    },
-    computed: {
-        estadoSeleccionadoNombre() {
-            const e = this.estados.find((x) => String(x.id) === String(this.accion.estado_id));
-            return e ? e.nombre : "";
-        },
-    },
-    async mounted() {
-        this.$nextTick(() => this.initWysiwyg());
-        await this.cargar();
-    },
-    methods: {
-        sanitize(dirty) {
-            return DOMPurify.sanitize(dirty || "");
-        },
-        initWysiwyg() {
-            initWysiwyg(this.$el);
-        },
-        formatDateTime(dt) {
-            return formatDateTime(dt);
-        },
-        async recargarTicket() {
-            try {
-                const ticketRes = await helpdesk.ticket(this.ticketId);
-                this.ticket = ticketRes.data;
-            } catch (error) {
-                handleAxiosErrorToast(error, "No se pudo actualizar el ticket.");
-            }
-        },
-        async cargar() {
-            this.loading = true;
-            try {
-                const ticketRes = await helpdesk.ticket(this.ticketId);
-                this.ticket = ticketRes.data;
+            const estadosRes = await helpdesk.estados();
+            estados.value = (estadosRes.data || []).filter((x) => x.activo);
+        } catch (e) {
+            console.warn("No se pudieron cargar estados", e);
+            estados.value = [];
+        }
 
-                // Estados (puede fallar por permisos; no bloquea el detalle)
-                try {
-                    const estadosRes = await helpdesk.estados();
-                    this.estados = (estadosRes.data || []).filter((x) => x.activo);
-                } catch (e) {
-                    console.warn("No se pudieron cargar estados", e);
-                    this.estados = [];
-                }
+        // Asignables (solo necesario para reasignación; no bloquea el detalle)
+        try {
+            const asignablesRes = await helpdesk.asignables();
+            asignables.value = asignablesRes.data || [];
+        } catch (e) {
+            console.warn("No se pudieron cargar usuarios asignables", e);
+            asignables.value = [];
+        }
+        nextTick(() => initWysiwyg());
+    } catch (error) {
+        handleAxiosErrorToast(error, "No se pudo cargar el ticket.");
+    } finally {
+        loading.value = false;
+    }
+}
+async function comentar() {
+    if (!nuevoComentario.value) return;
+    savingComentario.value = true;
+    try {
+        await helpdesk.comentar(ticketId, { comentario: nuevoComentario.value });
+        nuevoComentario.value = "";
+        toastMessage({ heading: "Ok", text: "Comentario agregado.", icon: "success" });
+        await recargarTicket();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No se pudo guardar el comentario.");
+    } finally {
+        savingComentario.value = false;
+    }
+}
+async function cambiarEstado() {
+    if (!accion.value.estado_id) return;
+    const ok = await confirmAction({
+        title: "Cambiar estado",
+        text: "¿Estás seguro de aplicar este cambio de estado?",
+        icon: "warning",
+    });
+    if (!ok) return;
+    savingEstado.value = true;
+    try {
+        await helpdesk.cambiarEstado(ticketId, {
+            estado_id: accion.value.estado_id,
+            comentario: accion.value.comentario || null,
+            descripcion_solucion: accion.value.descripcion_solucion || null,
+        });
+        accion.value = { estado_id: "", comentario: "", descripcion_solucion: "" };
+        toastMessage({ heading: "Ok", text: "Estado actualizado.", icon: "success" });
+        await recargarTicket();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No se pudo cambiar el estado.");
+    } finally {
+        savingEstado.value = false;
+    }
+}
+async function reasignar() {
+    if (!reasignacion.value.asignado_id || !reasignacion.value.comentario) return;
+    const ok = await confirmAction({
+        title: "Reasignar ticket",
+        text: "¿Estás seguro de reasignar este ticket?",
+        icon: "warning",
+    });
+    if (!ok) return;
+    savingReasignar.value = true;
+    try {
+        await helpdesk.reasignar(ticketId, {
+            asignado_id: reasignacion.value.asignado_id,
+            comentario: reasignacion.value.comentario,
+        });
+        reasignacion.value = { asignado_id: "", comentario: "" };
+        toastMessage({ heading: "Ok", text: "Ticket reasignado.", icon: "success" });
+        await recargarTicket();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No se pudo reasignar.");
+    } finally {
+        savingReasignar.value = false;
+    }
+}
+async function subirAdjuntos() {
+    const input = files.value;
+    const files = input && input.files ? Array.from(input.files) : [];
+    if (!files.length) return;
 
-                // Asignables (solo necesario para reasignación; no bloquea el detalle)
-                try {
-                    const asignablesRes = await helpdesk.asignables();
-                    this.asignables = asignablesRes.data || [];
-                } catch (e) {
-                    console.warn("No se pudieron cargar usuarios asignables", e);
-                    this.asignables = [];
-                }
-                this.$nextTick(() => this.initWysiwyg());
-            } catch (error) {
-                handleAxiosErrorToast(error, "No se pudo cargar el ticket.");
-            } finally {
-                this.loading = false;
-            }
-        },
-        async comentar() {
-            if (!this.nuevoComentario) return;
-            this.savingComentario = true;
-            try {
-                await helpdesk.comentar(this.ticketId, { comentario: this.nuevoComentario });
-                this.nuevoComentario = "";
-                toastMessage({ heading: "Ok", text: "Comentario agregado.", icon: "success" });
-                await this.recargarTicket();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No se pudo guardar el comentario.");
-            } finally {
-                this.savingComentario = false;
-            }
-        },
-        async cambiarEstado() {
-            if (!this.accion.estado_id) return;
-            const ok = await confirmAction({
-                title: "Cambiar estado",
-                text: "¿Estás seguro de aplicar este cambio de estado?",
-                icon: "warning",
-            });
-            if (!ok) return;
-            this.savingEstado = true;
-            try {
-                await helpdesk.cambiarEstado(this.ticketId, {
-                    estado_id: this.accion.estado_id,
-                    comentario: this.accion.comentario || null,
-                    descripcion_solucion: this.accion.descripcion_solucion || null,
-                });
-                this.accion = { estado_id: "", comentario: "", descripcion_solucion: "" };
-                toastMessage({ heading: "Ok", text: "Estado actualizado.", icon: "success" });
-                await this.recargarTicket();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No se pudo cambiar el estado.");
-            } finally {
-                this.savingEstado = false;
-            }
-        },
-        async reasignar() {
-            if (!this.reasignacion.asignado_id || !this.reasignacion.comentario) return;
-            const ok = await confirmAction({
-                title: "Reasignar ticket",
-                text: "¿Estás seguro de reasignar este ticket?",
-                icon: "warning",
-            });
-            if (!ok) return;
-            this.savingReasignar = true;
-            try {
-                await helpdesk.reasignar(this.ticketId, {
-                    asignado_id: this.reasignacion.asignado_id,
-                    comentario: this.reasignacion.comentario,
-                });
-                this.reasignacion = { asignado_id: "", comentario: "" };
-                toastMessage({ heading: "Ok", text: "Ticket reasignado.", icon: "success" });
-                await this.recargarTicket();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No se pudo reasignar.");
-            } finally {
-                this.savingReasignar = false;
-            }
-        },
-        async subirAdjuntos() {
-            const input = this.$refs.files;
-            const files = input && input.files ? Array.from(input.files) : [];
-            if (!files.length) return;
+    savingAdjuntos.value = true;
+    try {
+        const fd = new FormData();
+        files.forEach((f) => fd.append("files[]", f));
+        fd.append("comentario", "Adjuntos agregados.");
+        await helpdesk.subirAdjuntos(ticketId, fd);
+        if (input) input.value = "";
+        toastMessage({ heading: "Ok", text: "Adjuntos subidos.", icon: "success" });
+        await recargarTicket();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No se pudieron subir adjuntos.");
+    } finally {
+        savingAdjuntos.value = false;
+    }
+}
 
-            this.savingAdjuntos = true;
-            try {
-                const fd = new FormData();
-                files.forEach((f) => fd.append("files[]", f));
-                fd.append("comentario", "Adjuntos agregados.");
-                await helpdesk.subirAdjuntos(this.ticketId, fd);
-                if (input) input.value = "";
-                toastMessage({ heading: "Ok", text: "Adjuntos subidos.", icon: "success" });
-                await this.recargarTicket();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No se pudieron subir adjuntos.");
-            } finally {
-                this.savingAdjuntos = false;
-            }
-        },
-    },
-};
+onMounted(async () => {
+    nextTick(() => initWysiwyg());
+    await cargar();
+});
+
+onBeforeUnmount(() => {
+    try {
+        const $root = $($el);
+        $root.find(".textarea_editor").each((_, el) => {
+            const $el = $(el);
+            const inst = $el.data("wysihtml5");
+            if (inst && inst.editor) inst.editor.destroy();
+        });
+    } catch (_) {}
+});
 </script>

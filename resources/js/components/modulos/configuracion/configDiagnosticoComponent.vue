@@ -17,8 +17,14 @@
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
-                <button type="button" class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="actualizar = false; mostrarRegistro()">
+                <button
+                    type="button"
+                    class="btn btn-info btnDesplegarRigthSidebar"
+                    @click="
+                        actualizar = false;
+                        mostrarRegistro();
+                    "
+                >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
@@ -40,12 +46,18 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de díagnostico</h4>
-                        <h6 class="card-subtitle">Administración de díagnostico para la prestación del servicio de
-                            imagenes diagnosticas.</h6>
+                        <h6 class="card-subtitle">
+                            Administración de díagnostico para la prestación del servicio de
+                            imagenes diagnosticas.
+                        </h6>
                         <div class="table-responsive m-t-40">
-                            <table id="example23" ref="dt"
-                                class="display nowrap table table-hover table-striped table-bordered" cellspacing="0"
-                                width="100%">
+                            <table
+                                id="example23"
+                                ref="dt"
+                                class="display nowrap table table-hover table-striped table-bordered"
+                                cellspacing="0"
+                                width="100%"
+                            >
                                 <thead>
                                     <tr>
                                         <th>Código CIE10</th>
@@ -59,21 +71,38 @@
                                         <td>{{ item.cod_diagnos }}</td>
                                         <td>{{ item.nom_diagnos }}</td>
                                         <td>
-                                            <span class="label label-success" v-if="item.estado">Activo</span>
-                                            <span class="label label-danger" v-if="!item.estado">Inactivo</span>
+                                            <span class="label label-success" v-if="item.estado"
+                                                >Activo</span
+                                            >
+                                            <span class="label label-danger" v-if="!item.estado"
+                                                >Inactivo</span
+                                            >
                                         </td>
                                         <td class="text-nowrap">
-                                            <button type="button"
+                                            <button
+                                                type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="actualizar = true; mostrarRegistro(item)">
+                                                @click="
+                                                    actualizar = true;
+                                                    mostrarRegistro(item);
+                                                "
+                                            >
                                                 <i class="fa fa-pencil"></i>
                                             </button>
-                                            <button type="button"
+                                            <button
+                                                type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
                                                 @click="elimnarRegistro(item.id)"
-                                                :disabled="loadingEliminarId === item.id">
-                                                <i class="fa"
-                                                    :class="loadingEliminarId === item.id ? 'fa-spinner fa-spin' : 'fa-trash'"></i>
+                                                :disabled="loadingEliminarId === item.id"
+                                            >
+                                                <i
+                                                    class="fa"
+                                                    :class="
+                                                        loadingEliminarId === item.id
+                                                            ? 'fa-spinner fa-spin'
+                                                            : 'fa-trash'
+                                                    "
+                                                ></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -92,7 +121,10 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%;">
+        <div
+            class="right-sidebar"
+            style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%"
+        >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -110,11 +142,17 @@
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label class="control-label">Código CEE10</label>
-                                        <input type="text" id="cod_diagnos" name="cod_diagnos"
-                                            v-model="registro.cod_diagnos" class="form-control"
-                                            placeholder="Código CIE10">
-                                        <span class="text-danger" v-if="errores.cod_diagnos">{{ errores.cod_diagnos[0]
-                                            }}</span>
+                                        <input
+                                            type="text"
+                                            id="cod_diagnos"
+                                            name="cod_diagnos"
+                                            v-model="registro.cod_diagnos"
+                                            class="form-control"
+                                            placeholder="Código CIE10"
+                                        />
+                                        <span class="text-danger" v-if="errores.cod_diagnos">{{
+                                            errores.cod_diagnos[0]
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -123,11 +161,17 @@
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label class="control-label">Nombre del díagnostico</label>
-                                        <input type="text" id="nom_diagnos" name="nom_diagnos"
-                                            v-model="registro.nom_diagnos" class="form-control"
-                                            placeholder="Ingrese aquí el nombre del díagnostico">
-                                        <span class="text-danger" v-if="errores.nom_diagnos">{{ errores.nom_diagnos[0]
-                                            }}</span>
+                                        <input
+                                            type="text"
+                                            id="nom_diagnos"
+                                            name="nom_diagnos"
+                                            v-model="registro.nom_diagnos"
+                                            class="form-control"
+                                            placeholder="Ingrese aquí el nombre del díagnostico"
+                                        />
+                                        <span class="text-danger" v-if="errores.nom_diagnos">{{
+                                            errores.nom_diagnos[0]
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -136,8 +180,14 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <div class="checkbox checkbox-success">
-                                            <input type="checkbox" id="estado" name="estado" v-model="registro.estado"
-                                                :true-value="1" :false-value="0">
+                                            <input
+                                                type="checkbox"
+                                                id="estado"
+                                                name="estado"
+                                                v-model="registro.estado"
+                                                :true-value="1"
+                                                :false-value="0"
+                                            />
                                             <label for="estado"> Activo </label>
                                         </div>
                                     </div>
@@ -145,20 +195,41 @@
                             </div>
 
                             <div class="form-actions mt-3">
-                                <button type="button" class="btn btn-success m-r-5" @click="guardarRegistro()"
-                                    v-if="!actualizar" :disabled="loadingGuardar">
-                                    <i class="fa" :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"></i>
+                                <button
+                                    type="button"
+                                    class="btn btn-success m-r-5"
+                                    @click="guardarRegistro()"
+                                    v-if="!actualizar"
+                                    :disabled="loadingGuardar"
+                                >
+                                    <i
+                                        class="fa"
+                                        :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"
+                                    ></i>
                                     Guardar
                                 </button>
 
-                                <button type="button" class="btn btn-warning m-r-5" v-if="actualizar"
-                                    @click="guardarRegistro()" :disabled="loadingGuardar">
-                                    <i class="fa" :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-pencil'"></i>
+                                <button
+                                    type="button"
+                                    class="btn btn-warning m-r-5"
+                                    v-if="actualizar"
+                                    @click="guardarRegistro()"
+                                    :disabled="loadingGuardar"
+                                >
+                                    <i
+                                        class="fa"
+                                        :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-pencil'"
+                                    ></i>
                                     Actualizar
                                 </button>
 
-                                <button type="button" class="btn btn-inverse"
-                                    @click="btnCerralModalForm()">Cancel</button>
+                                <button
+                                    type="button"
+                                    class="btn btn-inverse"
+                                    @click="btnCerralModalForm()"
+                                >
+                                    Cancel
+                                </button>
                             </div>
                         </div>
                     </form>
@@ -170,155 +241,154 @@
         <!-- ============================================================== -->
     </div>
 </template>
+<script setup>
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-
-<script>
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { alertError, alertSuccess, confirmAction, handleAxiosErrorToast } from "@/helpers/alerts.js";
+import {
+    alertError,
+    alertSuccess,
+    confirmAction,
+    handleAxiosErrorToast,
+} from "@/helpers/alerts.js";
+import axios from "axios";
 
-export default {
-    mounted() {
-        this.ListarDatos();
-    },
-    beforeUnmount() {
-        safeDestroyDataTable(this.$refs.dt || "#example23");
-    },
-    data() {
-        return {
-            id: 0,
-            registros: [],
-            registro: { cod_diagnos: '', nom_diagnos: '', estado: true },
-            tituloModal: 'Nuevo registro',
-            actualizar: false,
-            errores: {},
-            loadingListar: false,
-            loadingGuardar: false,
-            loadingEliminarId: null,
-        };
-    },
-    methods: {
-        async ListarDatos() {
-            if (this.loadingListar) return;
-            this.loadingListar = true;
-            try {
-                const res = await axios.get("/api/config-diagnosticos");
-                safeDestroyDataTable(this.$refs.dt || "#example23");
-                this.registros = res.data;
-                this.$nextTick(() => {
-                    safeInitDataTable(this.$refs.dt || "#example23", {
-                        dom: 'Bfrtip',
-                        buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
-                    });
-                });
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar diagnósticos.");
-                this.registros = [];
-            } finally {
-                this.loadingListar = false;
-            }
-        },
-        async guardarRegistro() {
-            if (this.loadingGuardar) return;
-            this.loadingGuardar = true;
-            try {
-                if (this.actualizar === false) {
-                    const res = await axios.post('/api/config-diagnosticos', this.registro);
+const id = ref(0);
+const registros = ref([]);
+const registro = ref({ cod_diagnos: "", nom_diagnos: "", estado: true });
+const tituloModal = ref("Nuevo registro");
+const actualizar = ref(false);
+const errores = ref({});
+const loadingListar = ref(false);
+const loadingGuardar = ref(false);
+const loadingEliminarId = ref(null);
 
-                    if (res.status == 200) {
-
-                        this.ListarDatos()
-
-                        $.toast({
-                            heading: 'Ok!!!',
-                            text: res.data.message,
-                            position: 'top-right',
-                            loaderBg: '#ff6849',
-                            icon: 'success',
-                            hideAfter: 3500,
-                            stack: 6
-                        });
-
-                        this.btnCerralModalForm();
-                        this.limpiar();
-                    }
-                } else {
-                    const res = await axios.put('/api/config-diagnosticos/' + this.id, this.registro);
-                    if (res.status == 200) {
-
-                        this.ListarDatos()
-
-                        $.toast({
-                            heading: 'Ok!!!',
-                            text: res.data.message,
-                            position: 'top-right',
-                            loaderBg: '#ff6849',
-                            icon: 'success',
-                            hideAfter: 3500,
-                            stack: 6
-                        });
-
-                        this.btnCerralModalForm();
-                        this.limpiar();
-                    }
-                }
-            } catch (error) {
-                this.errores = error?.response?.data?.errors || {};
-                handleAxiosErrorToast(error, "No fue posible guardar el diagnóstico.");
-            } finally {
-                this.loadingGuardar = false;
-            }
-        },
-        async elimnarRegistro(id) {
-            const ok = await confirmAction({
-                title: "¿Estas seguro?",
-                text: "No podrás recuperar este registro!",
-                icon: "warning",
+async function ListarDatos() {
+    if (loadingListar.value) return;
+    loadingListar.value = true;
+    try {
+        const res = await axios.get("/api/config-diagnosticos");
+        safeDestroyDataTable(dt.value || "#example23");
+        registros.value = res.data;
+        nextTick(() => {
+            safeInitDataTable(dt.value || "#example23", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
-            if (!ok) return;
+        });
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar diagnósticos.");
+        registros.value = [];
+    } finally {
+        loadingListar.value = false;
+    }
+}
+async function guardarRegistro() {
+    if (loadingGuardar.value) return;
+    loadingGuardar.value = true;
+    try {
+        if (actualizar.value === false) {
+            const res = await axios.post("/api/config-diagnosticos", registro.value);
 
-            try {
-                if (this.loadingEliminarId) return;
-                this.loadingEliminarId = id;
-                const response = await axios.delete('/api/config-diagnosticos/' + id);
-                alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
-                this.ListarDatos();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
-                alertError("Error", "No fue posible eliminar el registro.", "error");
-            } finally {
-                this.loadingEliminarId = null;
+            if (res.status == 200) {
+                ListarDatos();
+
+                $.toast({
+                    heading: "Ok!!!",
+                    text: res.data.message,
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "success",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+
+                btnCerralModalForm();
+                limpiar();
             }
-        },
-        mostrarRegistro(data = {}) {
-            if (this.actualizar) {
-                this.tituloModal = "Actualizar el registro: " + data.nom_diagnos;
-                this.id = data.id;
-                this.registro.cod_diagnos = data.cod_diagnos;
-                this.registro.nom_diagnos = data.nom_diagnos;
-                this.registro.estado = Boolean(data.estado);
-            } else {
-                this.actualizar = false;
-                this.tituloModal = "Nuevo registro";
-                this.id = 0;
-                this.registro.cod_diagnos = "";
-                this.registro.nom_diagnos = "";
-                this.registro.estado = true;
+        } else {
+            const res = await axios.put("/api/config-diagnosticos/" + id.value, registro.value);
+            if (res.status == 200) {
+                ListarDatos();
+
+                $.toast({
+                    heading: "Ok!!!",
+                    text: res.data.message,
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "success",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+
+                btnCerralModalForm();
+                limpiar();
             }
-        },
-        limpiar() {
-            this.actualizar = false;
-            this.tituloModal = "Nuevo registro";
-            this.id = 0;
-            this.registro.cod_diagnos = "";
-            this.registro.nom_diagnos = "";
-            this.registro.estado = true;
-        },
-        btnCerralModalForm() {
-            $(".right-sidebar").slideDown(50);
-            $(".right-sidebar").toggleClass("shw-rside");
         }
-    },
-};
+    } catch (error) {
+        errores.value = error?.response?.data?.errors || {};
+        handleAxiosErrorToast(error, "No fue posible guardar el diagnóstico.");
+    } finally {
+        loadingGuardar.value = false;
+    }
+}
+async function elimnarRegistro(id) {
+    const ok = await confirmAction({
+        title: "¿Estas seguro?",
+        text: "No podrás recuperar este registro!",
+        icon: "warning",
+    });
+    if (!ok) return;
+
+    try {
+        if (loadingEliminarId.value) return;
+        loadingEliminarId.value = id;
+        const response = await axios.delete("/api/config-diagnosticos/" + id);
+        alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
+        ListarDatos();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
+        alertError("Error", "No fue posible eliminar el registro.", "error");
+    } finally {
+        loadingEliminarId.value = null;
+    }
+}
+function mostrarRegistro(data = {}) {
+    if (actualizar.value) {
+        tituloModal.value = "Actualizar el registro: " + data.nom_diagnos;
+        id.value = data.id;
+        registro.value.cod_diagnos = data.cod_diagnos;
+        registro.value.nom_diagnos = data.nom_diagnos;
+        registro.value.estado = Boolean(data.estado);
+    } else {
+        actualizar.value = false;
+        tituloModal.value = "Nuevo registro";
+        id.value = 0;
+        registro.value.cod_diagnos = "";
+        registro.value.nom_diagnos = "";
+        registro.value.estado = true;
+    }
+}
+function limpiar() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    id.value = 0;
+    registro.value.cod_diagnos = "";
+    registro.value.nom_diagnos = "";
+    registro.value.estado = true;
+}
+function btnCerralModalForm() {
+    $(".right-sidebar").slideDown(50);
+    $(".right-sidebar").toggleClass("shw-rside");
+}
+
+onMounted(() => {
+    ListarDatos();
+});
+
+onBeforeUnmount(() => {
+    safeDestroyDataTable(dt.value || "#example23");
+});
 </script>
 <style scoped>
 .right-sidebar {
