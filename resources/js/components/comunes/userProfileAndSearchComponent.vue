@@ -75,7 +75,6 @@
             </div>
         </li>
 
-        
         <!-- ============================================================== -->
         <!-- mega menu -->
         <!-- ============================================================== -->
@@ -193,201 +192,192 @@
         </li>
     </ul>
 </template>
-<script>
+<script setup>
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+
 import { handleAxiosErrorToast } from "@/helpers/alerts.js";
+import axios from "axios";
 
-export default {
-    props: ["usuarioactual", "perfilUrl"],
-    mounted() {
-        this.establecerModuloActual();
-        this.listarSedes();
-        this.listarMedicos();
-        this.cargarHdNotificaciones();
-        this.hdIntervalId = setInterval(() => this.cargarHdNotificaciones(true), 30000);
+const props = defineProps({});
 
-        const medicoSeleccionado = sessionStorage.getItem("ST-medico");
-        const sedeSeleccionada = sessionStorage.getItem("ST-sede");
+const sedes = ref([]);
+const sedeSeleccionada = ref(
+    this.sedeSeleccionada ? this.sedeSeleccionada : sessionStorage.getItem("ST-sede")
+);
+const medicoSeleccionado = ref(
+    this.medicoSeleccionado ? this.medicoSeleccionado : sessionStorage.getItem("ST-medico")
+);
+const medicos = ref([]);
+const nomMedicoSeleccionado = ref(null);
+const mostrarMedico = ref(true);
+const hdDisponible = ref(true);
+const hdLoading = ref(false);
+const hdItems = ref([]);
+const hdIntervalId = ref(null);
 
-        const url = window.location.pathname;
-        if (
-            url === "/ecografias.admisiones" ||
-            url === "/ecografias-pendientes-lecturas" ||
-            url === "/estudios.leer.estudio.listar"
-        ) {
-            this.mostrarMedico = true;
+const hdUnreadCount = computed(() => {
+    return (hdItems.value || []).filter((x) => !x.read_at).length;
+});
+const medicoOptions = computed(() => {
+    // Opciones para el Select2 local de medicos.
+    return (medicos.value || []).map((p) => ({ id: String(p.id), name: p.name }));
+});
+
+function establecerModuloActual() {
+    try {
+        const pathname = String(window?.location?.pathname || "").toLowerCase();
+        let moduloId = sessionStorage.getItem("ST-modulo");
+        if (moduloId) return String(moduloId);
+
+        // Heurística del proyecto (mismos IDs que se ven en llamadas existentes):
+        // - ecografías: 2
+        // - estudios: 1
+        if (pathname.includes("ecografia")) moduloId = "2";
+        else if (pathname.includes("estudios") || pathname.includes("study")) moduloId = "1";
+        else moduloId = "1";
+
+        sessionStorage.setItem("ST-modulo", moduloId);
+        return String(moduloId);
+    } catch (_) {
+        return "1";
+    }
+}
+async function Logout() {
+    try {
+        // Usa el logout estándar de Laravel UI (Auth::routes)
+        await axios.post("/logout");
+    } finally {
+        // Asegura salida al login aunque el response sea 204 sin body
+        window.location.href = "/";
+    }
+}
+async function listarSedes() {
+    try {
+        const res = await axios.get("/api/config-sedes/listar/sedes/activas");
+        sedes.value = res.data;
+    } catch (error) {
+        console.log(error);
+    }
+}
+async function listarMedicos() {
+    try {
+        const moduloId = sessionStorage.getItem("ST-modulo") || establecerModuloActual();
+        const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
+        medicos.value = res.data;
+    } catch (error) {
+        console.log(error);
+    }
+}
+async function estableserSede() {
+    const res = await axios.get("/api/config-sedes/" + sedeSeleccionada.value + "/buscarPorId");
+
+    nomSedeSeleccionada = $('select[name="sedes"] option:selected').text();
+
+    sessionStorage.setItem("ST-sede", sedeSeleccionada.value);
+    sessionStorage.setItem("ST-nomsede", nomSedeSeleccionada);
+    sessionStorage.setItem("ST-urlsede", res.data.url_oviyam);
+    sessionStorage.setItem("ST-servername", res.data.tap_oviyam);
+    sessionStorage.setItem("ST-email_repor", res.data.email_repor);
+
+    emitter.emit("sedeSeleccionada", {
+        idSede: sedeSeleccionada.value,
+        nomSede: nomSedeSeleccionada,
+        url: urlSedeSeleccionada,
+        serverName: serverNameSeleccionada,
+        email_repor: res.data.email_repor,
+    });
+}
+async function estableserMedico() {
+    nomMedicoSeleccionado.value = $('select[name="medicos"] option:selected').text();
+
+    sessionStorage.setItem("ST-medico", medicoSeleccionado.value);
+    sessionStorage.setItem("ST-nomMedico", nomMedicoSeleccionado.value);
+
+    emitter.emit("medicoSeleccionado", {
+        idMedico: medicoSeleccionado.value,
+        nomMedico: nomMedicoSeleccionado.value,
+    });
+}
+function onOpenHdDropdown() {
+    // Recarga rápida al abrir
+    cargarHdNotificaciones(true);
+}
+function formatHdTime(dt) {
+    if (!dt) return "";
+    try {
+        return window.dayjs(dt).tz("America/Bogota").format("YYYY-MM-DD HH:mm");
+    } catch (_) {
+        return String(dt);
+    }
+}
+async function cargarHdNotificaciones(silent = false) {
+    if (!hdDisponible.value) return;
+    if (hdLoading.value) return;
+    hdLoading.value = true;
+    try {
+        const res = await axios.get("/api/helpdesk-notificaciones", {
+            params: { limit: 10 },
+        });
+        hdItems.value = res.data?.items || [];
+    } catch (error) {
+        const status = error?.response?.status;
+        // Si no tiene permisos o no existe el endpoint, ocultar el ícono.
+        if (status === 403 || status === 404) {
+            hdDisponible.value = false;
+        } else if (!silent) {
+            handleAxiosErrorToast(error, "No se pudieron cargar notificaciones.");
         }
-    },
-    beforeUnmount() {
-        try {
-            if (this.hdIntervalId) clearInterval(this.hdIntervalId);
-        } catch (_) {}
-    },
-    data() {
-        return {
-            sedes: [], //Listo las sedes
-            sedeSeleccionada: this.sedeSeleccionada
-                ? this.sedeSeleccionada
-                : sessionStorage.getItem("ST-sede"),
-            medicoSeleccionado: this.medicoSeleccionado
-                ? this.medicoSeleccionado
-                : sessionStorage.getItem("ST-medico"),
-            medicos: [],
-            nomMedicoSeleccionado: null,
-            mostrarMedico: true,
+    } finally {
+        hdLoading.value = false;
+    }
+}
+async function marcarHdLeida(n) {
+    try {
+        await axios.post(`/api/helpdesk-notificaciones/${n.id}/read`);
+        n.read_at = new Date().toISOString();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No se pudo marcar como leída.");
+    }
+}
+async function marcarHdTodas() {
+    try {
+        await axios.post("/api/helpdesk-notificaciones/read-all");
+        await cargarHdNotificaciones(true);
+    } catch (error) {
+        handleAxiosErrorToast(error, "No se pudieron marcar todas.");
+    }
+}
+async function abrirHdNotificacion(n) {
+    if (!n.read_at) await marcarHdLeida(n);
+    if (n.data?.ticket_id) window.location.href = `/helpdesk-tickets/${n.data.ticket_id}`;
+}
+function goHdNotificaciones() {
+    window.location.href = "/helpdesk-notificaciones";
+}
 
-            // Helpdesk notificaciones
-            hdDisponible: true,
-            hdLoading: false,
-            hdItems: [],
-            hdIntervalId: null,
-        };
-    },
-    computed: {
-        hdUnreadCount() {
-            return (this.hdItems || []).filter((x) => !x.read_at).length;
-        },
-        medicoOptions() {
-            // Opciones para el Select2 local de medicos.
-            return (this.medicos || []).map((p) => ({ id: String(p.id), name: p.name }));
-        },
-    },
-    methods: {
-        establecerModuloActual() {
-            try {
-                const pathname = String(window?.location?.pathname || "").toLowerCase();
-                let moduloId = sessionStorage.getItem("ST-modulo");
-                if (moduloId) return String(moduloId);
+onMounted(() => {
+    establecerModuloActual();
+    listarSedes();
+    listarMedicos();
+    cargarHdNotificaciones();
+    hdIntervalId.value = setInterval(() => cargarHdNotificaciones(true), 30000);
 
-                // Heurística del proyecto (mismos IDs que se ven en llamadas existentes):
-                // - ecografías: 2
-                // - estudios: 1
-                if (pathname.includes("ecografia")) moduloId = "2";
-                else if (pathname.includes("estudios") || pathname.includes("study"))
-                    moduloId = "1";
-                else moduloId = "1";
+    const medicoSeleccionado = sessionStorage.getItem("ST-medico");
+    const sedeSeleccionada = sessionStorage.getItem("ST-sede");
 
-                sessionStorage.setItem("ST-modulo", moduloId);
-                return String(moduloId);
-            } catch (_) {
-                return "1";
-            }
-        },
-        async Logout() {
-            try {
-                // Usa el logout estándar de Laravel UI (Auth::routes)
-                await axios.post("/logout");
-            } finally {
-                // Asegura salida al login aunque el response sea 204 sin body
-                window.location.href = "/";
-            }
-        },
-        async listarSedes() {
-            try {
-                const res = await axios.get("/api/config-sedes/listar/sedes/activas");
-                this.sedes = res.data;
-            } catch (error) {
-                console.log(error);
-            }
-        },
-        async listarMedicos() {
-            try {
-                const moduloId =
-                    sessionStorage.getItem("ST-modulo") || this.establecerModuloActual();
-                const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
-                this.medicos = res.data;
-            } catch (error) {
-                console.log(error);
-            }
-        },
-        async estableserSede() {
-            const res = await axios.get(
-                "/api/config-sedes/" + this.sedeSeleccionada + "/buscarPorId"
-            );
+    const url = window.location.pathname;
+    if (
+        url === "/ecografias.admisiones" ||
+        url === "/ecografias-pendientes-lecturas" ||
+        url === "/estudios.leer.estudio.listar"
+    ) {
+        mostrarMedico.value = true;
+    }
+});
 
-            this.nomSedeSeleccionada = $('select[name="sedes"] option:selected').text();
-
-            sessionStorage.setItem("ST-sede", this.sedeSeleccionada);
-            sessionStorage.setItem("ST-nomsede", this.nomSedeSeleccionada);
-            sessionStorage.setItem("ST-urlsede", res.data.url_oviyam);
-            sessionStorage.setItem("ST-servername", res.data.tap_oviyam);
-            sessionStorage.setItem("ST-email_repor", res.data.email_repor);
-
-            this.emitter.emit("sedeSeleccionada", {
-                idSede: this.sedeSeleccionada,
-                nomSede: this.nomSedeSeleccionada,
-                url: this.urlSedeSeleccionada,
-                serverName: this.serverNameSeleccionada,
-                email_repor: res.data.email_repor,
-            });
-        },
-        async estableserMedico() {
-            this.nomMedicoSeleccionado = $('select[name="medicos"] option:selected').text();
-
-            sessionStorage.setItem("ST-medico", this.medicoSeleccionado);
-            sessionStorage.setItem("ST-nomMedico", this.nomMedicoSeleccionado);
-
-            this.emitter.emit("medicoSeleccionado", {
-                idMedico: this.medicoSeleccionado,
-                nomMedico: this.nomMedicoSeleccionado,
-            });
-        },
-
-        onOpenHdDropdown() {
-            // Recarga rápida al abrir
-            this.cargarHdNotificaciones(true);
-        },
-        formatHdTime(dt) {
-            if (!dt) return "";
-            try {
-                return window.dayjs(dt).tz("America/Bogota").format("YYYY-MM-DD HH:mm");
-            } catch (_) {
-                return String(dt);
-            }
-        },
-        async cargarHdNotificaciones(silent = false) {
-            if (!this.hdDisponible) return;
-            if (this.hdLoading) return;
-            this.hdLoading = true;
-            try {
-                const res = await axios.get("/api/helpdesk-notificaciones", {
-                    params: { limit: 10 },
-                });
-                this.hdItems = res.data?.items || [];
-            } catch (error) {
-                const status = error?.response?.status;
-                // Si no tiene permisos o no existe el endpoint, ocultar el ícono.
-                if (status === 403 || status === 404) {
-                    this.hdDisponible = false;
-                } else if (!silent) {
-                    handleAxiosErrorToast(error, "No se pudieron cargar notificaciones.");
-                }
-            } finally {
-                this.hdLoading = false;
-            }
-        },
-        async marcarHdLeida(n) {
-            try {
-                await axios.post(`/api/helpdesk-notificaciones/${n.id}/read`);
-                n.read_at = new Date().toISOString();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No se pudo marcar como leída.");
-            }
-        },
-        async marcarHdTodas() {
-            try {
-                await axios.post("/api/helpdesk-notificaciones/read-all");
-                await this.cargarHdNotificaciones(true);
-            } catch (error) {
-                handleAxiosErrorToast(error, "No se pudieron marcar todas.");
-            }
-        },
-        async abrirHdNotificacion(n) {
-            if (!n.read_at) await this.marcarHdLeida(n);
-            if (n.data?.ticket_id) window.location.href = `/helpdesk-tickets/${n.data.ticket_id}`;
-        },
-        goHdNotificaciones() {
-            window.location.href = "/helpdesk-notificaciones";
-        },
-    },
-};
+onBeforeUnmount(() => {
+    try {
+        if (hdIntervalId.value) clearInterval(hdIntervalId.value);
+    } catch (_) {}
+});
 </script>
