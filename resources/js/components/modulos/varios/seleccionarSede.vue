@@ -22,47 +22,38 @@
         </div>
     </div>
 </template>
-<script>
-//import sucursalActual from '../../mixins/sucursal';
-import { handleAxiosErrorToast } from "@/helpers/alerts";
+<script setup>
+import { onMounted, ref } from "vue";
 
-export default {
-    mounted() {
-        this.listarSucursales();
-    },
-    data() {
-        return {
-            sucursalActual: 1,
-            nomSucursal: "",
-            registros: [],
-        };
-    },
-    //mixins: [sucursalActual],
-    methods: {
-        async listarSucursales() {
-            try {
-                const res = await axios.get("/api/config-sedes");
-                this.registros = res.data;
-                if (
-                    Array.isArray(this.registros) &&
-                    this.registros.length > 0 &&
-                    !this.nomSucursal
-                ) {
-                    this.nomSucursal = this.registros[0].sucursal || "";
-                    sessionStorage.setItem("ST-sede", this.registros[0].id);
-                    this.emitter.emit("sedeSeleccionada", { idSede: this.registros[0].id });
-                }
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar sucursales.");
-                this.registros = [];
-            }
-        },
-        establecerSucursal(data = {}) {
-            this.nomSucursal = data.sucursal;
-            this.sucursalActual = data.id;
-            sessionStorage.setItem("ST-sede", data.id);
-            this.emitter.emit("sedeSeleccionada", { idSede: data.id });
-        },
-    },
-};
+import { handleAxiosErrorToast } from "@/helpers/alerts";
+import axios from "axios";
+
+const sucursalActual = ref(1);
+const nomSucursal = ref("");
+const registros = ref([]);
+
+async function listarSucursales() {
+    try {
+        const res = await axios.get("/api/config-sedes");
+        registros.value = res.data;
+        if (Array.isArray(registros.value) && registros.value.length > 0 && !nomSucursal.value) {
+            nomSucursal.value = registros.value[0].sucursal || "";
+            sessionStorage.setItem("ST-sede", registros.value[0].id);
+            emitter.emit("sedeSeleccionada", { idSede: registros.value[0].id });
+        }
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar sucursales.");
+        registros.value = [];
+    }
+}
+function establecerSucursal(data = {}) {
+    nomSucursal.value = data.sucursal;
+    sucursalActual.value = data.id;
+    sessionStorage.setItem("ST-sede", data.id);
+    emitter.emit("sedeSeleccionada", { idSede: data.id });
+}
+
+onMounted(() => {
+    listarSucursales();
+});
 </script>

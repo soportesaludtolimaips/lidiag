@@ -257,123 +257,119 @@
         </div>
     </div>
 </template>
+<script setup>
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-<script>
 import { handleAxiosErrorToast } from "@/helpers/alerts";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import axios from "axios";
 
-export default {
-    mounted() {
-        this.cargarEventos();
-        this.cargarLogs();
-    },
-    beforeUnmount() {
-        safeDestroyDataTable(this.$refs.dt || "#tablaAuditoria");
-    },
-    data() {
-        return {
-            registros: [],
-            eventosDisponibles: [],
-            totalRegistros: 0,
-            totalPaginas: 0,
-            paginaActual: 1,
-            loading: false,
-            filtros: {
-                evento: "",
-                desde: "",
-                hasta: "",
-                search: "",
-            },
-            detalle: {
-                id: null,
-                created_at: "",
-                user: null,
-                user_id: null,
-                evento: "",
-                descripcion: "",
-                model_type: "",
-                model_id: null,
-                ip: "",
-                user_agent: "",
-                datos_viejos: null,
-                datos_nuevos: null,
-            },
+const registros = ref([]);
+const eventosDisponibles = ref([]);
+const totalRegistros = ref(0);
+const totalPaginas = ref(0);
+const paginaActual = ref(1);
+const loading = ref(false);
+const filtros = ref({
+    evento: "",
+    desde: "",
+    hasta: "",
+    search: "",
+});
+const detalle = ref({
+    id: null,
+    created_at: "",
+    user: null,
+    user_id: null,
+    evento: "",
+    descripcion: "",
+    model_type: "",
+    model_id: null,
+    ip: "",
+    user_agent: "",
+    datos_viejos: null,
+    datos_nuevos: null,
+});
+
+async function cargarEventos() {
+    try {
+        const res = await axios.get("/api/seguridad-auditoria/eventos");
+        eventosDisponibles.value = res.data;
+    } catch (e) {
+        handleAxiosErrorToast(e, "Error al cargar tipos de evento");
+    }
+}
+async function cargarLogs() {
+    if (loading.value) return;
+    loading.value = true;
+
+    safeDestroyDataTable(dt.value || "#tablaAuditoria");
+
+    try {
+        const params = {
+            page: paginaActual.value,
+            per_page: 50,
+            ...filtros.value,
         };
-    },
-    methods: {
-        async cargarEventos() {
-            try {
-                const res = await axios.get("/api/seguridad-auditoria/eventos");
-                this.eventosDisponibles = res.data;
-            } catch (e) {
-                handleAxiosErrorToast(e, "Error al cargar tipos de evento");
-            }
-        },
-        async cargarLogs() {
-            if (this.loading) return;
-            this.loading = true;
 
-            safeDestroyDataTable(this.$refs.dt || "#tablaAuditoria");
+        if (!params.desde) delete params.desde;
+        if (!params.hasta) delete params.hasta;
+        if (!params.search) delete params.search;
+        if (!params.evento) delete params.evento;
 
-            try {
-                const params = {
-                    page: this.paginaActual,
-                    per_page: 50,
-                    ...this.filtros,
-                };
+        const res = await axios.get("/api/seguridad-auditoria", { params });
 
-                if (!params.desde) delete params.desde;
-                if (!params.hasta) delete params.hasta;
-                if (!params.search) delete params.search;
-                if (!params.evento) delete params.evento;
+        registros.value = res.data.data;
+        totalRegistros.value = res.data.total;
+        totalPaginas.value = res.data.last_page;
+        paginaActual.value = res.data.current_page;
 
-                const res = await axios.get("/api/seguridad-auditoria", { params });
+        nextTick(() => {
+            safeInitDataTable(dt.value || "#tablaAuditoria", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
+                retrieve: true,
+                paging: false,
+                info: false,
+                searching: false,
+            });
+        });
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible cargar los registros de auditoría.");
+    } finally {
+        loading.value = false;
+    }
+}
+function irPagina(pagina) {
+    if (pagina < 1 || pagina > totalPaginas.value) return;
+    paginaActual.value = pagina;
+    cargarLogs();
+}
+function verDetalle(item) {
+    detalle.value = { ...item };
+    $("#modalDetalleAuditoria").modal("show");
+}
+function colorEvento(evento) {
+    const colores = {
+        crear: "success",
+        actualizar: "warning",
+        eliminar: "danger",
+        inicio_sesion: "info",
+        cierre_sesion: "default",
+        inicio_sesion_fallido: "danger",
+    };
+    return colores[evento] || "primary";
+}
 
-                this.registros = res.data.data;
-                this.totalRegistros = res.data.total;
-                this.totalPaginas = res.data.last_page;
-                this.paginaActual = res.data.current_page;
+onMounted(() => {
+    cargarEventos();
+    cargarLogs();
+});
 
-                this.$nextTick(() => {
-                    safeInitDataTable(this.$refs.dt || "#tablaAuditoria", {
-                        dom: "Bfrtip",
-                        buttons: ["copy", "csv", "excel", "pdf", "print"],
-                        retrieve: true,
-                        paging: false,
-                        info: false,
-                        searching: false,
-                    });
-                });
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible cargar los registros de auditoría.");
-            } finally {
-                this.loading = false;
-            }
-        },
-        irPagina(pagina) {
-            if (pagina < 1 || pagina > this.totalPaginas) return;
-            this.paginaActual = pagina;
-            this.cargarLogs();
-        },
-        verDetalle(item) {
-            this.detalle = { ...item };
-            $("#modalDetalleAuditoria").modal("show");
-        },
-        colorEvento(evento) {
-            const colores = {
-                crear: "success",
-                actualizar: "warning",
-                eliminar: "danger",
-                inicio_sesion: "info",
-                cierre_sesion: "default",
-                inicio_sesion_fallido: "danger",
-            };
-            return colores[evento] || "primary";
-        },
-    },
-};
+onBeforeUnmount(() => {
+    safeDestroyDataTable(dt.value || "#tablaAuditoria");
+});
 </script>
-
 <style scoped>
 .cell-descripcion {
     max-width: 300px;

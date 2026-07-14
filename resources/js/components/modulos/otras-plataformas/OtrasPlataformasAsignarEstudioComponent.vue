@@ -612,524 +612,514 @@
         <!-- ============================================================== -->
     </div>
 </template>
+<script setup>
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-<script>
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { handleAxiosErrorToast } from "@/helpers/alerts";
+import axios from "axios";
 
-export default {
-    props: ["usuarioactual"],
-    components: {
-        FormPaciente,
-    },
-    mounted() {
-        this.registro.email_reportar = "";
-        this.listarMedicos();
-        this.listarPrioridades();
-        this.listarProductos();
-        this.listarDiagnosticos();
-        this.establecerSede();
-        this.limpiar();
-        this.emitter.on("sedeSeleccionada", (data) => {
-            this.registro.sede_id = data.idSede;
-            this.establecerSede();
-            safeDestroyDataTable(this.$refs.dt || "#example23");
+const props = defineProps({});
+
+const dataIndex = ref(0);
+const id = ref(0);
+const registros = ref([]);
+const tituloModal = ref("Nuevo registro");
+const registro = ref({
+    study_pk: "",
+    study_iuid: "",
+    study_datetime: "",
+    study_id: "",
+    accession_no: "",
+    study_desc: "",
+    mods_in_study: "",
+    observaciones: "",
+    medico_id: "",
+    prioridad_id: "",
+    sede_id: this.sedeActual,
+    quien_registro_id: this.usuarioactual.id,
+    num_docu: "",
+    nombres: "",
+    sexo: "",
+    fec_naci: "",
+    email: "",
+    email_reportar: "",
+    direccion: "",
+    tel: "",
+    productosEstudio: [],
+    diagnosticosEstudio: [],
+    atencion_id: null,
+    destino_estudio: "Teleradiologia",
+});
+const soportesHC = ref({ archivo1: null, archivo2: null, archivo3: null });
+const busqueda = ref({
+    sede_id: this.sedeActual,
+    bus_nom_num_docu: "",
+    bus_fehc_ini: "",
+    bus_fecha_fin: "",
+});
+const interfaceAtenciones = ref([]);
+const interfaceAtencionSeleccionada = ref(null);
+const errores = ref({});
+const erroresBusqueda = ref({});
+const medicos = ref([]);
+const prioridades = ref([]);
+const productos = ref([]);
+const diagnosticos = ref([]);
+const productoSelecciondo = ref("");
+const diagnosticoSelecciondo = ref("");
+const sedeActual = ref(sessionStorage.getItem("ST-sede"));
+const productosAtencion = ref([]);
+const sedeInterface = ref(false);
+const idRow = ref(null);
+const selectedRows = ref({});
+const loadingBuscar = ref(false);
+const loadingGuardar = ref(false);
+const loadingVerImagenIndex = ref(null);
+
+const diagnosticoOptions = computed(() => {
+    // Adaptar opciones al Select2 local: usa optionValue='id' y labelFields.
+    return (diagnosticos.value || []).map((d) => ({
+        id: String(d.id),
+        nom_diagnos: d.nom_diagnos,
+    }));
+});
+const productoOptions = computed(() => {
+    // Opciones para el Select2 local de productos.
+    return (productos.value || []).map((p) => ({
+        id: String(p.id),
+        cod_cups: p.cod_cups,
+        nom_produc: p.nom_produc,
+    }));
+});
+const medicoOptions = computed(() => {
+    // Opciones para el Select2 local de medicos.
+    return (medicos.value || []).map((p) => ({ id: String(p.id), name: p.name }));
+});
+
+async function buscarStudy() {
+    safeDestroyDataTable(dt.value || "#example23");
+
+    try {
+        if (loadingBuscar.value) return;
+        loadingBuscar.value = true;
+        if (sessionStorage.getItem("ST-sede") == null) {
+            $.toast({
+                heading: "Upsss!!!",
+                text: "Debes establece la sede en la cual vas a trabajar.",
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "warning",
+                hideAfter: 3500,
+                stack: 6,
+            });
+        } else if (
+            busqueda.value.bus_nom_num_docu == "" &&
+            busqueda.value.bus_fehc_ini == "" &&
+            busqueda.value.bus_fecha_fin == ""
+        ) {
+            $.toast({
+                heading: "Upsss!!!",
+                text: "Debes establece la fecha de inicio o finalización para la busqueda.",
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "warning",
+                hideAfter: 3500,
+                stack: 6,
+            });
+        } else {
+            // Validación de rango de fechas
+            if (
+                (busqueda.value.bus_fehc_ini && !busqueda.value.bus_fecha_fin) ||
+                (!busqueda.value.bus_fehc_ini && busqueda.value.bus_fecha_fin)
+            ) {
+                $.toast({
+                    heading: "Upsss!!!",
+                    text: "Debes diligenciar Fecha Inicio y Fecha Fin.",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "warning",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+                return;
+            }
+            if (
+                busqueda.value.bus_fehc_ini &&
+                busqueda.value.bus_fecha_fin &&
+                busqueda.value.bus_fehc_ini > busqueda.value.bus_fecha_fin
+            ) {
+                $.toast({
+                    heading: "Upsss!!!",
+                    text: "La Fecha Inicio no puede ser mayor que la Fecha Fin.",
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "warning",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+                return;
+            }
+            const res = await axios.post("/api/study.listarEstudios", busqueda.value);
+
+            if (res.status == 200) {
+                safeDestroyDataTable(dt.value || "#example23");
+
+                registros.value = res.data;
+                nextTick(() => {
+                    safeInitDataTable(dt.value || "#example23", {
+                        dom: "Bfrtip",
+                        buttons: ["copy", "csv", "excel", "pdf", "print"],
+                    });
+                });
+            } else if (res.status == 500) {
+                $.toast({
+                    heading: "Upsss!!!",
+                    text: res.data.message,
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "danger",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+            }
+        }
+    } catch (error) {
+        erroresBusqueda.value = error?.response?.data?.errors || {};
+        handleAxiosErrorToast(error, "No fue posible listar estudios.");
+    } finally {
+        loadingBuscar.value = false;
+    }
+}
+async function guardarRegistro() {
+    if (loadingGuardar.value) return;
+    loadingGuardar.value = true;
+    try {
+        const formData = new FormData();
+        formData.append("registro", JSON.stringify(registro.value));
+        formData.append("archivo1", soportesHC.value.archivo1);
+        formData.append("archivo2", soportesHC.value.archivo2);
+        formData.append("archivo3", soportesHC.value.archivo3);
+
+        const res = await axios.post("/api/estudios", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
         });
-    },
-    beforeUnmount() {
-        safeDestroyDataTable(this.$refs.dt || "#example23");
-    },
-    data() {
-        return {
-            dataIndex: 0,
-            id: 0,
-            registros: [],
-            tituloModal: "Nuevo registro",
-            registro: {
-                study_pk: "",
-                study_iuid: "",
-                study_datetime: "",
-                study_id: "",
-                accession_no: "",
-                study_desc: "",
-                mods_in_study: "",
-                observaciones: "",
-                medico_id: "",
-                prioridad_id: "",
-                sede_id: this.sedeActual,
-                quien_registro_id: this.usuarioactual.id,
-                num_docu: "",
-                nombres: "",
-                sexo: "",
-                fec_naci: "",
-                email: "",
-                email_reportar: "",
-                direccion: "",
-                tel: "",
-                productosEstudio: [],
-                diagnosticosEstudio: [],
-                atencion_id: null,
-                destino_estudio: "Teleradiologia",
-            },
-            soportesHC: { archivo1: null, archivo2: null, archivo3: null }, //Soporte de historia clinica
-            busqueda: {
-                sede_id: this.sedeActual,
-                bus_nom_num_docu: "",
-                bus_fehc_ini: "",
-                bus_fecha_fin: "",
-            },
-            interfaceAtenciones: [], //Ateniones disponibles del paciente
-            interfaceAtencionSeleccionada: null, //Atencion seleccinada para listar los productos y diagnosticos
-            errores: {},
-            erroresBusqueda: {},
-            medicos: [],
-            prioridades: [], //Listo las prioridades
-            productos: [], //Listo todos los productos
-            diagnosticos: [], //Listo todos los diagnosticos
-            productoSelecciondo: "",
-            diagnosticoSelecciondo: "",
-            sedeActual: sessionStorage.getItem("ST-sede"),
-            productosAtencion: [],
-            sedeInterface: false,
-            idRow: null,
-            selectedRows: {},
-            loadingBuscar: false,
-            loadingGuardar: false,
-            loadingVerImagenIndex: null,
-        };
-    },
-    computed: {
-        diagnosticoOptions() {
-            // Adaptar opciones al Select2 local: usa optionValue='id' y labelFields.
-            return (this.diagnosticos || []).map((d) => ({
-                id: String(d.id),
-                nom_diagnos: d.nom_diagnos,
-            }));
-        },
-        productoOptions() {
-            // Opciones para el Select2 local de productos.
-            return (this.productos || []).map((p) => ({
-                id: String(p.id),
-                cod_cups: p.cod_cups,
-                nom_produc: p.nom_produc,
-            }));
-        },
-        medicoOptions() {
-            // Opciones para el Select2 local de medicos.
-            return (this.medicos || []).map((p) => ({ id: String(p.id), name: p.name }));
-        },
-    },
-    methods: {
-        async buscarStudy() {
-            safeDestroyDataTable(this.$refs.dt || "#example23");
 
-            try {
-                if (this.loadingBuscar) return;
-                this.loadingBuscar = true;
-                if (sessionStorage.getItem("ST-sede") == null) {
-                    $.toast({
-                        heading: "Upsss!!!",
-                        text: "Debes establece la sede en la cual vas a trabajar.",
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "warning",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                } else if (
-                    this.busqueda.bus_nom_num_docu == "" &&
-                    this.busqueda.bus_fehc_ini == "" &&
-                    this.busqueda.bus_fecha_fin == ""
-                ) {
-                    $.toast({
-                        heading: "Upsss!!!",
-                        text: "Debes establece la fecha de inicio o finalización para la busqueda.",
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "warning",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                } else {
-                    // Validación de rango de fechas
-                    if (
-                        (this.busqueda.bus_fehc_ini && !this.busqueda.bus_fecha_fin) ||
-                        (!this.busqueda.bus_fehc_ini && this.busqueda.bus_fecha_fin)
-                    ) {
-                        $.toast({
-                            heading: "Upsss!!!",
-                            text: "Debes diligenciar Fecha Inicio y Fecha Fin.",
-                            position: "top-right",
-                            loaderBg: "#ff6849",
-                            icon: "warning",
-                            hideAfter: 3500,
-                            stack: 6,
-                        });
-                        return;
-                    }
-                    if (
-                        this.busqueda.bus_fehc_ini &&
-                        this.busqueda.bus_fecha_fin &&
-                        this.busqueda.bus_fehc_ini > this.busqueda.bus_fecha_fin
-                    ) {
-                        $.toast({
-                            heading: "Upsss!!!",
-                            text: "La Fecha Inicio no puede ser mayor que la Fecha Fin.",
-                            position: "top-right",
-                            loaderBg: "#ff6849",
-                            icon: "warning",
-                            hideAfter: 3500,
-                            stack: 6,
-                        });
-                        return;
-                    }
-                    const res = await axios.post("/api/study.listarEstudios", this.busqueda);
+        if (res.status == 200 || res.status === 201) {
+            $.toast({
+                heading: "Ok!!!",
+                text: res.data.message,
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "success",
+                hideAfter: 3500,
+                stack: 6,
+            });
 
-                    if (res.status == 200) {
-                        safeDestroyDataTable(this.$refs.dt || "#example23");
+            // Actualiza el valor de `agendado` para que se refleje el cambio de clase
+            registros.value[idRow.value].agendado = 1; // O el valor que necesites asignar
+            selectedRows.value[idRow.value] = !selectedRows.value[idRow.value];
+        }
 
-                        this.registros = res.data;
-                        this.$nextTick(() => {
-                            safeInitDataTable(this.$refs.dt || "#example23", {
-                                dom: "Bfrtip",
-                                buttons: ["copy", "csv", "excel", "pdf", "print"],
-                            });
-                        });
-                    } else if (res.status == 500) {
-                        $.toast({
-                            heading: "Upsss!!!",
-                            text: res.data.message,
-                            position: "top-right",
-                            loaderBg: "#ff6849",
-                            icon: "danger",
-                            hideAfter: 3500,
-                            stack: 6,
-                        });
-                    }
-                }
-            } catch (error) {
-                this.erroresBusqueda = error?.response?.data?.errors || {};
-                handleAxiosErrorToast(error, "No fue posible listar estudios.");
-            } finally {
-                this.loadingBuscar = false;
-            }
-        },
-        async guardarRegistro() {
-            if (this.loadingGuardar) return;
-            this.loadingGuardar = true;
-            try {
-                const formData = new FormData();
-                formData.append("registro", JSON.stringify(this.registro));
-                formData.append("archivo1", this.soportesHC.archivo1);
-                formData.append("archivo2", this.soportesHC.archivo2);
-                formData.append("archivo3", this.soportesHC.archivo3);
+        /* btnCerralModalForm();
+                limpiar(); */
+    } catch (error) {
+        errores.value = error?.response?.data?.errors || error?.response?.data || {};
+        handleAxiosErrorToast(error, "No fue posible guardar el registro.");
+    } finally {
+        loadingGuardar.value = false;
+    }
+}
+function obtenerArchivo1(e) {
+    soportesHC.value.archivo1 = e.target.files[0];
+}
+function obtenerArchivo2(e) {
+    soportesHC.value.archivo2 = e.target.files[0];
+}
+function obtenerArchivo3(e) {
+    soportesHC.value.archivo3 = e.target.files[0];
+}
+async function mostrarRegistro(data = {}, index) {
+    limpiar();
+    tituloModal.value = "Agendar al paciente: " + data.pat_name;
+    id.value = data.study_pk;
+    registro.value.study_pk = data.study_pk;
+    registro.value.study_iuid = data.study_iuid;
+    registro.value.study_id = data.study_id;
+    registro.value.study_datetime = data.study_datetime;
+    registro.value.accession_no = data.accession_no;
+    registro.value.study_desc = data.study_desc;
+    registro.value.mods_in_study = data.mods_in_study;
+    registro.value.email = "";
+    registro.value.email_reportar = sessionStorage.getItem("ST-email_repor");
+    registro.value.num_docu = data.pat_id;
+    registro.value.nombres = data.pat_name;
+    registro.value.sexo = data.pat_sex;
+    registro.value.fec_naci = data.pat_birthdate;
+    idRow.value = index;
 
-                const res = await axios.post("/api/estudios", formData, {
-                    headers: { "Content-Type": "multipart/form-data" },
-                });
+    //btnCerralModalForm();
+    abrirModal();
 
-                if (res.status == 200 || res.status === 201) {
-                    $.toast({
-                        heading: "Ok!!!",
-                        text: res.data.message,
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "success",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
+    /**
+     * Verificar si la sede tiene interface, traigo la informacion de las producto y diagnosticos
+     */
+    const res = await axios.get("/api/config-sedes/" + sedeActual.value + "/buscarPorId");
+    if (res.data.interface_software != null) {
+        const resAtenciones = await axios.get(
+            "/api/interface-sahi-listar-atenciones/" + registro.value.num_docu
+        );
+        interfaceAtenciones.value = resAtenciones.data;
+    }
+}
+async function interfaceListarProductosDiagnosticos() {
+    /**
+     * Listo los productos de una atención
+     */
+    const resProuctos = await axios.get(
+        "/api/interface-sahi-listar-listarProductosDiagnosticos/" +
+            interfaceAtencionSeleccionada.value
+    );
 
-                    // Actualiza el valor de `agendado` para que se refleje el cambio de clase
-                    this.registros[this.idRow].agendado = 1; // O el valor que necesites asignar
-                    this.selectedRows[this.idRow] = !this.selectedRows[this.idRow];
-                }
+    registro.value.productosEstudio = [];
+    if (resProuctos.data.productos.length > 0) {
+        resProuctos.data.productos.forEach((element) => {
+            registro.value.productosEstudio.push({
+                checked: false,
+                id: element.IdProducto,
+                cod_cups: element.cod_cups,
+                nom_produc: element.nom_produc,
+            });
+        });
+    }
 
-                /* this.btnCerralModalForm();
-                this.limpiar(); */
-            } catch (error) {
-                this.errores = error?.response?.data?.errors || error?.response?.data || {};
-                handleAxiosErrorToast(error, "No fue posible guardar el registro.");
-            } finally {
-                this.loadingGuardar = false;
-            }
-        },
-        obtenerArchivo1(e) {
-            this.soportesHC.archivo1 = e.target.files[0];
-        },
-        obtenerArchivo2(e) {
-            this.soportesHC.archivo2 = e.target.files[0];
-        },
-        obtenerArchivo3(e) {
-            this.soportesHC.archivo3 = e.target.files[0];
-        },
-        async mostrarRegistro(data = {}, index) {
-            this.limpiar();
-            this.tituloModal = "Agendar al paciente: " + data.pat_name;
-            this.id = data.study_pk;
-            this.registro.study_pk = data.study_pk;
-            this.registro.study_iuid = data.study_iuid;
-            this.registro.study_id = data.study_id;
-            this.registro.study_datetime = data.study_datetime;
-            this.registro.accession_no = data.accession_no;
-            this.registro.study_desc = data.study_desc;
-            this.registro.mods_in_study = data.mods_in_study;
-            this.registro.email = "";
-            this.registro.email_reportar = sessionStorage.getItem("ST-email_repor");
-            this.registro.num_docu = data.pat_id;
-            this.registro.nombres = data.pat_name;
-            this.registro.sexo = data.pat_sex;
-            this.registro.fec_naci = data.pat_birthdate;
-            this.idRow = index;
+    registro.value.diagnosticosEstudio = [];
+    if (resProuctos.data.diagnosticos.length > 0) {
+        registro.value.diagnosticosEstudio = resProuctos.data.diagnosticos;
+    }
 
-            //this.btnCerralModalForm();
-            this.abrirModal();
+    registro.value.atencion_id = interfaceAtencionSeleccionada.value;
+}
+async function establecerSede() {
+    registro.value.sede_id = sessionStorage.getItem("ST-sede");
+    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
+    sedeActual.value = sessionStorage.getItem("ST-sede");
 
-            /**
-             * Verificar si la sede tiene interface, traigo la informacion de las producto y diagnosticos
-             */
-            const res = await axios.get("/api/config-sedes/" + this.sedeActual + "/buscarPorId");
-            if (res.data.interface_software != null) {
-                const resAtenciones = await axios.get(
-                    "/api/interface-sahi-listar-atenciones/" + this.registro.num_docu
-                );
-                this.interfaceAtenciones = resAtenciones.data;
-            }
-        },
-        async interfaceListarProductosDiagnosticos() {
-            /**
-             * Listo los productos de una atención
-             */
-            const resProuctos = await axios.get(
-                "/api/interface-sahi-listar-listarProductosDiagnosticos/" +
-                    this.interfaceAtencionSeleccionada
-            );
+    try {
+        const res = await axios.get(`/config-sedes/${sedeActual.value}/buscarPorId`);
+        sedeInterface.value = res?.data?.interface_software === "SAHI";
+    } catch (error) {
+        sedeInterface.value = false;
+    }
+    registros.value = [];
+}
+function btnCerralModalForm() {
+    $(".right-sidebar").slideDown(50);
+    $(".right-sidebar").toggleClass("shw-rside");
+}
+function abrirModal() {
+    $(".right-sidebar").addClass("shw-rside");
+}
+function cerrarModal() {
+    $(".right-sidebar").removeClass("shw-rside");
+}
+function limpiar() {
+    registro.value.study_pk = "";
+    registro.value.study_iuid = "";
+    registro.value.study_id = "";
+    registro.value.study_datetime = "";
+    registro.value.accession_no = "";
+    registro.value.study_desc = "";
+    registro.value.mods_in_study = "";
+    registro.value.email_reportar = "";
 
-            this.registro.productosEstudio = [];
-            if (resProuctos.data.productos.length > 0) {
-                resProuctos.data.productos.forEach((element) => {
-                    this.registro.productosEstudio.push({
-                        checked: false,
-                        id: element.IdProducto,
-                        cod_cups: element.cod_cups,
-                        nom_produc: element.nom_produc,
-                    });
-                });
-            }
+    registro.value.num_docu = "";
+    registro.value.nombres = "";
+    registro.value.sexo = "";
+    registro.value.email = "";
+    registro.value.fec_naci = "";
 
-            this.registro.diagnosticosEstudio = [];
-            if (resProuctos.data.diagnosticos.length > 0) {
-                this.registro.diagnosticosEstudio = resProuctos.data.diagnosticos;
-            }
+    registro.value.diagnosticosEstudio.splice(0, registro.value.diagnosticosEstudio.length);
+    registro.value.productosEstudio.splice(0, registro.value.productosEstudio.length);
 
-            this.registro.atencion_id = this.interfaceAtencionSeleccionada;
-        },
-        async establecerSede() {
-            this.registro.sede_id = sessionStorage.getItem("ST-sede");
-            this.busqueda.sede_id = sessionStorage.getItem("ST-sede");
-            this.sedeActual = sessionStorage.getItem("ST-sede");
+    /* registro.value.medico_id = 0;
+            registro.value.prioridad_id = 0; */
+    productoSelecciondo.value = 0;
+    diagnosticoSelecciondo.value = 0;
 
-            try {
-                const res = await axios.get(`/config-sedes/${this.sedeActual}/buscarPorId`);
-                this.sedeInterface = res?.data?.interface_software === "SAHI";
-            } catch (error) {
-                this.sedeInterface = false;
-            }
-            this.registros = [];
-        },
-        btnCerralModalForm() {
-            $(".right-sidebar").slideDown(50);
-            $(".right-sidebar").toggleClass("shw-rside");
-        },
-        // initProductosSelect2 ya no es necesario con el wrapper Select2 local.
-        abrirModal() {
-            $(".right-sidebar").addClass("shw-rside");
-        },
-        cerrarModal() {
-            $(".right-sidebar").removeClass("shw-rside");
-        },
-        limpiar() {
-            this.registro.study_pk = "";
-            this.registro.study_iuid = "";
-            this.registro.study_id = "";
-            this.registro.study_datetime = "";
-            this.registro.accession_no = "";
-            this.registro.study_desc = "";
-            this.registro.mods_in_study = "";
-            this.registro.email_reportar = "";
+    soportesHC.value.archivo1 = null;
+    soportesHC.value.archivo2 = null;
+    soportesHC.value.archivo3 = null;
 
-            this.registro.num_docu = "";
-            this.registro.nombres = "";
-            this.registro.sexo = "";
-            this.registro.email = "";
-            this.registro.fec_naci = "";
+    /* listarMedicos();
+            listarPrioridades(); */
+}
+async function listarMedicos() {
+    try {
+        const pathname = String(window?.location?.pathname || "").toLowerCase();
+        const moduloId =
+            sessionStorage.getItem("ST-modulo") || (pathname.includes("ecografia") ? "2" : "1");
+        const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
+        medicos.value = res.data;
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar médicos.");
+        medicos.value = [];
+    }
+}
+async function listarPrioridades() {
+    try {
+        const res = await axios.get("/api/config-prioridades");
+        prioridades.value = res.data;
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar prioridades.");
+        prioridades.value = [];
+    }
+}
+async function listarProductos() {
+    try {
+        const res = await axios.get("/api/config-productos");
+        productos.value = res.data;
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar productos.");
+        productos.value = [];
+    }
+}
+async function listarDiagnosticos() {
+    try {
+        const res = await axios.get("/api/config-diagnosticos");
+        diagnosticos.value = res.data;
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar diagnósticos.");
+        diagnosticos.value = [];
+    }
+}
+function onMedicoSelect(value) {
+    let selectedId = null;
+    if (Array.isArray(value) && value.length > 0) {
+        const v = value[0];
+        selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
+    } else if (value && typeof value === "object" && value.id != null) {
+        selectedId = String(value.id);
+    } else if (value != null) {
+        selectedId = String(value);
+    }
+    registro.value.medico_id = selectedId || "";
+}
+function onProductoSelect(value) {
+    let selectedId = null;
+    if (Array.isArray(value) && value.length > 0) {
+        const v = value[0];
+        selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
+    } else if (value && typeof value === "object" && value.id != null) {
+        selectedId = String(value.id);
+    } else if (value != null) {
+        selectedId = String(value);
+    }
+    if (selectedId != null) {
+        productoSelecciondo.value = selectedId;
+        guardarProductosEstudio();
+    }
+}
+function onDiagnosticoSelect(value) {
+    let selectedId = null;
+    if (Array.isArray(value) && value.length > 0) {
+        const v = value[0];
+        selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
+    } else if (value && typeof value === "object" && value.id != null) {
+        selectedId = String(value.id);
+    } else if (value != null) {
+        selectedId = String(value);
+    }
+    if (selectedId != null) {
+        diagnosticoSelecciondo.value = selectedId;
+        guardarDiagnosticosEstudio();
+    }
+}
+function guardarProductosEstudio() {
+    const indexProductoEstudio = productos.value.findIndex(
+        (x) => x.id == productoSelecciondo.value
+    );
 
-            this.registro.diagnosticosEstudio.splice(0, this.registro.diagnosticosEstudio.length);
-            this.registro.productosEstudio.splice(0, this.registro.productosEstudio.length);
+    if (indexProductoEstudio >= 0) {
+        const productoEstudioId = productos.value[indexProductoEstudio].id;
+        const productoEstudioCod_Cubs = productos.value[indexProductoEstudio].cod_cups;
+        const productoEstudioNomProduc = productos.value[indexProductoEstudio].nom_produc;
 
-            /* this.registro.medico_id = 0;
-            this.registro.prioridad_id = 0; */
-            this.productoSelecciondo = 0;
-            this.diagnosticoSelecciondo = 0;
+        const yaExiste = registro.value.productosEstudio.some((p) => p.id == productoEstudioId);
+        if (!yaExiste) {
+            registro.value.productosEstudio.push({
+                id: productoEstudioId,
+                cod_cups: productoEstudioCod_Cubs,
+                nom_produc: productoEstudioNomProduc,
+                checked: false,
+            });
+        }
 
-            this.soportesHC.archivo1 = null;
-            this.soportesHC.archivo2 = null;
-            this.soportesHC.archivo3 = null;
+        // Limpiar selección
+        productoSelecciondo.value = "";
+    }
+}
+function quitarProductoEstudio(indexEliminar) {
+    registro.value.productosEstudio.splice(indexEliminar, 1);
+}
+function guardarDiagnosticosEstudio() {
+    const idx = diagnosticos.value.findIndex(
+        (x) => String(x.id) === String(diagnosticoSelecciondo.value)
+    );
+    if (idx >= 0) {
+        const diag = diagnosticos.value[idx];
+        const yaExiste = registro.value.diagnosticosEstudio.some(
+            (d) => String(d.id) === String(diag.id)
+        );
+        if (!yaExiste) {
+            registro.value.diagnosticosEstudio.push({
+                id: diag.id,
+                cod_diagnos: diag.cod_diagnos,
+                nom_diagnos: diag.nom_diagnos,
+            });
+        }
+        // Limpiar selección
+        diagnosticoSelecciondo.value = "";
+    }
+}
+function quitarDiagnosticoEstudio(indexEliminar) {
+    registro.value.diagnosticosEstudio.splice(indexEliminar, 1);
+}
+function verImagen(pat_id, study_iuid, index = null) {
+    try {
+        if (index != null) loadingVerImagenIndex.value = index;
+        const base = sessionStorage.getItem("ST-urlsede") || "";
+        const params = new URLSearchParams({
+            patientID: String(pat_id ?? ""),
+            studyUID: String(study_iuid ?? ""),
+            serverName: String(sessionStorage.getItem("ST-servername") || ""),
+        });
+        const url = `${base}?${params.toString()}`;
+        window.open(url, "_blank", "noopener,noreferrer");
+    } finally {
+        loadingVerImagenIndex.value = null;
+    }
+}
 
-            /* this.listarMedicos();
-            this.listarPrioridades(); */
-        },
-        async listarMedicos() {
-            try {
-                const pathname = String(window?.location?.pathname || "").toLowerCase();
-                const moduloId =
-                    sessionStorage.getItem("ST-modulo") ||
-                    (pathname.includes("ecografia") ? "2" : "1");
-                const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
-                this.medicos = res.data;
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar médicos.");
-                this.medicos = [];
-            }
-        },
-        async listarPrioridades() {
-            try {
-                const res = await axios.get("/api/config-prioridades");
-                this.prioridades = res.data;
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar prioridades.");
-                this.prioridades = [];
-            }
-        },
-        async listarProductos() {
-            try {
-                const res = await axios.get("/api/config-productos");
-                this.productos = res.data;
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar productos.");
-                this.productos = [];
-            }
-        },
-        async listarDiagnosticos() {
-            try {
-                const res = await axios.get("/api/config-diagnosticos");
-                this.diagnosticos = res.data;
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar diagnósticos.");
-                this.diagnosticos = [];
-            }
-        },
-        onMedicoSelect(value) {
-            let selectedId = null;
-            if (Array.isArray(value) && value.length > 0) {
-                const v = value[0];
-                selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
-            } else if (value && typeof value === "object" && value.id != null) {
-                selectedId = String(value.id);
-            } else if (value != null) {
-                selectedId = String(value);
-            }
-            this.registro.medico_id = selectedId || "";
-        },
-        onProductoSelect(value) {
-            let selectedId = null;
-            if (Array.isArray(value) && value.length > 0) {
-                const v = value[0];
-                selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
-            } else if (value && typeof value === "object" && value.id != null) {
-                selectedId = String(value.id);
-            } else if (value != null) {
-                selectedId = String(value);
-            }
-            if (selectedId != null) {
-                this.productoSelecciondo = selectedId;
-                this.guardarProductosEstudio();
-            }
-        },
-        onDiagnosticoSelect(value) {
-            let selectedId = null;
-            if (Array.isArray(value) && value.length > 0) {
-                const v = value[0];
-                selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
-            } else if (value && typeof value === "object" && value.id != null) {
-                selectedId = String(value.id);
-            } else if (value != null) {
-                selectedId = String(value);
-            }
-            if (selectedId != null) {
-                this.diagnosticoSelecciondo = selectedId;
-                this.guardarDiagnosticosEstudio();
-            }
-        },
-        guardarProductosEstudio() {
-            const indexProductoEstudio = this.productos.findIndex(
-                (x) => x.id == this.productoSelecciondo
-            );
+onMounted(() => {
+    registro.value.email_reportar = "";
+    listarMedicos();
+    listarPrioridades();
+    listarProductos();
+    listarDiagnosticos();
+    establecerSede();
+    limpiar();
+    emitter.on("sedeSeleccionada", (data) => {
+        registro.value.sede_id = data.idSede;
+        establecerSede();
+        safeDestroyDataTable(dt.value || "#example23");
+    });
+});
 
-            if (indexProductoEstudio >= 0) {
-                const productoEstudioId = this.productos[indexProductoEstudio].id;
-                const productoEstudioCod_Cubs = this.productos[indexProductoEstudio].cod_cups;
-                const productoEstudioNomProduc = this.productos[indexProductoEstudio].nom_produc;
-
-                const yaExiste = this.registro.productosEstudio.some(
-                    (p) => p.id == productoEstudioId
-                );
-                if (!yaExiste) {
-                    this.registro.productosEstudio.push({
-                        id: productoEstudioId,
-                        cod_cups: productoEstudioCod_Cubs,
-                        nom_produc: productoEstudioNomProduc,
-                        checked: false,
-                    });
-                }
-
-                // Limpiar selección
-                this.productoSelecciondo = "";
-            }
-        },
-        quitarProductoEstudio(indexEliminar) {
-            this.registro.productosEstudio.splice(indexEliminar, 1);
-        },
-        guardarDiagnosticosEstudio() {
-            const idx = this.diagnosticos.findIndex(
-                (x) => String(x.id) === String(this.diagnosticoSelecciondo)
-            );
-            if (idx >= 0) {
-                const diag = this.diagnosticos[idx];
-                const yaExiste = this.registro.diagnosticosEstudio.some(
-                    (d) => String(d.id) === String(diag.id)
-                );
-                if (!yaExiste) {
-                    this.registro.diagnosticosEstudio.push({
-                        id: diag.id,
-                        cod_diagnos: diag.cod_diagnos,
-                        nom_diagnos: diag.nom_diagnos,
-                    });
-                }
-                // Limpiar selección
-                this.diagnosticoSelecciondo = "";
-            }
-        },
-        quitarDiagnosticoEstudio(indexEliminar) {
-            this.registro.diagnosticosEstudio.splice(indexEliminar, 1);
-        },
-        verImagen(pat_id, study_iuid, index = null) {
-            try {
-                if (index != null) this.loadingVerImagenIndex = index;
-                const base = sessionStorage.getItem("ST-urlsede") || "";
-                const params = new URLSearchParams({
-                    patientID: String(pat_id ?? ""),
-                    studyUID: String(study_iuid ?? ""),
-                    serverName: String(sessionStorage.getItem("ST-servername") || ""),
-                });
-                const url = `${base}?${params.toString()}`;
-                window.open(url, "_blank", "noopener,noreferrer");
-            } finally {
-                this.loadingVerImagenIndex = null;
-            }
-        },
-    },
-};
+onBeforeUnmount(() => {
+    safeDestroyDataTable(dt.value || "#example23");
+});
 </script>
 <style scoped>
 .right-sidebar {

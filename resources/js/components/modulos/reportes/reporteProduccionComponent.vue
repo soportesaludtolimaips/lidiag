@@ -198,94 +198,86 @@
         <!-- /.modal -->
     </div>
 </template>
+<script setup>
+import { onMounted, ref } from "vue";
 
-<script>
 import { listarUsuariosYSedes } from "../../../helpers/usuarios";
 import usePermissions from "@/helpers/permissions.js";
 import { handleAxiosErrorToast } from "@/helpers/alerts";
+import axios from "axios";
 
-export default {
-    props: ["usuarioactual", "permisos"],
-    setup(props) {
-        const { can } = usePermissions(props.permisos);
+const props = defineProps({});
 
-        return { can };
-    },
-    mounted() {
-        this.listarSedes();
-    },
-    data() {
-        return {
-            sedes: [], //Listo las sedes
-            datosReporte: { sedeId: 0, quien_asigno: "", medico: "", fechaIni: "", fechaFin: "" },
-            quienes_asignaron: [],
-            medicos: [],
-            tipoReporte: "Rx",
-            loadingDescargar: false,
-        };
-    },
-    methods: {
-        async listarSedes() {
-            try {
-                await listarUsuariosYSedes(this);
+const sedes = ref([]);
+const datosReporte = ref({ sedeId: 0, quien_asigno: "", medico: "", fechaIni: "", fechaFin: "" });
+const quienes_asignaron = ref([]);
+const medicos = ref([]);
+const tipoReporte = ref("Rx");
+const loadingDescargar = ref(false);
 
-                const res = await axios.get("/api/config-sedes/listar/sedes/activas");
-                this.sedes = res.data;
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible cargar sedes/usuarios.");
-            }
-        },
-        async descargarReporte() {
-            if (this.loadingDescargar) return;
-            this.loadingDescargar = true;
-            try {
-                if (!this.datosReporte.fechaIni || !this.datosReporte.fechaFin) {
-                    $.toast({
-                        heading: "Upsss!!!",
-                        text: "Debes seleccionar fecha inicio y fecha fin.",
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "warning",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                    return;
-                }
-                if (this.datosReporte.fechaIni > this.datosReporte.fechaFin) {
-                    $.toast({
-                        heading: "Upsss!!!",
-                        text: "La fecha inicio no puede ser mayor a la fecha fin.",
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "warning",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                    return;
-                }
+async function listarSedes() {
+    try {
+        await listarUsuariosYSedes(this);
 
-                const params = new URLSearchParams({
-                    tipo: String(this.tipoReporte || "Rx"),
-                    sedeId: String(this.datosReporte.sedeId ?? 0),
-                    quien_asigno: String(this.datosReporte.quien_asigno ?? 0),
-                    medico: String(this.datosReporte.medico ?? 0),
-                    fechaIni: String(this.datosReporte.fechaIni),
-                    fechaFin: String(this.datosReporte.fechaFin),
-                });
-                window.open(
-                    `/descarga-reportes-produccion?${params.toString()}`,
-                    "_blank",
-                    "noopener,noreferrer"
-                );
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible descargar el reporte.");
-            } finally {
-                // pequeño delay para evitar doble click inmediato
-                setTimeout(() => {
-                    this.loadingDescargar = false;
-                }, 700);
-            }
-        },
-    },
-};
+        const res = await axios.get("/api/config-sedes/listar/sedes/activas");
+        sedes.value = res.data;
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible cargar sedes/usuarios.");
+    }
+}
+async function descargarReporte() {
+    if (loadingDescargar.value) return;
+    loadingDescargar.value = true;
+    try {
+        if (!datosReporte.value.fechaIni || !datosReporte.value.fechaFin) {
+            $.toast({
+                heading: "Upsss!!!",
+                text: "Debes seleccionar fecha inicio y fecha fin.",
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "warning",
+                hideAfter: 3500,
+                stack: 6,
+            });
+            return;
+        }
+        if (datosReporte.value.fechaIni > datosReporte.value.fechaFin) {
+            $.toast({
+                heading: "Upsss!!!",
+                text: "La fecha inicio no puede ser mayor a la fecha fin.",
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "warning",
+                hideAfter: 3500,
+                stack: 6,
+            });
+            return;
+        }
+
+        const params = new URLSearchParams({
+            tipo: String(tipoReporte.value || "Rx"),
+            sedeId: String(datosReporte.value.sedeId ?? 0),
+            quien_asigno: String(datosReporte.value.quien_asigno ?? 0),
+            medico: String(datosReporte.value.medico ?? 0),
+            fechaIni: String(datosReporte.value.fechaIni),
+            fechaFin: String(datosReporte.value.fechaFin),
+        });
+        window.open(
+            `/descarga-reportes-produccion?${params.toString()}`,
+            "_blank",
+            "noopener,noreferrer"
+        );
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible descargar el reporte.");
+    } finally {
+        // pequeño delay para evitar doble click inmediato
+        setTimeout(() => {
+            loadingDescargar.value = false;
+        }, 700);
+    }
+}
+
+onMounted(() => {
+    listarSedes();
+});
 </script>

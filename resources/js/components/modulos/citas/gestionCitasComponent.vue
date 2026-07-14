@@ -149,104 +149,84 @@
         </div>
     </div>
 </template>
+<script setup>
+import { onMounted, ref } from "vue";
 
-<script>
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { formatFecha, getEstadoLabel, getEstadoClase } from "@/composables/useCitasUtils.js";
+import axios from "axios";
 
-export default {
-    components: { LoadingSpinner },
-    data: function () {
-        return {
-            stats: [],
-            statsPorEstado: {},
-            proximas: [],
-            loading: false,
-        };
-    },
+const stats = ref([]);
+const statsPorEstado = ref({});
+const proximas = ref([]);
+const loading = ref(false);
 
-    mounted: function () {
-        this.cargarDashboard();
-    },
+function cargarDashboard() {
+    cargarStats();
+    cargarProximas();
+}
+function cargarStats() {
+    var thisVue = this;
 
-    methods: {
-        cargarDashboard: function () {
-            this.cargarStats();
-            this.cargarProximas();
-        },
+    axios.get("/api/citas?per_page=1").then(function (response) {
+        var total = response.data.total || 0;
+        thisVue.stats = [
+            {
+                label: "Total Citas",
+                count: total,
+                icon: "fa-calendar",
+                cardClass: "bg-info text-white",
+            },
+        ];
+    });
 
-        cargarStats: function () {
-            var thisVue = this;
+    var estados = ["solicitada", "asignada", "confirmada", "cancelada", "cumplida", "no_asistio"];
+    thisVue.statsPorEstado = {};
 
-            axios.get("/api/citas?per_page=1").then(function (response) {
-                var total = response.data.total || 0;
-                thisVue.stats = [
-                    {
-                        label: "Total Citas",
-                        count: total,
-                        icon: "fa-calendar",
-                        cardClass: "bg-info text-white",
-                    },
-                ];
-            });
+    estados.forEach(function (estado) {
+        axios.get("/api/citas?estado=" + estado + "&per_page=1").then(function (response) {
+            thisVue.statsPorEstado[estado] = response.data.total || 0;
+        });
+    });
+}
+function cargarProximas() {
+    var thisVue = this;
+    thisVue.loading = true;
 
-            var estados = [
-                "solicitada",
-                "asignada",
-                "confirmada",
-                "cancelada",
-                "cumplida",
-                "no_asistio",
-            ];
-            thisVue.statsPorEstado = {};
+    var hoy = new Date();
+    var manana = new Date(hoy);
+    manana.setDate(manana.getDate() + 1);
 
-            estados.forEach(function (estado) {
-                axios.get("/api/citas?estado=" + estado + "&per_page=1").then(function (response) {
-                    thisVue.statsPorEstado[estado] = response.data.total || 0;
-                });
-            });
-        },
+    var fmt = function (d) {
+        return (
+            d.getFullYear() +
+            "-" +
+            String(d.getMonth() + 1).padStart(2, "0") +
+            "-" +
+            String(d.getDate()).padStart(2, "0")
+        );
+    };
 
-        cargarProximas: function () {
-            var thisVue = this;
-            thisVue.loading = true;
+    axios
+        .get("/api/citas", {
+            params: {
+                fecha_inicio: fmt(hoy),
+                fecha_fin: fmt(manana),
+                per_page: 20,
+            },
+        })
+        .then(function (response) {
+            thisVue.proximas = response.data.data || [];
+        })
+        .catch(function () {
+            thisVue.proximas = [];
+        })
+        .then(function () {
+            thisVue.loading = false;
+        });
+}
 
-            var hoy = new Date();
-            var manana = new Date(hoy);
-            manana.setDate(manana.getDate() + 1);
-
-            var fmt = function (d) {
-                return (
-                    d.getFullYear() +
-                    "-" +
-                    String(d.getMonth() + 1).padStart(2, "0") +
-                    "-" +
-                    String(d.getDate()).padStart(2, "0")
-                );
-            };
-
-            axios
-                .get("/api/citas", {
-                    params: {
-                        fecha_inicio: fmt(hoy),
-                        fecha_fin: fmt(manana),
-                        per_page: 20,
-                    },
-                })
-                .then(function (response) {
-                    thisVue.proximas = response.data.data || [];
-                })
-                .catch(function () {
-                    thisVue.proximas = [];
-                })
-                .then(function () {
-                    thisVue.loading = false;
-                });
-        },
-
-        formatFecha,
-        getEstadoLabel,
-        getEstadoClase,
-    },
-};
+onMounted(() => {
+    cargarDashboard();
+});
 </script>

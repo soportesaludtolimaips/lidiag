@@ -337,232 +337,226 @@
         </div>
     </div>
 </template>
+<script setup>
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-<script>
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { handleAxiosErrorToast, confirmAction } from "@/helpers/alerts";
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
+import axios from "axios";
 
-export default {
-    components: { LoadingSpinner },
-    props: ["usuarioactual"],
-    mounted() {
-        this.establecerSede();
-        this.listarServiciosCitas();
-        this.buscarStudy();
+const props = defineProps({});
 
-        this.emitter.on("sedeSeleccionada", () => {
-            this.establecerSede();
-            safeDestroyDataTable(this.$refs.dt || "#tabla-disponibilidad");
-        });
-    },
-    beforeUnmount() {
-        safeDestroyDataTable(this.$refs.dt || "#tabla-disponibilidad");
-    },
-    data() {
-        return {
-            editando: false,
-            editandoId: null,
-            tituloModal: "Guardar disponibilidad de citas",
-            registro: {
-                sede_id: this.sedeActual,
-                quien_registro_id: this.usuarioactual.id,
-                servicio_cita_id: "",
-                total_citas: 1,
-                dura_cita: 15,
-                fecha_hora_ini: "",
-            },
-            busqueda: { sede_id: this.sedeActual, bus_fehc_ini: "", bus_fecha_fin: "" },
-            sedeActual: sessionStorage.getItem("ST-sede"),
-            serviciosCitas: [],
-            errores: [],
-            registros: [],
-            loadingBuscar: false,
-            loadingGuardar: false,
-            loadingEliminarId: null,
+const editando = ref(false);
+const editandoId = ref(null);
+const tituloModal = ref("Guardar disponibilidad de citas");
+const registro = ref({
+    sede_id: this.sedeActual,
+    quien_registro_id: this.usuarioactual.id,
+    servicio_cita_id: "",
+    total_citas: 1,
+    dura_cita: 15,
+    fecha_hora_ini: "",
+});
+const busqueda = ref({ sede_id: this.sedeActual, bus_fehc_ini: "", bus_fecha_fin: "" });
+const sedeActual = ref(sessionStorage.getItem("ST-sede"));
+const serviciosCitas = ref([]);
+const errores = ref([]);
+const registros = ref([]);
+const loadingBuscar = ref(false);
+const loadingGuardar = ref(false);
+const loadingEliminarId = ref(null);
+
+async function buscarStudy() {
+    if (loadingBuscar.value) return;
+    loadingBuscar.value = true;
+    try {
+        const params = {
+            sede_id: busqueda.value.sede_id,
+            bus_fehc_ini: busqueda.value.bus_fehc_ini || undefined,
+            bus_fecha_fin: busqueda.value.bus_fecha_fin || undefined,
         };
-    },
-    methods: {
-        async buscarStudy() {
-            if (this.loadingBuscar) return;
-            this.loadingBuscar = true;
-            try {
-                const params = {
-                    sede_id: this.busqueda.sede_id,
-                    bus_fehc_ini: this.busqueda.bus_fehc_ini || undefined,
-                    bus_fecha_fin: this.busqueda.bus_fecha_fin || undefined,
-                };
-                const res = await axios.get("/api/agenda-disponibilidad", { params });
-                safeDestroyDataTable(this.$refs.dt || "#tabla-disponibilidad");
-                this.registros = res.data || [];
-                this.$nextTick(() => {
-                    if (this.registros.length) {
-                        safeInitDataTable(this.$refs.dt || "#tabla-disponibilidad", {
-                            dom: "Bfrtip",
-                            buttons: ["copy", "csv", "excel", "pdf", "print"],
-                        });
-                    }
+        const res = await axios.get("/api/agenda-disponibilidad", { params });
+        safeDestroyDataTable(dt.value || "#tabla-disponibilidad");
+        registros.value = res.data || [];
+        nextTick(() => {
+            if (registros.value.length) {
+                safeInitDataTable(dt.value || "#tabla-disponibilidad", {
+                    dom: "Bfrtip",
+                    buttons: ["copy", "csv", "excel", "pdf", "print"],
                 });
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar disponibilidades.");
-                this.registros = [];
-            } finally {
-                this.loadingBuscar = false;
             }
-        },
-        validarFormulario() {
-            const errores = {};
-            if (!this.registro.fecha_hora_ini) {
-                errores.fecha_hora_ini = ["Debe seleccionar la fecha de inicio."];
-            }
-            if (!this.registro.servicio_cita_id) {
-                errores.servicio_cita_id = ["Debe seleccionar un servicio de cita."];
-            }
-            if (!this.registro.total_citas || this.registro.total_citas < 1) {
-                errores.total_citas = ["El total de citas debe ser al menos 1."];
-            }
-            if (!this.registro.dura_cita || this.registro.dura_cita < 1) {
-                errores.dura_cita = ["La duraci\u00f3n debe ser al menos 1 minuto."];
-            }
-            this.errores = errores;
-            return Object.keys(errores).length === 0;
-        },
-        async guardarRegistro() {
-            if (this.loadingGuardar) return;
-            if (!this.validarFormulario()) return;
-            this.loadingGuardar = true;
-            try {
-                const payload = {
-                    sede_id: this.registro.sede_id,
-                    servicio_cita_id: this.registro.servicio_cita_id || null,
-                    total_citas: this.registro.total_citas,
-                    dura_cita: this.registro.dura_cita,
-                    fecha_hora_ini: this.registro.fecha_hora_ini,
-                };
+        });
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar disponibilidades.");
+        registros.value = [];
+    } finally {
+        loadingBuscar.value = false;
+    }
+}
+function validarFormulario() {
+    const errores = {};
+    if (!registro.value.fecha_hora_ini) {
+        errores.fecha_hora_ini = ["Debe seleccionar la fecha de inicio."];
+    }
+    if (!registro.value.servicio_cita_id) {
+        errores.servicio_cita_id = ["Debe seleccionar un servicio de cita."];
+    }
+    if (!registro.value.total_citas || registro.value.total_citas < 1) {
+        errores.total_citas = ["El total de citas debe ser al menos 1."];
+    }
+    if (!registro.value.dura_cita || registro.value.dura_cita < 1) {
+        errores.dura_cita = ["La duraci\u00f3n debe ser al menos 1 minuto."];
+    }
+    errores.value = errores;
+    return Object.keys(errores).length === 0;
+}
+async function guardarRegistro() {
+    if (loadingGuardar.value) return;
+    if (!validarFormulario()) return;
+    loadingGuardar.value = true;
+    try {
+        const payload = {
+            sede_id: registro.value.sede_id,
+            servicio_cita_id: registro.value.servicio_cita_id || null,
+            total_citas: registro.value.total_citas,
+            dura_cita: registro.value.dura_cita,
+            fecha_hora_ini: registro.value.fecha_hora_ini,
+        };
 
-                let res;
-                if (this.editando && this.editandoId) {
-                    res = await axios.put("/api/agenda-disponibilidad/" + this.editandoId, payload);
-                } else {
-                    res = await axios.post("/api/agenda-disponibilidad", payload);
-                }
+        let res;
+        if (editando.value && editandoId.value) {
+            res = await axios.put("/api/agenda-disponibilidad/" + editandoId.value, payload);
+        } else {
+            res = await axios.post("/api/agenda-disponibilidad", payload);
+        }
 
-                $.toast({
-                    heading: "Bien hecho!!!",
-                    text:
-                        res?.data?.message ||
-                        "La disponibilidad de citas se ha guardado con \u00e9xito.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "success",
-                    hideAfter: 5500,
-                    stack: 6,
-                });
-                this.cerrarModal();
-                await this.buscarStudy();
-            } catch (error) {
-                this.errores = error?.response?.data?.errors || {};
-                handleAxiosErrorToast(error, "No fue posible guardar la disponibilidad.");
-            } finally {
-                this.loadingGuardar = false;
-            }
-        },
-        async editarRegistro(item) {
-            this.editando = true;
-            this.editandoId = item.id;
-            this.registro = {
-                sede_id: item.sede_id,
-                quien_registro_id: this.usuarioactual.id,
-                servicio_cita_id: item.servicio_cita_id || "",
-                total_citas: item.total_citas,
-                dura_cita: item.dura_cita,
-                fecha_hora_ini: item.fecha_hora_ini ? item.fecha_hora_ini.substring(0, 10) : "",
-            };
-            this.tituloModal = "Actualizar disponibilidad de citas";
-            this.errores = [];
-            $("#right-sidebar").addClass("shw-rside");
-        },
-        async elimnarRegistro(id) {
-            const ok = await confirmAction({
-                title: "\u00bfEst\u00e1s seguro?",
-                text: "No podr\u00e1s recuperar este registro!",
-                icon: "warning",
-            });
-            if (!ok) return;
-            if (this.loadingEliminarId) return;
-            this.loadingEliminarId = id;
-            try {
-                const res = await axios.delete("/api/agenda-disponibilidad/" + id);
-                $.toast({
-                    heading: "Ok!!!",
-                    text: res?.data?.message || "Registro eliminado.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
-                await this.buscarStudy();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible eliminar la disponibilidad.");
-            } finally {
-                this.loadingEliminarId = null;
-            }
-        },
-        async listarServiciosCitas() {
-            try {
-                const res = await axios.get("/api/config-servicio-citas/mis-servicios", {
-                    params: { sede_id: this.sedeActual },
-                });
-                this.serviciosCitas = res.data;
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar servicios de cita.");
-            }
-        },
-        establecerSede() {
-            this.registro.sede_id = sessionStorage.getItem("ST-sede");
-            this.busqueda.sede_id = sessionStorage.getItem("ST-sede");
-            this.sedeActual = sessionStorage.getItem("ST-sede");
-            this.registros = [];
-        },
-        btnLimpiar() {
-            this.busqueda.bus_fehc_ini = "";
-            this.busqueda.bus_fecha_fin = "";
-            this.buscarStudy();
-        },
-        mostrarRegistro() {
-            this.editando = false;
-            this.editandoId = null;
-            this.tituloModal = "Guardar disponibilidad de citas";
-            this.registro = {
-                sede_id: this.sedeActual,
-                quien_registro_id: this.usuarioactual.id,
-                servicio_cita_id: "",
-                total_citas: 1,
-                dura_cita: 15,
-                fecha_hora_ini: "",
-            };
-            this.errores = [];
-            $("#right-sidebar").addClass("shw-rside");
-        },
-        cerrarModal() {
-            $("#right-sidebar").removeClass("shw-rside");
-        },
-        formatFecha(fecha) {
-            if (!fecha) return "-";
-            const d = new Date(fecha);
-            if (isNaN(d.getTime())) return fecha;
-            const dia = String(d.getDate()).padStart(2, "0");
-            const mes = String(d.getMonth() + 1).padStart(2, "0");
-            const anio = d.getFullYear();
-            const horas = String(d.getHours()).padStart(2, "0");
-            const minutos = String(d.getMinutes()).padStart(2, "0");
-            return `${dia}/${mes}/${anio} ${horas}:${minutos}`;
-        },
-    },
-};
+        $.toast({
+            heading: "Bien hecho!!!",
+            text: res?.data?.message || "La disponibilidad de citas se ha guardado con \u00e9xito.",
+            position: "top-right",
+            loaderBg: "#ff6849",
+            icon: "success",
+            hideAfter: 5500,
+            stack: 6,
+        });
+        cerrarModal();
+        await buscarStudy();
+    } catch (error) {
+        errores.value = error?.response?.data?.errors || {};
+        handleAxiosErrorToast(error, "No fue posible guardar la disponibilidad.");
+    } finally {
+        loadingGuardar.value = false;
+    }
+}
+async function editarRegistro(item) {
+    editando.value = true;
+    editandoId.value = item.id;
+    registro.value = {
+        sede_id: item.sede_id,
+        quien_registro_id: usuarioactual.id,
+        servicio_cita_id: item.servicio_cita_id || "",
+        total_citas: item.total_citas,
+        dura_cita: item.dura_cita,
+        fecha_hora_ini: item.fecha_hora_ini ? item.fecha_hora_ini.substring(0, 10) : "",
+    };
+    tituloModal.value = "Actualizar disponibilidad de citas";
+    errores.value = [];
+    $("#right-sidebar").addClass("shw-rside");
+}
+async function elimnarRegistro(id) {
+    const ok = await confirmAction({
+        title: "\u00bfEst\u00e1s seguro?",
+        text: "No podr\u00e1s recuperar este registro!",
+        icon: "warning",
+    });
+    if (!ok) return;
+    if (loadingEliminarId.value) return;
+    loadingEliminarId.value = id;
+    try {
+        const res = await axios.delete("/api/agenda-disponibilidad/" + id);
+        $.toast({
+            heading: "Ok!!!",
+            text: res?.data?.message || "Registro eliminado.",
+            position: "top-right",
+            loaderBg: "#ff6849",
+            icon: "success",
+            hideAfter: 3500,
+            stack: 6,
+        });
+        await buscarStudy();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible eliminar la disponibilidad.");
+    } finally {
+        loadingEliminarId.value = null;
+    }
+}
+async function listarServiciosCitas() {
+    try {
+        const res = await axios.get("/api/config-servicio-citas/mis-servicios", {
+            params: { sede_id: sedeActual.value },
+        });
+        serviciosCitas.value = res.data;
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar servicios de cita.");
+    }
+}
+function establecerSede() {
+    registro.value.sede_id = sessionStorage.getItem("ST-sede");
+    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
+    sedeActual.value = sessionStorage.getItem("ST-sede");
+    registros.value = [];
+}
+function btnLimpiar() {
+    busqueda.value.bus_fehc_ini = "";
+    busqueda.value.bus_fecha_fin = "";
+    buscarStudy();
+}
+function mostrarRegistro() {
+    editando.value = false;
+    editandoId.value = null;
+    tituloModal.value = "Guardar disponibilidad de citas";
+    registro.value = {
+        sede_id: sedeActual.value,
+        quien_registro_id: usuarioactual.id,
+        servicio_cita_id: "",
+        total_citas: 1,
+        dura_cita: 15,
+        fecha_hora_ini: "",
+    };
+    errores.value = [];
+    $("#right-sidebar").addClass("shw-rside");
+}
+function cerrarModal() {
+    $("#right-sidebar").removeClass("shw-rside");
+}
+function formatFecha(fecha) {
+    if (!fecha) return "-";
+    const d = new Date(fecha);
+    if (isNaN(d.getTime())) return fecha;
+    const dia = String(d.getDate()).padStart(2, "0");
+    const mes = String(d.getMonth() + 1).padStart(2, "0");
+    const anio = d.getFullYear();
+    const horas = String(d.getHours()).padStart(2, "0");
+    const minutos = String(d.getMinutes()).padStart(2, "0");
+    return `${dia}/${mes}/${anio} ${horas}:${minutos}`;
+}
+
+onMounted(() => {
+    establecerSede();
+    listarServiciosCitas();
+    buscarStudy();
+
+    emitter.on("sedeSeleccionada", () => {
+        establecerSede();
+        safeDestroyDataTable(dt.value || "#tabla-disponibilidad");
+    });
+});
+
+onBeforeUnmount(() => {
+    safeDestroyDataTable(dt.value || "#tabla-disponibilidad");
+});
 </script>
-
 <style scoped>
 .right-sidebar {
     position: fixed;
