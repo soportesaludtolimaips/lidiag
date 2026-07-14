@@ -38,7 +38,6 @@
         <!-- Page wrapper  -->
         <!-- ============================================================== -->
         <div class="page-wrapper">
-
             <!-- ============================================================== -->
             <!-- Container fluid  -->
             <!-- ============================================================== -->
@@ -62,16 +61,16 @@
         <!-- ============================================================== -->
     </div>
 </template>
-<script>
+<script setup>
+import logoComponent from "./comunes/logoComponent.vue";
+import toggleAndNavItemsComponent from "./comunes/toggleAndNavItemsComponent.vue";
+import userProfileAndSearchComponent from "./comunes/userProfileAndSearchComponent.vue";
+import sidebarComponent from "./comunes/sidebarComponent.vue";
+import footerComponent from "./comunes/footerComponent.vue";
 
-import logoComponent from './comunes/logoComponent.vue';
-import toggleAndNavItemsComponent from './comunes/toggleAndNavItemsComponent.vue'
-import userProfileAndSearchComponent from './comunes/userProfileAndSearchComponent.vue'
-import sidebarComponent from './comunes/sidebarComponent.vue'
-import footerComponent from './comunes/footerComponent.vue'
-
-export default {
-    props: ['ruta', 'usuario', 'sucursualActual'],
-    components: { logoComponent, toggleAndNavItemsComponent, userProfileAndSearchComponent, sidebarComponent, footerComponent }
-}
+const props = defineProps({
+    ruta: {},
+    usuario: {},
+    sucursualActual: {},
+});
 </script>

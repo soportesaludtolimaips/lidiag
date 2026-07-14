@@ -410,11 +410,8 @@ def convert_vue(input_path, dry_run=False):
     if props_val and props_val.startswith('['):
         prop_names = re.findall(r"'([^']+)'", props_val)
         if prop_names:
-            plines = ["  {"]
-            for pn in prop_names:
-                plines.append(f"    {pn}: {{}}")
-            plines.append("  }")
-            props_val = ",\n".join(plines)
+            entry_lines = [f"    {pn}: {{}}" for pn in prop_names]
+            props_val = "  {\n" + ",\n".join(entry_lines) + "\n  }"
         else:
             props_val = "{}"
 

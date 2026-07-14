@@ -46,58 +46,51 @@
         ></textarea>
     </div>
 </template>
+<script setup>
+import { nextTick } from "vue";
 
-<script>
 import EmojiPicker from "@/components/shared/EmojiPicker.vue";
 
-export default {
-    components: { EmojiPicker },
-    props: {
-        modelValue: { type: String, default: "" },
-        placeholder: { type: String, default: "" },
-        rows: { type: [Number, String], default: 8 },
-    },
-    emits: ["update:modelValue"],
-    methods: {
-        onInput(e) {
-            this.$emit("update:modelValue", e.target.value);
-        },
-        insertFormat(before, after) {
-            const ta = this.$refs.textarea;
-            if (!ta) return;
-            const start = ta.selectionStart;
-            const end = ta.selectionEnd;
-            const text = this.modelValue || "";
-            const selected = text.substring(start, end);
-            const replacement = before + selected + after;
-            this.$emit(
-                "update:modelValue",
-                text.substring(0, start) + replacement + text.substring(end)
-            );
-            this.$nextTick(() => {
-                ta.focus();
-                ta.selectionStart = start + before.length;
-                ta.selectionEnd = start + before.length + selected.length;
-            });
-        },
-        insertEmoji(emoji) {
-            const ta = this.$refs.textarea;
-            if (!ta) return;
-            const start = ta.selectionStart;
-            const end = ta.selectionEnd;
-            const text = this.modelValue || "";
-            this.$emit("update:modelValue", text.substring(0, start) + emoji + text.substring(end));
-            this.$nextTick(() => {
-                ta.focus();
-                const pos = start + emoji.length;
-                ta.selectionStart = pos;
-                ta.selectionEnd = pos;
-            });
-        },
-    },
-};
-</script>
+const props = defineProps({
+    modelValue: { type: String, default: "" },
+    placeholder: { type: String, default: "" },
+    rows: { type: [Number, String], default: 8 },
+});
+const emit = defineEmits(["update:modelValue"]);
 
+function onInput(e) {
+    emit("update:modelValue", e.target.value);
+}
+function insertFormat(before, after) {
+    const ta = textarea.value;
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const text = modelValue || "";
+    const selected = text.substring(start, end);
+    const replacement = before + selected + after;
+    emit("update:modelValue", text.substring(0, start) + replacement + text.substring(end));
+    nextTick(() => {
+        ta.focus();
+        ta.selectionStart = start + before.length;
+        ta.selectionEnd = start + before.length + selected.length;
+    });
+}
+function insertEmoji(emoji) {
+    const ta = textarea.value;
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const text = modelValue || "";
+    emit("update:modelValue", text.substring(0, start) + emoji + text.substring(end));
+    nextTick(() => {
+        ta.focus();
+        const pos = start + emoji.length;
+        ta.selectionStart = pos;
+        ta.selectionEnd = pos;
+    });
+}
+</script>
 <style scoped>
 .formatted-editor {
     position: relative;

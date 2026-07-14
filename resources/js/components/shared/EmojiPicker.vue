@@ -16,49 +16,43 @@
         </div>
     </span>
 </template>
+<script setup>
+import { nextTick, onBeforeUnmount, ref } from "vue";
 
-<script>
 import { EMOJIS } from "@/helpers/emojis.js";
+const emit = defineEmits(["select"]);
 
-export default {
-    emits: ["select"],
-    data() {
-        return {
-            emojis: EMOJIS,
-            abierto: false,
-        };
-    },
-    methods: {
-        toggle() {
-            this.abierto = !this.abierto;
-            if (this.abierto) {
-                this.$nextTick(() => {
-                    document.addEventListener("click", this.clickFuera);
-                });
-            } else {
-                document.removeEventListener("click", this.clickFuera);
-            }
-        },
-        cerrar() {
-            this.abierto = false;
-            document.removeEventListener("click", this.clickFuera);
-        },
-        clickFuera(e) {
-            const wrapper = this.$refs.wrapper;
-            if (wrapper && !wrapper.contains(e.target)) {
-                this.cerrar();
-            }
-        },
-        seleccionar(emoji) {
-            this.$emit("select", emoji);
-        },
-    },
-    beforeUnmount() {
-        document.removeEventListener("click", this.clickFuera);
-    },
-};
+const emojis = ref(EMOJIS);
+const abierto = ref(false);
+
+function toggle() {
+    abierto.value = !abierto.value;
+    if (abierto.value) {
+        nextTick(() => {
+            document.addEventListener("click", clickFuera);
+        });
+    } else {
+        document.removeEventListener("click", clickFuera);
+    }
+}
+function cerrar() {
+    abierto.value = false;
+    document.removeEventListener("click", clickFuera);
+}
+function clickFuera(e) {
+    const wrapper = wrapper.value;
+    if (wrapper && !wrapper.contains(e.target)) {
+        cerrar();
+    }
+}
+function seleccionar(emoji) {
+    emit("select", emoji);
+}
+
+onBeforeUnmount(() => {
+    document.removeEventListener("click", clickFuera);
+});
 </script>
-
 <style scoped>
 .emoji-picker-wrapper {
     position: relative;

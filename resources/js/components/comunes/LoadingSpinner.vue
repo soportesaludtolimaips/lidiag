@@ -4,23 +4,19 @@
         <span class="sr-only">{{ mensaje }}</span>
     </div>
 </template>
-
-<script>
-export default {
-    name: "LoadingSpinner",
-    props: {
-        visible: {
-            type: Boolean,
-            default: false,
-        },
-        color: {
-            type: String,
-            default: "#1e88e5",
-        },
-        mensaje: {
-            type: String,
-            default: "Cargando...",
-        },
+<script setup>
+const props = defineProps({
+    visible: {
+        type: Boolean,
+        default: false,
     },
-};
+    color: {
+        type: String,
+        default: "#1e88e5",
+    },
+    mensaje: {
+        type: String,
+        default: "Cargando...",
+    },
+});
 </script>

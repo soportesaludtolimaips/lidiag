@@ -21,7 +21,12 @@
 
         <div v-if="alerts.length" class="row">
             <div class="col-12">
-                <div v-for="(a, idx) in alerts" :key="idx" class="alert" :class="alertClass(a.level)">
+                <div
+                    v-for="(a, idx) in alerts"
+                    :key="idx"
+                    class="alert"
+                    :class="alertClass(a.level)"
+                >
                     <strong>{{ a.title }}:</strong> {{ a.message }}
                 </div>
             </div>
@@ -34,7 +39,9 @@
                         <div class="d-flex no-block">
                             <div>
                                 <h4 class="card-title m-b-0">Filtros</h4>
-                                <small class="text-muted">Afectan todas las métricas del dashboard</small>
+                                <small class="text-muted"
+                                    >Afectan todas las métricas del dashboard</small
+                                >
                             </div>
                         </div>
                     </div>
@@ -42,7 +49,11 @@
                         <div class="row">
                             <div class="col-lg-3 col-md-6 m-b-10">
                                 <label class="text-muted m-b-5">Sede</label>
-                                <select class="custom-select" @change="fetchDashboard" v-model="sedeSeleccionada">
+                                <select
+                                    class="custom-select"
+                                    @change="fetchDashboard"
+                                    v-model="sedeSeleccionada"
+                                >
                                     <option :value="null">Todas</option>
                                     <option v-for="s in sedes" :key="s.id" :value="s.id">
                                         {{ s.nom_sede }}
@@ -51,17 +62,28 @@
                             </div>
                             <div v-if="isAdmin" class="col-lg-4 col-md-6 m-b-10">
                                 <label class="text-muted m-b-5">Médico</label>
-                                <select v-model.number="filters.selected.medico_id" class="custom-select"
-                                    @change="fetchDashboard">
+                                <select
+                                    v-model.number="filters.selected.medico_id"
+                                    class="custom-select"
+                                    @change="fetchDashboard"
+                                >
                                     <option :value="null">Todos</option>
-                                    <option v-for="u in filters.options.medicos" :key="u.id" :value="u.id">
+                                    <option
+                                        v-for="u in filters.options.medicos"
+                                        :key="u.id"
+                                        :value="u.id"
+                                    >
                                         {{ u.name }}
                                     </option>
                                 </select>
                             </div>
                             <div class="col-lg-2 col-md-6 m-b-10">
                                 <label class="text-muted m-b-5">Rango</label>
-                                <select v-model.number="days" class="custom-select" @change="fetchDashboard">
+                                <select
+                                    v-model.number="days"
+                                    class="custom-select"
+                                    @change="fetchDashboard"
+                                >
                                     <option :value="7">7 días</option>
                                     <option :value="30">30 días</option>
                                     <option :value="90">90 días</option>
@@ -329,13 +351,19 @@
                         <h5 class="card-title">Estudios más solicitados</h5>
                         <table class="table browser m-t-30 no-border">
                             <tbody>
-                                <tr v-for="item in estudiosMasSolicitados" :key="item.mods_in_study">
+                                <tr
+                                    v-for="item in estudiosMasSolicitados"
+                                    :key="item.mods_in_study"
+                                >
                                     <td>{{ item.mods_in_study }}</td>
                                     <td class="text-right">{{ item.total }}</td>
                                 </tr>
                             </tbody>
                         </table>
-                        <div v-if="!loading && estudiosMasSolicitados.length === 0" class="text-muted">
+                        <div
+                            v-if="!loading && estudiosMasSolicitados.length === 0"
+                            class="text-muted"
+                        >
                             Sin datos para mostrar.
                         </div>
                     </div>
@@ -393,8 +421,9 @@
                                         formatMin(calidad.tiempos.asignadoALectura?.avgMin)
                                     }}</span>
                                 </h3>
-                                <small class="text-muted">muestras: {{ calidad.tiempos.asignadoALectura?.n || 0
-                                }}</small>
+                                <small class="text-muted"
+                                    >muestras: {{ calidad.tiempos.asignadoALectura?.n || 0 }}</small
+                                >
                             </div>
                             <div class="col-6">
                                 <h6 class="text-muted m-b-0">Lectura → Transcrito</h6>
@@ -404,8 +433,10 @@
                                         formatMin(calidad.tiempos.lecturaATranscrito?.avgMin)
                                     }}</span>
                                 </h3>
-                                <small class="text-muted">muestras:
-                                    {{ calidad.tiempos.lecturaATranscrito?.n || 0 }}</small>
+                                <small class="text-muted"
+                                    >muestras:
+                                    {{ calidad.tiempos.lecturaATranscrito?.n || 0 }}</small
+                                >
                             </div>
                         </div>
                     </div>
@@ -420,7 +451,9 @@
                         <div class="d-flex no-block">
                             <div>
                                 <h5 class="card-title m-b-0">Cumplimiento de tiempos (Lectura)</h5>
-                                <small class="text-muted">Por prioridad (últimos {{ days }} días)</small>
+                                <small class="text-muted"
+                                    >Por prioridad (últimos {{ days }} días)</small
+                                >
                             </div>
                         </div>
                         <div id="sla-lectura" style="height: 260px; width: 100%"></div>
@@ -436,7 +469,9 @@
                                 <h5 class="card-title m-b-0">
                                     Cumplimiento de tiempos (Transcripción)
                                 </h5>
-                                <small class="text-muted">Por prioridad (últimos {{ days }} días)</small>
+                                <small class="text-muted"
+                                    >Por prioridad (últimos {{ days }} días)</small
+                                >
                             </div>
                         </div>
                         <div id="sla-transcripcion" style="height: 260px; width: 100%"></div>
@@ -457,8 +492,11 @@
                             </div>
                             <div class="ml-auto d-flex align-items-center" style="gap: 8px">
                                 <small class="text-muted">Métrica</small>
-                                <select v-model="heatmapMetric" class="custom-select custom-select-sm"
-                                    style="width: 160px">
+                                <select
+                                    v-model="heatmapMetric"
+                                    class="custom-select custom-select-sm"
+                                    style="width: 160px"
+                                >
                                     <option value="transcritos">Transcritos</option>
                                     <option value="leidos">Leídos</option>
                                     <option value="asignados">Asignados</option>
@@ -471,8 +509,12 @@
                                 <thead>
                                     <tr>
                                         <th style="min-width: 60px">Hora</th>
-                                        <th v-for="d in heatmapDays" :key="d" class="text-center"
-                                            style="min-width: 90px">
+                                        <th
+                                            v-for="d in heatmapDays"
+                                            :key="d"
+                                            class="text-center"
+                                            style="min-width: 90px"
+                                        >
                                             {{ d }}
                                         </th>
                                     </tr>
@@ -480,13 +522,18 @@
                                 <tbody>
                                     <tr v-for="h in 24" :key="h">
                                         <td class="text-center font-500">{{ h - 1 }}</td>
-                                        <td v-for="d in heatmapDays" :key="`${d}-${h - 1}`" class="text-center"
-                                            :title="`${d} ${h - 1}:00 → ${heatmapValue(d, h - 1)}`" :style="{
+                                        <td
+                                            v-for="d in heatmapDays"
+                                            :key="`${d}-${h - 1}`"
+                                            class="text-center"
+                                            :title="`${d} ${h - 1}:00 → ${heatmapValue(d, h - 1)}`"
+                                            :style="{
                                                 backgroundColor: heatmapColor(
                                                     heatmapValue(d, h - 1),
                                                     heatmapMax
                                                 ),
-                                            }">
+                                            }"
+                                        >
                                             {{ heatmapValue(d, h - 1) }}
                                         </td>
                                     </tr>
@@ -530,7 +577,11 @@
                                         <td>{{ row.accession_no || row.study_id || row.id }}</td>
                                         <td>{{ row.mods_in_study }}</td>
                                         <td>
-                                            <button class="btn btn-sm btn-info" type="button" @click="goToLectura(row)">
+                                            <button
+                                                class="btn btn-sm btn-info"
+                                                type="button"
+                                                @click="goToLectura(row)"
+                                            >
                                                 Ir
                                             </button>
                                         </td>
@@ -541,7 +592,10 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div v-if="!loading && tablas.pendientesLecturaTop.length === 0" class="text-muted">
+                        <div
+                            v-if="!loading && tablas.pendientesLecturaTop.length === 0"
+                            class="text-muted"
+                        >
                             Sin pendientes de lectura.
                         </div>
                     </div>
@@ -564,7 +618,10 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="row in tablas.pendientesTranscripcionTop" :key="row.id">
+                                    <tr
+                                        v-for="row in tablas.pendientesTranscripcionTop"
+                                        :key="row.id"
+                                    >
                                         <td>
                                             <div class="font-500">
                                                 {{ formatPacienteNombre(row) }}
@@ -577,8 +634,11 @@
                                         <td>{{ row.accession_no || row.study_id || row.id }}</td>
                                         <td>{{ row.mods_in_study }}</td>
                                         <td>
-                                            <button class="btn btn-sm btn-primary" type="button"
-                                                @click="goToTranscripcion(row)">
+                                            <button
+                                                class="btn btn-sm btn-primary"
+                                                type="button"
+                                                @click="goToTranscripcion(row)"
+                                            >
                                                 Ir
                                             </button>
                                         </td>
@@ -589,7 +649,10 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div v-if="!loading && tablas.pendientesTranscripcionTop.length === 0" class="text-muted">
+                        <div
+                            v-if="!loading && tablas.pendientesTranscripcionTop.length === 0"
+                            class="text-muted"
+                        >
                             Sin pendientes de transcripción.
                         </div>
                     </div>
@@ -619,7 +682,10 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="row in productividad.rankingMedicosTranscritos" :key="row.medico_id">
+                                    <tr
+                                        v-for="row in productividad.rankingMedicosTranscritos"
+                                        :key="row.medico_id"
+                                    >
                                         <td>{{ row.medico }}</td>
                                         <td class="text-right">{{ row.total }}</td>
                                         <td class="text-right">{{ formatDelta(row) }}</td>
@@ -627,7 +693,10 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div v-if="!loading && productividad.rankingMedicosTranscritos.length === 0" class="text-muted">
+                        <div
+                            v-if="!loading && productividad.rankingMedicosTranscritos.length === 0"
+                            class="text-muted"
+                        >
                             Sin datos para mostrar.
                         </div>
                     </div>
@@ -648,7 +717,9 @@
                                 <h5 class="card-title m-b-0">Flujo diario</h5>
                             </div>
                             <div class="ml-auto">
-                                <small class="text-muted">Asignados / Leídos / Transcritos ({{ days }} días)</small>
+                                <small class="text-muted"
+                                    >Asignados / Leídos / Transcritos ({{ days }} días)</small
+                                >
                             </div>
                         </div>
                         <div class="" id="sales-chart" style="height: 355px"></div>
@@ -705,7 +776,10 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="row in productividad.transcritosPorSede" :key="row.sede_id">
+                                    <tr
+                                        v-for="row in productividad.transcritosPorSede"
+                                        :key="row.sede_id"
+                                    >
                                         <td>{{ row.sede }}</td>
                                         <td class="text-right">{{ row.total }}</td>
                                         <td class="text-right">{{ formatDelta(row) }}</td>
@@ -713,7 +787,10 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div v-if="!loading && productividad.transcritosPorSede.length === 0" class="text-muted">
+                        <div
+                            v-if="!loading && productividad.transcritosPorSede.length === 0"
+                            class="text-muted"
+                        >
                             Sin datos para mostrar.
                         </div>
                     </div>
@@ -728,11 +805,15 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Embudo del período</h4>
-                        <small class="text-muted">Productos de estudios creados en los últimos {{ days }} días</small>
+                        <small class="text-muted"
+                            >Productos de estudios creados en los últimos {{ days }} días</small
+                        >
                         <div class="row m-t-20 text-center">
                             <div class="col-lg-3 col-md-6">
                                 <div class="bg-light-primary p-10 rounded">
-                                    <h2 class="text-primary font-weight-bold m-b-0">{{ embudo.total }}</h2>
+                                    <h2 class="text-primary font-weight-bold m-b-0">
+                                        {{ embudo.total }}
+                                    </h2>
                                     <small class="text-muted">Asignados</small>
                                 </div>
                                 <div class="m-t-10" v-if="embudo.total > 0">
@@ -744,11 +825,15 @@
                             </div>
                             <div class="col-lg-3 col-md-6">
                                 <div class="bg-light-success p-10 rounded">
-                                    <h2 class="text-success font-weight-bold m-b-0">{{ embudo.leidos }}</h2>
+                                    <h2 class="text-success font-weight-bold m-b-0">
+                                        {{ embudo.leidos }}
+                                    </h2>
                                     <small class="text-muted">Leídos</small>
                                 </div>
                                 <div class="m-t-10" v-if="embudo.total > 0">
-                                    <span class="badge badge-success">{{ Math.round(embudo.tasaLectura * 100) }}%</span>
+                                    <span class="badge badge-success"
+                                        >{{ Math.round(embudo.tasaLectura * 100) }}%</span
+                                    >
                                 </div>
                             </div>
                             <div class="col-lg-1 col-md-0 align-self-center d-none d-md-block">
@@ -756,18 +841,26 @@
                             </div>
                             <div class="col-lg-3 col-md-6">
                                 <div class="bg-light-info p-10 rounded">
-                                    <h2 class="text-info font-weight-bold m-b-0">{{ embudo.transcritos }}</h2>
+                                    <h2 class="text-info font-weight-bold m-b-0">
+                                        {{ embudo.transcritos }}
+                                    </h2>
                                     <small class="text-muted">Transcritos</small>
                                 </div>
                                 <div class="m-t-10" v-if="embudo.total > 0">
-                                    <span class="badge badge-info">{{ Math.round(embudo.tasaTranscripcion * 100) }}%</span>
+                                    <span class="badge badge-info"
+                                        >{{ Math.round(embudo.tasaTranscripcion * 100) }}%</span
+                                    >
                                 </div>
                             </div>
                             <div class="col-lg-2 col-md-6">
                                 <div class="p-10">
                                     <small class="text-muted">Pendientes</small>
-                                    <h5 class="text-danger m-b-0">{{ embudo.pendientesLectura }} lectura</h5>
-                                    <h5 class="text-warning m-b-0">{{ embudo.pendientesTranscripcion }} transcripción</h5>
+                                    <h5 class="text-danger m-b-0">
+                                        {{ embudo.pendientesLectura }} lectura
+                                    </h5>
+                                    <h5 class="text-warning m-b-0">
+                                        {{ embudo.pendientesTranscripcion }} transcripción
+                                    </h5>
                                 </div>
                             </div>
                         </div>
@@ -783,7 +876,9 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Ranking de Transcriptores</h5>
-                        <small class="text-muted">Top 10 por transcripciones en {{ days }} días</small>
+                        <small class="text-muted"
+                            >Top 10 por transcripciones en {{ days }} días</small
+                        >
                         <div class="table-responsive m-t-10">
                             <table class="table table-sm m-b-0">
                                 <thead>
@@ -795,7 +890,10 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(row, i) in rankingTranscriptores" :key="row.transcriptor_id">
+                                    <tr
+                                        v-for="(row, i) in rankingTranscriptores"
+                                        :key="row.transcriptor_id"
+                                    >
                                         <td>{{ i + 1 }}</td>
                                         <td>{{ row.name }}</td>
                                         <td class="text-right">{{ row.total }}</td>
@@ -804,7 +902,10 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div v-if="!loading && rankingTranscriptores.length === 0" class="text-muted m-t-10">
+                        <div
+                            v-if="!loading && rankingTranscriptores.length === 0"
+                            class="text-muted m-t-10"
+                        >
                             Sin datos para mostrar.
                         </div>
                     </div>
@@ -814,7 +915,9 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Segmentación por Prioridad</h5>
-                        <small class="text-muted">Volumen y tiempos promedio por nivel de prioridad</small>
+                        <small class="text-muted"
+                            >Volumen y tiempos promedio por nivel de prioridad</small
+                        >
                         <div class="table-responsive m-t-10">
                             <table class="table table-sm m-b-0">
                                 <thead>
@@ -833,10 +936,18 @@
                                         <td>{{ row.prioridad }}</td>
                                         <td class="text-right">{{ row.total_estudios }}</td>
                                         <td class="text-right">{{ row.total_productos }}</td>
-                                        <td class="text-right">{{ Math.round(row.tasaLectura * 100) }}%</td>
-                                        <td class="text-right">{{ Math.round(row.tasaTranscripcion * 100) }}%</td>
-                                        <td class="text-right">{{ formatMin(row.avgLecturaMin) }}</td>
-                                        <td class="text-right">{{ formatMin(row.avgTranscripcionMin) }}</td>
+                                        <td class="text-right">
+                                            {{ Math.round(row.tasaLectura * 100) }}%
+                                        </td>
+                                        <td class="text-right">
+                                            {{ Math.round(row.tasaTranscripcion * 100) }}%
+                                        </td>
+                                        <td class="text-right">
+                                            {{ formatMin(row.avgLecturaMin) }}
+                                        </td>
+                                        <td class="text-right">
+                                            {{ formatMin(row.avgTranscripcionMin) }}
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -853,599 +964,571 @@
         <!-- ============================================================== -->
     </div>
 </template>
+<script setup>
+import { computed, onMounted, ref } from "vue";
+import axios from "axios";
 
-<script>
-export default {
-    props: ["usuarioactual", "rolesusuario"],
-    computed: {
-        isAdmin() {
-            return this.rolesusuario === "Administrador";
-        },
-        heatmapDays() {
-            const arr = this.series?.heatmap7d?.[this.heatmapMetric] || [];
-            const uniq = [...new Set(arr.map((x) => String(x.fecha)))].filter(Boolean).sort();
-            if (uniq.length) return uniq;
+const props = defineProps({});
 
-            // fallback: últimos 7 días
-            const d = window.dayjs ? window.dayjs() : null;
-            if (!d) return [];
-            return Array.from({ length: 7 }, (_, i) =>
-                d.subtract(6 - i, "day").format("YYYY-MM-DD")
-            );
-        },
-        heatmapMax() {
-            const arr = this.series?.heatmap7d?.[this.heatmapMetric] || [];
-            let max = 0;
-            for (const x of arr) {
-                const v = Number(x.total || 0);
-                if (v > max) max = v;
-            }
-            return max;
-        },
+const loading = ref(false);
+const error = ref(null);
+const days = ref(30);
+const alerts = ref([]);
+const nomSedeActual = ref(null);
+const sedeSeleccionada = ref(null);
+const sedes = ref([]);
+const filters = ref({
+    selected: { sede_id: null, medico_id: null },
+    options: { sedes: [], medicos: [] },
+});
+const indicadores = ref({
+    estudiosAsignados: 0,
+    estudiosLeidos: 0,
+    estudiosPorTranscribir: 0,
+    estudiosDescargados: 0,
+});
+const operacion = ref({
+    asignadosHoy: 0,
+    pendientesLectura: 0,
+    pendientesLecturaHoy: 0,
+    leidosHoy: 0,
+    pendientesTranscripcion: 0,
+    transcritosHoy: 0,
+});
+const estudiosMasSolicitados = ref([]);
+const series = ref({
+    transcritosPorDia: [],
+    asignadosPorDia: [],
+    leidosPorDia: [],
+    porHoraHoy: { asignados: [], leidos: [], transcritos: [] },
+    heatmap7d: { days: 7, asignados: [], leidos: [], transcritos: [] },
+});
+const heatmapMetric = ref("transcritos");
+const heatmapIndex = ref({});
+const calidad = ref({
+    tiempos: {
+        asignadoALectura: { avgMin: 0, n: 0 },
+        lecturaATranscrito: { avgMin: 0, n: 0 },
+        dias: 30,
     },
-    watch: {
-        heatmapMetric() {
-            this.reindexHeatmap();
+    agingLectura: [],
+    agingTranscripcion: [],
+});
+const sla = ref({ days: 30, lectura: [], transcripcion: [] });
+const tablas = ref({
+    pendientesLecturaTop: [],
+    pendientesTranscripcionTop: [],
+});
+const productividad = ref({
+    rankingMedicosTranscritos: [],
+    transcritosPorSede: [],
+});
+const rankingTranscriptores = ref([]);
+const prioridades = ref([]);
+const embudo = ref({
+    total: 0,
+    leidos: 0,
+    transcritos: 0,
+    tasaLectura: 0,
+    tasaTranscripcion: 0,
+    tasaCompletitud: 0,
+    pendientesLectura: 0,
+    pendientesTranscripcion: 0,
+});
+const charts = ref({
+    resumen: null,
+    transcritos: null,
+    agingLectura: null,
+    agingTranscripcion: null,
+    porHoraHoy: null,
+    porSede: null,
+    slaLectura: null,
+    slaTranscripcion: null,
+});
+
+const isAdmin = computed(() => {
+    return rolesusuario === "Administrador";
+});
+const heatmapDays = computed(() => {
+    const arr = series.value?.heatmap7d?.[heatmapMetric.value] || [];
+    const uniq = [...new Set(arr.map((x) => String(x.fecha)))].filter(Boolean).sort();
+    if (uniq.length) return uniq;
+
+    // fallback: últimos 7 días
+    const d = window.dayjs ? window.dayjs() : null;
+    if (!d) return [];
+    return Array.from({ length: 7 }, (_, i) => d.subtract(6 - i, "day").format("YYYY-MM-DD"));
+});
+const heatmapMax = computed(() => {
+    const arr = series.value?.heatmap7d?.[heatmapMetric.value] || [];
+    let max = 0;
+    for (const x of arr) {
+        const v = Number(x.total || 0);
+        if (v > max) max = v;
+    }
+    return max;
+});
+
+function safeC3Generate(selector, config) {
+    const el = document.querySelector(selector);
+    if (!el) return null;
+    const c3lib = window.c3;
+    if (!c3lib) return null;
+    return c3lib.generate(config);
+}
+function initCharts() {
+    const c3lib = window.c3;
+    const morrisLib = window.Morris;
+
+    // Bar: resumen transcritos vs pendientes
+    charts.value.resumen = c3lib
+        ? c3lib.generate({
+              bindto: "#income",
+              data: {
+                  columns: [
+                      ["Transcritos", 0],
+                      ["Pendientes", 0],
+                  ],
+                  type: "bar",
+              },
+              bar: {
+                  width: 20,
+              },
+              axis: {
+                  x: { show: false },
+                  y: { tick: { count: 4, outer: false } },
+              },
+              legend: { show: true },
+              grid: { y: { show: true } },
+              size: { height: 290 },
+              color: { pattern: ["#24d2b5", "#f62d51"] },
+          })
+        : null;
+
+    // Área: flujo diario (asignados / leídos / transcritos)
+    // Morris puede fallar en `resizeHandler` si se inicializa con `data: []`
+    // y ocurre un resize antes de que llegue `setData(...)`. Usamos un punto dummy.
+    const morrisAreaInitialData = [{ period: "", asignados: 0, leidos: 0, transcritos: 0 }];
+    charts.value.transcritos = morrisLib
+        ? morrisLib.Area({
+              element: "sales-chart",
+              data: morrisAreaInitialData,
+              xkey: "period",
+              ykeys: ["asignados", "leidos", "transcritos"],
+              labels: ["Asignados", "Leídos", "Transcritos"],
+              pointSize: 2,
+              fillOpacity: 0.2,
+              pointStrokeColors: ["#26c6da", "#ffb22b", "#24d2b5"],
+              behaveLikeLine: true,
+              gridLineColor: "#e0e0e0",
+              lineWidth: 2,
+              hideHover: "auto",
+              lineColors: ["#26c6da", "#ffb22b", "#24d2b5"],
+              resize: true,
+          })
+        : null;
+
+    // Donut: aging lectura
+    charts.value.agingLectura = c3lib
+        ? c3lib.generate({
+              bindto: "#aging-lectura",
+              data: { columns: [], type: "donut" },
+              donut: { label: { show: false }, title: "Lectura", width: 18 },
+              legend: { hide: true },
+              color: { pattern: ["#26c6da", "#ffb22b", "#7460ee", "#f62d51"] },
+          })
+        : null;
+
+    // Donut: aging transcripción
+    charts.value.agingTranscripcion = c3lib
+        ? c3lib.generate({
+              bindto: "#aging-transcripcion",
+              data: { columns: [], type: "donut" },
+              donut: { label: { show: false }, title: "Transcripción", width: 18 },
+              legend: { hide: true },
+              color: { pattern: ["#26c6da", "#ffb22b", "#7460ee", "#f62d51"] },
+          })
+        : null;
+
+    // Bar: distribución por hora (hoy)
+    charts.value.porHoraHoy = safeC3Generate("#por-hora-hoy", {
+        bindto: "#por-hora-hoy",
+        data: {
+            x: "x",
+            columns: [["x"], ["Asignados"], ["Leídos"], ["Transcritos"]],
+            type: "bar",
+            groups: [["Asignados", "Leídos", "Transcritos"]],
         },
-    },
-    async mounted() {
-        this.initCharts();
-        await this.listarSedes();
-        await this.fetchDashboard();
-        this.charts = {
-            modalidades: null,
-            resumen: null,
-            transcritos: null,
-            agingLectura: null,
-            agingTranscripcion: null,
-            porHoraHoy: null,
-            porSede: null,
-            slaLectura: null,
-            slaTranscripcion: null,
+        axis: {
+            x: {
+                type: "category",
+                tick: {
+                    rotate: 75,
+                    multiline: false,
+                },
+                height: 70,
+            },
+            y: {
+                tick: { count: 4, outer: false },
+            },
+        },
+        bar: { width: { ratio: 0.6 } },
+        legend: { show: true },
+        grid: { y: { show: true } },
+        color: { pattern: ["#26c6da", "#ffb22b", "#24d2b5"] },
+    });
+
+    // Donut: transcritos por sede (solo si existe el contenedor)
+    charts.value.porSede = safeC3Generate("#por-sede", {
+        bindto: "#por-sede",
+        data: { columns: [], type: "donut" },
+        donut: { label: { show: false }, title: "Sedes", width: 18 },
+        legend: { hide: true },
+        color: {
+            pattern: ["#745af2", "#26c6da", "#24d2b5", "#ffb22b", "#f62d51", "#90a4ae"],
+        },
+    });
+
+    // Cumplimiento de tiempos (charts)
+    charts.value.slaLectura = safeC3Generate("#sla-lectura", {
+        bindto: "#sla-lectura",
+        data: { x: "x", columns: [["x"], ["Incumplimiento %"]], type: "bar" },
+        axis: {
+            x: { type: "category" },
+            y: { tick: { count: 4, outer: false }, max: 100, min: 0 },
+        },
+        bar: { width: { ratio: 0.7 } },
+        legend: { hide: true },
+        grid: { y: { show: true } },
+        color: { pattern: ["#f62d51"] },
+    });
+    charts.value.slaTranscripcion = safeC3Generate("#sla-transcripcion", {
+        bindto: "#sla-transcripcion",
+        data: { x: "x", columns: [["x"], ["Incumplimiento %"]], type: "bar" },
+        axis: {
+            x: { type: "category" },
+            y: { tick: { count: 4, outer: false }, max: 100, min: 0 },
+        },
+        bar: { width: { ratio: 0.7 } },
+        legend: { hide: true },
+        grid: { y: { show: true } },
+        color: { pattern: ["#ffb22b"] },
+    });
+}
+async function fetchDashboard() {
+    loading.value = true;
+    error.value = null;
+    filters.value.selected.sede_id = sedeSeleccionada.value;
+
+    try {
+        const http = window.axios;
+        if (!http) {
+            throw new Error("axios no está disponible en window");
+        }
+
+        const params = {
+            days: days.value,
+            sede_id: filters.value?.selected?.sede_id || undefined,
+            medico_id: isAdmin.value ? filters.value?.selected?.medico_id || undefined : undefined,
         };
-    },
-    data() {
-        return {
-            loading: false,
-            error: null,
-            days: 30,
-            alerts: [],
-            nomSedeActual: null,
-            sedeSeleccionada: null,
-            sedes: [],
-            filters: {
-                selected: { sede_id: null, medico_id: null },
-                options: { sedes: [], medicos: [] },
-            },
-            indicadores: {
-                estudiosAsignados: 0,
-                estudiosLeidos: 0,
-                estudiosPorTranscribir: 0,
-                estudiosDescargados: 0,
-            },
-            operacion: {
-                asignadosHoy: 0,
-                pendientesLectura: 0,
-                pendientesLecturaHoy: 0,
-                leidosHoy: 0,
-                pendientesTranscripcion: 0,
-                transcritosHoy: 0,
-            },
-            estudiosMasSolicitados: [],
-            series: {
-                transcritosPorDia: [],
-                asignadosPorDia: [],
-                leidosPorDia: [],
-                porHoraHoy: { asignados: [], leidos: [], transcritos: [] },
-                heatmap7d: { days: 7, asignados: [], leidos: [], transcritos: [] },
-            },
-            heatmapMetric: "transcritos",
-            heatmapIndex: {},
-            calidad: {
-                tiempos: {
-                    asignadoALectura: { avgMin: 0, n: 0 },
-                    lecturaATranscrito: { avgMin: 0, n: 0 },
-                    dias: 30,
-                },
-                agingLectura: [],
-                agingTranscripcion: [],
-            },
-            sla: { days: 30, lectura: [], transcripcion: [] },
-            tablas: {
-                pendientesLecturaTop: [],
-                pendientesTranscripcionTop: [],
-            },
-            productividad: {
-                rankingMedicosTranscritos: [],
-                transcritosPorSede: [],
-            },
-            rankingTranscriptores: [],
-            prioridades: [],
-            embudo: {
-                total: 0,
-                leidos: 0,
-                transcritos: 0,
-                tasaLectura: 0,
-                tasaTranscripcion: 0,
-                tasaCompletitud: 0,
-                pendientesLectura: 0,
-                pendientesTranscripcion: 0,
-            },
-            charts: {
-                resumen: null,
-                transcritos: null,
-                agingLectura: null,
-                agingTranscripcion: null,
-                porHoraHoy: null,
-                porSede: null,
-                slaLectura: null,
-                slaTranscripcion: null,
-            },
-        };
-    },
-    methods: {
-        safeC3Generate(selector, config) {
-            const el = document.querySelector(selector);
-            if (!el) return null;
-            const c3lib = window.c3;
-            if (!c3lib) return null;
-            return c3lib.generate(config);
-        },
-        initCharts() {
-            const c3lib = window.c3;
-            const morrisLib = window.Morris;
 
-            // Bar: resumen transcritos vs pendientes
-            this.charts.resumen = c3lib
-                ? c3lib.generate({
-                    bindto: "#income",
-                    data: {
-                        columns: [
-                            ["Transcritos", 0],
-                            ["Pendientes", 0],
-                        ],
-                        type: "bar",
-                    },
-                    bar: {
-                        width: 20,
-                    },
-                    axis: {
-                        x: { show: false },
-                        y: { tick: { count: 4, outer: false } },
-                    },
-                    legend: { show: true },
-                    grid: { y: { show: true } },
-                    size: { height: 290 },
-                    color: { pattern: ["#24d2b5", "#f62d51"] },
-                })
-                : null;
+        const res = await http.get("/api/reportes.dashboard", {
+            params,
+            timeout: 30000,
+        });
 
-            // Área: flujo diario (asignados / leídos / transcritos)
-            // Morris puede fallar en `resizeHandler` si se inicializa con `data: []`
-            // y ocurre un resize antes de que llegue `setData(...)`. Usamos un punto dummy.
-            const morrisAreaInitialData = [{ period: "", asignados: 0, leidos: 0, transcritos: 0 }];
-            this.charts.transcritos = morrisLib
-                ? morrisLib.Area({
-                    element: "sales-chart",
-                    data: morrisAreaInitialData,
-                    xkey: "period",
-                    ykeys: ["asignados", "leidos", "transcritos"],
-                    labels: ["Asignados", "Leídos", "Transcritos"],
-                    pointSize: 2,
-                    fillOpacity: 0.2,
-                    pointStrokeColors: ["#26c6da", "#ffb22b", "#24d2b5"],
-                    behaveLikeLine: true,
-                    gridLineColor: "#e0e0e0",
-                    lineWidth: 2,
-                    hideHover: "auto",
-                    lineColors: ["#26c6da", "#ffb22b", "#24d2b5"],
-                    resize: true,
-                })
-                : null;
+        const data = res?.data || {};
 
-            // Donut: aging lectura
-            this.charts.agingLectura = c3lib
-                ? c3lib.generate({
-                    bindto: "#aging-lectura",
-                    data: { columns: [], type: "donut" },
-                    donut: { label: { show: false }, title: "Lectura", width: 18 },
-                    legend: { hide: true },
-                    color: { pattern: ["#26c6da", "#ffb22b", "#7460ee", "#f62d51"] },
-                })
-                : null;
+        if (data.filters) {
+            filters.value = data.filters;
+        }
+        alerts.value = Array.isArray(data.alerts) ? data.alerts : [];
+        sla.value = data.sla || sla.value;
 
-            // Donut: aging transcripción
-            this.charts.agingTranscripcion = c3lib
-                ? c3lib.generate({
-                    bindto: "#aging-transcripcion",
-                    data: { columns: [], type: "donut" },
-                    donut: { label: { show: false }, title: "Transcripción", width: 18 },
-                    legend: { hide: true },
-                    color: { pattern: ["#26c6da", "#ffb22b", "#7460ee", "#f62d51"] },
-                })
-                : null;
+        indicadores.value.estudiosAsignados = Number(data.estudiosAsignados || 0);
+        indicadores.value.estudiosLeidos = Number(data.estudiosLeidos || 0);
+        indicadores.value.estudiosPorTranscribir = Number(data.estudiosPorTranscribir || 0);
+        indicadores.value.estudiosDescargados = Number(data.estudiosDescargados || 0);
 
-            // Bar: distribución por hora (hoy)
-            this.charts.porHoraHoy = this.safeC3Generate("#por-hora-hoy", {
-                bindto: "#por-hora-hoy",
-                data: {
-                    x: "x",
-                    columns: [["x"], ["Asignados"], ["Leídos"], ["Transcritos"]],
-                    type: "bar",
-                    groups: [["Asignados", "Leídos", "Transcritos"]],
-                },
-                axis: {
-                    x: {
-                        type: "category",
-                        tick: {
-                            rotate: 75,
-                            multiline: false,
-                        },
-                        height: 70,
-                    },
-                    y: {
-                        tick: { count: 4, outer: false },
-                    },
-                },
-                bar: { width: { ratio: 0.6 } },
-                legend: { show: true },
-                grid: { y: { show: true } },
-                color: { pattern: ["#26c6da", "#ffb22b", "#24d2b5"] },
-            });
+        estudiosMasSolicitados.value = Array.isArray(data.estudiosMasSolicitados)
+            ? data.estudiosMasSolicitados
+            : [];
+        series.value.transcritosPorDia = Array.isArray(data?.series?.transcritosPorDia)
+            ? data.series.transcritosPorDia
+            : [];
+        series.value.asignadosPorDia = Array.isArray(data?.series?.asignadosPorDia)
+            ? data.series.asignadosPorDia
+            : [];
+        series.value.leidosPorDia = Array.isArray(data?.series?.leidosPorDia)
+            ? data.series.leidosPorDia
+            : [];
+        series.value.porHoraHoy = data?.series?.porHoraHoy || series.value.porHoraHoy;
+        series.value.heatmap7d = data?.series?.heatmap7d || series.value.heatmap7d;
 
-            // Donut: transcritos por sede (solo si existe el contenedor)
-            this.charts.porSede = this.safeC3Generate("#por-sede", {
-                bindto: "#por-sede",
-                data: { columns: [], type: "donut" },
-                donut: { label: { show: false }, title: "Sedes", width: 18 },
-                legend: { hide: true },
-                color: {
-                    pattern: ["#745af2", "#26c6da", "#24d2b5", "#ffb22b", "#f62d51", "#90a4ae"],
-                },
-            });
+        operacion.value = data.operacion || operacion.value;
+        calidad.value = data.calidad || calidad.value;
+        tablas.value = data.tablas || tablas.value;
+        productividad.value = data.productividad || productividad.value;
+        rankingTranscriptores.value = Array.isArray(data.rankingTranscriptores)
+            ? data.rankingTranscriptores
+            : [];
+        prioridades.value = Array.isArray(data.prioridades) ? data.prioridades : [];
+        embudo.value = data.embudo || embudo.value;
 
-            // Cumplimiento de tiempos (charts)
-            this.charts.slaLectura = this.safeC3Generate("#sla-lectura", {
-                bindto: "#sla-lectura",
-                data: { x: "x", columns: [["x"], ["Incumplimiento %"]], type: "bar" },
-                axis: {
-                    x: { type: "category" },
-                    y: { tick: { count: 4, outer: false }, max: 100, min: 0 },
-                },
-                bar: { width: { ratio: 0.7 } },
-                legend: { hide: true },
-                grid: { y: { show: true } },
-                color: { pattern: ["#f62d51"] },
-            });
-            this.charts.slaTranscripcion = this.safeC3Generate("#sla-transcripcion", {
-                bindto: "#sla-transcripcion",
-                data: { x: "x", columns: [["x"], ["Incumplimiento %"]], type: "bar" },
-                axis: {
-                    x: { type: "category" },
-                    y: { tick: { count: 4, outer: false }, max: 100, min: 0 },
-                },
-                bar: { width: { ratio: 0.7 } },
-                legend: { hide: true },
-                grid: { y: { show: true } },
-                color: { pattern: ["#ffb22b"] },
-            });
-        },
-        async fetchDashboard() {
-            this.loading = true;
-            this.error = null;
-            this.filters.selected.sede_id = this.sedeSeleccionada;
+        reindexHeatmap();
+        renderCharts();
+    } catch (e) {
+        error.value = "No fue posible cargar las estadísticas del dashboard.";
+    } finally {
+        loading.value = false;
+    }
+}
+function renderCharts() {
+    // Bar (resumen)
+    if (charts.value.resumen) {
+        charts.value.resumen.load({
+            columns: [
+                ["Transcritos", indicadores.value.estudiosLeidos],
+                ["Pendientes", indicadores.value.estudiosPorTranscribir],
+            ],
+        });
+    }
 
-            try {
-                const http = window.axios;
-                if (!http) {
-                    throw new Error("axios no está disponible en window");
-                }
+    // Área (flujo por día): unir asignados/leídos/transcritos por fecha
+    const byDate = {};
+    const upsert = (arr, key) => {
+        (arr || []).forEach((x) => {
+            if (!x || !x.fecha) return;
+            const f = String(x.fecha);
+            if (!byDate[f]) byDate[f] = { period: f, asignados: 0, leidos: 0, transcritos: 0 };
+            byDate[f][key] = Number(x.total || 0);
+        });
+    };
+    upsert(series.value.asignadosPorDia, "asignados");
+    upsert(series.value.leidosPorDia, "leidos");
+    upsert(series.value.transcritosPorDia, "transcritos");
 
-                const params = {
-                    days: this.days,
-                    sede_id: this.filters?.selected?.sede_id || undefined,
-                    medico_id: this.isAdmin
-                        ? this.filters?.selected?.medico_id || undefined
-                        : undefined,
-                };
+    const areaData = Object.keys(byDate)
+        .sort()
+        .map((k) => byDate[k]);
 
-                const res = await http.get("/api/reportes.dashboard", {
-                    params,
-                    timeout: 30000,
-                });
+    if (charts.value.transcritos && typeof charts.value.transcritos.setData === "function") {
+        charts.value.transcritos.setData(areaData);
+    }
 
-                const data = res?.data || {};
+    // Donut aging lectura
+    const agingLecturaCols = (calidad.value?.agingLectura || []).map((x) => [
+        String(x.bucket),
+        Number(x.total || 0),
+    ]);
+    if (charts.value.agingLectura) {
+        charts.value.agingLectura.load({
+            columns: agingLecturaCols.length ? agingLecturaCols : [["Sin datos", 1]],
+        });
+    }
 
-                if (data.filters) {
-                    this.filters = data.filters;
-                }
-                this.alerts = Array.isArray(data.alerts) ? data.alerts : [];
-                this.sla = data.sla || this.sla;
+    // Donut aging transcripción
+    const agingTransCols = (calidad.value?.agingTranscripcion || []).map((x) => [
+        String(x.bucket),
+        Number(x.total || 0),
+    ]);
+    if (charts.value.agingTranscripcion) {
+        charts.value.agingTranscripcion.load({
+            columns: agingTransCols.length ? agingTransCols : [["Sin datos", 1]],
+        });
+    }
 
-                this.indicadores.estudiosAsignados = Number(data.estudiosAsignados || 0);
-                this.indicadores.estudiosLeidos = Number(data.estudiosLeidos || 0);
-                this.indicadores.estudiosPorTranscribir = Number(data.estudiosPorTranscribir || 0);
-                this.indicadores.estudiosDescargados = Number(data.estudiosDescargados || 0);
+    // Bar por hora (hoy)
+    if (charts.value.porHoraHoy) {
+        const hours = Array.from({ length: 24 }, (_, i) => String(i));
+        const mk24 = () => Array.from({ length: 24 }, () => 0);
 
-                this.estudiosMasSolicitados = Array.isArray(data.estudiosMasSolicitados)
-                    ? data.estudiosMasSolicitados
-                    : [];
-                this.series.transcritosPorDia = Array.isArray(data?.series?.transcritosPorDia)
-                    ? data.series.transcritosPorDia
-                    : [];
-                this.series.asignadosPorDia = Array.isArray(data?.series?.asignadosPorDia)
-                    ? data.series.asignadosPorDia
-                    : [];
-                this.series.leidosPorDia = Array.isArray(data?.series?.leidosPorDia)
-                    ? data.series.leidosPorDia
-                    : [];
-                this.series.porHoraHoy = data?.series?.porHoraHoy || this.series.porHoraHoy;
-                this.series.heatmap7d = data?.series?.heatmap7d || this.series.heatmap7d;
+        const asignados = mk24();
+        const leidos = mk24();
+        const transcritos = mk24();
 
-                this.operacion = data.operacion || this.operacion;
-                this.calidad = data.calidad || this.calidad;
-                this.tablas = data.tablas || this.tablas;
-                this.productividad = data.productividad || this.productividad;
-                this.rankingTranscriptores = Array.isArray(data.rankingTranscriptores)
-                    ? data.rankingTranscriptores : [];
-                this.prioridades = Array.isArray(data.prioridades)
-                    ? data.prioridades : [];
-                this.embudo = data.embudo || this.embudo;
+        (series.value?.porHoraHoy?.asignados || []).forEach((x) => {
+            const h = Number(x.hora);
+            if (h >= 0 && h <= 23) asignados[h] = Number(x.total || 0);
+        });
+        (series.value?.porHoraHoy?.leidos || []).forEach((x) => {
+            const h = Number(x.hora);
+            if (h >= 0 && h <= 23) leidos[h] = Number(x.total || 0);
+        });
+        (series.value?.porHoraHoy?.transcritos || []).forEach((x) => {
+            const h = Number(x.hora);
+            if (h >= 0 && h <= 23) transcritos[h] = Number(x.total || 0);
+        });
 
-                this.reindexHeatmap();
-                this.renderCharts();
-            } catch (e) {
-                this.error = "No fue posible cargar las estadísticas del dashboard.";
-            } finally {
-                this.loading = false;
-            }
-        },
-        renderCharts() {
-            // Bar (resumen)
-            if (this.charts.resumen) {
-                this.charts.resumen.load({
-                    columns: [
-                        ["Transcritos", this.indicadores.estudiosLeidos],
-                        ["Pendientes", this.indicadores.estudiosPorTranscribir],
-                    ],
-                });
-            }
+        charts.value.porHoraHoy.load({
+            columns: [
+                ["x", ...hours],
+                ["Asignados", ...asignados],
+                ["Leídos", ...leidos],
+                ["Transcritos", ...transcritos],
+            ],
+        });
+    }
 
-            // Área (flujo por día): unir asignados/leídos/transcritos por fecha
-            const byDate = {};
-            const upsert = (arr, key) => {
-                (arr || []).forEach((x) => {
-                    if (!x || !x.fecha) return;
-                    const f = String(x.fecha);
-                    if (!byDate[f])
-                        byDate[f] = { period: f, asignados: 0, leidos: 0, transcritos: 0 };
-                    byDate[f][key] = Number(x.total || 0);
-                });
-            };
-            upsert(this.series.asignadosPorDia, "asignados");
-            upsert(this.series.leidosPorDia, "leidos");
-            upsert(this.series.transcritosPorDia, "transcritos");
+    // Donut transcritos por sede (admin)
+    if (charts.value.porSede) {
+        const cols = (productividad.value?.transcritosPorSede || []).map((x) => [
+            String(x.sede),
+            Number(x.total || 0),
+        ]);
+        charts.value.porSede.load({ columns: cols.length ? cols : [["Sin datos", 1]] });
+    }
 
-            const areaData = Object.keys(byDate)
-                .sort()
-                .map((k) => byDate[k]);
+    // Cumplimiento de tiempos (incumplimiento %)
+    if (charts.value.slaLectura) {
+        const x = ["x", ...(sla.value?.lectura || []).map((r) => String(r.prioridad))];
+        const y = [
+            "Incumplimiento %",
+            ...(sla.value?.lectura || []).map((r) => Math.round(Number(r.breachRate || 0) * 100)),
+        ];
+        charts.value.slaLectura.load({ columns: [x, y] });
+    }
+    if (charts.value.slaTranscripcion) {
+        const x = ["x", ...(sla.value?.transcripcion || []).map((r) => String(r.prioridad))];
+        const y = [
+            "Incumplimiento %",
+            ...(sla.value?.transcripcion || []).map((r) =>
+                Math.round(Number(r.breachRate || 0) * 100)
+            ),
+        ];
+        charts.value.slaTranscripcion.load({ columns: [x, y] });
+    }
+}
+function reindexHeatmap() {
+    const arr = series.value?.heatmap7d?.[heatmapMetric.value] || [];
+    const idx = {};
+    for (const x of arr) {
+        const d = String(x.fecha);
+        const h = Number(x.hora);
+        if (!idx[d]) idx[d] = {};
+        idx[d][h] = Number(x.total || 0);
+    }
+    heatmapIndex.value = idx;
+}
+function heatmapValue(date, hour) {
+    return heatmapIndex.value?.[date] && heatmapIndex.value[date][hour]
+        ? heatmapIndex.value[date][hour]
+        : 0;
+}
+function heatmapColor(value, max) {
+    const v = Number(value || 0);
+    const m = Number(max || 0);
+    if (m <= 0) return "transparent";
+    const t = Math.max(0, Math.min(1, v / m));
+    // base: #26c6da
+    return `rgba(38, 198, 218, ${0.15 + t * 0.75})`;
+}
+function alertClass(level) {
+    switch (String(level || "").toLowerCase()) {
+        case "danger":
+            return "alert-danger";
+        case "warning":
+            return "alert-warning";
+        case "info":
+            return "alert-info";
+        case "success":
+            return "alert-success";
+        default:
+            return "alert-secondary";
+    }
+}
+function formatEdadMin(min) {
+    const m = Number(min || 0);
+    if (!m || m < 0) return "0m";
+    const days = Math.floor(m / (60 * 24));
+    const hours = Math.floor((m % (60 * 24)) / 60);
+    const minutes = Math.floor(m % 60);
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+}
+function formatMin(min) {
+    const m = Number(min || 0);
+    if (!m || m < 0) return "0m";
+    const hours = Math.floor(m / 60);
+    const minutes = Math.floor(m % 60);
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+}
+function formatDelta(row) {
+    const total = Number(row?.total || 0);
+    const prev = Number(row?.prev_total || 0);
+    const delta = row && typeof row.delta !== "undefined" ? Number(row.delta) : total - prev;
+    const pct =
+        row && row.deltaPct !== null && typeof row.deltaPct !== "undefined"
+            ? Number(row.deltaPct)
+            : null;
 
-            if (this.charts.transcritos && typeof this.charts.transcritos.setData === "function") {
-                this.charts.transcritos.setData(areaData);
-            }
+    const sign = delta > 0 ? "+" : "";
+    if (prev <= 0) {
+        return `${sign}${delta}`;
+    }
+    const pctStr = pct === null ? "" : `${Math.round(pct * 100)}%`;
+    return `${sign}${delta} (${pctStr})`;
+}
+function formatPacienteNombre(row) {
+    if (!row) return "";
+    const parts = [
+        row.paciente_nombres,
+        row.paciente_seg_nom,
+        row.paciente_pri_ape,
+        row.paciente_seg_ape,
+    ]
+        .filter(Boolean)
+        .map((x) => String(x).trim())
+        .filter(Boolean);
 
-            // Donut aging lectura
-            const agingLecturaCols = (this.calidad?.agingLectura || []).map((x) => [
-                String(x.bucket),
-                Number(x.total || 0),
-            ]);
-            if (this.charts.agingLectura) {
-                this.charts.agingLectura.load({
-                    columns: agingLecturaCols.length ? agingLecturaCols : [["Sin datos", 1]],
-                });
-            }
+    return parts.join(" ") || "Paciente";
+}
+function goToLectura(row) {
+    try {
+        if (row && row.sede_id) sessionStorage.setItem("ST-sede", String(row.sede_id));
+        if (row && row.accession_no)
+            sessionStorage.setItem("ST-accession", String(row.accession_no));
+    } catch (e) {
+        /* noop */
+    }
+    window.location.href = "/estudios.leer.estudio.listar";
+}
+function goToTranscripcion(row) {
+    try {
+        if (row && row.sede_id) sessionStorage.setItem("ST-sede", String(row.sede_id));
+        if (row && row.accession_no)
+            sessionStorage.setItem("ST-accession", String(row.accession_no));
+    } catch (e) {
+        /* noop */
+    }
+    window.location.href = "/estudios.transcribir.listar";
+}
+async function listarSedes() {
+    try {
+        const res = await axios.get("/api/config-sedes/listar/sedes/activas");
+        sedes.value = res.data;
+    } catch (error) {
+        console.error("Error en listarSedes:", error);
+    }
+}
 
-            // Donut aging transcripción
-            const agingTransCols = (this.calidad?.agingTranscripcion || []).map((x) => [
-                String(x.bucket),
-                Number(x.total || 0),
-            ]);
-            if (this.charts.agingTranscripcion) {
-                this.charts.agingTranscripcion.load({
-                    columns: agingTransCols.length ? agingTransCols : [["Sin datos", 1]],
-                });
-            }
-
-            // Bar por hora (hoy)
-            if (this.charts.porHoraHoy) {
-                const hours = Array.from({ length: 24 }, (_, i) => String(i));
-                const mk24 = () => Array.from({ length: 24 }, () => 0);
-
-                const asignados = mk24();
-                const leidos = mk24();
-                const transcritos = mk24();
-
-                (this.series?.porHoraHoy?.asignados || []).forEach((x) => {
-                    const h = Number(x.hora);
-                    if (h >= 0 && h <= 23) asignados[h] = Number(x.total || 0);
-                });
-                (this.series?.porHoraHoy?.leidos || []).forEach((x) => {
-                    const h = Number(x.hora);
-                    if (h >= 0 && h <= 23) leidos[h] = Number(x.total || 0);
-                });
-                (this.series?.porHoraHoy?.transcritos || []).forEach((x) => {
-                    const h = Number(x.hora);
-                    if (h >= 0 && h <= 23) transcritos[h] = Number(x.total || 0);
-                });
-
-                this.charts.porHoraHoy.load({
-                    columns: [
-                        ["x", ...hours],
-                        ["Asignados", ...asignados],
-                        ["Leídos", ...leidos],
-                        ["Transcritos", ...transcritos],
-                    ],
-                });
-            }
-
-            // Donut transcritos por sede (admin)
-            if (this.charts.porSede) {
-                const cols = (this.productividad?.transcritosPorSede || []).map((x) => [
-                    String(x.sede),
-                    Number(x.total || 0),
-                ]);
-                this.charts.porSede.load({ columns: cols.length ? cols : [["Sin datos", 1]] });
-            }
-
-            // Cumplimiento de tiempos (incumplimiento %)
-            if (this.charts.slaLectura) {
-                const x = ["x", ...(this.sla?.lectura || []).map((r) => String(r.prioridad))];
-                const y = [
-                    "Incumplimiento %",
-                    ...(this.sla?.lectura || []).map((r) =>
-                        Math.round(Number(r.breachRate || 0) * 100)
-                    ),
-                ];
-                this.charts.slaLectura.load({ columns: [x, y] });
-            }
-            if (this.charts.slaTranscripcion) {
-                const x = ["x", ...(this.sla?.transcripcion || []).map((r) => String(r.prioridad))];
-                const y = [
-                    "Incumplimiento %",
-                    ...(this.sla?.transcripcion || []).map((r) =>
-                        Math.round(Number(r.breachRate || 0) * 100)
-                    ),
-                ];
-                this.charts.slaTranscripcion.load({ columns: [x, y] });
-            }
-        },
-
-        reindexHeatmap() {
-            const arr = this.series?.heatmap7d?.[this.heatmapMetric] || [];
-            const idx = {};
-            for (const x of arr) {
-                const d = String(x.fecha);
-                const h = Number(x.hora);
-                if (!idx[d]) idx[d] = {};
-                idx[d][h] = Number(x.total || 0);
-            }
-            this.heatmapIndex = idx;
-        },
-
-        heatmapValue(date, hour) {
-            return this.heatmapIndex?.[date] && this.heatmapIndex[date][hour]
-                ? this.heatmapIndex[date][hour]
-                : 0;
-        },
-
-        heatmapColor(value, max) {
-            const v = Number(value || 0);
-            const m = Number(max || 0);
-            if (m <= 0) return "transparent";
-            const t = Math.max(0, Math.min(1, v / m));
-            // base: #26c6da
-            return `rgba(38, 198, 218, ${0.15 + t * 0.75})`;
-        },
-
-        alertClass(level) {
-            switch (String(level || "").toLowerCase()) {
-                case "danger":
-                    return "alert-danger";
-                case "warning":
-                    return "alert-warning";
-                case "info":
-                    return "alert-info";
-                case "success":
-                    return "alert-success";
-                default:
-                    return "alert-secondary";
-            }
-        },
-
-        formatEdadMin(min) {
-            const m = Number(min || 0);
-            if (!m || m < 0) return "0m";
-            const days = Math.floor(m / (60 * 24));
-            const hours = Math.floor((m % (60 * 24)) / 60);
-            const minutes = Math.floor(m % 60);
-            if (days > 0) return `${days}d ${hours}h`;
-            if (hours > 0) return `${hours}h ${minutes}m`;
-            return `${minutes}m`;
-        },
-
-        formatMin(min) {
-            const m = Number(min || 0);
-            if (!m || m < 0) return "0m";
-            const hours = Math.floor(m / 60);
-            const minutes = Math.floor(m % 60);
-            if (hours > 0) return `${hours}h ${minutes}m`;
-            return `${minutes}m`;
-        },
-
-        formatDelta(row) {
-            const total = Number(row?.total || 0);
-            const prev = Number(row?.prev_total || 0);
-            const delta =
-                row && typeof row.delta !== "undefined" ? Number(row.delta) : total - prev;
-            const pct =
-                row && row.deltaPct !== null && typeof row.deltaPct !== "undefined"
-                    ? Number(row.deltaPct)
-                    : null;
-
-            const sign = delta > 0 ? "+" : "";
-            if (prev <= 0) {
-                return `${sign}${delta}`;
-            }
-            const pctStr = pct === null ? "" : `${Math.round(pct * 100)}%`;
-            return `${sign}${delta} (${pctStr})`;
-        },
-
-        formatPacienteNombre(row) {
-            if (!row) return "";
-            const parts = [
-                row.paciente_nombres,
-                row.paciente_seg_nom,
-                row.paciente_pri_ape,
-                row.paciente_seg_ape,
-            ]
-                .filter(Boolean)
-                .map((x) => String(x).trim())
-                .filter(Boolean);
-
-            return parts.join(" ") || "Paciente";
-        },
-
-        goToLectura(row) {
-            try {
-                if (row && row.sede_id) sessionStorage.setItem("ST-sede", String(row.sede_id));
-                if (row && row.accession_no)
-                    sessionStorage.setItem("ST-accession", String(row.accession_no));
-            } catch (e) {
-                /* noop */
-            }
-            window.location.href = "/estudios.leer.estudio.listar";
-        },
-
-        goToTranscripcion(row) {
-            try {
-                if (row && row.sede_id) sessionStorage.setItem("ST-sede", String(row.sede_id));
-                if (row && row.accession_no)
-                    sessionStorage.setItem("ST-accession", String(row.accession_no));
-            } catch (e) {
-                /* noop */
-            }
-            window.location.href = "/estudios.transcribir.listar";
-        },
-        async listarSedes() {
-            try {
-                const res = await axios.get("/api/config-sedes/listar/sedes/activas");
-                this.sedes = res.data;
-            } catch (error) {
-                console.error('Error en listarSedes:', error);
-            }
-        },
-    },
-};
+onMounted(async () => {
+    initCharts();
+    await listarSedes();
+    await fetchDashboard();
+    charts.value = {
+        modalidades: null,
+        resumen: null,
+        transcritos: null,
+        agingLectura: null,
+        agingTranscripcion: null,
+        porHoraHoy: null,
+        porSede: null,
+        slaLectura: null,
+        slaTranscripcion: null,
+    };
+});
 </script>
-
 <style></style>

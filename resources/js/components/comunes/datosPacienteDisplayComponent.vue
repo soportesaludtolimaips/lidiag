@@ -1,26 +1,24 @@
 <template>
     <div>
-        <h5 class="card-title text-info">
-            <i class="fa fa-user"></i> Datos del Paciente
-        </h5>
-        <hr>
+        <h5 class="card-title text-info"><i class="fa fa-user"></i> Datos del Paciente</h5>
+        <hr />
         <div class="row">
             <div class="col-md-3">
                 <dl>
                     <dt># Documento</dt>
-                    <dd>{{ registro.num_docu || '' }}</dd>
+                    <dd>{{ registro.num_docu || "" }}</dd>
                 </dl>
             </div>
             <div class="col-md-4">
                 <dl>
                     <dt>Nombres</dt>
-                    <dd>{{ registro.nom_pacien || registro.nombres || '' }}</dd>
+                    <dd>{{ registro.nom_pacien || registro.nombres || "" }}</dd>
                 </dl>
             </div>
             <div class="col-md-2">
                 <dl>
                     <dt>Sexo</dt>
-                    <dd>{{ registro.sexo || '' }}</dd>
+                    <dd>{{ registro.sexo || "" }}</dd>
                 </dl>
             </div>
             <div class="col-md-2">
@@ -40,47 +38,45 @@
             <div class="col-md-4">
                 <dl>
                     <dt>Dirección</dt>
-                    <dd>{{ registro.direccion || '' }}</dd>
+                    <dd>{{ registro.direccion || "" }}</dd>
                 </dl>
             </div>
             <div class="col-md-3">
                 <dl>
                     <dt>Télefono</dt>
-                    <dd>{{ registro.tel || '' }}</dd>
+                    <dd>{{ registro.tel || "" }}</dd>
                 </dl>
             </div>
             <div class="col-md-5">
                 <dl>
                     <dt>E - Mail</dt>
-                    <dd>{{ registro.email || '' }}</dd>
+                    <dd>{{ registro.email || "" }}</dd>
                 </dl>
             </div>
         </div>
     </div>
 </template>
+<script setup>
+import { computed } from "vue";
 
-<script>
 import { normalizarFecha, calcularEdad } from "@/helpers/dateUtils.js";
 
-export default {
-    props: {
-        registro: {
-            type: Object,
-            required: true,
-        },
+const props = defineProps({
+    registro: {
+        type: Object,
+        required: true,
     },
-    computed: {
-        fechaFormateada() {
-            const val = this.registro.fec_naci;
-            if (!val) return '';
-            return normalizarFecha(val) || val;
-        },
-        edadCalculada() {
-            const val = this.registro.fec_naci;
-            if (!val) return '';
-            const edad = calcularEdad(val);
-            return edad !== null ? edad : '';
-        },
-    },
-};
+});
+
+const fechaFormateada = computed(() => {
+    const val = registro.fec_naci;
+    if (!val) return "";
+    return normalizarFecha(val) || val;
+});
+const edadCalculada = computed(() => {
+    const val = registro.fec_naci;
+    if (!val) return "";
+    const edad = calcularEdad(val);
+    return edad !== null ? edad : "";
+});
 </script>
