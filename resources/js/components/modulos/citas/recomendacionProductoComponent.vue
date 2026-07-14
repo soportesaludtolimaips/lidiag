@@ -314,228 +314,220 @@
         </div>
     </div>
 </template>
+<script setup>
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-<script>
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { handleAxiosErrorToast, alertSuccess, alertError, confirmAction } from "@/helpers/alerts";
 import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
+import axios from "axios";
 
-export default {
-    name: "RecomendacionProductoComponent",
-    components: { FormattedTextEditor, LoadingSpinner },
-    computed: {
-        filterProductoOptions() {
-            return (this.productos || []).map((p) => ({
-                id: String(p.id),
-                cod_cups: p.cod_cups,
-                nom_produc: p.nom_produc,
-            }));
-        },
-        formProductoOptions() {
-            return (this.productos || []).map((p) => ({
-                id: String(p.id),
-                cod_cups: p.cod_cups,
-                nom_produc: p.nom_produc,
-            }));
-        },
-    },
-    mounted() {
-        this.cargarSedes();
-        this.cargarServicios();
-        this.cargarProductos();
-        this.buscar();
-    },
-    beforeUnmount() {
-        safeDestroyDataTable(this.$refs.dt || "#tabla-recomendaciones");
-    },
-    data() {
-        return {
-            registros: [],
-            productos: [],
-            sedes: [],
-            servicios: [],
-            serviciosFiltrados: [],
-            filtro: {
-                sede_id: "",
-                servicio_cita_id: "",
-                producto_id: "",
-            },
-            form: {
-                id: null,
-                producto_id: "",
-                recomendacion: "",
-                estado: true,
-            },
-            errores: {},
-            editando: false,
-            loadingBuscar: false,
-            loadingGuardar: false,
-            loadingEliminarId: null,
-        };
-    },
-    methods: {
-        async cargarSedes() {
-            try {
-                const res = await axios.get("/api/config-sedes/listar/sedes/activas");
-                this.sedes = res.data || [];
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible cargar las sedes.");
-            }
-        },
-        async cargarServicios() {
-            try {
-                const res = await axios.get("/api/citas/servicios");
-                this.servicios = res.data || [];
-                this.filtrarServicios();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible cargar los servicios.");
-            }
-        },
-        filtrarServicios() {
-            if (this.filtro.sede_id) {
-                this.serviciosFiltrados = this.servicios.filter(
-                    (s) => s.sede_id == this.filtro.sede_id
-                );
-            } else {
-                this.serviciosFiltrados = this.servicios;
-            }
-        },
-        async cargarProductos() {
-            try {
-                const servicioId = this.filtro.servicio_cita_id;
-                const sedeId = this.filtro.sede_id;
+const registros = ref([]);
+const productos = ref([]);
+const sedes = ref([]);
+const servicios = ref([]);
+const serviciosFiltrados = ref([]);
+const filtro = ref({
+    sede_id: "",
+    servicio_cita_id: "",
+    producto_id: "",
+});
+const form = ref({
+    id: null,
+    producto_id: "",
+    recomendacion: "",
+    estado: true,
+});
+const errores = ref({});
+const editando = ref(false);
+const loadingBuscar = ref(false);
+const loadingGuardar = ref(false);
+const loadingEliminarId = ref(null);
 
-                if (!servicioId) {
-                    this.productos = [];
-                    return;
-                }
+const filterProductoOptions = computed(() => {
+    return (productos.value || []).map((p) => ({
+        id: String(p.id),
+        cod_cups: p.cod_cups,
+        nom_produc: p.nom_produc,
+    }));
+});
+const formProductoOptions = computed(() => {
+    return (productos.value || []).map((p) => ({
+        id: String(p.id),
+        cod_cups: p.cod_cups,
+        nom_produc: p.nom_produc,
+    }));
+});
 
-                var url = "/api/citas/productos/" + servicioId;
-                if (sedeId) url += "?sede_id=" + sedeId;
+async function cargarSedes() {
+    try {
+        const res = await axios.get("/api/config-sedes/listar/sedes/activas");
+        sedes.value = res.data || [];
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible cargar las sedes.");
+    }
+}
+async function cargarServicios() {
+    try {
+        const res = await axios.get("/api/citas/servicios");
+        servicios.value = res.data || [];
+        filtrarServicios();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible cargar los servicios.");
+    }
+}
+function filtrarServicios() {
+    if (filtro.value.sede_id) {
+        serviciosFiltrados.value = servicios.value.filter((s) => s.sede_id == filtro.value.sede_id);
+    } else {
+        serviciosFiltrados.value = servicios.value;
+    }
+}
+async function cargarProductos() {
+    try {
+        const servicioId = filtro.value.servicio_cita_id;
+        const sedeId = filtro.value.sede_id;
 
-                const res = await axios.get(url);
-                this.productos = res.data || [];
-            } catch (error) {
-                this.productos = [];
-                handleAxiosErrorToast(error, "No fue posible cargar los productos.");
-            }
-        },
-        onFilterProductoSelect(value) {
-            this.filtro.producto_id = value || "";
-            this.buscar();
-        },
-        onFormProductoSelect(value) {
-            this.form.producto_id = value || "";
-        },
-        async buscar() {
-            if (this.loadingBuscar) return;
-            this.loadingBuscar = true;
-            try {
-                const params = {};
-                if (this.filtro.producto_id) params.producto_id = this.filtro.producto_id;
-                const res = await axios.get("/api/config-recomendacion-productos", { params });
-                safeDestroyDataTable(this.$refs.dt || "#tabla-recomendaciones");
-                this.registros = res.data || [];
-                this.$nextTick(() => {
-                    safeInitDataTable(this.$refs.dt || "#tabla-recomendaciones", {
-                        dom: "Bfrtip",
-                        buttons: ["copy", "csv", "excel", "pdf", "print"],
-                    });
-                });
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar las recomendaciones.");
-                this.registros = [];
-            } finally {
-                this.loadingBuscar = false;
-            }
-        },
-        async guardar() {
-            if (this.loadingGuardar) return;
-            this.loadingGuardar = true;
-            this.errores = {};
-            try {
-                if (!this.form.producto_id) {
-                    alertError("Advertencia", "Debe seleccionar un producto.");
-                    return;
-                }
-                let res;
-                if (this.editando && this.form.id) {
-                    res = await axios.put("/api/config-recomendacion-productos/" + this.form.id, {
-                        recomendacion: this.form.recomendacion,
-                        estado: this.form.estado,
-                    });
-                } else {
-                    res = await axios.post("/api/config-recomendacion-productos", {
-                        producto_id: this.form.producto_id,
-                        recomendacion: this.form.recomendacion,
-                        estado: this.form.estado,
-                    });
-                }
-                alertSuccess("Éxito", res?.data?.message || "Recomendación guardada.");
-                this.cerrarModal();
-                await this.buscar();
-            } catch (error) {
-                this.errores = error?.response?.data?.errors || {};
-                handleAxiosErrorToast(error, "No fue posible guardar la recomendación.");
-            } finally {
-                this.loadingGuardar = false;
-            }
-        },
-        async eliminarRegistro(id) {
-            const ok = await confirmAction({
-                title: "¿Está seguro?",
-                text: "No podrá recuperar este registro.",
-                icon: "warning",
+        if (!servicioId) {
+            productos.value = [];
+            return;
+        }
+
+        var url = "/api/citas/productos/" + servicioId;
+        if (sedeId) url += "?sede_id=" + sedeId;
+
+        const res = await axios.get(url);
+        productos.value = res.data || [];
+    } catch (error) {
+        productos.value = [];
+        handleAxiosErrorToast(error, "No fue posible cargar los productos.");
+    }
+}
+function onFilterProductoSelect(value) {
+    filtro.value.producto_id = value || "";
+    buscar();
+}
+function onFormProductoSelect(value) {
+    form.value.producto_id = value || "";
+}
+async function buscar() {
+    if (loadingBuscar.value) return;
+    loadingBuscar.value = true;
+    try {
+        const params = {};
+        if (filtro.value.producto_id) params.producto_id = filtro.value.producto_id;
+        const res = await axios.get("/api/config-recomendacion-productos", { params });
+        safeDestroyDataTable(dt.value || "#tabla-recomendaciones");
+        registros.value = res.data || [];
+        nextTick(() => {
+            safeInitDataTable(dt.value || "#tabla-recomendaciones", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
-            if (!ok) return;
-            if (this.loadingEliminarId) return;
-            this.loadingEliminarId = id;
-            try {
-                const res = await axios.delete("/api/config-recomendacion-productos/" + id);
-                alertSuccess("Éxito", res?.data?.message || "Recomendación eliminada.");
-                await this.buscar();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible eliminar la recomendación.");
-            } finally {
-                this.loadingEliminarId = null;
-            }
-        },
-        mostrarRegistro(item) {
-            this.errores = {};
-            if (item) {
-                this.editando = true;
-                this.form = {
-                    id: item.id,
-                    producto_id: item.producto_id,
-                    recomendacion: item.recomendacion || "",
-                    estado: item.estado,
-                };
-            } else {
-                this.editando = false;
-                this.form = {
-                    id: null,
-                    producto_id: "",
-                    recomendacion: "",
-                    estado: true,
-                };
-            }
-            this.abrirModal();
-        },
-        abrirModal() {
-            $(".right-sidebar").addClass("shw-rside");
-        },
-        cerrarModal() {
-            $(".right-sidebar").removeClass("shw-rside");
-        },
-        btnLimpiar() {
-            this.filtro = { sede_id: "", servicio_cita_id: "", producto_id: "" };
-            this.serviciosFiltrados = this.servicios;
-            this.cargarProductos();
-            this.buscar();
-        },
-    },
-};
+        });
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar las recomendaciones.");
+        registros.value = [];
+    } finally {
+        loadingBuscar.value = false;
+    }
+}
+async function guardar() {
+    if (loadingGuardar.value) return;
+    loadingGuardar.value = true;
+    errores.value = {};
+    try {
+        if (!form.value.producto_id) {
+            alertError("Advertencia", "Debe seleccionar un producto.");
+            return;
+        }
+        let res;
+        if (editando.value && form.value.id) {
+            res = await axios.put("/api/config-recomendacion-productos/" + form.value.id, {
+                recomendacion: form.value.recomendacion,
+                estado: form.value.estado,
+            });
+        } else {
+            res = await axios.post("/api/config-recomendacion-productos", {
+                producto_id: form.value.producto_id,
+                recomendacion: form.value.recomendacion,
+                estado: form.value.estado,
+            });
+        }
+        alertSuccess("Éxito", res?.data?.message || "Recomendación guardada.");
+        cerrarModal();
+        await buscar();
+    } catch (error) {
+        errores.value = error?.response?.data?.errors || {};
+        handleAxiosErrorToast(error, "No fue posible guardar la recomendación.");
+    } finally {
+        loadingGuardar.value = false;
+    }
+}
+async function eliminarRegistro(id) {
+    const ok = await confirmAction({
+        title: "¿Está seguro?",
+        text: "No podrá recuperar este registro.",
+        icon: "warning",
+    });
+    if (!ok) return;
+    if (loadingEliminarId.value) return;
+    loadingEliminarId.value = id;
+    try {
+        const res = await axios.delete("/api/config-recomendacion-productos/" + id);
+        alertSuccess("Éxito", res?.data?.message || "Recomendación eliminada.");
+        await buscar();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible eliminar la recomendación.");
+    } finally {
+        loadingEliminarId.value = null;
+    }
+}
+function mostrarRegistro(item) {
+    errores.value = {};
+    if (item) {
+        editando.value = true;
+        form.value = {
+            id: item.id,
+            producto_id: item.producto_id,
+            recomendacion: item.recomendacion || "",
+            estado: item.estado,
+        };
+    } else {
+        editando.value = false;
+        form.value = {
+            id: null,
+            producto_id: "",
+            recomendacion: "",
+            estado: true,
+        };
+    }
+    abrirModal();
+}
+function abrirModal() {
+    $(".right-sidebar").addClass("shw-rside");
+}
+function cerrarModal() {
+    $(".right-sidebar").removeClass("shw-rside");
+}
+function btnLimpiar() {
+    filtro.value = { sede_id: "", servicio_cita_id: "", producto_id: "" };
+    serviciosFiltrados.value = servicios.value;
+    cargarProductos();
+    buscar();
+}
+
+onMounted(() => {
+    cargarSedes();
+    cargarServicios();
+    cargarProductos();
+    buscar();
+});
+
+onBeforeUnmount(() => {
+    safeDestroyDataTable(dt.value || "#tabla-recomendaciones");
+});
 </script>
 <style scoped>
 .right-sidebar {

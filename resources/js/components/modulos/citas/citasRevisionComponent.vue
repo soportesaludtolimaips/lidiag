@@ -496,342 +496,324 @@
         </div>
     </div>
 </template>
+<script setup>
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-<script>
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { handleAxiosErrorToast, alertSuccess, alertError } from "@/helpers/alerts";
 import { formatFecha } from "@/composables/useCitasUtils.js";
+import axios from "axios";
 
-export default {
-    name: "CitasRevisionComponent",
-    components: { LoadingSpinner },
-    computed: {
-        contadorRegistros() {
-            return this.registros.length;
-        },
-        recomendacionActual() {
-            if (!this.formAprobar.producto_id) return "";
-            const rec = this.recomendaciones.find(
-                (r) => r.producto_id == this.formAprobar.producto_id
-            );
-            return rec && rec.estado ? rec.recomendacion || "" : "";
-        },
-        productoOptions() {
-            return (this.productos || []).map((p) => ({
-                id: String(p.id),
-                cod_cups: p.cod_cups,
-                nom_produc: p.nom_produc,
-            }));
-        },
-    },
-    mounted() {
-        this.cargarListas();
-        this.listarRegistros();
-        axios.post("/api/citas/notificaciones/todas-leidas").catch(() => {});
-        this.pollingInterval = setInterval(() => {
-            this.listarRegistros();
-        }, 30000);
-    },
-    beforeUnmount() {
-        this.destroyDataTable();
-        if (this.pollingInterval) {
-            clearInterval(this.pollingInterval);
-        }
-    },
-    data() {
-        return {
-            registros: [],
-            servicios: [],
-            sedes: [],
-            productos: [],
-            motivosRechazo: [],
-            recomendaciones: [],
-            detallesDisponibles: [],
-            loadingBuscar: false,
-            loadingGuardar: false,
-            loadingDetalles: false,
-            filtro: {
-                servicio_cita_id: "",
-                sede_id: "",
-                busqueda: "",
-            },
-            citaSeleccionada: {
-                id: null,
-                paciente: null,
-                servicio: null,
-                servicio_cita_id: null,
-            },
-            formAprobar: {
-                producto_id: "",
-                sede_id: "",
-                fecha: "",
-                agenda_disponibilidad_detalle_id: "",
-                duracion_minutos: 30,
-                observaciones: "",
-            },
-            formRechazar: {
-                rechazo_motivo_id: "",
-                rechazo_observacion: "",
-            },
-            pollingInterval: null,
-        };
-    },
-    methods: {
-        destroyDataTable() {
-            safeDestroyDataTable(this.$refs.dt || "#example23");
-        },
-        cargarListas() {
-            const self = this;
+const registros = ref([]);
+const servicios = ref([]);
+const sedes = ref([]);
+const productos = ref([]);
+const motivosRechazo = ref([]);
+const recomendaciones = ref([]);
+const detallesDisponibles = ref([]);
+const loadingBuscar = ref(false);
+const loadingGuardar = ref(false);
+const loadingDetalles = ref(false);
+const filtro = ref({
+    servicio_cita_id: "",
+    sede_id: "",
+    busqueda: "",
+});
+const citaSeleccionada = ref({
+    id: null,
+    paciente: null,
+    servicio: null,
+    servicio_cita_id: null,
+});
+const formAprobar = ref({
+    producto_id: "",
+    sede_id: "",
+    fecha: "",
+    agenda_disponibilidad_detalle_id: "",
+    duracion_minutos: 30,
+    observaciones: "",
+});
+const formRechazar = ref({
+    rechazo_motivo_id: "",
+    rechazo_observacion: "",
+});
+const pollingInterval = ref(null);
 
-            axios
-                .get("/api/citas/servicios")
-                .then((r) => {
-                    self.servicios = r.data;
-                })
-                .catch((e) => {
-                    console.error("Error servicios:", e);
+const contadorRegistros = computed(() => {
+    return registros.value.length;
+});
+const recomendacionActual = computed(() => {
+    if (!formAprobar.value.producto_id) return "";
+    const rec = recomendaciones.value.find((r) => r.producto_id == formAprobar.value.producto_id);
+    return rec && rec.estado ? rec.recomendacion || "" : "";
+});
+const productoOptions = computed(() => {
+    return (productos.value || []).map((p) => ({
+        id: String(p.id),
+        cod_cups: p.cod_cups,
+        nom_produc: p.nom_produc,
+    }));
+});
+
+function destroyDataTable() {
+    safeDestroyDataTable(dt.value || "#example23");
+}
+function cargarListas() {
+    const self = this;
+
+    axios
+        .get("/api/citas/servicios")
+        .then((r) => {
+            self.servicios = r.data;
+        })
+        .catch((e) => {
+            console.error("Error servicios:", e);
+        });
+
+    axios
+        .get("/api/config-sedes/listar/sedes/activas")
+        .then((r) => {
+            self.sedes = r.data;
+        })
+        .catch((e) => {
+            console.error("Error sedes:", e);
+        });
+
+    // Los productos se cargan al abrir el modal con cargarProductosPorServicio
+
+    axios
+        .get("/api/citas-rechazo-motivos")
+        .then((r) => {
+            self.motivosRechazo = r.data;
+        })
+        .catch((e) => {
+            console.error("Error motivos rechazo:", e);
+        });
+
+    axios
+        .get("/api/config-recomendacion-productos")
+        .then((r) => {
+            self.recomendaciones = r.data || [];
+        })
+        .catch((e) => {
+            console.error("Error recomendaciones:", e);
+        });
+}
+async function listarRegistros() {
+    destroyDataTable();
+
+    if (loadingBuscar.value) return;
+    loadingBuscar.value = true;
+
+    try {
+        const params = new URLSearchParams();
+        if (filtro.value.servicio_cita_id)
+            params.append("servicio_cita_id", filtro.value.servicio_cita_id);
+        if (filtro.value.sede_id) params.append("sede_id", filtro.value.sede_id);
+        if (filtro.value.busqueda) params.append("busqueda", filtro.value.busqueda);
+
+        const res = await axios.get("/api/citas/pendientes?" + params.toString());
+
+        if (res.status === 200) {
+            destroyDataTable();
+
+            const data = typeof res.data === "string" ? JSON.parse(res.data) : res.data;
+            registros.value = Array.isArray(data) ? data : [];
+
+            nextTick(() => {
+                safeInitDataTable(dt.value || "#example23", {
+                    dom: "Bfrtip",
+                    buttons: ["copy", "csv", "excel", "pdf", "print"],
                 });
-
-            axios
-                .get("/api/config-sedes/listar/sedes/activas")
-                .then((r) => {
-                    self.sedes = r.data;
-                })
-                .catch((e) => {
-                    console.error("Error sedes:", e);
-                });
-
-            // Los productos se cargan al abrir el modal con cargarProductosPorServicio
-
-            axios
-                .get("/api/citas-rechazo-motivos")
-                .then((r) => {
-                    self.motivosRechazo = r.data;
-                })
-                .catch((e) => {
-                    console.error("Error motivos rechazo:", e);
-                });
-
-            axios
-                .get("/api/config-recomendacion-productos")
-                .then((r) => {
-                    self.recomendaciones = r.data || [];
-                })
-                .catch((e) => {
-                    console.error("Error recomendaciones:", e);
-                });
-        },
-        async listarRegistros() {
-            this.destroyDataTable();
-
-            if (this.loadingBuscar) return;
-            this.loadingBuscar = true;
-
-            try {
-                const params = new URLSearchParams();
-                if (this.filtro.servicio_cita_id)
-                    params.append("servicio_cita_id", this.filtro.servicio_cita_id);
-                if (this.filtro.sede_id) params.append("sede_id", this.filtro.sede_id);
-                if (this.filtro.busqueda) params.append("busqueda", this.filtro.busqueda);
-
-                const res = await axios.get("/api/citas/pendientes?" + params.toString());
-
-                if (res.status === 200) {
-                    this.destroyDataTable();
-
-                    const data = typeof res.data === "string" ? JSON.parse(res.data) : res.data;
-                    this.registros = Array.isArray(data) ? data : [];
-
-                    this.$nextTick(() => {
-                        safeInitDataTable(this.$refs.dt || "#example23", {
-                            dom: "Bfrtip",
-                            buttons: ["copy", "csv", "excel", "pdf", "print"],
-                        });
-                    });
-                }
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible cargar las solicitudes.");
-            } finally {
-                this.loadingBuscar = false;
-            }
-        },
-        abrirAprobar(cita) {
-            this.citaSeleccionada = {
-                ...cita,
-                servicio_cita_id: cita.servicio_cita_id || cita.servicio?.id,
-            };
-            this.formAprobar = {
-                producto_id: "",
-                sede_id: cita.sede_id || "",
-                fecha: "",
-                agenda_disponibilidad_detalle_id: "",
-                duracion_minutos: 30,
-                observaciones: "",
-            };
-            this.detallesDisponibles = [];
-            jQuery("#modalAprobar").modal("show");
-            this.cargarProductosPorServicio();
-        },
-        cargarProductosPorServicio() {
-            const servicioId = this.citaSeleccionada.servicio_cita_id;
-            const sedeId = this.formAprobar.sede_id;
-
-            this.formAprobar.producto_id = "";
-            this.formAprobar.agenda_disponibilidad_detalle_id = "";
-            this.detallesDisponibles = [];
-            this.productos = [];
-
-            if (!servicioId) return;
-
-            var url = "/api/citas/productos/" + servicioId;
-            if (sedeId) url += "?sede_id=" + sedeId;
-
-            axios.get(url).then((r) => {
-                this.productos = r.data;
             });
-        },
-        onProductoSelect(value) {
-            this.formAprobar.producto_id = value || "";
-            this.cargarDetallesDisponibles();
-        },
-        async cargarDetallesDisponibles() {
-            if (
-                !this.formAprobar.sede_id ||
-                !this.formAprobar.fecha ||
-                !this.citaSeleccionada.servicio_cita_id
-            ) {
-                this.detallesDisponibles = [];
-                return;
-            }
-            this.loadingDetalles = true;
-            this.formAprobar.agenda_disponibilidad_detalle_id = "";
-            try {
-                const res = await axios.get("/api/citas/disponibilidad", {
-                    params: {
-                        producto_id: this.formAprobar.producto_id || this.productos[0]?.id,
-                        sede_id: this.formAprobar.sede_id,
-                        servicio_cita_id: this.citaSeleccionada.servicio_cita_id,
-                        fecha: this.formAprobar.fecha,
-                    },
-                });
-                this.detallesDisponibles = res.data?.detalles || [];
-            } catch (error) {
-                this.detallesDisponibles = [];
-            } finally {
-                this.loadingDetalles = false;
-            }
-        },
-        formatearHoraDetalle(inicio) {
-            if (!inicio) return "";
-            const parts = inicio.split(" ");
-            return parts[1] ? parts[1].substring(0, 5) : inicio;
-        },
-        async aprobarCita() {
-            if (this.loadingGuardar) return;
+        }
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible cargar las solicitudes.");
+    } finally {
+        loadingBuscar.value = false;
+    }
+}
+function abrirAprobar(cita) {
+    citaSeleccionada.value = {
+        ...cita,
+        servicio_cita_id: cita.servicio_cita_id || cita.servicio?.id,
+    };
+    formAprobar.value = {
+        producto_id: "",
+        sede_id: cita.sede_id || "",
+        fecha: "",
+        agenda_disponibilidad_detalle_id: "",
+        duracion_minutos: 30,
+        observaciones: "",
+    };
+    detallesDisponibles.value = [];
+    jQuery("#modalAprobar").modal("show");
+    cargarProductosPorServicio();
+}
+function cargarProductosPorServicio() {
+    const servicioId = citaSeleccionada.value.servicio_cita_id;
+    const sedeId = formAprobar.value.sede_id;
 
-            if (
-                !this.formAprobar.producto_id ||
-                !this.formAprobar.sede_id ||
-                !this.formAprobar.fecha ||
-                !this.formAprobar.agenda_disponibilidad_detalle_id
-            ) {
-                alertError(
-                    "Advertencia",
-                    "Debe seleccionar producto, sede, fecha y un horario disponible"
-                );
-                return;
-            }
+    formAprobar.value.producto_id = "";
+    formAprobar.value.agenda_disponibilidad_detalle_id = "";
+    detallesDisponibles.value = [];
+    productos.value = [];
 
-            this.loadingGuardar = true;
+    if (!servicioId) return;
 
-            try {
-                const detalle = this.detallesDisponibles.find(
-                    (d) => d.id == this.formAprobar.agenda_disponibilidad_detalle_id
-                );
-                await axios.post("/api/citas/" + this.citaSeleccionada.id + "/asignar", {
-                    producto_id: this.formAprobar.producto_id,
-                    sede_id: this.formAprobar.sede_id,
-                    agenda_disponibilidad_detalle_id:
-                        this.formAprobar.agenda_disponibilidad_detalle_id,
-                    fecha_hora_inicio: detalle.inicio,
-                    duracion_minutos: this.formAprobar.duracion_minutos,
-                    observaciones: this.formAprobar.observaciones,
-                });
+    var url = "/api/citas/productos/" + servicioId;
+    if (sedeId) url += "?sede_id=" + sedeId;
 
-                alertSuccess("Éxito", "Cita aprobada y asignada correctamente");
-                jQuery("#modalAprobar").modal("hide");
-                this.listarRegistros();
-            } catch (error) {
-                const msg =
-                    error.response?.data?.error ||
-                    error.response?.data?.message ||
-                    "Error al aprobar";
-                alertError("Error", msg);
-            } finally {
-                this.loadingGuardar = false;
-            }
-        },
-        abrirRechazar(cita) {
-            this.citaSeleccionada = cita;
-            this.formRechazar = {
-                rechazo_motivo_id: "",
-                rechazo_observacion: "",
-            };
-            jQuery("#modalRechazar").modal("show");
-        },
-        async rechazarCita() {
-            if (this.loadingGuardar) return;
+    axios.get(url).then((r) => {
+        productos.value = r.data;
+    });
+}
+function onProductoSelect(value) {
+    formAprobar.value.producto_id = value || "";
+    cargarDetallesDisponibles();
+}
+async function cargarDetallesDisponibles() {
+    if (
+        !formAprobar.value.sede_id ||
+        !formAprobar.value.fecha ||
+        !citaSeleccionada.value.servicio_cita_id
+    ) {
+        detallesDisponibles.value = [];
+        return;
+    }
+    loadingDetalles.value = true;
+    formAprobar.value.agenda_disponibilidad_detalle_id = "";
+    try {
+        const res = await axios.get("/api/citas/disponibilidad", {
+            params: {
+                producto_id: formAprobar.value.producto_id || productos.value[0]?.id,
+                sede_id: formAprobar.value.sede_id,
+                servicio_cita_id: citaSeleccionada.value.servicio_cita_id,
+                fecha: formAprobar.value.fecha,
+            },
+        });
+        detallesDisponibles.value = res.data?.detalles || [];
+    } catch (error) {
+        detallesDisponibles.value = [];
+    } finally {
+        loadingDetalles.value = false;
+    }
+}
+function formatearHoraDetalle(inicio) {
+    if (!inicio) return "";
+    const parts = inicio.split(" ");
+    return parts[1] ? parts[1].substring(0, 5) : inicio;
+}
+async function aprobarCita() {
+    if (loadingGuardar.value) return;
 
-            if (!this.formRechazar.rechazo_motivo_id) {
-                alertError("Advertencia", "Debe seleccionar un motivo de rechazo");
-                return;
-            }
+    if (
+        !formAprobar.value.producto_id ||
+        !formAprobar.value.sede_id ||
+        !formAprobar.value.fecha ||
+        !formAprobar.value.agenda_disponibilidad_detalle_id
+    ) {
+        alertError("Advertencia", "Debe seleccionar producto, sede, fecha y un horario disponible");
+        return;
+    }
 
-            this.loadingGuardar = true;
+    loadingGuardar.value = true;
 
-            try {
-                await axios.post("/api/citas/" + this.citaSeleccionada.id + "/rechazar", {
-                    rechazo_motivo_id: this.formRechazar.rechazo_motivo_id,
-                    rechazo_observacion: this.formRechazar.rechazo_observacion,
-                });
+    try {
+        const detalle = detallesDisponibles.value.find(
+            (d) => d.id == formAprobar.value.agenda_disponibilidad_detalle_id
+        );
+        await axios.post("/api/citas/" + citaSeleccionada.value.id + "/asignar", {
+            producto_id: formAprobar.value.producto_id,
+            sede_id: formAprobar.value.sede_id,
+            agenda_disponibilidad_detalle_id: formAprobar.value.agenda_disponibilidad_detalle_id,
+            fecha_hora_inicio: detalle.inicio,
+            duracion_minutos: formAprobar.value.duracion_minutos,
+            observaciones: formAprobar.value.observaciones,
+        });
 
-                alertSuccess("Éxito", "Cita rechazada correctamente");
-                jQuery("#modalRechazar").modal("hide");
-                this.listarRegistros();
-            } catch (error) {
-                const msg =
-                    error.response?.data?.error ||
-                    error.response?.data?.message ||
-                    "Error al rechazar";
-                alertError("Error", msg);
-            } finally {
-                this.loadingGuardar = false;
-            }
-        },
-        verArchivo(ruta) {
-            if (!ruta) return;
-            window.open(this.getArchivoUrl(ruta), "_blank", "noopener,noreferrer");
-        },
-        getArchivoUrl(ruta) {
-            if (!ruta) return "";
-            const filename = ruta.replace("citas_soportes/", "");
-            return "/citas/media/" + filename;
-        },
-        esImagen(ruta) {
-            if (!ruta) return false;
-            const ext = ruta.split(".").pop().toLowerCase();
-            return ["jpg", "jpeg", "png", "gif", "webp"].includes(ext);
-        },
-        limpiarFiltros() {
-            this.filtro = { servicio_cita_id: "", sede_id: "", busqueda: "" };
-            this.listarRegistros();
-        },
-        formatFecha,
-    },
-};
+        alertSuccess("Éxito", "Cita aprobada y asignada correctamente");
+        jQuery("#modalAprobar").modal("hide");
+        listarRegistros();
+    } catch (error) {
+        const msg =
+            error.response?.data?.error || error.response?.data?.message || "Error al aprobar";
+        alertError("Error", msg);
+    } finally {
+        loadingGuardar.value = false;
+    }
+}
+function abrirRechazar(cita) {
+    citaSeleccionada.value = cita;
+    formRechazar.value = {
+        rechazo_motivo_id: "",
+        rechazo_observacion: "",
+    };
+    jQuery("#modalRechazar").modal("show");
+}
+async function rechazarCita() {
+    if (loadingGuardar.value) return;
+
+    if (!formRechazar.value.rechazo_motivo_id) {
+        alertError("Advertencia", "Debe seleccionar un motivo de rechazo");
+        return;
+    }
+
+    loadingGuardar.value = true;
+
+    try {
+        await axios.post("/api/citas/" + citaSeleccionada.value.id + "/rechazar", {
+            rechazo_motivo_id: formRechazar.value.rechazo_motivo_id,
+            rechazo_observacion: formRechazar.value.rechazo_observacion,
+        });
+
+        alertSuccess("Éxito", "Cita rechazada correctamente");
+        jQuery("#modalRechazar").modal("hide");
+        listarRegistros();
+    } catch (error) {
+        const msg =
+            error.response?.data?.error || error.response?.data?.message || "Error al rechazar";
+        alertError("Error", msg);
+    } finally {
+        loadingGuardar.value = false;
+    }
+}
+function verArchivo(ruta) {
+    if (!ruta) return;
+    window.open(getArchivoUrl(ruta), "_blank", "noopener,noreferrer");
+}
+function getArchivoUrl(ruta) {
+    if (!ruta) return "";
+    const filename = ruta.replace("citas_soportes/", "");
+    return "/citas/media/" + filename;
+}
+function esImagen(ruta) {
+    if (!ruta) return false;
+    const ext = ruta.split(".").pop().toLowerCase();
+    return ["jpg", "jpeg", "png", "gif", "webp"].includes(ext);
+}
+function limpiarFiltros() {
+    filtro.value = { servicio_cita_id: "", sede_id: "", busqueda: "" };
+    listarRegistros();
+}
+
+onMounted(() => {
+    cargarListas();
+    listarRegistros();
+    axios.post("/api/citas/notificaciones/todas-leidas").catch(() => {});
+    pollingInterval.value = setInterval(() => {
+        listarRegistros();
+    }, 30000);
+});
+
+onBeforeUnmount(() => {
+    destroyDataTable();
+    if (pollingInterval.value) {
+        clearInterval(pollingInterval.value);
+    }
+});
 </script>
-
 <style scoped>
 .miniatura-archivo {
     max-width: 90px;

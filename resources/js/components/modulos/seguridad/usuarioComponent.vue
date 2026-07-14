@@ -683,376 +683,369 @@
         </div>
     </div>
 </template>
+<script setup>
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-<script>
 import { handleAxiosErrorToast, confirmAction, alertError, alertSuccess } from "@/helpers/alerts";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import axios from "axios";
 
-export default {
-    props: ["usuarioactual"],
-    mounted() {
-        this.ListarDatos();
-        this.ListarModulos();
-        this.ListarSedes();
-        this.ListarServiciosCitas();
-    },
-    beforeUnmount() {
-        this.destroyDataTable();
-    },
-    data() {
-        return {
-            registros: [],
-            roles: [],
-            id: null,
-            registro: {
-                num_docu: "",
-                reg_med: "",
-                name: "",
-                email: "",
-                password: "",
-                estado: false,
-                imagen_perfil: "",
-                rolesUsuario: [],
-                modulos: [],
-                sedes: [],
-                serviciosCitas: [],
-                interface_id: null,
-                transcrip_remoto: 0,
-            },
-            tituloModal: "Nuevo registro",
-            actualizar: false,
-            avatar: null,
-            firma: null,
-            errores: {},
-            dependencias: [], //Listo las dependencias
-            modulos: [],
-            loadingListar: false,
-            loadingGuardar: false,
-            loadingEstadoId: null,
-            loadingEliminarId: null,
-            firmaAmpliadaSrc: "",
-            firmaAmpliadaNombre: "",
-        };
-    },
-    methods: {
-        initDataTable() {
-            safeInitDataTable(this.$refs.dt || "#example23", {
-                dom: "Bfrtip",
-                buttons: ["copy", "csv", "excel", "pdf", "print"],
-                retrieve: true,
+const props = defineProps({});
+
+const registros = ref([]);
+const roles = ref([]);
+const id = ref(null);
+const registro = ref({
+    num_docu: "",
+    reg_med: "",
+    name: "",
+    email: "",
+    password: "",
+    estado: false,
+    imagen_perfil: "",
+    rolesUsuario: [],
+    modulos: [],
+    sedes: [],
+    serviciosCitas: [],
+    interface_id: null,
+    transcrip_remoto: 0,
+});
+const tituloModal = ref("Nuevo registro");
+const actualizar = ref(false);
+const avatar = ref(null);
+const firma = ref(null);
+const errores = ref({});
+const dependencias = ref([]);
+const modulos = ref([]);
+const loadingListar = ref(false);
+const loadingGuardar = ref(false);
+const loadingEstadoId = ref(null);
+const loadingEliminarId = ref(null);
+const firmaAmpliadaSrc = ref("");
+const firmaAmpliadaNombre = ref("");
+
+function initDataTable() {
+    safeInitDataTable(dt.value || "#example23", {
+        dom: "Bfrtip",
+        buttons: ["copy", "csv", "excel", "pdf", "print"],
+        retrieve: true,
+    });
+}
+function destroyDataTable() {
+    safeDestroyDataTable(dt.value || "#example23");
+}
+async function ListarDatos() {
+    if (loadingListar.value) return;
+    loadingListar.value = true;
+    try {
+        const res = await axios.get("/api/seguridad-usuarios");
+        const resRoles = await axios.get("/api/seguridad-roles");
+
+        destroyDataTable();
+
+        registros.value = [];
+        roles.value = [];
+        registro.value.rolesUsuario = [];
+
+        registros.value = res.data;
+        roles.value = resRoles.data[0];
+        listarRoles();
+
+        nextTick(() => {
+            initDataTable();
+        });
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar usuarios.");
+    } finally {
+        loadingListar.value = false;
+    }
+}
+function listarRoles() {
+    let me = this;
+
+    me.roles.map(function (x, y) {
+        me.registro.rolesUsuario.push({
+            id: x.id,
+            name: x.name,
+            checked: false,
+        });
+    });
+}
+async function guardarRegistro() {
+    if (loadingGuardar.value) return;
+    loadingGuardar.value = true;
+    try {
+        const formData = new FormData();
+        formData.append("registro", JSON.stringify(registro.value));
+        formData.append("id", id.value);
+        formData.append("firma", firma.value);
+        formData.append("avatar", avatar.value);
+
+        if (actualizar.value === false) {
+            const res = await axios.post("/api/seguridad-usuarios", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
             });
-        },
-        destroyDataTable() {
-            safeDestroyDataTable(this.$refs.dt || "#example23");
-        },
-        async ListarDatos() {
-            if (this.loadingListar) return;
-            this.loadingListar = true;
-            try {
-                const res = await axios.get("/api/seguridad-usuarios");
-                const resRoles = await axios.get("/api/seguridad-roles");
 
-                this.destroyDataTable();
-
-                this.registros = [];
-                this.roles = [];
-                this.registro.rolesUsuario = [];
-
-                this.registros = res.data;
-                this.roles = resRoles.data[0];
-                this.listarRoles();
-
-                this.$nextTick(() => {
-                    this.initDataTable();
+            if (res.status == 200) {
+                $.toast({
+                    heading: "Ok!!!",
+                    text: res.data.message,
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "success",
+                    hideAfter: 3500,
+                    stack: 6,
                 });
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar usuarios.");
-            } finally {
-                this.loadingListar = false;
+
+                ListarDatos();
+                limpiarFormulario();
+                btnCerralModalForm();
             }
-        },
-        listarRoles() {
+        } else {
+            const res = await axios.post("/api/seguridad/usuarios/update", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+
+            if (res.status == 200) {
+                $.toast({
+                    heading: "Ok!!!",
+                    text: res.data.message,
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "success",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
+
+                ListarDatos();
+                limpiarFormulario();
+                btnCerralModalForm();
+            }
+        }
+    } catch (error) {
+        errores.value = error?.response?.data || {};
+        handleAxiosErrorToast(error, "No fue posible guardar el usuario.");
+    } finally {
+        loadingGuardar.value = false;
+    }
+}
+async function cambiarEstado(estado, data = {}) {
+    const ok = await confirmAction({
+        title: "Confirmación",
+        text:
+            "Estas seguro de que desea " +
+            (estado == 0 ? " activar" : "desactivar") +
+            " el usuario " +
+            data.name +
+            "?",
+        icon: "warning",
+    });
+    if (!ok) return;
+    if (loadingEstadoId.value) return;
+
+    loadingEstadoId.value = data.id;
+    try {
+        await axios.put("/api/seguridad-usuarios/estado/" + data.id, {
+            id: data.id,
+            estado: estado == 0 ? 1 : 0,
+        });
+        alertSuccess(
+            "Ok!",
+            "El usuario " +
+                data.name +
+                " se " +
+                (estado == 0 ? " activó" : "desactivó") +
+                " correctamente",
+            "success"
+        );
+        ListarDatos();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible actualizar el estado.");
+        alertError(
+            "Error",
+            error?.response?.data?.message || "No fue posible actualizar el estado.",
+            "error"
+        );
+    } finally {
+        loadingEstadoId.value = null;
+    }
+}
+async function elimnarRegistro(id) {
+    const ok = await confirmAction({
+        title: "Estas seguro de eliminar este usuario?",
+        text: "No podrás recuperar este registro!",
+        icon: "warning",
+    });
+    if (!ok) return;
+    if (loadingEliminarId.value) return;
+
+    loadingEliminarId.value = id;
+    try {
+        const res = await axios.delete("/api/seguridad-usuarios/" + id);
+        alertSuccess("Eliminado!", res?.data?.message || "Registro eliminado.", "success");
+        ListarDatos();
+    } catch (err) {
+        handleAxiosErrorToast(err, "No fue posible eliminar.");
+        alertError("Error", err?.response?.data?.message || "No fue posible eliminar.", "error");
+    } finally {
+        loadingEliminarId.value = null;
+    }
+}
+async function ListarModulos() {
+    try {
+        const res = await axios.get("/api/config-modulos-listar");
+        registro.value.modulos = res.data.map((modulo) => ({
+            ...modulo,
+            checked: false,
+        }));
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar módulos.");
+    }
+}
+async function ListarSedes() {
+    try {
+        const res = await axios.get("/api/config-sedes");
+        const data = res.data?.data || res.data || [];
+        registro.value.sedes = data.map((sede) => ({
+            ...sede,
+            checked: false,
+        }));
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar sedes.");
+    }
+}
+async function ListarServiciosCitas() {
+    try {
+        const res = await axios.get("/api/config-servicio-citas");
+        registro.value.serviciosCitas = (res.data || []).map((sc) => ({
+            ...sc,
+            checked: false,
+        }));
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar servicios de cita.");
+    }
+}
+function obtenerFirma(event) {
+    firma.value = event.target.files[0];
+}
+function obtenerAvatar(event) {
+    avatar.value = event.target.files[0];
+}
+function mostrarRegistro(data = {}) {
+    if (actualizar.value) {
+        tituloModal.value = "Actualizar el registro: " + data.name;
+        id.value = data.id;
+        registro.value.num_docu = data.num_docu;
+        registro.value.reg_med = data.reg_med;
+        registro.value.name = data.name;
+        registro.value.email = data.email;
+        registro.value.interface_id = data.interface_id;
+        registro.value.estado = Boolean(data.estado);
+
+        // Inactavar los modulos
+        registro.value.modulos.forEach((modulo) => {
+            modulo.checked = false;
+        });
+
+        // Asigna el valor de `checked` a cada módulo
+        data.modulos.forEach((modulo) => {
+            let moduloActivo = registro.value.modulos.findIndex((x) => x.id == modulo.id);
+            registro.value.modulos[moduloActivo].checked = true;
+        });
+
+        // Inactivar sedes y marcar las del usuario
+        registro.value.sedes.forEach((sede) => {
+            sede.checked = false;
+        });
+        (data.sedes || []).forEach((sede) => {
+            let idx = registro.value.sedes.findIndex((x) => x.id == sede.id);
+            if (idx !== -1) {
+                registro.value.sedes[idx].checked = true;
+            }
+        });
+
+        // Inactivar servicios de cita y marcar los del usuario
+        registro.value.serviciosCitas.forEach((sc) => {
+            sc.checked = false;
+        });
+        (data.serviciosCita || []).forEach((sc) => {
+            let idx = registro.value.serviciosCitas.findIndex((x) => x.id == sc.id);
+            if (idx !== -1) {
+                registro.value.serviciosCitas[idx].checked = true;
+            }
+        });
+
+        /**
+         * Listo los los datos del usuario con sus respectivos roles
+         * Recorro los roles que estan en el Frond y los desactivo para
+         * marcar los roles del usuario a editar
+         */
+        axios.get("/api/seguridad-usuarios/" + id.value).then((res) => {
+            const RolesDelUsuario = res.data.RolesDeUsuario;
             let me = this;
 
-            me.roles.map(function (x, y) {
-                me.registro.rolesUsuario.push({
-                    id: x.id,
-                    name: x.name,
-                    checked: false,
-                });
+            me.roles.forEach(function (roles, index) {
+                me.registro.rolesUsuario[index].checked = false;
             });
-        },
-        async guardarRegistro() {
-            if (this.loadingGuardar) return;
-            this.loadingGuardar = true;
-            try {
-                const formData = new FormData();
-                formData.append("registro", JSON.stringify(this.registro));
-                formData.append("id", this.id);
-                formData.append("firma", this.firma);
-                formData.append("avatar", this.avatar);
 
-                if (this.actualizar === false) {
-                    const res = await axios.post("/api/seguridad-usuarios", formData, {
-                        headers: { "Content-Type": "multipart/form-data" },
-                    });
-
-                    if (res.status == 200) {
-                        $.toast({
-                            heading: "Ok!!!",
-                            text: res.data.message,
-                            position: "top-right",
-                            loaderBg: "#ff6849",
-                            icon: "success",
-                            hideAfter: 3500,
-                            stack: 6,
-                        });
-
-                        this.ListarDatos();
-                        this.limpiarFormulario();
-                        this.btnCerralModalForm();
-                    }
-                } else {
-                    const res = await axios.post("/api/seguridad/usuarios/update", formData, {
-                        headers: { "Content-Type": "multipart/form-data" },
-                    });
-
-                    if (res.status == 200) {
-                        $.toast({
-                            heading: "Ok!!!",
-                            text: res.data.message,
-                            position: "top-right",
-                            loaderBg: "#ff6849",
-                            icon: "success",
-                            hideAfter: 3500,
-                            stack: 6,
-                        });
-
-                        this.ListarDatos();
-                        this.limpiarFormulario();
-                        this.btnCerralModalForm();
-                    }
-                }
-            } catch (error) {
-                this.errores = error?.response?.data || {};
-                handleAxiosErrorToast(error, "No fue posible guardar el usuario.");
-            } finally {
-                this.loadingGuardar = false;
-            }
-        },
-        async cambiarEstado(estado, data = {}) {
-            const ok = await confirmAction({
-                title: "Confirmación",
-                text:
-                    "Estas seguro de que desea " +
-                    (estado == 0 ? " activar" : "desactivar") +
-                    " el usuario " +
-                    data.name +
-                    "?",
-                icon: "warning",
+            RolesDelUsuario.forEach(function (RolesDelUsuario) {
+                let rolActivo = me.roles.findIndex((x) => x.id == RolesDelUsuario);
+                me.registro.rolesUsuario[rolActivo].checked = true;
             });
-            if (!ok) return;
-            if (this.loadingEstadoId) return;
+        });
+    } else {
+        actualizar.value = false;
+        tituloModal.value = "Nuevo registro";
+        id.value = 0;
+        registro.value.num_docu = "";
+        registro.value.reg_med = "";
+        registro.value.name = "";
+        registro.value.email = "";
+        registro.value.password = "";
+        registro.value.estado = true;
+        registro.value.interface_id = "";
+        // Reset sedes y servicios de cita
+        registro.value.sedes.forEach((sede) => (sede.checked = false));
+        registro.value.serviciosCitas.forEach((sc) => (sc.checked = false));
+    }
 
-            this.loadingEstadoId = data.id;
-            try {
-                await axios.put("/api/seguridad-usuarios/estado/" + data.id, {
-                    id: data.id,
-                    estado: estado == 0 ? 1 : 0,
-                });
-                alertSuccess(
-                    "Ok!",
-                    "El usuario " +
-                        data.name +
-                        " se " +
-                        (estado == 0 ? " activó" : "desactivó") +
-                        " correctamente",
-                    "success"
-                );
-                this.ListarDatos();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible actualizar el estado.");
-                alertError(
-                    "Error",
-                    error?.response?.data?.message || "No fue posible actualizar el estado.",
-                    "error"
-                );
-            } finally {
-                this.loadingEstadoId = null;
-            }
-        },
-        async elimnarRegistro(id) {
-            const ok = await confirmAction({
-                title: "Estas seguro de eliminar este usuario?",
-                text: "No podrás recuperar este registro!",
-                icon: "warning",
-            });
-            if (!ok) return;
-            if (this.loadingEliminarId) return;
+    btnCerralModalForm();
+}
+function ampliarFirma(firma, nombre) {
+    firmaAmpliadaSrc.value = "/" + firma;
+    firmaAmpliadaNombre.value = nombre || "Firma";
+    $("#modalAmpliarFirma").modal("show");
+}
+function cerrarModalFirma() {
+    $("#modalAmpliarFirma").modal("hide");
+}
+function btnCerralModalForm() {
+    $(".right-sidebar").slideDown(50);
+    $(".right-sidebar").toggleClass("shw-rside");
+}
+function limpiarFormulario() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    id.value = 0;
+    registro.value.num_docu = "";
+    registro.value.reg_med = 0;
+    registro.value.name = "";
+    registro.value.email = "";
+    registro.value.password = "";
+    registro.value.estado = true;
+}
 
-            this.loadingEliminarId = id;
-            try {
-                const res = await axios.delete("/api/seguridad-usuarios/" + id);
-                alertSuccess("Eliminado!", res?.data?.message || "Registro eliminado.", "success");
-                this.ListarDatos();
-            } catch (err) {
-                handleAxiosErrorToast(err, "No fue posible eliminar.");
-                alertError(
-                    "Error",
-                    err?.response?.data?.message || "No fue posible eliminar.",
-                    "error"
-                );
-            } finally {
-                this.loadingEliminarId = null;
-            }
-        },
-        async ListarModulos() {
-            try {
-                const res = await axios.get("/api/config-modulos-listar");
-                this.registro.modulos = res.data.map((modulo) => ({
-                    ...modulo,
-                    checked: false,
-                }));
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar módulos.");
-            }
-        },
-        async ListarSedes() {
-            try {
-                const res = await axios.get("/api/config-sedes");
-                const data = res.data?.data || res.data || [];
-                this.registro.sedes = data.map((sede) => ({
-                    ...sede,
-                    checked: false,
-                }));
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar sedes.");
-            }
-        },
-        async ListarServiciosCitas() {
-            try {
-                const res = await axios.get("/api/config-servicio-citas");
-                this.registro.serviciosCitas = (res.data || []).map((sc) => ({
-                    ...sc,
-                    checked: false,
-                }));
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar servicios de cita.");
-            }
-        },
-        obtenerFirma(event) {
-            this.firma = event.target.files[0];
-        },
-        obtenerAvatar(event) {
-            this.avatar = event.target.files[0];
-        },
-        mostrarRegistro(data = {}) {
-            if (this.actualizar) {
-                this.tituloModal = "Actualizar el registro: " + data.name;
-                this.id = data.id;
-                this.registro.num_docu = data.num_docu;
-                this.registro.reg_med = data.reg_med;
-                this.registro.name = data.name;
-                this.registro.email = data.email;
-                this.registro.interface_id = data.interface_id;
-                this.registro.estado = Boolean(data.estado);
+onMounted(() => {
+    ListarDatos();
+    ListarModulos();
+    ListarSedes();
+    ListarServiciosCitas();
+});
 
-                // Inactavar los modulos
-                this.registro.modulos.forEach((modulo) => {
-                    modulo.checked = false;
-                });
-
-                // Asigna el valor de `checked` a cada módulo
-                data.modulos.forEach((modulo) => {
-                    let moduloActivo = this.registro.modulos.findIndex((x) => x.id == modulo.id);
-                    this.registro.modulos[moduloActivo].checked = true;
-                });
-
-                // Inactivar sedes y marcar las del usuario
-                this.registro.sedes.forEach((sede) => {
-                    sede.checked = false;
-                });
-                (data.sedes || []).forEach((sede) => {
-                    let idx = this.registro.sedes.findIndex((x) => x.id == sede.id);
-                    if (idx !== -1) {
-                        this.registro.sedes[idx].checked = true;
-                    }
-                });
-
-                // Inactivar servicios de cita y marcar los del usuario
-                this.registro.serviciosCitas.forEach((sc) => {
-                    sc.checked = false;
-                });
-                (data.serviciosCita || []).forEach((sc) => {
-                    let idx = this.registro.serviciosCitas.findIndex((x) => x.id == sc.id);
-                    if (idx !== -1) {
-                        this.registro.serviciosCitas[idx].checked = true;
-                    }
-                });
-
-                /**
-                 * Listo los los datos del usuario con sus respectivos roles
-                 * Recorro los roles que estan en el Frond y los desactivo para
-                 * marcar los roles del usuario a editar
-                 */
-                axios.get("/api/seguridad-usuarios/" + this.id).then((res) => {
-                    const RolesDelUsuario = res.data.RolesDeUsuario;
-                    let me = this;
-
-                    me.roles.forEach(function (roles, index) {
-                        me.registro.rolesUsuario[index].checked = false;
-                    });
-
-                    RolesDelUsuario.forEach(function (RolesDelUsuario) {
-                        let rolActivo = me.roles.findIndex((x) => x.id == RolesDelUsuario);
-                        me.registro.rolesUsuario[rolActivo].checked = true;
-                    });
-                });
-            } else {
-                this.actualizar = false;
-                this.tituloModal = "Nuevo registro";
-                this.id = 0;
-                this.registro.num_docu = "";
-                this.registro.reg_med = "";
-                this.registro.name = "";
-                this.registro.email = "";
-                this.registro.password = "";
-                this.registro.estado = true;
-                this.registro.interface_id = "";
-                // Reset sedes y servicios de cita
-                this.registro.sedes.forEach((sede) => (sede.checked = false));
-                this.registro.serviciosCitas.forEach((sc) => (sc.checked = false));
-            }
-
-            this.btnCerralModalForm();
-        },
-        ampliarFirma(firma, nombre) {
-            this.firmaAmpliadaSrc = "/" + firma;
-            this.firmaAmpliadaNombre = nombre || "Firma";
-            $("#modalAmpliarFirma").modal("show");
-        },
-        cerrarModalFirma() {
-            $("#modalAmpliarFirma").modal("hide");
-        },
-        btnCerralModalForm() {
-            $(".right-sidebar").slideDown(50);
-            $(".right-sidebar").toggleClass("shw-rside");
-        },
-        limpiarFormulario() {
-            this.actualizar = false;
-            this.tituloModal = "Nuevo registro";
-            this.id = 0;
-            this.registro.num_docu = "";
-            this.registro.reg_med = 0;
-            this.registro.name = "";
-            this.registro.email = "";
-            this.registro.password = "";
-            this.registro.estado = true;
-        },
-    },
-};
+onBeforeUnmount(() => {
+    destroyDataTable();
+});
 </script>
-
 <style scoped>
 .right-sidebar {
     position: fixed;

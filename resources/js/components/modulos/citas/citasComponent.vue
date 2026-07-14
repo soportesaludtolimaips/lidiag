@@ -451,394 +451,364 @@
         </div>
     </div>
 </template>
+<script setup>
+import { computed, onMounted, ref } from "vue";
 
-<script>
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { formatFecha, getEstadoLabel, getEstadoClase } from "@/composables/useCitasUtils.js";
+import axios from "axios";
 
-export default {
-    components: { LoadingSpinner },
-    data: function () {
-        return {
-            registros: [],
-            productosFiltrados: [],
-            sedes: [],
-            servicios: [],
-            detalles: [],
-            datosPaginacion: {},
-            conversacion: null,
-            loadingConversacion: false,
-            busqueda: {
-                estado: "",
-                servicio_cita_id: "",
-                fecha_inicio: "",
-                fecha_fin: "",
-                busqueda: "",
+const registros = ref([]);
+const productosFiltrados = ref([]);
+const sedes = ref([]);
+const servicios = ref([]);
+const detalles = ref([]);
+const datosPaginacion = ref({});
+const conversacion = ref(null);
+const loadingConversacion = ref(false);
+const busqueda = ref({
+    estado: "",
+    servicio_cita_id: "",
+    fecha_inicio: "",
+    fecha_fin: "",
+    busqueda: "",
+});
+const citaSeleccionada = ref({
+    id: null,
+    servicio_cita_id: "",
+    producto_id: "",
+    sede_id: "",
+    fecha: "",
+    hora: "",
+    agenda_disponibilidad_detalle_id: "",
+    duracion_minutos: 30,
+    observaciones: "",
+});
+const loadingBuscar = ref(false);
+const loadingGuardar = ref(false);
+const actualizar = ref(false);
+
+const productoOptions = computed(() => {
+    return (productosFiltrados.value || []).map((p) => ({
+        id: String(p.id),
+        cod_cups: p.cod_cups,
+        nom_produc: p.nom_produc,
+    }));
+});
+
+function inicializar() {
+    listarRegistros();
+    cargarListas();
+}
+function listarRegistros(page) {
+    var thisVue = this;
+    thisVue.loadingBuscar = true;
+
+    var params = new URLSearchParams();
+    if (thisVue.busqueda.estado) params.append("estado", thisVue.busqueda.estado);
+    if (thisVue.busqueda.servicio_cita_id)
+        params.append("servicio_cita_id", thisVue.busqueda.servicio_cita_id);
+    if (thisVue.busqueda.fecha_inicio) params.append("fecha_inicio", thisVue.busqueda.fecha_inicio);
+    if (thisVue.busqueda.fecha_fin) params.append("fecha_fin", thisVue.busqueda.fecha_fin);
+    if (thisVue.busqueda.busqueda) params.append("busqueda", thisVue.busqueda.busqueda);
+    if (page) params.append("page", page);
+
+    axios
+        .get("/api/citas?" + params.toString())
+        .then(function (response) {
+            thisVue.registros = response.data.data;
+            thisVue.datosPaginacion = response.data;
+        })
+        .catch(function (error) {
+            thisVue.mostrarError(error);
+        })
+        .then(function () {
+            thisVue.loadingBuscar = false;
+        });
+}
+function cargarListas() {
+    var thisVue = this;
+
+    axios.get("/api/citas/servicios").then(function (response) {
+        thisVue.servicios = response.data;
+    });
+
+    axios
+        .get("/api/config-sedes/listar/sedes/activas")
+        .then(function (response) {
+            thisVue.sedes = response.data;
+        })
+        .catch(function (e) {
+            console.error("Error sedes:", e);
+        });
+}
+function cargarProductosPorServicio() {
+    var thisVue = this;
+    var servicioId = thisVue.citaSeleccionada.servicio_cita_id;
+    var sedeId = thisVue.citaSeleccionada.sede_id;
+
+    thisVue.citaSeleccionada.producto_id = "";
+    thisVue.citaSeleccionada.hora = "";
+    thisVue.citaSeleccionada.agenda_disponibilidad_detalle_id = "";
+    thisVue.detalles = [];
+    thisVue.productosFiltrados = [];
+
+    if (!servicioId) return;
+
+    var url = "/api/citas/productos/" + servicioId;
+    if (sedeId) url += "?sede_id=" + sedeId;
+
+    axios.get(url).then(function (response) {
+        thisVue.productosFiltrados = response.data;
+    });
+}
+function onProductoSelect(value) {
+    citaSeleccionada.value.producto_id = value || "";
+    cargarDisponibilidad();
+}
+function cargarDisponibilidad() {
+    var thisVue = this;
+
+    if (
+        !thisVue.citaSeleccionada.sede_id ||
+        !thisVue.citaSeleccionada.servicio_cita_id ||
+        !thisVue.citaSeleccionada.producto_id ||
+        !thisVue.citaSeleccionada.fecha
+    ) {
+        thisVue.detalles = [];
+        return;
+    }
+
+    axios
+        .get("/api/citas/disponibilidad", {
+            params: {
+                producto_id: thisVue.citaSeleccionada.producto_id,
+                sede_id: thisVue.citaSeleccionada.sede_id,
+                servicio_cita_id: thisVue.citaSeleccionada.servicio_cita_id,
+                fecha: thisVue.citaSeleccionada.fecha,
             },
-            citaSeleccionada: {
-                id: null,
-                servicio_cita_id: "",
-                producto_id: "",
-                sede_id: "",
-                fecha: "",
-                hora: "",
-                agenda_disponibilidad_detalle_id: "",
-                duracion_minutos: 30,
-                observaciones: "",
-            },
-            loadingBuscar: false,
-            loadingGuardar: false,
-            actualizar: false,
-        };
-    },
-
-    computed: {
-        productoOptions() {
-            return (this.productosFiltrados || []).map((p) => ({
-                id: String(p.id),
-                cod_cups: p.cod_cups,
-                nom_produc: p.nom_produc,
-            }));
-        },
-    },
-
-    mounted: function () {
-        this.inicializar();
-    },
-
-    methods: {
-        inicializar: function () {
-            this.listarRegistros();
-            this.cargarListas();
-        },
-
-        listarRegistros: function (page) {
-            var thisVue = this;
-            thisVue.loadingBuscar = true;
-
-            var params = new URLSearchParams();
-            if (thisVue.busqueda.estado) params.append("estado", thisVue.busqueda.estado);
-            if (thisVue.busqueda.servicio_cita_id)
-                params.append("servicio_cita_id", thisVue.busqueda.servicio_cita_id);
-            if (thisVue.busqueda.fecha_inicio)
-                params.append("fecha_inicio", thisVue.busqueda.fecha_inicio);
-            if (thisVue.busqueda.fecha_fin) params.append("fecha_fin", thisVue.busqueda.fecha_fin);
-            if (thisVue.busqueda.busqueda) params.append("busqueda", thisVue.busqueda.busqueda);
-            if (page) params.append("page", page);
-
-            axios
-                .get("/api/citas?" + params.toString())
-                .then(function (response) {
-                    thisVue.registros = response.data.data;
-                    thisVue.datosPaginacion = response.data;
-                })
-                .catch(function (error) {
-                    thisVue.mostrarError(error);
-                })
-                .then(function () {
-                    thisVue.loadingBuscar = false;
-                });
-        },
-
-        cargarListas: function () {
-            var thisVue = this;
-
-            axios.get("/api/citas/servicios").then(function (response) {
-                thisVue.servicios = response.data;
-            });
-
-            axios
-                .get("/api/config-sedes/listar/sedes/activas")
-                .then(function (response) {
-                    thisVue.sedes = response.data;
-                })
-                .catch(function (e) {
-                    console.error("Error sedes:", e);
-                });
-        },
-
-        cargarProductosPorServicio: function () {
-            var thisVue = this;
-            var servicioId = thisVue.citaSeleccionada.servicio_cita_id;
-            var sedeId = thisVue.citaSeleccionada.sede_id;
-
-            thisVue.citaSeleccionada.producto_id = "";
-            thisVue.citaSeleccionada.hora = "";
-            thisVue.citaSeleccionada.agenda_disponibilidad_detalle_id = "";
+        })
+        .then(function (response) {
+            thisVue.detalles = response.data.detalles || [];
+        })
+        .catch(function (error) {
+            thisVue.mostrarError(error);
             thisVue.detalles = [];
-            thisVue.productosFiltrados = [];
+        });
+}
+function mostrarModalAsignar(cita) {
+    citaSeleccionada.value = {
+        id: cita.id,
+        servicio_cita_id: cita.servicio_cita_id || "",
+        producto_id: "",
+        sede_id: "",
+        fecha: "",
+        hora: "",
+        agenda_disponibilidad_detalle_id: "",
+        duracion_minutos: 30,
+        observaciones: "",
+    };
+    productosFiltrados.value = [];
+    detalles.value = [];
+    actualizar.value = true;
 
-            if (!servicioId) return;
+    if (cita.servicio_cita_id) {
+        cargarProductosPorServicio();
+    }
 
-            var url = "/api/citas/productos/" + servicioId;
-            if (sedeId) url += "?sede_id=" + sedeId;
+    jQuery("#modalAsignar").modal("show");
+}
+function asignarCita() {
+    var thisVue = this;
 
-            axios.get(url).then(function (response) {
-                thisVue.productosFiltrados = response.data;
-            });
-        },
+    if (
+        !thisVue.citaSeleccionada.producto_id ||
+        !thisVue.citaSeleccionada.sede_id ||
+        !thisVue.citaSeleccionada.fecha ||
+        !thisVue.citaSeleccionada.agenda_disponibilidad_detalle_id
+    ) {
+        thisVue.mostrarAdvertencia("Todos los campos obligatorios deben ser llenados");
+        return;
+    }
 
-        onProductoSelect: function (value) {
-            this.citaSeleccionada.producto_id = value || "";
-            this.cargarDisponibilidad();
-        },
+    const detalleSeleccionado = thisVue.detalles.find(
+        (d) => d.id == thisVue.citaSeleccionada.agenda_disponibilidad_detalle_id
+    );
 
-        cargarDisponibilidad: function () {
-            var thisVue = this;
+    thisVue.loadingGuardar = true;
 
-            if (
-                !thisVue.citaSeleccionada.sede_id ||
-                !thisVue.citaSeleccionada.servicio_cita_id ||
-                !thisVue.citaSeleccionada.producto_id ||
-                !thisVue.citaSeleccionada.fecha
-            ) {
-                thisVue.detalles = [];
-                return;
+    axios
+        .post("/api/citas/" + thisVue.citaSeleccionada.id + "/asignar", {
+            producto_id: thisVue.citaSeleccionada.producto_id,
+            sede_id: thisVue.citaSeleccionada.sede_id,
+            agenda_disponibilidad_detalle_id:
+                thisVue.citaSeleccionada.agenda_disponibilidad_detalle_id,
+            fecha_hora_inicio: detalleSeleccionado
+                ? detalleSeleccionado.inicio
+                : thisVue.citaSeleccionada.fecha,
+            duracion_minutos: thisVue.citaSeleccionada.duracion_minutos,
+            observaciones: thisVue.citaSeleccionada.observaciones,
+        })
+        .then(function (response) {
+            thisVue.mostrarExito("Cita asignada correctamente");
+            jQuery("#modalAsignar").modal("hide");
+            thisVue.listarRegistros();
+        })
+        .catch(function (error) {
+            thisVue.mostrarError(error);
+        })
+        .then(function () {
+            thisVue.loadingGuardar = false;
+        });
+}
+function confirmarCita(cita) {
+    var thisVue = this;
+
+    thisVue
+        .$swal({
+            title: "Confirmar Cita",
+            text: "¿Está seguro de confirmar esta cita?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí, confirmar",
+            cancelButtonText: "No",
+        })
+        .then(function (result) {
+            if (result.value) {
+                axios
+                    .post("/api/citas/" + cita.id + "/confirmar")
+                    .then(function (response) {
+                        thisVue.mostrarExito("Cita confirmada");
+                        thisVue.listarRegistros();
+                    })
+                    .catch(function (error) {
+                        thisVue.mostrarError(error);
+                    });
             }
+        });
+}
+function cancelarCita(cita) {
+    var thisVue = this;
 
-            axios
-                .get("/api/citas/disponibilidad", {
-                    params: {
-                        producto_id: thisVue.citaSeleccionada.producto_id,
-                        sede_id: thisVue.citaSeleccionada.sede_id,
-                        servicio_cita_id: thisVue.citaSeleccionada.servicio_cita_id,
-                        fecha: thisVue.citaSeleccionada.fecha,
-                    },
-                })
-                .then(function (response) {
-                    thisVue.detalles = response.data.detalles || [];
-                })
-                .catch(function (error) {
-                    thisVue.mostrarError(error);
-                    thisVue.detalles = [];
-                });
-        },
-
-        mostrarModalAsignar: function (cita) {
-            this.citaSeleccionada = {
-                id: cita.id,
-                servicio_cita_id: cita.servicio_cita_id || "",
-                producto_id: "",
-                sede_id: "",
-                fecha: "",
-                hora: "",
-                agenda_disponibilidad_detalle_id: "",
-                duracion_minutos: 30,
-                observaciones: "",
-            };
-            this.productosFiltrados = [];
-            this.detalles = [];
-            this.actualizar = true;
-
-            if (cita.servicio_cita_id) {
-                this.cargarProductosPorServicio();
+    thisVue
+        .$swal({
+            title: "Cancelar Cita",
+            input: "text",
+            text: "Ingrese el motivo de cancelación (opcional)",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí, cancelar",
+            cancelButtonText: "No",
+        })
+        .then(function (result) {
+            if (result.isConfirmed) {
+                var motivo = result.value || "";
+                axios
+                    .post("/api/citas/" + cita.id + "/cancelar", {
+                        motivo: motivo,
+                    })
+                    .then(function (response) {
+                        thisVue.mostrarExito("Cita cancelada");
+                        thisVue.listarRegistros();
+                    })
+                    .catch(function (error) {
+                        thisVue.mostrarError(error);
+                    });
             }
+        });
+}
+function cumplirCita(cita) {
+    var thisVue = this;
 
-            jQuery("#modalAsignar").modal("show");
-        },
-
-        asignarCita: function () {
-            var thisVue = this;
-
-            if (
-                !thisVue.citaSeleccionada.producto_id ||
-                !thisVue.citaSeleccionada.sede_id ||
-                !thisVue.citaSeleccionada.fecha ||
-                !thisVue.citaSeleccionada.agenda_disponibilidad_detalle_id
-            ) {
-                thisVue.mostrarAdvertencia("Todos los campos obligatorios deben ser llenados");
-                return;
+    thisVue
+        .$swal({
+            title: "Cumplir Cita",
+            text: "¿Marcar esta cita como cumplida?",
+            type: "question",
+            showCancelButton: true,
+            confirmButtonText: "Sí, cumplida",
+            cancelButtonText: "No",
+        })
+        .then(function (result) {
+            if (result.value) {
+                axios
+                    .post("/api/citas/" + cita.id + "/cumplir")
+                    .then(function (response) {
+                        thisVue.mostrarExito("Cita marcada como cumplida");
+                        thisVue.listarRegistros();
+                    })
+                    .catch(function (error) {
+                        thisVue.mostrarError(error);
+                    });
             }
+        });
+}
+function noAsistioCita(cita) {
+    var thisVue = this;
 
-            const detalleSeleccionado = thisVue.detalles.find(
-                (d) => d.id == thisVue.citaSeleccionada.agenda_disponibilidad_detalle_id
-            );
+    thisVue
+        .$swal({
+            title: "No Asistió",
+            text: "¿Marcar esta cita como no asistió?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí, no asistió",
+            cancelButtonText: "No",
+        })
+        .then(function (result) {
+            if (result.value) {
+                axios
+                    .post("/api/citas/" + cita.id + "/no-asistio")
+                    .then(function (response) {
+                        thisVue.mostrarExito("Inasistencia registrada");
+                        thisVue.listarRegistros();
+                    })
+                    .catch(function (error) {
+                        thisVue.mostrarError(error);
+                    });
+            }
+        });
+}
+function verConversacion(cita) {
+    var thisVue = this;
+    thisVue.conversacion = null;
+    thisVue.loadingConversacion = true;
+    jQuery("#modalConversacion").modal("show");
 
-            thisVue.loadingGuardar = true;
+    axios
+        .get("/api/citas/" + cita.id + "/conversacion")
+        .then(function (response) {
+            thisVue.conversacion = response.data.conversacion;
+        })
+        .catch(function (error) {
+            thisVue.mostrarError(error);
+        })
+        .then(function () {
+            thisVue.loadingConversacion = false;
+        });
+}
+function limpiarFiltros() {
+    busqueda.value = {
+        estado: "",
+        servicio_cita_id: "",
+        fecha_inicio: "",
+        fecha_fin: "",
+        busqueda: "",
+    };
+    listarRegistros();
+}
+function mostrarError(error) {
+    var mensaje = error.response?.data?.error || error.message || "Error desconocido";
+    mostrarAdvertencia(mensaje);
+}
+function mostrarAdvertencia(mensaje) {
+    $swal("Advertencia", mensaje, "warning");
+}
+function mostrarExito(mensaje) {
+    $swal("Éxito", mensaje, "success");
+}
 
-            axios
-                .post("/api/citas/" + thisVue.citaSeleccionada.id + "/asignar", {
-                    producto_id: thisVue.citaSeleccionada.producto_id,
-                    sede_id: thisVue.citaSeleccionada.sede_id,
-                    agenda_disponibilidad_detalle_id:
-                        thisVue.citaSeleccionada.agenda_disponibilidad_detalle_id,
-                    fecha_hora_inicio: detalleSeleccionado
-                        ? detalleSeleccionado.inicio
-                        : thisVue.citaSeleccionada.fecha,
-                    duracion_minutos: thisVue.citaSeleccionada.duracion_minutos,
-                    observaciones: thisVue.citaSeleccionada.observaciones,
-                })
-                .then(function (response) {
-                    thisVue.mostrarExito("Cita asignada correctamente");
-                    jQuery("#modalAsignar").modal("hide");
-                    thisVue.listarRegistros();
-                })
-                .catch(function (error) {
-                    thisVue.mostrarError(error);
-                })
-                .then(function () {
-                    thisVue.loadingGuardar = false;
-                });
-        },
-
-        confirmarCita: function (cita) {
-            var thisVue = this;
-
-            thisVue
-                .$swal({
-                    title: "Confirmar Cita",
-                    text: "¿Está seguro de confirmar esta cita?",
-                    type: "warning",
-                    showCancelButton: true,
-                    confirmButtonText: "Sí, confirmar",
-                    cancelButtonText: "No",
-                })
-                .then(function (result) {
-                    if (result.value) {
-                        axios
-                            .post("/api/citas/" + cita.id + "/confirmar")
-                            .then(function (response) {
-                                thisVue.mostrarExito("Cita confirmada");
-                                thisVue.listarRegistros();
-                            })
-                            .catch(function (error) {
-                                thisVue.mostrarError(error);
-                            });
-                    }
-                });
-        },
-
-        cancelarCita: function (cita) {
-            var thisVue = this;
-
-            thisVue
-                .$swal({
-                    title: "Cancelar Cita",
-                    input: "text",
-                    text: "Ingrese el motivo de cancelación (opcional)",
-                    type: "warning",
-                    showCancelButton: true,
-                    confirmButtonText: "Sí, cancelar",
-                    cancelButtonText: "No",
-                })
-                .then(function (result) {
-                    if (result.isConfirmed) {
-                        var motivo = result.value || "";
-                        axios
-                            .post("/api/citas/" + cita.id + "/cancelar", {
-                                motivo: motivo,
-                            })
-                            .then(function (response) {
-                                thisVue.mostrarExito("Cita cancelada");
-                                thisVue.listarRegistros();
-                            })
-                            .catch(function (error) {
-                                thisVue.mostrarError(error);
-                            });
-                    }
-                });
-        },
-
-        cumplirCita: function (cita) {
-            var thisVue = this;
-
-            thisVue
-                .$swal({
-                    title: "Cumplir Cita",
-                    text: "¿Marcar esta cita como cumplida?",
-                    type: "question",
-                    showCancelButton: true,
-                    confirmButtonText: "Sí, cumplida",
-                    cancelButtonText: "No",
-                })
-                .then(function (result) {
-                    if (result.value) {
-                        axios
-                            .post("/api/citas/" + cita.id + "/cumplir")
-                            .then(function (response) {
-                                thisVue.mostrarExito("Cita marcada como cumplida");
-                                thisVue.listarRegistros();
-                            })
-                            .catch(function (error) {
-                                thisVue.mostrarError(error);
-                            });
-                    }
-                });
-        },
-
-        noAsistioCita: function (cita) {
-            var thisVue = this;
-
-            thisVue
-                .$swal({
-                    title: "No Asistió",
-                    text: "¿Marcar esta cita como no asistió?",
-                    type: "warning",
-                    showCancelButton: true,
-                    confirmButtonText: "Sí, no asistió",
-                    cancelButtonText: "No",
-                })
-                .then(function (result) {
-                    if (result.value) {
-                        axios
-                            .post("/api/citas/" + cita.id + "/no-asistio")
-                            .then(function (response) {
-                                thisVue.mostrarExito("Inasistencia registrada");
-                                thisVue.listarRegistros();
-                            })
-                            .catch(function (error) {
-                                thisVue.mostrarError(error);
-                            });
-                    }
-                });
-        },
-
-        verConversacion: function (cita) {
-            var thisVue = this;
-            thisVue.conversacion = null;
-            thisVue.loadingConversacion = true;
-            jQuery("#modalConversacion").modal("show");
-
-            axios
-                .get("/api/citas/" + cita.id + "/conversacion")
-                .then(function (response) {
-                    thisVue.conversacion = response.data.conversacion;
-                })
-                .catch(function (error) {
-                    thisVue.mostrarError(error);
-                })
-                .then(function () {
-                    thisVue.loadingConversacion = false;
-                });
-        },
-
-        limpiarFiltros: function () {
-            this.busqueda = {
-                estado: "",
-                servicio_cita_id: "",
-                fecha_inicio: "",
-                fecha_fin: "",
-                busqueda: "",
-            };
-            this.listarRegistros();
-        },
-
-        formatFecha,
-        getEstadoLabel,
-        getEstadoClase,
-
-        mostrarError: function (error) {
-            var mensaje = error.response?.data?.error || error.message || "Error desconocido";
-            this.mostrarAdvertencia(mensaje);
-        },
-
-        mostrarAdvertencia: function (mensaje) {
-            this.$swal("Advertencia", mensaje, "warning");
-        },
-
-        mostrarExito: function (mensaje) {
-            this.$swal("Éxito", mensaje, "success");
-        },
-    },
-};
+onMounted(() => {
+    inicializar();
+});
 </script>

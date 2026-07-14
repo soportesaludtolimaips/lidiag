@@ -230,234 +230,228 @@
         <!-- ============================================================== -->
     </div>
 </template>
+<script setup>
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-<script>
 import { handleAxiosErrorToast, confirmAction } from "@/helpers/alerts";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import axios from "axios";
 
-export default {
-    mounted() {
-        this.ListarDatos();
-    },
-    beforeUnmount() {
-        this.destroyDataTable();
-    },
-    data() {
-        return {
-            id: 0,
-            listarRoles: [],
-            permisos: [],
-            registro: { name: "", permisosRol: [] },
-            tituloModal: "Nuevo registro",
-            actualizar: false,
-            errores: "",
-            erroresRpermisosElegidos: "",
-            loadingListar: false,
-            loadingGuardar: false,
-        };
-    },
-    methods: {
-        initDataTable() {
-            safeInitDataTable(this.$refs.dt || "#example23", {
-                dom: "Bfrtip",
-                buttons: ["copy", "csv", "excel", "pdf", "print"],
-                retrieve: true,
-            });
-        },
-        destroyDataTable() {
-            safeDestroyDataTable(this.$refs.dt || "#example23");
-        },
-        async ListarDatos() {
-            if (this.loadingListar) return;
-            this.loadingListar = true;
-            try {
-                const res = await axios.get("/api/seguridad-roles");
+const id = ref(0);
+const listarRoles = ref([]);
+const permisos = ref([]);
+const registro = ref({ name: "", permisosRol: [] });
+const tituloModal = ref("Nuevo registro");
+const actualizar = ref(false);
+const errores = ref("");
+const erroresRpermisosElegidos = ref("");
+const loadingListar = ref(false);
+const loadingGuardar = ref(false);
 
-                this.destroyDataTable();
+function initDataTable() {
+    safeInitDataTable(dt.value || "#example23", {
+        dom: "Bfrtip",
+        buttons: ["copy", "csv", "excel", "pdf", "print"],
+        retrieve: true,
+    });
+}
+function destroyDataTable() {
+    safeDestroyDataTable(dt.value || "#example23");
+}
+async function ListarDatos() {
+    if (loadingListar.value) return;
+    loadingListar.value = true;
+    try {
+        const res = await axios.get("/api/seguridad-roles");
 
-                this.listarRoles = [];
-                this.permisos = [];
-                this.registro.permisosRol = [];
+        destroyDataTable();
 
-                this.listarRoles = res.data[0];
-                this.permisos = res.data[1];
+        listarRoles.value = [];
+        permisos.value = [];
+        registro.value.permisosRol = [];
 
-                this.listarPermisosRol();
+        listarRoles.value = res.data[0];
+        permisos.value = res.data[1];
 
-                this.$nextTick(() => {
-                    this.initDataTable();
-                });
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible listar roles.");
-            } finally {
-                this.loadingListar = false;
-            }
-        },
-        async guardarRegistro() {
-            let totalPermisosElegido = 0;
-            this.registro.permisosRol.map(function (x, y) {
-                if (x.checked == true) {
-                    totalPermisosElegido++;
-                }
-            });
+        listarPermisosRol();
 
-            if (totalPermisosElegido == 0) {
-                this.erroresRpermisosElegidos = "Debes elegir al menos un permiso para el rol";
-                return false;
-            }
+        nextTick(() => {
+            initDataTable();
+        });
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible listar roles.");
+    } finally {
+        loadingListar.value = false;
+    }
+}
+async function guardarRegistro() {
+    let totalPermisosElegido = 0;
+    registro.value.permisosRol.map(function (x, y) {
+        if (x.checked == true) {
+            totalPermisosElegido++;
+        }
+    });
 
-            if (this.loadingGuardar) return;
-            this.loadingGuardar = true;
-            try {
-                if (this.actualizar === false) {
-                    const res = await axios.post("/api/seguridad-roles", this.registro);
+    if (totalPermisosElegido == 0) {
+        erroresRpermisosElegidos.value = "Debes elegir al menos un permiso para el rol";
+        return false;
+    }
 
-                    if (res.status == 200) {
-                        $.toast({
-                            heading: "Ok!!!",
-                            text: res.data.message,
-                            position: "top-right",
-                            loaderBg: "#ff6849",
-                            icon: "success",
-                            hideAfter: 3500,
-                            stack: 6,
-                        });
+    if (loadingGuardar.value) return;
+    loadingGuardar.value = true;
+    try {
+        if (actualizar.value === false) {
+            const res = await axios.post("/api/seguridad-roles", registro.value);
 
-                        this.ListarDatos();
-                        this.limpiarFormulario();
-                        this.btnCerralModalForm();
-                    }
-                } else {
-                    const res = await axios.put("/api/seguridad-roles/" + this.id, {
-                        registro: this.registro,
-                    });
-                    if (res.status == 200) {
-                        $.toast({
-                            heading: "Ok!!!",
-                            text: res.data.message,
-                            position: "top-right",
-                            loaderBg: "#ff6849",
-                            icon: "success",
-                            hideAfter: 3500,
-                            stack: 6,
-                        });
-
-                        this.ListarDatos();
-                        this.limpiarFormulario();
-                        this.btnCerralModalForm();
-                    }
-                }
-            } catch (error) {
-                this.errores = error?.response?.data?.message || "";
-                handleAxiosErrorToast(error, "No fue posible guardar el rol.");
-            } finally {
-                this.loadingGuardar = false;
-            }
-        },
-        listarPermisosRol() {
-            let me = this;
-
-            me.permisos.map(function (x, y) {
-                me.registro.permisosRol.push({
-                    id: x.id,
-                    name: x.name,
-                    checked: false,
-                });
-            });
-        },
-        mostrarRegistro(data = {}) {
-            if (this.actualizar == true) {
-                this.tituloModal = "Actualizar el registro: " + data.name;
-                this.id = data.id;
-                this.registro.name = data.name;
-
-                axios
-                    .get("/api/seguridad-roles/" + this.id)
-                    .then((res) => {
-                        this.registro.permisos = [];
-                        const permisosDelRol = Object.keys(res.data.permisosRol);
-                        let me = this;
-
-                        me.permisos.forEach(function (permisos, index) {
-                            me.registro.permisosRol[index].checked = false;
-                        });
-
-                        permisosDelRol.forEach(function (permisosDelRol) {
-                            let permisoActivo = me.permisos.findIndex(
-                                (x) => x.id == permisosDelRol
-                            );
-                            me.registro.permisosRol[permisoActivo].checked = true;
-                        });
-                    })
-                    .catch((error) => {
-                        handleAxiosErrorToast(error, "No fue posible cargar los permisos del rol.");
-                    });
-            } else {
-                this.actualizar = false;
-                this.tituloModal = "Nuevo registro";
-                this.id = 0;
-                this.registro.name = "";
-                this.registro.permisos = [];
-            }
-
-            this.btnCerralModalForm();
-        },
-        async cambiarEstado(estado, data = {}) {
-            const ok = await confirmAction({
-                title: "Confirmación",
-                text:
-                    "¿Estás seguro de que deseas " +
-                    (estado == 0 ? "activar" : "desactivar") +
-                    " el rol " +
-                    data.name +
-                    "?",
-                icon: "warning",
-            });
-            if (!ok) return;
-            try {
-                await axios.put("/api/seguridad-roles/estado/" + data.id, {
-                    id: data.id,
-                    estado: estado == 0 ? 1 : 0,
-                });
+            if (res.status == 200) {
                 $.toast({
                     heading: "Ok!!!",
-                    text:
-                        "El rol " +
-                        data.name +
-                        " se " +
-                        (estado == 0 ? "activó" : "desactivó") +
-                        " correctamente",
+                    text: res.data.message,
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: "success",
                     hideAfter: 3500,
                     stack: 6,
                 });
-                this.ListarDatos();
-            } catch (error) {
-                handleAxiosErrorToast(error, "No fue posible actualizar el estado del rol.");
+
+                ListarDatos();
+                limpiarFormulario();
+                btnCerralModalForm();
             }
-        },
-        btnCerralModalForm() {
-            $(".right-sidebar").slideDown(50);
-            $(".right-sidebar").toggleClass("shw-rside");
-        },
-        limpiarFormulario() {
-            this.actualizar = false;
-            this.tituloModal = "Nuevo registro";
-            this.id = 0;
-            this.registro.name = "";
-            this.errores = "";
-
-            let me = this;
-            me.permisos.forEach(function (permisos, index) {
-                me.registro.permisosRol[index].checked = false;
+        } else {
+            const res = await axios.put("/api/seguridad-roles/" + id.value, {
+                registro: registro.value,
             });
-        },
-    },
-};
-</script>
+            if (res.status == 200) {
+                $.toast({
+                    heading: "Ok!!!",
+                    text: res.data.message,
+                    position: "top-right",
+                    loaderBg: "#ff6849",
+                    icon: "success",
+                    hideAfter: 3500,
+                    stack: 6,
+                });
 
+                ListarDatos();
+                limpiarFormulario();
+                btnCerralModalForm();
+            }
+        }
+    } catch (error) {
+        errores.value = error?.response?.data?.message || "";
+        handleAxiosErrorToast(error, "No fue posible guardar el rol.");
+    } finally {
+        loadingGuardar.value = false;
+    }
+}
+function listarPermisosRol() {
+    let me = this;
+
+    me.permisos.map(function (x, y) {
+        me.registro.permisosRol.push({
+            id: x.id,
+            name: x.name,
+            checked: false,
+        });
+    });
+}
+function mostrarRegistro(data = {}) {
+    if (actualizar.value == true) {
+        tituloModal.value = "Actualizar el registro: " + data.name;
+        id.value = data.id;
+        registro.value.name = data.name;
+
+        axios
+            .get("/api/seguridad-roles/" + id.value)
+            .then((res) => {
+                registro.value.permisos = [];
+                const permisosDelRol = Object.keys(res.data.permisosRol);
+                let me = this;
+
+                me.permisos.forEach(function (permisos, index) {
+                    me.registro.permisosRol[index].checked = false;
+                });
+
+                permisosDelRol.forEach(function (permisosDelRol) {
+                    let permisoActivo = me.permisos.findIndex((x) => x.id == permisosDelRol);
+                    me.registro.permisosRol[permisoActivo].checked = true;
+                });
+            })
+            .catch((error) => {
+                handleAxiosErrorToast(error, "No fue posible cargar los permisos del rol.");
+            });
+    } else {
+        actualizar.value = false;
+        tituloModal.value = "Nuevo registro";
+        id.value = 0;
+        registro.value.name = "";
+        registro.value.permisos = [];
+    }
+
+    btnCerralModalForm();
+}
+async function cambiarEstado(estado, data = {}) {
+    const ok = await confirmAction({
+        title: "Confirmación",
+        text:
+            "¿Estás seguro de que deseas " +
+            (estado == 0 ? "activar" : "desactivar") +
+            " el rol " +
+            data.name +
+            "?",
+        icon: "warning",
+    });
+    if (!ok) return;
+    try {
+        await axios.put("/api/seguridad-roles/estado/" + data.id, {
+            id: data.id,
+            estado: estado == 0 ? 1 : 0,
+        });
+        $.toast({
+            heading: "Ok!!!",
+            text:
+                "El rol " +
+                data.name +
+                " se " +
+                (estado == 0 ? "activó" : "desactivó") +
+                " correctamente",
+            position: "top-right",
+            loaderBg: "#ff6849",
+            icon: "success",
+            hideAfter: 3500,
+            stack: 6,
+        });
+        ListarDatos();
+    } catch (error) {
+        handleAxiosErrorToast(error, "No fue posible actualizar el estado del rol.");
+    }
+}
+function btnCerralModalForm() {
+    $(".right-sidebar").slideDown(50);
+    $(".right-sidebar").toggleClass("shw-rside");
+}
+function limpiarFormulario() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    id.value = 0;
+    registro.value.name = "";
+    errores.value = "";
+
+    let me = this;
+    me.permisos.forEach(function (permisos, index) {
+        me.registro.permisosRol[index].checked = false;
+    });
+}
+
+onMounted(() => {
+    ListarDatos();
+});
+
+onBeforeUnmount(() => {
+    destroyDataTable();
+});
+</script>
 <style scoped>
 .right-sidebar {
     position: fixed;

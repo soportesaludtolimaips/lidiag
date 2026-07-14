@@ -12,33 +12,30 @@
         {{ count > 99 ? "99+" : count }}
     </span>
 </template>
+<script setup>
+import { onBeforeUnmount, onMounted, ref } from "vue";
+import axios from "axios";
 
-<script>
-export default {
-    data() {
-        return {
-            count: 0,
-            interval: null,
-        };
-    },
-    mounted() {
-        this.obtenerConteo();
-        this.interval = setInterval(() => this.obtenerConteo(), 30000);
-    },
-    beforeUnmount() {
-        if (this.interval) {
-            clearInterval(this.interval);
-        }
-    },
-    methods: {
-        async obtenerConteo() {
-            try {
-                const resp = await axios.get("/api/citas/notificaciones/no-leidas");
-                this.count = resp.data.count || 0;
-            } catch {
-                // silent
-            }
-        },
-    },
-};
+const count = ref(0);
+const interval = ref(null);
+
+async function obtenerConteo() {
+    try {
+        const resp = await axios.get("/api/citas/notificaciones/no-leidas");
+        count.value = resp.data.count || 0;
+    } catch {
+        // silent
+    }
+}
+
+onMounted(() => {
+    obtenerConteo();
+    interval.value = setInterval(() => obtenerConteo(), 30000);
+});
+
+onBeforeUnmount(() => {
+    if (interval.value) {
+        clearInterval(interval.value);
+    }
+});
 </script>

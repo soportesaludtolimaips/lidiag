@@ -222,112 +222,105 @@
         <!-- ============================================================== -->
     </div>
 </template>
+<script setup>
+import { onBeforeUnmount, onMounted, ref } from "vue";
 
-<script>
 import { handleAxiosErrorToast } from "@/helpers/alerts";
+import axios from "axios";
 
-export default {
-    props: ["usuarioactual"],
-    mounted() {
-        this.obtenerRegistro();
-    },
-    beforeUnmount() {
-        if (this.firmaPreview) URL.revokeObjectURL(this.firmaPreview);
-    },
-    data() {
-        return {
-            id: this.usuarioactual.id,
-            registro: {
-                id: this.usuarioactual.id,
-                num_docu: "",
-                dependencia_id: this.usuarioactual.dependencia_id,
-                name: "",
-                email: "",
-                password: "",
-                estado: 0,
-                imagen_perfil: null,
-                firma: null,
-            },
-            firmaPreview: "",
-            errores: {},
-            loadingObtener: false,
-            loadingActualizar: false,
-        };
-    },
-    methods: {
-        async obtenerRegistro() {
-            if (this.loadingObtener) return;
-            this.loadingObtener = true;
-            try {
-                const res = await axios.get("/api/seguridad-usuarios/" + this.id);
+const props = defineProps({});
 
-                if (res.status == 200) {
-                    this.registro.num_docu = res.data.usuario.num_docu;
-                    this.registro.name = res.data.usuario.name;
-                    this.registro.email = res.data.usuario.email;
-                    this.registro.firma = res.data.usuario.firma;
-                }
-            } catch (error) {
-                this.errores = error?.response?.data?.errors || {};
-                handleAxiosErrorToast(error, "No fue posible cargar el perfil.");
-            } finally {
-                this.loadingObtener = false;
-            }
-        },
-        async actualizarPerfil() {
-            if (this.loadingActualizar) return;
-            this.loadingActualizar = true;
-            try {
-                const formData = new FormData();
-                Object.keys(this.registro).forEach((key) => {
-                    if (this.registro[key] !== undefined && this.registro[key] !== null) {
-                        if (key === "password" && !this.registro.password) return;
-                        formData.append(key, this.registro[key]);
-                    }
-                });
-                const res = await axios.post(
-                    "/api/seguridad-actualizar-perfil/" + this.id,
-                    formData,
-                    {
-                        headers: { "Content-Type": "multipart/form-data" },
-                    }
-                );
-                if (res.status == 200) {
-                    this.firmaPreview = "";
-                    await this.obtenerRegistro();
+const id = ref(this.usuarioactual.id);
+const registro = ref({
+    id: this.usuarioactual.id,
+    num_docu: "",
+    dependencia_id: this.usuarioactual.dependencia_id,
+    name: "",
+    email: "",
+    password: "",
+    estado: 0,
+    imagen_perfil: null,
+    firma: null,
+});
+const firmaPreview = ref("");
+const errores = ref({});
+const loadingObtener = ref(false);
+const loadingActualizar = ref(false);
 
-                    $.toast({
-                        heading: "Ok!!!",
-                        text: res.data.message,
-                        position: "top-right",
-                        loaderBg: "#ff6849",
-                        icon: "success",
-                        hideAfter: 3500,
-                        stack: 6,
-                    });
-                }
-            } catch (error) {
-                this.errores = error?.response?.data?.errors || {};
-                handleAxiosErrorToast(error, "No fue posible actualizar el perfil.");
-            } finally {
-                this.loadingActualizar = false;
+async function obtenerRegistro() {
+    if (loadingObtener.value) return;
+    loadingObtener.value = true;
+    try {
+        const res = await axios.get("/api/seguridad-usuarios/" + id.value);
+
+        if (res.status == 200) {
+            registro.value.num_docu = res.data.usuario.num_docu;
+            registro.value.name = res.data.usuario.name;
+            registro.value.email = res.data.usuario.email;
+            registro.value.firma = res.data.usuario.firma;
+        }
+    } catch (error) {
+        errores.value = error?.response?.data?.errors || {};
+        handleAxiosErrorToast(error, "No fue posible cargar el perfil.");
+    } finally {
+        loadingObtener.value = false;
+    }
+}
+async function actualizarPerfil() {
+    if (loadingActualizar.value) return;
+    loadingActualizar.value = true;
+    try {
+        const formData = new FormData();
+        Object.keys(registro.value).forEach((key) => {
+            if (registro.value[key] !== undefined && registro.value[key] !== null) {
+                if (key === "password" && !registro.value.password) return;
+                formData.append(key, registro.value[key]);
             }
-        },
-        obtenerArchivo(e) {
-            this.registro.imagen_perfil = e.target.files[0];
-        },
-        obtenerFirma(e) {
-            const file = e.target.files[0];
-            if (file) {
-                if (this.firmaPreview) URL.revokeObjectURL(this.firmaPreview);
-                this.firmaPreview = URL.createObjectURL(file);
-            }
-            this.registro.firma = file;
-        },
-    },
-};
+        });
+        const res = await axios.post("/api/seguridad-actualizar-perfil/" + id.value, formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+        if (res.status == 200) {
+            firmaPreview.value = "";
+            await obtenerRegistro();
+
+            $.toast({
+                heading: "Ok!!!",
+                text: res.data.message,
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "success",
+                hideAfter: 3500,
+                stack: 6,
+            });
+        }
+    } catch (error) {
+        errores.value = error?.response?.data?.errors || {};
+        handleAxiosErrorToast(error, "No fue posible actualizar el perfil.");
+    } finally {
+        loadingActualizar.value = false;
+    }
+}
+function obtenerArchivo(e) {
+    registro.value.imagen_perfil = e.target.files[0];
+}
+function obtenerFirma(e) {
+    const file = e.target.files[0];
+    if (file) {
+        if (firmaPreview.value) URL.revokeObjectURL(firmaPreview.value);
+        firmaPreview.value = URL.createObjectURL(file);
+    }
+    registro.value.firma = file;
+}
+
+onMounted(() => {
+    obtenerRegistro();
+});
+
+onBeforeUnmount(() => {
+    if (firmaPreview.value) URL.revokeObjectURL(firmaPreview.value);
+});
 </script>
-
 <style scoped>
 .right-sidebar {
     position: fixed;
