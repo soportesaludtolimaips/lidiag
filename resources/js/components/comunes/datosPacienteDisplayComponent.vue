@@ -69,12 +69,12 @@ const props = defineProps({
 });
 
 const fechaFormateada = computed(() => {
-    const val = registro.fec_naci;
+    const val = props.registro.fec_naci;
     if (!val) return "";
     return normalizarFecha(val) || val;
 });
 const edadCalculada = computed(() => {
-    const val = registro.fec_naci;
+    const val = props.registro.fec_naci;
     if (!val) return "";
     const edad = calcularEdad(val);
     return edad !== null ? edad : "";

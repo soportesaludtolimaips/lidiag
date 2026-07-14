@@ -77,7 +77,7 @@ function initSelect2() {
     });
 
     // Inicializar valor actual
-    $el.val(value ?? (multiple ? [] : null)).trigger("change");
+    $el.val(props.value ?? (multiple ? [] : null)).trigger("change");
 
     // Emitir eventos
     const buildOutput = () => {
@@ -120,7 +120,7 @@ function destroySelect2() {
 }
 function rebuild() {
     // Re-init to refresh options while preserving current value
-    const current = value;
+    const current = props.value;
     initSelect2();
     const $el = $select();
     if ($el && current != null) {

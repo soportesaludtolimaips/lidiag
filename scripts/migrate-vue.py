@@ -302,12 +302,43 @@ def get_methods(obj):
     return entries
 
 
-def replace_this(text, data_keys, computed_keys, method_names, hook_names):
+def get_prop_names(props_val):
+    """Extract prop names from array ['a','b'] or object {a:{}, b:{}} style."""
+    if not props_val:
+        return []
+    if props_val.startswith('['):
+        return re.findall(r"'([^']+)'", props_val)
+    if props_val.startswith('{'):
+        names = []
+        pos = 1
+        inner = props_val
+        while pos < len(inner) - 1:
+            m = re.compile(r'(\w+)\s*:').search(inner, pos)
+            if not m:
+                break
+            names.append(m.group(1))
+            pos = m.end()
+            if pos < len(inner) and inner[pos] == '{':
+                pos = find_balanced(inner, pos)
+            else:
+                pos = skip_ws_and_comments(inner, pos)
+            if pos < len(inner) and inner[pos] == ',':
+                pos += 1
+                pos = skip_ws_and_comments(inner, pos)
+            else:
+                break
+        return names
+    return []
+
+
+def replace_this(text, data_keys, computed_keys, method_names, hook_names, prop_names):
     """Convert this.xxx references to appropriate forms."""
     for k in data_keys:
         text = re.sub(r'(?<!\w)this\.' + re.escape(k) + r'(?!\w)', k + '.value', text)
     for k in computed_keys:
         text = re.sub(r'(?<!\w)this\.' + re.escape(k) + r'(?!\w)', k + '.value', text)
+    for pn in prop_names:
+        text = re.sub(r'(?<!\w)this\.' + re.escape(pn) + r'(?!\w)', 'props.' + pn, text)
     text = re.sub(r'\$emit\(', 'emit(', text)
     text = re.sub(r'\$nextTick\(', 'nextTick(', text)
     text = re.sub(r'(?<!\w)\$refs\.(\w+)', r'\1.value', text)
@@ -407,8 +438,8 @@ def convert_vue(input_path, dry_run=False):
     obj, _, _ = parsed
 
     props_val = get_key_section(obj, 'props')
+    prop_names = get_prop_names(props_val)
     if props_val and props_val.startswith('['):
-        prop_names = re.findall(r"'([^']+)'", props_val)
         if prop_names:
             entry_lines = [f"    {pn}: {{}}" for pn in prop_names]
             props_val = "  {\n" + ",\n".join(entry_lines) + "\n  }"
@@ -527,7 +558,7 @@ def convert_vue(input_path, dry_run=False):
     for name, body in computed.items():
         b = get_function_body(body, name)
         b = replace_this(b, data_keys, list(computed.keys()),
-                         list(methods.keys()), list(hooks.keys()))
+                         list(methods.keys()), list(hooks.keys()), prop_names)
         lines.append(f"const {name} = computed(() => {{{b}\n}});")
 
     import_names = set()
@@ -548,21 +579,21 @@ def convert_vue(input_path, dry_run=False):
             continue
         b = get_function_body(info['body'], name)
         b = replace_this(b, data_keys, list(computed.keys()),
-                         list(methods.keys()), list(hooks.keys()))
+                         list(methods.keys()), list(hooks.keys()), prop_names)
         async_prefix = 'async ' if info['async'] else ''
         lines.append(f"{async_prefix}function {name}({info['params']}) {{{b}\n}}")
 
     if hooks.get('mounted'):
         mbody = get_hook_body(hooks['mounted'], 'mounted')
         mbody = replace_this(mbody, data_keys, list(computed.keys()),
-                             list(methods.keys()), list(hooks.keys()))
+                             list(methods.keys()), list(hooks.keys()), prop_names)
         ma = 'async ' if 'await ' in mbody else ''
         lines.append(f"\nonMounted({ma}() => {{{mbody}\n}});")
 
     if hooks.get('beforeUnmount'):
         ubody = get_hook_body(hooks['beforeUnmount'], 'beforeUnmount')
         ubody = replace_this(ubody, data_keys, list(computed.keys()),
-                             list(methods.keys()), list(hooks.keys()))
+                             list(methods.keys()), list(hooks.keys()), prop_names)
         ua = 'async ' if 'await ' in ubody else ''
         lines.append(f"\nonBeforeUnmount({ua}() => {{{ubody}\n}});")
 
