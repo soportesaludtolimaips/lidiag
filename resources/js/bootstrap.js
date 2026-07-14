@@ -31,8 +31,8 @@ async function confirmSessionExpired() {
     if (_verifyingSession) return false;
     _verifyingSession = true;
     try {
-        const check = await axios.get('/api/debug-session', {
-            headers: { 'X-Verify-Session': '1' }
+        const check = await axios.get("/api/debug-session", {
+            headers: { "X-Verify-Session": "1" },
         });
         return check.data?.auth_check === false;
     } catch {
@@ -65,22 +65,67 @@ function redirectToLogin() {
 window.axios.interceptors.response.use(
     function (response) {
         refreshCsrfToken();
+
+        const method = response.config?.method?.toLowerCase();
+        const message = response.data?.message;
+
+        if (message && method && method !== "get" && method !== "head" && method !== "options") {
+            const icon = response.status === 201 ? "success" : "info";
+            // Dynamic import to avoid circular deps
+            import("@/composables/useToast.js").then(({ useToast }) => {
+                const toast = useToast();
+                if (toast[icon]) toast[icon](message);
+            });
+        }
+
         return response;
     },
     function (error) {
         const status = error?.response?.status;
-        const isVerifyRequest = error?.config?.headers?.['X-Verify-Session'] === '1';
+        const isVerifyRequest = error?.config?.headers?.["X-Verify-Session"] === "1";
 
         if (status === 401 && !_redirectingToLogin && !isVerifyRequest) {
-            confirmSessionExpired().then(expired => {
+            confirmSessionExpired().then((expired) => {
                 if (expired) {
                     redirectToLogin();
                 } else {
-                    console.warn('[Auth] 401 en', error.config?.url, '- sesión aún válida');
+                    console.warn("[Auth] 401 en", error.config?.url, "- sesión aún válida");
                 }
             });
+            return Promise.reject(error);
         }
+
+        if (status) {
+            const map = {
+                400: { heading: "Solicitud incorrecta", icon: "warning" },
+                401: { heading: "Sesión expirada", icon: "warning" },
+                403: { heading: "No autorizado", icon: "error" },
+                404: { heading: "No encontrado", icon: "warning" },
+                422: { heading: "Error de validación", icon: "warning" },
+                429: { heading: "Demasiadas solicitudes", icon: "warning" },
+                500: { heading: "Error interno", icon: "error" },
+                503: { heading: "Servicio no disponible", icon: "error" },
+            };
+
+            const entry = map[status] || { heading: "Error inesperado", icon: "error" };
+            const text = error.response?.data?.message || "";
+
+            import("@/composables/useToast.js").then(({ useToast }) => {
+                const toast = useToast();
+                if (status === 422 && error.response?.data?.errors) {
+                    const firstError = Object.values(error.response.data.errors).flat()[0];
+                    toast.warning(firstError || text, entry.heading);
+                } else {
+                    toast[entry.icon]?.(text || entry.heading);
+                }
+            });
+        } else {
+            import("@/composables/useToast.js").then(({ useToast }) => {
+                const toast = useToast();
+                toast.error("Error de conexión. Verifica tu red.");
+            });
+        }
+
         return Promise.reject(error);
     }
 );
-

@@ -85,7 +85,7 @@ export function toastMessage({
 
 const PATRONES_PII = [
     /^\s*\{/,
-    /(\/[\w\-]+){2,}/,
+    /(\/[\w-]+){2,}/,
     /[Tt]race/,
     /#\d+\s+[\w\\]+/,
     /SQLSTATE|syntax error|unexpected|stack trace/i,
@@ -109,33 +109,11 @@ export function getUserSafeError(error, fallback = "Ocurrió un error.") {
     return sanitizeServerMessage(message) || fallback;
 }
 
-/**
- * Manejo estándar de errores Axios (401/403 + fallback).
- */
 export function handleAxiosErrorToast(error, fallbackMessage = "Ocurrió un error.") {
-    const status = error?.response?.status;
-
-    if (status === 401) {
-        toastMessage({
-            heading: "Sesión expirada",
-            text: "Tu sesión expiró. Inicia sesión nuevamente.",
-            icon: "warning",
-        });
-        return;
-    }
-
-    if (status === 403) {
-        toastMessage({
-            heading: "No autorizado",
-            text: "No tienes permisos para realizar esta acción.",
-            icon: "error",
-        });
-        return;
-    }
-
-    toastMessage({
-        heading: "Upss!!!",
-        text: getUserSafeError(error, fallbackMessage),
-        icon: "error",
-    });
+    // Deprecated — the Axios interceptor in bootstrap.js now handles toast automatically.
+    // Kept for compatibility with existing callers.
+    console.warn(
+        "[alerts] handleAxiosErrorToast is deprecated. Remove this call.",
+        error?.config?.url
+    );
 }
