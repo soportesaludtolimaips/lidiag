@@ -1,0 +1,57 @@
+<?php
+
+namespace App\Services\Configuracion;
+
+use App\Helpers\AuditLogger;
+use App\Models\Configuracion\ConfigTipoDocumento;
+use App\Services\BaseService;
+
+class ConfigTipoDocumentoService extends BaseService
+{
+    public function all(): array
+    {
+        return $this->success(ConfigTipoDocumento::all());
+    }
+
+    public function find(int $id): array
+    {
+        $item = ConfigTipoDocumento::find($id);
+
+        if (! $item) {
+            return $this->notFound('Tipo de documento no encontrado');
+        }
+
+        return $this->success($item);
+    }
+
+    public function listarActivos(): array
+    {
+        return $this->success(ConfigTipoDocumento::where('estado', true)->get());
+    }
+
+    public function create(array $data): array
+    {
+        $item = ConfigTipoDocumento::create($data);
+        AuditLogger::crear($item, 'Tipo de documento creado: '.($data['tipo_documento'] ?? ''));
+
+        return $this->created($item);
+    }
+
+    public function update(int $id, array $data): array
+    {
+        $item = ConfigTipoDocumento::findOrFail($id);
+        $item->update($data);
+        AuditLogger::actualizar($item, $item->getOriginal(), 'Tipo de documento actualizado: '.$item->tipo_documento);
+
+        return $this->updated($item);
+    }
+
+    public function delete(int $id): array
+    {
+        $item = ConfigTipoDocumento::findOrFail($id);
+        $item->delete();
+        AuditLogger::eliminar($item, 'Tipo de documento eliminado: '.$item->tipo_documento);
+
+        return $this->deleted();
+    }
+}

@@ -3,83 +3,44 @@
 namespace App\Http\Controllers\Configuracion;
 
 use App\Http\Controllers\Controller;
-use App\Models\Citas\CitaPivot;
-use App\Models\Configuracion\ConfigProducto;
-use App\Models\Configuracion\ConfigServicioCitas;
+use App\Http\Requests\Configuracion\StoreServicioProductoRequest;
+use App\Services\Configuracion\ServicioProductoService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ServicioProductoController extends Controller
 {
-    public function index(Request $request)
+    public function __construct(
+        private readonly ServicioProductoService $servicioProductoService,
+    ) {}
+
+    public function index(Request $request): JsonResponse
     {
-        $servicioId = $request->servicio_cita_id;
+        $result = $this->servicioProductoService->all($request->integer('servicio_cita_id'));
 
-        if ($servicioId) {
-            $rels = CitaPivot::where('servicio_cita_id', $servicioId)
-                ->with('producto')
-                ->get();
-
-            return response()->json($rels);
-        }
-
-        $servicios = ConfigServicioCitas::with(['productos' => function ($query) {
-            $query->where('config_servicio_cita_producto.estado', true);
-        }])->where('estado', true)->get();
-
-        return response()->json($servicios);
+        return response()->json($result, $result['status']);
     }
 
-    public function store(Request $request)
+    public function store(StoreServicioProductoRequest $request): JsonResponse
     {
-        $request->validate([
-            'servicio_cita_id' => 'required|exists:config_servicio_citas,id',
-            'producto_id' => 'required|exists:config_productos,id',
-        ]);
+        $result = $this->servicioProductoService->create($request->validated());
 
-        $existe = CitaPivot::where('servicio_cita_id', $request->servicio_cita_id)
-            ->where('producto_id', $request->producto_id)
-            ->first();
-
-        if ($existe) {
-            $existe->update(['estado' => true]);
-
-            return response()->json(['message' => 'Producto vinculado al servicio.']);
-        }
-
-        CitaPivot::create([
-            'servicio_cita_id' => $request->servicio_cita_id,
-            'producto_id' => $request->producto_id,
-            'estado' => true,
-        ]);
-
-        return response()->json(['message' => 'Producto vinculado al servicio.'], 201);
+        return response()->json($result, $result['status']);
     }
 
-    public function destroy($id)
+    public function destroy(int $id): JsonResponse
     {
-        $rel = CitaPivot::findOrFail($id);
-        $rel->update(['estado' => false]);
+        $result = $this->servicioProductoService->delete($id);
 
-        return response()->json(['message' => 'Vinculación eliminada.']);
+        return response()->json($result, $result['status']);
     }
 
-    public function productosNoVinculados(Request $request)
+    public function productosNoVinculados(Request $request): JsonResponse
     {
-        $request->validate([
-            'servicio_cita_id' => 'required|exists:config_servicio_citas,id',
-        ]);
+        $result = $this->servicioProductoService->productosNoVinculados(
+            (int) $request->input('servicio_cita_id')
+        );
 
-        $vinculados = CitaPivot::where('servicio_cita_id', $request->servicio_cita_id)
-            ->where('estado', true)
-            ->pluck('producto_id')
-            ->toArray();
-
-        $productos = ConfigProducto::with('recomendacionProducto')
-            ->whereNotIn('id', $vinculados)
-            ->where('estado', true)
-            ->orderBy('nom_produc')
-            ->get();
-
-        return response()->json($productos);
+        return response()->json($result, $result['status']);
     }
 }

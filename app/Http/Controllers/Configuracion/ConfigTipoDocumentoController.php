@@ -2,135 +2,62 @@
 
 namespace App\Http\Controllers\Configuracion;
 
-use App\Helpers\AuditLogger;
 use App\Http\Controllers\Controller;
-use App\Models\Configuracion\ConfigTipoDocumento;
+use App\Http\Requests\Configuracion\StoreConfigTipoDocumentoRequest;
+use App\Http\Requests\Configuracion\UpdateConfigTipoDocumentoRequest;
+use App\Services\Configuracion\ConfigTipoDocumentoService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class ConfigTipoDocumentoController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-        $this->middleware('permission:config.tipo.documento.index')->only(['index', 'show', 'listarActivos']);
-        $this->middleware('permission:config.tipo.documento.create')->only(['store']);
-        $this->middleware('permission:config.tipo.documento.edit')->only(['update']);
-        $this->middleware('permission:config.tipo.documento.destroy')->only(['destroy']);
+    public function __construct(
+        private readonly ConfigTipoDocumentoService $configTipoDocumentoService,
+    ) {
+        $this->middleware('auth:sanctum')->except(['index', 'listarActivos']);
+        $this->middleware('permission:configuracion.tipos-documento.create')->only(['store']);
+        $this->middleware('permission:configuracion.tipos-documento.edit')->only(['update']);
+        $this->middleware('permission:configuracion.tipos-documento.destroy')->only(['destroy']);
     }
 
-    /**
-     * Lista todos los tipos de documento.
-     *
-     * @return JsonResponse Lista de tipos de documento.
-     */
-    public function index()
+    public function index(): JsonResponse
     {
-        $tiposDocumento = ConfigTipoDocumento::all();
+        $result = $this->configTipoDocumentoService->all();
 
-        return response()->json($tiposDocumento);
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Crea un nuevo tipo de documento.
-     *
-     * @param  Request  $request  Datos del tipo de documento.
-     * @return JsonResponse Datos del registro creado.
-     */
-    public function store(Request $request)
+    public function show(int $id): JsonResponse
     {
-        $request->validate([
-            'codigo' => 'required|string|max:20',
-            'tipo_documento' => 'required|string|max:100',
-            'estado' => 'nullable|boolean',
-        ]);
-        $tipoDocumento = ConfigTipoDocumento::create($request->only(['codigo', 'tipo_documento', 'estado']));
+        $result = $this->configTipoDocumentoService->find($id);
 
-        AuditLogger::crear($tipoDocumento, 'Tipo de documento creado');
-
-        return response()->json($tipoDocumento);
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Muestra un tipo de documento específico.
-     *
-     * @param  int  $id  ID del tipo de documento.
-     * @return JsonResponse Datos del tipo de documento o error 404.
-     */
-    public function show($id)
+    public function listarActivos(): JsonResponse
     {
-        $tipoDocumento = ConfigTipoDocumento::find($id);
-        if (! $tipoDocumento) {
-            return response()->json([
-                'message' => 'Tipo de documento no encontrado',
-            ], 404);
-        }
+        $result = $this->configTipoDocumentoService->listarActivos();
 
-        return response()->json($tipoDocumento);
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Actualiza un tipo de documento.
-     *
-     * @param  Request  $request  Datos a actualizar.
-     * @param  int  $id  ID del tipo de documento.
-     * @return JsonResponse Datos actualizados o error 404.
-     */
-    public function update(Request $request, $id)
+    public function store(StoreConfigTipoDocumentoRequest $request): JsonResponse
     {
-        $request->validate([
-            'codigo' => 'required|string|max:20',
-            'tipo_documento' => 'required|string|max:100',
-            'estado' => 'nullable|boolean',
-        ]);
-        $tipoDocumento = ConfigTipoDocumento::find($id);
-        if (! $tipoDocumento) {
-            return response()->json([
-                'message' => 'Tipo de documento no encontrado',
-            ], 404);
-        }
+        $result = $this->configTipoDocumentoService->create($request->validated());
 
-        $datosViejos = $tipoDocumento->toArray();
-        $tipoDocumento->update($request->only(['codigo', 'tipo_documento', 'estado']));
-
-        AuditLogger::actualizar($tipoDocumento, $datosViejos, 'Tipo de documento actualizado');
-
-        return response()->json($tipoDocumento);
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Elimina un tipo de documento.
-     *
-     * @param  int  $id  ID del tipo de documento.
-     * @return JsonResponse Confirmación de eliminación o error 404.
-     */
-    public function destroy($id)
+    public function update(UpdateConfigTipoDocumentoRequest $request, int $id): JsonResponse
     {
-        $tipoDocumento = ConfigTipoDocumento::find($id);
-        if (! $tipoDocumento) {
-            return response()->json([
-                'message' => 'Tipo de documento no encontrado',
-            ], 404);
-        }
+        $result = $this->configTipoDocumentoService->update($id, $request->validated());
 
-        $tipoDocumento->delete();
-
-        AuditLogger::eliminar($tipoDocumento, 'Tipo de documento eliminado');
-
-        return response()->json([
-            'message' => 'Tipo de documento eliminado',
-        ]);
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Lista los tipos de documento activos.
-     *
-     * @return JsonResponse Lista de tipos de documento activos.
-     */
-    public function listarActivos()
+    public function destroy(int $id): JsonResponse
     {
-        $tiposDocumento = ConfigTipoDocumento::where('estado', 1)->get();
+        $result = $this->configTipoDocumentoService->delete($id);
 
-        return response()->json($tiposDocumento);
+        return response()->json($result, $result['status']);
     }
 }

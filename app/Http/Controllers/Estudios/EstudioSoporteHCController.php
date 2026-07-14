@@ -3,39 +3,31 @@
 namespace App\Http\Controllers\Estudios;
 
 use App\Http\Controllers\Controller;
-use App\Models\Estudio\EstudioSoportesHC;
+use App\Services\Estudios\EstudioSoporteHCService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class EstudioSoporteHCController extends Controller
 {
-    /**
-     * Lista los soportes de historia clínica asociados a un estudio.
-     *
-     * @param  Request  $request  ID del estudio (`id`).
-     * @return JsonResponse Lista de soportes.
-     */
-    public function listarSoportesHistoriaClinicaPorPorEstudio(Request $request)
-    {
-        $soportes = EstudioSoportesHC::where('estudio_id', '=', $request->id)->get();
+    public function __construct(
+        private readonly EstudioSoporteHCService $estudioSoporteHCService,
+    ) {}
 
-        return response()->json($soportes);
+    public function listarSoportesHistoriaClinicaPorPorEstudio(Request $request): JsonResponse
+    {
+        $result = $this->estudioSoporteHCService->listarPorEstudio($request->integer('id'));
+
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Descarga un archivo de soporte de historia clínica.
-     *
-     * @param  string  $nomArchivoEncriptadot  Nombre encriptado del archivo.
-     * @return BinaryFileResponse Archivo descargable.
-     */
-    public function descargarSoporte($nomArchivoEncriptadot)
+    public function descargarSoporte(string $nomArchivoEncriptadot)
     {
-        $rutaArchivo = storage_path('app/soportes_hc/'.$nomArchivoEncriptadot);
-        if (! file_exists($rutaArchivo)) {
-            abort(404);
+        $result = $this->estudioSoporteHCService->descargar($nomArchivoEncriptadot);
+
+        if (! $result['success']) {
+            return response()->json($result, $result['status']);
         }
 
-        return response()->download($rutaArchivo);
+        return response()->download($result['data']['path']);
     }
 }

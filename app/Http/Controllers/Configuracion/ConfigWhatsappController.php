@@ -3,99 +3,60 @@
 namespace App\Http\Controllers\Configuracion;
 
 use App\Http\Controllers\Controller;
-use App\Models\Configuracion\ConfigWhatsapp;
+use App\Http\Requests\Configuracion\StoreConfigWhatsappRequest;
+use App\Http\Requests\Configuracion\UpdateConfigWhatsappRequest;
+use App\Services\Configuracion\ConfigWhatsappService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ConfigWhatsappController extends Controller
 {
-    public function index(Request $request)
+    public function __construct(
+        private readonly ConfigWhatsappService $configWhatsappService,
+    ) {}
+
+    public function index(Request $request): JsonResponse
     {
-        $query = ConfigWhatsapp::with(['sede', 'servicio']);
+        $result = $this->configWhatsappService->all($request->integer('sede_id'));
 
-        if ($request->sede_id) {
-            $query->where('sede_id', $request->sede_id);
-        }
-
-        return response()->json($query->orderBy('id')->get());
+        return response()->json($result, $result['status']);
     }
 
-    public function store(Request $request)
+    public function show(int $id): JsonResponse
     {
-        $request->validate([
-            'sede_id' => 'nullable|exists:config_sedes,id',
-            'servicio_cita_id' => 'nullable|exists:config_servicio_citas,id',
-            'mensaje_bienvenida' => 'required|string',
-            'activo' => 'boolean',
-        ]);
+        $result = $this->configWhatsappService->find($id);
 
-        $config = ConfigWhatsapp::create([
-            'sede_id' => $request->sede_id,
-            'servicio_cita_id' => $request->servicio_cita_id,
-            'mensaje_bienvenida' => $request->mensaje_bienvenida,
-            'activo' => $request->boolean('activo', true),
-        ]);
-
-        return response()->json($config->load(['sede', 'servicio']), 201);
+        return response()->json($result, $result['status']);
     }
 
-    public function show($id)
+    public function store(StoreConfigWhatsappRequest $request): JsonResponse
     {
-        $config = ConfigWhatsapp::with(['sede', 'servicio'])->findOrFail($id);
-        return response()->json($config);
+        $result = $this->configWhatsappService->create($request->validated());
+
+        return response()->json($result, $result['status']);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateConfigWhatsappRequest $request, int $id): JsonResponse
     {
-        $config = ConfigWhatsapp::findOrFail($id);
+        $result = $this->configWhatsappService->update($id, $request->validated());
 
-        $request->validate([
-            'sede_id' => 'nullable|exists:config_sedes,id',
-            'servicio_cita_id' => 'nullable|exists:config_servicio_citas,id',
-            'mensaje_bienvenida' => 'sometimes|required|string',
-            'activo' => 'boolean',
-        ]);
-
-        $config->update($request->only([
-            'sede_id', 'servicio_cita_id', 'mensaje_bienvenida', 'activo',
-        ]));
-
-        return response()->json($config->load(['sede', 'servicio']));
+        return response()->json($result, $result['status']);
     }
 
-    public function destroy($id)
+    public function destroy(int $id): JsonResponse
     {
-        $config = ConfigWhatsapp::findOrFail($id);
-        $config->delete();
+        $result = $this->configWhatsappService->delete($id);
 
-        return response()->json(['message' => 'Configuración eliminada correctamente.']);
+        return response()->json($result, $result['status']);
     }
 
-    public function buscar(Request $request)
+    public function buscar(Request $request): JsonResponse
     {
-        $request->validate([
-            'sede_id' => 'nullable|exists:config_sedes,id',
-            'servicio_cita_id' => 'nullable|exists:config_servicio_citas,id',
-        ]);
+        $result = $this->configWhatsappService->buscarPorSedeYServicio(
+            (int) $request->input('sede_id'),
+            (int) $request->input('servicio_cita_id'),
+        );
 
-
-        $config = ConfigWhatsapp::paraSedeYservicio(
-            $request->sede_id,
-            $request->servicio_cita_id
-        )->first();
-
-        if (! $config) {
-            return response()->json([
-                'found' => false,
-                'mensaje_bienvenida' => "📄 *Bienvenido al sistema de citas de Salud Tolima*\n\nPor favor, ingrese su *número de documento*:",
-            ]);
-        }
-
-        return response()->json([
-            'found' => true,
-            'id' => $config->id,
-            'sede_id' => $config->sede_id,
-            'servicio_cita_id' => $config->servicio_cita_id,
-            'mensaje_bienvenida' => $config->mensaje_bienvenida,
-        ]);
+        return response()->json($result, $result['status']);
     }
 }

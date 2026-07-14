@@ -4,37 +4,48 @@ namespace App\Http\Controllers\HelpDesk;
 
 use App\Http\Controllers\Controller;
 use App\Models\HelpDesk\HelpDeskEstado;
+use App\Services\HelpDesk\HelpDeskEstadoService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class HelpDeskEstadosController extends Controller
 {
-    public function index()
+    public function __construct(
+        private readonly HelpDeskEstadoService $estadoService,
+    ) {}
+
+    public function index(): JsonResponse
     {
-        return response()->json(
-            HelpDeskEstado::query()->orderBy('orden')->orderBy('nombre')->get()
-        );
+        $result = $this->estadoService->all();
+
+        return response()->json($result['data'], $result['status']);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
-        // Decisión: estados fijos (solo 4 base).
-        return response()->json(['message' => 'Estados fijos: no se permite crear nuevos estados.'], 403);
+        $result = $this->estadoService->create();
+
+        return response()->json(['message' => $result['message']], $result['status']);
     }
 
-    public function show(HelpDeskEstado $estado)
+    public function show(HelpDeskEstado $estado): JsonResponse
     {
-        return response()->json($estado);
+        $result = $this->estadoService->find($estado->id);
+
+        return response()->json($result['data'], $result['status']);
     }
 
-    public function update(Request $request, HelpDeskEstado $estado)
+    public function update(Request $request, HelpDeskEstado $estado): JsonResponse
     {
-        // Decisión: bloquear edición (especialmente estados base).
-        return response()->json(['message' => 'Estados fijos: no se permite editar estados.'], 403);
+        $result = $this->estadoService->update($estado->id);
+
+        return response()->json(['message' => $result['message']], $result['status']);
     }
 
-    public function destroy(HelpDeskEstado $estado)
+    public function destroy(HelpDeskEstado $estado): JsonResponse
     {
-        // Decisión: bloquear borrado.
-        return response()->json(['message' => 'Estados fijos: no se permite eliminar estados.'], 403);
+        $result = $this->estadoService->delete($estado->id);
+
+        return response()->json(['message' => $result['message']], $result['status']);
     }
 }

@@ -3,89 +3,50 @@
 namespace App\Http\Controllers\Configuracion;
 
 use App\Http\Controllers\Controller;
-use App\Models\Configuracion\ConfigServicioCita;
+use App\Http\Requests\Configuracion\StoreConfigServicioCitaRequest;
+use App\Http\Requests\Configuracion\UpdateConfigServicioCitaRequest;
+use App\Services\Configuracion\ConfigServicioCitaService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ConfigServicioCitasController extends Controller
 {
-    public function index(Request $request)
+    public function __construct(
+        private readonly ConfigServicioCitaService $configServicioCitaService,
+    ) {}
+
+    public function index(Request $request): JsonResponse
     {
-        $query = ConfigServicioCita::with('sede');
+        $result = $this->configServicioCitaService->all($request->integer('sede_id'));
 
-        if ($request->sede_id) {
-            $query->where('sede_id', $request->sede_id);
-        }
-
-        return response()->json($query->orderBy('nombre')->get());
+        return response()->json($result, $result['status']);
     }
 
-    public function misServicios(Request $request)
+    public function show(int $id): JsonResponse
     {
-        $query = ConfigServicioCita::with('sede');
+        $result = $this->configServicioCitaService->find($id);
 
-        if ($request->sede_id) {
-            $query->where('sede_id', $request->sede_id);
-        }
-
-        return response()->json($query->orderBy('nombre')->get());
+        return response()->json($result, $result['status']);
     }
 
-    public function store(Request $request)
+    public function store(StoreConfigServicioCitaRequest $request): JsonResponse
     {
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'sede_id' => 'required|exists:config_sedes,id',
-        ]);
+        $result = $this->configServicioCitaService->create($request->validated());
 
-        $servicio = ConfigServicioCita::create([
-            'nombre' => $request->nombre,
-            'sede_id' => $request->sede_id,
-            'estado' => $request->boolean('estado', true),
-        ]);
-
-        return response()->json($servicio->load('sede'), 201);
+        return response()->json($result, $result['status']);
     }
 
-    public function show($id)
+    public function update(UpdateConfigServicioCitaRequest $request, int $id): JsonResponse
     {
-        $servicio = ConfigServicioCita::with('sede')->find($id);
-        if (! $servicio) {
-            return response()->json(['message' => 'Servicio no encontrado'], 404);
-        }
+        $result = $this->configServicioCitaService->update($id, $request->validated());
 
-        return response()->json($servicio);
+        return response()->json($result, $result['status']);
     }
 
-    public function update(Request $request, $id)
+    public function destroy(int $id): JsonResponse
     {
-        $servicio = ConfigServicioCita::find($id);
-        if (! $servicio) {
-            return response()->json(['message' => 'Servicio no encontrado'], 404);
-        }
+        $result = $this->configServicioCitaService->delete($id);
 
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'sede_id' => 'required|exists:config_sedes,id',
-        ]);
-
-        $servicio->update([
-            'nombre' => $request->nombre,
-            'sede_id' => $request->sede_id,
-            'estado' => $request->boolean('estado', $servicio->estado),
-        ]);
-
-        return response()->json($servicio->load('sede'));
-    }
-
-    public function destroy($id)
-    {
-        $servicio = ConfigServicioCita::find($id);
-        if (! $servicio) {
-            return response()->json(['message' => 'Servicio no encontrado'], 404);
-        }
-
-        $servicio->delete();
-
-        return response()->json(['message' => 'Servicio eliminado']);
+        return response()->json($result, $result['status']);
     }
 }

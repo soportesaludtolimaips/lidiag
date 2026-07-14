@@ -3,54 +3,35 @@
 namespace App\Http\Controllers\HelpDesk;
 
 use App\Http\Controllers\Controller;
+use App\Services\HelpDesk\HelpDeskNotificacionService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class HelpDeskNotificacionesController extends Controller
 {
-    public function index(Request $request)
-    {
-        $user = $request->user();
+    public function __construct(
+        private readonly HelpDeskNotificacionService $notificacionService,
+    ) {}
 
+    public function index(Request $request): JsonResponse
+    {
         $limit = (int) ($request->query('limit', 20));
-        if ($limit <= 0) {
-            $limit = 20;
-        }
-        $limit = min($limit, 100);
+        $result = $this->notificacionService->list($request->user(), $limit);
 
-        $items = $user->notifications()
-            ->orderByDesc('created_at')
-            ->limit($limit)
-            ->get()
-            ->map(function ($n) {
-                return [
-                    'id' => $n->id,
-                    'read_at' => $n->read_at,
-                    'created_at' => $n->created_at,
-                    'data' => $n->data,
-                ];
-            });
-
-        $unreadCount = $user->unreadNotifications()->count();
-
-        return response()->json([
-            'items' => $items,
-            'unread_count' => $unreadCount,
-        ]);
+        return response()->json($result['data'], $result['status']);
     }
 
-    public function markRead(string $id, Request $request)
+    public function markRead(string $id, Request $request): JsonResponse
     {
-        $user = $request->user();
-        $n = $user->notifications()->where('id', $id)->firstOrFail();
-        $n->markAsRead();
+        $result = $this->notificacionService->markRead($request->user(), $id);
 
-        return response()->json(['ok' => true]);
+        return response()->json($result['data'], $result['status']);
     }
 
-    public function markAllRead(Request $request)
+    public function markAllRead(Request $request): JsonResponse
     {
-        $request->user()->unreadNotifications()->update(['read_at' => now()]);
+        $result = $this->notificacionService->markAllRead($request->user());
 
-        return response()->json(['ok' => true]);
+        return response()->json($result['data'], $result['status']);
     }
 }

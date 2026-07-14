@@ -2,91 +2,55 @@
 
 namespace App\Http\Controllers\Configuracion;
 
-use App\Helpers\AuditLogger;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Configuracion\ConfigProductoRequest;
-use App\Models\Configuracion\ConfigProducto;
+use App\Services\Configuracion\ConfigProductoService;
 use Illuminate\Http\JsonResponse;
 
 class ConfigProductoController extends Controller
 {
-    public function __construct()
-    {
-        // Catálogo público: solo proteger escrituras
-        $this->middleware('auth')->only(['store', 'update', 'destroy']);
-        $this->middleware('permission:config.productos.create')->only(['store']);
-        $this->middleware('permission:config.productos.edit')->only(['update']);
-        $this->middleware('permission:config.productos.destroy')->only(['destroy']);
+    public function __construct(
+        private readonly ConfigProductoService $configProductoService,
+    ) {
+        $this->middleware('auth:sanctum')->except(['index', 'show']);
+        $this->middleware('permission:configuracion.productos.index')->only(['index']);
+        $this->middleware('permission:configuracion.productos.create')->only(['store']);
+        $this->middleware('permission:configuracion.productos.edit')->only(['update']);
+        $this->middleware('permission:configuracion.productos.destroy')->only(['destroy']);
     }
 
-    /**
-     * Lista todos los productos (CUPS) ordenados alfabéticamente.
-     *
-     * @return JsonResponse Lista de productos.
-     */
-    public function index()
+    public function index(): JsonResponse
     {
-        $producto = ConfigProducto::orderBy('nom_produc')->get();
+        $result = $this->configProductoService->all();
 
-        return response()->json($producto);
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Muestra un producto específico.
-     *
-     * @param  ConfigProducto  $configProducto  Instancia del producto.
-     * @return JsonResponse Datos del producto.
-     */
-    public function show(ConfigProducto $configProducto)
+    public function show(int $id): JsonResponse
     {
-        return response()->json($configProducto);
+        $result = $this->configProductoService->find($id);
+
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Crea un nuevo producto.
-     *
-     * @param  ConfigProductoRequest  $request  Datos del producto.
-     * @param  ConfigProducto  $configProducto  Instancia del modelo.
-     * @return JsonResponse Confirmación de creación.
-     */
-    public function store(ConfigProductoRequest $request, ConfigProducto $configProducto)
+    public function store(ConfigProductoRequest $request): JsonResponse
     {
-        $configProducto->create($request->only(['cod_cups', 'nom_produc', 'porcen', 'val_produc', 'requi_lectura', 'tipo_oral', 'tipo_venoso', 'factura', 'estado']));
+        $result = $this->configProductoService->create($request->validated());
 
-        AuditLogger::crear($configProducto, 'Producto creado');
-
-        return response()->json(['message' => 'Registro creado satisfactoriamente.']);
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Actualiza un producto existente.
-     *
-     * @param  ConfigProductoRequest  $request  Datos actualizados.
-     * @param  ConfigProducto  $configProducto  Instancia a actualizar.
-     * @return JsonResponse Confirmación de actualización.
-     */
-    public function update(ConfigProductoRequest $request, ConfigProducto $configProducto)
+    public function update(ConfigProductoRequest $request, int $id): JsonResponse
     {
-        $datosViejos = $configProducto->toArray();
-        $configProducto->update($request->only(['cod_cups', 'nom_produc', 'porcen', 'val_produc', 'requi_lectura', 'tipo_oral', 'tipo_venoso', 'factura', 'estado']));
+        $result = $this->configProductoService->update($id, $request->validated());
 
-        AuditLogger::actualizar($configProducto, $datosViejos, 'Producto actualizado');
-
-        return response()->json(['message' => 'Registro actualizado satisfactoriamente.']);
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Elimina un producto.
-     *
-     * @param  ConfigProducto  $configProducto  Instancia a eliminar.
-     * @return JsonResponse Confirmación de eliminación.
-     */
-    public function destroy(ConfigProducto $configProducto)
+    public function destroy(int $id): JsonResponse
     {
-        $configProducto->delete();
+        $result = $this->configProductoService->delete($id);
 
-        AuditLogger::eliminar($configProducto, 'Producto eliminado');
-
-        return response()->json(['message' => 'Registro eliminado satisfactoriamente.']);
+        return response()->json($result, $result['status']);
     }
 }

@@ -2,137 +2,62 @@
 
 namespace App\Http\Controllers\Configuracion;
 
-use App\Helpers\AuditLogger;
 use App\Http\Controllers\Controller;
-use App\Models\Configuracion\ConfigPlantillaTipo;
+use App\Http\Requests\Configuracion\StoreConfigPlantillaTipoRequest;
+use App\Http\Requests\Configuracion\UpdateConfigPlantillaTipoRequest;
+use App\Services\Configuracion\ConfigPlantillaTipoService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class ConfigPlantillaTipoController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:sanctum')->only(['store', 'update', 'destroy']);
-        $this->middleware('permission:config.plantillas.index|ecografias.leer')->only(['listarActivos']);
-        $this->middleware('permission:config.plantillas.create')->only(['store']);
-        $this->middleware('permission:config.plantillas.edit')->only(['update']);
-        $this->middleware('permission:config.plantillas.delete')->only(['destroy']);
+    public function __construct(
+        private readonly ConfigPlantillaTipoService $configPlantillaTipoService,
+    ) {
+        $this->middleware('auth:sanctum')->except(['index', 'listarActivos']);
+        $this->middleware('permission:configuracion.plantillas-tipos.create')->only(['store']);
+        $this->middleware('permission:configuracion.plantillas-tipos.edit')->only(['update']);
+        $this->middleware('permission:configuracion.plantillas-tipos.destroy')->only(['destroy']);
     }
 
-    /**
-     * Lista todos los tipos de plantillas.
-     *
-     * @return JsonResponse Lista de tipos de plantillas.
-     */
-    public function index()
+    public function index(): JsonResponse
     {
-        return response()->json(ConfigPlantillaTipo::all());
+        $result = $this->configPlantillaTipoService->all();
+
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Crea un nuevo tipo de plantilla.
-     *
-     * Flujo del proceso:
-     * 1. Valida los datos de entrada (nombre, estado).
-     * 2. Crea el registro.
-     * 3. Retorna el tipo creado.
-     *
-     * @param  Request  $request  Datos del tipo de plantilla.
-     * @return JsonResponse Datos del tipo creado.
-     */
-    public function store(Request $request)
+    public function show(int $id): JsonResponse
     {
-        $request->validate([
-            // 'producto_id' => 'required|exists:config_productos,id',
-            'nom_tipo' => 'required|string|max:70',
-            'estado' => 'boolean',
-        ], [
-            /* 'producto_id.required' => 'El campo producto es obligatorio.',
-            'producto_id.exists' => 'El producto seleccionado no es válido.', */
-            'nom_tipo.required' => 'El nombre de la plantilla es obligatorio.',
-            'nom_tipo.string' => 'El nombre de la plantilla debe ser un texto.',
-            'nom_tipo.max' => 'El nombre de la plantilla no puede superar los 70 caracteres.',
-            'estado.boolean' => 'El estado debe ser verdadero o falso.',
-        ]);
+        $result = $this->configPlantillaTipoService->find($id);
 
-        $plantilla = ConfigPlantillaTipo::create($request->only(['nom_tipo', 'estado']));
-
-        AuditLogger::crear($plantilla, 'Tipo de plantilla creado');
-
-        return response()->json($plantilla, 201);
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Muestra un tipo de plantilla específico.
-     *
-     * @param  int  $id  ID del tipo de plantilla.
-     * @return JsonResponse Datos del tipo de plantilla.
-     */
-    public function show($id)
+    public function listarActivos(): JsonResponse
     {
-        return response()->json(ConfigPlantillaTipo::findOrFail($id));
+        $result = $this->configPlantillaTipoService->listarActivos();
+
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Actualiza un tipo de plantilla.
-     *
-     * Flujo del proceso:
-     * 1. Valida los datos de entrada.
-     * 2. Busca el tipo por ID.
-     * 3. Actualiza el registro.
-     * 4. Retorna el tipo actualizado.
-     *
-     * @param  Request  $request  Datos a actualizar.
-     * @param  int  $id  ID del tipo de plantilla.
-     * @return JsonResponse Datos actualizados.
-     */
-    public function update(Request $request, $id)
+    public function store(StoreConfigPlantillaTipoRequest $request): JsonResponse
     {
-        $request->validate([
-            'producto_id' => 'exists:config_productos,id',
-            'nom_plantilla' => 'string|max:70',
-            'estado' => 'boolean',
-        ], [
-            'producto_id.exists' => 'El producto seleccionado no es válido.',
-            'nom_plantilla.string' => 'El nombre de la plantilla debe ser un texto.',
-            'nom_plantilla.max' => 'El nombre de la plantilla no puede superar los 70 caracteres.',
-            'estado.boolean' => 'El estado debe ser verdadero o falso.',
-        ]);
+        $result = $this->configPlantillaTipoService->create($request->validated());
 
-        $plantilla = ConfigPlantillaTipo::findOrFail($id);
-        $datosViejos = $plantilla->toArray();
-        $plantilla->update($request->only(['nom_tipo', 'estado']));
-
-        AuditLogger::actualizar($plantilla, $datosViejos, 'Tipo de plantilla actualizado');
-
-        return response()->json($plantilla);
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Elimina un tipo de plantilla.
-     *
-     * @param  int  $id  ID del tipo de plantilla.
-     * @return JsonResponse Respuesta vacía (204).
-     */
-    public function destroy($id)
+    public function update(UpdateConfigPlantillaTipoRequest $request, int $id): JsonResponse
     {
-        $plantilla = ConfigPlantillaTipo::findOrFail($id);
-        $plantilla->delete();
+        $result = $this->configPlantillaTipoService->update($id, $request->validated());
 
-        AuditLogger::eliminar($plantilla, 'Tipo de plantilla eliminado');
-
-        return response()->json(null, 204);
+        return response()->json($result, $result['status']);
     }
 
-    /**
-     * Lista los tipos de plantillas activos.
-     *
-     * @return JsonResponse Lista de tipos activos.
-     */
-    public function listarActivos()
+    public function destroy(int $id): JsonResponse
     {
-        $plantillas = ConfigPlantillaTipo::where('estado', true)->get();
+        $result = $this->configPlantillaTipoService->delete($id);
 
-        return response()->json($plantillas);
+        return response()->json($result, $result['status']);
     }
 }
