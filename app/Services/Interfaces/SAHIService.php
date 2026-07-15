@@ -78,35 +78,7 @@ class SAHIService extends BaseService
     {
         $gruposPermitidos = [44, 195, 156, 190, 204];
 
-        $consulta1 = facFacturaDet::select([
-            'admAtencion.IdAtencion',
-            DB::raw("CONVERT(char(10), admAtencion.FecIngreso, 120) AS FecIngreso"),
-            'admCliente.NumDocumento',
-            'admCliente.PrimerNombre',
-            'admCliente.SegundoNombre',
-            'admCliente.PrimerApellido',
-            'admCliente.SegundoApellido',
-            DB::raw("CONVERT(char(10), admCliente.FecNacimiento, 120) AS FecNacimiento"),
-            'admCliente.IdSexo',
-            'admCliente.DirCasa',
-            'admCliente.TelCasa',
-            'proProducto.NomProducto',
-            'proProducto.IdProducto',
-            'proProducto.CodProducto',
-            'proProducto.CodLegal',
-            'admCliente.IdTipoDoc',
-            DB::raw("facFacturaDet.ValTotal AS 'ValProduc'"),
-            'conContrato.CodCon',
-            'conContrato.DesContrato',
-            'conPlan.DesPlan',
-            'genTercero.NomTercero',
-            DB::raw("(SELECT TOP(1) QuinOrdenoOrden.NomResponsable
-                    FROM hceProceOrden QuinOrdenoOrden
-                        INNER JOIN hceProceDetalle ON QuinOrdenoOrden.IdOrdenPro = hceProceDetalle.IdOrdenPro
-                        INNER JOIN proProducto PoducOrden ON hceProceDetalle.IdProducto = PoducOrden.IdProducto
-                    WHERE QuinOrdenoOrden.IdAtencion = admAtencion.IdAtencion AND PoducOrden.CodProducto = proProducto.CodProducto
-                ) as quien_ordeno"),
-        ])
+        $consulta1 = facFacturaDet::select($this->buildAtencionSelect('facFacturaDet.ValTotal'))
             ->join('facFactura', 'facFacturaDet.IdFactura', '=', 'facFactura.IdFactura')
             ->join('proProducto', 'facFacturaDet.IdProducto', '=', 'proProducto.IdProducto')
             ->join('admAtencion', 'facFactura.IdDestino', '=', 'admAtencion.IdAtencion')
@@ -118,35 +90,7 @@ class SAHIService extends BaseService
             ->where('admAtencion.IdAtencion', $atencionId)
             ->whereIn('proProducto.IdGrupo', $gruposPermitidos);
 
-        $consulta2 = FacMovimientoDet::select([
-            'admAtencion.IdAtencion',
-            DB::raw("CONVERT(char(10), admAtencion.FecIngreso, 120) AS FecIngreso"),
-            'admCliente.NumDocumento',
-            'admCliente.PrimerNombre',
-            'admCliente.SegundoNombre',
-            'admCliente.PrimerApellido',
-            'admCliente.SegundoApellido',
-            DB::raw("CONVERT(char(10), admCliente.FecNacimiento, 120) AS FecNacimiento"),
-            'admCliente.IdSexo',
-            'admCliente.DirCasa',
-            'admCliente.TelCasa',
-            'proProducto.NomProducto',
-            'proProducto.IdProducto',
-            'proProducto.CodProducto',
-            'proProducto.CodLegal',
-            'admCliente.IdTipoDoc',
-            DB::raw("facMovimientoDet.ValVenta AS 'ValProduc'"),
-            'conContrato.CodCon',
-            'conContrato.DesContrato',
-            'conPlan.DesPlan',
-            'genTercero.NomTercero',
-            DB::raw("(SELECT TOP(1) QuinOrdenoOrden.NomResponsable
-                    FROM hceProceOrden QuinOrdenoOrden
-                        INNER JOIN hceProceDetalle ON QuinOrdenoOrden.IdOrdenPro = hceProceDetalle.IdOrdenPro
-                        INNER JOIN proProducto PoducOrden ON hceProceDetalle.IdProducto = PoducOrden.IdProducto
-                    WHERE QuinOrdenoOrden.IdAtencion = admAtencion.IdAtencion AND PoducOrden.CodProducto = proProducto.CodProducto
-                ) as quien_ordeno"),
-        ])
+        $consulta2 = FacMovimientoDet::select($this->buildAtencionSelect('facMovimientoDet.ValVenta'))
             ->join('facMovimiento', 'facMovimientoDet.IdMovimiento', '=', 'facMovimiento.IdMovimiento')
             ->join('proProducto', 'facMovimientoDet.IdProducto', '=', 'proProducto.IdProducto')
             ->join('admAtencion', 'facMovimiento.IdDestino', '=', 'admAtencion.IdAtencion')
@@ -162,19 +106,48 @@ class SAHIService extends BaseService
 
         $atencionesLidiag = $this->obtenerDatosLidiag($atencionId);
 
-        $combinarAtenciones[] = [];
-        foreach ($atencionesSahi as $atencionLidiag) {
+        $combinarAtenciones = [];
+        foreach ($atencionesSahi as $atencion) {
             $matchAtencion = $atencionesLidiag->firstWhere('atencion_id', true);
-            if ($matchAtencion) {
-                $atencionLidiag->estado_ecografia = $matchAtencion->estado;
-            } else {
-                $atencionLidiag->estado_ecografia = null;
-            }
+            $atencion->estado_ecografia = $matchAtencion?->estado;
 
-            $combinarAtenciones[] = $atencionLidiag;
+            $combinarAtenciones[] = $atencion;
         }
 
         return $this->success($combinarAtenciones);
+    }
+
+    private function buildAtencionSelect(string $valProducField): array
+    {
+        return [
+            'admAtencion.IdAtencion',
+            DB::raw("CONVERT(char(10), admAtencion.FecIngreso, 120) AS FecIngreso"),
+            'admCliente.NumDocumento',
+            'admCliente.PrimerNombre',
+            'admCliente.SegundoNombre',
+            'admCliente.PrimerApellido',
+            'admCliente.SegundoApellido',
+            DB::raw("CONVERT(char(10), admCliente.FecNacimiento, 120) AS FecNacimiento"),
+            'admCliente.IdSexo',
+            'admCliente.DirCasa',
+            'admCliente.TelCasa',
+            'proProducto.NomProducto',
+            'proProducto.IdProducto',
+            'proProducto.CodProducto',
+            'proProducto.CodLegal',
+            'admCliente.IdTipoDoc',
+            DB::raw("{$valProducField} AS 'ValProduc'"),
+            'conContrato.CodCon',
+            'conContrato.DesContrato',
+            'conPlan.DesPlan',
+            'genTercero.NomTercero',
+            DB::raw("(SELECT TOP(1) QuinOrdenoOrden.NomResponsable
+                    FROM hceProceOrden QuinOrdenoOrden
+                        INNER JOIN hceProceDetalle ON QuinOrdenoOrden.IdOrdenPro = hceProceDetalle.IdOrdenPro
+                        INNER JOIN proProducto PoducOrden ON hceProceDetalle.IdProducto = PoducOrden.IdProducto
+                    WHERE QuinOrdenoOrden.IdAtencion = admAtencion.IdAtencion AND PoducOrden.CodProducto = proProducto.CodProducto
+                ) as quien_ordeno"),
+        ];
     }
 
     private function obtenerDatosLidiag(int $atencionId)

@@ -15,7 +15,6 @@ class HelpDeskTicketNotification extends Notification
         public readonly string $titulo,
         public readonly string $evento,
         public readonly string $mensaje,
-        public readonly ?string $url = null,
     ) {}
 
     public function via(object $notifiable): array

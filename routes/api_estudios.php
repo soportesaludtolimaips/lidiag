@@ -29,7 +29,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('/estudios', EstudioController::class)
         ->names('api.estudios')
-        ->except(['create', 'show']);
+        ->only(['index', 'store']);
 
     Route::get('/study-listar-diagnostico-por-estudio', [EstudioController::class, 'listarDiagnosticoPorEstudio'])
         ->name('api.study.listar.diagnostico.por.estudio');

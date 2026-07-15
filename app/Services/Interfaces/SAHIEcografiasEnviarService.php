@@ -105,6 +105,47 @@ class SAHIEcografiasEnviarService extends BaseService
             return [$row, $all];
         });
 
+        $validated = $this->validateSendPrerequisites($ecoProd, $ecoProds);
+        if (! $validated['ok'] || ! empty($validated['already_sent'])) {
+            return $validated;
+        }
+
+        $ecoProdIds = $validated['eco_prod_ids'];
+        $productoIds = $validated['producto_ids'];
+        $ecoProd = $validated['eco_prod'];
+        $ecografia = $validated['ecografia'];
+        $medico = $validated['medico'];
+        $atencionId = $validated['atencion_id'];
+        $memo = $validated['memo'];
+        $fecRegistro = $validated['fec_registro'];
+
+        try {
+            $result = DB::connection('sqlsrv')->transaction(
+                fn () => $this->executeSahiInsert($medico, $atencionId, (int) $ecografia->id, $productoIds, $fecRegistro, $memo)
+            );
+
+            if (! ($result['ok'] ?? false)) {
+                $status = (int) ($result['status'] ?? 500);
+                $message = (string) ($result['message'] ?? 'Error enviando ecografía a SAHI.');
+                if ($status !== 409) {
+                    $this->markEnvioErrorMany($ecoProdIds, $message);
+                }
+
+                return ['ok' => false, 'status' => $status, 'message' => $message];
+            }
+
+            $this->updateProductsAfterSahiSend($ecoProdIds, $ecoProds, $result);
+
+            return ['ok' => true, 'status' => 200, 'message' => $result['message'] ?? 'Ecografía enviada a SAHI correctamente.', 'data' => $result['data'] ?? null];
+        } catch (\Throwable $e) {
+            $this->markEnvioErrorMany($ecoProdIds, $e->getMessage());
+
+            return ['ok' => false, 'status' => 500, 'message' => 'Error enviando ecografía a SAHI.', 'data' => ['error' => $e->getMessage()]];
+        }
+    }
+
+    private function validateSendPrerequisites($ecoProd, $ecoProds): array
+    {
         if (! $ecoProd) {
             return ['ok' => false, 'status' => 404, 'message' => 'No se encontró el producto de ecografía en LIDiag.'];
         }
@@ -125,7 +166,7 @@ class SAHIEcografiasEnviarService extends BaseService
         if ($allSent) {
             return [
                 'ok' => true,
-                'status' => 200,
+                'already_sent' => true,
                 'message' => 'La ecografía ya fue enviada a SAHI.',
                 'data' => [
                     'ecografia_producto_id' => $ecoProd->id,
@@ -176,211 +217,207 @@ class SAHIEcografiasEnviarService extends BaseService
         $opinionPlano = $this->normalizeHtmlToText($ecoProd->opinion ?? '');
         $memo = trim($lecturaPlano)."\n\nOpinion:\n".trim($opinionPlano);
 
-        try {
-            $ecografiaId = (int) $ecografia->id;
+        return [
+            'ok' => true,
+            'eco_prod_ids' => $ecoProdIds,
+            'producto_ids' => $productoIds,
+            'eco_prod' => $ecoProd,
+            'ecografia' => $ecografia,
+            'medico' => $medico,
+            'atencion_id' => $atencionId,
+            'memo' => $memo,
+            'fec_registro' => $fecRegistro,
+        ];
+    }
 
-            $result = DB::connection('sqlsrv')->transaction(function () use ($medico, $atencionId, $ecografiaId, $productoIds, $fecRegistro, $memo) {
-                $lockKey = "LIDiag:SAHI:Atencion:{$atencionId}:Ecografia:{$ecografiaId}";
-                $lockRow = DB::connection('sqlsrv')->selectOne(
-                    "EXEC sp_getapplock @Resource = ?, @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 10000;",
-                    [$lockKey]
-                );
+    private function executeSahiInsert($medico, int $atencionId, int $ecografiaId, array $productoIds, string $fecRegistro, string $memo): array
+    {
+        $lockKey = "LIDiag:SAHI:Atencion:{$atencionId}:Ecografia:{$ecografiaId}";
+        $lockRow = DB::connection('sqlsrv')->selectOne(
+            "EXEC sp_getapplock @Resource = ?, @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 10000;",
+            [$lockKey]
+        );
 
-                $lockResult = null;
-                if (is_object($lockRow)) {
-                    $vals = array_values(get_object_vars($lockRow));
-                    $lockResult = $vals[0] ?? null;
-                }
+        $lockResult = null;
+        if (is_object($lockRow)) {
+            $vals = array_values(get_object_vars($lockRow));
+            $lockResult = $vals[0] ?? null;
+        }
 
-                if ($lockResult === null || (int) $lockResult < 0) {
-                    return ['ok' => false, 'status' => 409, 'message' => 'No fue posible obtener lock para el envío a SAHI (posible envío concurrente). Reintente.'];
-                }
+        if ($lockResult === null || (int) $lockResult < 0) {
+            return ['ok' => false, 'status' => 409, 'message' => 'No fue posible obtener lock para el envío a SAHI (posible envío concurrente). Reintente.'];
+        }
 
-                $existingMap = [];
-                foreach ($productoIds as $pid) {
-                    $ex = $this->findExistingEsquema150ForAtencionProducto((int) $atencionId, (int) $pid);
-                    if ($ex) {
-                        $existingMap[(int) $pid] = $ex;
-                    }
-                }
-                if (count($existingMap) === count($productoIds) && count($productoIds) > 0) {
-                    $first = array_values($existingMap)[0];
+        $existingMap = [];
+        foreach ($productoIds as $pid) {
+            $ex = $this->findExistingEsquema150ForAtencionProducto((int) $atencionId, (int) $pid);
+            if ($ex) {
+                $existingMap[(int) $pid] = $ex;
+            }
+        }
+        if (count($existingMap) === count($productoIds) && count($productoIds) > 0) {
+            $first = array_values($existingMap)[0];
 
-                    return [
-                        'ok' => true,
-                        'status' => 200,
-                        'message' => 'Ya existía un registro en SAHI para esta atención/productos (no se reinsertó).',
-                        'data' => [
-                            'IdEsquemaEncabezado149' => $first['IdEsquemaEncabezado149'],
-                            'IdEsquemaEncabezado150' => $first['IdEsquemaEncabezado150'],
-                            'IdAtencion' => $atencionId,
-                            'IdProductos' => $productoIds,
-                            'already_exists' => true,
-                            'existing_map' => $existingMap,
-                        ],
-                    ];
-                }
-
-                $usuarioSAHI = ASI_USUA::select('ASI_USUA.IdUsuario', 'hcePersonal.IdPersonal', 'hcePersonal.Nompersonal', 'hcePersonal.ApePersonal')
-                    ->join('hcePersonal', 'ASI_USUA.IdUsuario', 'hcePersonal.IdUsuario')
-                    ->where('ASI_USUA.IdUsuario', $medico->interface_id)
-                    ->first();
-                if (! $usuarioSAHI) {
-                    return ['ok' => false, 'status' => 422, 'message' => 'El médico no se encuentra registrado en SAHI. Verifique que el usuario exista y tenga hcePersonal asociado.'];
-                }
-
-                $idUsuario = (int) $usuarioSAHI->IdUsuario;
-                $idPersonal = (int) $usuarioSAHI->IdPersonal;
-                $nomMedico = trim(($usuarioSAHI->Nompersonal ?? '').' '.($usuarioSAHI->ApePersonal ?? ''));
-
-                $ubicacion = Atencion::select('IdUbicacionActual')
-                    ->where('idAtencion', $atencionId)
-                    ->first();
-                if (! $ubicacion || ! $ubicacion->IdUbicacionActual) {
-                    return ['ok' => false, 'status' => 422, 'message' => 'No se pudo obtener la ubicación actual (IdUbicacionActual) de la atención en SAHI.'];
-                }
-                $idUbicacionActual = (int) $ubicacion->IdUbicacionActual;
-
-                $consec1 = $this->incrementSisTablaConsecutivo('hceEsquemaEncabeza');
-                $this->incrementHceEsquemaConsecutivo(149);
-
-                $this->insertEncabezadoEsquema([
-                    'IdEsquemaEncabezado' => $consec1,
-                    'IdEsquema' => 149,
-                    'idEncabezadoPadre' => $consec1,
-                    'IdUbicacion' => $idUbicacionActual,
-                    'idAtencion' => $atencionId,
-                    'IdUsuarioR' => $idUsuario,
-                    'FecRegistro' => $fecRegistro,
-                ]);
-
-                $this->insertEsquemaAtencion([
-                    'IdEsquemadeAtencion' => $consec1,
-                    'IdEsquema' => 149,
+            return [
+                'ok' => true,
+                'status' => 200,
+                'message' => 'Ya existía un registro en SAHI para esta atención/productos (no se reinsertó).',
+                'data' => [
+                    'IdEsquemaEncabezado149' => $first['IdEsquemaEncabezado149'],
+                    'IdEsquemaEncabezado150' => $first['IdEsquemaEncabezado150'],
                     'IdAtencion' => $atencionId,
-                    'IdUbicacion' => $idUbicacionActual,
-                    'IdMedico' => $idPersonal,
-                    'FecEsquema' => $fecRegistro,
-                    'FecCerrado' => $fecRegistro,
-                    'IdUsuarioR' => $idUsuario,
-                ]);
+                    'IdProductos' => $productoIds,
+                    'already_exists' => true,
+                    'existing_map' => $existingMap,
+                ],
+            ];
+        }
 
-                $this->insertMemo([
-                    'IdMemo' => 1,
-                    'IdEsquemaEncabezado' => $consec1,
-                    'DesMemo' => $memo,
-                ]);
+        $usuarioSAHI = ASI_USUA::select('ASI_USUA.IdUsuario', 'hcePersonal.IdPersonal', 'hcePersonal.Nompersonal', 'hcePersonal.ApePersonal')
+            ->join('hcePersonal', 'ASI_USUA.IdUsuario', 'hcePersonal.IdUsuario')
+            ->where('ASI_USUA.IdUsuario', $medico->interface_id)
+            ->first();
+        if (! $usuarioSAHI) {
+            return ['ok' => false, 'status' => 422, 'message' => 'El médico no se encuentra registrado en SAHI. Verifique que el usuario exista y tenga hcePersonal asociado.'];
+        }
 
-                $this->insertDetalleMedico([
-                    'IdEsquemaEncabezado' => $consec1,
-                    'FecRegistro' => $fecRegistro,
-                    'IdUsuarioR' => $idUsuario,
-                    'NomMedico' => $nomMedico,
-                ]);
+        $idUsuario = (int) $usuarioSAHI->IdUsuario;
+        $idPersonal = (int) $usuarioSAHI->IdPersonal;
+        $nomMedico = trim(($usuarioSAHI->Nompersonal ?? '').' '.($usuarioSAHI->ApePersonal ?? ''));
 
-                $consec2 = $this->incrementSisTablaConsecutivo('hceEsquemaEncabeza');
-                $this->insertEncabezadoEsquema([
-                    'IdEsquemaEncabezado' => $consec2,
-                    'IdEsquema' => 150,
-                    'idEncabezadoPadre' => $consec1,
-                    'IdUbicacion' => $idUbicacionActual,
-                    'idAtencion' => $atencionId,
-                    'IdUsuarioR' => $idUsuario,
-                    'FecRegistro' => $fecRegistro,
-                ]);
+        $ubicacion = Atencion::select('IdUbicacionActual')
+            ->where('idAtencion', $atencionId)
+            ->first();
+        if (! $ubicacion || ! $ubicacion->IdUbicacionActual) {
+            return ['ok' => false, 'status' => 422, 'message' => 'No se pudo obtener la ubicación actual (IdUbicacionActual) de la atención en SAHI.'];
+        }
+        $idUbicacionActual = (int) $ubicacion->IdUbicacionActual;
 
-                $productosSAHI = ProProducto::select('IdProducto', 'NomProducto', 'CodLegal')
-                    ->whereIn('IdProducto', $productoIds)
-                    ->get()
-                    ->keyBy('IdProducto');
+        $consec1 = $this->incrementSisTablaConsecutivo('hceEsquemaEncabeza');
+        $this->incrementHceEsquemaConsecutivo(149);
 
-                $missing = [];
-                foreach ($productoIds as $pid) {
-                    if (! $productosSAHI->has($pid)) {
-                        $missing[] = (int) $pid;
-                    }
-                }
-                if (! empty($missing)) {
-                    return ['ok' => false, 'status' => 422, 'message' => 'Algunos productos no se encontraron en SAHI (proProducto): '.implode(', ', $missing)];
-                }
+        $this->insertEncabezadoEsquema([
+            'IdEsquemaEncabezado' => $consec1,
+            'IdEsquema' => 149,
+            'idEncabezadoPadre' => $consec1,
+            'IdUbicacion' => $idUbicacionActual,
+            'idAtencion' => $atencionId,
+            'IdUsuarioR' => $idUsuario,
+            'FecRegistro' => $fecRegistro,
+        ]);
 
-                $i = 0;
-                foreach ($productoIds as $pid) {
-                    $i++;
-                    $p = $productosSAHI->get($pid);
-                    $this->insertDetalleProducto([
-                        'IdDetalleValor' => $i,
-                        'IdEsquemaEncabezado' => $consec2,
-                        'IdUsuarioR' => $idUsuario,
-                        'FecRegistro' => $fecRegistro,
-                        'IdProducto' => $p->IdProducto,
-                        'NomProducto' => $p->NomProducto,
-                        'CodLegal' => $p->CodLegal,
+        $this->insertEsquemaAtencion([
+            'IdEsquemadeAtencion' => $consec1,
+            'IdEsquema' => 149,
+            'IdAtencion' => $atencionId,
+            'IdUbicacion' => $idUbicacionActual,
+            'IdMedico' => $idPersonal,
+            'FecEsquema' => $fecRegistro,
+            'FecCerrado' => $fecRegistro,
+            'IdUsuarioR' => $idUsuario,
+        ]);
+
+        $this->insertMemo([
+            'IdMemo' => 1,
+            'IdEsquemaEncabezado' => $consec1,
+            'DesMemo' => $memo,
+        ]);
+
+        $this->insertDetalleMedico([
+            'IdEsquemaEncabezado' => $consec1,
+            'FecRegistro' => $fecRegistro,
+            'IdUsuarioR' => $idUsuario,
+            'NomMedico' => $nomMedico,
+        ]);
+
+        $consec2 = $this->incrementSisTablaConsecutivo('hceEsquemaEncabeza');
+        $this->insertEncabezadoEsquema([
+            'IdEsquemaEncabezado' => $consec2,
+            'IdEsquema' => 150,
+            'idEncabezadoPadre' => $consec1,
+            'IdUbicacion' => $idUbicacionActual,
+            'idAtencion' => $atencionId,
+            'IdUsuarioR' => $idUsuario,
+            'FecRegistro' => $fecRegistro,
+        ]);
+
+        $productosSAHI = ProProducto::select('IdProducto', 'NomProducto', 'CodLegal')
+            ->whereIn('IdProducto', $productoIds)
+            ->get()
+            ->keyBy('IdProducto');
+
+        $missing = [];
+        foreach ($productoIds as $pid) {
+            if (! $productosSAHI->has($pid)) {
+                $missing[] = (int) $pid;
+            }
+        }
+        if (! empty($missing)) {
+            return ['ok' => false, 'status' => 422, 'message' => 'Algunos productos no se encontraron en SAHI (proProducto): '.implode(', ', $missing)];
+        }
+
+        $i = 0;
+        foreach ($productoIds as $pid) {
+            $i++;
+            $p = $productosSAHI->get($pid);
+            $this->insertDetalleProducto([
+                'IdDetalleValor' => $i,
+                'IdEsquemaEncabezado' => $consec2,
+                'IdUsuarioR' => $idUsuario,
+                'FecRegistro' => $fecRegistro,
+                'IdProducto' => $p->IdProducto,
+                'NomProducto' => $p->NomProducto,
+                'CodLegal' => $p->CodLegal,
+            ]);
+        }
+
+        return [
+            'ok' => true,
+            'status' => 200,
+            'message' => 'Ecografía enviada a SAHI correctamente.',
+            'data' => [
+                'IdEsquemaEncabezado149' => $consec1,
+                'IdEsquemaEncabezado150' => $consec2,
+                'IdAtencion' => $atencionId,
+                'IdProductos' => $productoIds,
+                'ProductosCount' => count($productoIds),
+                'already_exists' => false,
+            ],
+        ];
+    }
+
+    private function updateProductsAfterSahiSend(array $ecoProdIds, $ecoProds, array $result): void
+    {
+        DB::transaction(function () use ($ecoProdIds, $ecoProds, $result) {
+            $data = $result['data'] ?? [];
+            $id149 = $data['IdEsquemaEncabezado149'] ?? null;
+            $id150 = $data['IdEsquemaEncabezado150'] ?? null;
+            $existingMap = $data['existing_map'] ?? null;
+
+            if (is_array($existingMap) && ! empty($existingMap)) {
+                foreach ($ecoProds as $row) {
+                    $pid = (int) ($row->producto_id ?? 0);
+                    $ex = $pid && isset($existingMap[$pid]) ? $existingMap[$pid] : null;
+                    EcografiaProducto::where('id', $row->id)->update([
+                        'estado_envio_sahi' => 'ENVIADO',
+                        'fechor_envio_sahi' => now(),
+                        'sahi_esquema_149' => $ex['IdEsquemaEncabezado149'] ?? $id149,
+                        'sahi_esquema_150' => $ex['IdEsquemaEncabezado150'] ?? $id150,
+                        'error_envio_sahi' => null,
                     ]);
                 }
 
-                return [
-                    'ok' => true,
-                    'status' => 200,
-                    'message' => 'Ecografía enviada a SAHI correctamente.',
-                    'data' => [
-                        'IdEsquemaEncabezado149' => $consec1,
-                        'IdEsquemaEncabezado150' => $consec2,
-                        'IdAtencion' => $atencionId,
-                        'IdProductos' => $productoIds,
-                        'ProductosCount' => count($productoIds),
-                        'already_exists' => false,
-                    ],
-                ];
-            });
-
-            if (! ($result['ok'] ?? false)) {
-                $status = (int) ($result['status'] ?? 500);
-                $message = (string) ($result['message'] ?? 'Error enviando ecografía a SAHI.');
-                if ($status !== 409) {
-                    $this->markEnvioErrorMany($ecoProdIds, $message);
-                }
-
-                return ['ok' => false, 'status' => $status, 'message' => $message];
+                return;
             }
 
-            DB::transaction(function () use ($ecoProdIds, $ecoProds, $result) {
-                $data = $result['data'] ?? [];
-                $id149 = $data['IdEsquemaEncabezado149'] ?? null;
-                $id150 = $data['IdEsquemaEncabezado150'] ?? null;
-                $existingMap = $data['existing_map'] ?? null;
-
-                if (is_array($existingMap) && ! empty($existingMap)) {
-                    foreach ($ecoProds as $row) {
-                        $pid = (int) ($row->producto_id ?? 0);
-                        $ex = $pid && isset($existingMap[$pid]) ? $existingMap[$pid] : null;
-                        EcografiaProducto::where('id', $row->id)->update([
-                            'estado_envio_sahi' => 'ENVIADO',
-                            'fechor_envio_sahi' => now(),
-                            'sahi_esquema_149' => $ex['IdEsquemaEncabezado149'] ?? $id149,
-                            'sahi_esquema_150' => $ex['IdEsquemaEncabezado150'] ?? $id150,
-                            'error_envio_sahi' => null,
-                        ]);
-                    }
-
-                    return;
-                }
-
-                EcografiaProducto::whereIn('id', $ecoProdIds)->update([
-                    'estado_envio_sahi' => 'ENVIADO',
-                    'fechor_envio_sahi' => now(),
-                    'sahi_esquema_149' => $id149,
-                    'sahi_esquema_150' => $id150,
-                    'error_envio_sahi' => null,
-                ]);
-            });
-
-            return ['ok' => true, 'status' => 200, 'message' => $result['message'] ?? 'Ecografía enviada a SAHI correctamente.', 'data' => $result['data'] ?? null];
-        } catch (\Throwable $e) {
-            $this->markEnvioErrorMany($ecoProdIds, $e->getMessage());
-
-            return ['ok' => false, 'status' => 500, 'message' => 'Error enviando ecografía a SAHI.', 'data' => ['error' => $e->getMessage()]];
-        }
+            EcografiaProducto::whereIn('id', $ecoProdIds)->update([
+                'estado_envio_sahi' => 'ENVIADO',
+                'fechor_envio_sahi' => now(),
+                'sahi_esquema_149' => $id149,
+                'sahi_esquema_150' => $id150,
+                'error_envio_sahi' => null,
+            ]);
+        });
     }
 
     private function markEnvioErrorMany(array $ecografiaProductoIds, string $error): void

@@ -82,35 +82,35 @@ class EstudioController extends Controller
 
     public function listarPendientesTrascribir(Request $request): JsonResponse
     {
-        $request->validate([
+        $data = $request->validate([
             'sede_id' => 'required|integer|exists:config_sedes,id',
         ], [
             'sede_id.required' => 'La sede es obligatoria.',
             'sede_id.exists' => 'La sede seleccionada no existe.',
         ]);
 
-        $result = $this->estudioService->listarPendientesTranscribir($request->all());
+        $result = $this->estudioService->listarPendientesTranscribir($data);
 
         return response()->json($result, $result['status']);
     }
 
     public function listarEstudiosAsignados(Request $request): JsonResponse
     {
-        $request->validate([
+        $data = $request->validate([
             'sede_id' => 'required|integer|exists:config_sedes,id',
         ], [
             'sede_id.required' => 'La sede es obligatoria.',
             'sede_id.exists' => 'La sede seleccionada no existe.',
         ]);
 
-        $result = $this->estudioService->listarEstudiosAsignados($request->all());
+        $result = $this->estudioService->listarEstudiosAsignados($data);
 
         return response()->json($result, $result['status']);
     }
 
     public function guardarTranscripcion(Request $request): JsonResponse
     {
-        $request->validate([
+        $data = $request->validate([
             'estudio_producto_id' => 'required|integer|exists:estudios_productos,id',
             'id_estudio' => 'nullable|integer',
             'lectura' => 'required|string|min:3',
@@ -124,12 +124,10 @@ class EstudioController extends Controller
             'medico_id' => 'nullable|integer',
         ], ['lectura.required' => 'Debe ingresar la lectura.']);
 
-        $request->merge([
-            'fechor_lectura' => $request->input('fechor_lectura', $request->input('fec_lectura')),
-            'fechor_trascrito' => $request->input('fechor_trascrito', Carbon::now()->format('Y-m-d H:i:s')),
-        ]);
+        $data['fechor_lectura'] = $request->input('fechor_lectura', $request->input('fec_lectura'));
+        $data['fechor_trascrito'] = $request->input('fechor_trascrito', Carbon::now()->format('Y-m-d H:i:s'));
 
-        $result = $this->estudioService->guardarTranscripcion($request->all());
+        $result = $this->estudioService->guardarTranscripcion($data);
 
         return response()->json($result, $result['status']);
     }
@@ -168,14 +166,36 @@ class EstudioController extends Controller
 
     public function notificarEmail(Request $request): JsonResponse
     {
-        $result = $this->estudioService->notificarEmail($request->all());
+        $data = $request->validate([
+            'id_estudio' => 'required|integer',
+            'sede_id' => 'required|integer',
+            'email' => 'required|email',
+            'num_docu' => 'required|string',
+            'nom_pacien' => 'required|string',
+            'lectura' => 'required|string',
+            'estudio_producto_id' => 'required|integer',
+            'cod_cups' => 'required|string',
+            'nom_produc' => 'required|string',
+        ]);
+
+        $result = $this->estudioService->notificarEmail($data);
 
         return response()->json($result, $result['status']);
     }
 
     public function enviarPortalPacientes(Request $request): JsonResponse
     {
-        $result = $this->estudioService->enviarPortalPacientes($request->all());
+        $data = $request->validate([
+            'sede_id' => 'required|integer',
+            'num_docu' => 'required|string',
+            'nom_pacien' => 'required|string',
+            'lectura' => 'required|string',
+            'estudio_producto_id' => 'required|integer',
+            'cod_cups' => 'required|string',
+            'nom_produc' => 'required|string',
+        ]);
+
+        $result = $this->estudioService->enviarPortalPacientes($data);
 
         return response()->json($result, $result['status']);
     }

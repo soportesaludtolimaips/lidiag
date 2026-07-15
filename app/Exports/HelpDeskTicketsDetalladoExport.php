@@ -2,7 +2,7 @@
 
 namespace App\Exports;
 
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithCustomStartCell;
@@ -16,55 +16,18 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class HelpDeskTicketsDetalladoExport implements FromCollection, WithColumnWidths, WithCustomStartCell, WithHeadings, WithMapping, WithStyles
 {
-    /** @var array<string, mixed> */
-    protected $filters;
+    /** @var Collection */
+    protected $collection;
 
-    /** @param array<string, mixed> $filters */
-    public function __construct(array $filters)
+    /** @param Collection $collection */
+    public function __construct($collection)
     {
-        $this->filters = $filters;
+        $this->collection = $collection;
     }
 
     public function collection()
     {
-        $f = $this->filters;
-
-        $q = DB::table('help_desk_tickets as t')
-            ->leftJoin('help_desk_estados as e', 'e.id', '=', 't.estado_id')
-            ->leftJoin('help_desk_categorias as c', 'c.id', '=', 't.categoria_id')
-            ->leftJoin('help_desk_prioridades as p', 'p.id', '=', 't.prioridad_id')
-            ->leftJoin('config_sedes as s', 's.id', '=', 't.sedes_id')
-            ->leftJoin('users as u_sol', 'u_sol.id', '=', 't.quien_registra_id')
-            ->leftJoin('users as u_asg', 'u_asg.id', '=', 't.quien_atiende_id')
-            ->whereNull('t.deleted_at')
-            ->whereBetween(DB::raw('DATE(t.created_at)'), [$f['fechaIni'], $f['fechaFin']])
-            ->when($f['sedeId'] ?? null, fn ($qq) => $qq->where('t.sedes_id', (int) $f['sedeId']))
-            ->when($f['estadoId'] ?? null, fn ($qq) => $qq->where('t.estado_id', (int) $f['estadoId']))
-            ->when($f['categoriaId'] ?? null, fn ($qq) => $qq->where('t.categoria_id', (int) $f['categoriaId']))
-            ->when($f['prioridadId'] ?? null, fn ($qq) => $qq->where('t.prioridad_id', (int) $f['prioridadId']))
-            ->when($f['solicitanteId'] ?? null, fn ($qq) => $qq->where('t.quien_registra_id', (int) $f['solicitanteId']))
-            ->when($f['tecnicoId'] ?? null, fn ($qq) => $qq->where('t.quien_atiende_id', (int) $f['tecnicoId']))
-            ->select(
-                't.id',
-                't.folio',
-                't.titulo',
-                'e.nombre as estado',
-                'p.nombre as prioridad',
-                'p.orden as prioridad_orden',
-                'c.nombre as categoria',
-                't.pendiente_de',
-                's.nom_sede as sede',
-                'u_sol.name as solicitante',
-                'u_asg.name as tecnico',
-                't.created_at',
-                't.resolved_at',
-                't.closed_at',
-                DB::raw('TIMESTAMPDIFF(SECOND, t.created_at, t.resolved_at) as segundos_resolucion')
-            )
-            ->orderByDesc('t.created_at')
-            ->get();
-
-        return $q;
+        return $this->collection;
     }
 
     public function headings(): array

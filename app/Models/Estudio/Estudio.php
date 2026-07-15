@@ -22,7 +22,7 @@ class Estudio extends Model
         'accession_no',
         'study_desc',
         'mods_in_study',
-        'email_reporta',
+        'email_reportar',
         'paciente_id',
         'medico_id',
         'quien_registro_id',

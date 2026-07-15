@@ -155,12 +155,13 @@
     </div>
 </template>
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import { toastMessage, handleAxiosErrorToast } from "@/helpers/alerts.js";
 import { initWysiwyg, getWysiwygValue, isHtmlEffectivelyEmpty } from "@/helpers/wysiwyg.js";
 import { helpdesk } from "@/helpers/api.js";
 
+const { proxy } = getCurrentInstance();
 const loading = ref(false);
 const categorias = ref([]);
 const prioridades = ref([]);
@@ -175,7 +176,7 @@ const form = ref({
 });
 
 function getDescripcionFromEditor() {
-    return getWysiwygValue($el) || form.value.descripcion || "";
+    return getWysiwygValue(proxy.$el) || form.value.descripcion || "";
 }
 async function cargar() {
     try {
@@ -263,10 +264,10 @@ async function guardar() {
 
         // Adjuntos iniciales (si hay)
         const input = files.value;
-        const files = input && input.files ? Array.from(input.files) : [];
-        if (files.length) {
+        const rawFiles = input && input.files ? Array.from(input.files) : [];
+        if (rawFiles.length) {
             const fd = new FormData();
-            files.forEach((f) => fd.append("files[]", f));
+            rawFiles.forEach((f) => fd.append("files[]", f));
             fd.append("comentario", "Adjuntos iniciales.");
             await helpdesk.subirAdjuntos(ticket.id, fd);
         }
@@ -299,7 +300,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
     try {
-        const $root = $($el);
+        const $root = $(proxy.$el);
         $root.find(".textarea_editor").each((_, el) => {
             const $el = $(el);
             const inst = $el.data("wysihtml5");

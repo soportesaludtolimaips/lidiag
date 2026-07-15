@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use Twilio\Rest\Client;
 
 class EstudioNotificacionService extends BaseService
 {
@@ -208,29 +207,6 @@ class EstudioNotificacionService extends BaseService
             return (new self)->success(null, 'Todas las imágenes se han descargado y guardado correctamente');
         } finally {
             Config::set('database.default', $originalDefault);
-        }
-    }
-
-    public function enviarWhatsApp(string $numeroTelefono, string $mensaje): array
-    {
-        $sid = env('TWILIO_SID', "ACcdc29948e05772a83ac3e0db74169c96");
-        $token = env('TWILIO_AUTH_TOKEN', "b92011d04a5d9d1b929a1b97d7dff9f7");
-        $twilio = new Client($sid, $token);
-
-        try {
-            $message = $twilio->messages->create(
-                'whatsapp:+573223669021',
-                [
-                    "from" => "whatsapp:+14155238886",
-                    "contentSid" => "HXb5b62575e6e4ff6129ad7c8efe1f983e",
-                    'body' => $mensaje,
-                    'mediaUrl' => ['https://tureporte.com/reporte.pdf'],
-                ]
-            );
-
-            return $this->success(['message_sid' => $message->sid], 'Mensaje enviado por WhatsApp');
-        } catch (\Exception $e) {
-            return $this->error('Error al enviar WhatsApp: '.$e->getMessage(), 500);
         }
     }
 

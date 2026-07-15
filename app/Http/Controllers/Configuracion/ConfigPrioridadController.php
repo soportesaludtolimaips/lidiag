@@ -43,7 +43,14 @@ class ConfigPrioridadController extends Controller
 
     public function update(Request $request, int $id): JsonResponse
     {
-        $result = $this->configPrioridadService->update($id, $request->all());
+        $data = $request->validate([
+            'nom_priori' => 'required|string|max:255',
+            'nivel' => 'nullable|integer',
+            'tiempo' => 'nullable|integer',
+            'estado' => 'nullable|boolean',
+        ]);
+
+        $result = $this->configPrioridadService->update($id, $data);
 
         return response()->json($result, $result['status']);
     }

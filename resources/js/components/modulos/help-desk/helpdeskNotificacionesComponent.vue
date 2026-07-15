@@ -45,7 +45,7 @@
                             </div>
                             <template v-else>
                                 <div
-                                    v-for="n in itemsFiltradas"
+                                    v-for="n in items"
                                     :key="n.id"
                                     class="alert"
                                     :class="n.read_at ? 'alert-secondary' : 'alert-info'"
@@ -107,7 +107,7 @@
     </div>
 </template>
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 
 import { toastMessage, handleAxiosErrorToast } from "@/helpers/alerts.js";
 import { formatDateTime } from "@/helpers/dateUtils.js";
@@ -120,11 +120,6 @@ const paginaActual = ref(1);
 const totalPaginas = ref(1);
 const porPagina = ref(50);
 
-const itemsFiltradas = computed(() => {
-    if (!soloNoLeidas.value) return items.value;
-    return items.value.filter((x) => !x.read_at);
-});
-
 async function cargar(pagina) {
     if (pagina) paginaActual.value = pagina;
     loading.value = true;
@@ -132,6 +127,7 @@ async function cargar(pagina) {
         const res = await helpdesk.notificaciones({
             limit: porPagina.value,
             page: paginaActual.value,
+            unread_only: soloNoLeidas.value ? 1 : 0,
         });
         items.value = res.data?.items || [];
         totalPaginas.value = res.data?.last_page || 1;
@@ -148,7 +144,10 @@ function irPagina(pagina) {
 async function marcarLeida(n) {
     try {
         await helpdesk.marcarLeida(n.id);
-        n.read_at = new Date().toISOString();
+        const idx = items.value.findIndex((x) => x.id === n.id);
+        if (idx !== -1) {
+            items.value[idx] = { ...items.value[idx], read_at: new Date().toISOString() };
+        }
         toastMessage({
             heading: "Ok",
             text: "Notificación marcada como leída.",
@@ -170,6 +169,11 @@ async function abrir(n) {
     if (!n.read_at) await marcarLeida(n);
     if (n.data?.ticket_id) window.location.href = `/helpdesk-tickets/${n.data.ticket_id}`;
 }
+
+watch(soloNoLeidas, () => {
+    paginaActual.value = 1;
+    cargar();
+});
 
 onMounted(async () => {
     await cargar();

@@ -25,8 +25,8 @@ class HelpDeskReporteService extends BaseService
     public function normalizeFilters(array $raw): array
     {
         return [
-            'fechaIni' => $raw['fechaIni'] ?? null,
-            'fechaFin' => $raw['fechaFin'] ?? null,
+            'fechaIni' => $raw['fechaIni'] ?? $raw['desde'] ?? null,
+            'fechaFin' => $raw['fechaFin'] ?? $raw['hasta'] ?? null,
             'sedeId' => $this->normalizeNullable($raw['sedeId'] ?? null),
             'estadoId' => $this->normalizeNullable($raw['estadoId'] ?? null),
             'categoriaId' => $this->normalizeNullable($raw['categoriaId'] ?? null),
@@ -153,8 +153,31 @@ class HelpDeskReporteService extends BaseService
     public function exportExcel(array $filters)
     {
         $name = 'helpdesk_tickets_'.$filters['fechaIni'].'_a_'.$filters['fechaFin'].'.xlsx';
+        $limit = max(1, min(10000, (int) ($filters['limit'] ?? 5000)));
 
-        return Excel::download(new HelpDeskTicketsDetalladoExport($filters), $name);
+        $items = $this->baseQuery($filters)
+            ->select(
+                't.id',
+                't.folio',
+                't.titulo',
+                'e.nombre as estado',
+                'p.nombre as prioridad',
+                'p.orden as prioridad_orden',
+                'c.nombre as categoria',
+                't.pendiente_de',
+                's.nom_sede as sede',
+                'u_sol.name as solicitante',
+                'u_asg.name as tecnico',
+                't.created_at',
+                't.resolved_at',
+                't.closed_at',
+                DB::raw('TIMESTAMPDIFF(SECOND, t.created_at, t.resolved_at) as segundos_resolucion')
+            )
+            ->orderByDesc('t.created_at')
+            ->limit($limit)
+            ->get();
+
+        return Excel::download(new HelpDeskTicketsDetalladoExport($items), $name);
     }
 
     public function exportPdf(array $filters)

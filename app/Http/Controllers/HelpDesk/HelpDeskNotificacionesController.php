@@ -16,7 +16,9 @@ class HelpDeskNotificacionesController extends Controller
     public function index(Request $request): JsonResponse
     {
         $limit = (int) ($request->query('limit', 20));
-        $result = $this->notificacionService->list($request->user(), $limit);
+        $page = (int) ($request->query('page', 1));
+        $unreadOnly = (bool) $request->query('unread_only', false);
+        $result = $this->notificacionService->list($request->user(), $limit, $page, $unreadOnly);
 
         return response()->json($result['data'], $result['status']);
     }

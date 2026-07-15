@@ -41,17 +41,10 @@ Route::post('/logout', [LoginController::class, 'logout'])
 
 // Password Reset
 use App\Http\Controllers\Agenda\AgendaCitaController;
-use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\PasswordChangeController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Configuracion\ConfigSedeController;
 
-Route::get('/password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])
-    ->name('password.request')
-    ->middleware(['guest']);
-Route::post('/password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])
-    ->name('password.email')
-    ->middleware(['guest', 'throttle:5,1']);
 Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])
     ->name('password.reset')
     ->middleware(['guest']);

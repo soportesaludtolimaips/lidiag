@@ -59,6 +59,7 @@ import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js
 import { handleAxiosErrorToast } from "@/helpers/alerts.js";
 import axios from "axios";
 
+const dt = ref(null);
 const registros = ref([]);
 const loadingListar = ref(false);
 

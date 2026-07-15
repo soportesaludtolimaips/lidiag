@@ -223,6 +223,23 @@ class EstudioService extends BaseService
         return $this->success($results);
     }
 
+    /**
+     * @param array{
+     *     estudio_producto_id: int,
+     *     lectura: string,
+     *     num_docu: string,
+     *     nom_pacien: string,
+     *     sede_id: int,
+     *     cod_cups: string,
+     *     nom_produc: string,
+     *     id_estudio?: int,
+     *     email?: string,
+     *     tel?: string,
+     *     medico_id?: int,
+     *     fechor_lectura?: string,
+     *     fechor_trascrito?: string,
+     * } $data
+     */
     public function guardarTranscripcion(array $data): array
     {
         try {
@@ -336,6 +353,19 @@ class EstudioService extends BaseService
         return $this->success(['path' => $path, 'filename' => $filename]);
     }
 
+    /**
+     * @param array{
+     *     id_estudio: int,
+     *     sede_id: int,
+     *     email: string,
+     *     num_docu: string,
+     *     nom_pacien: string,
+     *     lectura: string,
+     *     estudio_producto_id: int,
+     *     cod_cups: string,
+     *     nom_produc: string,
+     * } $data
+     */
     public function notificarEmail(array $data): array
     {
         $plantillaResult = $this->plantillaEstudioService->editWord($data);
@@ -360,6 +390,17 @@ class EstudioService extends BaseService
         return $this->success(null, 'Notificación reenviada correctamente.');
     }
 
+    /**
+     * @param array{
+     *     sede_id: int,
+     *     num_docu: string,
+     *     nom_pacien: string,
+     *     lectura: string,
+     *     estudio_producto_id: int,
+     *     cod_cups: string,
+     *     nom_produc: string,
+     * } $data
+     */
     public function enviarPortalPacientes(array $data): array
     {
         $plantillaResult = $this->plantillaEstudioService->editWord($data);
@@ -529,10 +570,8 @@ class EstudioService extends BaseService
         }
 
         if ($estudioParaTranscribir) {
-            $query->where(function ($q) use ($destinoEstudio) {
-                if ($destinoEstudio === 'Salud Tolima') {
-                    $q->whereNotNull('estudios_productos.fechor_lectura');
-                }
+            $query->where(function ($q) {
+                $q->whereNotNull('estudios_productos.fechor_lectura');
             });
         }
 

@@ -18,7 +18,14 @@ class ecografiaLecturaController extends Controller
 
     public function leer(Request $request, int $id): JsonResponse
     {
-        $result = $this->lecturaService->leer($request->all(), $id);
+        $data = $request->validate([
+            'accion' => 'required|string|in:IMPRIMIR_LECTURA,TERMINAR_LECTURA,GUARDAR_BORRADOR',
+            'registro' => 'required|array',
+            'registro.lectura' => 'nullable|string',
+            'registro.opinion' => 'nullable|string',
+        ]);
+
+        $result = $this->lecturaService->leer($data, $id);
 
         return response()->json($result, $result['status']);
     }

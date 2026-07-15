@@ -270,7 +270,7 @@
     </div>
 </template>
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import DOMPurify from "dompurify";
 import { toastMessage, handleAxiosErrorToast, confirmAction } from "@/helpers/alerts.js";
@@ -278,7 +278,10 @@ import { formatDateTime } from "@/helpers/dateUtils.js";
 import { initWysiwyg } from "@/helpers/wysiwyg.js";
 import { helpdesk } from "@/helpers/api.js";
 
-const props = defineProps({});
+defineProps({
+    ticketId: { type: [Number, String], required: true },
+});
+const { proxy } = getCurrentInstance();
 
 const loading = ref(false);
 const savingComentario = ref(false);
@@ -408,13 +411,13 @@ async function reasignar() {
 }
 async function subirAdjuntos() {
     const input = files.value;
-    const files = input && input.files ? Array.from(input.files) : [];
-    if (!files.length) return;
+    const rawFiles = input && input.files ? Array.from(input.files) : [];
+    if (!rawFiles.length) return;
 
     savingAdjuntos.value = true;
     try {
         const fd = new FormData();
-        files.forEach((f) => fd.append("files[]", f));
+        rawFiles.forEach((f) => fd.append("files[]", f));
         fd.append("comentario", "Adjuntos agregados.");
         await helpdesk.subirAdjuntos(ticketId, fd);
         if (input) input.value = "";
@@ -434,7 +437,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
     try {
-        const $root = $($el);
+        const $root = $(proxy.$el);
         $root.find(".textarea_editor").each((_, el) => {
             const $el = $(el);
             const inst = $el.data("wysihtml5");

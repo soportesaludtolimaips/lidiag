@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class DashboardService extends BaseService
+class DashBoardService extends BaseService
 {
     private const BASE_FROM = 'estudios_productos ep
         INNER JOIN estudios e ON e.id = ep.estudio_id AND e.estado = 1

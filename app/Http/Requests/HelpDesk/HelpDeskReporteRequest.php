@@ -14,9 +14,11 @@ class HelpDeskReporteRequest extends FormRequest
     public function rules()
     {
         return [
-            'fechaIni' => 'required|date',
-            'fechaFin' => 'required|date|after_or_equal:fechaIni',
-            'sedeId' => 'nullable',
+            'fechaIni' => 'nullable|date',
+            'fechaFin' => 'nullable|date',
+            'desde' => 'nullable|date',
+            'hasta' => 'nullable|date',
+            'sedeId' => 'nullable|integer',
             'estadoId' => 'nullable|integer',
             'categoriaId' => 'nullable|integer',
             'prioridadId' => 'nullable|integer',
@@ -28,9 +30,26 @@ class HelpDeskReporteRequest extends FormRequest
     public function messages()
     {
         return [
-            'fechaIni.required' => 'Debes seleccionar fecha inicio.',
-            'fechaFin.required' => 'Debes seleccionar fecha fin.',
             'fechaFin.after_or_equal' => 'La fecha fin no puede ser menor que la fecha inicio.',
         ];
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $hasIni = $this->filled('fechaIni') || $this->filled('desde');
+            $hasFin = $this->filled('fechaFin') || $this->filled('hasta');
+
+            if ($hasIni && ! $hasFin) {
+                $validator->errors()->add('fechaFin', 'Debes seleccionar fecha fin.');
+            }
+            if (! $hasIni && $hasFin) {
+                $validator->errors()->add('fechaIni', 'Debes seleccionar fecha inicio.');
+            }
+
+            if ($hasIni && ! $hasFin && ! $validator->errors()->has('fechaFin')) {
+                $validator->errors()->add('fechaFin', 'Debes seleccionar fecha fin.');
+            }
+        });
     }
 }

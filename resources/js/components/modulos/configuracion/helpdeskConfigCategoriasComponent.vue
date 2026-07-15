@@ -182,6 +182,7 @@ import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js
 import { toastMessage, confirmAction, handleAxiosErrorToast } from "@/helpers/alerts.js";
 import axios from "axios";
 
+const dt = ref(null);
 const registros = ref([]);
 const registro = ref({ id: 0, nombre: "", activo: true });
 const tituloModal = ref("Nuevo registro");
@@ -219,10 +220,10 @@ function mostrarRegistro(item = null) {
         tituloModal.value = "Nuevo registro";
         registro.value = { id: 0, nombre: "", activo: true };
     }
-    $(".right-side-toggle").click();
+    document.body.classList.add("right-side-toggled");
 }
 function btnCerralModalForm() {
-    $("#btnCerralModalForm").click();
+    document.body.classList.remove("right-side-toggled");
 }
 async function guardarRegistro() {
     if (loadingGuardar.value) return;

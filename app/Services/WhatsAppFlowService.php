@@ -371,6 +371,12 @@ class WhatsAppFlowService
 
         $sede = ConfigSede::find($sedeId);
 
+        if (! $sede) {
+            $conv->update(['paso' => 'seleccionar_sede']);
+
+            return $this->text("Lo sentimos, la sede seleccionada ya no está disponible. Por favor, seleccione otra.");
+        }
+
         $rows = [];
         foreach ($servicios as $i => $serv) {
             $rows[] = [
