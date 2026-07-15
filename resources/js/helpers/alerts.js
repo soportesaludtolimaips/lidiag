@@ -39,6 +39,9 @@ export function alertInfo(title = "Info", text = "", icon = "info") {
  */
 export function confirmAction(options) {
     const swal = getSwal();
+    if (!swal) {
+        return Promise.resolve(window.confirm(options.text || "¿Estás seguro?"));
+    }
     return new Promise((resolve) => {
         swal(
             {

@@ -27,9 +27,11 @@ class HelpDeskTicketsController extends Controller
             'categoria_id' => $request->query('categoria_id'),
             'prioridad_id' => $request->query('prioridad_id'),
             'sede_id' => $request->query('sede_id'),
-            'desde' => $request->query('desde'),
-            'hasta' => $request->query('hasta'),
+            'desde' => $request->query('desde') ?: $request->query('fechaIni'),
+            'hasta' => $request->query('hasta') ?: $request->query('fechaFin'),
             'q' => $request->query('q'),
+            'per_page' => (int) $request->query('per_page', 50),
+            'page' => (int) $request->query('page', 1),
         ];
 
         $result = $this->ticketService->list($filters, $request->user());

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Estudios;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Estudios\StoreEstudioProductoRequest;
+use App\Http\Requests\Estudios\UpdateEstudioProductoRequest;
 use App\Services\Estudios\EstudioProductoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,16 +22,16 @@ class EstudioProductoController extends Controller
         return response()->json($result, $result['status']);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreEstudioProductoRequest $request): JsonResponse
     {
-        $result = $this->estudioProductoService->create($request->all());
+        $result = $this->estudioProductoService->create($request->validated());
 
         return response()->json($result, $result['status']);
     }
 
-    public function update(Request $request, int $id): JsonResponse
+    public function update(UpdateEstudioProductoRequest $request, int $id): JsonResponse
     {
-        $result = $this->estudioProductoService->update($id, $request->all());
+        $result = $this->estudioProductoService->update($id, $request->validated());
 
         return response()->json($result, $result['status']);
     }

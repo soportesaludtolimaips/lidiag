@@ -15,7 +15,7 @@ class HelpDeskChangeStatusRequest extends FormRequest
     {
         return [
             'estado_id' => 'required|integer|exists:help_desk_estados,id',
-            'comentario' => 'nullable|string',
+            'comentario' => 'nullable|string|required_without:descripcion_solucion',
             'descripcion_solucion' => 'nullable|string',
         ];
     }

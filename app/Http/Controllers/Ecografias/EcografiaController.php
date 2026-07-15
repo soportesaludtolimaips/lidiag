@@ -60,7 +60,14 @@ class EcografiaController extends Controller
 
     public function update(Request $request, int $id): JsonResponse
     {
-        $result = $this->ecografiaService->update($id, $request->all());
+        $data = $request->validate([
+            'medico_id' => 'nullable|integer',
+            'sede_id' => 'nullable|integer',
+            'prioridad_id' => 'nullable|integer',
+            'observaciones' => 'nullable|string',
+        ]);
+
+        $result = $this->ecografiaService->update($id, $data);
 
         return response()->json($result, $result['status']);
     }
@@ -81,7 +88,33 @@ class EcografiaController extends Controller
 
     public function generarReporte(Request $request, int $ecografia_id): JsonResponse
     {
-        $result = $this->plantillaEcografiaService->editWord($request->all());
+        $data = $request->validate([
+            'sede_id' => 'required|integer|exists:config_sedes,id',
+            'medico_id' => 'required|integer',
+            'num_docu' => 'required|string',
+            'nom_pacien' => 'required|string',
+            'tipo_estudio' => 'nullable|string',
+            'lectura' => 'nullable|string',
+            'opinion' => 'nullable|string',
+            'fec_estudio' => 'nullable|date',
+            'fechor_lectura' => 'nullable|date',
+            'fechor_trascrito' => 'nullable|date',
+            'cod_cups' => 'nullable|string',
+            'nom_produc' => 'nullable|string',
+            'nom_sede' => 'nullable|string',
+            'fec_naci' => 'nullable|date',
+            'sexo' => 'nullable|string|max:1',
+            'edad' => 'nullable|string',
+            'dir' => 'nullable|string',
+            'tel' => 'nullable|string',
+            'cel' => 'nullable|string',
+            'atencion' => 'nullable|string',
+            'admin_salud' => 'nullable|string',
+            'contrato' => 'nullable|string',
+        ]);
+        $data['ecografia_id'] = $ecografia_id;
+
+        $result = $this->plantillaEcografiaService->editWord($data);
 
         return response()->json($result, $result['status']);
     }

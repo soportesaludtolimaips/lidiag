@@ -193,20 +193,17 @@
     </ul>
 </template>
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, getCurrentInstance, onBeforeUnmount, onMounted, ref } from "vue";
 
 import { handleAxiosErrorToast } from "@/helpers/alerts.js";
 import axios from "axios";
 
-const props = defineProps({});
+const { proxy } = getCurrentInstance();
+const emitter = proxy.emitter;
 
 const sedes = ref([]);
-const sedeSeleccionada = ref(
-    this.sedeSeleccionada ? this.sedeSeleccionada : sessionStorage.getItem("ST-sede")
-);
-const medicoSeleccionado = ref(
-    this.medicoSeleccionado ? this.medicoSeleccionado : sessionStorage.getItem("ST-medico")
-);
+const sedeSeleccionada = ref(sessionStorage.getItem("ST-sede"));
+const medicoSeleccionado = ref(sessionStorage.getItem("ST-medico"));
 const medicos = ref([]);
 const nomMedicoSeleccionado = ref(null);
 const mostrarMedico = ref(true);
@@ -360,7 +357,23 @@ onMounted(() => {
     listarSedes();
     listarMedicos();
     cargarHdNotificaciones();
-    hdIntervalId.value = setInterval(() => cargarHdNotificaciones(true), 30000);
+
+    // Polling inteligente: solo si la pestaña está visible, con backoff progresivo
+    let pollInterval = 30000;
+    function schedulePoll() {
+        const delay = document.hidden ? Math.min(pollInterval * 3, 120000) : pollInterval;
+        hdIntervalId.value = setTimeout(() => {
+            cargarHdNotificaciones(true);
+            schedulePoll();
+        }, delay);
+    }
+    schedulePoll();
+    function onVisibilityChange() {
+        if (!document.hidden) {
+            cargarHdNotificaciones(true);
+        }
+    }
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     const medicoSeleccionado = sessionStorage.getItem("ST-medico");
     const sedeSeleccionada = sessionStorage.getItem("ST-sede");
@@ -377,7 +390,10 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     try {
-        if (hdIntervalId.value) clearInterval(hdIntervalId.value);
+        if (hdIntervalId.value) clearTimeout(hdIntervalId.value);
+    } catch (_) {}
+    try {
+        document.removeEventListener("visibilitychange", onVisibilityChange);
     } catch (_) {}
 });
 </script>

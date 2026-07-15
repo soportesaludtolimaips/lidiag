@@ -15,20 +15,13 @@ class DashBoardController extends Controller
 
     public function dashboard(Request $request): JsonResponse
     {
-        $days = (int) $request->query('days', 30);
-        $days = max(1, min($days, 365));
+        $filters = [
+            'days' => (int) $request->query('days', 30),
+            'sede_id' => $request->query('sede_id'),
+            'medico_id' => $request->query('medico_id'),
+        ];
 
-        $userId = (int) auth()->id();
-        $isAdmin = $this->service->isAdministrador();
-
-        $scope = $this->service->resolveScope(
-            $request->query('sede_id'),
-            $isAdmin ? $request->query('medico_id') : null,
-            $isAdmin,
-            $userId
-        );
-
-        $result = $this->service->dashboard($scope, $days, $isAdmin);
+        $result = $this->service->dashboard($filters);
 
         return response()->json($result['data'], $result['status']);
     }

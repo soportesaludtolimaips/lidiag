@@ -272,6 +272,7 @@ import { helpdesk } from "@/helpers/api.js";
 
 const scope = ref("mine");
 const loading = ref(false);
+const dt = ref(null);
 const tickets = ref([]);
 const categorias = ref([]);
 const prioridades = ref([]);
@@ -296,7 +297,7 @@ function prioridadRowClass(nombre) {
 }
 async function cargarCatalogos() {
     try {
-        const [cats, prios, ests, sedes] = await Promise.all([
+        const [cats, prios, ests, sedesRes] = await Promise.all([
             helpdesk.categorias(),
             helpdesk.prioridades(),
             helpdesk.estados(),
@@ -305,13 +306,13 @@ async function cargarCatalogos() {
         categorias.value = (cats.data || []).filter((x) => x.activo);
         prioridades.value = (prios.data || []).filter((x) => x.activo);
         estados.value = (ests.data || []).filter((x) => x.activo);
-        sedes.value = sedes.data || [];
+        sedes.value = sedesRes.data || [];
     } catch (error) {
         handleAxiosErrorToast(error, "No se pudieron cargar catálogos.");
     }
 }
-function setScope(scope) {
-    scope.value = scope;
+function setScope(newScope) {
+    scope.value = newScope;
     buscar();
 }
 function limpiar() {
@@ -356,7 +357,7 @@ async function buscar() {
             scope: scope.value,
             ...filters.value,
         });
-        tickets.value = res.data || [];
+        tickets.value = res.data?.items || [];
         nextTick(() => {
             destroyDataTable();
             initDataTable();

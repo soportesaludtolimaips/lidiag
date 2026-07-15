@@ -385,6 +385,7 @@ import { toastMessage, handleAxiosErrorToast } from "@/helpers/alerts.js";
 import { formatDateTime } from "@/helpers/dateUtils.js";
 import { helpdesk } from "@/helpers/api.js";
 
+const dt = ref(null);
 const loading = ref(false);
 const limit = ref(500);
 const indicadores = ref(null);
@@ -393,9 +394,12 @@ const sedes = ref([]);
 const estados = ref([]);
 const categorias = ref([]);
 const prioridades = ref([]);
+const _today = new Date();
+const _todayStr = `${_today.getFullYear()}-${String(_today.getMonth() + 1).padStart(2, "0")}-${String(_today.getDate()).padStart(2, "0")}`;
+
 const filters = ref({
-    fechaIni: todayStr,
-    fechaFin: todayStr,
+    fechaIni: _todayStr,
+    fechaFin: _todayStr,
     sedeId: "",
     estadoId: "",
     categoriaId: "",
@@ -405,7 +409,7 @@ const filters = ref({
 });
 
 const canExport = computed(() => {
-    return !!(filters.value.fechaIni && filters.value.fechaFin);
+    return !!(filters.value.fechaIni && filters.value.fechaFin && detallado.value.length > 0);
 });
 
 function formatHoras(segundos) {
@@ -416,7 +420,7 @@ function formatHoras(segundos) {
 }
 async function cargarCatalogos() {
     try {
-        const [cats, prios, ests, sedes] = await Promise.all([
+        const [cats, prios, ests, sedesRes] = await Promise.all([
             helpdesk.categorias(),
             helpdesk.prioridades(),
             helpdesk.estados(),
@@ -425,7 +429,7 @@ async function cargarCatalogos() {
         categorias.value = (cats.data || []).filter((x) => x.activo);
         prioridades.value = (prios.data || []).filter((x) => x.activo);
         estados.value = (ests.data || []).filter((x) => x.activo);
-        sedes.value = sedes.data || [];
+        sedes.value = sedesRes.data || [];
     } catch (error) {
         handleAxiosErrorToast(error, "No se pudieron cargar catálogos.");
     }
@@ -517,10 +521,12 @@ async function buscar() {
     }
 }
 function exportExcel() {
+    toastMessage({ heading: "Exportando", text: "Generando archivo Excel...", icon: "info" });
     const params = new URLSearchParams(buildParams());
     window.open(helpdesk.exportExcelUrl(params), "_blank", "noopener,noreferrer");
 }
 function exportPdf() {
+    toastMessage({ heading: "Exportando", text: "Generando archivo PDF...", icon: "info" });
     const params = new URLSearchParams(buildParams());
     window.open(helpdesk.exportPdfUrl(params), "_blank", "noopener,noreferrer");
 }

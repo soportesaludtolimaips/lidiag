@@ -10,10 +10,13 @@ use App\Models\HelpDesk\HelpDeskTickets;
 use App\Models\User;
 use App\Notifications\HelpDesk\HelpDeskTicketNotification;
 use App\Services\BaseService;
+use App\Services\HelpDesk\Traits\TicketAuthorization;
 use Illuminate\Support\Facades\DB;
 
 class HelpDeskTicketService extends BaseService
 {
+    use TicketAuthorization;
+
     public function list(array $filters, User $user): array
     {
         $scope = $filters['scope'] ?? 'mine';
@@ -58,10 +61,12 @@ class HelpDeskTicketService extends BaseService
         }
         if (! empty($filters['q'])) {
             $term = trim((string) $filters['q']);
-            $q->where(function ($qq) use ($term) {
-                $qq->where('folio', 'like', "%{$term}%")
-                    ->orWhere('titulo', 'like', "%{$term}%")
-                    ->orWhere('descripcion', 'like', "%{$term}%");
+            // Escapar % y _ para evitar wildcards no intencionales en LIKE
+            $escaped = str_replace(['%', '_'], ['\\%', '\\_'], $term);
+            $q->where(function ($qq) use ($escaped) {
+                $qq->where('folio', 'like', "%{$escaped}%")
+                    ->orWhere('titulo', 'like', "%{$escaped}%")
+                    ->orWhere('descripcion', 'like', "%{$escaped}%");
             });
         }
 
@@ -70,7 +75,17 @@ class HelpDeskTicketService extends BaseService
             ->orderByDesc('help_desk_tickets.created_at')
             ->select('help_desk_tickets.*');
 
-        return $this->success($q->get());
+        $perPage = max(1, min(200, (int) ($filters['per_page'] ?? 50)));
+        $page = max(1, (int) ($filters['page'] ?? 1));
+        $paginator = $q->paginate(perPage: $perPage, page: $page);
+
+        return $this->success([
+            'items' => $paginator->items(),
+            'total' => $paginator->total(),
+            'per_page' => $paginator->perPage(),
+            'current_page' => $paginator->currentPage(),
+            'last_page' => $paginator->lastPage(),
+        ]);
     }
 
     public function find(HelpDeskTickets $ticket, User $user): array
@@ -119,8 +134,10 @@ class HelpDeskTicketService extends BaseService
 
             $counter = HelpDeskFolioCounter::query()->where('anio', $anio)->lockForUpdate()->first();
             if (! $counter) {
-                $counter = HelpDeskFolioCounter::create(['anio' => $anio, 'last_number' => 0]);
-                $counter->refresh();
+                $counter = HelpDeskFolioCounter::query()->where('anio', $anio)->first();
+                if (! $counter) {
+                    $counter = HelpDeskFolioCounter::create(['anio' => $anio, 'last_number' => 0]);
+                }
             }
 
             $counter->last_number = (int) $counter->last_number + 1;
@@ -151,7 +168,7 @@ class HelpDeskTicketService extends BaseService
             ]);
 
             $msg = "Ticket creado ({$ticket->folio})";
-            $notif = new HelpDeskTicketNotification($ticket->id, $ticket->folio, $ticket->titulo, 'CREADO', $msg, null);
+            $notif = new HelpDeskTicketNotification($ticket->id, $ticket->folio, $ticket->titulo, 'CREADO', $msg);
             $user->notify($notif);
             if ((int) $asignado->id !== (int) $user->id) {
                 $asignado->notify($notif);
@@ -210,6 +227,11 @@ class HelpDeskTicketService extends BaseService
     {
         if (! $user->hasRole('Administrador')) {
             return $this->unauthorized();
+        }
+
+        $estado = HelpDeskEstado::query()->find($ticket->estado_id);
+        if ($estado && ! in_array($estado->nombre, ['Abierto', 'Cerrado'], true)) {
+            return $this->error('Solo se pueden eliminar tickets en estado Abierto o Cerrado.', 422);
         }
 
         $ticket->delete();
@@ -335,10 +357,13 @@ class HelpDeskTicketService extends BaseService
     private function notifyPartes(HelpDeskTickets $ticket, string $evento, string $mensaje, ?int $exceptUserId): void
     {
         $titulo = (string) $ticket->titulo;
-        $notif = new HelpDeskTicketNotification($ticket->id, $ticket->folio, $titulo, $evento, $mensaje, null);
+        $notif = new HelpDeskTicketNotification($ticket->id, $ticket->folio, $titulo, $evento, $mensaje);
 
-        $sol = User::query()->find($ticket->quien_registra_id);
-        $asg = User::query()->find($ticket->quien_atiende_id);
+        // Cargar relaciones en una sola query en lugar de N queries separadas
+        $ticket->loadMissing(['solicitante', 'asignado']);
+
+        $sol = $ticket->solicitante;
+        $asg = $ticket->asignado;
 
         if ($sol && (! $exceptUserId || (int) $sol->id !== (int) $exceptUserId)) {
             $sol->notify($notif);
@@ -346,27 +371,6 @@ class HelpDeskTicketService extends BaseService
         if ($asg && (! $exceptUserId || (int) $asg->id !== (int) $exceptUserId)) {
             $asg->notify($notif);
         }
-    }
-
-    public function assertCanSeeTicket(HelpDeskTickets $ticket, User $user): void
-    {
-        $isOwner = (int) $ticket->quien_registra_id === (int) $user->id;
-        $isAssigned = (int) $ticket->quien_atiende_id === (int) $user->id;
-        $isManager = $user->hasRole(['Administrador', 'Soporte Manager']);
-
-        if (! $isOwner && ! $isAssigned && ! $isManager) {
-            abort(403, 'Forbidden');
-        }
-    }
-
-    public function sanitizeHtml(string $html): string
-    {
-        $allowed = '<p><br><b><strong><i><em><u><ul><ol><li><a>';
-        $clean = strip_tags($html, $allowed);
-        $clean = preg_replace('/\son\w+\s*=\s*(".*?"|\'.*?\'|[^\s>]+)/i', '', $clean) ?? $clean;
-        $clean = preg_replace('/href\s*=\s*([\'"])\s*javascript:[^\'"]*\1/i', 'href="#"', $clean) ?? $clean;
-
-        return $clean;
     }
 
     private function isValidTransition(string $actual, string $nuevo): bool

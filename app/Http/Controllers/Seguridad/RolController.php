@@ -44,7 +44,14 @@ class RolController extends Controller
 
     public function update(Request $request, $id): JsonResponse
     {
-        $result = $this->rolService->update((int) $id, $request->all());
+        $data = $request->validate([
+            'registro' => 'required|array',
+            'registro.name' => 'required|string|min:2|max:100',
+            'registro.permisosRol' => 'nullable|array',
+            'registro.permisosRol.*' => 'nullable|string',
+        ]);
+
+        $result = $this->rolService->update((int) $id, $data);
 
         return response()->json($result, $result['status']);
     }

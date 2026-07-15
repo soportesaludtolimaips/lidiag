@@ -7,12 +7,16 @@ use App\Models\HelpDesk\HelpDeskTicketHistorial;
 use App\Models\HelpDesk\HelpDeskTickets;
 use App\Models\User;
 use App\Services\BaseService;
+use App\Services\HelpDesk\Traits\TicketAuthorization;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class HelpDeskAdjuntoService extends BaseService
 {
+    use TicketAuthorization;
+
     public function upload(HelpDeskTickets $ticket, array $data, User $user): array
     {
         $comentario = (! empty($data['comentario'])) ? $this->sanitizeHtml($data['comentario']) : null;
@@ -92,32 +96,14 @@ class HelpDeskAdjuntoService extends BaseService
             $disk = Storage::disk('files_help_desk');
             $disk->delete($adjunto->path);
         } catch (\Throwable $e) {
-            // ignorar
+            Log::warning('No se pudo eliminar archivo físico de adjunto', [
+                'adjunto_id' => $adjunto->id,
+                'path' => $adjunto->path,
+            ]);
         }
 
         $adjunto->delete();
 
         return $this->deleted();
-    }
-
-    private function assertCanSeeTicket(HelpDeskTickets $ticket, User $user): void
-    {
-        $isOwner = (int) $ticket->quien_registra_id === (int) $user->id;
-        $isAssigned = (int) $ticket->quien_atiende_id === (int) $user->id;
-        $isManager = $user->hasRole(['Administrador', 'Soporte Manager']);
-
-        if (! $isOwner && ! $isAssigned && ! $isManager) {
-            abort(403, 'Forbidden');
-        }
-    }
-
-    private function sanitizeHtml(string $html): string
-    {
-        $allowed = '<p><br><b><strong><i><em><u><ul><ol><li><a>';
-        $clean = strip_tags($html, $allowed);
-        $clean = preg_replace('/\son\w+\s*=\s*(".*?"|\'.*?\'|[^\s>]+)/i', '', $clean) ?? $clean;
-        $clean = preg_replace('/href\s*=\s*([\'"])\s*javascript:[^\'"]*\1/i', 'href="#"', $clean) ?? $clean;
-
-        return $clean;
     }
 }

@@ -27,13 +27,6 @@ class SAHIController extends Controller
         return response()->json($result, $result['status']);
     }
 
-    public function buscarEpsPlanContrato($idAtencion): JsonResponse
-    {
-        $result = $this->sahiService->buscarEpsPlanContrato($idAtencion);
-
-        return response()->json($result, $result['status']);
-    }
-
     public function listarProductosAtencion(Request $request): JsonResponse
     {
         $result = $this->sahiService->listarProductosAtencion($request->bus_nom_num_docu);

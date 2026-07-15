@@ -199,179 +199,176 @@ class SyncDicomEcografias extends Command
         $bar = $this->output->createProgressBar($count);
         $bar->start();
 
-        // Usamos chunkById para evitar problemas de memoria con grandes volúmenes de datos
+        $synced = 0;
+        $errors = 0;
+
         Lectura::with(['medico', 'paciente.tipoDocumento', 'eps', 'productos', 'usuarioRegistrador.personal'])
-            ->chunkById(100, function ($lecturas) use ($bar) {
+            ->chunkById(100, function ($lecturas) use ($bar, &$synced, &$errors) {
                 foreach ($lecturas as $lectura) {
-                    // try {
-                    $ecografia = new Ecografia;
-
-                    // 2. Buscar Médico (User)
-                    if (! $lectura->medico) {
-                        Log::error("Lectura {$lectura->id_lectura} sin médico asociado.");
-                        exit;
+                    try {
+                        $this->syncSingleLectura($lectura);
+                        $synced++;
+                    } catch (\Throwable $e) {
+                        $errors++;
+                        Log::error("Error sincronizando lectura {$lectura->id_lectura}: {$e->getMessage()}", [
+                            'exception' => $e,
+                        ]);
                     }
-
-                    $numDoc = $lectura->medico->num_docu ?? null;
-
-                    if (! $numDoc) {
-                        Log::error("Lectura {$lectura->id_lectura} con médico sin num_docu.");
-                        exit;
-                    }
-
-                    // Buscar por número de documento
-                    $user = User::where('num_docu', $lectura->medico->num_docu)->first();
-
-                    $medicoId = '';
-                    if (! $user) {
-                        $userNew = new User;
-                        $userNew->num_docu = $lectura->medico->num_docu;
-                        $userNew->password = Hash::make(Str::random(16));
-                        $userNew->password_changed_at = null;
-                        $userNew->name = trim($lectura->medico->pri_nom.' '.$lectura->medico->pri_ape);
-                        $userNew->email = $lectura->medico->e_mail ?? trim($lectura->medico->num_docu).'@salidtolimaips.com';
-                        $userNew->reg_med = $lectura->medico->num_regis;
-                        $userNew->save();
-                        $medicoId = $userNew->id;
-                    }
-
-                    if ($medicoId) {
-                        $ecografia->medico_id = $medicoId;
-                    }
-
-                    if ($user->id) {
-                        $ecografia->medico_id = $user->id;
-                    }
-
-                    // 2.1 Buscar Usuario Registrador (User)
-                    $usuaRegis = null;
-                    if ($lectura->usuarioRegistrador && $lectura->usuarioRegistrador->personal) {
-                        $usuaRegis = User::where('num_docu', $lectura->usuarioRegistrador->personal->num_docu)->first();
-                    }
-                    // Si no se encuentra, usamos el médico como fallback o el usuario 1 (admin) para evitar error SQL
-                    $ecografia->usua_regis_id = $usuaRegis ? $usuaRegis->id : ($medico ? $medico->id : 1);
-
-                    // 3. Buscar Paciente
-                    $pacienteId = null;
-                    if ($lectura->paciente) {
-
-                        $sourceDocType = $lectura->paciente->tipoDocumento;
-
-                        $tipoDocu = null;
-                        switch ($sourceDocType) {
-                            case 'NI': $tipoDocu = 10;
-                                break;
-                            case 'CC': $tipoDocu = 1;
-                                break;
-                            case 'CE': $tipoDocu = 2;
-                                break;
-                            case 'RC': $tipoDocu = 5;
-                                break;
-                            case 'PA': $tipoDocu = 4;
-                                break;
-                            case 'TI': $tipoDocu = 4;
-                                break;
-                            case 'AS': $tipoDocu = 6;
-                                break;
-                            case 'MS': $tipoDocu = 7;
-                                break;
-                            case 'NU': $tipoDocu = 8;
-                                break;
-                            case 'RU': $tipoDocu = 9;
-                                break;
-                            case 'PE': $tipoDocu = 11;
-                                break;
-                        }
-
-                        // Buscar paciente por num_docu en el destino
-                        $paciente = Paciente::where('num_docu', $lectura->paciente->num_docu)->first();
-
-                        if (! $paciente) {
-
-                            $sourcePaciente = $lectura->paciente;
-
-                            if (! $sourcePaciente->num_docu) {
-                                $this->info('Paciente sin documento');
-                                $this->info('Lectura: '.$lectura->id_lectura);
-                                exit;
-                            }
-
-                            $paciente = new Paciente;
-                            $paciente->tipo_documento_id = $tipoDocu;
-                            $paciente->num_docu = $sourcePaciente->num_docu;
-                            $paciente->nombres = $sourcePaciente->pri_nom;
-                            $paciente->seg_nom = $sourcePaciente->seg_nom;
-                            $paciente->pri_ape = $sourcePaciente->pri_ape;
-                            $paciente->seg_ape = $sourcePaciente->seg_ape;
-                            $paciente->direccion = $sourcePaciente->dir;
-                            $paciente->sexo = $sourcePaciente->sexo;
-                            $paciente->fec_naci = $sourcePaciente->fec_naci;
-                            $paciente->tel = $sourcePaciente->tel;
-                            $paciente->cel = $sourcePaciente->cel;
-                            $paciente->email = $sourcePaciente->e_mail;
-                            $paciente->save();
-                        }
-
-                        $pacienteId = $paciente->id;
-                    }
-
-                    $ecografia->paciente_id = $pacienteId;
-
-                    // 4. Buscar EPS (ConfigAdminSalud)
-                    $adminSalud = null;
-                    if ($lectura->eps) {
-                        $adminSalud = ConfigAdminSalud::where('cod_admin_salud', $lectura->eps->cod_eps)->first();
-                    }
-                    $ecografia->admin_salud_id = $adminSalud ? $adminSalud->id : null;
-
-                    // Otros campos
-                    $ecografia->estado = 1;
-                    $ecografia->atencion_id = $lectura->id_atencion;
-                    $ecografia->fec_cita_sahi = $lectura->fechor_lectura;
-                    $ecografia->fec_regis_cita_sahi = $lectura->fechor_lectura;
-
-                    $ecografia->save();
-
-                    // 5. Sincronizar Productos de la Ecografía
-                    // Borraremos los existentes para esta ecografía para evitar duplicados al re-sincronizar (aunque si es nueva no debería haber)
-                    EcografiaProducto::where('ecografia_id', $ecografia->id)->delete();
-
-                    $this->info($lectura);
-                    exit;
-                    foreach ($lectura->productos as $prodLectura) {
-                        $targetProd = TargetConfigProducto::where('cod_cups', $prodLectura->cod_produc)->first();
-
-                        if (! $targetProd) {
-                            // Crear si no existe
-                            $targetProd = new TargetConfigProducto;
-                            $targetProd->cod_cups = $prodLectura->cod_produc;
-                            $targetProd->nom_produc = $prodLectura->nom_produc;
-                            $targetProd->val_produc = $prodLectura->val_soat;
-                            $targetProd->estado = 1;
-                            $targetProd->save();
-                        }
-
-                        $ecoProd = new EcografiaProducto;
-                        $ecoProd->ecografia_id = $ecografia->id;
-                        $ecoProd->producto_id = $targetProd->id;
-                        $ecoProd->lectura = $lectura->lectura;
-                        $ecoProd->opinion = $lectura->opinion;
-                        $ecoProd->estado = 1;
-                        $ecoProd->save();
-                    }
-                    /* } catch (\Exception $e) {
-                        $this->error("Error sincronizando lectura ID {$lectura->id_lectura}: " . $e->getMessage());
-                        Log::error("medico: " . get_class($lectura->medico));
-                        Log::error("usuarioRegistrador: " . get_class($lectura->user));
-                        Log::error("paciente: " . get_class($lectura->paciente));
-                        //Log::error("Error sincronizando lectura {$lectura->id_lectura}: " . $e->getMessage());
-                    } */
                     $bar->advance();
                 }
             });
 
         $bar->finish();
         $this->newLine();
-        $this->info('Ecografías sincronizadas.');
+        $this->info("Sincronización completada: {$synced} exitosas, {$errors} errores.");
+    }
+
+    private function syncSingleLectura($lectura): void
+    {
+        $medico = $this->resolveMedico($lectura);
+        if (! $medico) {
+            Log::warning("Lectura {$lectura->id_lectura} omitida: no se pudo resolver el médico.");
+
+            return;
+        }
+
+        $ecografia = new Ecografia;
+        $ecografia->medico_id = $medico->id;
+        $ecografia->usua_regis_id = $this->resolveRegistrador($lectura, $medico);
+        $ecografia->paciente_id = $this->resolvePaciente($lectura);
+        $ecografia->admin_salud_id = $this->resolveAdminSalud($lectura);
+        $ecografia->estado = 1;
+        $ecografia->atencion_id = $lectura->id_atencion;
+        $ecografia->fec_cita_sahi = $lectura->fechor_lectura;
+        $ecografia->fec_regis_cita_sahi = $lectura->fechor_lectura;
+        $ecografia->save();
+
+        $this->syncProductos($ecografia, $lectura);
+    }
+
+    private function resolveMedico($lectura): ?User
+    {
+        if (! $lectura->medico || ! $lectura->medico->num_docu) {
+            return null;
+        }
+
+        $user = User::where('num_docu', $lectura->medico->num_docu)->first();
+        if ($user) {
+            return $user;
+        }
+
+        $user = new User;
+        $user->num_docu = $lectura->medico->num_docu;
+        $user->password = Hash::make(Str::random(16));
+        $user->password_changed_at = null;
+        $user->name = trim($lectura->medico->pri_nom.' '.$lectura->medico->pri_ape);
+        $user->email = $lectura->medico->e_mail ?? trim($lectura->medico->num_docu).'@salidtolimaips.com';
+        $user->reg_med = $lectura->medico->num_regis;
+        $user->save();
+
+        return $user;
+    }
+
+    private function resolveRegistrador($lectura, User $fallback): int
+    {
+        if ($lectura->usuarioRegistrador && $lectura->usuarioRegistrador->personal) {
+            $usuaRegis = User::where('num_docu', $lectura->usuarioRegistrador->personal->num_docu)->first();
+            if ($usuaRegis) {
+                return $usuaRegis->id;
+            }
+        }
+
+        return $fallback->id;
+    }
+
+    private function resolvePaciente($lectura): ?int
+    {
+        if (! $lectura->paciente || ! $lectura->paciente->num_docu) {
+            return null;
+        }
+
+        $paciente = Paciente::where('num_docu', $lectura->paciente->num_docu)->first();
+        if ($paciente) {
+            return $paciente->id;
+        }
+
+        $tipoDocu = $this->mapTipoDocumento($lectura->paciente->tipoDocumento);
+
+        $source = $lectura->paciente;
+        $paciente = new Paciente;
+        $paciente->tipo_documento_id = $tipoDocu;
+        $paciente->num_docu = $source->num_docu;
+        $paciente->nombres = $source->pri_nom;
+        $paciente->seg_nom = $source->seg_nom;
+        $paciente->pri_ape = $source->pri_ape;
+        $paciente->seg_ape = $source->seg_ape;
+        $paciente->direccion = $source->dir;
+        $paciente->sexo = $source->sexo;
+        $paciente->fec_naci = $source->fec_naci;
+        $paciente->tel = $source->tel;
+        $paciente->cel = $source->cel;
+        $paciente->email = $source->e_mail;
+        $paciente->save();
+
+        return $paciente->id;
+    }
+
+    private function mapTipoDocumento(?string $sourceType): ?int
+    {
+        return match ($sourceType) {
+            'NI' => 10,
+            'CC' => 1,
+            'CE' => 2,
+            'RC' => 5,
+            'PA' => 4,
+            'TI' => 4,
+            'AS' => 6,
+            'MS' => 7,
+            'NU' => 8,
+            'RU' => 9,
+            'PE' => 11,
+            default => null,
+        };
+    }
+
+    private function resolveAdminSalud($lectura): ?int
+    {
+        if (! $lectura->eps || ! $lectura->eps->cod_eps) {
+            return null;
+        }
+
+        $adminSalud = ConfigAdminSalud::where('cod_admin_salud', $lectura->eps->cod_eps)->first();
+
+        return $adminSalud?->id;
+    }
+
+    private function syncProductos(Ecografia $ecografia, $lectura): void
+    {
+        EcografiaProducto::where('ecografia_id', $ecografia->id)->delete();
+
+        if (! $lectura->productos) {
+            return;
+        }
+
+        foreach ($lectura->productos as $prodLectura) {
+            $target = TargetConfigProducto::where('cod_cups', $prodLectura->cod_produc)->first();
+
+            if (! $target) {
+                $target = new TargetConfigProducto;
+                $target->cod_cups = $prodLectura->cod_produc;
+                $target->nom_produc = $prodLectura->nom_produc;
+                $target->val_produc = $prodLectura->val_soat;
+                $target->estado = 1;
+                $target->save();
+            }
+
+            $ecoProd = new EcografiaProducto;
+            $ecoProd->ecografia_id = $ecografia->id;
+            $ecoProd->producto_id = $target->id;
+            $ecoProd->lectura = $lectura->lectura;
+            $ecoProd->opinion = $lectura->opinion;
+            $ecoProd->estado = 1;
+            $ecoProd->save();
+        }
     }
 }

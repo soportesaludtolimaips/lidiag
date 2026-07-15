@@ -33,6 +33,7 @@ class HelpDeskReportesController extends Controller
     public function exportExcel(HelpDeskReporteRequest $request)
     {
         $filters = $this->reporteService->normalizeFilters($request->validated());
+        $filters['limit'] = (int) ($request->input('limit') ?? 5000);
 
         return $this->reporteService->exportExcel($filters);
     }

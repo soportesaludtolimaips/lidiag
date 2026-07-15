@@ -77,9 +77,18 @@ class UserController extends Controller
 
     public function actualizarPerfil(Request $request, int $id): JsonResponse
     {
+        $data = $request->validate([
+            'num_docu' => 'required|string|max:50',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'password' => 'nullable|string|min:6',
+            'imagen_perfil' => 'nullable|image|max:2048',
+            'firma' => 'nullable|image|max:2048',
+        ]);
+
         $result = $this->userService->updateProfile(
             $id,
-            $request->all(),
+            $data,
             $request->file('imagen_perfil'),
             $request->file('firma'),
         );

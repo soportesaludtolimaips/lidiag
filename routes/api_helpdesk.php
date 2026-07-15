@@ -84,31 +84,20 @@ Route::middleware(['auth'])->group(function () {
         ->name('api.helpdesk.estados.index')
         ->middleware(['permission:helpdesk.tickets.change_status|helpdesk.tickets.create|helpdesk.tickets.show|helpdesk.reportes.index|helpdesk.config.estados.index,web']);
 
-    Route::resource('/helpdesk-estados', HelpDeskEstadosController::class)
-        ->names('api.helpdesk.estados')
-        ->parameters(['helpdesk-estados' => 'estado'])
-        ->except(['index', 'create', 'edit'])
-        ->middleware(['permission:helpdesk.config.estados.create|helpdesk.config.estados.edit|helpdesk.config.estados.destroy,web']);
-
     // Notificaciones internas (Laravel notifications)
+    // Usan el middleware auth del grupo padre (stateful, no Sanctum).
+    // No se aplica middleware web adicional para evitar doble StartSession + CSRF en API.
     Route::get('/helpdesk-notificaciones', [HelpDeskNotificacionesController::class, 'index'])
         ->name('api.helpdesk.notificaciones.index')
-        ->middleware(['permission:helpdesk.notificaciones.index,web'])
-        // Se consume desde la misma app (web). Forzamos sesión web para evitar 401 por Sanctum stateful.
-        ->withoutMiddleware(['auth:sanctum'])
-        ->middleware(['web', 'auth']);
+        ->middleware(['permission:helpdesk.notificaciones.index,web']);
 
     Route::post('/helpdesk-notificaciones/{id}/read', [HelpDeskNotificacionesController::class, 'markRead'])
         ->name('api.helpdesk.notificaciones.read')
-        ->middleware(['permission:helpdesk.notificaciones.read,web'])
-        ->withoutMiddleware(['auth:sanctum'])
-        ->middleware(['web', 'auth']);
+        ->middleware(['permission:helpdesk.notificaciones.read,web']);
 
     Route::post('/helpdesk-notificaciones/read-all', [HelpDeskNotificacionesController::class, 'markAllRead'])
         ->name('api.helpdesk.notificaciones.read_all')
-        ->middleware(['permission:helpdesk.notificaciones.read,web'])
-        ->withoutMiddleware(['auth:sanctum'])
-        ->middleware(['web', 'auth']);
+        ->middleware(['permission:helpdesk.notificaciones.read,web']);
 
     /**
      * Reportes

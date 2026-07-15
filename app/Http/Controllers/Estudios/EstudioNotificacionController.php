@@ -19,41 +19,8 @@ class EstudioNotificacionController extends Controller
 
     public function listarEstudios(ListarEstudiosNotificarRequest $request): JsonResponse
     {
-        $result = $this->estudioNotificacionService->listarEstudios($request->all());
+        $result = $this->estudioNotificacionService->listarEstudios($request->validated());
 
         return response()->json($result, $result['status']);
-    }
-
-    public function notificarEmail($estudio, $archivoReporte): JsonResponse
-    {
-        $result = $this->estudioNotificacionService->notificarEmail($estudio, $archivoReporte);
-
-        return response()->json($result, $result['status']);
-    }
-
-    public function enviarPortalPacientes($estudio): JsonResponse
-    {
-        $result = $this->estudioNotificacionService->enviarPortalPacientes($estudio);
-
-        return response()->json($result, $result['status']);
-    }
-
-    public static function descargaImgDicom($sedeId, $study_iuid): JsonResponse
-    {
-        $result = EstudioNotificacionService::descargaImagenesDicom($sedeId, $study_iuid);
-
-        return response()->json($result, $result['status']);
-    }
-
-    public function enviarMensajeWhatsApp($numeroTelefono, $mensaje): JsonResponse
-    {
-        $result = $this->estudioNotificacionService->enviarWhatsApp($numeroTelefono, $mensaje);
-
-        return response()->json($result, $result['status']);
-    }
-
-    public function eliminarReporte($reportePath): void
-    {
-        $this->estudioNotificacionService->eliminarReporte($reportePath);
     }
 }
