@@ -23,6 +23,10 @@ class ConfigSedeService extends BaseService
 
     public function buscarPorId(int $id): array
     {
+        if ($id <= 0) {
+            return $this->error('ID de sede inválido.', 400);
+        }
+
         try {
             $item = ConfigSede::query()
                 ->select([
