@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
@@ -55,9 +55,9 @@
                                             <label class="control-label">Fecha Inicio</label>
                                             <input
                                                 type="date"
-                                                id="bus_fehc_ini"
-                                                name="bus_fehc_ini"
-                                                v-model="busqueda.bus_fehc_ini"
+                                                id="bus_fech_ini"
+                                                name="bus_fech_ini"
+                                                v-model="busqueda.bus_fech_ini"
                                                 class="form-control"
                                             />
                                         </div>
@@ -108,7 +108,7 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de estudios disponibles</h4>
                         <h6 class="card-subtitle text-info">
-                            Asigne los estudios a los mÃ©dicos para su respectiva lectura.
+                            Asigne los estudios a los médicos para su respectiva lectura.
                         </h6>
                         <div class="table-responsive">
                             <table
@@ -124,7 +124,7 @@
                                         <th with="5%"># Documento</th>
                                         <th with="30%">Paciente</th>
                                         <th>Accession</th>
-                                        <th>DescripciÃ³n</th>
+                                        <th>Descripción</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -272,7 +272,7 @@
                                     <div class="row">
                                         <div class="col-md-4">
                                             <div class="form-group">
-                                                <label class="control-label">DirecciÃ³n</label>
+                                                <label class="control-label">Dirección</label>
                                                 <input
                                                     type="text"
                                                     id="direccion"
@@ -284,7 +284,7 @@
                                         </div>
                                         <div class="col-md-3">
                                             <div class="form-group">
-                                                <label class="control-label">TÃ©lefono</label>
+                                                <label class="control-label">Télefono</label>
                                                 <input
                                                     type="number"
                                                     id="telefono"
@@ -335,7 +335,7 @@
                                     <div class="row">
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label class="control-label">DescripciÃ³n</label>
+                                                <label class="control-label">Descripción</label>
                                                 <input
                                                     type="text"
                                                     id="study_desc"
@@ -468,7 +468,7 @@
 
                                         <div class="col-md-4" v-if="sedeInterface === true">
                                             <div class="form-group">
-                                                <label class="control-label">AtenciÃ³n</label>
+                                                <label class="control-label">Atención</label>
                                                 <select
                                                     v-model="interfaceAtencionSeleccionada"
                                                     name="interfaceAtencionSeleccionada"
@@ -525,7 +525,7 @@
                                                 <thead>
                                                     <tr>
                                                         <th></th>
-                                                        <th>CÃ³digo</th>
+                                                        <th>Código</th>
                                                         <th>Producto</th>
                                                         <th></th>
                                                     </tr>
@@ -713,7 +713,7 @@ const soportesHC = ref({ archivo1: null, archivo2: null, archivo3: null });
 const busqueda = ref({
     sede_id: sedeActual,
     bus_nom_num_docu: "",
-    bus_fehc_ini: "",
+    bus_fech_ini: "",
     bus_fecha_fin: "",
 });
 const interfaceAtenciones = ref([]);
@@ -779,12 +779,12 @@ async function buscarStudy() {
             });
         } else if (
             busqueda.value.bus_nom_num_docu == "" &&
-            busqueda.value.bus_fehc_ini == "" &&
+            busqueda.value.bus_fech_ini == "" &&
             busqueda.value.bus_fecha_fin == ""
         ) {
             $.toast({
                 heading: "Upsss!!!",
-                text: "Debes establece la fecha de inicio o finalizaciÃ³n para la busqueda.",
+                text: "Debes establece la fecha de inicio o finalización para la busqueda.",
                 position: "top-right",
                 loaderBg: "#ff6849",
                 icon: "warning",
@@ -792,7 +792,7 @@ async function buscarStudy() {
                 stack: 6,
             });
         } else {
-            // En Tele-radiologÃ­a consultamos estudios vÃ­a endpoint del mÃ³dulo
+            // En Tele-radiología consultamos estudios vía endpoint del módulo
             const res = await axios.post("/api/tele-radiologia-listar-estudios", busqueda.value);
             if (res.status == 200) {
                 destroyDataTable();
@@ -1194,7 +1194,7 @@ function guardarProductosEstudio(id, cod_cups, nom_produc) {
     if (yaExisteIndex !== -1) {
         // Si ya existe, quitarlo
         orden.value.producto.splice(yaExisteIndex, 1);
-        // TambiÃ©n quitarlo de registro.productosEstudio
+        // También quitarlo de registro.productosEstudio
         const registroIndex = registro.value.productosEstudio.findIndex(
             (p) => p.cod_cups == productoEstudioCod_Cubs
         );

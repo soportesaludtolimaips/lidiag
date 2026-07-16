@@ -575,8 +575,8 @@ class EstudioService extends BaseService
             });
         }
 
-        if (! empty($filters['bus_fehc_ini']) && ! empty($filters['bus_fecha_fin'])) {
-            $inicio = Carbon::parse($filters['bus_fehc_ini'])->startOfDay();
+        if (! empty($filters['bus_fech_ini']) && ! empty($filters['bus_fecha_fin'])) {
+            $inicio = Carbon::parse($filters['bus_fech_ini'])->startOfDay();
             $fin = Carbon::parse($filters['bus_fecha_fin'])->endOfDay();
             $query->whereBetween('estudios.fec_estudio', [$inicio, $fin]);
         }
@@ -610,9 +610,9 @@ class EstudioService extends BaseService
             $query->where('estudios.sede_id', $sedeId);
         }
 
-        if (! empty($filters['bus_fehc_ini']) && ! empty($filters['bus_fecha_fin'])) {
+        if (! empty($filters['bus_fech_ini']) && ! empty($filters['bus_fecha_fin'])) {
             $query->whereBetween('estudios.fec_estudio', [
-                $filters['bus_fehc_ini'].' 00:00:00',
+                $filters['bus_fech_ini'].' 00:00:00',
                 $filters['bus_fecha_fin'].' 23:59:59',
             ]);
         }

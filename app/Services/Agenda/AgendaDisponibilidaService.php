@@ -29,8 +29,8 @@ class AgendaDisponibilidaService extends BaseService
             $query->where('servicio_cita_id', $filters['servicio_cita_id']);
         }
 
-        if (! empty($filters['bus_fehc_ini']) && ! empty($filters['bus_fecha_fin'])) {
-            $ini = Carbon::parse($filters['bus_fehc_ini'])->startOfDay();
+        if (! empty($filters['bus_fech_ini']) && ! empty($filters['bus_fecha_fin'])) {
+            $ini = Carbon::parse($filters['bus_fech_ini'])->startOfDay();
             $fin = Carbon::parse($filters['bus_fecha_fin'])->endOfDay();
             $query->whereBetween('fecha_hora_ini', [$ini, $fin]);
         }

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
@@ -17,7 +17,7 @@
                             Ecografias
                         </button>
                     </li>
-                    <li class="breadcrumb-item active">EcografÃ­as admisionadas</li>
+                    <li class="breadcrumb-item active">Ecografías admisionadas</li>
                 </ol>
             </div>
         </div>
@@ -33,7 +33,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros para bÃºsqueda de ecografÃ­as
+                            <i class="fa fa-filter"></i> Filtros para búsqueda de ecografías
                             admisionadas.
                         </h4>
                         <form action="#">
@@ -42,8 +42,7 @@
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             <label class="control-label">
-                                                # de atenciÃ³n, # de documento Ã³ Nombres de
-                                                paciente
+                                                # de atención, # de documento ó Nombres de paciente
                                             </label>
                                             <input
                                                 type="text"
@@ -51,7 +50,7 @@
                                                 name="bus_nom_num_docu"
                                                 v-model="busqueda.bus_nom_num_docu"
                                                 class="form-control"
-                                                placeholder=" AtenciÃ³n, Nombres de paciente o # de documento"
+                                                placeholder=" Atención, Nombres de paciente o # de documento"
                                                 @keyup.enter="buscarStudy()"
                                             />
                                         </div>
@@ -61,9 +60,9 @@
                                             <label class="control-label">Fecha Inicio</label>
                                             <input
                                                 type="date"
-                                                id="bus_fehc_ini"
-                                                name="bus_fehc_ini"
-                                                v-model="busqueda.bus_fehc_ini"
+                                                id="bus_fech_ini"
+                                                name="bus_fech_ini"
+                                                v-model="busqueda.bus_fech_ini"
                                                 class="form-control"
                                             />
                                         </div>
@@ -121,7 +120,7 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de atenciones disponibles.</h4>
                         <h6 class="card-subtitle text-info">
-                            Asigne los mÃ©dicos para su respectiva lectura.
+                            Asigne los médicos para su respectiva lectura.
                         </h6>
                         <div class="table-responsive">
                             <table
@@ -194,7 +193,7 @@
                                                 >
                                                     {{ item.estado_envio_sahi }}
                                                 </span>
-                                                <span v-else class="text-muted">â€”</span>
+                                                <span v-else class="text-muted">—</span>
 
                                                 <div class="m-t-5">
                                                     <button
@@ -259,7 +258,7 @@
                                                 </small>
                                             </template>
                                             <template v-else>
-                                                <span class="text-muted">â€”</span>
+                                                <span class="text-muted">—</span>
                                             </template>
                                         </td>
                                         <td class="text-nowrap">
@@ -325,14 +324,14 @@
                 <div class="modal-header">
                     <h4 class="modal-title" id="myModalLabel">Anular Agenda</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                        Ã—
+                        ×
                     </button>
                 </div>
                 <div class="modal-body">
                     <form>
                         <div class="form-group">
                             <label for="message-text" class="control-label"
-                                >Motivo de anulaciÃ³n:</label
+                                >Motivo de anulación:</label
                             >
                             <textarea
                                 class="form-control"
@@ -389,7 +388,7 @@ const busqueda = ref({
     sede_id: sedeActual,
     medico_id: medicoActual,
     bus_nom_num_docu: "",
-    bus_fehc_ini: "",
+    bus_fech_ini: "",
     bus_fecha_fin: "",
 });
 const registros = ref([]);
@@ -407,13 +406,13 @@ const isConsultandoSahi = ref({});
 const isEnviandoSahi = ref({});
 
 function buscarStudy() {
-    // Soporte para Enter en el input de bÃºsqueda
+    // Soporte para Enter en el input de búsqueda
     return listarAtenciones();
 }
 function btnLimpiar() {
-    // Limpia criterios de bÃºsqueda (mantiene sede/medico del contexto)
+    // Limpia criterios de búsqueda (mantiene sede/medico del contexto)
     busqueda.value.bus_nom_num_docu = "";
-    busqueda.value.bus_fehc_ini = "";
+    busqueda.value.bus_fech_ini = "";
     busqueda.value.bus_fecha_fin = "";
     erroresBusqueda.value = {};
 
@@ -456,11 +455,11 @@ function safeInitDataTable(selector = "#example23") {
 async function listarAtenciones() {
     if (
         busqueda.value.bus_nom_num_docu == "" &&
-        busqueda.value.bus_fehc_ini == "" &&
+        busqueda.value.bus_fech_ini == "" &&
         busqueda.value.bus_fecha_fin == ""
     ) {
         toastMessage({
-            heading: "Â¡AtenciÃ³n!",
+            heading: "¡Atención!",
             text: "Debe ingresar almenos un criterio de busqueda.",
             icon: "warning",
         });
@@ -481,7 +480,7 @@ async function listarAtenciones() {
         }
     } catch (error) {
         erroresBusqueda.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible listar ecografÃ­as admisionadas.");
+        handleAxiosErrorToast(error, "No fue posible listar ecografías admisionadas.");
     } finally {
         isBuscandoAdmisionadas.value = false;
     }
@@ -513,8 +512,8 @@ function registroParaAnular(data) {
 function anularEcografia() {
     if (registroAnular.value.motivo_anula === "") {
         toastMessage({
-            heading: "Â¡AtenciÃ³n!",
-            text: "Debe ingresar el motivo de anulaciÃ³n.",
+            heading: "¡Atención!",
+            text: "Debe ingresar el motivo de anulación.",
             icon: "warning",
         });
         return;
@@ -522,7 +521,7 @@ function anularEcografia() {
 
     confirmAction({
         title: "Estas seguro de anular la ecografia?",
-        text: "No podrÃ¡s recuperar este registro!",
+        text: "No podrás recuperar este registro!",
         icon: "warning",
     }).then(async (ok) => {
         if (!ok) return;
@@ -533,13 +532,13 @@ function anularEcografia() {
                 `/api/ecografia-anular/${registroAnular.value.ecografia_id}`,
                 registroAnular.value
             );
-            alertSuccess("Ok!", response?.data?.message || "EcografÃ­a anulada.", "success");
+            alertSuccess("Ok!", response?.data?.message || "Ecografía anulada.", "success");
             const cerrarModal = document.getElementById("btnCerrarModalAunular");
             if (cerrarModal) cerrarModal.click();
             await listarAtenciones();
         } catch (error) {
-            handleAxiosErrorToast(error, "No fue posible anular la ecografÃ­a.");
-            alertError("Error", "No fue posible anular la ecografÃ­a.", "error");
+            handleAxiosErrorToast(error, "No fue posible anular la ecografía.");
+            alertError("Error", "No fue posible anular la ecografía.", "error");
         } finally {
             isAnulandoAdmisionada.value = false;
         }
@@ -584,7 +583,7 @@ async function reenviarASahi(item) {
 
         await enviarEcografiaProducto(id);
 
-        toastMessage({ heading: "SAHI", text: "EnvÃ­o a SAHI encolado.", icon: "info" });
+        toastMessage({ heading: "SAHI", text: "Envío a SAHI encolado.", icon: "info" });
 
         safeDestroyDataTable(dt.value || "#example23");
         safeInitDataTable(dt.value || "#example23");

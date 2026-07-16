@@ -110,14 +110,14 @@
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label class="control-label" for="bus_fehc_ini"
+                                            <label class="control-label" for="bus_fech_ini"
                                                 >Fecha Inicio</label
                                             >
                                             <input
                                                 type="date"
-                                                id="bus_fehc_ini"
-                                                name="bus_fehc_ini"
-                                                v-model="busqueda.bus_fehc_ini"
+                                                id="bus_fech_ini"
+                                                name="bus_fech_ini"
+                                                v-model="busqueda.bus_fech_ini"
                                                 class="form-control"
                                                 @keyup.enter="listarEstudiosAsignados()"
                                             />
@@ -787,7 +787,7 @@ const busqueda = ref({
     medico_id: "",
     sede_id: sessionStorage.getItem("ST-sede"),
     bus_nom_num_docu: "",
-    bus_fehc_ini: "",
+    bus_fech_ini: "",
     bus_fecha_fin: "",
 });
 const datosImagen = ref({ urlOviyam: "", patientId: "", studyUID: "", serverName: "" });
@@ -833,7 +833,7 @@ function btnLimpiar() {
     busqueda.value.quien_asigno_id = "";
     busqueda.value.medico_id = "";
     busqueda.value.bus_nom_num_docu = "";
-    busqueda.value.bus_fehc_ini = "";
+    busqueda.value.bus_fech_ini = "";
     busqueda.value.bus_fecha_fin = "";
     errores.value = {};
     destroyDataTable();

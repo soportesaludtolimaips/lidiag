@@ -47,8 +47,8 @@ class EstudioNotificacionService extends BaseService
             $query->where('pacientes.nombres', 'like', "%{$filters['bus_nom']}%");
         }
 
-        if (! empty($filters['bus_fehc_ini']) && ! empty($filters['bus_fecha_fin'])) {
-            $inicio = Carbon::parse($filters['bus_fehc_ini'])->startOfDay();
+        if (! empty($filters['bus_fech_ini']) && ! empty($filters['bus_fecha_fin'])) {
+            $inicio = Carbon::parse($filters['bus_fech_ini'])->startOfDay();
             $fin = Carbon::parse($filters['bus_fecha_fin'])->endOfDay();
             $query->whereBetween('estudios.fec_estudio', [$inicio, $fin]);
         }

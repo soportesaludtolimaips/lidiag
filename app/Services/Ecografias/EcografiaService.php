@@ -24,9 +24,9 @@ class EcografiaService extends BaseService
             });
         }
 
-        if (! empty($filters['bus_fehc_ini']) && ! empty($filters['bus_fehc_fin'])) {
+        if (! empty($filters['bus_fech_ini']) && ! empty($filters['bus_fehc_fin'])) {
             $query->whereBetween('created_at', [
-                $filters['bus_fehc_ini'].' 00:00:00',
+                $filters['bus_fech_ini'].' 00:00:00',
                 $filters['bus_fehc_fin'].' 23:59:59',
             ]);
         }
@@ -78,9 +78,9 @@ class EcografiaService extends BaseService
             });
         }
 
-        if (! empty($filters['bus_fehc_ini']) && ! empty($filters['bus_fehc_fin'])) {
+        if (! empty($filters['bus_fech_ini']) && ! empty($filters['bus_fehc_fin'])) {
             $query->whereBetween('ecografias.created_at', [
-                "{$filters['bus_fehc_ini']} 00:00:00",
+                "{$filters['bus_fech_ini']} 00:00:00",
                 "{$filters['bus_fehc_fin']} 23:59:59",
             ]);
         }
