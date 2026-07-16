@@ -274,7 +274,7 @@ async function estableserSede() {
     if (!sedeSeleccionada.value) return;
     const res = await axios.get("/api/config-sedes/" + sedeSeleccionada.value + "/buscarPorId");
 
-    nomSedeSeleccionada = $('select[name="sedes"] option:selected').text();
+    const nomSedeSeleccionada = $('select[name="sedes"] option:selected').text();
 
     sessionStorage.setItem("ST-sede", sedeSeleccionada.value);
     sessionStorage.setItem("ST-nomsede", nomSedeSeleccionada);
@@ -285,8 +285,8 @@ async function estableserSede() {
     emitter.emit("sedeSeleccionada", {
         idSede: sedeSeleccionada.value,
         nomSede: nomSedeSeleccionada,
-        url: urlSedeSeleccionada,
-        serverName: serverNameSeleccionada,
+        url: res.data.url_oviyam,
+        serverName: res.data.tap_oviyam,
         email_repor: res.data.email_repor,
     });
 }
