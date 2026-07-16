@@ -217,7 +217,14 @@ const loadingDescargar = ref(false);
 
 async function listarSedes() {
     try {
-        await listarUsuariosYSedes(this);
+        await listarUsuariosYSedes({
+            set quienes_asignaron(v) {
+                quienes_asignaron.value = v;
+            },
+            set medicos(v) {
+                medicos.value = v;
+            },
+        });
 
         const res = await axios.get("/api/config-sedes/listar/sedes/activas");
         sedes.value = res.data.data;
