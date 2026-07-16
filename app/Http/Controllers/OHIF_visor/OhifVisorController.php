@@ -42,7 +42,7 @@ class OhifVisorController extends Controller
     {
         $result = $this->service->listStudies($sedeId);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function downloadDicom(Request $request): JsonResponse

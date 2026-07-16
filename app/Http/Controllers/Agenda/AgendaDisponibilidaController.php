@@ -27,28 +27,28 @@ class AgendaDisponibilidaController extends Controller
             'sede_id', 'servicio_cita_id', 'bus_fech_ini', 'bus_fecha_fin',
         ]));
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function store(AgendaDisponibilidaRequest $request): JsonResponse
     {
         $result = $this->service->create($request->validated());
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function show(int $id): JsonResponse
     {
         $result = $this->service->find($id);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function update(AgendaDisponibilidaRequest $request, int $id): JsonResponse
     {
         $result = $this->service->update($id, $request->validated());
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function destroy(int $id): JsonResponse

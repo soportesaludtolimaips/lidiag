@@ -28,14 +28,14 @@ class LoginController extends Controller
 
         if ($result['success'] && ! ($result['data']['type'] ?? null)) {
             if ($request->expectsJson()) {
-                return response()->json($result['data'], $result['status']);
+                return response()->json($result, $result["status"]);
             }
 
             return redirect()->to($result['data']['redirect']);
         }
 
         if ($request->expectsJson()) {
-            return response()->json($result['data'], $result['status']);
+            return response()->json($result, $result["status"]);
         }
 
         return redirect()

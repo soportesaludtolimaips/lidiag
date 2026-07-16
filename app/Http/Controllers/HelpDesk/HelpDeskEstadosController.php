@@ -18,7 +18,7 @@ class HelpDeskEstadosController extends Controller
     {
         $result = $this->estadoService->all();
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function store(Request $request): JsonResponse
@@ -32,7 +32,7 @@ class HelpDeskEstadosController extends Controller
     {
         $result = $this->estadoService->find($estado->id);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function update(Request $request, HelpDeskEstado $estado): JsonResponse

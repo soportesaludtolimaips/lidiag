@@ -36,28 +36,28 @@ class HelpDeskTicketsController extends Controller
 
         $result = $this->ticketService->list($filters, $request->user());
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function store(HelpDeskTicketStoreRequest $request): JsonResponse
     {
         $result = $this->ticketService->create($request->validated(), $request->user());
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function show(HelpDeskTickets $ticket, Request $request): JsonResponse
     {
         $result = $this->ticketService->find($ticket, $request->user());
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function update(HelpDeskTicketUpdateRequest $request, HelpDeskTickets $ticket): JsonResponse
     {
         $result = $this->ticketService->update($ticket, $request->validated(), $request->user());
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function destroy(HelpDeskTickets $ticket, Request $request): JsonResponse
@@ -71,20 +71,20 @@ class HelpDeskTicketsController extends Controller
     {
         $result = $this->ticketService->comment($ticket, $request->validated(), $request->user());
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function reassign(HelpDeskTickets $ticket, HelpDeskReassignRequest $request): JsonResponse
     {
         $result = $this->ticketService->reassign($ticket, $request->validated(), $request->user());
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function changeStatus(HelpDeskTickets $ticket, HelpDeskChangeStatusRequest $request): JsonResponse
     {
         $result = $this->ticketService->changeStatus($ticket, $request->validated(), $request->user());
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 }

@@ -18,28 +18,28 @@ class HelpDeskPrioridadesController extends Controller
     {
         $result = $this->prioridadService->all();
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function store(HelpDeskPrioridadRequest $request): JsonResponse
     {
         $result = $this->prioridadService->create($request->validated());
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function show(HelpDeskPrioridad $prioridad): JsonResponse
     {
         $result = $this->prioridadService->find($prioridad->id);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function update(HelpDeskPrioridadRequest $request, HelpDeskPrioridad $prioridad): JsonResponse
     {
         $result = $this->prioridadService->update($prioridad->id, $request->validated());
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function destroy(HelpDeskPrioridad $prioridad): JsonResponse

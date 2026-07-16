@@ -23,105 +23,105 @@ class AgendaCitaController extends Controller
     {
         $result = $this->agendaCitaService->all($request);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function store(AgendaCitaStoreRequest $request): JsonResponse
     {
         $result = $this->agendaCitaService->create($request->validated());
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function show(AgendaCita $cita): JsonResponse
     {
         $result = $this->agendaCitaService->find($cita);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function update(AgendaCitaUpdateRequest $request, AgendaCita $cita): JsonResponse
     {
         $result = $this->agendaCitaService->update($cita, $request->validated());
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function destroy(AgendaCita $cita): JsonResponse
     {
         $result = $this->agendaCitaService->delete($cita);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function asignar(AgendaCitaAsignarRequest $request, AgendaCita $cita): JsonResponse
     {
         $result = $this->agendaCitaService->asignar($cita, $request->validated());
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function confirmar(AgendaCita $cita): JsonResponse
     {
         $result = $this->agendaCitaService->confirmar($cita);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function cancelar(Request $request, AgendaCita $cita): JsonResponse
     {
         $result = $this->agendaCitaService->cancelar($cita, $request->input('motivo', ''));
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function cumplir(AgendaCita $cita): JsonResponse
     {
         $result = $this->agendaCitaService->cumplir($cita);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function noAsistio(AgendaCita $cita): JsonResponse
     {
         $result = $this->agendaCitaService->noAsistio($cita);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function pendientes(Request $request): JsonResponse
     {
         $result = $this->agendaCitaService->pendientes($request);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function rechazar(AgendaCitaRechazarRequest $request, AgendaCita $cita): JsonResponse
     {
         $result = $this->agendaCitaService->rechazar($cita, $request->validated());
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function disponibilidad(AgendaCitaDisponibilidadRequest $request): JsonResponse
     {
         $result = $this->agendaCitaService->disponibilidad($request->validated());
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function servicios(): JsonResponse
     {
         $result = $this->agendaCitaService->servicios();
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function productosPorServicio(Request $request, int $servicioCitaId): JsonResponse
     {
         $result = $this->agendaCitaService->productosPorServicio($servicioCitaId, $request->query('sede_id'));
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function webhook(Request $request)
@@ -145,7 +145,7 @@ class AgendaCitaController extends Controller
 
         $result = $this->agendaCitaService->webhookPost($payload, $signature, $request->all());
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function descargarMedia(string $filename)
@@ -166,34 +166,34 @@ class AgendaCitaController extends Controller
 
         $result = $this->agendaCitaService->testEnviar($telefono, $mensaje);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function notificacionesNoLeidas(): JsonResponse
     {
         $result = $this->agendaCitaService->notificacionesNoLeidas();
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function marcarNotificacionLeida(string $id): JsonResponse
     {
         $result = $this->agendaCitaService->marcarNotificacionLeida($id);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function marcarTodasLeidas(): JsonResponse
     {
         $result = $this->agendaCitaService->marcarTodasLeidas();
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function verConversacion(AgendaCita $cita): JsonResponse
     {
         $result = $this->agendaCitaService->verConversacion($cita);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 }

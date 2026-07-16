@@ -31,28 +31,28 @@ class ConsentimientoPlantillasController extends Controller
             'vigentes' => $request->query('vigentes', '1'),
         ]);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function show(int $id): JsonResponse
     {
         $result = $this->service->find($id);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function store(ConsentimientoPlantillaRequest $request): JsonResponse
     {
         $result = $this->service->create($request->validated(), $request->user()->id);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function update(ConsentimientoPlantillaRequest $request, int $id): JsonResponse
     {
         $result = $this->service->update($id, $request->validated(), $request->user()->id);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function versions(int $productoId, Request $request): JsonResponse
@@ -63,14 +63,14 @@ class ConsentimientoPlantillasController extends Controller
         }
         $result = $this->service->versions($productoId, $moduloId);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function setVigente(int $id): JsonResponse
     {
         $result = $this->service->setVigente($id);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function destroy(int $id): JsonResponse
