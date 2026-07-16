@@ -722,13 +722,28 @@
     </div>
 </template>
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { listarUsuariosYSedes } from "@/helpers/usuarios";
+import {
+    safeDestroyDataTable,
+    safeInitDataTable,
+    safeRemoveDataTableRow,
+} from "@/helpers/datatables.js";
+import {
+    confirmAction,
+    alertSuccess,
+    alertError,
+    handleAxiosErrorToast,
+    getUserSafeError,
+} from "@/helpers/alerts";
 import axios from "axios";
 
-const props = defineProps({});
+const props = defineProps({ usuarioactual: Object });
+
+const dt = ref(null);
+const primerInput = ref(null);
 
 const id = ref(0);
 const diagnosticosEstudio = ref([]);
@@ -795,7 +810,7 @@ const contadorRegistros = computed(() => {
 
 function initWysiwyg() {
     try {
-        const $root = $($el);
+        const $root = $(getCurrentInstance().proxy.$el);
         $root.find(".textarea_editor").each((_, el) => {
             const $el = $(el);
             if ($el.data("wysihtml5")) return;
@@ -850,7 +865,7 @@ async function listarEstudiosAsignados() {
 
             const res = await axios.post("/api/estudio-listarEstudiosAsignados", busqueda.value);
 
-            registros.value = res.data;
+            registros.value = res.data.data;
 
             nextTick(() => {
                 initDataTable();
@@ -884,7 +899,7 @@ async function listarAudios() {
     loadingAudios.value = true;
     try {
         const res = await axios.get("/api/listar-audios-estudio/" + idRow.value);
-        audiosDeEstudio.value = res.data;
+        audiosDeEstudio.value = res.data.data || [];
     } catch (e) {
         handleAxiosErrorToast(e, "No fue posible listar audios.");
         audiosDeEstudio.value = [];
@@ -1075,10 +1090,10 @@ async function mostrarRegistro(data = {}) {
         registro.value.nom_sede = data.nom_sede;
 
         const res = await axios.get("/api/study-listar-diagnostico-por-estudio?id=" + id.value);
-        diagnosticosEstudio.value = res.data;
+        diagnosticosEstudio.value = res.data.data;
 
         const resSoportesHC = await axios.get("/api/listar-soportes-hc-estudio?id=" + id.value);
-        soportesHC.value = resSoportesHC.data;
+        soportesHC.value = resSoportesHC.data.data;
 
         audiosDeEstudio.value = [];
         abrirModal();
@@ -1086,7 +1101,7 @@ async function mostrarRegistro(data = {}) {
         await listarAudios();
 
         nextTick(() => {
-            const $editor = $($el).find(".textarea_editor");
+            const $editor = $(getCurrentInstance().proxy.$el).find(".textarea_editor");
             const wysi = $editor.data("wysihtml5");
             if (wysi) {
                 const el = document.createElement("div");
@@ -1128,7 +1143,14 @@ function btnCerralModalForm() {
 onMounted(async () => {
     nextTick(() => initWysiwyg());
 
-    await listarUsuariosYSedes(this);
+    await listarUsuariosYSedes({
+        set quienes_asignaron(v) {
+            quienes_asignaron.value = v;
+        },
+        set medicos(v) {
+            medicos.value = v;
+        },
+    });
 });
 
 onBeforeUnmount(() => {

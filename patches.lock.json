@@ -1,0 +1,17 @@
+{
+    "_hash": "bd6bfd853b472fa30f1ebaeeb5d94e1c4252aaf5c80acfe143390ef7c0685e58",
+    "patches": {
+        "laravel/framework": [
+            {
+                "package": "laravel/framework",
+                "description": "Fix array_push named params in MessageBag::all()",
+                "url": "patches/messagebag-arraypush-fix.patch",
+                "sha256": "70c4f3de8f04bf779f2c22fa2fdabfacaf188f17678ebcc0fc531beb86314cf1",
+                "depth": 1,
+                "extra": {
+                    "provenance": "root"
+                }
+            }
+        ]
+    }
+}

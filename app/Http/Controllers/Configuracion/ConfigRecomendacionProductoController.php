@@ -15,10 +15,10 @@ class ConfigRecomendacionProductoController extends Controller
         private readonly ConfigRecomendacionProductoService $configRecomendacionProductoService,
     ) {
         $this->middleware('auth:sanctum')->except(['index']);
-        $this->middleware('permission:configuracion.recomendaciones.index')->only(['index']);
-        $this->middleware('permission:configuracion.recomendaciones.create')->only(['store']);
-        $this->middleware('permission:configuracion.recomendaciones.edit')->only(['update']);
-        $this->middleware('permission:configuracion.recomendaciones.destroy')->only(['destroy']);
+        $this->middleware('permission:config.recomendaciones.index')->only(['index']);
+        $this->middleware('permission:config.recomendaciones.create')->only(['store']);
+        $this->middleware('permission:config.recomendaciones.edit')->only(['update']);
+        $this->middleware('permission:config.recomendaciones.destroy')->only(['destroy']);
     }
 
     public function index(Request $request): JsonResponse

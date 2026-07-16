@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
@@ -13,7 +13,7 @@
                     <li class="breadcrumb-item">
                         <a role="button" tabindex="0">Seguridad</a>
                     </li>
-                    <li class="breadcrumb-item active">Gestión de Usuarios</li>
+                    <li class="breadcrumb-item active">GestiÃ³n de Usuarios</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
@@ -272,7 +272,7 @@
                                             id="num_docu"
                                             v-model="registro.num_docu"
                                             class="form-control"
-                                            placeholder="Número de documento del usuario"
+                                            placeholder="NÃºmero de documento del usuario"
                                         />
                                         <span class="text-danger" v-if="errores.num_docu">{{
                                             errores.num_docu[0]
@@ -281,7 +281,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label class="control-label">Registro médico</label>
+                                        <label class="control-label">Registro mÃ©dico</label>
                                         <input
                                             type="text"
                                             id="reg_med"
@@ -320,7 +320,7 @@
                                             id="name"
                                             v-model="registro.name"
                                             class="form-control"
-                                            placeholder="Ingrese aquí los nombres del usuario"
+                                            placeholder="Ingrese aquÃ­ los nombres del usuario"
                                         />
                                         <span class="text-danger" v-if="errores.name">{{
                                             errores.name[0]
@@ -345,7 +345,7 @@
                                                 name="email"
                                                 v-model="registro.email"
                                                 class="form-control"
-                                                placeholder="Ingrese aquí E - Mail del usuario"
+                                                placeholder="Ingrese aquÃ­ E - Mail del usuario"
                                             />
                                         </div>
 
@@ -359,7 +359,7 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">Contraseña</label>
+                                        <label class="control-label">ContraseÃ±a</label>
                                         <div class="input-group">
                                             <div class="input-group-prepend">
                                                 <span class="input-group-text">
@@ -372,13 +372,13 @@
                                                 name="password"
                                                 v-model="registro.password"
                                                 class="form-control"
-                                                placeholder="Contraseña"
+                                                placeholder="ContraseÃ±a"
                                             />
                                         </div>
 
                                         <small class="text-muted d-block"
                                             >Dejar en blanco si no desea cambiar la
-                                            contraseña</small
+                                            contraseÃ±a</small
                                         >
                                         <span class="text-danger" v-if="errores.password">{{
                                             errores.password[0]
@@ -388,7 +388,7 @@
 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">Confirmar contraseña</label>
+                                        <label class="control-label">Confirmar contraseÃ±a</label>
 
                                         <div class="input-group">
                                             <div class="input-group-prepend">
@@ -402,7 +402,7 @@
                                                 name="confirmarPassword"
                                                 v-model="registro.confirmarPassword"
                                                 class="form-control"
-                                                placeholder="Confirmar contraseña"
+                                                placeholder="Confirmar contraseÃ±a"
                                             />
                                         </div>
 
@@ -453,7 +453,7 @@
                                                             class="custom-control-label"
                                                             for="transcrip_remoto"
                                                         >
-                                                            Transcripcción remota
+                                                            TranscripcciÃ³n remota
                                                         </label>
                                                     </div>
                                                 </div>
@@ -655,7 +655,7 @@
             <div class="modal-dialog modal-sm">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">Firma — {{ firmaAmpliadaNombre }}</h4>
+                        <h4 class="modal-title">Firma â€” {{ firmaAmpliadaNombre }}</h4>
                         <button
                             type="button"
                             class="close"
@@ -684,13 +684,16 @@
     </div>
 </template>
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
+const { proxy } = getCurrentInstance();
 import { handleAxiosErrorToast, confirmAction, alertError, alertSuccess } from "@/helpers/alerts";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import axios from "axios";
 
-const props = defineProps({});
+const props = defineProps({ usuarioactual: Object });
+
+const dt = ref(null);
 
 const registros = ref([]);
 const roles = ref([]);
@@ -761,7 +764,7 @@ async function ListarDatos() {
     }
 }
 function listarRoles() {
-    let me = this;
+    let me = proxy;
 
     me.roles.map(function (x, y) {
         me.registro.rolesUsuario.push({
@@ -789,7 +792,7 @@ async function guardarRegistro() {
             if (res.status == 200) {
                 $.toast({
                     heading: "Ok!!!",
-                    text: res.data.message,
+                    text: res.data.data.message,
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: "success",
@@ -809,7 +812,7 @@ async function guardarRegistro() {
             if (res.status == 200) {
                 $.toast({
                     heading: "Ok!!!",
-                    text: res.data.message,
+                    text: res.data.data.message,
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: "success",
@@ -831,7 +834,7 @@ async function guardarRegistro() {
 }
 async function cambiarEstado(estado, data = {}) {
     const ok = await confirmAction({
-        title: "Confirmación",
+        title: "ConfirmaciÃ³n",
         text:
             "Estas seguro de que desea " +
             (estado == 0 ? " activar" : "desactivar") +
@@ -854,7 +857,7 @@ async function cambiarEstado(estado, data = {}) {
             "El usuario " +
                 data.name +
                 " se " +
-                (estado == 0 ? " activó" : "desactivó") +
+                (estado == 0 ? " activÃ³" : "desactivÃ³") +
                 " correctamente",
             "success"
         );
@@ -873,7 +876,7 @@ async function cambiarEstado(estado, data = {}) {
 async function elimnarRegistro(id) {
     const ok = await confirmAction({
         title: "Estas seguro de eliminar este usuario?",
-        text: "No podrás recuperar este registro!",
+        text: "No podrÃ¡s recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;
@@ -894,12 +897,12 @@ async function elimnarRegistro(id) {
 async function ListarModulos() {
     try {
         const res = await axios.get("/api/config-modulos-listar");
-        registro.value.modulos = res.data.map((modulo) => ({
+        registro.value.modulos = res.data.data.map((modulo) => ({
             ...modulo,
             checked: false,
         }));
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar módulos.");
+        handleAxiosErrorToast(error, "No fue posible listar mÃ³dulos.");
     }
 }
 async function ListarSedes() {
@@ -947,7 +950,7 @@ function mostrarRegistro(data = {}) {
             modulo.checked = false;
         });
 
-        // Asigna el valor de `checked` a cada módulo
+        // Asigna el valor de `checked` a cada mÃ³dulo
         data.modulos.forEach((modulo) => {
             let moduloActivo = registro.value.modulos.findIndex((x) => x.id == modulo.id);
             registro.value.modulos[moduloActivo].checked = true;
@@ -981,8 +984,8 @@ function mostrarRegistro(data = {}) {
          * marcar los roles del usuario a editar
          */
         axios.get("/api/seguridad-usuarios/" + id.value).then((res) => {
-            const RolesDelUsuario = res.data.RolesDeUsuario;
-            let me = this;
+            const RolesDelUsuario = res.data.data.RolesDeUsuario;
+            let me = proxy;
 
             me.roles.forEach(function (roles, index) {
                 me.registro.rolesUsuario[index].checked = false;

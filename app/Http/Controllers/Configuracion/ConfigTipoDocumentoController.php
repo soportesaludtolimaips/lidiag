@@ -14,9 +14,9 @@ class ConfigTipoDocumentoController extends Controller
         private readonly ConfigTipoDocumentoService $configTipoDocumentoService,
     ) {
         $this->middleware('auth:sanctum')->except(['index', 'listarActivos']);
-        $this->middleware('permission:configuracion.tipos-documento.create')->only(['store']);
-        $this->middleware('permission:configuracion.tipos-documento.edit')->only(['update']);
-        $this->middleware('permission:configuracion.tipos-documento.destroy')->only(['destroy']);
+        $this->middleware('permission:config.tipo.documento.create')->only(['store']);
+        $this->middleware('permission:config.tipo.documento.edit')->only(['update']);
+        $this->middleware('permission:config.tipo.documento.destroy')->only(['destroy']);
     }
 
     public function index(): JsonResponse

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <div>
         <a
             class="nav-link dropdown-toggle waves-effect waves-dark"
@@ -23,7 +23,9 @@
     </div>
 </template>
 <script setup>
-import { onMounted, ref } from "vue";
+const { proxy } = getCurrentInstance();
+const emitter = proxy.emitter;
+import { onMounted, ref, getCurrentInstance } from "vue";
 
 import { handleAxiosErrorToast } from "@/helpers/alerts";
 import axios from "axios";

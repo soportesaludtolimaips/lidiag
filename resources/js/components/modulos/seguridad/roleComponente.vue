@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
@@ -13,7 +13,7 @@
                     <li class="breadcrumb-item">
                         <a role="button" tabindex="0">Seguridad</a>
                     </li>
-                    <li class="breadcrumb-item active">Gestión de Roles</li>
+                    <li class="breadcrumb-item active">GestiÃ³n de Roles</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
@@ -231,7 +231,10 @@
     </div>
 </template>
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
+
+const { proxy } = getCurrentInstance();
+const dt = ref(null);
 
 import { handleAxiosErrorToast, confirmAction } from "@/helpers/alerts";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
@@ -306,7 +309,7 @@ async function guardarRegistro() {
             if (res.status == 200) {
                 $.toast({
                     heading: "Ok!!!",
-                    text: res.data.message,
+                    text: res.data.data.message,
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: "success",
@@ -325,7 +328,7 @@ async function guardarRegistro() {
             if (res.status == 200) {
                 $.toast({
                     heading: "Ok!!!",
-                    text: res.data.message,
+                    text: res.data.data.message,
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: "success",
@@ -346,7 +349,7 @@ async function guardarRegistro() {
     }
 }
 function listarPermisosRol() {
-    let me = this;
+    let me = proxy;
 
     me.permisos.map(function (x, y) {
         me.registro.permisosRol.push({
@@ -366,8 +369,8 @@ function mostrarRegistro(data = {}) {
             .get("/api/seguridad-roles/" + id.value)
             .then((res) => {
                 registro.value.permisos = [];
-                const permisosDelRol = Object.keys(res.data.permisosRol);
-                let me = this;
+                const permisosDelRol = Object.keys(res.data.data.permisosRol);
+                let me = proxy;
 
                 me.permisos.forEach(function (permisos, index) {
                     me.registro.permisosRol[index].checked = false;
@@ -393,9 +396,9 @@ function mostrarRegistro(data = {}) {
 }
 async function cambiarEstado(estado, data = {}) {
     const ok = await confirmAction({
-        title: "Confirmación",
+        title: "ConfirmaciÃ³n",
         text:
-            "¿Estás seguro de que deseas " +
+            "Â¿EstÃ¡s seguro de que deseas " +
             (estado == 0 ? "activar" : "desactivar") +
             " el rol " +
             data.name +
@@ -414,7 +417,7 @@ async function cambiarEstado(estado, data = {}) {
                 "El rol " +
                 data.name +
                 " se " +
-                (estado == 0 ? "activó" : "desactivó") +
+                (estado == 0 ? "activÃ³" : "desactivÃ³") +
                 " correctamente",
             position: "top-right",
             loaderBg: "#ff6849",
@@ -438,7 +441,7 @@ function limpiarFormulario() {
     registro.value.name = "";
     errores.value = "";
 
-    let me = this;
+    let me = proxy;
     me.permisos.forEach(function (permisos, index) {
         me.registro.permisosRol[index].checked = false;
     });

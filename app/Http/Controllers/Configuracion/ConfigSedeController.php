@@ -14,10 +14,10 @@ class ConfigSedeController extends Controller
         private readonly ConfigSedeService $configSedeService,
     ) {
         $this->middleware('auth:sanctum')->except(['index']);
-        $this->middleware('permission:configuracion.sedes.index')->only(['index', 'buscarPorId']);
-        $this->middleware('permission:configuracion.sedes.create')->only(['store']);
-        $this->middleware('permission:configuracion.sedes.edit')->only(['update']);
-        $this->middleware('permission:configuracion.sedes.destroy')->only(['destroy']);
+        $this->middleware('permission:config.sedes.index')->only(['index', 'buscarPorId']);
+        $this->middleware('permission:config.sedes.create')->only(['store']);
+        $this->middleware('permission:config.sedes.edit')->only(['update']);
+        $this->middleware('permission:config.sedes.destroy')->only(['destroy']);
     }
 
     public function index(): JsonResponse
@@ -27,9 +27,9 @@ class ConfigSedeController extends Controller
         return response()->json($result, $result['status']);
     }
 
-    public function buscarPorId(int $id): JsonResponse
+    public function buscarPorId($id): JsonResponse
     {
-        $result = $this->configSedeService->buscarPorId($id);
+        $result = $this->configSedeService->buscarPorId((int) $id);
 
         return response()->json($result, $result['status']);
     }

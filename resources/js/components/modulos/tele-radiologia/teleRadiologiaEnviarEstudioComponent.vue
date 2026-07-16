@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
@@ -108,7 +108,7 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de estudios disponibles</h4>
                         <h6 class="card-subtitle text-info">
-                            Asigne los estudios a los médicos para su respectiva lectura.
+                            Asigne los estudios a los mÃ©dicos para su respectiva lectura.
                         </h6>
                         <div class="table-responsive">
                             <table
@@ -124,7 +124,7 @@
                                         <th with="5%"># Documento</th>
                                         <th with="30%">Paciente</th>
                                         <th>Accession</th>
-                                        <th>Descripción</th>
+                                        <th>DescripciÃ³n</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -272,7 +272,7 @@
                                     <div class="row">
                                         <div class="col-md-4">
                                             <div class="form-group">
-                                                <label class="control-label">Dirección</label>
+                                                <label class="control-label">DirecciÃ³n</label>
                                                 <input
                                                     type="text"
                                                     id="direccion"
@@ -284,7 +284,7 @@
                                         </div>
                                         <div class="col-md-3">
                                             <div class="form-group">
-                                                <label class="control-label">Télefono</label>
+                                                <label class="control-label">TÃ©lefono</label>
                                                 <input
                                                     type="number"
                                                     id="telefono"
@@ -335,7 +335,7 @@
                                     <div class="row">
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label class="control-label">Descripción</label>
+                                                <label class="control-label">DescripciÃ³n</label>
                                                 <input
                                                     type="text"
                                                     id="study_desc"
@@ -468,7 +468,7 @@
 
                                         <div class="col-md-4" v-if="sedeInterface === true">
                                             <div class="form-group">
-                                                <label class="control-label">Atención</label>
+                                                <label class="control-label">AtenciÃ³n</label>
                                                 <select
                                                     v-model="interfaceAtencionSeleccionada"
                                                     name="interfaceAtencionSeleccionada"
@@ -525,7 +525,7 @@
                                                 <thead>
                                                     <tr>
                                                         <th></th>
-                                                        <th>Código</th>
+                                                        <th>CÃ³digo</th>
                                                         <th>Producto</th>
                                                         <th></th>
                                                     </tr>
@@ -634,14 +634,17 @@
     </div>
 </template>
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+const { proxy } = getCurrentInstance();
+const emitter = proxy.emitter;
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { handleAxiosErrorToast } from "@/helpers/alerts";
-import { useSede } from "@/composables/useSede";
 import axios from "axios";
 
-const props = defineProps({});
+const props = defineProps({ usuarioactual: Object });
+
+const dt = ref(null);
 
 const dataIndex = ref(0);
 const id = ref(0);
@@ -658,8 +661,8 @@ const registro = ref({
     observaciones: "",
     medico_id: "",
     prioridad_id: "",
-    sede_id: this.sedeActual,
-    quien_registro_id: this.usuarioactual.id,
+    sede_id: sedeActual,
+    quien_registro_id: props.usuarioactual.id,
     num_docu: "",
     nombres: "",
     sexo: "",
@@ -699,8 +702,8 @@ const orden = ref({
         nom_priori: "",
     },
     sede: {
-        id: this.idSedeActual,
-        nom_sede: this.nomSedeActual,
+        id: idSedeActual,
+        nom_sede: nomSedeActual,
     },
     producto: [],
     adjuntos: [],
@@ -708,7 +711,7 @@ const orden = ref({
 });
 const soportesHC = ref({ archivo1: null, archivo2: null, archivo3: null });
 const busqueda = ref({
-    sede_id: this.sedeActual,
+    sede_id: sedeActual,
     bus_nom_num_docu: "",
     bus_fehc_ini: "",
     bus_fecha_fin: "",
@@ -781,7 +784,7 @@ async function buscarStudy() {
         ) {
             $.toast({
                 heading: "Upsss!!!",
-                text: "Debes establece la fecha de inicio o finalización para la busqueda.",
+                text: "Debes establece la fecha de inicio o finalizaciÃ³n para la busqueda.",
                 position: "top-right",
                 loaderBg: "#ff6849",
                 icon: "warning",
@@ -789,7 +792,7 @@ async function buscarStudy() {
                 stack: 6,
             });
         } else {
-            // En Tele-radiología consultamos estudios vía endpoint del módulo
+            // En Tele-radiologÃ­a consultamos estudios vÃ­a endpoint del mÃ³dulo
             const res = await axios.post("/api/tele-radiologia-listar-estudios", busqueda.value);
             if (res.status == 200) {
                 destroyDataTable();
@@ -801,7 +804,7 @@ async function buscarStudy() {
             } else if (res.status == 500) {
                 $.toast({
                     heading: "Upsss!!!",
-                    text: res.data.message,
+                    text: res.data.data.message,
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: "danger",
@@ -1009,7 +1012,7 @@ async function mostrarRegistro(data = {}, index) {
      * Verificar si la sede tiene interface, traigo la informacion de las producto y diagnosticos
      */
     const res = await axios.get("/api/config-sedes/" + idSedeActual.value + "/buscarPorId");
-    if (res.data.interface_software != null) {
+    if (res.data.data.interface_software != null) {
         const resAtenciones = await axios.get(
             "/api/interface-sahi-listar-atenciones/" + orden.value.paciente.num_docu
         );
@@ -1191,7 +1194,7 @@ function guardarProductosEstudio(id, cod_cups, nom_produc) {
     if (yaExisteIndex !== -1) {
         // Si ya existe, quitarlo
         orden.value.producto.splice(yaExisteIndex, 1);
-        // También quitarlo de registro.productosEstudio
+        // TambiÃ©n quitarlo de registro.productosEstudio
         const registroIndex = registro.value.productosEstudio.findIndex(
             (p) => p.cod_cups == productoEstudioCod_Cubs
         );

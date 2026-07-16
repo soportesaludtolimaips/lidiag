@@ -14,10 +14,10 @@ class ConsentimientoInformadoController extends Controller
         private readonly ConsentimientoInformadoService $consentimientoInformadoService,
     ) {
         $this->middleware('auth:sanctum')->except(['index', 'listarActivos']);
-        $this->middleware('permission:configuracion.consentimientos.index')->only(['index', 'listarActivos', 'show']);
-        $this->middleware('permission:configuracion.consentimientos.create')->only(['store']);
-        $this->middleware('permission:configuracion.consentimientos.edit')->only(['update']);
-        $this->middleware('permission:configuracion.consentimientos.destroy')->only(['destroy']);
+        $this->middleware('permission:config.consentimiento_informado.index')->only(['index', 'listarActivos', 'show']);
+        $this->middleware('permission:config.consentimiento_informado.create')->only(['store']);
+        $this->middleware('permission:config.consentimiento_informado.edit')->only(['update']);
+        $this->middleware('permission:config.consentimiento_informado.destroy')->only(['destroy']);
     }
 
     public function index(): JsonResponse

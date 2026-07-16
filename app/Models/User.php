@@ -62,6 +62,11 @@ class User extends Authenticatable
         'transcrip_remoto' => 'boolean',
     ];
 
+    public function getDefaultGuardName(): string
+    {
+        return 'web';
+    }
+
     public function paciente()
     {
         return $this->hasMany(User::class, 'paciente_id');

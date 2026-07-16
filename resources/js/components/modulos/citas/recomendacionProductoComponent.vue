@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
@@ -29,7 +29,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros de búsqueda
+                            <i class="fa fa-filter"></i> Filtros de bÃºsqueda
                         </h4>
                         <form action="#">
                             <div class="form-body">
@@ -138,7 +138,7 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de recomendaciones</h4>
                         <h6 class="card-subtitle text-info">
-                            Texto enviado al paciente junto con la confirmación de su cita.
+                            Texto enviado al paciente junto con la confirmaciÃ³n de su cita.
                         </h6>
 
                         <loading-spinner :visible="loadingBuscar" />
@@ -155,7 +155,7 @@
                                     <thead>
                                         <tr>
                                             <th>Producto</th>
-                                            <th>Recomendación</th>
+                                            <th>RecomendaciÃ³n</th>
                                             <th>Estado</th>
                                             <th class="sr-only">Acciones</th>
                                         </tr>
@@ -164,7 +164,7 @@
                                         <tr v-for="item in registros" :key="item.id">
                                             <td>
                                                 <strong>{{
-                                                    item.producto?.nom_produc || "—"
+                                                    item.producto?.nom_produc || "â€”"
                                                 }}</strong
                                                 ><br />
                                                 <small class="text-muted">{{
@@ -175,7 +175,7 @@
                                                 <div
                                                     style="max-width: 500px; white-space: pre-wrap"
                                                 >
-                                                    {{ item.recomendacion || "—" }}
+                                                    {{ item.recomendacion || "â€”" }}
                                                 </div>
                                             </td>
                                             <td>
@@ -244,7 +244,7 @@
         >
             <div class="slimscrollright">
                 <div class="rpanel-title">
-                    {{ editando ? "Editar recomendación" : "Nueva recomendación" }}
+                    {{ editando ? "Editar recomendaciÃ³n" : "Nueva recomendaciÃ³n" }}
                     <span>
                         <i
                             class="ti-close right-side-toggle"
@@ -271,11 +271,11 @@
                                 }}</span>
                             </div>
                             <div class="form-group">
-                                <label class="control-label">Recomendación</label>
+                                <label class="control-label">RecomendaciÃ³n</label>
                                 <FormattedTextEditor
                                     v-model="form.recomendacion"
                                     rows="8"
-                                    placeholder="Texto de recomendación para el paciente. Use saltos de línea si es necesario."
+                                    placeholder="Texto de recomendaciÃ³n para el paciente. Use saltos de lÃ­nea si es necesario."
                                 />
                                 <small class="text-muted"
                                     >Variables disponibles: <code>${num_docu_paciente}</code>
@@ -316,6 +316,8 @@
 </template>
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+
+const dt = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { handleAxiosErrorToast, alertSuccess, alertError, confirmAction } from "@/helpers/alerts";
@@ -455,20 +457,20 @@ async function guardar() {
                 estado: form.value.estado,
             });
         }
-        alertSuccess("Éxito", res?.data?.message || "Recomendación guardada.");
+        alertSuccess("Ã‰xito", res?.data?.message || "RecomendaciÃ³n guardada.");
         cerrarModal();
         await buscar();
     } catch (error) {
         errores.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible guardar la recomendación.");
+        handleAxiosErrorToast(error, "No fue posible guardar la recomendaciÃ³n.");
     } finally {
         loadingGuardar.value = false;
     }
 }
 async function eliminarRegistro(id) {
     const ok = await confirmAction({
-        title: "¿Está seguro?",
-        text: "No podrá recuperar este registro.",
+        title: "Â¿EstÃ¡ seguro?",
+        text: "No podrÃ¡ recuperar este registro.",
         icon: "warning",
     });
     if (!ok) return;
@@ -476,10 +478,10 @@ async function eliminarRegistro(id) {
     loadingEliminarId.value = id;
     try {
         const res = await axios.delete("/api/config-recomendacion-productos/" + id);
-        alertSuccess("Éxito", res?.data?.message || "Recomendación eliminada.");
+        alertSuccess("Ã‰xito", res?.data?.message || "RecomendaciÃ³n eliminada.");
         await buscar();
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible eliminar la recomendación.");
+        handleAxiosErrorToast(error, "No fue posible eliminar la recomendaciÃ³n.");
     } finally {
         loadingEliminarId.value = null;
     }

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
@@ -119,7 +119,7 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de estudios disponibles</h4>
                         <h6 class="card-subtitle text-info">
-                            Asigne los estudios a los médicos para su respectiva lectura.
+                            Asigne los estudios a los mÃ©dicos para su respectiva lectura.
                         </h6>
                         <div class="table-responsive">
                             <table
@@ -135,7 +135,7 @@
                                         <th with="5%"># Documento</th>
                                         <th with="30%">Paciente</th>
                                         <th>Accession</th>
-                                        <th>Descripción</th>
+                                        <th>DescripciÃ³n</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -255,7 +255,7 @@
                                     <div class="row">
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label class="control-label">Descripción</label>
+                                                <label class="control-label">DescripciÃ³n</label>
                                                 <input
                                                     type="text"
                                                     id="study_desc"
@@ -362,7 +362,7 @@
                                         <!-- <div class="col-md-8">
 
                                             <div class="form-group" id="medicos-parent">
-                                                <label>Médico</label>
+                                                <label>MÃ©dico</label>
                                                 <Select2 :value="registro.medico_id" :options="medicoOptions"
                                                     width="100%" :allow-clear="true" :label-fields="['name']"
                                                     :dropdown-parent-selector="'#medicos-parent'"
@@ -406,7 +406,7 @@
 
                                         <div class="col-md-4" v-if="sedeInterface === true">
                                             <div class="form-group">
-                                                <label class="control-label">Atención</label>
+                                                <label class="control-label">AtenciÃ³n</label>
                                                 <select
                                                     v-model="interfaceAtencionSeleccionada"
                                                     name="interfaceAtencionSeleccionada"
@@ -466,7 +466,7 @@
                                                 <thead>
                                                     <tr>
                                                         <th></th>
-                                                        <th>Código</th>
+                                                        <th>CÃ³digo</th>
                                                         <th>Producto</th>
                                                         <th></th>
                                                     </tr>
@@ -547,7 +547,7 @@
                                             >
                                                 <thead>
                                                     <tr>
-                                                        <th>Código</th>
+                                                        <th>CÃ³digo</th>
                                                         <th>Diagnostico</th>
                                                         <th></th>
                                                     </tr>
@@ -613,14 +613,19 @@
     </div>
 </template>
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+const { proxy } = getCurrentInstance();
+const emitter = proxy.emitter;
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { handleAxiosErrorToast } from "@/helpers/alerts";
 import axios from "axios";
 
-const props = defineProps({});
+const props = defineProps({ usuarioactual: Object });
+
+const dt = ref(null);
+const actualizar = ref(false);
 
 const dataIndex = ref(0);
 const id = ref(0);
@@ -637,8 +642,8 @@ const registro = ref({
     observaciones: "",
     medico_id: "",
     prioridad_id: "",
-    sede_id: this.sedeActual,
-    quien_registro_id: this.usuarioactual.id,
+    sede_id: sedeActual,
+    quien_registro_id: props.usuarioactual.id,
     num_docu: "",
     nombres: "",
     sexo: "",
@@ -654,7 +659,7 @@ const registro = ref({
 });
 const soportesHC = ref({ archivo1: null, archivo2: null, archivo3: null });
 const busqueda = ref({
-    sede_id: this.sedeActual,
+    sede_id: sedeActual,
     bus_nom_num_docu: "",
     bus_fehc_ini: "",
     bus_fecha_fin: "",
@@ -721,7 +726,7 @@ async function buscarStudy() {
         ) {
             $.toast({
                 heading: "Upsss!!!",
-                text: "Debes establece la fecha de inicio o finalización para la busqueda.",
+                text: "Debes establece la fecha de inicio o finalizaciÃ³n para la busqueda.",
                 position: "top-right",
                 loaderBg: "#ff6849",
                 icon: "warning",
@@ -729,7 +734,7 @@ async function buscarStudy() {
                 stack: 6,
             });
         } else {
-            // Validación de rango de fechas
+            // ValidaciÃ³n de rango de fechas
             if (
                 (busqueda.value.bus_fehc_ini && !busqueda.value.bus_fecha_fin) ||
                 (!busqueda.value.bus_fehc_ini && busqueda.value.bus_fecha_fin)
@@ -776,7 +781,7 @@ async function buscarStudy() {
             } else if (res.status == 500) {
                 $.toast({
                     heading: "Upsss!!!",
-                    text: res.data.message,
+                    text: res.data.data.message,
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: "danger",
@@ -809,7 +814,7 @@ async function guardarRegistro() {
         if (res.status == 200 || res.status === 201) {
             $.toast({
                 heading: "Ok!!!",
-                text: res.data.message,
+                text: res.data.data.message,
                 position: "top-right",
                 loaderBg: "#ff6849",
                 icon: "success",
@@ -866,7 +871,7 @@ async function mostrarRegistro(data = {}, index) {
      * Verificar si la sede tiene interface, traigo la informacion de las producto y diagnosticos
      */
     const res = await axios.get("/api/config-sedes/" + sedeActual.value + "/buscarPorId");
-    if (res.data.interface_software != null) {
+    if (res.data.data.interface_software != null) {
         const resAtenciones = await axios.get(
             "/api/interface-sahi-listar-atenciones/" + registro.value.num_docu
         );
@@ -875,7 +880,7 @@ async function mostrarRegistro(data = {}, index) {
 }
 async function interfaceListarProductosDiagnosticos() {
     /**
-     * Listo los productos de una atención
+     * Listo los productos de una atenciÃ³n
      */
     const resProuctos = await axios.get(
         "/api/interface-sahi-listar-listarProductosDiagnosticos/" +
@@ -963,7 +968,7 @@ async function listarMedicos() {
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = res.data;
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar médicos.");
+        handleAxiosErrorToast(error, "No fue posible listar mÃ©dicos.");
         medicos.value = [];
     }
 }
@@ -990,7 +995,7 @@ async function listarDiagnosticos() {
         const res = await axios.get("/api/config-diagnosticos");
         diagnosticos.value = res.data;
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar diagnósticos.");
+        handleAxiosErrorToast(error, "No fue posible listar diagnÃ³sticos.");
         diagnosticos.value = [];
     }
 }
@@ -1056,7 +1061,7 @@ function guardarProductosEstudio() {
             });
         }
 
-        // Limpiar selección
+        // Limpiar selecciÃ³n
         productoSelecciondo.value = "";
     }
 }
@@ -1079,7 +1084,7 @@ function guardarDiagnosticosEstudio() {
                 nom_diagnos: diag.nom_diagnos,
             });
         }
-        // Limpiar selección
+        // Limpiar selecciÃ³n
         diagnosticoSelecciondo.value = "";
     }
 }

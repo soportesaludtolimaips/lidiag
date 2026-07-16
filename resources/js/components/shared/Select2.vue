@@ -11,10 +11,14 @@
     </select>
 </template>
 <script setup>
-import { nextTick, onMounted } from "vue";
+import { nextTick, onMounted, ref } from "vue";
 
+const el = ref(null);
+
+// backward-compat: acepta tanto value (legacy) como modelValue (v-model)
 const props = defineProps({
-    value: { type: [String, Number, Array, null], default: null },
+    modelValue: { type: [String, Number, Array, null], default: undefined },
+    value: { type: [String, Number, Array, null], default: undefined },
     options: { type: Array, default: () => [] },
     optionValue: { type: String, default: "id" },
     labelFields: { type: Array, default: () => ["cod_cups", "nom_produc"] },
@@ -29,13 +33,15 @@ const props = defineProps({
     returnObject: { type: Boolean, default: false },
 });
 
-function select() {
-    const el = el.value;
-    if (!el || !window.$ || !$.fn || !$.fn.select2) return null;
-    return $(el);
+const emit = defineEmits(["input", "select", "update:modelValue"]);
+
+function $select() {
+    const $native = el.value;
+    if (!$native || !window.$ || !$.fn || !$.fn.select2) return null;
+    return $($native);
 }
 function formatLabel(opt) {
-    const parts = labelFields.map((f) => opt && opt[f]).filter(Boolean);
+    const parts = props.labelFields.map((f) => opt && opt[f]).filter(Boolean);
     return parts.join(" - ");
 }
 function normalizeText(term) {
@@ -57,7 +63,7 @@ function initSelect2() {
     const matcher = (params, data) => {
         if ($.trim(params.term) === "") return data;
         if (typeof data.text === "undefined") return null;
-        if (!accentInsensitive) {
+        if (!props.accentInsensitive) {
             return data.text.toLowerCase().includes(String(params.term || "").toLowerCase())
                 ? data
                 : null;
@@ -67,30 +73,34 @@ function initSelect2() {
         return text.indexOf(term) > -1 ? data : null;
     };
 
-    const parent = $(dropdownParentSelector);
+    const parent = $(props.dropdownParentSelector);
     $el.select2({
-        width: width,
+        width: props.width,
         dropdownParent: parent && parent.length ? parent : undefined,
-        minimumInputLength: minimumInputLength,
-        allowClear: allowClear,
+        minimumInputLength: props.minimumInputLength,
+        allowClear: props.allowClear,
         matcher,
     });
 
     // Inicializar valor actual
-    $el.val(props.value ?? (multiple ? [] : null)).trigger("change");
+    $el.val(props.modelValue ?? props.value ?? (props.multiple ? [] : null)).trigger("change");
 
     // Emitir eventos
     const buildOutput = () => {
         const raw = $el.val();
-        const ids = Array.isArray(raw) ? raw : returnArray || multiple ? [raw] : raw;
-        if (returnObject) {
+        const ids = Array.isArray(raw) ? raw : props.returnArray || props.multiple ? [raw] : raw;
+        if (props.returnObject) {
             if (Array.isArray(ids)) {
                 const objs = ids
-                    .map((id) => options.find((o) => String(o[optionValue]) === String(id)))
+                    .map((id) =>
+                        props.options.find((o) => String(o[props.optionValue]) === String(id))
+                    )
                     .filter(Boolean);
-                return returnArray || multiple ? objs : (objs[0] ?? null);
+                return props.returnArray || props.multiple ? objs : (objs[0] ?? null);
             } else {
-                return options.find((o) => String(o[optionValue]) === String(ids)) ?? null;
+                return (
+                    props.options.find((o) => String(o[props.optionValue]) === String(ids)) ?? null
+                );
             }
         } else {
             return ids;
@@ -100,6 +110,7 @@ function initSelect2() {
     $el.on("select2:select", () => {
         const out = buildOutput();
         emit("input", out);
+        emit("update:modelValue", out);
         emit("select", out);
     });
 
@@ -107,6 +118,7 @@ function initSelect2() {
     $el.on("select2:unselect", () => {
         const out = buildOutput();
         emit("input", out);
+        emit("update:modelValue", out);
         emit("select", out);
     });
 }
@@ -120,7 +132,7 @@ function destroySelect2() {
 }
 function rebuild() {
     // Re-init to refresh options while preserving current value
-    const current = props.value;
+    const current = props.modelValue ?? props.value;
     initSelect2();
     const $el = $select();
     if ($el && current != null) {
@@ -132,6 +144,9 @@ onMounted(() => {
     nextTick(() => initSelect2());
 });
 </script>
-<style scoped>
-/* Opcional: estilos de integración si es necesario */
+<style>
+.select2-results__option {
+    padding: 8px 12px;
+    line-height: 1.5;
+}
 </style>

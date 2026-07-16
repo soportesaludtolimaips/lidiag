@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
@@ -132,7 +132,7 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de estudios disponibles</h4>
                         <h6 class="card-subtitle text-info">
-                            Asigne los estudios a los médicos para su respectiva lectura.
+                            Asigne los estudios a los mÃ©dicos para su respectiva lectura.
                         </h6>
                         <div class="table-responsive">
                             <table
@@ -148,7 +148,7 @@
                                         <th>Sede</th>
                                         <th>Toma</th>
                                         <th with="50%">Lectura</th>
-                                        <th>Asignación</th>
+                                        <th>AsignaciÃ³n</th>
                                         <th>Quien Asigno</th>
                                         <th with="50%">Medico</th>
                                         <th with="50%">Paciente</th>
@@ -215,7 +215,7 @@
                                             Nombres: {{ item.nom_pacien }}
                                         </td>
                                         <td>
-                                            Atención: {{ item.atencion }} <br />
+                                            AtenciÃ³n: {{ item.atencion }} <br />
                                             Descrip: {{ item.study_desc }} <br />
                                             {{ item.accession_no }}
                                         </td>
@@ -326,7 +326,7 @@
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <dl>
-                                                    <dt>Descripción:</dt>
+                                                    <dt>DescripciÃ³n:</dt>
                                                     <dd>{{ registro.study_desc }}</dd>
                                                 </dl>
                                             </div>
@@ -433,7 +433,7 @@
                                                     rows="20"
                                                     id="lectura"
                                                     style="height: 100%"
-                                                    placeholder="Ingrese aquí la lectura del estudio ..."
+                                                    placeholder="Ingrese aquÃ­ la lectura del estudio ..."
                                                 ></textarea>
                                             </div>
                                         </div>
@@ -563,7 +563,9 @@
     </div>
 </template>
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+const { proxy } = getCurrentInstance();
+const emitter = proxy.emitter;
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { listarUsuariosYSedes } from "../../../helpers/usuarios";
@@ -571,8 +573,12 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import axios from "axios";
+import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables";
 
-const props = defineProps({});
+const props = defineProps({ usuarioactual: Object });
+
+const dt = ref(null);
+const actualizar = ref(false);
 
 const diagnosticosEstudio = ref([]);
 const soportesHC = ref([]);
@@ -722,7 +728,7 @@ async function guardarRegistro() {
 
             $.toast({
                 heading: "Ok!!!",
-                text: res.data.message,
+                text: res.data.data.message,
                 position: "top-right",
                 loaderBg: "#ff6849",
                 icon: "success",
@@ -736,7 +742,7 @@ async function guardarRegistro() {
         } else {
             $.toast({
                 heading: "Upss!!!",
-                text: res.data.message,
+                text: res.data.data.message,
                 position: "top-right",
                 loaderBg: "#ff6849",
                 icon: "danger",
@@ -754,7 +760,7 @@ async function guardarRegistro() {
                 heading: "Upss!!!",
                 text:
                     error?.response?.data?.message ||
-                    "La plantilla no está configurada para esta sede.",
+                    "La plantilla no estÃ¡ configurada para esta sede.",
                 position: "top-right",
                 loaderBg: "#ff6849",
                 icon: "error",
@@ -764,7 +770,7 @@ async function guardarRegistro() {
         } else {
             $.toast({
                 heading: "Upss!!!",
-                text: error?.response?.data?.message || "No fue posible guardar la transcripción.",
+                text: error?.response?.data?.message || "No fue posible guardar la transcripciÃ³n.",
                 position: "top-right",
                 loaderBg: "#ff6849",
                 icon: "error",
@@ -801,7 +807,7 @@ function descargaSoportte(nomArchivoOriginal, nomArchivoEncriptado) {
 async function anularAsignacion(idProductoEstudio, paciente, producto) {
     const ok = await confirmAction({
         title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
-        text: "No podrás recuperar este registro!",
+        text: "No podrÃ¡s recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;
@@ -870,7 +876,7 @@ async function listarMedicos() {
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = res.data;
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar médicos.");
+        handleAxiosErrorToast(error, "No fue posible listar mÃ©dicos.");
         medicos.value = [];
     }
 }
@@ -925,9 +931,9 @@ async function mostrarRegistro(data = {}) {
     registro.value.nom_produc = data.nom_produc;
     registro.value.num_docu_medico = data.num_docu_medico;
     registro.value.reg_medico = data.reg_medico;
-    registro.value.nombres_medico = `Médico: ${data.nombres_medico}`;
+    registro.value.nombres_medico = `MÃ©dico: ${data.nombres_medico}`;
     registro.value.firma_medico = data.firma_medico;
-    registro.value.lectura = `Atención: ${data.atencion}\nFecha y Hora del estudio: ${data.fec_estudio}\nFecha y Hora de transcripción: ${fechaActual}\n\n${data.nom_produc}\n\n${data.lectura}`;
+    registro.value.lectura = `AtenciÃ³n: ${data.atencion}nFecha y Hora del estudio: ${data.fec_estudio}nFecha y Hora de transcripciÃ³n: ${fechaActual}nn${data.nom_produc}nn${data.lectura}`;
 
     datosImagen.value.urlOviyam = data.url_oviyam;
     datosImagen.value.patientId = data.num_docu;
@@ -954,7 +960,7 @@ async function mostrarRegistro(data = {}) {
     loadingAbrirId.value = null;
 }
 function limpiar() {
-    actualizar = false;
+    actualizar.value = false;
     tituloModal.value = "Nuevo registro";
     registro.value.email_reportar = "";
     registro.value.email = "";

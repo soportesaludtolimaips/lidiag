@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <div>
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
@@ -10,7 +10,7 @@
                     <li class="breadcrumb-item">
                         <a role="button" tabindex="0">Seguridad</a>
                     </li>
-                    <li class="breadcrumb-item active">Auditoría de Eventos</li>
+                    <li class="breadcrumb-item active">AuditorÃ­a de Eventos</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
@@ -62,7 +62,7 @@
                                     type="text"
                                     class="form-control"
                                     v-model="filtros.search"
-                                    placeholder="Descripción, modelo, IP..."
+                                    placeholder="DescripciÃ³n, modelo, IP..."
                                     @keyup.enter="cargarLogs"
                                 />
                             </div>
@@ -73,7 +73,7 @@
                             </div>
                         </div>
 
-                        <h4 class="card-title">Registro de Auditoría</h4>
+                        <h4 class="card-title">Registro de AuditorÃ­a</h4>
                         <span class="text-muted" v-if="totalRegistros > 0">
                             {{ totalRegistros }} registro(s) encontrado(s)
                         </span>
@@ -81,7 +81,7 @@
                         <div class="table-responsive m-t-20" v-if="loading">
                             <div class="text-center p-5">
                                 <i class="fa fa-spinner fa-spin fa-3x"></i>
-                                <p class="m-t-10">Cargando registros de auditoría...</p>
+                                <p class="m-t-10">Cargando registros de auditorÃ­a...</p>
                             </div>
                         </div>
 
@@ -99,7 +99,7 @@
                                         <th>Fecha / Hora</th>
                                         <th>Usuario</th>
                                         <th>Evento</th>
-                                        <th>Descripción</th>
+                                        <th>DescripciÃ³n</th>
                                         <th>Modelo</th>
                                         <th>IP</th>
                                         <th></th>
@@ -109,7 +109,7 @@
                                     <tr v-for="item in registros" :key="item.id">
                                         <td>{{ item.id }}</td>
                                         <td>{{ item.created_at }}</td>
-                                        <td>{{ item.user?.name || "—" }}</td>
+                                        <td>{{ item.user?.name || "â€”" }}</td>
                                         <td>
                                             <span
                                                 :class="'label label-' + colorEvento(item.evento)"
@@ -118,7 +118,7 @@
                                             </span>
                                         </td>
                                         <td class="cell-descripcion">
-                                            {{ item.descripcion || "—" }}
+                                            {{ item.descripcion || "â€”" }}
                                         </td>
                                         <td>
                                             <small v-if="item.model_type">
@@ -126,10 +126,10 @@
                                                     item.model_id
                                                 }}
                                             </small>
-                                            <span v-else>—</span>
+                                            <span v-else>â€”</span>
                                         </td>
                                         <td>
-                                            <small>{{ item.ip || "—" }}</small>
+                                            <small>{{ item.ip || "â€”" }}</small>
                                         </td>
                                         <td class="text-nowrap">
                                             <button
@@ -153,7 +153,7 @@
                                     <i class="fa fa-chevron-left"></i> Anterior
                                 </button>
                                 <span class="m-x-15"
-                                    >Página {{ paginaActual }} de {{ totalPaginas }}</span
+                                    >PÃ¡gina {{ paginaActual }} de {{ totalPaginas }}</span
                                 >
                                 <button
                                     class="btn btn-sm btn-outline-dark"
@@ -165,7 +165,7 @@
                             </div>
 
                             <div class="text-center m-t-10" v-if="totalRegistros === 0">
-                                <p class="text-muted">No se encontraron registros de auditoría.</p>
+                                <p class="text-muted">No se encontraron registros de auditorÃ­a.</p>
                             </div>
                         </div>
                     </div>
@@ -183,7 +183,7 @@
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">Detalle de Auditoría #{{ detalle.id }}</h4>
+                        <h4 class="modal-title">Detalle de AuditorÃ­a #{{ detalle.id }}</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                             &times;
                         </button>
@@ -191,47 +191,53 @@
                     <div class="modal-body">
                         <div class="table-responsive">
                             <table class="table table-bordered">
-                                <tr>
-                                    <th style="width: 150px">Fecha</th>
-                                    <td>{{ detalle.created_at }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Usuario</th>
-                                    <td>
-                                        {{ detalle.user?.name || "—" }} (ID:
-                                        {{ detalle.user_id || "—" }})
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>Evento</th>
-                                    <td>
-                                        <span :class="'label label-' + colorEvento(detalle.evento)">
-                                            {{ detalle.evento }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>Descripción</th>
-                                    <td>{{ detalle.descripcion || "—" }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Modelo</th>
-                                    <td>
-                                        {{ detalle.model_type || "—" }} #{{
-                                            detalle.model_id || "—"
-                                        }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>IP</th>
-                                    <td>{{ detalle.ip || "—" }}</td>
-                                </tr>
-                                <tr>
-                                    <th>User-Agent</th>
-                                    <td style="word-break: break-all">
-                                        <small>{{ detalle.user_agent || "—" }}</small>
-                                    </td>
-                                </tr>
+                                <tbody>
+                                    <tr>
+                                        <th style="width: 150px">Fecha</th>
+                                        <td>{{ detalle.created_at }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Usuario</th>
+                                        <td>
+                                            {{ detalle.user?.name || "â€”" }} (ID:
+                                            {{ detalle.user_id || "â€”" }})
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Evento</th>
+                                        <td>
+                                            <span
+                                                :class="
+                                                    'label label-' + colorEvento(detalle.evento)
+                                                "
+                                            >
+                                                {{ detalle.evento }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>DescripciÃ³n</th>
+                                        <td>{{ detalle.descripcion || "â€”" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Modelo</th>
+                                        <td>
+                                            {{ detalle.model_type || "â€”" }} #{{
+                                                detalle.model_id || "â€”"
+                                            }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>IP</th>
+                                        <td>{{ detalle.ip || "â€”" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>User-Agent</th>
+                                        <td style="word-break: break-all">
+                                            <small>{{ detalle.user_agent || "â€”" }}</small>
+                                        </td>
+                                    </tr>
+                                </tbody>
                             </table>
                         </div>
                         <div v-if="detalle.datos_viejos" class="m-t-20">
@@ -259,6 +265,8 @@
 </template>
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+
+const dt = ref(null);
 
 import { handleAxiosErrorToast } from "@/helpers/alerts";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
@@ -320,9 +328,9 @@ async function cargarLogs() {
         const res = await axios.get("/api/seguridad-auditoria", { params });
 
         registros.value = res.data.data;
-        totalRegistros.value = res.data.total;
-        totalPaginas.value = res.data.last_page;
-        paginaActual.value = res.data.current_page;
+        totalRegistros.value = res.data.data.total;
+        totalPaginas.value = res.data.data.last_page;
+        paginaActual.value = res.data.data.current_page;
 
         nextTick(() => {
             safeInitDataTable(dt.value || "#tablaAuditoria", {
@@ -335,7 +343,7 @@ async function cargarLogs() {
             });
         });
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible cargar los registros de auditoría.");
+        handleAxiosErrorToast(error, "No fue posible cargar los registros de auditorÃ­a.");
     } finally {
         loading.value = false;
     }

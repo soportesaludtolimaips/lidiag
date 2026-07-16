@@ -1,8 +1,8 @@
-<template>
+﻿<template>
     <div>
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">Gestión de Citas</h3>
+                <h3 class="text-themecolor">GestiÃ³n de Citas</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Inicio</a>
@@ -10,7 +10,7 @@
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Citas</a>
                     </li>
-                    <li class="breadcrumb-item active">Gestión de citas</li>
+                    <li class="breadcrumb-item active">GestiÃ³n de citas</li>
                 </ol>
             </div>
         </div>
@@ -20,7 +20,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros de búsqueda
+                            <i class="fa fa-filter"></i> Filtros de bÃºsqueda
                         </h4>
                         <form action="#">
                             <div class="form-body">
@@ -35,7 +35,7 @@
                                                 <option value="confirmada">Confirmada</option>
                                                 <option value="cancelada">Cancelada</option>
                                                 <option value="cumplida">Cumplida</option>
-                                                <option value="no_asistio">No asistió</option>
+                                                <option value="no_asistio">No asistiÃ³</option>
                                             </select>
                                         </div>
                                     </div>
@@ -79,7 +79,7 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label class="control-label">Búsqueda</label>
+                                            <label class="control-label">BÃºsqueda</label>
                                             <input
                                                 type="text"
                                                 v-model="busqueda.busqueda"
@@ -126,7 +126,7 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de Citas</h4>
                         <h6 class="card-subtitle text-info">
-                            Gestione las solicitudes de citas y asígneles fecha y hora
+                            Gestione las solicitudes de citas y asÃ­gneles fecha y hora
                         </h6>
 
                         <loading-spinner :visible="loadingBuscar" />
@@ -139,10 +139,10 @@
                                             <th>Fecha Solicitud</th>
                                             <th>Paciente</th>
                                             <th>Documento</th>
-                                            <th>Teléfono</th>
+                                            <th>TelÃ©fono</th>
                                             <th>Servicio</th>
                                             <th>Orden</th>
-                                            <th>Autorización</th>
+                                            <th>AutorizaciÃ³n</th>
                                             <th>Estado</th>
                                             <th>Fecha Cita</th>
                                             <th>Acciones</th>
@@ -228,7 +228,7 @@
                                                     type="button"
                                                     class="btn btn-outline-secondary btn-sm btn-rounded m-1"
                                                     @click="noAsistioCita(item)"
-                                                    title="Marcar como no asistió"
+                                                    title="Marcar como no asistiÃ³"
                                                 >
                                                     <i class="fa fa-user-times"></i>
                                                 </button>
@@ -237,7 +237,7 @@
                                                     type="button"
                                                     class="btn btn-outline-warning btn-sm btn-rounded m-1"
                                                     @click="verConversacion(item)"
-                                                    title="Ver conversación WhatsApp"
+                                                    title="Ver conversaciÃ³n WhatsApp"
                                                 >
                                                     <i class="fa fa-comments"></i>
                                                 </button>
@@ -268,7 +268,7 @@
                     <div class="modal-header">
                         <h4 class="modal-title">Asignar Cita</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                            ×
+                            Ã—
                         </button>
                     </div>
                     <div class="modal-body">
@@ -359,7 +359,7 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="control-label">Duración (min)</label>
+                                    <label class="control-label">DuraciÃ³n (min)</label>
                                     <input
                                         type="number"
                                         v-model="citaSeleccionada.duracion_minutos"
@@ -410,25 +410,25 @@
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">Conversación WhatsApp</h4>
+                        <h4 class="modal-title">ConversaciÃ³n WhatsApp</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                            ×
+                            Ã—
                         </button>
                     </div>
                     <div class="modal-body">
                         <div v-if="loadingConversacion" class="text-center p-4">
                             <i class="fa fa-spinner fa-spin fa-2x"></i>
-                            <p class="mt-2">Cargando conversación...</p>
+                            <p class="mt-2">Cargando conversaciÃ³n...</p>
                         </div>
                         <div v-else-if="conversacion">
                             <div class="alert alert-info">
-                                <strong>Teléfono:</strong> {{ conversacion.telefono }}<br />
+                                <strong>TelÃ©fono:</strong> {{ conversacion.telefono }}<br />
                                 <strong>Estado:</strong> {{ conversacion.paso }}<br />
-                                <strong>Último mensaje:</strong>
+                                <strong>Ãšltimo mensaje:</strong>
                                 {{ formatFecha(conversacion.ultimo_mensaje) }}
                             </div>
                             <div v-if="conversacion.datos" class="mt-3">
-                                <h5>Datos de la conversación</h5>
+                                <h5>Datos de la conversaciÃ³n</h5>
                                 <pre class="bg-light p-3 rounded">{{
                                     JSON.stringify(conversacion.datos, null, 2)
                                 }}</pre>
@@ -437,7 +437,7 @@
                         <div v-else class="text-center p-4">
                             <i class="fa fa-comments-o fa-3x text-muted"></i>
                             <p class="mt-2 text-muted">
-                                No se encontró conversación para este paciente.
+                                No se encontrÃ³ conversaciÃ³n para este paciente.
                             </p>
                         </div>
                     </div>
@@ -452,8 +452,9 @@
     </div>
 </template>
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, getCurrentInstance } from "vue";
 
+const { proxy } = getCurrentInstance();
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { formatFecha, getEstadoLabel, getEstadoClase } from "@/composables/useCitasUtils.js";
 import axios from "axios";
@@ -501,7 +502,7 @@ function inicializar() {
     cargarListas();
 }
 function listarRegistros(page) {
-    var thisVue = this;
+    var thisVue = proxy;
     thisVue.loadingBuscar = true;
 
     var params = new URLSearchParams();
@@ -527,7 +528,7 @@ function listarRegistros(page) {
         });
 }
 function cargarListas() {
-    var thisVue = this;
+    var thisVue = proxy;
 
     axios.get("/api/citas/servicios").then(function (response) {
         thisVue.servicios = response.data;
@@ -543,7 +544,7 @@ function cargarListas() {
         });
 }
 function cargarProductosPorServicio() {
-    var thisVue = this;
+    var thisVue = proxy;
     var servicioId = thisVue.citaSeleccionada.servicio_cita_id;
     var sedeId = thisVue.citaSeleccionada.sede_id;
 
@@ -567,7 +568,7 @@ function onProductoSelect(value) {
     cargarDisponibilidad();
 }
 function cargarDisponibilidad() {
-    var thisVue = this;
+    var thisVue = proxy;
 
     if (
         !thisVue.citaSeleccionada.sede_id ||
@@ -619,7 +620,7 @@ function mostrarModalAsignar(cita) {
     jQuery("#modalAsignar").modal("show");
 }
 function asignarCita() {
-    var thisVue = this;
+    var thisVue = proxy;
 
     if (
         !thisVue.citaSeleccionada.producto_id ||
@@ -662,15 +663,15 @@ function asignarCita() {
         });
 }
 function confirmarCita(cita) {
-    var thisVue = this;
+    var thisVue = proxy;
 
     thisVue
         .$swal({
             title: "Confirmar Cita",
-            text: "¿Está seguro de confirmar esta cita?",
+            text: "Â¿EstÃ¡ seguro de confirmar esta cita?",
             type: "warning",
             showCancelButton: true,
-            confirmButtonText: "Sí, confirmar",
+            confirmButtonText: "SÃ­, confirmar",
             cancelButtonText: "No",
         })
         .then(function (result) {
@@ -688,16 +689,16 @@ function confirmarCita(cita) {
         });
 }
 function cancelarCita(cita) {
-    var thisVue = this;
+    var thisVue = proxy;
 
     thisVue
         .$swal({
             title: "Cancelar Cita",
             input: "text",
-            text: "Ingrese el motivo de cancelación (opcional)",
+            text: "Ingrese el motivo de cancelaciÃ³n (opcional)",
             type: "warning",
             showCancelButton: true,
-            confirmButtonText: "Sí, cancelar",
+            confirmButtonText: "SÃ­, cancelar",
             cancelButtonText: "No",
         })
         .then(function (result) {
@@ -718,15 +719,15 @@ function cancelarCita(cita) {
         });
 }
 function cumplirCita(cita) {
-    var thisVue = this;
+    var thisVue = proxy;
 
     thisVue
         .$swal({
             title: "Cumplir Cita",
-            text: "¿Marcar esta cita como cumplida?",
+            text: "Â¿Marcar esta cita como cumplida?",
             type: "question",
             showCancelButton: true,
-            confirmButtonText: "Sí, cumplida",
+            confirmButtonText: "SÃ­, cumplida",
             cancelButtonText: "No",
         })
         .then(function (result) {
@@ -744,15 +745,15 @@ function cumplirCita(cita) {
         });
 }
 function noAsistioCita(cita) {
-    var thisVue = this;
+    var thisVue = proxy;
 
     thisVue
         .$swal({
-            title: "No Asistió",
-            text: "¿Marcar esta cita como no asistió?",
+            title: "No AsistiÃ³",
+            text: "Â¿Marcar esta cita como no asistiÃ³?",
             type: "warning",
             showCancelButton: true,
-            confirmButtonText: "Sí, no asistió",
+            confirmButtonText: "SÃ­, no asistiÃ³",
             cancelButtonText: "No",
         })
         .then(function (result) {
@@ -770,7 +771,7 @@ function noAsistioCita(cita) {
         });
 }
 function verConversacion(cita) {
-    var thisVue = this;
+    var thisVue = proxy;
     thisVue.conversacion = null;
     thisVue.loadingConversacion = true;
     jQuery("#modalConversacion").modal("show");
@@ -805,7 +806,7 @@ function mostrarAdvertencia(mensaje) {
     $swal("Advertencia", mensaje, "warning");
 }
 function mostrarExito(mensaje) {
-    $swal("Éxito", mensaje, "success");
+    $swal("Ã‰xito", mensaje, "success");
 }
 
 onMounted(() => {

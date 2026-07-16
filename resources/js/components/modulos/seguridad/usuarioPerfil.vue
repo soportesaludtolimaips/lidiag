@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
@@ -107,7 +107,7 @@
                     <div class="card-body">
                         <small class="text-muted">Email address</small>
                         <h6>{{ registro.email }}</h6>
-                        <!-- <small class="text-muted p-t-30 db">Teléfono</small>
+                        <!-- <small class="text-muted p-t-30 db">TelÃ©fono</small>
                         <h6>{{ registro.tel }}</h6>
                         <br />
                         <button class="btn btn-circle btn-secondary"><i class="fa fa-facebook"></i></button>
@@ -142,7 +142,7 @@
                                                 id="num_docu"
                                                 name="num_docu"
                                                 v-model="registro.num_docu"
-                                                placeholder="Ingrese aqui el número de documento"
+                                                placeholder="Ingrese aqui el nÃºmero de documento"
                                                 class="form-control form-control-line"
                                             />
                                         </div>
@@ -185,7 +185,7 @@
                                             />
                                             <small class="text-muted"
                                                 >Dejar en blanco si no desea cambiar la
-                                                contraseña</small
+                                                contraseÃ±a</small
                                             >
                                         </div>
                                     </div>
@@ -228,13 +228,13 @@ import { onBeforeUnmount, onMounted, ref } from "vue";
 import { handleAxiosErrorToast } from "@/helpers/alerts";
 import axios from "axios";
 
-const props = defineProps({});
+const props = defineProps({ usuarioactual: Object });
 
-const id = ref(this.usuarioactual.id);
+const id = ref(props.usuarioactual.id);
 const registro = ref({
-    id: this.usuarioactual.id,
+    id: props.usuarioactual.id,
     num_docu: "",
-    dependencia_id: this.usuarioactual.dependencia_id,
+    dependencia_id: props.usuarioactual.dependencia_id,
     name: "",
     email: "",
     password: "",
@@ -254,10 +254,10 @@ async function obtenerRegistro() {
         const res = await axios.get("/api/seguridad-usuarios/" + id.value);
 
         if (res.status == 200) {
-            registro.value.num_docu = res.data.usuario.num_docu;
-            registro.value.name = res.data.usuario.name;
-            registro.value.email = res.data.usuario.email;
-            registro.value.firma = res.data.usuario.firma;
+            registro.value.num_docu = res.data.data.usuario.num_docu;
+            registro.value.name = res.data.data.usuario.name;
+            registro.value.email = res.data.data.usuario.email;
+            registro.value.firma = res.data.data.usuario.firma;
         }
     } catch (error) {
         errores.value = error?.response?.data?.errors || {};
@@ -286,7 +286,7 @@ async function actualizarPerfil() {
 
             $.toast({
                 heading: "Ok!!!",
-                text: res.data.message,
+                text: res.data.data.message,
                 position: "top-right",
                 loaderBg: "#ff6849",
                 icon: "success",

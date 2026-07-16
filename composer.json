@@ -21,6 +21,7 @@
         "spatie/laravel-permission": "^8.0"
     },
     "require-dev": {
+        "cweagans/composer-patches": "*",
         "fakerphp/faker": "^1.9.1",
         "laravel/pint": "^1.0",
         "laravel/sail": "^1.0.1",
@@ -67,6 +68,11 @@
         ]
     },
     "extra": {
+        "patches": {
+            "laravel/framework": {
+                "Fix array_push named params in MessageBag::all()": "patches/messagebag-arraypush-fix.patch"
+            }
+        },
         "laravel": {
             "dont-discover": []
         }
@@ -77,7 +83,8 @@
         "sort-packages": true,
         "allow-plugins": {
             "codewithkyrian/platform-package-installer": true,
-            "pestphp/pest-plugin": true
+            "pestphp/pest-plugin": true,
+            "cweagans/composer-patches": true
         }
     },
     "minimum-stability": "stable",

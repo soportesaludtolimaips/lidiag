@@ -1,8 +1,8 @@
-<template>
+﻿<template>
     <div>
         <div class="row page-titles">
             <div class="col-md-6 align-self-center">
-                <h3 class="text-themecolor">Ecografías</h3>
+                <h3 class="text-themecolor">EcografÃ­as</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <button type="button" class="btn btn-link p-0 breadcrumb-btn">
@@ -11,7 +11,7 @@
                     </li>
                     <li class="breadcrumb-item">
                         <button type="button" class="btn btn-link p-0 breadcrumb-btn">
-                            Ecografías
+                            EcografÃ­as
                         </button>
                     </li>
                     <li class="breadcrumb-item active">Plantillas Consentimientos</li>
@@ -25,13 +25,13 @@
 
                 <div class="row">
                     <div class="col-md-4">
-                        <label for="config_modulo_id">Módulo</label>
+                        <label for="config_modulo_id">MÃ³dulo</label>
                         <select
                             class="form-control"
                             id="config_modulo_id"
                             v-model="filtros.config_modulo_id"
                         >
-                            <option value="">—</option>
+                            <option value="">â€”</option>
                             <option v-for="m in modulos" :key="m.id" :value="m.id">
                                 {{ m.modulo }}
                             </option>
@@ -83,19 +83,19 @@
                                 <th>Producto</th>
                                 <th>CUPS</th>
                                 <th>Nombre</th>
-                                <th>Versión</th>
+                                <th>VersiÃ³n</th>
                                 <th>Vigente</th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="p in registros" :key="p.id">
-                                <td>{{ p.producto?.nom_produc || "—" }}</td>
-                                <td>{{ p.producto?.cod_cups || "—" }}</td>
+                                <td>{{ p.producto?.nom_produc || "â€”" }}</td>
+                                <td>{{ p.producto?.cod_cups || "â€”" }}</td>
                                 <td>{{ p.nombre }}</td>
                                 <td>{{ p.version }}</td>
                                 <td>
-                                    <span v-if="p.vigente" class="text-success">Sí</span>
+                                    <span v-if="p.vigente" class="text-success">SÃ­</span>
                                     <span v-else class="text-muted">No</span>
                                 </td>
                                 <td class="text-nowrap">
@@ -135,8 +135,8 @@
                                         class="btn btn-sm btn-secondary m-r-5"
                                         type="button"
                                         @click="verVersiones(p)"
-                                        title="Histórico de versiones"
-                                        aria-label="Histórico de versiones"
+                                        title="HistÃ³rico de versiones"
+                                        aria-label="HistÃ³rico de versiones"
                                     >
                                         <i class="fa fa-history"></i>
                                     </button>
@@ -176,10 +176,10 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h4 class="modal-title" id="modal-plantilla-title">
-                            {{ form.id ? "Actualizar (nueva versión)" : "Nueva plantilla" }}
+                            {{ form.id ? "Actualizar (nueva versiÃ³n)" : "Nueva plantilla" }}
                         </h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                            ×
+                            Ã—
                         </button>
                     </div>
                     <div class="modal-body">
@@ -192,7 +192,7 @@
                                     v-model="form.producto_id"
                                     :disabled="!!form.id"
                                 >
-                                    <option value="">—</option>
+                                    <option value="">â€”</option>
                                     <option v-for="p in productos" :key="p.id" :value="p.id">
                                         {{ p.cod_cups }} - {{ p.nom_produc }}
                                     </option>
@@ -229,7 +229,7 @@
                                 class="fa"
                                 :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"
                             ></i>
-                            {{ loadingGuardar ? "Guardando…" : "Guardar" }}
+                            {{ loadingGuardar ? "Guardandoâ€¦" : "Guardar" }}
                         </button>
                         <button class="btn btn-default" type="button" data-dismiss="modal">
                             Cerrar
@@ -253,19 +253,19 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h4 class="modal-title" id="modal-versiones-title">
-                            Histórico de versiones
+                            HistÃ³rico de versiones
                         </h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                            ×
+                            Ã—
                         </button>
                     </div>
                     <div class="modal-body">
-                        <div v-if="loadingVersions" class="text-muted">Cargando…</div>
+                        <div v-if="loadingVersions" class="text-muted">Cargandoâ€¦</div>
                         <div v-else class="table-responsive">
                             <table class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
-                                        <th>Versión</th>
+                                        <th>VersiÃ³n</th>
                                         <th>Vigente</th>
                                         <th>Creada</th>
                                         <th></th>
@@ -275,7 +275,7 @@
                                     <tr v-for="v in versions" :key="v.id">
                                         <td>{{ v.version }}</td>
                                         <td>
-                                            <span v-if="v.vigente" class="text-success">Sí</span>
+                                            <span v-if="v.vigente" class="text-success">SÃ­</span>
                                             <span v-else class="text-muted">No</span>
                                         </td>
                                         <td>{{ v.created_at }}</td>
@@ -306,7 +306,7 @@
                                     </tr>
                                     <tr v-if="versions.length === 0">
                                         <td colspan="4" class="text-center text-muted">
-                                            Sin histórico.
+                                            Sin histÃ³rico.
                                         </td>
                                     </tr>
                                 </tbody>
@@ -324,13 +324,14 @@
     </div>
 </template>
 <script setup>
-import { nextTick, onMounted, ref } from "vue";
+import { nextTick, onMounted, ref, getCurrentInstance } from "vue";
 
 import usePermissions from "@/helpers/permissions.js";
 import { handleAxiosErrorToast, confirmAction } from "@/helpers/alerts";
 import axios from "axios";
 
-const props = defineProps({});
+const props = defineProps({ usuarioactual: Object, permisos: Array });
+const { proxy } = getCurrentInstance();
 
 const q = ref("");
 const loading = ref(false);
@@ -347,7 +348,7 @@ const productoVersionsId = ref(null);
 
 function initWysiwyg() {
     try {
-        const $root = $($el);
+        const $root = $(proxy.$el);
         $root.find(".textarea_editor").each((_, el) => {
             const $el = $(el);
             if ($el.data("wysihtml5")) return;
@@ -358,13 +359,13 @@ function initWysiwyg() {
 }
 function getHtmlFromEditor() {
     try {
-        const $el = $($el).find("textarea.textarea_editor").first();
-        if (!$el.length) return form.value.html || "";
-        const inst = $el.data("wysihtml5");
+        const $editor = $(proxy.$el).find("textarea.textarea_editor").first();
+        if (!$editor.length) return form.value.html || "";
+        const inst = $editor.data("wysihtml5");
         if (inst && inst.editor && typeof inst.editor.getValue === "function") {
             return inst.editor.getValue();
         }
-        return $el.val() || form.value.html || "";
+        return $editor.val() || form.value.html || "";
     } catch (_) {
         return form.value.html || "";
     }
@@ -381,20 +382,20 @@ async function listarModulos() {
     try {
         const res = await axios.get("/api/config-modulos-listar");
         modulos.value = Array.isArray(res.data) ? res.data : [];
-        // default Ecografías (id=2) si existe
+        // default EcografÃ­as (id=2) si existe
         if (!filtros.value.config_modulo_id) {
             const eco = modulos.value.find((m) => Number(m.id) === 2);
             if (eco) filtros.value.config_modulo_id = eco.id;
         }
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar módulos.");
+        handleAxiosErrorToast(error, "No fue posible listar mÃ³dulos.");
     }
 }
 async function listar() {
     if (!filtros.value.config_modulo_id) {
         handleAxiosErrorToast(
-            { response: { data: { message: "Seleccione un módulo." } } },
-            "Seleccione un módulo."
+            { response: { data: { message: "Seleccione un mÃ³dulo." } } },
+            "Seleccione un mÃ³dulo."
         );
         return;
     }
@@ -494,13 +495,13 @@ async function activarVersion(v) {
         }
         await listar();
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible activar la versión.");
+        handleAxiosErrorToast(error, "No fue posible activar la versiÃ³n.");
     }
 }
 async function desactivar(p) {
     const ok = await confirmAction({
-        title: "¿Desactivar plantilla?",
-        text: "La plantilla dejará de estar vigente.",
+        title: "Â¿Desactivar plantilla?",
+        text: "La plantilla dejarÃ¡ de estar vigente.",
         icon: "warning",
     });
     if (!ok) return;

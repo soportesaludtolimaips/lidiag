@@ -1,14 +1,14 @@
-<template>
+﻿<template>
     <div>
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">Configuración</h3>
+                <h3 class="text-themecolor">ConfiguraciÃ³n</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Configuración</a>
+                        <a href="javascript:void(0)">ConfiguraciÃ³n</a>
                     </li>
                     <li class="breadcrumb-item active">Servicios de Citas</li>
                 </ol>
@@ -81,7 +81,7 @@
                             <table class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
-                                        <th>Código</th>
+                                        <th>CÃ³digo</th>
                                         <th>Producto</th>
                                         <th>Estado</th>
                                         <th>Acciones</th>
@@ -165,11 +165,11 @@
                                     >${num_docu_paciente}, ${nom_paciente} ${cod_cups},
                                     ${nom_produc}</code
                                 >
-                                <label class="control-label">Recomendación</label>
+                                <label class="control-label">RecomendaciÃ³n</label>
                                 <FormattedTextEditor
                                     v-model="recomendacion"
                                     rows="8"
-                                    placeholder="Texto de recomendación para el paciente. Use saltos de línea si es necesario."
+                                    placeholder="Texto de recomendaciÃ³n para el paciente. Use saltos de lÃ­nea si es necesario."
                                 />
                                 <small class="text-muted"
                                     >Variables disponibles: <code>${num_docu_paciente}</code>
@@ -202,8 +202,9 @@
     </div>
 </template>
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, getCurrentInstance } from "vue";
 
+const { proxy } = getCurrentInstance();
 import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts.js";
 import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
 import axios from "axios";
@@ -233,7 +234,7 @@ const productosDisponiblesOptions = computed(() => {
 });
 
 function cargarServicios() {
-    var thisVue = this;
+    var thisVue = proxy;
 
     axios
         .get("/api/config-servicio-citas/mis-servicios")
@@ -265,7 +266,7 @@ function seleccionarServicio(servicio) {
     cargarProductosVinculados();
 }
 function cargarProductosVinculados() {
-    var thisVue = this;
+    var thisVue = proxy;
 
     if (!thisVue.servicioSeleccionado) {
         return;
@@ -283,7 +284,7 @@ function cargarProductosVinculados() {
         });
 }
 function mostrarModalAgregar() {
-    var thisVue = this;
+    var thisVue = proxy;
 
     thisVue.productoSeleccionado = "";
     thisVue.recomendacion = "";
@@ -320,7 +321,7 @@ function cerrarModal() {
     $(".right-sidebar").removeClass("shw-rside");
 }
 function agregarProducto() {
-    var thisVue = this;
+    var thisVue = proxy;
 
     if (!thisVue.productoSeleccionado) {
         return;
@@ -334,7 +335,7 @@ function agregarProducto() {
             producto_id: thisVue.productoSeleccionado,
         })
         .then(function (response) {
-            // Guardar también la recomendación si se ingresó texto
+            // Guardar tambiÃ©n la recomendaciÃ³n si se ingresÃ³ texto
             if (thisVue.recomendacion && thisVue.recomendacion.trim()) {
                 return axios.post("/api/config-recomendacion-productos", {
                     producto_id: thisVue.productoSeleccionado,
@@ -355,12 +356,12 @@ function agregarProducto() {
         });
 }
 function eliminarVinculo(id) {
-    var thisVue = this;
+    var thisVue = proxy;
 
     confirmAction({
-        title: "¿Está seguro?",
-        text: "El producto se desvinculará del servicio.",
-        confirmButtonText: "Sí, eliminar",
+        title: "Â¿EstÃ¡ seguro?",
+        text: "El producto se desvincularÃ¡ del servicio.",
+        confirmButtonText: "SÃ­, eliminar",
         cancelButtonText: "Cancelar",
     }).then(function (confirmado) {
         if (confirmado) {
@@ -381,7 +382,7 @@ function mostrarError(error) {
     alertError("Error", mensaje);
 }
 function mostrarExito(mensaje) {
-    alertSuccess("Éxito", mensaje);
+    alertSuccess("Ã‰xito", mensaje);
 }
 
 onMounted(() => {
