@@ -1061,7 +1061,7 @@ async function listarSaludos() {
 async function listarSedes() {
     try {
         const res = await axios.get("/api/config-sedes/listar/sedes/activas");
-        sedes.value = res.data;
+        sedes.value = res.data.data;
     } catch (error) {
         console.error(error);
     }

@@ -365,7 +365,7 @@ const formProductoOptions = computed(() => {
 async function cargarSedes() {
     try {
         const res = await axios.get("/api/config-sedes/listar/sedes/activas");
-        sedes.value = res.data || [];
+        sedes.value = res.data?.data || [];
     } catch (error) {
         handleAxiosErrorToast(error, "No fue posible cargar las sedes.");
     }

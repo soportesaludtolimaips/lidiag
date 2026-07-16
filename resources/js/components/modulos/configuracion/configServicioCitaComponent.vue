@@ -233,7 +233,7 @@ const loadingEliminarId = ref(null);
 async function cargarSedes() {
     try {
         const res = await axios.get("/api/config-sedes");
-        sedes.value = res.data;
+        sedes.value = res.data.data;
     } catch (e) {
         handleAxiosErrorToast(e, "No fue posible cargar sedes.");
     }
