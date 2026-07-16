@@ -27,8 +27,8 @@ export async function listarUsuariosYSedes(context, options = {}) {
     const moduloId = String(options.moduloId ?? getModuloIdActual() ?? "1");
 
     const res = await axios.get(`/api/user.listarUsuarios/Transcriptor/${moduloId}`);
-    context.quienes_asignaron = res.data;
+    context.quienes_asignaron = res.data.data;
 
     const resMedicos = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
-    context.medicos = resMedicos.data;
+    context.medicos = resMedicos.data.data;
 }

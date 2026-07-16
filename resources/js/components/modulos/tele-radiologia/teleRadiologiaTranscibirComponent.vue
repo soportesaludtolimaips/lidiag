@@ -979,9 +979,14 @@ onMounted(async () => {
     listarMedicos();
     establecerSede();
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
-    listarUsuariosYSedes();
-
-    await listarUsuariosYSedes(this);
+    await listarUsuariosYSedes({
+        set quienes_asignaron(v) {
+            quienes_asignaron.value = v;
+        },
+        set medicos(v) {
+            medicos.value = v;
+        },
+    });
 
     emitter.on("sedeSeleccionada", (data) => {
         busqueda.value.sede_id = data.idSede;
