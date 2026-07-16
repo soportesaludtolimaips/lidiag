@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
@@ -81,7 +81,7 @@
                                                 type="date"
                                                 id="nom_diagnos"
                                                 name="nom_diagnos"
-                                                v-model="busqueda.bus_fehc_ini"
+                                                v-model="busqueda.bus_fech_ini"
                                                 class="form-control"
                                             />
                                         </div>
@@ -132,7 +132,7 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de estudios disponibles</h4>
                         <h6 class="card-subtitle text-info">
-                            Asigne los estudios a los mÃ©dicos para su respectiva lectura.
+                            Asigne los estudios a los médicos para su respectiva lectura.
                         </h6>
                         <div class="table-responsive">
                             <table
@@ -148,7 +148,7 @@
                                         <th>Sede</th>
                                         <th>Toma</th>
                                         <th with="50%">Lectura</th>
-                                        <th>AsignaciÃ³n</th>
+                                        <th>Asignación</th>
                                         <th>Quien Asigno</th>
                                         <th with="50%">Medico</th>
                                         <th with="50%">Paciente</th>
@@ -215,7 +215,7 @@
                                             Nombres: {{ item.nom_pacien }}
                                         </td>
                                         <td>
-                                            AtenciÃ³n: {{ item.atencion }} <br />
+                                            Atención: {{ item.atencion }} <br />
                                             Descrip: {{ item.study_desc }} <br />
                                             {{ item.accession_no }}
                                         </td>
@@ -326,7 +326,7 @@
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <dl>
-                                                    <dt>DescripciÃ³n:</dt>
+                                                    <dt>Descripción:</dt>
                                                     <dd>{{ registro.study_desc }}</dd>
                                                 </dl>
                                             </div>
@@ -433,7 +433,7 @@
                                                     rows="20"
                                                     id="lectura"
                                                     style="height: 100%"
-                                                    placeholder="Ingrese aquÃ­ la lectura del estudio ..."
+                                                    placeholder="Ingrese aquí la lectura del estudio ..."
                                                 ></textarea>
                                             </div>
                                         </div>
@@ -625,7 +625,7 @@ const busqueda = ref({
     medico_id: "",
     sede_id: "",
     bus_nom_num_docu: "",
-    bus_fehc_ini: "",
+    bus_fech_ini: "",
     bus_fecha_fin: "",
     destino_estudio: "Tele Radiologia",
 });
@@ -662,7 +662,7 @@ function btnLimpiar() {
     busqueda.value.quien_asigno_id = "";
     busqueda.value.medico_id = "";
     busqueda.value.bus_nom_num_docu = "";
-    busqueda.value.bus_fehc_ini = "";
+    busqueda.value.bus_fech_ini = "";
     busqueda.value.bus_fecha_fin = "";
     errores.value = {};
     destroyDataTable();
@@ -760,7 +760,7 @@ async function guardarRegistro() {
                 heading: "Upss!!!",
                 text:
                     error?.response?.data?.message ||
-                    "La plantilla no estÃ¡ configurada para esta sede.",
+                    "La plantilla no está configurada para esta sede.",
                 position: "top-right",
                 loaderBg: "#ff6849",
                 icon: "error",
@@ -770,7 +770,7 @@ async function guardarRegistro() {
         } else {
             $.toast({
                 heading: "Upss!!!",
-                text: error?.response?.data?.message || "No fue posible guardar la transcripciÃ³n.",
+                text: error?.response?.data?.message || "No fue posible guardar la transcripción.",
                 position: "top-right",
                 loaderBg: "#ff6849",
                 icon: "error",
@@ -807,7 +807,7 @@ function descargaSoportte(nomArchivoOriginal, nomArchivoEncriptado) {
 async function anularAsignacion(idProductoEstudio, paciente, producto) {
     const ok = await confirmAction({
         title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
-        text: "No podrÃ¡s recuperar este registro!",
+        text: "No podrás recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;
@@ -876,7 +876,7 @@ async function listarMedicos() {
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = res.data.data;
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar mÃ©dicos.");
+        handleAxiosErrorToast(error, "No fue posible listar médicos.");
         medicos.value = [];
     }
 }
@@ -931,9 +931,9 @@ async function mostrarRegistro(data = {}) {
     registro.value.nom_produc = data.nom_produc;
     registro.value.num_docu_medico = data.num_docu_medico;
     registro.value.reg_medico = data.reg_medico;
-    registro.value.nombres_medico = `MÃ©dico: ${data.nombres_medico}`;
+    registro.value.nombres_medico = `Médico: ${data.nombres_medico}`;
     registro.value.firma_medico = data.firma_medico;
-    registro.value.lectura = `AtenciÃ³n: ${data.atencion}nFecha y Hora del estudio: ${data.fec_estudio}nFecha y Hora de transcripciÃ³n: ${fechaActual}nn${data.nom_produc}nn${data.lectura}`;
+    registro.value.lectura = `Atención: ${data.atencion}nFecha y Hora del estudio: ${data.fec_estudio}nFecha y Hora de transcripción: ${fechaActual}nn${data.nom_produc}nn${data.lectura}`;
 
     datosImagen.value.urlOviyam = data.url_oviyam;
     datosImagen.value.patientId = data.num_docu;

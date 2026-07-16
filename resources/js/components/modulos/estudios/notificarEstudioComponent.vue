@@ -87,7 +87,7 @@
                                                 type="date"
                                                 id="fecha_ini"
                                                 name="fecha_ini"
-                                                v-model="busqueda.bus_fehc_ini"
+                                                v-model="busqueda.bus_fech_ini"
                                                 class="form-control"
                                                 @keyup.enter="buscarStudy()"
                                             />
@@ -373,7 +373,7 @@ const registro = ref({
     id_producto_lectura: null,
 });
 const estudio = ref(null);
-const busqueda = ref({ bus_num_docu: "", bus_nom: "", bus_fehc_ini: "", bus_fecha_fin: "" });
+const busqueda = ref({ bus_num_docu: "", bus_nom: "", bus_fech_ini: "", bus_fecha_fin: "" });
 const errores = ref({});
 const erroresBusqueda = ref({});
 const loadingBuscar = ref(false);
@@ -392,7 +392,7 @@ function destroyDataTable() {
 function btnLimpiar() {
     busqueda.value.bus_num_docu = "";
     busqueda.value.bus_nom = "";
-    busqueda.value.bus_fehc_ini = "";
+    busqueda.value.bus_fech_ini = "";
     busqueda.value.bus_fecha_fin = "";
     erroresBusqueda.value = {};
     destroyDataTable();
@@ -406,7 +406,7 @@ async function buscarStudy() {
     try {
         if (
             busqueda.value.bus_num_docu == "" &&
-            busqueda.value.bus_fehc_ini == "" &&
+            busqueda.value.bus_fech_ini == "" &&
             busqueda.value.bus_fecha_fin == "" &&
             busqueda.value.bus_nom == ""
         ) {

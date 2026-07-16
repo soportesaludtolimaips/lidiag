@@ -14,7 +14,7 @@ class StudyService extends BaseService
     {
         $sedeId = (int) $data['sede_id'];
         $busqueda = trim($data['bus_nom_num_docu'] ?? '');
-        $busFechaIni = $data['bus_fehc_ini'] ?? null;
+        $busFechaIni = $data['bus_fech_ini'] ?? null;
         $busFechaFin = $data['bus_fecha_fin'] ?? null;
 
         $tieneBusqueda = ! empty($busqueda);
@@ -24,7 +24,7 @@ class StudyService extends BaseService
             return $this->error(
                 'Debe indicar al menos un filtro: documento/nombre o rango de fechas.',
                 422,
-                ['bus_nom_num_docu' => ['Requerido si no hay fechas.'], 'bus_fehc_ini' => ['Requerido si no hay búsqueda.']]
+                ['bus_nom_num_docu' => ['Requerido si no hay fechas.'], 'bus_fech_ini' => ['Requerido si no hay búsqueda.']]
             );
         }
 

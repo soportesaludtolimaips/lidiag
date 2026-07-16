@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
@@ -46,47 +46,47 @@
                                 data-dismiss="modal"
                                 aria-hidden="true"
                             >
-                                Ã—
+                                ×
                             </button>
                         </div>
                         <div class="modal-body">
                             <div class="row">
                                 <div class="col-md-6">
                                     <ul>
-                                        <li>iniciar mayÃºscula sostenida</li>
-                                        <li>iniciar mayÃºsculas sostenida</li>
-                                        <li>iniciar mayÃºsculas</li>
-                                        <li>iniciar mayÃºscula</li>
-                                        <li>mayÃºsculas sostenida</li>
-                                        <li>mayÃºscula sostenida</li>
-                                        <li>activar mayÃºsculas</li>
-                                        <li>activar mayÃºscula</li>
-                                        <li>habilitar mayÃºsculas</li>
-                                        <li>habilitar mayÃºscula</li>
-                                        <li>activare mayÃºsculas</li>
-                                        <li>activare mayÃºscula</li>
-                                        <li>desactivar mayÃºsculas</li>
-                                        <li>desactivar mayÃºscula</li>
-                                        <li>Deshabilitar mayÃºsculas</li>
-                                        <li>Deshabilitar mayÃºscula</li>
-                                        <li>terminar mayÃºsculas</li>
-                                        <li>terminar mayÃºscula</li>
-                                        <li>fin mayÃºsculas</li>
-                                        <li>fin mayÃºscula</li>
-                                        <li>finaliza mayÃºsculas</li>
-                                        <li>finaliza mayÃºscula</li>
-                                        <li>finalizar mayÃºsculas</li>
-                                        <li>finalizar mayÃºscula</li>
+                                        <li>iniciar mayúscula sostenida</li>
+                                        <li>iniciar mayúsculas sostenida</li>
+                                        <li>iniciar mayúsculas</li>
+                                        <li>iniciar mayúscula</li>
+                                        <li>mayúsculas sostenida</li>
+                                        <li>mayúscula sostenida</li>
+                                        <li>activar mayúsculas</li>
+                                        <li>activar mayúscula</li>
+                                        <li>habilitar mayúsculas</li>
+                                        <li>habilitar mayúscula</li>
+                                        <li>activare mayúsculas</li>
+                                        <li>activare mayúscula</li>
+                                        <li>desactivar mayúsculas</li>
+                                        <li>desactivar mayúscula</li>
+                                        <li>Deshabilitar mayúsculas</li>
+                                        <li>Deshabilitar mayúscula</li>
+                                        <li>terminar mayúsculas</li>
+                                        <li>terminar mayúscula</li>
+                                        <li>fin mayúsculas</li>
+                                        <li>fin mayúscula</li>
+                                        <li>finaliza mayúsculas</li>
+                                        <li>finaliza mayúscula</li>
+                                        <li>finalizar mayúsculas</li>
+                                        <li>finalizar mayúscula</li>
                                         <li>punto aparte</li>
-                                        <li>salto de lÃ­nea</li>
-                                        <li>doble salto de lÃ­nea</li>
+                                        <li>salto de línea</li>
+                                        <li>doble salto de línea</li>
                                     </ul>
                                 </div>
                                 <div class="col-md-6">
                                     <ul>
                                         <li>enter</li>
                                         <li>doble enter</li>
-                                        <li>lÃ­nea en blanco</li>
+                                        <li>línea en blanco</li>
                                         <li>dar espacio</li>
                                         <li>un espacio</li>
                                         <li>dos espacio</li>
@@ -95,8 +95,8 @@
                                         <li>coma</li>
                                         <li>dos puntos</li>
                                         <li>punto y coma</li>
-                                        <li>abrir parÃ©ntesis</li>
-                                        <li>cerrar parÃ©ntesis</li>
+                                        <li>abrir paréntesis</li>
+                                        <li>cerrar paréntesis</li>
                                         <li>abrir corchetes</li>
                                         <li>cerrar corchetes</li>
                                         <li>abrir llaves</li>
@@ -109,7 +109,7 @@
                                         <li>guion bajo</li>
                                         <li>barra diagonal</li>
                                         <li>barra invertida</li>
-                                        <li>nueva oraciÃ³n</li>
+                                        <li>nueva oración</li>
                                     </ul>
                                 </div>
                             </div>
@@ -142,7 +142,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros para bÃºsqueda de atenciÃ³n
+                            <i class="fa fa-filter"></i> Filtros para búsqueda de atención
                         </h4>
                         <form action="#">
                             <div class="form-body">
@@ -150,8 +150,7 @@
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             <label class="control-label">
-                                                # de atenciÃ³n, # de documento Ã³ Nombres de
-                                                paciente
+                                                # de atención, # de documento ó Nombres de paciente
                                             </label>
                                             <input
                                                 type="text"
@@ -159,7 +158,7 @@
                                                 name="bus_nom_num_docu"
                                                 v-model="busqueda.bus_nom_num_docu"
                                                 class="form-control"
-                                                placeholder=" AtenciÃ³n, Nombres de paciente o # de documento"
+                                                placeholder=" Atención, Nombres de paciente o # de documento"
                                                 @keyup.enter="buscarStudy()"
                                             />
                                         </div>
@@ -169,9 +168,9 @@
                                             <label class="control-label">Fecha Inicio</label>
                                             <input
                                                 type="date"
-                                                id="bus_fehc_ini"
-                                                name="bus_fehc_ini"
-                                                v-model="busqueda.bus_fehc_ini"
+                                                id="bus_fech_ini"
+                                                name="bus_fech_ini"
+                                                v-model="busqueda.bus_fech_ini"
                                                 class="form-control"
                                             />
                                         </div>
@@ -229,7 +228,7 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de atenciones disponibles.</h4>
                         <h6 class="card-subtitle text-info">
-                            Asigne los mÃ©dicos para su respectiva lectura.
+                            Asigne los médicos para su respectiva lectura.
                         </h6>
                         <div class="table-responsive">
                             <table
@@ -241,7 +240,7 @@
                             >
                                 <thead>
                                     <tr>
-                                        <th with="5%">AtenciÃ³n</th>
+                                        <th with="5%">Atención</th>
                                         <th with="5%"># Documento</th>
                                         <th with="30%">Paciente</th>
                                         <th>Examen</th>
@@ -265,7 +264,7 @@
                                                 "
                                                 class="text-danger"
                                             >
-                                                Pendiente firma paciente/acompaÃ±ante
+                                                Pendiente firma paciente/acompañante
                                             </small>
                                             <small
                                                 v-else-if="
@@ -274,7 +273,7 @@
                                                 "
                                                 class="text-warning"
                                             >
-                                                Pendiente firma mÃ©dico
+                                                Pendiente firma médico
                                             </small>
                                             <small
                                                 v-else-if="
@@ -450,7 +449,7 @@
                                         name="plantilla"
                                         v-model="registro.lectura"
                                         class="form-control"
-                                        placeholder="Ingrese aquÃ­ la lectura del procedimiento"
+                                        placeholder="Ingrese aquí la lectura del procedimiento"
                                         rows="17"
                                     ></textarea>
                                     <span class="text-danger" v-if="errores.plantilla">{{
@@ -461,14 +460,14 @@
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <h5 class="card-title text-info">
-                                        <i class="fa fa-info"></i> OpiniÃ³n
+                                        <i class="fa fa-info"></i> Opinión
                                     </h5>
                                     <textarea
                                         id="opinion"
                                         name="opinion"
                                         v-model="registro.opinion"
                                         class="form-control"
-                                        placeholder="Ingrese aquÃ­ la opiniÃ³n del procedimiento"
+                                        placeholder="Ingrese aquí la opinión del procedimiento"
                                         rows="17"
                                     ></textarea>
                                     <span class="text-danger" v-if="errores.opinion">{{
@@ -571,7 +570,7 @@
                         Reporte de lectura
                     </h4>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                        Ã—
+                        ×
                     </button>
                 </div>
                 <div class="modal-body">
@@ -613,12 +612,12 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title" id="modal-pendientes-consentimientos-title">
-                        Consentimientos pendientes por firmar (dÃ­a anterior)
+                        Consentimientos pendientes por firmar (día anterior)
                     </h4>
                 </div>
                 <div class="modal-body">
                     <div class="alert alert-warning">
-                        Debe firmar los consentimientos pendientes del dÃ­a anterior para poder
+                        Debe firmar los consentimientos pendientes del día anterior para poder
                         realizar lecturas.
                     </div>
 
@@ -638,10 +637,10 @@
                                     v-for="row in pendientesDiaAnterior"
                                     :key="row.consentimiento_id"
                                 >
-                                    <td>{{ row.paciente?.nombres || "â€”" }}</td>
-                                    <td>{{ row.paciente?.num_docu || "â€”" }}</td>
+                                    <td>{{ row.paciente?.nombres || "—" }}</td>
+                                    <td>{{ row.paciente?.num_docu || "—" }}</td>
                                     <td>{{ row.nom_produc }}</td>
-                                    <td>{{ row.consentimiento_firma_paciente_at || "â€”" }}</td>
+                                    <td>{{ row.consentimiento_firma_paciente_at || "—" }}</td>
                                     <td class="text-nowrap">
                                         <button
                                             type="button"
@@ -705,14 +704,14 @@ const props = defineProps({ usuarioactual: Object, permisos: Array });
 const dt = ref(null);
 const actualizar = ref(false);
 
-const tituloModal = ref("Nueva admisiÃ³n");
+const tituloModal = ref("Nueva admisión");
 const subTituloModal = ref("");
 const tituloAtencion = ref("");
 const busqueda = ref({
     sede_id: sedeActual,
     medico_id: "",
     bus_nom_num_docu: "",
-    bus_fehc_ini: "",
+    bus_fech_ini: "",
     bus_fecha_fin: "",
 });
 const registros = ref([]);
@@ -775,13 +774,13 @@ const plantillasOptions = computed(() => {
 });
 
 function buscarStudy() {
-    // Soporte para Enter en el input de bÃºsqueda
+    // Soporte para Enter en el input de búsqueda
     return listarPendiestePorLectura();
 }
 function btnLimpiar() {
-    // Limpia criterios de bÃºsqueda (mantiene sede/medico del contexto)
+    // Limpia criterios de búsqueda (mantiene sede/medico del contexto)
     busqueda.value.bus_nom_num_docu = "";
-    busqueda.value.bus_fehc_ini = "";
+    busqueda.value.bus_fech_ini = "";
     busqueda.value.bus_fecha_fin = "";
     erroresBusqueda.value = {};
 
@@ -802,7 +801,7 @@ function getMedicalReplacementsCompiled() {
                 String(replacement),
             ]);
         } catch (e) {
-            // ignore regla invÃ¡lida
+            // ignore regla inválida
         }
     });
     medicalReplCompiled.value = compiled;
@@ -831,7 +830,7 @@ function escapeRegExp(text) {
 function normalizeWord(text) {
     return stripDiacritics(String(text))
         .toLowerCase()
-        .replace(/[^a-z0-9Ã±]+/gi, "");
+        .replace(/[^a-z0-9ñ]+/gi, "");
 }
 function levenshteinMax(a, b, maxDist = 2) {
     if (a === b) return 0;
@@ -878,7 +877,7 @@ function rebuildMedicalVocabulary() {
         });
     };
 
-    // Fuente principal: archivo grande de tÃ©rminos
+    // Fuente principal: archivo grande de términos
     MEDICAL_TERMS_FROM_TXT.forEach(addPhrase);
 
     medicalVocabularyMap.value = map;
@@ -900,7 +899,7 @@ function applyMedicalCorrections(text) {
     // 1) Normalizaciones (regex)
     let out = applyMedicalReplacements(text);
 
-    // 2) CorrecciÃ³n por vocabulario (exact + fuzzy indexado)
+    // 2) Corrección por vocabulario (exact + fuzzy indexado)
     const vocabMap = medicalVocabularyMap.value || {};
     const vocabIndex = medicalVocabularyIndex.value || {};
     if (!vocabMap || !Object.keys(vocabMap).length) return out;
@@ -962,83 +961,83 @@ function applyCommandMap(text, commandMap, { onEachMatch } = {}) {
 }
 function getUppercaseCommands() {
     return {
-        "iniciar mayÃºscula sostenida": () => {
+        "iniciar mayúscula sostenida": () => {
             uppercase.value = true;
             return "";
         },
-        "iniciar mayÃºsculas sostenida": () => {
+        "iniciar mayúsculas sostenida": () => {
             uppercase.value = true;
             return "";
         },
-        "iniciar mayÃºsculas": () => {
+        "iniciar mayúsculas": () => {
             uppercase.value = true;
             return "";
         },
-        "iniciar mayÃºscula": () => {
+        "iniciar mayúscula": () => {
             uppercase.value = true;
             return "";
         },
-        "mayÃºsculas sostenida": () => {
+        "mayúsculas sostenida": () => {
             uppercase.value = true;
             return "";
         },
-        "mayÃºscula sostenida": () => {
+        "mayúscula sostenida": () => {
             uppercase.value = true;
             return "";
         },
-        "activar mayÃºsculas": () => {
+        "activar mayúsculas": () => {
             uppercase.value = true;
             return "";
         },
-        "activar mayÃºscula": () => {
+        "activar mayúscula": () => {
             uppercase.value = true;
             return "";
         },
-        "habilitar mayÃºsculas": () => {
+        "habilitar mayúsculas": () => {
             uppercase.value = true;
             return "";
         },
-        "habilitar mayÃºscula": () => {
+        "habilitar mayúscula": () => {
             uppercase.value = true;
             return "";
         },
-        "desactivar mayÃºsculas": () => {
+        "desactivar mayúsculas": () => {
             uppercase.value = false;
             return "";
         },
-        "desactivar mayÃºscula": () => {
+        "desactivar mayúscula": () => {
             uppercase.value = false;
             return "";
         },
-        "terminar mayÃºsculas": () => {
+        "terminar mayúsculas": () => {
             uppercase.value = false;
             return "";
         },
-        "terminar mayÃºscula": () => {
+        "terminar mayúscula": () => {
             uppercase.value = false;
             return "";
         },
-        "fin mayÃºsculas": () => {
+        "fin mayúsculas": () => {
             uppercase.value = false;
             return "";
         },
-        "fin mayÃºscula": () => {
+        "fin mayúscula": () => {
             uppercase.value = false;
             return "";
         },
-        "finaliza mayÃºsculas": () => {
+        "finaliza mayúsculas": () => {
             uppercase.value = false;
             return "";
         },
-        "finaliza mayÃºscula": () => {
+        "finaliza mayúscula": () => {
             uppercase.value = false;
             return "";
         },
-        "finalizar mayÃºsculas": () => {
+        "finalizar mayúsculas": () => {
             uppercase.value = false;
             return "";
         },
-        "finalizar mayÃºscula": () => {
+        "finalizar mayúscula": () => {
             uppercase.value = false;
             return "";
         },
@@ -1047,11 +1046,11 @@ function getUppercaseCommands() {
 function getLineBreakCommands() {
     return {
         "punto aparte": () => ".nn",
-        "salto de lÃ­nea": () => "n",
-        "doble salto de lÃ­nea": () => "nn",
+        "salto de línea": () => "n",
+        "doble salto de línea": () => "nn",
         enter: () => "n",
         "doble enter": () => "nn",
-        "lÃ­nea en blanco": () => "nn",
+        "línea en blanco": () => "nn",
     };
 }
 function getPunctuationCommands() {
@@ -1067,8 +1066,8 @@ function getPunctuationCommands() {
         "un espacio": () => " ",
         "dos espacio": () => "  ",
         "doble espacio": () => "  ",
-        "abrir parÃ©ntesis": () => "(",
-        "cerrar parÃ©ntesis": () => ")",
+        "abrir paréntesis": () => "(",
+        "cerrar paréntesis": () => ")",
         "abrir corchetes": () => "[",
         "cerrar corchetes": () => "]",
         "abrir llaves": () => "{",
@@ -1081,7 +1080,7 @@ function getPunctuationCommands() {
         "guion bajo": () => "_",
         "barra diagonal": () => "/",
         "barra invertida": () => "\\",
-        "nueva oraciÃ³n": () => ". ",
+        "nueva oración": () => ". ",
     };
 }
 function getAllVoiceCommands() {
@@ -1116,7 +1115,7 @@ function processCommands(text) {
     out = applyCommandMap(out, punctuationCommands);
     out = uppercase.value ? out.toUpperCase() : out;
     if (capitalizeNext.value) {
-        out = out.replace(/(^|n)(s*)([a-zÃ¡Ã©Ã­Ã³ÃºÃ¼Ã±])/i, (m, start, spaces, first) => {
+        out = out.replace(/(^|n)(s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
             capitalizeNext.value = false;
             return `${start}${spaces}${first.toUpperCase()}`;
         });
@@ -1133,7 +1132,7 @@ function ensureVoiceSession() {
     ];
 
     voiceSession.value = createVoiceSession({
-        enableAudio: false, // EcografÃ­as: solo dictado (no grabaciÃ³n)
+        enableAudio: false, // Ecografías: solo dictado (no grabación)
         enableDictation: true,
         lang: "es-ES",
         grammarCommands,
@@ -1145,7 +1144,7 @@ function ensureVoiceSession() {
             text = applyMedicalCorrections(text);
             if (!text) return;
 
-            // AÃ±adir a lectura (mantener comportamiento: espacio si no termina en espacio/salto)
+            // Añadir a lectura (mantener comportamiento: espacio si no termina en espacio/salto)
             const suffix = /[ n]$/.test(text) ? "" : " ";
             registro.value.lectura = String(registro.value.lectura || "") + text + suffix;
         },
@@ -1154,7 +1153,7 @@ function ensureVoiceSession() {
             microfono.value = "admin-wrap/assets/images/mic.gif";
             toastMessage({
                 heading: "Permiso requerido",
-                text: "El navegador bloqueÃ³ el micrÃ³fono. Permite el acceso al micrÃ³fono para usar dictado.",
+                text: "El navegador bloqueó el micrófono. Permite el acceso al micrófono para usar dictado.",
                 icon: "warning",
                 hideAfter: 6000,
             });
@@ -1165,7 +1164,7 @@ function ensureVoiceSession() {
                 microfono.value = "admin-wrap/assets/images/mic.gif";
                 toastMessage({
                     heading: "Sin voz detectada",
-                    text: "No se detecta voz (silencio repetido). Verifica micrÃ³fono/entrada y vuelve a iniciar el dictado.",
+                    text: "No se detecta voz (silencio repetido). Verifica micrófono/entrada y vuelve a iniciar el dictado.",
                     icon: "warning",
                     hideAfter: 6000,
                 });
@@ -1175,7 +1174,7 @@ function ensureVoiceSession() {
     return voiceSession.value;
 }
 async function toggleSpeechRecognition() {
-    // Mantener el Ã­cono/animaciÃ³n actual, sin tocar template.
+    // Mantener el ícono/animación actual, sin tocar template.
     try {
         const vs = ensureVoiceSession();
         if (voiceState.value === "inactive") {
@@ -1307,14 +1306,14 @@ function safeInitDataTable(selector = "#example23") {
     });
 }
 async function listarPendiestePorLectura() {
-    // Evita llamar al backend con "null"/vacÃ­o (causa 404 "El medico no se encontro")
+    // Evita llamar al backend con "null"/vacío (causa 404 "El medico no se encontro")
     const medicoId = String(busqueda.value?.medico_id ?? "").trim();
     if (!medicoId || medicoId === "null" || medicoId === "undefined") {
         registros.value = [];
         handleAxiosErrorToast(
             {
                 response: {
-                    data: { message: "No hay mÃ©dico seleccionado para listar pendientes." },
+                    data: { message: "No hay médico seleccionado para listar pendientes." },
                 },
             },
             "No fue posible listar pendientes por lectura."
@@ -1389,16 +1388,16 @@ async function firmarConsentimientoMedico(item) {
 }
 async function generarLectura() {
     try {
-        // Enviar solicitud para guardar la ecografÃ­a
+        // Enviar solicitud para guardar la ecografía
         const res = await axios.put("/api/ecografia-lectura/" + registro.value.ecografia_id, {
             accion: accion.value,
             registro: registro.value,
         });
 
         if (res.status === 201) {
-            // Mostrar notificaciÃ³n de Ã©xito
+            // Mostrar notificación de éxito
             toastMessage({
-                heading: "Â¡Ã‰xito!",
+                heading: "¡Éxito!",
                 text: "Lectura guardada correctamente.",
                 icon: "success",
             });
@@ -1410,9 +1409,9 @@ async function generarLectura() {
             return false;
         }
     } catch (error) {
-        handleAxiosErrorToast(error, "OcurriÃ³ un error al guardar la lectura.");
+        handleAxiosErrorToast(error, "Ocurrió un error al guardar la lectura.");
 
-        // Mostrar errores especÃ­ficos en el formulario
+        // Mostrar errores específicos en el formulario
         if (error.response?.data?.errors) {
             errores.value = error.response.data.errors;
         }
@@ -1427,7 +1426,7 @@ async function enviarASahiEcografiaProducto() {
     if (!id) {
         toastMessage({
             heading: "Advertencia",
-            text: "No se encontrÃ³ ecografia_producto_id para enviar a SAHI.",
+            text: "No se encontró ecografia_producto_id para enviar a SAHI.",
             icon: "warning",
         });
         return false;
@@ -1442,7 +1441,7 @@ async function enviarASahiEcografiaProducto() {
             heading: "SAHI",
             text:
                 res.data?.message ||
-                (encolado ? "EnvÃ­o a SAHI encolado." : "Enviado a SAHI correctamente."),
+                (encolado ? "Envío a SAHI encolado." : "Enviado a SAHI correctamente."),
             icon: encolado ? "info" : "success",
         });
 
@@ -1501,7 +1500,7 @@ async function guardarRegistro() {
 
     if (!guardadoOk) return;
 
-    // Enviar a SAHI solo si la sede tiene interface y la acciÃ³n fue TERMINAR_LECTURA
+    // Enviar a SAHI solo si la sede tiene interface y la acción fue TERMINAR_LECTURA
     if (sedeInterface && accionActual === "TERMINAR_LECTURA") {
         await enviarASahiEcografiaProducto();
     }
@@ -1532,9 +1531,9 @@ async function generarReporte() {
 
         return true;
     } catch (error) {
-        handleAxiosErrorToast(error, "OcurriÃ³ un error al generar el reporte.");
+        handleAxiosErrorToast(error, "Ocurrió un error al generar el reporte.");
 
-        // Mostrar errores especÃ­ficos en el formulario
+        // Mostrar errores específicos en el formulario
         if (error.response?.data?.errors) {
             errores.value = error.response.data.errors;
         }
@@ -1548,7 +1547,7 @@ async function establecerSede() {
     registros.value = [];
 }
 function establecerMedico() {
-    // Siempre usar el usuario logueado como mÃ©dico (evita null y evita depender de sessionStorage)
+    // Siempre usar el usuario logueado como médico (evita null y evita depender de sessionStorage)
     const medicoId = usuarioactual?.id != null ? String(usuarioactual.id) : "";
 
     busqueda.value.medico_id = medicoId;
@@ -1599,7 +1598,7 @@ function btnCerralModalForm() {
     stopSahiPolling();
 }
 function mostrarRegistro(data = {}) {
-    tituloAtencion.value = `AtenciÃ³n NÂ°: ${data.atencion_id}`;
+    tituloAtencion.value = `Atención N°: ${data.atencion_id}`;
     tituloModal.value = `Paciente: ${data.paciente.num_docu} - Nombres: ${data.paciente.nombres} ${data.paciente.seg_nom} ${data.paciente.pri_ape} ${data.paciente.seg_ape} `;
     subTituloModal.value = `Examen: ${data.nom_produc} - Valor: ${data.ValProduc}`;
 
@@ -1626,7 +1625,7 @@ function mostrarRegistro(data = {}) {
     registro.value.lectura = data.lectura;
     registro.value.opinion = data.opinion;
 
-    // Estado de envÃ­o a SAHI (si viene en el select)
+    // Estado de envío a SAHI (si viene en el select)
     registro.value.estado_envio_sahi = data.estado_envio_sahi || null;
     registro.value.fechor_envio_sahi = data.fechor_envio_sahi || null;
     registro.value.error_envio_sahi = data.error_envio_sahi || null;

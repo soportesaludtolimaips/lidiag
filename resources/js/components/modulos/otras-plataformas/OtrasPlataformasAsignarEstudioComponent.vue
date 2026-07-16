@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
@@ -55,13 +55,13 @@
                                             <label class="control-label">Fecha Inicio</label>
                                             <input
                                                 type="date"
-                                                id="bus_fehc_ini"
-                                                name="bus_fehc_ini"
-                                                v-model="busqueda.bus_fehc_ini"
+                                                id="bus_fech_ini"
+                                                name="bus_fech_ini"
+                                                v-model="busqueda.bus_fech_ini"
                                                 class="form-control"
                                             />
-                                            <!-- <span class="text-danger" v-if="errores.bus_fehc_ini">
-                                                {{ erroresBusqueda.bus_fehc_ini[0] }}
+                                            <!-- <span class="text-danger" v-if="errores.bus_fech_ini">
+                                                {{ erroresBusqueda.bus_fech_ini[0] }}
                                             </span> -->
                                         </div>
                                     </div>
@@ -119,7 +119,7 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de estudios disponibles</h4>
                         <h6 class="card-subtitle text-info">
-                            Asigne los estudios a los mÃ©dicos para su respectiva lectura.
+                            Asigne los estudios a los médicos para su respectiva lectura.
                         </h6>
                         <div class="table-responsive">
                             <table
@@ -135,7 +135,7 @@
                                         <th with="5%"># Documento</th>
                                         <th with="30%">Paciente</th>
                                         <th>Accession</th>
-                                        <th>DescripciÃ³n</th>
+                                        <th>Descripción</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -255,7 +255,7 @@
                                     <div class="row">
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label class="control-label">DescripciÃ³n</label>
+                                                <label class="control-label">Descripción</label>
                                                 <input
                                                     type="text"
                                                     id="study_desc"
@@ -362,7 +362,7 @@
                                         <!-- <div class="col-md-8">
 
                                             <div class="form-group" id="medicos-parent">
-                                                <label>MÃ©dico</label>
+                                                <label>Médico</label>
                                                 <Select2 :value="registro.medico_id" :options="medicoOptions"
                                                     width="100%" :allow-clear="true" :label-fields="['name']"
                                                     :dropdown-parent-selector="'#medicos-parent'"
@@ -406,7 +406,7 @@
 
                                         <div class="col-md-4" v-if="sedeInterface === true">
                                             <div class="form-group">
-                                                <label class="control-label">AtenciÃ³n</label>
+                                                <label class="control-label">Atención</label>
                                                 <select
                                                     v-model="interfaceAtencionSeleccionada"
                                                     name="interfaceAtencionSeleccionada"
@@ -466,7 +466,7 @@
                                                 <thead>
                                                     <tr>
                                                         <th></th>
-                                                        <th>CÃ³digo</th>
+                                                        <th>Código</th>
                                                         <th>Producto</th>
                                                         <th></th>
                                                     </tr>
@@ -547,7 +547,7 @@
                                             >
                                                 <thead>
                                                     <tr>
-                                                        <th>CÃ³digo</th>
+                                                        <th>Código</th>
                                                         <th>Diagnostico</th>
                                                         <th></th>
                                                     </tr>
@@ -661,7 +661,7 @@ const soportesHC = ref({ archivo1: null, archivo2: null, archivo3: null });
 const busqueda = ref({
     sede_id: sedeActual,
     bus_nom_num_docu: "",
-    bus_fehc_ini: "",
+    bus_fech_ini: "",
     bus_fecha_fin: "",
 });
 const interfaceAtenciones = ref([]);
@@ -721,12 +721,12 @@ async function buscarStudy() {
             });
         } else if (
             busqueda.value.bus_nom_num_docu == "" &&
-            busqueda.value.bus_fehc_ini == "" &&
+            busqueda.value.bus_fech_ini == "" &&
             busqueda.value.bus_fecha_fin == ""
         ) {
             $.toast({
                 heading: "Upsss!!!",
-                text: "Debes establece la fecha de inicio o finalizaciÃ³n para la busqueda.",
+                text: "Debes establece la fecha de inicio o finalización para la busqueda.",
                 position: "top-right",
                 loaderBg: "#ff6849",
                 icon: "warning",
@@ -734,10 +734,10 @@ async function buscarStudy() {
                 stack: 6,
             });
         } else {
-            // ValidaciÃ³n de rango de fechas
+            // Validación de rango de fechas
             if (
-                (busqueda.value.bus_fehc_ini && !busqueda.value.bus_fecha_fin) ||
-                (!busqueda.value.bus_fehc_ini && busqueda.value.bus_fecha_fin)
+                (busqueda.value.bus_fech_ini && !busqueda.value.bus_fecha_fin) ||
+                (!busqueda.value.bus_fech_ini && busqueda.value.bus_fecha_fin)
             ) {
                 $.toast({
                     heading: "Upsss!!!",
@@ -751,9 +751,9 @@ async function buscarStudy() {
                 return;
             }
             if (
-                busqueda.value.bus_fehc_ini &&
+                busqueda.value.bus_fech_ini &&
                 busqueda.value.bus_fecha_fin &&
-                busqueda.value.bus_fehc_ini > busqueda.value.bus_fecha_fin
+                busqueda.value.bus_fech_ini > busqueda.value.bus_fecha_fin
             ) {
                 $.toast({
                     heading: "Upsss!!!",
@@ -880,7 +880,7 @@ async function mostrarRegistro(data = {}, index) {
 }
 async function interfaceListarProductosDiagnosticos() {
     /**
-     * Listo los productos de una atenciÃ³n
+     * Listo los productos de una atención
      */
     const resProuctos = await axios.get(
         "/api/interface-sahi-listar-listarProductosDiagnosticos/" +
@@ -968,7 +968,7 @@ async function listarMedicos() {
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = res.data.data;
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar mÃ©dicos.");
+        handleAxiosErrorToast(error, "No fue posible listar médicos.");
         medicos.value = [];
     }
 }
@@ -995,7 +995,7 @@ async function listarDiagnosticos() {
         const res = await axios.get("/api/config-diagnosticos");
         diagnosticos.value = res.data.data;
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar diagnÃ³sticos.");
+        handleAxiosErrorToast(error, "No fue posible listar diagnósticos.");
         diagnosticos.value = [];
     }
 }
@@ -1061,7 +1061,7 @@ function guardarProductosEstudio() {
             });
         }
 
-        // Limpiar selecciÃ³n
+        // Limpiar selección
         productoSelecciondo.value = "";
     }
 }
@@ -1084,7 +1084,7 @@ function guardarDiagnosticosEstudio() {
                 nom_diagnos: diag.nom_diagnos,
             });
         }
-        // Limpiar selecciÃ³n
+        // Limpiar selección
         diagnosticoSelecciondo.value = "";
     }
 }

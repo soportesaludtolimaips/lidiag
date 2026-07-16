@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
@@ -33,7 +33,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros para bÃºsqueda de atenciÃ³n
+                            <i class="fa fa-filter"></i> Filtros para búsqueda de atención
                         </h4>
                         <form action="#">
                             <div class="form-body">
@@ -41,8 +41,7 @@
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             <label class="control-label">
-                                                # de atenciÃ³n, # de documento Ã³ Nombres de
-                                                paciente
+                                                # de atención, # de documento ó Nombres de paciente
                                             </label>
                                             <input
                                                 type="text"
@@ -50,7 +49,7 @@
                                                 name="bus_nom_num_docu"
                                                 v-model="busqueda.bus_nom_num_docu"
                                                 class="form-control"
-                                                placeholder=" AtenciÃ³n, Nombres de paciente o # de documento"
+                                                placeholder=" Atención, Nombres de paciente o # de documento"
                                                 @keyup.enter="buscarStudy()"
                                             />
                                         </div>
@@ -60,9 +59,9 @@
                                             <label class="control-label">Fecha Inicio</label>
                                             <input
                                                 type="date"
-                                                id="bus_fehc_ini"
-                                                name="bus_fehc_ini"
-                                                v-model="busqueda.bus_fehc_ini"
+                                                id="bus_fech_ini"
+                                                name="bus_fech_ini"
+                                                v-model="busqueda.bus_fech_ini"
                                                 class="form-control"
                                             />
                                         </div>
@@ -121,7 +120,7 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de atenciones disponibles.</h4>
                         <h6 class="card-subtitle text-info">
-                            Asigne los mÃ©dicos para su respectiva lectura.
+                            Asigne los médicos para su respectiva lectura.
                         </h6>
                         <div class="table-responsive">
                             <table
@@ -166,7 +165,7 @@
                                                 "
                                                 class="text-danger"
                                             >
-                                                Pendiente firma paciente/acompaÃ±ante
+                                                Pendiente firma paciente/acompañante
                                             </small>
                                             <small
                                                 v-else-if="
@@ -176,7 +175,7 @@
                                                 "
                                                 class="text-warning"
                                             >
-                                                Pendiente firma mÃ©dico
+                                                Pendiente firma médico
                                             </small>
                                             <small
                                                 v-else-if="
@@ -231,7 +230,7 @@
                                                 >
                                                     {{ item.estado_envio_sahi }}
                                                 </span>
-                                                <span v-else class="text-muted">â€”</span>
+                                                <span v-else class="text-muted">—</span>
 
                                                 <div class="m-t-5">
                                                     <button
@@ -296,7 +295,7 @@
                                                 </small>
                                             </template>
                                             <template v-else>
-                                                <span class="text-muted">â€”</span>
+                                                <span class="text-muted">—</span>
                                             </template>
                                         </td>
                                         <td class="text-nowrap">
@@ -343,11 +342,11 @@
                                                 "
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-success btn-sm"
-                                                title="Capturar firma (paciente/acompaÃ±ante)"
+                                                title="Capturar firma (paciente/acompañante)"
                                                 data-toggle="modal"
                                                 data-target="#modal-consentimiento"
                                                 @click="abrirModalConsentimiento(item)"
-                                                aria-label="Capturar firma (paciente/acompaÃ±ante)"
+                                                aria-label="Capturar firma (paciente/acompañante)"
                                             >
                                                 <i class="fa fa-pencil"></i>
                                             </button>
@@ -524,7 +523,7 @@
                                         <div class="col-md-7">
                                             <div class="form-group">
                                                 <label class="control-label" for="direccion"
-                                                    >DirecciÃ³n</label
+                                                    >Dirección</label
                                                 >
                                                 <input
                                                     type="text"
@@ -538,7 +537,7 @@
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <label class="control-label" for="tel"
-                                                    >TÃ©lefono</label
+                                                    >Télefono</label
                                                 >
                                                 <input
                                                     type="number"
@@ -575,7 +574,7 @@
                                     <div class="row">
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label>MÃ©dico</label>
+                                                <label>Médico</label>
                                                 <Select2
                                                     :value="registro.medico_id"
                                                     :options="medicoOptions"
@@ -616,7 +615,7 @@
                                             >
                                                 <thead>
                                                     <tr>
-                                                        <th>CÃ³digo</th>
+                                                        <th>Código</th>
                                                         <th>Producto</th>
                                                         <th>Cantidad</th>
                                                         <th>Valor</th>
@@ -704,14 +703,14 @@
                 <div class="modal-header">
                     <h4 class="modal-title" id="myModalLabel">Anular Agenda</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                        Ã—
+                        ×
                     </button>
                 </div>
                 <div class="modal-body">
                     <form>
                         <div class="form-group">
                             <label for="message-text" class="control-label"
-                                >Motivo de anulaciÃ³n:</label
+                                >Motivo de anulación:</label
                             >
                             <textarea
                                 class="form-control"
@@ -763,21 +762,21 @@
                         Capturar firma consentimiento
                     </h4>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                        Ã—
+                        ×
                     </button>
                 </div>
                 <div class="modal-body">
                     <div v-if="consentimientoItem">
                         <div class="mb-2">
                             <small class="text-muted">
-                                {{ consentimientoItem.NomProducto }} Â·
+                                {{ consentimientoItem.NomProducto }} ·
                                 {{ consentimientoItem.NumDocumento }}
                             </small>
                         </div>
 
                         <div class="form-group">
                             <label class="control-label" for="consentimiento-firmante-tipo"
-                                >Â¿QuiÃ©n firma?</label
+                                >¿Quién firma?</label
                             >
                             <select
                                 class="form-control"
@@ -785,7 +784,7 @@
                                 v-model="consentimientoFirmanteTipo"
                             >
                                 <option value="PACIENTE">Paciente</option>
-                                <option value="ACOMPANANTE">AcompaÃ±ante</option>
+                                <option value="ACOMPANANTE">Acompañante</option>
                             </select>
                         </div>
 
@@ -793,7 +792,7 @@
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label class="control-label" for="acompanante-cedula"
-                                        >CÃ©dula</label
+                                        >Cédula</label
                                     >
                                     <input
                                         id="acompanante-cedula"
@@ -829,7 +828,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label class="control-label" for="acompanante-telefono"
-                                        >TelÃ©fono</label
+                                        >Teléfono</label
                                     >
                                     <input
                                         id="acompanante-telefono"
@@ -841,7 +840,7 @@
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="control-label" for="acompanante-direccion"
-                                        >DirecciÃ³n</label
+                                        >Dirección</label
                                     >
                                     <input
                                         id="acompanante-direccion"
@@ -865,7 +864,7 @@
                                 ></i>
                                 {{
                                     isGenerandoLinkFirma
-                                        ? "Generandoâ€¦"
+                                        ? "Generando…"
                                         : "Generar link de firma (10 min)"
                                 }}
                             </button>
@@ -915,12 +914,12 @@ const props = defineProps({ usuarioactual: Object, permisos: Array });
 const dt = ref(null);
 const actualizar = ref(false);
 
-const tituloModal = ref("Nueva admisiÃ³n");
+const tituloModal = ref("Nueva admisión");
 const busqueda = ref({
     sede_id: sedeActual,
     medico_id: medicoActual,
     bus_nom_num_docu: "",
-    bus_fehc_ini: "",
+    bus_fech_ini: "",
     bus_fecha_fin: "",
 });
 const registros = ref([]);
@@ -994,13 +993,13 @@ const productoOptions = computed(() => {
 });
 
 function buscarStudy() {
-    // Soporte para Enter en el input de bÃºsqueda
+    // Soporte para Enter en el input de búsqueda
     return listarAtenciones();
 }
 function btnLimpiar() {
-    // Limpia criterios de bÃºsqueda (mantiene sede/medico del contexto)
+    // Limpia criterios de búsqueda (mantiene sede/medico del contexto)
     busqueda.value.bus_nom_num_docu = "";
-    busqueda.value.bus_fehc_ini = "";
+    busqueda.value.bus_fech_ini = "";
     busqueda.value.bus_fecha_fin = "";
     erroresBusqueda.value = {};
 
@@ -1111,9 +1110,9 @@ async function guardarRegistro() {
         const ecografiaRes = await axios.post("/api/ecografias", registro.value);
 
         if (ecografiaRes.status === 201) {
-            // Mostrar notificaciÃ³n de Ã©xito
+            // Mostrar notificación de éxito
             toastMessage({
-                heading: "Â¡Ã‰xito!",
+                heading: "¡Éxito!",
                 text: "Agenda guardada correctamente.",
                 icon: "success",
             });
@@ -1130,9 +1129,9 @@ async function guardarRegistro() {
             });
         }
     } catch (error) {
-        handleAxiosErrorToast(error, "OcurriÃ³ un error al guardar la agenda.");
+        handleAxiosErrorToast(error, "Ocurrió un error al guardar la agenda.");
 
-        // Mostrar errores especÃ­ficos en el formulario
+        // Mostrar errores específicos en el formulario
         if (error.response?.data?.errors) {
             errores.value = error.response.data.errors;
         }
@@ -1147,8 +1146,8 @@ function registroParaAnular(data) {
 function anularEcografia() {
     if (registroAnular.value.motivo_anula === "") {
         toastMessage({
-            heading: "Â¡AtenciÃ³n!",
-            text: "Debe ingresar el motivo de anulaciÃ³n.",
+            heading: "¡Atención!",
+            text: "Debe ingresar el motivo de anulación.",
             icon: "warning",
         });
         return;
@@ -1156,7 +1155,7 @@ function anularEcografia() {
 
     confirmAction({
         title: "Estas seguro de anular la ecografia?",
-        text: "No podrÃ¡s recuperar este registro!",
+        text: "No podrás recuperar este registro!",
         icon: "warning",
     }).then(async (ok) => {
         if (!ok) return;
@@ -1167,13 +1166,13 @@ function anularEcografia() {
                 `/api/ecografia-anular/${registroAnular.value.ecografia_id}`,
                 registroAnular.value
             );
-            alertSuccess("Ok!", response?.data?.message || "EcografÃ­a anulada.", "success");
+            alertSuccess("Ok!", response?.data?.message || "Ecografía anulada.", "success");
             const cerrarModal = document.getElementById("btnCerrarModalAunular");
             if (cerrarModal) cerrarModal.click();
             await listarAtenciones();
         } catch (error) {
-            handleAxiosErrorToast(error, "No fue posible anular la ecografÃ­a.");
-            alertError("Error", "No fue posible anular la ecografÃ­a.", "error");
+            handleAxiosErrorToast(error, "No fue posible anular la ecografía.");
+            alertError("Error", "No fue posible anular la ecografía.", "error");
         } finally {
             isAnulandoEcografia.value = false;
         }
@@ -1235,7 +1234,7 @@ async function reenviarASahi(item) {
 
         await enviarEcografiaProducto(id);
 
-        toastMessage({ heading: "SAHI", text: "EnvÃ­o a SAHI encolado.", icon: "info" });
+        toastMessage({ heading: "SAHI", text: "Envío a SAHI encolado.", icon: "info" });
     } catch (error) {
         item.estado_envio_sahi = "ERROR";
         item.error_envio_sahi = error.response?.data?.message || "No se pudo reenviar a SAHI.";
@@ -1258,7 +1257,7 @@ async function listarMedicos() {
         medicos.value = res.data.data;
     } catch (error) {
         medicos.value = [];
-        handleAxiosErrorToast(error, "No fue posible listar mÃ©dicos.");
+        handleAxiosErrorToast(error, "No fue posible listar médicos.");
     }
 }
 async function listarTipoDocumentos() {
@@ -1321,7 +1320,7 @@ function onProductoSelect(value) {
                 });
             }
 
-            // Limpiar selecciÃ³n
+            // Limpiar selección
             productoSelecciondo.value = "";
         }
     }

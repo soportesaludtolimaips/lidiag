@@ -24,7 +24,7 @@ class AgendaDisponibilidaController extends Controller
     public function index(Request $request): JsonResponse
     {
         $result = $this->service->list($request->only([
-            'sede_id', 'servicio_cita_id', 'bus_fehc_ini', 'bus_fecha_fin',
+            'sede_id', 'servicio_cita_id', 'bus_fech_ini', 'bus_fecha_fin',
         ]));
 
         return response()->json($result['data'], $result['status']);

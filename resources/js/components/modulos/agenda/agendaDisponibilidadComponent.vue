@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <div>
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
@@ -42,9 +42,9 @@
                                             <label class="control-label">Fecha Inicio</label>
                                             <input
                                                 type="date"
-                                                id="bus_fehc_ini"
-                                                name="bus_fehc_ini"
-                                                v-model="busqueda.bus_fehc_ini"
+                                                id="bus_fech_ini"
+                                                name="bus_fech_ini"
+                                                v-model="busqueda.bus_fech_ini"
                                                 class="form-control"
                                             />
                                         </div>
@@ -362,7 +362,7 @@ const registro = ref({
     dura_cita: 15,
     fecha_hora_ini: "",
 });
-const busqueda = ref({ sede_id: sedeActual, bus_fehc_ini: "", bus_fecha_fin: "" });
+const busqueda = ref({ sede_id: sedeActual, bus_fech_ini: "", bus_fecha_fin: "" });
 const sedeActual = ref(sessionStorage.getItem("ST-sede"));
 const serviciosCitas = ref([]);
 const errores = ref([]);
@@ -377,7 +377,7 @@ async function buscarStudy() {
     try {
         const params = {
             sede_id: busqueda.value.sede_id,
-            bus_fehc_ini: busqueda.value.bus_fehc_ini || undefined,
+            bus_fech_ini: busqueda.value.bus_fech_ini || undefined,
             bus_fecha_fin: busqueda.value.bus_fecha_fin || undefined,
         };
         const res = await axios.get("/api/agenda-disponibilidad", { params });
@@ -512,7 +512,7 @@ function establecerSede() {
     registros.value = [];
 }
 function btnLimpiar() {
-    busqueda.value.bus_fehc_ini = "";
+    busqueda.value.bus_fech_ini = "";
     busqueda.value.bus_fecha_fin = "";
     buscarStudy();
 }
