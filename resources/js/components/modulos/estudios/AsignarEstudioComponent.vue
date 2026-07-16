@@ -730,10 +730,7 @@
     </div>
 </template>
 <script setup>
-const { proxy } = getCurrentInstance();
-const emitter = proxy.emitter;
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
-
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
@@ -741,6 +738,9 @@ import { confirmAction, handleAxiosErrorToast } from "@/helpers/alerts";
 import { normalizarFecha } from "@/helpers/dateUtils.js";
 import { useSede } from "@/composables/useSede";
 import axios from "axios";
+
+const { proxy } = getCurrentInstance();
+const emitter = proxy.emitter;
 
 const props = defineProps({
     usuarioactual: Object,
@@ -752,6 +752,7 @@ const id = ref(0);
 const registros = ref([]);
 const tituloModal = ref("Nuevo registro");
 const sedeActual = ref(sessionStorage.getItem("ST-sede"));
+const dt = ref(null);
 const registro = ref({
     study_pk: "",
     study_iuid: "",
