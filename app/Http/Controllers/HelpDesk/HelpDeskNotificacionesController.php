@@ -20,20 +20,20 @@ class HelpDeskNotificacionesController extends Controller
         $unreadOnly = (bool) $request->query('unread_only', false);
         $result = $this->notificacionService->list($request->user(), $limit, $page, $unreadOnly);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function markRead(string $id, Request $request): JsonResponse
     {
         $result = $this->notificacionService->markRead($request->user(), $id);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function markAllRead(Request $request): JsonResponse
     {
         $result = $this->notificacionService->markAllRead($request->user());
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 }

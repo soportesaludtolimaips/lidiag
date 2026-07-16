@@ -23,6 +23,6 @@ class DashBoardController extends Controller
 
         $result = $this->service->dashboard($filters);
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 }

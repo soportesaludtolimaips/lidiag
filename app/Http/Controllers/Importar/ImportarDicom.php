@@ -16,6 +16,6 @@ class ImportarDicom extends Controller
     {
         $result = $this->service->importarDicom();
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 }

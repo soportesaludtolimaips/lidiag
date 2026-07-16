@@ -17,21 +17,21 @@ class ConfigCitaRechazoMotivoController extends Controller
     {
         $result = $this->service->all();
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function store(ConfigCitaRechazoMotivoRequest $request): JsonResponse
     {
         $result = $this->service->create($request->validated());
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function update(ConfigCitaRechazoMotivoRequest $request, int $id): JsonResponse
     {
         $result = $this->service->update($id, $request->validated());
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function destroy(int $id): JsonResponse

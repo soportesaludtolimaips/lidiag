@@ -20,7 +20,7 @@ class HelpDeskAdjuntosController extends Controller
     {
         $result = $this->adjuntoService->upload($ticket, $request->validated(), $request->user());
 
-        return response()->json($result['data'], $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     public function download(HelpDeskAdjunto $adjunto, Request $request)

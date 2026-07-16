@@ -23,6 +23,6 @@ class StudyController extends Controller
     {
         $result = $this->service->listarEstudios($request->validated());
 
-        return response()->json($result['data'], $result['status'], [], JSON_INVALID_UTF8_SUBSTITUTE);
+        return response()->json($result, $result['status'], [], JSON_INVALID_UTF8_SUBSTITUTE);
     }
 }
