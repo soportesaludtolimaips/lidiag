@@ -621,7 +621,7 @@ async function listarRegistros() {
         if (res.status === 200) {
             destroyDataTable();
 
-            const data = typeof res.data === "string" ? JSON.parse(res.data) : res.data;
+            const data = res.data.data;
             registros.value = Array.isArray(data) ? data : [];
 
             nextTick(() => {
@@ -696,7 +696,7 @@ async function cargarDetallesDisponibles() {
                 fecha: formAprobar.value.fecha,
             },
         });
-        detallesDisponibles.value = res.data?.detalles || [];
+        detallesDisponibles.value = res.data?.data?.detalles || [];
     } catch (error) {
         detallesDisponibles.value = [];
     } finally {

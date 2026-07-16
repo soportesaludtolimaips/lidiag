@@ -797,7 +797,7 @@ async function buscarStudy() {
             if (res.status == 200) {
                 destroyDataTable();
 
-                registros.value = res.data;
+                registros.value = res.data.data;
                 nextTick(() => {
                     initDataTable();
                 });
@@ -1016,7 +1016,7 @@ async function mostrarRegistro(data = {}, index) {
         const resAtenciones = await axios.get(
             "/api/interface-sahi-listar-atenciones/" + orden.value.paciente.num_docu
         );
-        interfaceAtenciones.value = resAtenciones.data;
+        interfaceAtenciones.value = resAtenciones.data.data;
     }
 }
 async function interfaceListarProductosDiagnosticos() {
@@ -1024,7 +1024,7 @@ async function interfaceListarProductosDiagnosticos() {
         "/api/interface-sahi-listar-listarProductosDiagnosticos/" +
             interfaceAtencionSeleccionada.value
     );
-    productosInterface.value = resProuctos.data.productos;
+    productosInterface.value = resProuctos.data.data.productos;
 
     let EnfermedadActualDiagnosticos = "";
 
@@ -1123,7 +1123,7 @@ function limpiar() {
 async function listarPrioridades() {
     try {
         const res = await axios.get("/api/config-prioridades");
-        prioridades.value = res.data;
+        prioridades.value = res.data.data;
     } catch (error) {
         prioridades.value = [];
         handleAxiosErrorToast(error, "No fue posible listar prioridades.");
@@ -1132,7 +1132,7 @@ async function listarPrioridades() {
 async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
-        productos.value = res.data;
+        productos.value = res.data.data;
     } catch (error) {
         productos.value = [];
         handleAxiosErrorToast(error, "No fue posible listar productos.");

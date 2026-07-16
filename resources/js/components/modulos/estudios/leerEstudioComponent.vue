@@ -1557,7 +1557,7 @@ async function imprimirReporte(estudio) {
         const res = await axios.post("/api/edit-word", estudio);
 
         window.open(
-            `/descargar.pdf.lectura/${res.data.plantilla}`,
+            `/descargar.pdf.lectura/${res.data.data.plantilla}`,
             "_blank",
             "noopener,noreferrer"
         );

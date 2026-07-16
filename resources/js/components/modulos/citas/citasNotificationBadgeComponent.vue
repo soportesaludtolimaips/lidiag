@@ -22,7 +22,7 @@ const interval = ref(null);
 async function obtenerConteo() {
     try {
         const resp = await axios.get("/api/citas/notificaciones/no-leidas");
-        count.value = resp.data.count || 0;
+        count.value = resp.data.data?.count || 0;
     } catch {
         // silent
     }

@@ -1562,7 +1562,7 @@ function establecerMedico() {
 async function listarTiposPlantillas() {
     try {
         const res = await axios.get("/api/config-tipos-plantillas/listar/activos");
-        tiposPlantillas.value = res.data;
+        tiposPlantillas.value = res.data.data;
     } catch (error) {
         handleAxiosErrorToast(error, "No fue posible listar tipos de plantillas.");
         tiposPlantillas.value = [];
@@ -1575,7 +1575,7 @@ async function onTipoPlantillaSelect(value) {
     try {
         const res = await axios.get(`/api/config-plantillas/listar/activos/${selectedId}`);
 
-        plantillas.value = res.data;
+        plantillas.value = res.data.data;
         plantillasOptions.value;
         var tipo = tiposPlantillasOptions.value.find(function (t) {
             return String(t.id) === String(selectedId);

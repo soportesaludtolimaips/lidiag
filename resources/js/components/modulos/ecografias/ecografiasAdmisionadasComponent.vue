@@ -475,7 +475,7 @@ async function listarAtenciones() {
         if (res.status == 200) {
             safeDestroyDataTable(dt.value || "#example23");
 
-            registros.value = res.data;
+            registros.value = res.data.data;
 
             safeInitDataTable(dt.value || "#example23");
         }

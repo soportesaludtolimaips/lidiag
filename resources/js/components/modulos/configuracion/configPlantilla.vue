@@ -331,7 +331,7 @@ async function ListarDatos() {
     try {
         const res = await axios.get("/api/config-plantillas");
         safeDestroyDataTable(dt.value || "#example23");
-        registros.value = res.data;
+        registros.value = res.data.data;
         nextTick(() => {
             safeInitDataTable(dt.value || "#example23", {
                 dom: "Bfrtip",
@@ -419,7 +419,7 @@ async function listarMedicos() {
         const moduloId =
             sessionStorage.getItem("ST-modulo") || (pathname.includes("ecografia") ? "2" : "1");
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
-        medicos.value = res.data;
+        medicos.value = res.data.data;
     } catch (error) {
         handleAxiosErrorToast(error, "No fue posible listar mÃ©dicos.");
     }
@@ -427,7 +427,7 @@ async function listarMedicos() {
 async function listarTiposPlantillas() {
     try {
         const res = await axios.get("/api/config-tipos-plantillas/listar/activos");
-        tiposPlantillas.value = res.data;
+        tiposPlantillas.value = res.data.data;
     } catch (error) {
         handleAxiosErrorToast(error, "No fue posible listar tipos de plantilla.");
     }

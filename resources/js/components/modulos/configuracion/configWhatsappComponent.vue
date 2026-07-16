@@ -1016,7 +1016,7 @@ async function listarNumeros() {
     try {
         const res = await axios.get("/api/config-sede-whatsapp-numbers");
         safeDestroyDataTable(dtNumeros.value || "#tblWhatsappNumbers");
-        registrosNumeros.value = res.data;
+        registrosNumeros.value = res.data.data;
         nextTick(() => {
             if (tabActivo.value === "numeros") {
                 safeInitDataTable(dtNumeros.value || "#tblWhatsappNumbers", {
@@ -1041,7 +1041,7 @@ async function listarSaludos() {
     try {
         const res = await axios.get("/api/config-whatsapp");
         safeDestroyDataTable(dtSaludos.value || "#tblWhatsappSaludos");
-        registrosSaludos.value = res.data;
+        registrosSaludos.value = res.data.data;
         nextTick(() => {
             if (tabActivo.value === "saludos") {
                 safeInitDataTable(dtSaludos.value || "#tblWhatsappSaludos", {
@@ -1069,7 +1069,7 @@ async function listarSedes() {
 async function listarServicios() {
     try {
         const res = await axios.get("/api/config-servicio-citas");
-        servicios.value = res.data;
+        servicios.value = res.data.data;
     } catch (error) {
         console.error(error);
     }
@@ -1240,7 +1240,7 @@ async function cargarServiciosProductos() {
     errorServiciosProductos.value = "";
     try {
         const res = await axios.get("/api/config-servicio-citas");
-        serviciosProductos.value = res.data;
+        serviciosProductos.value = res.data.data;
         if (serviciosProductos.value.length > 0) {
             seleccionarServicio(serviciosProductos.value[0]);
         }
@@ -1263,7 +1263,7 @@ async function cargarProductosVinculados() {
         const res = await axios.get("/api/servicio-producto", {
             params: { servicio_cita_id: servicioSeleccionado.value },
         });
-        productosVinculados.value = res.data;
+        productosVinculados.value = res.data.data;
     } catch (error) {
         console.error("Error al cargar productos vinculados:", error);
     }
@@ -1277,7 +1277,7 @@ async function mostrarModalAgregar() {
         const res = await axios.get("/api/servicio-producto/productos-no-vinculados", {
             params: { servicio_cita_id: servicioSeleccionado.value },
         });
-        productosDisponibles.value = res.data;
+        productosDisponibles.value = res.data.data;
         abrirModal();
     } catch (error) {
         console.error("Error al cargar productos disponibles:", error);

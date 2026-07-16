@@ -373,7 +373,7 @@ async function cargarSedes() {
 async function cargarServicios() {
     try {
         const res = await axios.get("/api/citas/servicios");
-        servicios.value = res.data || [];
+        servicios.value = res.data?.data || [];
         filtrarServicios();
     } catch (error) {
         handleAxiosErrorToast(error, "No fue posible cargar los servicios.");
@@ -400,7 +400,7 @@ async function cargarProductos() {
         if (sedeId) url += "?sede_id=" + sedeId;
 
         const res = await axios.get(url);
-        productos.value = res.data || [];
+        productos.value = res.data?.data || [];
     } catch (error) {
         productos.value = [];
         handleAxiosErrorToast(error, "No fue posible cargar los productos.");
@@ -421,7 +421,7 @@ async function buscar() {
         if (filtro.value.producto_id) params.producto_id = filtro.value.producto_id;
         const res = await axios.get("/api/config-recomendacion-productos", { params });
         safeDestroyDataTable(dt.value || "#tabla-recomendaciones");
-        registros.value = res.data || [];
+        registros.value = res.data?.data || [];
         nextTick(() => {
             safeInitDataTable(dt.value || "#tabla-recomendaciones", {
                 dom: "Bfrtip",

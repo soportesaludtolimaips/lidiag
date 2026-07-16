@@ -244,7 +244,7 @@ async function ListarDatos() {
         if (filtroSede.value) params.sede_id = filtroSede.value;
         const res = await axios.get("/api/config-servicio-citas", { params });
         safeDestroyDataTable(dt.value || "#tablaServicios");
-        registros.value = res.data;
+        registros.value = res.data.data;
         nextTick(() => {
             safeInitDataTable(dt.value || "#tablaServicios", {
                 dom: "Bfrtip",

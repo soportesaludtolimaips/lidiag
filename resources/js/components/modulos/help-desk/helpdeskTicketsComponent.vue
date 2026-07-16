@@ -357,7 +357,7 @@ async function buscar() {
             scope: scope.value,
             ...filters.value,
         });
-        tickets.value = res.data?.items || [];
+        tickets.value = res.data?.data?.items || [];
         nextTick(() => {
             destroyDataTable();
             initDataTable();

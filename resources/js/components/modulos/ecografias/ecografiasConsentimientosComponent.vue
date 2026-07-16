@@ -233,7 +233,7 @@ async function buscar() {
         const res = await axios.get("/api/ecografias-consentimientos", {
             params: filtros.value,
         });
-        registros.value = Array.isArray(res.data) ? res.data : [];
+        registros.value = Array.isArray(res.data?.data) ? res.data.data : [];
     } catch (error) {
         handleAxiosErrorToast(error, "No fue posible listar consentimientos.");
         registros.value = [];

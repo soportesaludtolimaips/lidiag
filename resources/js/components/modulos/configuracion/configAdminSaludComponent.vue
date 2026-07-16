@@ -283,7 +283,7 @@ async function ListarDatos() {
         const res = await axios.get("/api/config-admin-salud");
 
         safeDestroyDataTable(dt.value || "#example23");
-        registros.value = res.data;
+        registros.value = res.data.data;
         nextTick(() => {
             safeInitDataTable(dt.value || "#example23", {
                 dom: "Bfrtip",

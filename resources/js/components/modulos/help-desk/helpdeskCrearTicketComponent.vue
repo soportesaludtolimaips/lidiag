@@ -262,7 +262,7 @@ async function guardar() {
             asignado_id: form.value.asignado_id,
         });
 
-        const ticket = res.data;
+        const ticket = res.data.data;
 
         // Adjuntos iniciales (si hay)
         const input = files.value;

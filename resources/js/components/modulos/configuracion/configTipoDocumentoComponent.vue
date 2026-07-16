@@ -271,7 +271,7 @@ async function ListarDatos() {
     try {
         const res = await axios.get("/api/config-tipos-documentos");
         safeDestroyDataTable(dt.value || "#example23");
-        registros.value = res.data;
+        registros.value = res.data.data;
         nextTick(() => {
             safeInitDataTable(dt.value || "#example23", {
                 dom: "Bfrtip",

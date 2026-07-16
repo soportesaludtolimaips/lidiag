@@ -37,7 +37,7 @@ const registros = ref([]);
 async function listarSucursales() {
     try {
         const res = await axios.get("/api/config-sedes");
-        registros.value = res.data;
+        registros.value = res.data.data;
         if (Array.isArray(registros.value) && registros.value.length > 0 && !nomSucursal.value) {
             nomSucursal.value = registros.value[0].sucursal || "";
             sessionStorage.setItem("ST-sede", registros.value[0].id);
