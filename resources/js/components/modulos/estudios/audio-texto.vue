@@ -47,11 +47,14 @@ const props = defineProps({
     estudioId: { type: [Number, String], default: null },
     estudioProductoId: { type: [Number, String], default: null },
 });
+const emit = defineEmits(["audio-saved"]);
 
-const id = ref(this.estudioId ? Number(this.estudioId) : 0);
+const dictationFlow = useDictationFlow();
+
+const id = ref(props.estudioId ? Number(props.estudioId) : 0);
 const registro = ref({
     lectura: "",
-    estudio_producto_id: this.estudioProductoId ? Number(this.estudioProductoId) : 0,
+    estudio_producto_id: props.estudioProductoId ? Number(props.estudioProductoId) : 0,
 });
 const loadingEnviar = ref(false);
 

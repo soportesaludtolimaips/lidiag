@@ -1,17 +1,17 @@
-<template>
+﻿<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
         <!-- ============================================================== -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">Configuración</h3>
+                <h3 class="text-themecolor">ConfiguraciÃ³n</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Configuración</a>
+                        <a href="javascript:void(0)">ConfiguraciÃ³n</a>
                     </li>
                     <li class="breadcrumb-item active">sedes</li>
                 </ol>
@@ -42,8 +42,8 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de sedes</h4>
                         <h6 class="card-subtitle">
-                            Administración de sedes para la distribucion y asignacion de estudios y
-                            agenda de lecturas de imagenes díagnosticas.
+                            AdministraciÃ³n de sedes para la distribucion y asignacion de estudios y
+                            agenda de lecturas de imagenes dÃ­agnosticas.
                         </h6>
                         <div class="table-responsive m-t-40">
                             <table
@@ -174,7 +174,7 @@
                             </div>
 
                             <h5 class="card-title text-info">
-                                <i class="fa fa-paperclip"></i> Datos de configuración de DCMCHEE
+                                <i class="fa fa-paperclip"></i> Datos de configuraciÃ³n de DCMCHEE
                             </h5>
                             <hr />
 
@@ -205,7 +205,7 @@
                                             name="bd_dcm"
                                             v-model="registro.bd_dcm"
                                             class="form-control"
-                                            placeholder="Ingrese aquí el nombre de la BD"
+                                            placeholder="Ingrese aquÃ­ el nombre de la BD"
                                         />
                                         <span class="text-danger" v-if="errores.bd_dcm">{{
                                             errores.bd_dcm[0]
@@ -222,7 +222,7 @@
                                             name="usuario_dcm"
                                             v-model="registro.usuario_dcm"
                                             class="form-control"
-                                            placeholder="Ingrese aquí la URL del Ovyam de la sede"
+                                            placeholder="Ingrese aquÃ­ la URL del Ovyam de la sede"
                                         />
                                         <span class="text-danger" v-if="errores.usuario_dcm">{{
                                             errores.usuario_dcm[0]
@@ -239,7 +239,7 @@
                                             name="password_dcm"
                                             v-model="registro.password_dcm"
                                             class="form-control"
-                                            placeholder="Ingrese aquí la URL del Ovyam de la sede"
+                                            placeholder="Ingrese aquÃ­ la URL del Ovyam de la sede"
                                         />
                                         <span class="text-danger" v-if="errores.password_dcm">{{
                                             errores.password_dcm[0]
@@ -256,7 +256,7 @@
                                             name="puerto_dcm"
                                             v-model="registro.puerto_dcm"
                                             class="form-control"
-                                            placeholder="Ingrese aquí la URL del Ovyam de la sede"
+                                            placeholder="Ingrese aquÃ­ la URL del Ovyam de la sede"
                                         />
                                         <span class="text-danger" v-if="errores.puerto_dcm">{{
                                             errores.puerto_dcm[0]
@@ -266,7 +266,7 @@
                             </div>
 
                             <h5 class="card-title text-info">
-                                <i class="fa fa-paperclip"></i> Datos de configuración de OVIYAM
+                                <i class="fa fa-paperclip"></i> Datos de configuraciÃ³n de OVIYAM
                             </h5>
                             <hr />
 
@@ -280,7 +280,7 @@
                                             name="usuario_oviyam"
                                             v-model="registro.usuario_oviyam"
                                             class="form-control"
-                                            placeholder="Ingrese aquí la URL del Ovyam de la sede"
+                                            placeholder="Ingrese aquÃ­ la URL del Ovyam de la sede"
                                         />
                                         <span class="text-danger" v-if="errores.usuario_oviyam">{{
                                             errores.usuario_oviyam[0]
@@ -297,7 +297,7 @@
                                             name="password_oviyam"
                                             v-model="registro.password_oviyam"
                                             class="form-control"
-                                            placeholder="Ingrese aquí la URL del Ovyam de la sede"
+                                            placeholder="Ingrese aquÃ­ la URL del Ovyam de la sede"
                                         />
                                         <span class="text-danger" v-if="errores.password_oviyam">{{
                                             errores.password_oviyam[0]
@@ -314,7 +314,7 @@
                                             name="url_oviyam"
                                             v-model="registro.url_oviyam"
                                             class="form-control"
-                                            placeholder="Ingrese aquí la URL del Ovyam de la sede"
+                                            placeholder="Ingrese aquÃ­ la URL del Ovyam de la sede"
                                         />
                                         <span class="text-danger" v-if="errores.url_oviyam">{{
                                             errores.url_oviyam[0]
@@ -330,7 +330,7 @@
                                             name="tap_oviyam"
                                             v-model="registro.tap_oviyam"
                                             class="form-control"
-                                            placeholder="Ingrese aquí la URL del Ovyam de la sede"
+                                            placeholder="Ingrese aquÃ­ la URL del Ovyam de la sede"
                                         />
                                         <span class="text-danger" v-if="errores.tap_oviyam">{{
                                             errores.tap_oviyam[0]
@@ -341,15 +341,15 @@
                             <div class="row">
                                 <div class="col-md-4">
                                     <h5 class="card-title text-info">
-                                        <i class="fa fa-paperclip"></i> Datos de configuración de la
-                                        plantilla
+                                        <i class="fa fa-paperclip"></i> Datos de configuraciÃ³n de
+                                        la plantilla
                                     </h5>
                                     <hr />
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <label class="control-label"
-                                                    >Plantilla para Rx, Tomografía y
+                                                    >Plantilla para Rx, TomografÃ­a y
                                                     resonancia</label
                                                 >
                                                 <input
@@ -390,13 +390,13 @@
                                                     <div class="form-group">
                                                         <label class="text-info">Paciente</label>:
                                                         <code>${nombre_paciente}</code> Nombres del
-                                                        paciente, <code>${num_docu}</code> Número de
-                                                        documento del paciente,
+                                                        paciente, <code>${num_docu}</code> NÃºmero
+                                                        de documento del paciente,
                                                         <code>${fec_naci}</code> Fecha de nacimiento
                                                         del paciente, <code>${sexo}</code> Sexo del
                                                         paciente, <code>${edad}</code> Edad del
-                                                        paciente, <code>${dir}</code> Dirección de
-                                                        recidencia, <code>${tel}</code> Télefono de
+                                                        paciente, <code>${dir}</code> DirecciÃ³n de
+                                                        recidencia, <code>${tel}</code> TÃ©lefono de
                                                         contacto, <code>${cel}</code> Celular de
                                                         contacto, <br /><br />
 
@@ -406,27 +406,28 @@
                                                         <code>${fechor_lectura}</code> Fecha y Hora
                                                         de lectura,
                                                         <code>${fechor_transcipcion}</code> Fecha y
-                                                        Hora de transcripción,
-                                                        <code>${atencion}</code> Atención o número
+                                                        Hora de transcripciÃ³n,
+                                                        <code>${atencion}</code> AtenciÃ³n o nÃºmero
                                                         de folio,
-                                                        <code>${cod_producto}</code> Código del
+                                                        <code>${cod_producto}</code> CÃ³digo del
                                                         producto,
                                                         <code>${nom_producto}</code> Nombre del
                                                         producto, <code>${lectura}</code>,
-                                                        <code>${nom_sede} Sede de la tóma</code>.
+                                                        <code>${nom_sede} Sede de la tÃ³ma</code>.
                                                         <br /><br />
 
                                                         <label class="text-info">Ecografias</label>:
                                                         <code>${tipo_estudio}</code> Tipo de
-                                                        estudio, <code>${opinion}</code> Opinión des
-                                                        estudio, <code>${productos}</code> Productos
-                                                        de la lectura, <br /><br />
+                                                        estudio, <code>${opinion}</code> OpiniÃ³n
+                                                        des estudio,
+                                                        <code>${productos}</code> Productos de la
+                                                        lectura, <br /><br />
 
                                                         <label class="text-info"
                                                             >Administradora de salud</label
                                                         >: <code>${eps}</code> Eps del paciente,
                                                         <code>${contrato}</code> Contrato de
-                                                        vinculación con la Eps.
+                                                        vinculaciÃ³n con la Eps.
                                                         <code>${nom_sede}</code> Nombre de la sede
                                                         <br /><br />
 
@@ -511,6 +512,8 @@
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
+const dt = ref(null);
+
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import {
     alertError,
@@ -581,7 +584,7 @@ async function guardarRegistro() {
             if (res.status == 200) {
                 $.toast({
                     heading: "Ok!!!",
-                    text: res.data.message,
+                    text: res.data.data.message,
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: "success",
@@ -601,7 +604,7 @@ async function guardarRegistro() {
             if (res.status == 200) {
                 $.toast({
                     heading: "Ok!!!",
-                    text: res.data.message,
+                    text: res.data.data.message,
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: "success",
@@ -623,8 +626,8 @@ async function guardarRegistro() {
 }
 async function elimnarRegistro(id) {
     const ok = await confirmAction({
-        title: "¿Estas seguro?",
-        text: "No podrás recuperar este registro!",
+        title: "Â¿Estas seguro?",
+        text: "No podrÃ¡s recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;

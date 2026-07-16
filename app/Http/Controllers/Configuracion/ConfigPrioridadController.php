@@ -14,10 +14,10 @@ class ConfigPrioridadController extends Controller
         private readonly ConfigPrioridadService $configPrioridadService,
     ) {
         $this->middleware('auth:sanctum')->except(['index']);
-        $this->middleware('permission:configuracion.prioridades.index')->only(['index']);
-        $this->middleware('permission:configuracion.prioridades.create')->only(['store']);
-        $this->middleware('permission:configuracion.prioridades.edit')->only(['update']);
-        $this->middleware('permission:configuracion.prioridades.destroy')->only(['destroy']);
+        $this->middleware('permission:config.prioridades.index')->only(['index']);
+        $this->middleware('permission:config.prioridades.create')->only(['store']);
+        $this->middleware('permission:config.prioridades.edit')->only(['update']);
+        $this->middleware('permission:config.prioridades.destroy')->only(['destroy']);
     }
 
     public function index(): JsonResponse

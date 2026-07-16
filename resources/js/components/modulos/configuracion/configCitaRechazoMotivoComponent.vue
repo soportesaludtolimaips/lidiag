@@ -1,14 +1,14 @@
-<template>
+﻿<template>
     <div>
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">Configuración</h3>
+                <h3 class="text-themecolor">ConfiguraciÃ³n</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Configuración</a>
+                        <a href="javascript:void(0)">ConfiguraciÃ³n</a>
                     </li>
                     <li class="breadcrumb-item active">Motivos de Rechazo (Citas)</li>
                 </ol>
@@ -33,7 +33,7 @@
                     <div class="card-body">
                         <h4 class="card-title">Motivos de Rechazo</h4>
                         <h6 class="card-subtitle">
-                            Administración de motivos de rechazo para las citas agendadas.
+                            AdministraciÃ³n de motivos de rechazo para las citas agendadas.
                         </h6>
 
                         <div v-if="loadingListar" class="text-center m-t-40">
@@ -206,6 +206,8 @@
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
+const dt = ref(null);
+
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import {
     alertError,
@@ -304,8 +306,8 @@ async function guardarRegistro() {
 }
 async function eliminarRegistro(id) {
     const ok = await confirmAction({
-        title: "¿Estas seguro?",
-        text: "No podrás recuperar este registro!",
+        title: "Â¿Estas seguro?",
+        text: "No podrÃ¡s recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;

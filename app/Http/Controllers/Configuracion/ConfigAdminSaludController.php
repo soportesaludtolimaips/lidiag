@@ -13,10 +13,10 @@ class ConfigAdminSaludController extends Controller
         private readonly ConfigAdminSaludService $configAdminSaludService,
     ) {
         $this->middleware('auth:sanctum')->except(['index']);
-        $this->middleware('permission:configuracion.admin-salud.index')->only(['index']);
-        $this->middleware('permission:configuracion.admin-salud.create')->only(['store']);
-        $this->middleware('permission:configuracion.admin-salud.edit')->only(['update']);
-        $this->middleware('permission:configuracion.admin-salud.destroy')->only(['destroy']);
+        $this->middleware('permission:config.admin.salud.index')->only(['index']);
+        $this->middleware('permission:config.admin.salud.create')->only(['store']);
+        $this->middleware('permission:config.admin.salud.edit')->only(['update']);
+        $this->middleware('permission:config.admin.salud.destroy')->only(['destroy']);
     }
 
     public function index(): JsonResponse

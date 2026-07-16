@@ -1,17 +1,17 @@
-<template>
+﻿<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
         <!-- ============================================================== -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">Configuración</h3>
+                <h3 class="text-themecolor">ConfiguraciÃ³n</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Configuración</a>
+                        <a href="javascript:void(0)">ConfiguraciÃ³n</a>
                     </li>
                     <li class="breadcrumb-item active">Consentimiento informado</li>
                 </ol>
@@ -42,7 +42,7 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de consentimiento informado</h4>
                         <h6 class="card-subtitle">
-                            Administración de los consentimiento informado.
+                            AdministraciÃ³n de los consentimiento informado.
                         </h6>
                         <div class="table-responsive m-t-40">
                             <table
@@ -58,15 +58,15 @@
                                         <th>Sede</th>
                                         <th>Nombre</th>
                                         <th>Archivo</th>
-                                        <th>Fecha creación</th>
-                                        <th>Fecha modificación</th>
+                                        <th>Fecha creaciÃ³n</th>
+                                        <th>Fecha modificaciÃ³n</th>
                                         <th>Estado</th>
                                         <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr v-for="item in registros" :key="item.id">
-                                        <td>{{ item.producto?.nom_produc || "—" }}</td>
+                                        <td>{{ item.producto?.nom_produc || "â€”" }}</td>
                                         <td>{{ item.sede.nom_sede }}</td>
                                         <td>{{ item.nombre }}</td>
                                         <td>
@@ -76,7 +76,7 @@
                                                 target="_blank"
                                                 >Ver PDF</a
                                             >
-                                            <span v-else class="text-muted">—</span>
+                                            <span v-else class="text-muted">â€”</span>
                                         </td>
                                         <td>{{ item.created_at }}</td>
                                         <td>{{ item.updated_at }}</td>
@@ -239,7 +239,15 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
+const dt = ref(null);
+
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import {
+    handleAxiosErrorToast,
+    confirmAction,
+    alertSuccess,
+    alertError,
+} from "@/helpers/alerts.js";
 import axios from "axios";
 
 const id = ref(0);
@@ -316,7 +324,7 @@ async function guardarRegistro() {
         if (res.status === 200 || res.status === 201) {
             $.toast({
                 heading: "Ok!!!",
-                text: res.data.message || "Guardado correctamente.",
+                text: res.data.data.message || "Guardado correctamente.",
                 position: "top-right",
                 loaderBg: "#ff6849",
                 icon: "success",
@@ -337,7 +345,7 @@ async function guardarRegistro() {
 async function elimnarRegistro(id, nom) {
     const ok = await confirmAction({
         title: `Estas seguro de eliminar el consentimiento informado ${nom}?`,
-        text: "No podrás recuperar este registro!",
+        text: "No podrÃ¡s recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;

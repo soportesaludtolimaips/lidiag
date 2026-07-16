@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <div>
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
@@ -338,27 +338,31 @@
     </div>
 </template>
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+const { proxy } = getCurrentInstance();
+const emitter = proxy.emitter;
+import { nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { handleAxiosErrorToast, confirmAction } from "@/helpers/alerts";
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import axios from "axios";
 
-const props = defineProps({});
+const props = defineProps({ usuarioactual: Object });
+
+const dt = ref(null);
 
 const editando = ref(false);
 const editandoId = ref(null);
 const tituloModal = ref("Guardar disponibilidad de citas");
 const registro = ref({
-    sede_id: this.sedeActual,
-    quien_registro_id: this.usuarioactual.id,
+    sede_id: sedeActual,
+    quien_registro_id: props.usuarioactual.id,
     servicio_cita_id: "",
     total_citas: 1,
     dura_cita: 15,
     fecha_hora_ini: "",
 });
-const busqueda = ref({ sede_id: this.sedeActual, bus_fehc_ini: "", bus_fecha_fin: "" });
+const busqueda = ref({ sede_id: sedeActual, bus_fehc_ini: "", bus_fecha_fin: "" });
 const sedeActual = ref(sessionStorage.getItem("ST-sede"));
 const serviciosCitas = ref([]);
 const errores = ref([]);

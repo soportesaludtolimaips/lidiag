@@ -1,17 +1,17 @@
-<template>
+﻿<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
         <!-- ============================================================== -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">Configuración</h3>
+                <h3 class="text-themecolor">ConfiguraciÃ³n</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Configuración</a>
+                        <a href="javascript:void(0)">ConfiguraciÃ³n</a>
                     </li>
                     <li class="breadcrumb-item active">Administradores de Salud</li>
                 </ol>
@@ -47,7 +47,7 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de administradoras de salud</h4>
                         <h6 class="card-subtitle">
-                            Administración de las administradoras de salud "EPS".
+                            AdministraciÃ³n de las administradoras de salud "EPS".
                         </h6>
                         <div class="table-responsive m-t-40">
                             <table
@@ -59,8 +59,8 @@
                             >
                                 <thead>
                                     <tr>
-                                        <th>Código</th>
-                                        <th width="150px">Razón Social</th>
+                                        <th>CÃ³digo</th>
+                                        <th width="150px">RazÃ³n Social</th>
                                         <th>Estado</th>
                                         <th></th>
                                     </tr>
@@ -136,14 +136,14 @@
                             <div class="row p-t-20">
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <label class="control-label">Código</label>
+                                        <label class="control-label">CÃ³digo</label>
                                         <input
                                             type="text"
                                             id="cod_admin_salud"
                                             name="cod_admin_salud"
                                             v-model="registro.cod_admin_salud"
                                             class="form-control"
-                                            placeholder="Código"
+                                            placeholder="CÃ³digo"
                                         />
                                         <span class="text-danger" v-if="errores.cod_admin_salud">{{
                                             errores.cod_admin_salud[0]
@@ -172,14 +172,14 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Razón Social</label>
+                                        <label class="control-label">RazÃ³n Social</label>
                                         <input
                                             type="text"
                                             id="nom_admin_salud"
                                             name="nom_admin_salud"
                                             v-model="registro.nom_admin_salud"
                                             class="form-control"
-                                            placeholder="Ingrese aquí el la razón sicual de la administradora de salud"
+                                            placeholder="Ingrese aquÃ­ el la razÃ³n sicual de la administradora de salud"
                                         />
                                         <span class="text-danger" v-if="errores.nom_admin_salud">{{
                                             errores.nom_admin_salud[0]
@@ -250,6 +250,8 @@
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
+const dt = ref(null);
+
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import {
     alertError,
@@ -306,7 +308,7 @@ async function guardarRegistro() {
 
                 $.toast({
                     heading: "Ok!!!",
-                    text: res.data.message,
+                    text: res.data.data.message,
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: "success",
@@ -321,7 +323,7 @@ async function guardarRegistro() {
 
                 $.toast({
                     heading: "Ok!!!",
-                    text: res.data.message,
+                    text: res.data.data.message,
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: "success",
@@ -340,7 +342,7 @@ async function guardarRegistro() {
 async function elimnarRegistro(id, nom) {
     const ok = await confirmAction({
         title: `Estas seguro de eliminar la admninistradora de salud ${nom}?`,
-        text: "No podrás recuperar este registro!",
+        text: "No podrÃ¡s recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;

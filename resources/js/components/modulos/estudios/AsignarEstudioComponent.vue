@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
@@ -141,7 +141,7 @@
                             <div>
                                 <h4 class="card-title">Listado de estudios disponibles</h4>
                                 <h6 class="card-subtitle text-info">
-                                    Asigne los estudios a los médicos para su respectiva lectura.
+                                    Asigne los estudios a los mÃ©dicos para su respectiva lectura.
                                 </h6>
                             </div>
                             <div class="text-right">
@@ -166,7 +166,7 @@
                                         <th with="5%"># Documento</th>
                                         <th with="30%">Paciente</th>
                                         <th>Accession</th>
-                                        <th>Descripción</th>
+                                        <th>DescripciÃ³n</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -301,7 +301,7 @@
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <label class="control-label" for="study_desc"
-                                                    >Descripción
+                                                    >DescripciÃ³n
                                                     <span class="text-danger">*</span></label
                                                 >
                                                 <input
@@ -388,7 +388,7 @@
                                                     name="observaciones"
                                                     v-model="registro.observaciones"
                                                     class="form-control"
-                                                    placeholder="Ingrese aquí las el motivo del estudio"
+                                                    placeholder="Ingrese aquÃ­ las el motivo del estudio"
                                                 />
                                             </div>
                                         </div>
@@ -443,7 +443,7 @@
                                         <div class="col-md-8">
                                             <div class="form-group" id="medicos-parent">
                                                 <label class="control-label"
-                                                    >Médico
+                                                    >MÃ©dico
                                                     <span class="text-danger">*</span></label
                                                 >
                                                 <Select2
@@ -499,7 +499,7 @@
                                                 <label
                                                     class="control-label"
                                                     for="interfaceAtencionSeleccionada"
-                                                    >Atención</label
+                                                    >AtenciÃ³n</label
                                                 >
                                                 <select
                                                     v-model="interfaceAtencionSeleccionada"
@@ -557,7 +557,7 @@
                                                 <thead>
                                                     <tr>
                                                         <th></th>
-                                                        <th>Código</th>
+                                                        <th>CÃ³digo</th>
                                                         <th>Producto</th>
                                                         <th></th>
                                                     </tr>
@@ -631,7 +631,7 @@
                                             >
                                                 <thead>
                                                     <tr>
-                                                        <th>Código</th>
+                                                        <th>CÃ³digo</th>
                                                         <th>Diagnostico</th>
                                                         <th></th>
                                                     </tr>
@@ -679,7 +679,7 @@
                                                         name="motivo_examen"
                                                         v-model="registro.motivo_examen"
                                                         class="form-control"
-                                                        placeholder="Ingrese aquí las observaciones del estudio"
+                                                        placeholder="Ingrese aquÃ­ las observaciones del estudio"
                                                         rows="11"
                                                     ></textarea>
                                                 </div>
@@ -730,7 +730,9 @@
     </div>
 </template>
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+const { proxy } = getCurrentInstance();
+const emitter = proxy.emitter;
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
@@ -740,12 +742,16 @@ import { normalizarFecha } from "@/helpers/dateUtils.js";
 import { useSede } from "@/composables/useSede";
 import axios from "axios";
 
-const props = defineProps({});
+const props = defineProps({
+    usuarioactual: Object,
+    sedeInterface: { type: Boolean, default: false },
+});
 
 const dataIndex = ref(0);
 const id = ref(0);
 const registros = ref([]);
 const tituloModal = ref("Nuevo registro");
+const sedeActual = ref(sessionStorage.getItem("ST-sede"));
 const registro = ref({
     study_pk: "",
     study_iuid: "",
@@ -757,8 +763,8 @@ const registro = ref({
     observaciones: "",
     medico_id: "",
     prioridad_id: "",
-    sede_id: sedeActual,
-    quien_registro_id: this.usuarioactual.id,
+    sede_id: sedeActual.value,
+    quien_registro_id: props.usuarioactual.id,
     num_docu: "",
     nombres: "",
     sexo: "",
@@ -775,7 +781,7 @@ const registro = ref({
 });
 const soportesHC = ref({ archivo1: null, archivo2: null, archivo3: null });
 const busqueda = ref({
-    sede_id: sedeActual,
+    sede_id: sedeActual.value,
     bus_nom_num_docu: "",
     bus_fech_ini: "",
     bus_fecha_fin: "",
@@ -798,6 +804,7 @@ const loadingGuardar = ref(false);
 const loadingAbrirRegistroIndex = ref(null);
 const loadingImagenId = ref(null);
 const progresoUpload = ref(null);
+const primerInput = ref(null);
 
 const contadorRegistros = computed(() => {
     return registros.value.length;
@@ -846,7 +853,7 @@ async function buscarStudy() {
         ) {
             $.toast({
                 heading: "Upsss!!!",
-                text: "Debes establece la fecha de inicio o finalización para la busqueda.",
+                text: "Debes establece la fecha de inicio o finalizaciÃ³n para la busqueda.",
                 position: "top-right",
                 loaderBg: "#ff6849",
                 icon: "warning",
@@ -889,7 +896,7 @@ async function buscarStudy() {
                 destroyDataTable();
 
                 // Asegurar que siempre sea un array (por si llega string JSON)
-                let data = res.data;
+                let data = res.data.data;
                 if (typeof data === "string") {
                     try {
                         data = JSON.parse(data);
@@ -928,7 +935,8 @@ async function guardarRegistro() {
     loadingGuardar.value = true;
 
     if (
-        (usuarioactual.transcrip_remoto == 0 || usuarioactual.transcrip_remoto == null) &&
+        (props.usuarioactual.transcrip_remoto == 0 ||
+            props.usuarioactual.transcrip_remoto == null) &&
         registro.value.motivo_examen == ""
     ) {
         $.toast({
@@ -1080,7 +1088,7 @@ async function mostrarRegistro(data = {}, index) {
      * Verificar si la sede tiene interface, traigo la informacion de las producto y diagnosticos
      */
     try {
-        const res = await axios.get("/api/config-sedes/" + sedeActual + "/buscarPorId");
+        const res = await axios.get("/api/config-sedes/" + sedeActual.value + "/buscarPorId");
 
         if (res.data.interface_software != null) {
             const resAtenciones = await axios.get(
@@ -1091,7 +1099,7 @@ async function mostrarRegistro(data = {}, index) {
     } catch (error) {
         handleAxiosErrorToast(
             error,
-            "No fue posible cargar la configuración/atenciones de la sede."
+            "No fue posible cargar la configuraciÃ³n/atenciones de la sede."
         );
     } finally {
         loadingAbrirRegistroIndex.value = null;
@@ -1142,10 +1150,16 @@ async function interfaceListarProductosDiagnosticos() {
 
     registro.value.atencion_id = interfaceAtencionSeleccionada.value;
 }
+function cargarDatosSede() {
+    listarMedicos();
+    listarPrioridades();
+    listarProductos();
+    listarDiagnosticos();
+}
 function establecerSede() {
     registro.value.sede_id = sessionStorage.getItem("ST-sede");
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
-    sedeActual = sessionStorage.getItem("ST-sede");
+    sedeActual.value = sessionStorage.getItem("ST-sede");
     cargarDatosSede();
     registros.value = [];
 }
@@ -1197,15 +1211,15 @@ async function listarMedicos() {
     try {
         const moduloId = sessionStorage.getItem("ST-modulo") || "1";
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
-        medicos.value = res.data;
+        medicos.value = res.data.data || [];
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar médicos.");
+        handleAxiosErrorToast(error, "No fue posible listar mÃ©dicos.");
     }
 }
 async function listarPrioridades() {
     try {
         const res = await axios.get("/api/config-prioridades");
-        prioridades.value = res.data;
+        prioridades.value = res.data.data || [];
     } catch (error) {
         handleAxiosErrorToast(error, "No fue posible listar prioridades.");
     }
@@ -1213,7 +1227,7 @@ async function listarPrioridades() {
 async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
-        productos.value = res.data;
+        productos.value = res.data.data || [];
     } catch (error) {
         handleAxiosErrorToast(error, "No fue posible listar productos.");
     }
@@ -1221,9 +1235,9 @@ async function listarProductos() {
 async function listarDiagnosticos() {
     try {
         const res = await axios.get("/api/config-diagnosticos");
-        diagnosticos.value = res.data;
+        diagnosticos.value = res.data.data || [];
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar diagnósticos.");
+        handleAxiosErrorToast(error, "No fue posible listar diagnÃ³sticos.");
     }
 }
 function onMedicoSelect(value) {
@@ -1288,17 +1302,17 @@ function guardarProductosEstudio() {
             });
         }
 
-        // Limpiar selección
+        // Limpiar selecciÃ³n
         productoSelecciondo.value = "";
     }
 }
 function quitarProductoEstudio(indexEliminar) {
-    if (!confirm("¿Está seguro de eliminar este producto?")) return;
+    if (!confirm("Â¿EstÃ¡ seguro de eliminar este producto?")) return;
     confirmAction({
-        title: "¿Está seguro?",
-        text: "¿Desea eliminar este producto del estudio?",
+        title: "Â¿EstÃ¡ seguro?",
+        text: "Â¿Desea eliminar este producto del estudio?",
         icon: "warning",
-        confirmButtonText: "Sí, eliminar",
+        confirmButtonText: "SÃ­, eliminar",
         onConfirm: () => {
             registro.value.productosEstudio.splice(indexEliminar, 1);
         },
@@ -1320,17 +1334,17 @@ function guardarDiagnosticosEstudio() {
                 nom_diagnos: diag.nom_diagnos,
             });
         }
-        // Limpiar selección
+        // Limpiar selecciÃ³n
         diagnosticoSelecciondo.value = "";
     }
 }
 function quitarDiagnosticoEstudio(indexEliminar) {
-    if (!confirm("¿Está seguro de eliminar este diagnóstico?")) return;
+    if (!confirm("Â¿EstÃ¡ seguro de eliminar este diagnÃ³stico?")) return;
     confirmAction({
-        title: "¿Está seguro?",
-        text: "¿Desea eliminar este diagnóstico del estudio?",
+        title: "Â¿EstÃ¡ seguro?",
+        text: "Â¿Desea eliminar este diagnÃ³stico del estudio?",
         icon: "warning",
-        confirmButtonText: "Sí, eliminar",
+        confirmButtonText: "SÃ­, eliminar",
         onConfirm: () => {
             registro.value.diagnosticosEstudio.splice(indexEliminar, 1);
         },

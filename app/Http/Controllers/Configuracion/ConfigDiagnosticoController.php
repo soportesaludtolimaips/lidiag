@@ -13,10 +13,10 @@ class ConfigDiagnosticoController extends Controller
         private readonly ConfigDiagnosticoService $configDiagnosticoService,
     ) {
         $this->middleware('auth:sanctum')->except(['index']);
-        $this->middleware('permission:configuracion.diagnosticos.index')->only(['index']);
-        $this->middleware('permission:configuracion.diagnosticos.create')->only(['store']);
-        $this->middleware('permission:configuracion.diagnosticos.edit')->only(['update']);
-        $this->middleware('permission:configuracion.diagnosticos.destroy')->only(['destroy']);
+        $this->middleware('permission:config.diagnosticos.index')->only(['index']);
+        $this->middleware('permission:config.diagnosticos.create')->only(['store']);
+        $this->middleware('permission:config.diagnosticos.edit')->only(['update']);
+        $this->middleware('permission:config.diagnosticos.destroy')->only(['destroy']);
     }
 
     public function index(): JsonResponse

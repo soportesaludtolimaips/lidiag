@@ -925,10 +925,24 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import Select2 from "@/components/shared/Select2.vue";
+import {
+    handleAxiosErrorToast,
+    alertSuccess,
+    alertError,
+    confirmAction,
+} from "@/helpers/alerts.js";
 import EmojiPicker from "@/components/shared/EmojiPicker.vue";
 import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
 import axios from "axios";
+
+const INIT_FORM_NUMEROS = {
+    sede_id: "",
+    phone_number_id: "",
+    numero: "",
+    descripcion: "",
+    activo: 1,
+};
+const INIT_FORM_SALUDOS = { sede_id: "", servicio_cita_id: "", mensaje_bienvenida: "", activo: 1 };
 
 const tabActivo = ref("numeros");
 const id = ref(0);
@@ -946,6 +960,8 @@ const errorNumeros = ref("");
 const errorSaludos = ref("");
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
+const dtNumeros = ref(null);
+const dtSaludos = ref(null);
 const serviciosProductos = ref([]);
 const loadingServiciosProductos = ref(false);
 const errorServiciosProductos = ref("");
@@ -955,6 +971,7 @@ const productosVinculados = ref([]);
 const productosDisponibles = ref([]);
 const productoSeleccionado = ref("");
 const recomendacion = ref("");
+const mensajeTextarea = ref(null);
 const loadingAgregarProducto = ref(false);
 const previewMensaje = ref("");
 const testPhoneNumber = ref("");

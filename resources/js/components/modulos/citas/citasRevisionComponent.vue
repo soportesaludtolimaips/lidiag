@@ -1,8 +1,8 @@
-<template>
+﻿<template>
     <div>
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">Revisión de Solicitudes</h3>
+                <h3 class="text-themecolor">RevisiÃ³n de Solicitudes</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Inicio</a>
@@ -76,7 +76,7 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label class="control-label">Búsqueda</label>
+                                            <label class="control-label">BÃºsqueda</label>
                                             <input
                                                 type="text"
                                                 v-model="filtro.busqueda"
@@ -153,10 +153,10 @@
                                         <th>Documento</th>
                                         <th>Servicio</th>
                                         <th>Sede</th>
-                                        <th>Cédula Frente</th>
-                                        <th>Cédula Dorso</th>
+                                        <th>CÃ©dula Frente</th>
+                                        <th>CÃ©dula Dorso</th>
                                         <th>Orden</th>
-                                        <th>Autorización</th>
+                                        <th>AutorizaciÃ³n</th>
                                         <th class="text-nowrap">Acciones</th>
                                     </tr>
                                 </thead>
@@ -174,16 +174,16 @@
                                     >
                                         <td>{{ item.id }}</td>
                                         <td>{{ formatFecha(item.created_at) }}</td>
-                                        <td>{{ item.paciente?.nombres || "—" }}</td>
-                                        <td>{{ item.paciente?.num_docu || "—" }}</td>
-                                        <td>{{ item.servicio?.nombre || "—" }}</td>
-                                        <td>{{ item.sede?.nom_sede || "—" }}</td>
+                                        <td>{{ item.paciente?.nombres || "â€”" }}</td>
+                                        <td>{{ item.paciente?.num_docu || "â€”" }}</td>
+                                        <td>{{ item.servicio?.nombre || "â€”" }}</td>
+                                        <td>{{ item.sede?.nom_sede || "â€”" }}</td>
                                         <td>
                                             <a
                                                 v-if="item.ruta_cedula_frente_media"
                                                 href="javascript:void(0)"
                                                 @click="verArchivo(item.ruta_cedula_frente_media)"
-                                                title="Ver cédula frente"
+                                                title="Ver cÃ©dula frente"
                                             >
                                                 <img
                                                     v-if="esImagen(item.ruta_cedula_frente_media)"
@@ -191,21 +191,21 @@
                                                         getArchivoUrl(item.ruta_cedula_frente_media)
                                                     "
                                                     class="img-thumbnail miniatura-archivo"
-                                                    alt="Cédula frente"
+                                                    alt="CÃ©dula frente"
                                                 />
                                                 <i
                                                     v-else
                                                     class="fa fa-file-pdf-o text-danger icono-archivo"
                                                 ></i>
                                             </a>
-                                            <span v-else>—</span>
+                                            <span v-else>â€”</span>
                                         </td>
                                         <td>
                                             <a
                                                 v-if="item.ruta_cedula_dorso_media"
                                                 href="javascript:void(0)"
                                                 @click="verArchivo(item.ruta_cedula_dorso_media)"
-                                                title="Ver cédula dorso"
+                                                title="Ver cÃ©dula dorso"
                                             >
                                                 <img
                                                     v-if="esImagen(item.ruta_cedula_dorso_media)"
@@ -213,14 +213,14 @@
                                                         getArchivoUrl(item.ruta_cedula_dorso_media)
                                                     "
                                                     class="img-thumbnail miniatura-archivo"
-                                                    alt="Cédula dorso"
+                                                    alt="CÃ©dula dorso"
                                                 />
                                                 <i
                                                     v-else
                                                     class="fa fa-file-pdf-o text-danger icono-archivo"
                                                 ></i>
                                             </a>
-                                            <span v-else>—</span>
+                                            <span v-else>â€”</span>
                                         </td>
                                         <td>
                                             <a
@@ -233,21 +233,21 @@
                                                     v-if="esImagen(item.ruta_orden_media)"
                                                     :src="getArchivoUrl(item.ruta_orden_media)"
                                                     class="img-thumbnail miniatura-archivo"
-                                                    alt="Orden médica"
+                                                    alt="Orden mÃ©dica"
                                                 />
                                                 <i
                                                     v-else
                                                     class="fa fa-file-pdf-o text-danger icono-archivo"
                                                 ></i>
                                             </a>
-                                            <span v-else>—</span>
+                                            <span v-else>â€”</span>
                                         </td>
                                         <td>
                                             <a
                                                 v-if="item.ruta_autorizacion_media"
                                                 href="javascript:void(0)"
                                                 @click="verArchivo(item.ruta_autorizacion_media)"
-                                                title="Ver archivo de autorización"
+                                                title="Ver archivo de autorizaciÃ³n"
                                             >
                                                 <img
                                                     v-if="esImagen(item.ruta_autorizacion_media)"
@@ -255,14 +255,14 @@
                                                         getArchivoUrl(item.ruta_autorizacion_media)
                                                     "
                                                     class="img-thumbnail miniatura-archivo"
-                                                    alt="Autorización"
+                                                    alt="AutorizaciÃ³n"
                                                 />
                                                 <i
                                                     v-else
                                                     class="fa fa-file-pdf-o text-danger icono-archivo"
                                                 ></i>
                                             </a>
-                                            <span v-else>—</span>
+                                            <span v-else>â€”</span>
                                         </td>
                                         <td class="text-nowrap">
                                             <button
@@ -299,7 +299,7 @@
                     <div class="modal-header">
                         <h4 class="modal-title">Aprobar Cita</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                            ×
+                            Ã—
                         </button>
                     </div>
                     <div class="modal-body">
@@ -401,7 +401,7 @@
                             style="white-space: pre-wrap"
                         >
                             <strong
-                                ><i class="fa fa-info-circle"></i> Recomendación para el
+                                ><i class="fa fa-info-circle"></i> RecomendaciÃ³n para el
                                 paciente:</strong
                             ><br />
                             {{ recomendacionActual }}
@@ -446,7 +446,7 @@
                     <div class="modal-header">
                         <h4 class="modal-title">Rechazar Cita</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                            ×
+                            Ã—
                         </button>
                     </div>
                     <div class="modal-body">
@@ -465,12 +465,12 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="control-label">Observación</label>
+                            <label class="control-label">ObservaciÃ³n</label>
                             <textarea
                                 v-model="formRechazar.rechazo_observacion"
                                 class="form-control"
                                 rows="3"
-                                placeholder="Observación adicional (opcional)"
+                                placeholder="ObservaciÃ³n adicional (opcional)"
                             ></textarea>
                         </div>
                     </div>
@@ -497,7 +497,10 @@
     </div>
 </template>
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
+
+const { proxy } = getCurrentInstance();
+const dt = ref(null);
 
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
@@ -560,7 +563,7 @@ function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#example23");
 }
 function cargarListas() {
-    const self = this;
+    const self = proxy;
 
     axios
         .get("/api/citas/servicios")
@@ -733,7 +736,7 @@ async function aprobarCita() {
             observaciones: formAprobar.value.observaciones,
         });
 
-        alertSuccess("Éxito", "Cita aprobada y asignada correctamente");
+        alertSuccess("Ã‰xito", "Cita aprobada y asignada correctamente");
         jQuery("#modalAprobar").modal("hide");
         listarRegistros();
     } catch (error) {
@@ -768,7 +771,7 @@ async function rechazarCita() {
             rechazo_observacion: formRechazar.value.rechazo_observacion,
         });
 
-        alertSuccess("Éxito", "Cita rechazada correctamente");
+        alertSuccess("Ã‰xito", "Cita rechazada correctamente");
         jQuery("#modalRechazar").modal("hide");
         listarRegistros();
     } catch (error) {

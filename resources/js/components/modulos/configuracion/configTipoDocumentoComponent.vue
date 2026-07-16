@@ -1,17 +1,17 @@
-<template>
+﻿<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
         <!-- ============================================================== -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">Configuración</h3>
+                <h3 class="text-themecolor">ConfiguraciÃ³n</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Configuración</a>
+                        <a href="javascript:void(0)">ConfiguraciÃ³n</a>
                     </li>
                     <li class="breadcrumb-item active">Tipos de Documentos</li>
                 </ol>
@@ -47,8 +47,8 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de tipos de documentos</h4>
                         <h6 class="card-subtitle">
-                            Administración de tipos de documentos para la prestación del servicio de
-                            imagenes diagnosticas.
+                            AdministraciÃ³n de tipos de documentos para la prestaciÃ³n del servicio
+                            de imagenes diagnosticas.
                         </h6>
                         <div class="table-responsive m-t-40">
                             <table
@@ -60,7 +60,7 @@
                             >
                                 <thead>
                                     <tr>
-                                        <th>Código</th>
+                                        <th>CÃ³digo</th>
                                         <th width="150px">Tipo de Documento</th>
                                         <th>Estado</th>
                                         <th></th>
@@ -141,14 +141,14 @@
                             <div class="row p-t-20">
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <label class="control-label">Código</label>
+                                        <label class="control-label">CÃ³digo</label>
                                         <input
                                             type="text"
                                             id="codigo"
                                             name="codigo"
                                             v-model="registro.codigo"
                                             class="form-control"
-                                            placeholder="Código"
+                                            placeholder="CÃ³digo"
                                         />
                                         <span class="text-danger" v-if="errores.codigo">{{
                                             errores.codigo[0]
@@ -167,7 +167,7 @@
                                             name="tipo_documento"
                                             v-model="registro.tipo_documento"
                                             class="form-control"
-                                            placeholder="Ingrese aquí el nombre del tipo de documento"
+                                            placeholder="Ingrese aquÃ­ el nombre del tipo de documento"
                                         />
                                         <span class="text-danger" v-if="errores.tipo_documento">{{
                                             errores.tipo_documento[0]
@@ -244,6 +244,8 @@
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
+const dt = ref(null);
+
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import {
     alertError,
@@ -295,7 +297,7 @@ async function guardarRegistro() {
 
                 $.toast({
                     heading: "Ok!!!",
-                    text: res.data.message,
+                    text: res.data.data.message,
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: "success",
@@ -313,7 +315,7 @@ async function guardarRegistro() {
 
                 $.toast({
                     heading: "Ok!!!",
-                    text: res.data.message,
+                    text: res.data.data.message,
                     position: "top-right",
                     loaderBg: "#ff6849",
                     icon: "success",
@@ -334,8 +336,8 @@ async function guardarRegistro() {
 }
 async function elimnarRegistro(id) {
     const ok = await confirmAction({
-        title: "¿Estas seguro?",
-        text: "No podrás recuperar este registro!",
+        title: "Â¿Estas seguro?",
+        text: "No podrÃ¡s recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;

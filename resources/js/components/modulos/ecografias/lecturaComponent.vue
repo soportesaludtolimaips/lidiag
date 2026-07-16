@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
@@ -46,47 +46,47 @@
                                 data-dismiss="modal"
                                 aria-hidden="true"
                             >
-                                ×
+                                Ã—
                             </button>
                         </div>
                         <div class="modal-body">
                             <div class="row">
                                 <div class="col-md-6">
                                     <ul>
-                                        <li>iniciar mayúscula sostenida</li>
-                                        <li>iniciar mayúsculas sostenida</li>
-                                        <li>iniciar mayúsculas</li>
-                                        <li>iniciar mayúscula</li>
-                                        <li>mayúsculas sostenida</li>
-                                        <li>mayúscula sostenida</li>
-                                        <li>activar mayúsculas</li>
-                                        <li>activar mayúscula</li>
-                                        <li>habilitar mayúsculas</li>
-                                        <li>habilitar mayúscula</li>
-                                        <li>activare mayúsculas</li>
-                                        <li>activare mayúscula</li>
-                                        <li>desactivar mayúsculas</li>
-                                        <li>desactivar mayúscula</li>
-                                        <li>Deshabilitar mayúsculas</li>
-                                        <li>Deshabilitar mayúscula</li>
-                                        <li>terminar mayúsculas</li>
-                                        <li>terminar mayúscula</li>
-                                        <li>fin mayúsculas</li>
-                                        <li>fin mayúscula</li>
-                                        <li>finaliza mayúsculas</li>
-                                        <li>finaliza mayúscula</li>
-                                        <li>finalizar mayúsculas</li>
-                                        <li>finalizar mayúscula</li>
+                                        <li>iniciar mayÃºscula sostenida</li>
+                                        <li>iniciar mayÃºsculas sostenida</li>
+                                        <li>iniciar mayÃºsculas</li>
+                                        <li>iniciar mayÃºscula</li>
+                                        <li>mayÃºsculas sostenida</li>
+                                        <li>mayÃºscula sostenida</li>
+                                        <li>activar mayÃºsculas</li>
+                                        <li>activar mayÃºscula</li>
+                                        <li>habilitar mayÃºsculas</li>
+                                        <li>habilitar mayÃºscula</li>
+                                        <li>activare mayÃºsculas</li>
+                                        <li>activare mayÃºscula</li>
+                                        <li>desactivar mayÃºsculas</li>
+                                        <li>desactivar mayÃºscula</li>
+                                        <li>Deshabilitar mayÃºsculas</li>
+                                        <li>Deshabilitar mayÃºscula</li>
+                                        <li>terminar mayÃºsculas</li>
+                                        <li>terminar mayÃºscula</li>
+                                        <li>fin mayÃºsculas</li>
+                                        <li>fin mayÃºscula</li>
+                                        <li>finaliza mayÃºsculas</li>
+                                        <li>finaliza mayÃºscula</li>
+                                        <li>finalizar mayÃºsculas</li>
+                                        <li>finalizar mayÃºscula</li>
                                         <li>punto aparte</li>
-                                        <li>salto de línea</li>
-                                        <li>doble salto de línea</li>
+                                        <li>salto de lÃ­nea</li>
+                                        <li>doble salto de lÃ­nea</li>
                                     </ul>
                                 </div>
                                 <div class="col-md-6">
                                     <ul>
                                         <li>enter</li>
                                         <li>doble enter</li>
-                                        <li>línea en blanco</li>
+                                        <li>lÃ­nea en blanco</li>
                                         <li>dar espacio</li>
                                         <li>un espacio</li>
                                         <li>dos espacio</li>
@@ -95,8 +95,8 @@
                                         <li>coma</li>
                                         <li>dos puntos</li>
                                         <li>punto y coma</li>
-                                        <li>abrir paréntesis</li>
-                                        <li>cerrar paréntesis</li>
+                                        <li>abrir parÃ©ntesis</li>
+                                        <li>cerrar parÃ©ntesis</li>
                                         <li>abrir corchetes</li>
                                         <li>cerrar corchetes</li>
                                         <li>abrir llaves</li>
@@ -109,7 +109,7 @@
                                         <li>guion bajo</li>
                                         <li>barra diagonal</li>
                                         <li>barra invertida</li>
-                                        <li>nueva oración</li>
+                                        <li>nueva oraciÃ³n</li>
                                     </ul>
                                 </div>
                             </div>
@@ -142,7 +142,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros para búsqueda de atención
+                            <i class="fa fa-filter"></i> Filtros para bÃºsqueda de atenciÃ³n
                         </h4>
                         <form action="#">
                             <div class="form-body">
@@ -150,7 +150,8 @@
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             <label class="control-label">
-                                                # de atención, # de documento ó Nombres de paciente
+                                                # de atenciÃ³n, # de documento Ã³ Nombres de
+                                                paciente
                                             </label>
                                             <input
                                                 type="text"
@@ -158,7 +159,7 @@
                                                 name="bus_nom_num_docu"
                                                 v-model="busqueda.bus_nom_num_docu"
                                                 class="form-control"
-                                                placeholder=" Atención, Nombres de paciente o # de documento"
+                                                placeholder=" AtenciÃ³n, Nombres de paciente o # de documento"
                                                 @keyup.enter="buscarStudy()"
                                             />
                                         </div>
@@ -228,7 +229,7 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de atenciones disponibles.</h4>
                         <h6 class="card-subtitle text-info">
-                            Asigne los médicos para su respectiva lectura.
+                            Asigne los mÃ©dicos para su respectiva lectura.
                         </h6>
                         <div class="table-responsive">
                             <table
@@ -240,7 +241,7 @@
                             >
                                 <thead>
                                     <tr>
-                                        <th with="5%">Atención</th>
+                                        <th with="5%">AtenciÃ³n</th>
                                         <th with="5%"># Documento</th>
                                         <th with="30%">Paciente</th>
                                         <th>Examen</th>
@@ -264,7 +265,7 @@
                                                 "
                                                 class="text-danger"
                                             >
-                                                Pendiente firma paciente/acompañante
+                                                Pendiente firma paciente/acompaÃ±ante
                                             </small>
                                             <small
                                                 v-else-if="
@@ -273,7 +274,7 @@
                                                 "
                                                 class="text-warning"
                                             >
-                                                Pendiente firma médico
+                                                Pendiente firma mÃ©dico
                                             </small>
                                             <small
                                                 v-else-if="
@@ -449,7 +450,7 @@
                                         name="plantilla"
                                         v-model="registro.lectura"
                                         class="form-control"
-                                        placeholder="Ingrese aquí la lectura del procedimiento"
+                                        placeholder="Ingrese aquÃ­ la lectura del procedimiento"
                                         rows="17"
                                     ></textarea>
                                     <span class="text-danger" v-if="errores.plantilla">{{
@@ -460,14 +461,14 @@
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <h5 class="card-title text-info">
-                                        <i class="fa fa-info"></i> Opinión
+                                        <i class="fa fa-info"></i> OpiniÃ³n
                                     </h5>
                                     <textarea
                                         id="opinion"
                                         name="opinion"
                                         v-model="registro.opinion"
                                         class="form-control"
-                                        placeholder="Ingrese aquí la opinión del procedimiento"
+                                        placeholder="Ingrese aquÃ­ la opiniÃ³n del procedimiento"
                                         rows="17"
                                     ></textarea>
                                     <span class="text-danger" v-if="errores.opinion">{{
@@ -570,7 +571,7 @@
                         Reporte de lectura
                     </h4>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                        ×
+                        Ã—
                     </button>
                 </div>
                 <div class="modal-body">
@@ -612,12 +613,12 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title" id="modal-pendientes-consentimientos-title">
-                        Consentimientos pendientes por firmar (día anterior)
+                        Consentimientos pendientes por firmar (dÃ­a anterior)
                     </h4>
                 </div>
                 <div class="modal-body">
                     <div class="alert alert-warning">
-                        Debe firmar los consentimientos pendientes del día anterior para poder
+                        Debe firmar los consentimientos pendientes del dÃ­a anterior para poder
                         realizar lecturas.
                     </div>
 
@@ -637,10 +638,10 @@
                                     v-for="row in pendientesDiaAnterior"
                                     :key="row.consentimiento_id"
                                 >
-                                    <td>{{ row.paciente?.nombres || "—" }}</td>
-                                    <td>{{ row.paciente?.num_docu || "—" }}</td>
+                                    <td>{{ row.paciente?.nombres || "â€”" }}</td>
+                                    <td>{{ row.paciente?.num_docu || "â€”" }}</td>
                                     <td>{{ row.nom_produc }}</td>
-                                    <td>{{ row.consentimiento_firma_paciente_at || "—" }}</td>
+                                    <td>{{ row.consentimiento_firma_paciente_at || "â€”" }}</td>
                                     <td class="text-nowrap">
                                         <button
                                             type="button"
@@ -687,7 +688,9 @@
     </div>
 </template>
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+const { proxy } = getCurrentInstance();
+const emitter = proxy.emitter;
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
 import usePermissions from "@/helpers/permissions.js";
 import { handleAxiosErrorToast, toastMessage } from "@/helpers/alerts";
@@ -695,17 +698,18 @@ import { setMapValue } from "@/helpers/sahi";
 import { createVoiceSession } from "@/helpers/voice/voiceSession";
 import medicalReplacements from "@/data/medical_replacements.json";
 import medicalTermsRaw from "@/data/terminos_medicos.txt?raw";
-import { useSede } from "@/composables/useSede";
-import { useSahiInterface } from "@/composables/useSahiInterface";
 import axios from "axios";
 
-const props = defineProps({});
+const props = defineProps({ usuarioactual: Object, permisos: Array });
 
-const tituloModal = ref("Nueva admisión");
+const dt = ref(null);
+const actualizar = ref(false);
+
+const tituloModal = ref("Nueva admisiÃ³n");
 const subTituloModal = ref("");
 const tituloAtencion = ref("");
 const busqueda = ref({
-    sede_id: this.sedeActual,
+    sede_id: sedeActual,
     medico_id: "",
     bus_nom_num_docu: "",
     bus_fehc_ini: "",
@@ -716,9 +720,9 @@ const registro = ref({
     ecografia_id: "",
     ecografia_producto_id: "",
     producto_id: "",
-    sede_id: this.sedeActual,
+    sede_id: sedeActual,
     medico_id: "",
-    quien_registro_id: this.usuarioactual.id,
+    quien_registro_id: props.usuarioactual.id,
     atencion_id: null,
     lectura: null,
     opinion: null,
@@ -771,11 +775,11 @@ const plantillasOptions = computed(() => {
 });
 
 function buscarStudy() {
-    // Soporte para Enter en el input de búsqueda
+    // Soporte para Enter en el input de bÃºsqueda
     return listarPendiestePorLectura();
 }
 function btnLimpiar() {
-    // Limpia criterios de búsqueda (mantiene sede/medico del contexto)
+    // Limpia criterios de bÃºsqueda (mantiene sede/medico del contexto)
     busqueda.value.bus_nom_num_docu = "";
     busqueda.value.bus_fehc_ini = "";
     busqueda.value.bus_fecha_fin = "";
@@ -798,7 +802,7 @@ function getMedicalReplacementsCompiled() {
                 String(replacement),
             ]);
         } catch (e) {
-            // ignore regla inválida
+            // ignore regla invÃ¡lida
         }
     });
     medicalReplCompiled.value = compiled;
@@ -816,7 +820,7 @@ function stripDiacritics(text) {
     try {
         return String(text)
             .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "");
+            .replace(/[u0300-u036f]/g, "");
     } catch (e) {
         return String(text);
     }
@@ -827,7 +831,7 @@ function escapeRegExp(text) {
 function normalizeWord(text) {
     return stripDiacritics(String(text))
         .toLowerCase()
-        .replace(/[^a-z0-9ñ]+/gi, "");
+        .replace(/[^a-z0-9Ã±]+/gi, "");
 }
 function levenshteinMax(a, b, maxDist = 2) {
     if (a === b) return 0;
@@ -867,14 +871,14 @@ function rebuildMedicalVocabulary() {
         const nFull = normalizeWord(s);
         if (nFull) map[nFull] = s;
 
-        const tokens = s.split(/[\s/,-]+/g).filter(Boolean);
+        const tokens = s.split(/[s/,-]+/g).filter(Boolean);
         tokens.forEach((t) => {
             const nt = normalizeWord(t);
             if (nt && nt.length >= 4 && !map[nt]) map[nt] = t;
         });
     };
 
-    // Fuente principal: archivo grande de términos
+    // Fuente principal: archivo grande de tÃ©rminos
     MEDICAL_TERMS_FROM_TXT.forEach(addPhrase);
 
     medicalVocabularyMap.value = map;
@@ -896,13 +900,13 @@ function applyMedicalCorrections(text) {
     // 1) Normalizaciones (regex)
     let out = applyMedicalReplacements(text);
 
-    // 2) Corrección por vocabulario (exact + fuzzy indexado)
+    // 2) CorrecciÃ³n por vocabulario (exact + fuzzy indexado)
     const vocabMap = medicalVocabularyMap.value || {};
     const vocabIndex = medicalVocabularyIndex.value || {};
     if (!vocabMap || !Object.keys(vocabMap).length) return out;
 
-    out = String(out).replace(/[\p{L}\p{N}]+/gu, (token) => {
-        if (/^\d+$/u.test(token)) return token;
+    out = String(out).replace(/[p{L}p{N}]+/gu, (token) => {
+        if (/^d+$/u.test(token)) return token;
         if (token.length < 4) return token;
         const n = normalizeWord(token);
         if (!n) return token;
@@ -958,83 +962,83 @@ function applyCommandMap(text, commandMap, { onEachMatch } = {}) {
 }
 function getUppercaseCommands() {
     return {
-        "iniciar mayúscula sostenida": () => {
+        "iniciar mayÃºscula sostenida": () => {
             uppercase.value = true;
             return "";
         },
-        "iniciar mayúsculas sostenida": () => {
+        "iniciar mayÃºsculas sostenida": () => {
             uppercase.value = true;
             return "";
         },
-        "iniciar mayúsculas": () => {
+        "iniciar mayÃºsculas": () => {
             uppercase.value = true;
             return "";
         },
-        "iniciar mayúscula": () => {
+        "iniciar mayÃºscula": () => {
             uppercase.value = true;
             return "";
         },
-        "mayúsculas sostenida": () => {
+        "mayÃºsculas sostenida": () => {
             uppercase.value = true;
             return "";
         },
-        "mayúscula sostenida": () => {
+        "mayÃºscula sostenida": () => {
             uppercase.value = true;
             return "";
         },
-        "activar mayúsculas": () => {
+        "activar mayÃºsculas": () => {
             uppercase.value = true;
             return "";
         },
-        "activar mayúscula": () => {
+        "activar mayÃºscula": () => {
             uppercase.value = true;
             return "";
         },
-        "habilitar mayúsculas": () => {
+        "habilitar mayÃºsculas": () => {
             uppercase.value = true;
             return "";
         },
-        "habilitar mayúscula": () => {
+        "habilitar mayÃºscula": () => {
             uppercase.value = true;
             return "";
         },
-        "desactivar mayúsculas": () => {
+        "desactivar mayÃºsculas": () => {
             uppercase.value = false;
             return "";
         },
-        "desactivar mayúscula": () => {
+        "desactivar mayÃºscula": () => {
             uppercase.value = false;
             return "";
         },
-        "terminar mayúsculas": () => {
+        "terminar mayÃºsculas": () => {
             uppercase.value = false;
             return "";
         },
-        "terminar mayúscula": () => {
+        "terminar mayÃºscula": () => {
             uppercase.value = false;
             return "";
         },
-        "fin mayúsculas": () => {
+        "fin mayÃºsculas": () => {
             uppercase.value = false;
             return "";
         },
-        "fin mayúscula": () => {
+        "fin mayÃºscula": () => {
             uppercase.value = false;
             return "";
         },
-        "finaliza mayúsculas": () => {
+        "finaliza mayÃºsculas": () => {
             uppercase.value = false;
             return "";
         },
-        "finaliza mayúscula": () => {
+        "finaliza mayÃºscula": () => {
             uppercase.value = false;
             return "";
         },
-        "finalizar mayúsculas": () => {
+        "finalizar mayÃºsculas": () => {
             uppercase.value = false;
             return "";
         },
-        "finalizar mayúscula": () => {
+        "finalizar mayÃºscula": () => {
             uppercase.value = false;
             return "";
         },
@@ -1042,12 +1046,12 @@ function getUppercaseCommands() {
 }
 function getLineBreakCommands() {
     return {
-        "punto aparte": () => ".\n\n",
-        "salto de línea": () => "\n",
-        "doble salto de línea": () => "\n\n",
-        enter: () => "\n",
-        "doble enter": () => "\n\n",
-        "línea en blanco": () => "\n\n",
+        "punto aparte": () => ".nn",
+        "salto de lÃ­nea": () => "n",
+        "doble salto de lÃ­nea": () => "nn",
+        enter: () => "n",
+        "doble enter": () => "nn",
+        "lÃ­nea en blanco": () => "nn",
     };
 }
 function getPunctuationCommands() {
@@ -1063,8 +1067,8 @@ function getPunctuationCommands() {
         "un espacio": () => " ",
         "dos espacio": () => "  ",
         "doble espacio": () => "  ",
-        "abrir paréntesis": () => "(",
-        "cerrar paréntesis": () => ")",
+        "abrir parÃ©ntesis": () => "(",
+        "cerrar parÃ©ntesis": () => ")",
         "abrir corchetes": () => "[",
         "cerrar corchetes": () => "]",
         "abrir llaves": () => "{",
@@ -1077,7 +1081,7 @@ function getPunctuationCommands() {
         "guion bajo": () => "_",
         "barra diagonal": () => "/",
         "barra invertida": () => "\\",
-        "nueva oración": () => ". ",
+        "nueva oraciÃ³n": () => ". ",
     };
 }
 function getAllVoiceCommands() {
@@ -1112,7 +1116,7 @@ function processCommands(text) {
     out = applyCommandMap(out, punctuationCommands);
     out = uppercase.value ? out.toUpperCase() : out;
     if (capitalizeNext.value) {
-        out = out.replace(/(^|\n)(\s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
+        out = out.replace(/(^|n)(s*)([a-zÃ¡Ã©Ã­Ã³ÃºÃ¼Ã±])/i, (m, start, spaces, first) => {
             capitalizeNext.value = false;
             return `${start}${spaces}${first.toUpperCase()}`;
         });
@@ -1129,7 +1133,7 @@ function ensureVoiceSession() {
     ];
 
     voiceSession.value = createVoiceSession({
-        enableAudio: false, // Ecografías: solo dictado (no grabación)
+        enableAudio: false, // EcografÃ­as: solo dictado (no grabaciÃ³n)
         enableDictation: true,
         lang: "es-ES",
         grammarCommands,
@@ -1141,8 +1145,8 @@ function ensureVoiceSession() {
             text = applyMedicalCorrections(text);
             if (!text) return;
 
-            // Añadir a lectura (mantener comportamiento: espacio si no termina en espacio/salto)
-            const suffix = /[ \n]$/.test(text) ? "" : " ";
+            // AÃ±adir a lectura (mantener comportamiento: espacio si no termina en espacio/salto)
+            const suffix = /[ n]$/.test(text) ? "" : " ";
             registro.value.lectura = String(registro.value.lectura || "") + text + suffix;
         },
         onPermissionDenied: () => {
@@ -1150,7 +1154,7 @@ function ensureVoiceSession() {
             microfono.value = "admin-wrap/assets/images/mic.gif";
             toastMessage({
                 heading: "Permiso requerido",
-                text: "El navegador bloqueó el micrófono. Permite el acceso al micrófono para usar dictado.",
+                text: "El navegador bloqueÃ³ el micrÃ³fono. Permite el acceso al micrÃ³fono para usar dictado.",
                 icon: "warning",
                 hideAfter: 6000,
             });
@@ -1161,7 +1165,7 @@ function ensureVoiceSession() {
                 microfono.value = "admin-wrap/assets/images/mic.gif";
                 toastMessage({
                     heading: "Sin voz detectada",
-                    text: "No se detecta voz (silencio repetido). Verifica micrófono/entrada y vuelve a iniciar el dictado.",
+                    text: "No se detecta voz (silencio repetido). Verifica micrÃ³fono/entrada y vuelve a iniciar el dictado.",
                     icon: "warning",
                     hideAfter: 6000,
                 });
@@ -1171,7 +1175,7 @@ function ensureVoiceSession() {
     return voiceSession.value;
 }
 async function toggleSpeechRecognition() {
-    // Mantener el ícono/animación actual, sin tocar template.
+    // Mantener el Ã­cono/animaciÃ³n actual, sin tocar template.
     try {
         const vs = ensureVoiceSession();
         if (voiceState.value === "inactive") {
@@ -1303,14 +1307,14 @@ function safeInitDataTable(selector = "#example23") {
     });
 }
 async function listarPendiestePorLectura() {
-    // Evita llamar al backend con "null"/vacío (causa 404 "El medico no se encontro")
+    // Evita llamar al backend con "null"/vacÃ­o (causa 404 "El medico no se encontro")
     const medicoId = String(busqueda.value?.medico_id ?? "").trim();
     if (!medicoId || medicoId === "null" || medicoId === "undefined") {
         registros.value = [];
         handleAxiosErrorToast(
             {
                 response: {
-                    data: { message: "No hay médico seleccionado para listar pendientes." },
+                    data: { message: "No hay mÃ©dico seleccionado para listar pendientes." },
                 },
             },
             "No fue posible listar pendientes por lectura."
@@ -1324,7 +1328,7 @@ async function listarPendiestePorLectura() {
         if (res.status == 200) {
             safeDestroyDataTable(dt.value || "#example23");
 
-            registros.value = res.data.ecografias;
+            registros.value = res.data.data.ecografias;
 
             safeInitDataTable(dt.value || "#example23");
 
@@ -1365,7 +1369,7 @@ async function firmarConsentimientoMedico(item) {
     if (!id) return;
     if (isFirmandoConsentimiento.value[id]) return;
     try {
-        setMapValue(this, "isFirmandoConsentimiento", id, true);
+        setMapValue(proxy, "isFirmandoConsentimiento", id, true);
         await axios.post("/api/ecografias-consentimientos/firmar-medico", {
             consentimiento_id: id,
         });
@@ -1380,35 +1384,35 @@ async function firmarConsentimientoMedico(item) {
     } catch (error) {
         handleAxiosErrorToast(error, "No fue posible firmar el consentimiento.");
     } finally {
-        setMapValue(this, "isFirmandoConsentimiento", id, false);
+        setMapValue(proxy, "isFirmandoConsentimiento", id, false);
     }
 }
 async function generarLectura() {
     try {
-        // Enviar solicitud para guardar la ecografía
+        // Enviar solicitud para guardar la ecografÃ­a
         const res = await axios.put("/api/ecografia-lectura/" + registro.value.ecografia_id, {
             accion: accion.value,
             registro: registro.value,
         });
 
         if (res.status === 201) {
-            // Mostrar notificación de éxito
+            // Mostrar notificaciÃ³n de Ã©xito
             toastMessage({
-                heading: "¡Éxito!",
+                heading: "Â¡Ã‰xito!",
                 text: "Lectura guardada correctamente.",
                 icon: "success",
             });
 
             return true;
         } else {
-            toastMessage({ heading: "Upss!!!", text: res.data.message, icon: "error" });
+            toastMessage({ heading: "Upss!!!", text: res.data.data.message, icon: "error" });
 
             return false;
         }
     } catch (error) {
-        handleAxiosErrorToast(error, "Ocurrió un error al guardar la lectura.");
+        handleAxiosErrorToast(error, "OcurriÃ³ un error al guardar la lectura.");
 
-        // Mostrar errores específicos en el formulario
+        // Mostrar errores especÃ­ficos en el formulario
         if (error.response?.data?.errors) {
             errores.value = error.response.data.errors;
         }
@@ -1423,7 +1427,7 @@ async function enviarASahiEcografiaProducto() {
     if (!id) {
         toastMessage({
             heading: "Advertencia",
-            text: "No se encontró ecografia_producto_id para enviar a SAHI.",
+            text: "No se encontrÃ³ ecografia_producto_id para enviar a SAHI.",
             icon: "warning",
         });
         return false;
@@ -1438,7 +1442,7 @@ async function enviarASahiEcografiaProducto() {
             heading: "SAHI",
             text:
                 res.data?.message ||
-                (encolado ? "Envío a SAHI encolado." : "Enviado a SAHI correctamente."),
+                (encolado ? "EnvÃ­o a SAHI encolado." : "Enviado a SAHI correctamente."),
             icon: encolado ? "info" : "success",
         });
 
@@ -1497,7 +1501,7 @@ async function guardarRegistro() {
 
     if (!guardadoOk) return;
 
-    // Enviar a SAHI solo si la sede tiene interface y la acción fue TERMINAR_LECTURA
+    // Enviar a SAHI solo si la sede tiene interface y la acciÃ³n fue TERMINAR_LECTURA
     if (sedeInterface && accionActual === "TERMINAR_LECTURA") {
         await enviarASahiEcografiaProducto();
     }
@@ -1519,7 +1523,7 @@ async function generarReporte() {
             "/api/ecografia-generar-reporte/" + registro.value.ecografia_id,
             registro.value
         );
-        const pathReporte = res.data.plantilla;
+        const pathReporte = res.data.data.plantilla;
 
         // Mostrar el reporte en el iframe
         iframe.src = pathReporte;
@@ -1528,9 +1532,9 @@ async function generarReporte() {
 
         return true;
     } catch (error) {
-        handleAxiosErrorToast(error, "Ocurrió un error al generar el reporte.");
+        handleAxiosErrorToast(error, "OcurriÃ³ un error al generar el reporte.");
 
-        // Mostrar errores específicos en el formulario
+        // Mostrar errores especÃ­ficos en el formulario
         if (error.response?.data?.errors) {
             errores.value = error.response.data.errors;
         }
@@ -1544,7 +1548,7 @@ async function establecerSede() {
     registros.value = [];
 }
 function establecerMedico() {
-    // Siempre usar el usuario logueado como médico (evita null y evita depender de sessionStorage)
+    // Siempre usar el usuario logueado como mÃ©dico (evita null y evita depender de sessionStorage)
     const medicoId = usuarioactual?.id != null ? String(usuarioactual.id) : "";
 
     busqueda.value.medico_id = medicoId;
@@ -1595,7 +1599,7 @@ function btnCerralModalForm() {
     stopSahiPolling();
 }
 function mostrarRegistro(data = {}) {
-    tituloAtencion.value = `Atención N°: ${data.atencion_id}`;
+    tituloAtencion.value = `AtenciÃ³n NÂ°: ${data.atencion_id}`;
     tituloModal.value = `Paciente: ${data.paciente.num_docu} - Nombres: ${data.paciente.nombres} ${data.paciente.seg_nom} ${data.paciente.pri_ape} ${data.paciente.seg_ape} `;
     subTituloModal.value = `Examen: ${data.nom_produc} - Valor: ${data.ValProduc}`;
 
@@ -1622,7 +1626,7 @@ function mostrarRegistro(data = {}) {
     registro.value.lectura = data.lectura;
     registro.value.opinion = data.opinion;
 
-    // Estado de envío a SAHI (si viene en el select)
+    // Estado de envÃ­o a SAHI (si viene en el select)
     registro.value.estado_envio_sahi = data.estado_envio_sahi || null;
     registro.value.fechor_envio_sahi = data.fechor_envio_sahi || null;
     registro.value.error_envio_sahi = data.error_envio_sahi || null;

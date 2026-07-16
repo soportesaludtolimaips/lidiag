@@ -198,6 +198,11 @@ import { computed, getCurrentInstance, onBeforeUnmount, onMounted, ref } from "v
 import { handleAxiosErrorToast } from "@/helpers/alerts.js";
 import axios from "axios";
 
+const props = defineProps({
+    usuarioactual: { type: Object, default: null },
+    perfilUrl: { type: String, default: "" },
+});
+
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
 

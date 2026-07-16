@@ -15,7 +15,10 @@
     </footer>
 </template>
 <script setup>
-import { onMounted, ref } from "vue";
+import { getCurrentInstance, onMounted, ref } from "vue";
+
+const { proxy } = getCurrentInstance();
+const emitter = proxy.emitter;
 
 const nomSede = ref(sessionStorage.getItem("ST-nomsede"));
 const nomMedico = ref(sessionStorage.getItem("ST-nomMedico"));

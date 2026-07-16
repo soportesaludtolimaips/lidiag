@@ -968,7 +968,9 @@
 import { computed, onMounted, ref } from "vue";
 import axios from "axios";
 
-const props = defineProps({});
+const props = defineProps({
+    rolesusuario: { type: String, default: "" },
+});
 
 const loading = ref(false);
 const error = ref(null);
@@ -1047,7 +1049,7 @@ const charts = ref({
 });
 
 const isAdmin = computed(() => {
-    return rolesusuario === "Administrador";
+    return props.rolesusuario === "Administrador";
 });
 const heatmapDays = computed(() => {
     const arr = series.value?.heatmap7d?.[heatmapMetric.value] || [];

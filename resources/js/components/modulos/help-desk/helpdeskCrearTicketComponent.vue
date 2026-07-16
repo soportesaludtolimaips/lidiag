@@ -166,6 +166,8 @@ const loading = ref(false);
 const categorias = ref([]);
 const prioridades = ref([]);
 const asignables = ref([]);
+const files = ref(null);
+const primerCampo = ref(null);
 const form = ref({
     titulo: "",
     descripcion: "",

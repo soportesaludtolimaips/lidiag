@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
@@ -173,7 +173,7 @@
                             <div>
                                 <h4 class="card-title">Listado de estudios disponibles</h4>
                                 <h6 class="card-subtitle text-info">
-                                    Asigne los estudios a los médicos para su respectiva lectura.
+                                    Asigne los estudios a los mÃ©dicos para su respectiva lectura.
                                 </h6>
                             </div>
                             <div class="text-right">
@@ -198,7 +198,7 @@
                                         <th>Sede</th>
                                         <th>Toma</th>
                                         <th width="50%">Lectura</th>
-                                        <th>Asignación</th>
+                                        <th>AsignaciÃ³n</th>
                                         <th>Quien Asigno</th>
                                         <th width="50%">Medico</th>
                                         <th width="50%">Paciente</th>
@@ -254,7 +254,7 @@
                                             Nombres: {{ item.nom_pacien }}
                                         </td>
                                         <td>
-                                            Atención: {{ item.atencion }} <br />
+                                            AtenciÃ³n: {{ item.atencion }} <br />
                                             Descrip: {{ item.study_desc }} <br />
                                             {{ item.accession_no }}
                                         </td>
@@ -372,7 +372,7 @@
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <dl>
-                                                    <dt>Descripción:</dt>
+                                                    <dt>DescripciÃ³n:</dt>
                                                     <dd>{{ registro.study_desc }}</dd>
                                                 </dl>
                                             </div>
@@ -409,7 +409,7 @@
                                                     name="email_reportar"
                                                     v-model="registro.email_reportar"
                                                     class="form-control"
-                                                    placeholder="Ingrese aquí el email a reportar"
+                                                    placeholder="Ingrese aquÃ­ el email a reportar"
                                                     ref="primerInput"
                                                 />
                                             </div>
@@ -476,7 +476,7 @@
                                                     rows="20"
                                                     id="lectura"
                                                     style="height: 100%"
-                                                    placeholder="Ingrese aquí la lectura del estudio ..."
+                                                    placeholder="Ingrese aquÃ­ la lectura del estudio ..."
                                                 ></textarea>
                                             </div>
                                         </div>
@@ -702,17 +702,35 @@
     </div>
 </template>
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+const { proxy } = getCurrentInstance();
+const emitter = proxy.emitter;
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { listarUsuariosYSedes } from "@/helpers/usuarios";
+import {
+    safeDestroyDataTable,
+    safeInitDataTable,
+    safeRemoveDataTableRow,
+} from "@/helpers/datatables.js";
+import {
+    confirmAction,
+    alertSuccess,
+    alertError,
+    handleAxiosErrorToast,
+    getUserSafeError,
+} from "@/helpers/alerts";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import axios from "axios";
 
-const props = defineProps({});
+const props = defineProps({ usuarioactual: Object });
+
+const dt = ref(null);
+const primerInput = ref(null);
+const actualizar = ref(false);
 
 const id = ref(0);
 const diagnosticosEstudio = ref([]);
@@ -751,6 +769,8 @@ const registro = ref({
     tap_oviyam: null,
     study_iuid: null,
 });
+const fechaDefectoIni = dayjs().startOf("month").format("YYYY-MM-DD");
+const fechaDefectoFin = dayjs().endOf("month").format("YYYY-MM-DD");
 const busqueda = ref({
     estudioParaTranscibir: "si",
     quien_asigno_id: "",
@@ -784,9 +804,9 @@ function applyDashboardPrefill() {
         const accession = sessionStorage.getItem("ST-accession");
         if (accession && String(accession).trim()) {
             busqueda.value.bus_nom_num_docu = String(accession).trim();
-            // Consumir para no “pegar” el filtro en siguientes visitas
+            // Consumir para no pegar el filtro en siguientes visitas
             sessionStorage.removeItem("ST-accession");
-            // Lanzar búsqueda
+            // Lanzar bÃºsqueda
             destroyDataTable();
             listarPendientesTrascribir();
         }
@@ -796,7 +816,7 @@ function applyDashboardPrefill() {
 }
 function initWysiwyg() {
     try {
-        const $root = $($el);
+        const $root = $(getCurrentInstance().proxy.$el);
         // soporte legacy: id textarea_editor y/o clase textarea_editor
         const $targets = $root.find("#textarea_editor, .textarea_editor");
         $targets.each((_, el) => {
@@ -842,7 +862,7 @@ async function listarPendientesTrascribir() {
 
             const res = await axios.post("/api/estudio-listarPendientesTrascribir", busqueda.value);
 
-            registros.value = res.data;
+            registros.value = res.data.data;
 
             nextTick(() => {
                 safeInitDataTable(dt.value || "#example23", {
@@ -911,7 +931,7 @@ async function guardarRegistro() {
         }
     } catch (error) {
         const status = error?.response?.status;
-        // Errores de validación (400) vienen como objeto con campos
+        // Errores de validaciÃ³n (400) vienen como objeto con campos
         if (status == 400 && error?.response?.data && typeof error.response.data === "object") {
             const data = error.response.data;
             errores.value = data.errors && typeof data.errors === "object" ? data.errors : data;
@@ -919,7 +939,7 @@ async function guardarRegistro() {
         if (status == 402) {
             $.toast({
                 heading: "Upss!!!",
-                text: getUserSafeError(error, "La plantilla no está configurada para esta sede."),
+                text: getUserSafeError(error, "La plantilla no estÃ¡ configurada para esta sede."),
                 position: "top-right",
                 loaderBg: "#ff6849",
                 icon: "error",
@@ -929,7 +949,7 @@ async function guardarRegistro() {
         } else {
             $.toast({
                 heading: "Upss!!!",
-                text: getUserSafeError(error, "No fue posible guardar la transcripción."),
+                text: getUserSafeError(error, "No fue posible guardar la transcripciÃ³n."),
                 position: "top-right",
                 loaderBg: "#ff6849",
                 icon: "error",
@@ -965,7 +985,7 @@ function descargaSoportte(nomArchivoEncriptado) {
 async function anularAsignacion(idProductoEstudio, paciente, producto) {
     const ok = await confirmAction({
         title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
-        text: "No podrás recuperar este registro!",
+        text: "No podrÃ¡s recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;
@@ -1019,7 +1039,7 @@ async function listarAudios(estudioProductoId) {
     try {
         const url = "/api/listar-audios-estudio/" + estudioProductoId;
         const res = await axios.get(url);
-        audiosDeEstudio.value = res.data;
+        audiosDeEstudio.value = res.data.data || [];
     } catch (e) {
         handleAxiosErrorToast(e, "No fue posible listar audios.");
         audiosDeEstudio.value = [];
@@ -1083,7 +1103,7 @@ async function mostrarRegistro(data = {}) {
         registro.value.nom_pacien = data.nom_pacien;
         registro.value.direccion = data.direccion;
         registro.value.email = data.email;
-        // Unificar campo teléfono: el backend espera `tel`
+        // Unificar campo telÃ©fono: el backend espera `tel`
         registro.value.tel = data.tel;
         // El backend devuelve `pacien.sexo` y `pacien.fec_naci`
         registro.value.sexo = data.sexo;
@@ -1094,7 +1114,7 @@ async function mostrarRegistro(data = {}) {
         registro.value.reg_medico = data.reg_medico;
         registro.value.nombres_medico = data.nombres_medico;
         registro.value.firma_medico = data.firma_medico;
-        registro.value.lectura = `Atención: ${data.atencion}\nFecha y Hora del estudio: ${data.fec_estudio}\nFecha y Hora de transcripción: ${fechaActual}\n\n${data.nom_produc}\n\n${data.lectura}`;
+        registro.value.lectura = `AtenciÃ³n: ${data.atencion}\nFecha y Hora del estudio: ${data.fec_estudio}\nFecha y Hora de transcripciÃ³n: ${fechaActual}\n\n${data.nom_produc}\n\n${data.lectura}`;
         datosImagen.value.urlOviyam = data.url_oviyam;
         datosImagen.value.patientId = data.num_docu;
         datosImagen.value.studyUID = data.study_iuid;
@@ -1108,10 +1128,10 @@ async function mostrarRegistro(data = {}) {
         registro.value.tap_oviyam = data.tap_oviyam;
 
         const res = await axios.get("/api/study-listar-diagnostico-por-estudio?id=" + id.value);
-        diagnosticosEstudio.value = res.data;
+        diagnosticosEstudio.value = res.data.data;
 
         const resSoportesHC = await axios.get("/api/listar-soportes-hc-estudio?id=" + id.value);
-        soportesHC.value = resSoportesHC.data;
+        soportesHC.value = resSoportesHC.data.data;
 
         audiosDeEstudio.value = [];
         abrirModal();
@@ -1125,7 +1145,7 @@ async function mostrarRegistro(data = {}) {
     }
 }
 function limpiar() {
-    actualizar = false;
+    actualizar.value = false;
     tituloModal.value = "Nuevo registro";
     registro.value.email_reportar = "";
     registro.value.email = "";
@@ -1147,7 +1167,17 @@ onMounted(async () => {
     nextTick(() => initWysiwyg());
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
 
-    await listarUsuariosYSedes(this, { moduloId: "1" });
+    await listarUsuariosYSedes(
+        {
+            set quienes_asignaron(v) {
+                quienes_asignaron.value = v;
+            },
+            set medicos(v) {
+                medicos.value = v;
+            },
+        },
+        { moduloId: "1" }
+    );
 
     applyDashboardPrefill();
 

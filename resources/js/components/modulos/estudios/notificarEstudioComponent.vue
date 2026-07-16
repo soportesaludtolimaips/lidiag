@@ -355,8 +355,9 @@ import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js
 import { getUserSafeError, handleAxiosErrorToast } from "@/helpers/alerts.js";
 import axios from "axios";
 
-const props = defineProps({});
+const props = defineProps({ usuarioactual: Object, permisos: Array });
 
+const dt = ref(null);
 const registros = ref([]);
 const tituloModal = ref("Nuevo registro");
 const registro = ref({
@@ -422,7 +423,7 @@ async function buscarStudy() {
             const res = await axios.post("/api/listar.estudios.notificaciones", busqueda.value);
 
             if (res.status == 200) {
-                registros.value = res.data || [];
+                registros.value = res.data.data || [];
 
                 nextTick(() => {
                     safeInitDataTable(dt.value || "#example23", {

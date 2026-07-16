@@ -13,10 +13,10 @@ class ConfigProductoController extends Controller
         private readonly ConfigProductoService $configProductoService,
     ) {
         $this->middleware('auth:sanctum')->except(['index', 'show']);
-        $this->middleware('permission:configuracion.productos.index')->only(['index']);
-        $this->middleware('permission:configuracion.productos.create')->only(['store']);
-        $this->middleware('permission:configuracion.productos.edit')->only(['update']);
-        $this->middleware('permission:configuracion.productos.destroy')->only(['destroy']);
+        $this->middleware('permission:config.productos.index')->only(['index']);
+        $this->middleware('permission:config.productos.create')->only(['store']);
+        $this->middleware('permission:config.productos.edit')->only(['update']);
+        $this->middleware('permission:config.productos.destroy')->only(['destroy']);
     }
 
     public function index(): JsonResponse

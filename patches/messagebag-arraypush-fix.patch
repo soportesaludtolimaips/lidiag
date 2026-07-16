@@ -1,0 +1,13 @@
+--- a/src/Illuminate/Support/MessageBag.php
++++ b/src/Illuminate/Support/MessageBag.php
+@@ -243,7 +243,9 @@
+         $all = [];
+
+         foreach ($this->messages as $key => $messages) {
+-            array_push($all, ...$this->transform($messages, $format, $key));
++            foreach ($this->transform($messages, $format, $key) as $m) {
++                $all[] = $m;
++            }
+         }
+
+         return $all;

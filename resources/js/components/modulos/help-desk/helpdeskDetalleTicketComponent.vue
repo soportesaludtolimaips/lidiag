@@ -278,7 +278,7 @@ import { formatDateTime } from "@/helpers/dateUtils.js";
 import { initWysiwyg } from "@/helpers/wysiwyg.js";
 import { helpdesk } from "@/helpers/api.js";
 
-defineProps({
+const props = defineProps({
     ticketId: { type: [Number, String], required: true },
 });
 const { proxy } = getCurrentInstance();
@@ -292,6 +292,7 @@ const ticket = ref(null);
 const estados = ref([]);
 const asignables = ref([]);
 const nuevoComentario = ref("");
+const files = ref(null);
 const accion = ref({
     estado_id: "",
     comentario: "",
@@ -312,7 +313,7 @@ function sanitize(dirty) {
 }
 async function recargarTicket() {
     try {
-        const ticketRes = await helpdesk.ticket(ticketId);
+        const ticketRes = await helpdesk.ticket(props.ticketId);
         ticket.value = ticketRes.data;
     } catch (error) {
         handleAxiosErrorToast(error, "No se pudo actualizar el ticket.");
@@ -321,7 +322,7 @@ async function recargarTicket() {
 async function cargar() {
     loading.value = true;
     try {
-        const ticketRes = await helpdesk.ticket(ticketId);
+        const ticketRes = await helpdesk.ticket(props.ticketId);
         ticket.value = ticketRes.data;
 
         // Estados (puede fallar por permisos; no bloquea el detalle)
@@ -352,7 +353,7 @@ async function comentar() {
     if (!nuevoComentario.value) return;
     savingComentario.value = true;
     try {
-        await helpdesk.comentar(ticketId, { comentario: nuevoComentario.value });
+        await helpdesk.comentar(props.ticketId, { comentario: nuevoComentario.value });
         nuevoComentario.value = "";
         toastMessage({ heading: "Ok", text: "Comentario agregado.", icon: "success" });
         await recargarTicket();
@@ -372,7 +373,7 @@ async function cambiarEstado() {
     if (!ok) return;
     savingEstado.value = true;
     try {
-        await helpdesk.cambiarEstado(ticketId, {
+        await helpdesk.cambiarEstado(props.ticketId, {
             estado_id: accion.value.estado_id,
             comentario: accion.value.comentario || null,
             descripcion_solucion: accion.value.descripcion_solucion || null,
@@ -396,7 +397,7 @@ async function reasignar() {
     if (!ok) return;
     savingReasignar.value = true;
     try {
-        await helpdesk.reasignar(ticketId, {
+        await helpdesk.reasignar(props.ticketId, {
             asignado_id: reasignacion.value.asignado_id,
             comentario: reasignacion.value.comentario,
         });
@@ -419,7 +420,7 @@ async function subirAdjuntos() {
         const fd = new FormData();
         rawFiles.forEach((f) => fd.append("files[]", f));
         fd.append("comentario", "Adjuntos agregados.");
-        await helpdesk.subirAdjuntos(ticketId, fd);
+        await helpdesk.subirAdjuntos(props.ticketId, fd);
         if (input) input.value = "";
         toastMessage({ heading: "Ok", text: "Adjuntos subidos.", icon: "success" });
         await recargarTicket();
