@@ -1,17 +1,17 @@
-﻿<template>
+<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
         <!-- ============================================================== -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">ConfiguraciÃ³n</h3>
+                <h3 class="text-themecolor">Configuración</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">ConfiguraciÃ³n</a>
+                        <a href="javascript:void(0)">Configuración</a>
                     </li>
                     <li class="breadcrumb-item active">Tipos de plantillas</li>
                 </ol>
@@ -41,7 +41,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de tipos de plantillas</h4>
-                        <h6 class="card-subtitle">AdministraciÃ³n de las tipos de plantillas.</h6>
+                        <h6 class="card-subtitle">Administración de las tipos de plantillas.</h6>
                         <div class="table-responsive m-t-40">
                             <table
                                 id="example23"
@@ -300,7 +300,7 @@ async function guardarRegistro() {
 async function elimnarRegistro(id, nom) {
     const ok = await confirmAction({
         title: `Estas seguro de eliminar el tipo de plantillas ${nom}?`,
-        text: "No podrÃ¡s recuperar este registro!",
+        text: "No podrás recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;

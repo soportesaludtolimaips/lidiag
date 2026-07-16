@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
@@ -13,7 +13,7 @@
                     <li class="breadcrumb-item">
                         <a role="button" tabindex="0">Seguridad</a>
                     </li>
-                    <li class="breadcrumb-item active">GestiÃ³n de Roles</li>
+                    <li class="breadcrumb-item active">Gestión de Roles</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
@@ -396,9 +396,9 @@ function mostrarRegistro(data = {}) {
 }
 async function cambiarEstado(estado, data = {}) {
     const ok = await confirmAction({
-        title: "ConfirmaciÃ³n",
+        title: "Confirmación",
         text:
-            "Â¿EstÃ¡s seguro de que deseas " +
+            "¿Estás seguro de que deseas " +
             (estado == 0 ? "activar" : "desactivar") +
             " el rol " +
             data.name +
@@ -417,7 +417,7 @@ async function cambiarEstado(estado, data = {}) {
                 "El rol " +
                 data.name +
                 " se " +
-                (estado == 0 ? "activÃ³" : "desactivÃ³") +
+                (estado == 0 ? "activó" : "desactivó") +
                 " correctamente",
             position: "top-right",
             loaderBg: "#ff6849",

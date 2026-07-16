@@ -1,14 +1,14 @@
-﻿<template>
+<template>
     <div>
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">ConfiguraciÃ³n</h3>
+                <h3 class="text-themecolor">Configuración</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">ConfiguraciÃ³n</a>
+                        <a href="javascript:void(0)">Configuración</a>
                     </li>
                     <li class="breadcrumb-item active">Servicios de Citas</li>
                 </ol>
@@ -81,7 +81,7 @@
                             <table class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
-                                        <th>CÃ³digo</th>
+                                        <th>Código</th>
                                         <th>Producto</th>
                                         <th>Estado</th>
                                         <th>Acciones</th>
@@ -165,11 +165,11 @@
                                     >${num_docu_paciente}, ${nom_paciente} ${cod_cups},
                                     ${nom_produc}</code
                                 >
-                                <label class="control-label">RecomendaciÃ³n</label>
+                                <label class="control-label">Recomendación</label>
                                 <FormattedTextEditor
                                     v-model="recomendacion"
                                     rows="8"
-                                    placeholder="Texto de recomendaciÃ³n para el paciente. Use saltos de lÃ­nea si es necesario."
+                                    placeholder="Texto de recomendación para el paciente. Use saltos de línea si es necesario."
                                 />
                                 <small class="text-muted"
                                     >Variables disponibles: <code>${num_docu_paciente}</code>
@@ -335,7 +335,7 @@ function agregarProducto() {
             producto_id: thisVue.productoSeleccionado,
         })
         .then(function (response) {
-            // Guardar tambiÃ©n la recomendaciÃ³n si se ingresÃ³ texto
+            // Guardar también la recomendación si se ingresó texto
             if (thisVue.recomendacion && thisVue.recomendacion.trim()) {
                 return axios.post("/api/config-recomendacion-productos", {
                     producto_id: thisVue.productoSeleccionado,
@@ -359,9 +359,9 @@ function eliminarVinculo(id) {
     var thisVue = proxy;
 
     confirmAction({
-        title: "Â¿EstÃ¡ seguro?",
-        text: "El producto se desvincularÃ¡ del servicio.",
-        confirmButtonText: "SÃ­, eliminar",
+        title: "¿Está seguro?",
+        text: "El producto se desvinculará del servicio.",
+        confirmButtonText: "Sí, eliminar",
         cancelButtonText: "Cancelar",
     }).then(function (confirmado) {
         if (confirmado) {
@@ -382,7 +382,7 @@ function mostrarError(error) {
     alertError("Error", mensaje);
 }
 function mostrarExito(mensaje) {
-    alertSuccess("Ã‰xito", mensaje);
+    alertSuccess("Éxito", mensaje);
 }
 
 onMounted(() => {

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
@@ -107,7 +107,7 @@
                     <div class="card-body">
                         <small class="text-muted">Email address</small>
                         <h6>{{ registro.email }}</h6>
-                        <!-- <small class="text-muted p-t-30 db">TelÃ©fono</small>
+                        <!-- <small class="text-muted p-t-30 db">Teléfono</small>
                         <h6>{{ registro.tel }}</h6>
                         <br />
                         <button class="btn btn-circle btn-secondary"><i class="fa fa-facebook"></i></button>
@@ -142,7 +142,7 @@
                                                 id="num_docu"
                                                 name="num_docu"
                                                 v-model="registro.num_docu"
-                                                placeholder="Ingrese aqui el nÃºmero de documento"
+                                                placeholder="Ingrese aqui el número de documento"
                                                 class="form-control form-control-line"
                                             />
                                         </div>
@@ -185,7 +185,7 @@
                                             />
                                             <small class="text-muted"
                                                 >Dejar en blanco si no desea cambiar la
-                                                contraseÃ±a</small
+                                                contraseña</small
                                             >
                                         </div>
                                     </div>

@@ -1,17 +1,17 @@
-﻿<template>
+<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
         <!-- ============================================================== -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">ConfiguraciÃ³n</h3>
+                <h3 class="text-themecolor">Configuración</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">ConfiguraciÃ³n</a>
+                        <a href="javascript:void(0)">Configuración</a>
                     </li>
                     <li class="breadcrumb-item active">Prioridades</li>
                 </ol>
@@ -47,7 +47,7 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de prioridades</h4>
                         <h6 class="card-subtitle">
-                            AdministraciÃ³n para la priorizaciÃ³n de las lecturas de los estudios
+                            Administración para la priorización de las lecturas de los estudios
                             radiologicos.
                         </h6>
                         <div class="table-responsive m-t-40">
@@ -343,8 +343,8 @@ async function guardarRegistro() {
 }
 async function elimnarRegistro(id) {
     const ok = await confirmAction({
-        title: "Â¿Estas seguro?",
-        text: "No podrÃ¡s recuperar este registro!",
+        title: "¿Estas seguro?",
+        text: "No podrás recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;

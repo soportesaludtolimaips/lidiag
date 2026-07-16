@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
@@ -141,7 +141,7 @@
                             <div>
                                 <h4 class="card-title">Listado de estudios disponibles</h4>
                                 <h6 class="card-subtitle text-info">
-                                    Asigne los estudios a los mÃ©dicos para su respectiva lectura.
+                                    Asigne los estudios a los médicos para su respectiva lectura.
                                 </h6>
                             </div>
                             <div class="text-right">
@@ -166,7 +166,7 @@
                                         <th with="5%"># Documento</th>
                                         <th with="30%">Paciente</th>
                                         <th>Accession</th>
-                                        <th>DescripciÃ³n</th>
+                                        <th>Descripción</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -301,7 +301,7 @@
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <label class="control-label" for="study_desc"
-                                                    >DescripciÃ³n
+                                                    >Descripción
                                                     <span class="text-danger">*</span></label
                                                 >
                                                 <input
@@ -388,7 +388,7 @@
                                                     name="observaciones"
                                                     v-model="registro.observaciones"
                                                     class="form-control"
-                                                    placeholder="Ingrese aquÃ­ las el motivo del estudio"
+                                                    placeholder="Ingrese aquí las el motivo del estudio"
                                                 />
                                             </div>
                                         </div>
@@ -443,7 +443,7 @@
                                         <div class="col-md-8">
                                             <div class="form-group" id="medicos-parent">
                                                 <label class="control-label"
-                                                    >MÃ©dico
+                                                    >Médico
                                                     <span class="text-danger">*</span></label
                                                 >
                                                 <Select2
@@ -499,7 +499,7 @@
                                                 <label
                                                     class="control-label"
                                                     for="interfaceAtencionSeleccionada"
-                                                    >AtenciÃ³n</label
+                                                    >Atención</label
                                                 >
                                                 <select
                                                     v-model="interfaceAtencionSeleccionada"
@@ -557,7 +557,7 @@
                                                 <thead>
                                                     <tr>
                                                         <th></th>
-                                                        <th>CÃ³digo</th>
+                                                        <th>Código</th>
                                                         <th>Producto</th>
                                                         <th></th>
                                                     </tr>
@@ -631,7 +631,7 @@
                                             >
                                                 <thead>
                                                     <tr>
-                                                        <th>CÃ³digo</th>
+                                                        <th>Código</th>
                                                         <th>Diagnostico</th>
                                                         <th></th>
                                                     </tr>
@@ -679,7 +679,7 @@
                                                         name="motivo_examen"
                                                         v-model="registro.motivo_examen"
                                                         class="form-control"
-                                                        placeholder="Ingrese aquÃ­ las observaciones del estudio"
+                                                        placeholder="Ingrese aquí las observaciones del estudio"
                                                         rows="11"
                                                     ></textarea>
                                                 </div>
@@ -854,7 +854,7 @@ async function buscarStudy() {
         ) {
             $.toast({
                 heading: "Upsss!!!",
-                text: "Debes establece la fecha de inicio o finalizaciÃ³n para la busqueda.",
+                text: "Debes establece la fecha de inicio o finalización para la busqueda.",
                 position: "top-right",
                 loaderBg: "#ff6849",
                 icon: "warning",
@@ -1100,7 +1100,7 @@ async function mostrarRegistro(data = {}, index) {
     } catch (error) {
         handleAxiosErrorToast(
             error,
-            "No fue posible cargar la configuraciÃ³n/atenciones de la sede."
+            "No fue posible cargar la configuración/atenciones de la sede."
         );
     } finally {
         loadingAbrirRegistroIndex.value = null;
@@ -1214,7 +1214,7 @@ async function listarMedicos() {
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = res.data.data || [];
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar mÃ©dicos.");
+        handleAxiosErrorToast(error, "No fue posible listar médicos.");
     }
 }
 async function listarPrioridades() {
@@ -1238,7 +1238,7 @@ async function listarDiagnosticos() {
         const res = await axios.get("/api/config-diagnosticos");
         diagnosticos.value = res.data.data || [];
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar diagnÃ³sticos.");
+        handleAxiosErrorToast(error, "No fue posible listar diagnósticos.");
     }
 }
 function onMedicoSelect(value) {
@@ -1303,17 +1303,17 @@ function guardarProductosEstudio() {
             });
         }
 
-        // Limpiar selecciÃ³n
+        // Limpiar selección
         productoSelecciondo.value = "";
     }
 }
 function quitarProductoEstudio(indexEliminar) {
-    if (!confirm("Â¿EstÃ¡ seguro de eliminar este producto?")) return;
+    if (!confirm("¿Está seguro de eliminar este producto?")) return;
     confirmAction({
-        title: "Â¿EstÃ¡ seguro?",
-        text: "Â¿Desea eliminar este producto del estudio?",
+        title: "¿Está seguro?",
+        text: "¿Desea eliminar este producto del estudio?",
         icon: "warning",
-        confirmButtonText: "SÃ­, eliminar",
+        confirmButtonText: "Sí, eliminar",
         onConfirm: () => {
             registro.value.productosEstudio.splice(indexEliminar, 1);
         },
@@ -1335,17 +1335,17 @@ function guardarDiagnosticosEstudio() {
                 nom_diagnos: diag.nom_diagnos,
             });
         }
-        // Limpiar selecciÃ³n
+        // Limpiar selección
         diagnosticoSelecciondo.value = "";
     }
 }
 function quitarDiagnosticoEstudio(indexEliminar) {
-    if (!confirm("Â¿EstÃ¡ seguro de eliminar este diagnÃ³stico?")) return;
+    if (!confirm("¿Está seguro de eliminar este diagnóstico?")) return;
     confirmAction({
-        title: "Â¿EstÃ¡ seguro?",
-        text: "Â¿Desea eliminar este diagnÃ³stico del estudio?",
+        title: "¿Está seguro?",
+        text: "¿Desea eliminar este diagnóstico del estudio?",
         icon: "warning",
-        confirmButtonText: "SÃ­, eliminar",
+        confirmButtonText: "Sí, eliminar",
         onConfirm: () => {
             registro.value.diagnosticosEstudio.splice(indexEliminar, 1);
         },

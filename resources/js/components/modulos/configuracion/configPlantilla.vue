@@ -1,17 +1,17 @@
-﻿<template>
+<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
         <!-- ============================================================== -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">ConfiguraciÃ³n</h3>
+                <h3 class="text-themecolor">Configuración</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">ConfiguraciÃ³n</a>
+                        <a href="javascript:void(0)">Configuración</a>
                     </li>
                     <li class="breadcrumb-item active">Plantillas</li>
                 </ol>
@@ -41,7 +41,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de plantillas</h4>
-                        <h6 class="card-subtitle">AdministraciÃ³n de las tipos de plantillas.</h6>
+                        <h6 class="card-subtitle">Administración de las tipos de plantillas.</h6>
                         <div class="table-responsive m-t-40">
                             <table
                                 id="example23"
@@ -157,7 +157,7 @@
                                             v-model="registro.medico_id"
                                             name="medico_id"
                                         >
-                                            <option>Seleccione el mÃ©dico</option>
+                                            <option>Seleccione el médico</option>
                                             <option
                                                 v-for="ItemMedico in medicos"
                                                 :key="ItemMedico"
@@ -182,7 +182,7 @@
                                             v-model="registro.plantilla_tipo_id"
                                             name="plantilla_tipo_id"
                                         >
-                                            <option>Seleccione el mÃ©dico</option>
+                                            <option>Seleccione el médico</option>
                                             <option
                                                 v-for="ItemTipoPlantilla in tiposPlantillas"
                                                 :key="ItemTipoPlantilla"
@@ -201,7 +201,7 @@
                                             name="plantilla"
                                             v-model="registro.plantilla"
                                             class="form-control"
-                                            placeholder="DescripciÃ³n de la plantilla"
+                                            placeholder="Descripción de la plantilla"
                                             rows="9"
                                         ></textarea>
                                         <span class="text-danger" v-if="errores.plantilla">{{
@@ -395,7 +395,7 @@ async function guardarRegistro() {
 async function elimnarRegistro(id, nom) {
     const ok = await confirmAction({
         title: `Estas seguro de eliminar el tipo de plantillas ${nom}?`,
-        text: "No podrÃ¡s recuperar este registro!",
+        text: "No podrás recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;
@@ -421,7 +421,7 @@ async function listarMedicos() {
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = res.data.data;
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar mÃ©dicos.");
+        handleAxiosErrorToast(error, "No fue posible listar médicos.");
     }
 }
 async function listarTiposPlantillas() {

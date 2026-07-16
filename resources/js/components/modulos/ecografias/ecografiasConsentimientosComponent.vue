@@ -1,8 +1,8 @@
-﻿<template>
+<template>
     <div>
         <div class="row page-titles">
             <div class="col-md-6 align-self-center">
-                <h3 class="text-themecolor">EcografÃ­as</h3>
+                <h3 class="text-themecolor">Ecografías</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <button type="button" class="btn btn-link p-0 breadcrumb-btn">
@@ -11,7 +11,7 @@
                     </li>
                     <li class="breadcrumb-item">
                         <button type="button" class="btn btn-link p-0 breadcrumb-btn">
-                            EcografÃ­as
+                            Ecografías
                         </button>
                     </li>
                     <li class="breadcrumb-item active">Consentimientos</li>
@@ -143,11 +143,9 @@
                                 </td>
                                 <td>{{ pacienteNombre(c) }}</td>
                                 <td>
-                                    {{
-                                        c.ecografia_producto?.ecografia?.paciente?.num_docu || "â€”"
-                                    }}
+                                    {{ c.ecografia_producto?.ecografia?.paciente?.num_docu || "—" }}
                                 </td>
-                                <td>{{ c.producto?.nom_produc || "â€”" }}</td>
+                                <td>{{ c.producto?.nom_produc || "—" }}</td>
                                 <td>
                                     <span v-if="c.estado === 'COMPLETO'" class="text-success"
                                         >COMPLETO</span
@@ -156,7 +154,7 @@
                                 </td>
                                 <td>
                                     <span v-if="c.pdf_path" class="text-success">Generado</span>
-                                    <span v-else class="text-muted">â€”</span>
+                                    <span v-else class="text-muted">—</span>
                                 </td>
                             </tr>
                             <tr v-if="registros.length === 0">
@@ -206,7 +204,7 @@ const allSelectableSelected = computed(() => {
 
 function pacienteNombre(c) {
     const p = c?.ecografia_producto?.ecografia?.paciente;
-    if (!p) return "â€”";
+    if (!p) return "—";
     return String(p.nombres || "").trim();
 }
 function esSeleccionable(c) {
@@ -292,24 +290,24 @@ async function anularSeleccionado() {
     const id = selectedIds.value[0];
     const Swal = getSwal();
     if (!Swal) {
-        const obs = window.prompt("ObservaciÃ³n de anulaciÃ³n (obligatoria):");
+        const obs = window.prompt("Observación de anulación (obligatoria):");
         if (!obs || !String(obs).trim()) return;
         await _ejecutarAnulacion(id, obs);
         return;
     }
     const result = await Swal.fire({
         title: "Anular consentimiento",
-        text: "Indique la observaciÃ³n de anulaciÃ³n (obligatoria)",
+        text: "Indique la observación de anulación (obligatoria)",
         icon: "warning",
         input: "textarea",
-        inputPlaceholder: "Motivo de anulaciÃ³n...",
+        inputPlaceholder: "Motivo de anulación...",
         showCancelButton: true,
-        confirmButtonText: "SÃ­, anular",
+        confirmButtonText: "Sí, anular",
         cancelButtonText: "Cancelar",
         confirmButtonColor: "#DD6B55",
         preConfirm: (obs) => {
             if (!obs || !String(obs).trim()) {
-                Swal.showValidationMessage("Debe indicar una observaciÃ³n");
+                Swal.showValidationMessage("Debe indicar una observación");
             }
             return obs;
         },

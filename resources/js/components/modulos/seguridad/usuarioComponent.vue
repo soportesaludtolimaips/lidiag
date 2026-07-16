@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
@@ -13,7 +13,7 @@
                     <li class="breadcrumb-item">
                         <a role="button" tabindex="0">Seguridad</a>
                     </li>
-                    <li class="breadcrumb-item active">GestiÃ³n de Usuarios</li>
+                    <li class="breadcrumb-item active">Gestión de Usuarios</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
@@ -272,7 +272,7 @@
                                             id="num_docu"
                                             v-model="registro.num_docu"
                                             class="form-control"
-                                            placeholder="NÃºmero de documento del usuario"
+                                            placeholder="Número de documento del usuario"
                                         />
                                         <span class="text-danger" v-if="errores.num_docu">{{
                                             errores.num_docu[0]
@@ -281,7 +281,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label class="control-label">Registro mÃ©dico</label>
+                                        <label class="control-label">Registro médico</label>
                                         <input
                                             type="text"
                                             id="reg_med"
@@ -320,7 +320,7 @@
                                             id="name"
                                             v-model="registro.name"
                                             class="form-control"
-                                            placeholder="Ingrese aquÃ­ los nombres del usuario"
+                                            placeholder="Ingrese aquí los nombres del usuario"
                                         />
                                         <span class="text-danger" v-if="errores.name">{{
                                             errores.name[0]
@@ -345,7 +345,7 @@
                                                 name="email"
                                                 v-model="registro.email"
                                                 class="form-control"
-                                                placeholder="Ingrese aquÃ­ E - Mail del usuario"
+                                                placeholder="Ingrese aquí E - Mail del usuario"
                                             />
                                         </div>
 
@@ -359,7 +359,7 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">ContraseÃ±a</label>
+                                        <label class="control-label">Contraseña</label>
                                         <div class="input-group">
                                             <div class="input-group-prepend">
                                                 <span class="input-group-text">
@@ -372,13 +372,13 @@
                                                 name="password"
                                                 v-model="registro.password"
                                                 class="form-control"
-                                                placeholder="ContraseÃ±a"
+                                                placeholder="Contraseña"
                                             />
                                         </div>
 
                                         <small class="text-muted d-block"
                                             >Dejar en blanco si no desea cambiar la
-                                            contraseÃ±a</small
+                                            contraseña</small
                                         >
                                         <span class="text-danger" v-if="errores.password">{{
                                             errores.password[0]
@@ -388,7 +388,7 @@
 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">Confirmar contraseÃ±a</label>
+                                        <label class="control-label">Confirmar contraseña</label>
 
                                         <div class="input-group">
                                             <div class="input-group-prepend">
@@ -402,7 +402,7 @@
                                                 name="confirmarPassword"
                                                 v-model="registro.confirmarPassword"
                                                 class="form-control"
-                                                placeholder="Confirmar contraseÃ±a"
+                                                placeholder="Confirmar contraseña"
                                             />
                                         </div>
 
@@ -453,7 +453,7 @@
                                                             class="custom-control-label"
                                                             for="transcrip_remoto"
                                                         >
-                                                            TranscripcciÃ³n remota
+                                                            Transcripcción remota
                                                         </label>
                                                     </div>
                                                 </div>
@@ -655,7 +655,7 @@
             <div class="modal-dialog modal-sm">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">Firma â€” {{ firmaAmpliadaNombre }}</h4>
+                        <h4 class="modal-title">Firma — {{ firmaAmpliadaNombre }}</h4>
                         <button
                             type="button"
                             class="close"
@@ -834,7 +834,7 @@ async function guardarRegistro() {
 }
 async function cambiarEstado(estado, data = {}) {
     const ok = await confirmAction({
-        title: "ConfirmaciÃ³n",
+        title: "Confirmación",
         text:
             "Estas seguro de que desea " +
             (estado == 0 ? " activar" : "desactivar") +
@@ -857,7 +857,7 @@ async function cambiarEstado(estado, data = {}) {
             "El usuario " +
                 data.name +
                 " se " +
-                (estado == 0 ? " activÃ³" : "desactivÃ³") +
+                (estado == 0 ? " activó" : "desactivó") +
                 " correctamente",
             "success"
         );
@@ -876,7 +876,7 @@ async function cambiarEstado(estado, data = {}) {
 async function elimnarRegistro(id) {
     const ok = await confirmAction({
         title: "Estas seguro de eliminar este usuario?",
-        text: "No podrÃ¡s recuperar este registro!",
+        text: "No podrás recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;
@@ -902,7 +902,7 @@ async function ListarModulos() {
             checked: false,
         }));
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar mÃ³dulos.");
+        handleAxiosErrorToast(error, "No fue posible listar módulos.");
     }
 }
 async function ListarSedes() {
@@ -950,7 +950,7 @@ function mostrarRegistro(data = {}) {
             modulo.checked = false;
         });
 
-        // Asigna el valor de `checked` a cada mÃ³dulo
+        // Asigna el valor de `checked` a cada módulo
         data.modulos.forEach((modulo) => {
             let moduloActivo = registro.value.modulos.findIndex((x) => x.id == modulo.id);
             registro.value.modulos[moduloActivo].checked = true;

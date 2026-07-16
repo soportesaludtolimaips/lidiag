@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
@@ -13,7 +13,7 @@
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Reportes</a>
                     </li>
-                    <li class="breadcrumb-item active">ProducciÃ³n</li>
+                    <li class="breadcrumb-item active">Producción</li>
                 </ol>
             </div>
         </div>
@@ -29,7 +29,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> ProducciÃ³n
+                            <i class="fa fa-filter"></i> Producción
                         </h4>
 
                         <div class="row">
@@ -41,7 +41,7 @@
                                     @click="tipoReporte = 'Rx'"
                                 >
                                     <i class="fa fa-check text-info"></i>
-                                    ProducciÃ³n detallada (RX, TomografÃ­a, MamografÃ­a, Resonancia)
+                                    Producción detallada (RX, Tomografía, Mamografía, Resonancia)
                                 </a>
                             </div>
                             <div class="col-12" v-if="can('ecografias.reporte')">
@@ -52,7 +52,7 @@
                                     @click="tipoReporte = 'Ecografia'"
                                 >
                                     <i class="fa fa-check text-info"></i>
-                                    ProducciÃ³n detallada (Ecografias)
+                                    Producción detallada (Ecografias)
                                 </a>
                             </div>
                         </div>
@@ -80,7 +80,7 @@
                     <div class="modal-header">
                         <h4 class="modal-title">Filtro para el reporte</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                            Ã—
+                            ×
                         </button>
                     </div>
                     <div class="modal-body">
@@ -277,7 +277,7 @@ async function descargarReporte() {
     } catch (error) {
         handleAxiosErrorToast(error, "No fue posible descargar el reporte.");
     } finally {
-        // pequeÃ±o delay para evitar doble click inmediato
+        // pequeño delay para evitar doble click inmediato
         setTimeout(() => {
             loadingDescargar.value = false;
         }, 700);

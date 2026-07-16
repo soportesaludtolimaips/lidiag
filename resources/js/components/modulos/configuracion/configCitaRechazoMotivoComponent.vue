@@ -1,14 +1,14 @@
-﻿<template>
+<template>
     <div>
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">ConfiguraciÃ³n</h3>
+                <h3 class="text-themecolor">Configuración</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">ConfiguraciÃ³n</a>
+                        <a href="javascript:void(0)">Configuración</a>
                     </li>
                     <li class="breadcrumb-item active">Motivos de Rechazo (Citas)</li>
                 </ol>
@@ -33,7 +33,7 @@
                     <div class="card-body">
                         <h4 class="card-title">Motivos de Rechazo</h4>
                         <h6 class="card-subtitle">
-                            AdministraciÃ³n de motivos de rechazo para las citas agendadas.
+                            Administración de motivos de rechazo para las citas agendadas.
                         </h6>
 
                         <div v-if="loadingListar" class="text-center m-t-40">
@@ -306,8 +306,8 @@ async function guardarRegistro() {
 }
 async function eliminarRegistro(id) {
     const ok = await confirmAction({
-        title: "Â¿Estas seguro?",
-        text: "No podrÃ¡s recuperar este registro!",
+        title: "¿Estas seguro?",
+        text: "No podrás recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;

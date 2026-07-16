@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <!-- ============================================================== -->
     <!-- Bread crumb and right sidebar toggle -->
     <!-- ============================================================== -->
@@ -49,52 +49,52 @@
                     <div class="modal-header">
                         <h4 class="modal-title" id="myLargeModalLabel">Comando de voz</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                            Ã—
+                            ×
                         </button>
                     </div>
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <h5 class="mb-2">MayÃºsculas</h5>
+                                <h5 class="mb-2">Mayúsculas</h5>
                                 <ul>
-                                    <li>iniciar mayÃºscula sostenida</li>
-                                    <li>iniciar mayÃºsculas sostenida</li>
-                                    <li>iniciar mayÃºsculas / mayÃºscula</li>
-                                    <li>activar mayÃºsculas / mayÃºscula</li>
-                                    <li>habilitar mayÃºsculas / mayÃºscula</li>
-                                    <li>desactivar mayÃºsculas / mayÃºscula</li>
-                                    <li>deshabilitar mayÃºsculas / mayÃºscula</li>
-                                    <li>terminar mayÃºsculas / mayÃºscula</li>
-                                    <li>fin mayÃºsculas / mayÃºscula</li>
-                                    <li>finalizar mayÃºsculas / mayÃºscula</li>
+                                    <li>iniciar mayúscula sostenida</li>
+                                    <li>iniciar mayúsculas sostenida</li>
+                                    <li>iniciar mayúsculas / mayúscula</li>
+                                    <li>activar mayúsculas / mayúscula</li>
+                                    <li>habilitar mayúsculas / mayúscula</li>
+                                    <li>desactivar mayúsculas / mayúscula</li>
+                                    <li>deshabilitar mayúsculas / mayúscula</li>
+                                    <li>terminar mayúsculas / mayúscula</li>
+                                    <li>fin mayúsculas / mayúscula</li>
+                                    <li>finalizar mayúsculas / mayúscula</li>
                                 </ul>
-                                <h5 class="mb-2 mt-3">Saltos de lÃ­nea</h5>
+                                <h5 class="mb-2 mt-3">Saltos de línea</h5>
                                 <ul>
                                     <li>punto aparte</li>
-                                    <li>nuevo pÃ¡rrafo</li>
-                                    <li>nueva secciÃ³n</li>
+                                    <li>nuevo párrafo</li>
+                                    <li>nueva sección</li>
                                     <li>separador</li>
-                                    <li>salto de lÃ­nea</li>
-                                    <li>doble salto de lÃ­nea</li>
+                                    <li>salto de línea</li>
+                                    <li>doble salto de línea</li>
                                     <li>enter / doble enter</li>
-                                    <li>lÃ­nea en blanco / doble lÃ­nea en blanco</li>
+                                    <li>línea en blanco / doble línea en blanco</li>
                                 </ul>
                             </div>
                             <div class="col-md-6">
-                                <h5 class="mb-2">PuntuaciÃ³n</h5>
+                                <h5 class="mb-2">Puntuación</h5>
                                 <ul>
                                     <li>punto / punto y seguido / punto seguido</li>
                                     <li>coma</li>
                                     <li>dos puntos</li>
                                     <li>punto y coma</li>
-                                    <li>nueva oraciÃ³n</li>
-                                    <li>abrir/cerrar parÃ©ntesis</li>
+                                    <li>nueva oración</li>
+                                    <li>abrir/cerrar paréntesis</li>
                                     <li>abrir/cerrar corchetes</li>
                                     <li>abrir/cerrar llaves</li>
                                     <li>abrir/cerrar comillas</li>
                                     <li>abrir/cerrar comillas simples</li>
                                 </ul>
-                                <h5 class="mb-2 mt-3">SÃ­mbolos</h5>
+                                <h5 class="mb-2 mt-3">Símbolos</h5>
                                 <ul>
                                     <li>guion</li>
                                     <li>guion bajo</li>
@@ -102,14 +102,14 @@
                                     <li>barra invertida</li>
                                     <li>dar espacio / un espacio / dos espacio / doble espacio</li>
                                     <li>por ciento (%)</li>
-                                    <li>menos / mÃ¡s / igual</li>
-                                    <li>multiplicar (Ã—) / dividir (Ã·)</li>
+                                    <li>menos / más / igual</li>
+                                    <li>multiplicar (×) / dividir (÷)</li>
                                     <li>asterisco / numeral / ampersand / arroba</li>
-                                    <li>dÃ³lar / euro</li>
+                                    <li>dólar / euro</li>
                                 </ul>
                                 <h5 class="mb-2 mt-3">Atajos</h5>
                                 <ul>
-                                    <li><strong>F2</strong> - Iniciar/detener grabaciÃ³n</li>
+                                    <li><strong>F2</strong> - Iniciar/detener grabación</li>
                                 </ul>
                             </div>
                         </div>
@@ -181,7 +181,7 @@
                                     <th></th>
                                     <th>Sede</th>
                                     <th>Fecha del Toma</th>
-                                    <th>Fecha del AsignaciÃ³n</th>
+                                    <th>Fecha del Asignación</th>
                                     <th>Quien Asigno</th>
                                     <th>Paciente</th>
                                     <th>Detalle</th>
@@ -272,8 +272,8 @@
                                                     item.estudio_producto_id
                                                 )
                                             "
-                                            title="Ver imÃ¡genes"
-                                            aria-label="Ver imÃ¡genes"
+                                            title="Ver imágenes"
+                                            aria-label="Ver imágenes"
                                         >
                                             <i
                                                 v-if="loadingImagenId === item.estudio_producto_id"
@@ -364,7 +364,7 @@
                                     <div class="col-md-5">
                                         <div class="form-group">
                                             <dl>
-                                                <dt>DescripciÃ³n:</dt>
+                                                <dt>Descripción:</dt>
                                                 <dd>{{ registro.study_desc }}</dd>
                                             </dl>
                                         </div>
@@ -469,8 +469,8 @@
                                                     @click="toggleSpeechRecognition"
                                                     :aria-label="
                                                         recognizing
-                                                            ? 'Detener grabaciÃ³n'
-                                                            : 'Iniciar grabaciÃ³n'
+                                                            ? 'Detener grabación'
+                                                            : 'Iniciar grabación'
                                                     "
                                                     :aria-pressed="String(recognizing)"
                                                     style="
@@ -494,8 +494,8 @@
                                                 <span
                                                     v-if="uppercase"
                                                     class="badge badge-success ml-2"
-                                                    title="MayÃºsculas activada"
-                                                    >MAYÃšS</span
+                                                    title="Mayúsculas activada"
+                                                    >MAYÚS</span
                                                 >
                                                 <span
                                                     v-if="recording"
@@ -528,7 +528,7 @@
                                                 class="form-control lectura-textarea"
                                                 rows="15"
                                                 id="lectura"
-                                                placeholder="Ingrese aquÃ­ la lectura del estudio ..."
+                                                placeholder="Ingrese aquí la lectura del estudio ..."
                                             ></textarea>
                                         </div>
                                     </div>
@@ -1102,7 +1102,7 @@
                                                         name="motivo_examen"
                                                         v-model="registro.motivo_examen"
                                                         class="form-control"
-                                                        placeholder="Ingrese aquÃ­ las observaciones del estudio"
+                                                        placeholder="Ingrese aquí las observaciones del estudio"
                                                         rows="11"
                                                     ></textarea>
                                                 </div>
@@ -1314,7 +1314,7 @@ function initDataTable() {
             info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
             paginate: {
                 first: "Primero",
-                last: "Ãšltimo",
+                last: "Último",
                 next: "Siguiente",
                 previous: "Anterior",
             },
@@ -1466,7 +1466,7 @@ async function guardarRegistro() {
                 try {
                     safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idRow.value);
                 } catch (e) {
-                    // best-effort: si DataTables no estÃ¡ listo, seguimos con el splice (Vue actualizarÃ¡ el DOM)
+                    // best-effort: si DataTables no está listo, seguimos con el splice (Vue actualizará el DOM)
                 }
                 registros.value.splice(estudioEliminar, 1);
             }
@@ -1493,12 +1493,12 @@ async function visto(id) {
     // Evitar doble click verificando de forma inmediata si ya tiene la clase
     if (row && row.classList.contains("text-info")) return;
 
-    // 1. ModificaciÃ³n directa del DOM (InstantÃ¡neo y compatible con DataTables)
+    // 1. Modificación directa del DOM (Instantáneo y compatible con DataTables)
     if (row) {
         row.classList.add("text-info");
     }
 
-    // 2. ModificaciÃ³n del estado sin disparar la reactividad pesada de $set
+    // 2. Modificación del estado sin disparar la reactividad pesada de $set
     const idx = registros.value.findIndex((x) => x.estudio_producto_id === id);
     if (idx !== -1) {
         registros.value[idx].visto = 1;
@@ -1507,7 +1507,7 @@ async function visto(id) {
     try {
         // 3. Verdadera llamada "fire-and-forget" en segundo plano
         const marcarVisto = await axios.post("/api/marcar-visto/" + id).catch(() => {
-            // Opcional: Si falla, podrÃ­amos revertir la clase
+            // Opcional: Si falla, podríamos revertir la clase
             if (row) row.classList.remove("text-info");
         });
     } catch (error) {
@@ -1579,7 +1579,7 @@ async function mostrarRegistro(data = {}) {
     audioUploadFlow.limpiarAudiosCargados();
 
     tituloModal.value =
-        "Lectura de paciente: " + data.nom_pacien + " â€” Producto: " + data.nom_produc;
+        "Lectura de paciente: " + data.nom_pacien + " — Producto: " + data.nom_produc;
     id.value = data.id;
     idRow.value = data.estudio_producto_id;
     registro.value.estudio_producto_id = data.estudio_producto_id;
