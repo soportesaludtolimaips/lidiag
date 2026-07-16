@@ -1,14 +1,14 @@
-﻿<template>
+<template>
     <div>
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">ConfiguraciÃ³n</h3>
+                <h3 class="text-themecolor">Configuración</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">ConfiguraciÃ³n</a>
+                        <a href="javascript:void(0)">Configuración</a>
                     </li>
                     <li class="breadcrumb-item active">Servicios de Citas</li>
                 </ol>
@@ -30,7 +30,7 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de servicios de citas</h4>
                         <h6 class="card-subtitle">
-                            AdministraciÃ³n de servicios disponibles para agendar citas.
+                            Administración de servicios disponibles para agendar citas.
                         </h6>
 
                         <div class="row m-t-20 m-b-20">
@@ -70,7 +70,7 @@
                                 <tbody>
                                     <tr v-for="item in registros" :key="item.id">
                                         <td>{{ item.nombre }}</td>
-                                        <td>{{ item.sede?.nom_sede || "â€”" }}</td>
+                                        <td>{{ item.sede?.nom_sede || "—" }}</td>
                                         <td>
                                             <span class="label label-success" v-if="item.estado"
                                                 >Activo</span
@@ -297,7 +297,7 @@ async function guardarRegistro() {
 }
 async function eliminarRegistro(id) {
     const ok = await confirmAction({
-        title: "Â¿Estas seguro?",
+        title: "¿Estas seguro?",
         text: "No podras recuperar este registro!",
         icon: "warning",
     });

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
@@ -173,7 +173,7 @@
                             <div>
                                 <h4 class="card-title">Listado de estudios disponibles</h4>
                                 <h6 class="card-subtitle text-info">
-                                    Asigne los estudios a los mÃ©dicos para su respectiva lectura.
+                                    Asigne los estudios a los médicos para su respectiva lectura.
                                 </h6>
                             </div>
                             <div class="text-right">
@@ -198,7 +198,7 @@
                                         <th>Sede</th>
                                         <th>Toma</th>
                                         <th width="50%">Lectura</th>
-                                        <th>AsignaciÃ³n</th>
+                                        <th>Asignación</th>
                                         <th>Quien Asigno</th>
                                         <th width="50%">Medico</th>
                                         <th width="50%">Paciente</th>
@@ -254,7 +254,7 @@
                                             Nombres: {{ item.nom_pacien }}
                                         </td>
                                         <td>
-                                            AtenciÃ³n: {{ item.atencion }} <br />
+                                            Atención: {{ item.atencion }} <br />
                                             Descrip: {{ item.study_desc }} <br />
                                             {{ item.accession_no }}
                                         </td>
@@ -372,7 +372,7 @@
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <dl>
-                                                    <dt>DescripciÃ³n:</dt>
+                                                    <dt>Descripción:</dt>
                                                     <dd>{{ registro.study_desc }}</dd>
                                                 </dl>
                                             </div>
@@ -409,7 +409,7 @@
                                                     name="email_reportar"
                                                     v-model="registro.email_reportar"
                                                     class="form-control"
-                                                    placeholder="Ingrese aquÃ­ el email a reportar"
+                                                    placeholder="Ingrese aquí el email a reportar"
                                                     ref="primerInput"
                                                 />
                                             </div>
@@ -476,7 +476,7 @@
                                                     rows="20"
                                                     id="lectura"
                                                     style="height: 100%"
-                                                    placeholder="Ingrese aquÃ­ la lectura del estudio ..."
+                                                    placeholder="Ingrese aquí la lectura del estudio ..."
                                                 ></textarea>
                                             </div>
                                         </div>
@@ -806,7 +806,7 @@ function applyDashboardPrefill() {
             busqueda.value.bus_nom_num_docu = String(accession).trim();
             // Consumir para no pegar el filtro en siguientes visitas
             sessionStorage.removeItem("ST-accession");
-            // Lanzar bÃºsqueda
+            // Lanzar búsqueda
             destroyDataTable();
             listarPendientesTrascribir();
         }
@@ -931,7 +931,7 @@ async function guardarRegistro() {
         }
     } catch (error) {
         const status = error?.response?.status;
-        // Errores de validaciÃ³n (400) vienen como objeto con campos
+        // Errores de validación (400) vienen como objeto con campos
         if (status == 400 && error?.response?.data && typeof error.response.data === "object") {
             const data = error.response.data;
             errores.value = data.errors && typeof data.errors === "object" ? data.errors : data;
@@ -939,7 +939,7 @@ async function guardarRegistro() {
         if (status == 402) {
             $.toast({
                 heading: "Upss!!!",
-                text: getUserSafeError(error, "La plantilla no estÃ¡ configurada para esta sede."),
+                text: getUserSafeError(error, "La plantilla no está configurada para esta sede."),
                 position: "top-right",
                 loaderBg: "#ff6849",
                 icon: "error",
@@ -949,7 +949,7 @@ async function guardarRegistro() {
         } else {
             $.toast({
                 heading: "Upss!!!",
-                text: getUserSafeError(error, "No fue posible guardar la transcripciÃ³n."),
+                text: getUserSafeError(error, "No fue posible guardar la transcripción."),
                 position: "top-right",
                 loaderBg: "#ff6849",
                 icon: "error",
@@ -985,7 +985,7 @@ function descargaSoportte(nomArchivoEncriptado) {
 async function anularAsignacion(idProductoEstudio, paciente, producto) {
     const ok = await confirmAction({
         title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
-        text: "No podrÃ¡s recuperar este registro!",
+        text: "No podrás recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;
@@ -1103,7 +1103,7 @@ async function mostrarRegistro(data = {}) {
         registro.value.nom_pacien = data.nom_pacien;
         registro.value.direccion = data.direccion;
         registro.value.email = data.email;
-        // Unificar campo telÃ©fono: el backend espera `tel`
+        // Unificar campo teléfono: el backend espera `tel`
         registro.value.tel = data.tel;
         // El backend devuelve `pacien.sexo` y `pacien.fec_naci`
         registro.value.sexo = data.sexo;
@@ -1114,7 +1114,7 @@ async function mostrarRegistro(data = {}) {
         registro.value.reg_medico = data.reg_medico;
         registro.value.nombres_medico = data.nombres_medico;
         registro.value.firma_medico = data.firma_medico;
-        registro.value.lectura = `AtenciÃ³n: ${data.atencion}\nFecha y Hora del estudio: ${data.fec_estudio}\nFecha y Hora de transcripciÃ³n: ${fechaActual}\n\n${data.nom_produc}\n\n${data.lectura}`;
+        registro.value.lectura = `Atención: ${data.atencion}\nFecha y Hora del estudio: ${data.fec_estudio}\nFecha y Hora de transcripción: ${fechaActual}\n\n${data.nom_produc}\n\n${data.lectura}`;
         datosImagen.value.urlOviyam = data.url_oviyam;
         datosImagen.value.patientId = data.num_docu;
         datosImagen.value.studyUID = data.study_iuid;

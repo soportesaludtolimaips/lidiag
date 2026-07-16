@@ -1,19 +1,19 @@
-﻿<template>
+<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
         <!-- ============================================================== -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">ConfiguraciÃ³n</h3>
+                <h3 class="text-themecolor">Configuración</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">ConfiguraciÃ³n</a>
+                        <a href="javascript:void(0)">Configuración</a>
                     </li>
-                    <li class="breadcrumb-item active">DÃ­agnosticos</li>
+                    <li class="breadcrumb-item active">Díagnosticos</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
@@ -45,9 +45,9 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Listado de dÃ­agnostico</h4>
+                        <h4 class="card-title">Listado de díagnostico</h4>
                         <h6 class="card-subtitle">
-                            AdministraciÃ³n de dÃ­agnostico para la prestaciÃ³n del servicio de
+                            Administración de díagnostico para la prestación del servicio de
                             imagenes diagnosticas.
                         </h6>
                         <div class="table-responsive m-t-40">
@@ -60,8 +60,8 @@
                             >
                                 <thead>
                                     <tr>
-                                        <th>CÃ³digo CIE10</th>
-                                        <th width="150px">DÃ­agnostico</th>
+                                        <th>Código CIE10</th>
+                                        <th width="150px">Díagnostico</th>
                                         <th>Estado</th>
                                         <th></th>
                                     </tr>
@@ -141,14 +141,14 @@
                             <div class="row p-t-20">
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <label class="control-label">CÃ³digo CEE10</label>
+                                        <label class="control-label">Código CEE10</label>
                                         <input
                                             type="text"
                                             id="cod_diagnos"
                                             name="cod_diagnos"
                                             v-model="registro.cod_diagnos"
                                             class="form-control"
-                                            placeholder="CÃ³digo CIE10"
+                                            placeholder="Código CIE10"
                                         />
                                         <span class="text-danger" v-if="errores.cod_diagnos">{{
                                             errores.cod_diagnos[0]
@@ -160,14 +160,14 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Nombre del dÃ­agnostico</label>
+                                        <label class="control-label">Nombre del díagnostico</label>
                                         <input
                                             type="text"
                                             id="nom_diagnos"
                                             name="nom_diagnos"
                                             v-model="registro.nom_diagnos"
                                             class="form-control"
-                                            placeholder="Ingrese aquÃ­ el nombre del dÃ­agnostico"
+                                            placeholder="Ingrese aquí el nombre del díagnostico"
                                         />
                                         <span class="text-danger" v-if="errores.nom_diagnos">{{
                                             errores.nom_diagnos[0]
@@ -279,7 +279,7 @@ async function ListarDatos() {
             });
         });
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar diagnÃ³sticos.");
+        handleAxiosErrorToast(error, "No fue posible listar diagnósticos.");
         registros.value = [];
     } finally {
         loadingListar.value = false;
@@ -329,15 +329,15 @@ async function guardarRegistro() {
         }
     } catch (error) {
         errores.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible guardar el diagnÃ³stico.");
+        handleAxiosErrorToast(error, "No fue posible guardar el diagnóstico.");
     } finally {
         loadingGuardar.value = false;
     }
 }
 async function elimnarRegistro(id) {
     const ok = await confirmAction({
-        title: "Â¿Estas seguro?",
-        text: "No podrÃ¡s recuperar este registro!",
+        title: "¿Estas seguro?",
+        text: "No podrás recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;

@@ -1,8 +1,8 @@
-﻿<template>
+<template>
     <div>
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">GestiÃ³n de Citas - Tablero</h3>
+                <h3 class="text-themecolor">Gestión de Citas - Tablero</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Inicio</a>
@@ -10,7 +10,7 @@
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Citas</a>
                     </li>
-                    <li class="breadcrumb-item active">Tablero de gestiÃ³n</li>
+                    <li class="breadcrumb-item active">Tablero de gestión</li>
                 </ol>
             </div>
         </div>
@@ -40,7 +40,7 @@
                 <div class="col-lg-8">
                     <div class="card">
                         <div class="card-body">
-                            <h4 class="card-title">Citas PrÃ³ximas (Hoy / MaÃ±ana)</h4>
+                            <h4 class="card-title">Citas Próximas (Hoy / Mañana)</h4>
                             <div class="table-responsive">
                                 <table class="table table-bordered table-striped">
                                     <thead>
@@ -49,13 +49,13 @@
                                             <th>Servicio</th>
                                             <th>Fecha</th>
                                             <th>Estado</th>
-                                            <th>TelÃ©fono</th>
+                                            <th>Teléfono</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr v-if="proximas.length === 0">
                                             <td colspan="5" class="text-center text-muted">
-                                                No hay citas prÃ³ximas
+                                                No hay citas próximas
                                             </td>
                                         </tr>
                                         <tr v-for="item in proximas" :key="item.id">
@@ -85,7 +85,7 @@
                 <div class="col-lg-4">
                     <div class="card">
                         <div class="card-body">
-                            <h4 class="card-title">Acciones RÃ¡pidas</h4>
+                            <h4 class="card-title">Acciones Rápidas</h4>
                             <div class="list-group">
                                 <a :href="'/citas'" class="list-group-item list-group-item-action">
                                     <i class="fa fa-list"></i> Ir al listado de citas
@@ -136,7 +136,7 @@
                                     }}</span>
                                 </div>
                                 <div class="d-flex justify-content-between">
-                                    <span>No asistiÃ³</span>
+                                    <span>No asistió</span>
                                     <span class="badge badge-secondary">{{
                                         statsPorEstado.no_asistio || 0
                                     }}</span>

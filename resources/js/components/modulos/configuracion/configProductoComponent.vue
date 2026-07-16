@@ -1,17 +1,17 @@
-﻿<template>
+<template>
     <div>
         <!-- ============================================================== -->
         <!-- Bread crumb and right sidebar toggle -->
         <!-- ============================================================== -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">ConfiguraciÃ³n</h3>
+                <h3 class="text-themecolor">Configuración</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">ConfiguraciÃ³n</a>
+                        <a href="javascript:void(0)">Configuración</a>
                     </li>
                     <li class="breadcrumb-item active">Productos</li>
                 </ol>
@@ -42,8 +42,8 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de productos</h4>
                         <h6 class="card-subtitle">
-                            AdministraciÃ³n de productos para la prestaciÃ³n del servicio de
-                            imagenes diagnosticas.
+                            Administración de productos para la prestación del servicio de imagenes
+                            diagnosticas.
                         </h6>
                         <div class="table-responsive m-t-40">
                             <table
@@ -153,7 +153,7 @@
                                             name="cod_cups"
                                             v-model="registro.cod_cups"
                                             class="form-control"
-                                            placeholder="CÃ³digo cups"
+                                            placeholder="Código cups"
                                         />
                                         <span class="text-danger" v-if="errores.cod_cups">{{
                                             errores.cod_cups[0]
@@ -172,7 +172,7 @@
                                             name="nom_produc"
                                             v-model="registro.nom_produc"
                                             class="form-control"
-                                            placeholder="Ingrese aquÃ­ el nombre del producto"
+                                            placeholder="Ingrese aquí el nombre del producto"
                                         />
                                         <span class="text-danger" v-if="errores.nom_produc">{{
                                             errores.nom_produc[0]
@@ -205,7 +205,7 @@
                                             name="val_produc"
                                             v-model="registro.val_produc"
                                             class="form-control"
-                                            placeholder="Ingrese aquÃ­ el precio del producto"
+                                            placeholder="Ingrese aquí el precio del producto"
                                         />
                                     </div>
                                 </div>
@@ -426,8 +426,8 @@ async function guardarRegistro() {
 }
 async function elimnarRegistro(id) {
     const ok = await confirmAction({
-        title: "Â¿Estas seguro?",
-        text: "No podrÃ¡s recuperar este registro!",
+        title: "¿Estas seguro?",
+        text: "No podrás recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;
