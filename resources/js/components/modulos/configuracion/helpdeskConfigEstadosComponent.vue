@@ -69,7 +69,7 @@ async function listar() {
     try {
         const res = await axios.get("/api/helpdesk-estados");
         safeDestroyDataTable(dt.value || "#example23");
-        registros.value = res.data || [];
+        registros.value = res.data.data || [];
         nextTick(() => {
             safeInitDataTable(dt.value || "#example23", {
                 dom: "Bfrtip",

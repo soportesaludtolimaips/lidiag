@@ -1091,11 +1091,11 @@ async function mostrarRegistro(data = {}, index) {
     try {
         const res = await axios.get("/api/config-sedes/" + sedeActual.value + "/buscarPorId");
 
-        if (res.data.interface_software != null) {
+        if (res.data.data.interface_software != null) {
             const resAtenciones = await axios.get(
                 "/api/interface-sahi-listar-atenciones/" + registro.value.num_docu
             );
-            interfaceAtenciones.value = resAtenciones.data;
+            interfaceAtenciones.value = resAtenciones.data.data;
         }
     } catch (error) {
         handleAxiosErrorToast(

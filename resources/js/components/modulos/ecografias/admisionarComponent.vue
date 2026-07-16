@@ -1045,7 +1045,7 @@ async function listarAtenciones() {
         if (res.status == 200) {
             safeDestroyDataTable(dt.value || "#example23");
 
-            registros.value = res.data;
+            registros.value = res.data.data;
 
             safeInitDataTable(dt.value || "#example23");
         }
@@ -1255,7 +1255,7 @@ async function listarMedicos() {
         const moduloId =
             sessionStorage.getItem("ST-modulo") || (pathname.includes("ecografia") ? "2" : "1");
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
-        medicos.value = res.data;
+        medicos.value = res.data.data;
     } catch (error) {
         medicos.value = [];
         handleAxiosErrorToast(error, "No fue posible listar mÃ©dicos.");
@@ -1264,7 +1264,7 @@ async function listarMedicos() {
 async function listarTipoDocumentos() {
     try {
         const res = await axios.get("/api/config-tipos-documentos/listar/activos");
-        tipoDocumentos.value = res.data;
+        tipoDocumentos.value = res.data.data;
     } catch (error) {
         tipoDocumentos.value = [];
         handleAxiosErrorToast(error, "No fue posible listar tipos de documento.");
@@ -1273,7 +1273,7 @@ async function listarTipoDocumentos() {
 async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
-        productos.value = res.data;
+        productos.value = res.data.data;
     } catch (error) {
         productos.value = [];
         handleAxiosErrorToast(error, "No fue posible listar productos.");

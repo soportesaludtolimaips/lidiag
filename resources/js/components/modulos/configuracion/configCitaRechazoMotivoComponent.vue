@@ -235,7 +235,7 @@ async function listarMotivos() {
     try {
         const res = await axios.get("/api/citas-rechazo-motivos");
         safeDestroyDataTable(dt.value || "#tblRechazoMotivos");
-        registros.value = res.data;
+        registros.value = res.data.data;
         nextTick(() => {
             safeInitDataTable(dt.value || "#tblRechazoMotivos", {
                 dom: "Bfrtip",

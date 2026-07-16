@@ -366,7 +366,7 @@ async function elimnarRegistro(id, nom) {
 async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
-        productos.value = res.data;
+        productos.value = res.data.data;
     } catch (error) {
         handleAxiosErrorToast(error, "No fue posible listar productos.");
     }

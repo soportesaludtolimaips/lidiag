@@ -687,7 +687,7 @@ async function listarPendientesTrascribir() {
 
             const res = await axios.post("/api/estudio-listarPendientesTrascribir", busqueda.value);
 
-            registros.value = res.data;
+            registros.value = res.data.data;
 
             nextTick(() => {
                 initDataTable();
@@ -860,7 +860,7 @@ async function listarAudios() {
     loadingAudios.value = true;
     try {
         const res = await axios.get("/api/listar-audios-estudio/" + id);
-        audiosDeEstudio.value = res.data;
+        audiosDeEstudio.value = res.data.data;
     } catch (e) {
         handleAxiosErrorToast(e, "No fue posible listar audios.");
         audiosDeEstudio.value = [];
@@ -874,7 +874,7 @@ async function listarMedicos() {
         const moduloId =
             sessionStorage.getItem("ST-modulo") || (pathname.includes("ecografia") ? "2" : "1");
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
-        medicos.value = res.data;
+        medicos.value = res.data.data;
     } catch (error) {
         handleAxiosErrorToast(error, "No fue posible listar mÃ©dicos.");
         medicos.value = [];
@@ -948,10 +948,10 @@ async function mostrarRegistro(data = {}) {
     registro.value.tap_oviyam = data.tap_oviyam;
 
     const res = await axios.get("/api/study-listar-diagnostico-por-estudio?id=" + id);
-    diagnosticosEstudio.value = res.data;
+    diagnosticosEstudio.value = res.data.data;
 
     const resSoportesHC = await axios.get("/api/listar-soportes-hc-estudio?id=" + id);
-    soportesHC.value = resSoportesHC.data;
+    soportesHC.value = resSoportesHC.data.data;
 
     audiosDeEstudio.value = [];
     listarAudios();

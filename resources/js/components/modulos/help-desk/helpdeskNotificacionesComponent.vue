@@ -129,8 +129,8 @@ async function cargar(pagina) {
             page: paginaActual.value,
             unread_only: soloNoLeidas.value ? 1 : 0,
         });
-        items.value = res.data?.items || [];
-        totalPaginas.value = res.data?.last_page || 1;
+        items.value = res.data?.data?.items || [];
+        totalPaginas.value = res.data?.data?.last_page || 1;
     } catch (error) {
         handleAxiosErrorToast(error, "No se pudieron cargar notificaciones.");
     } finally {

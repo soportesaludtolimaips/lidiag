@@ -110,8 +110,8 @@ async function fetchInfo() {
     error.value = null;
     try {
         const res = await axios.get(`/firma/consentimiento-ecografia/${token}/info`);
-        info.value = res.data;
-        html.value = DOMPurify.sanitize(res.data?.html || "");
+        info.value = res.data.data;
+        html.value = DOMPurify.sanitize(res.data?.data?.html || "");
     } catch (e) {
         error.value = e?.response?.data?.message || "No fue posible cargar el consentimiento.";
     } finally {

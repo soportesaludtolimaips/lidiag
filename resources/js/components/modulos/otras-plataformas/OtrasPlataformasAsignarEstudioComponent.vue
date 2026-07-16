@@ -771,7 +771,7 @@ async function buscarStudy() {
             if (res.status == 200) {
                 safeDestroyDataTable(dt.value || "#example23");
 
-                registros.value = res.data;
+                registros.value = res.data.data;
                 nextTick(() => {
                     safeInitDataTable(dt.value || "#example23", {
                         dom: "Bfrtip",
@@ -875,7 +875,7 @@ async function mostrarRegistro(data = {}, index) {
         const resAtenciones = await axios.get(
             "/api/interface-sahi-listar-atenciones/" + registro.value.num_docu
         );
-        interfaceAtenciones.value = resAtenciones.data;
+        interfaceAtenciones.value = resAtenciones.data.data;
     }
 }
 async function interfaceListarProductosDiagnosticos() {
@@ -966,7 +966,7 @@ async function listarMedicos() {
         const moduloId =
             sessionStorage.getItem("ST-modulo") || (pathname.includes("ecografia") ? "2" : "1");
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
-        medicos.value = res.data;
+        medicos.value = res.data.data;
     } catch (error) {
         handleAxiosErrorToast(error, "No fue posible listar mÃ©dicos.");
         medicos.value = [];
@@ -975,7 +975,7 @@ async function listarMedicos() {
 async function listarPrioridades() {
     try {
         const res = await axios.get("/api/config-prioridades");
-        prioridades.value = res.data;
+        prioridades.value = res.data.data;
     } catch (error) {
         handleAxiosErrorToast(error, "No fue posible listar prioridades.");
         prioridades.value = [];
@@ -984,7 +984,7 @@ async function listarPrioridades() {
 async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
-        productos.value = res.data;
+        productos.value = res.data.data;
     } catch (error) {
         handleAxiosErrorToast(error, "No fue posible listar productos.");
         productos.value = [];
@@ -993,7 +993,7 @@ async function listarProductos() {
 async function listarDiagnosticos() {
     try {
         const res = await axios.get("/api/config-diagnosticos");
-        diagnosticos.value = res.data;
+        diagnosticos.value = res.data.data;
     } catch (error) {
         handleAxiosErrorToast(error, "No fue posible listar diagnÃ³sticos.");
         diagnosticos.value = [];

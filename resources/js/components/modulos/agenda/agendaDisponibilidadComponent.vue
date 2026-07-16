@@ -382,7 +382,7 @@ async function buscarStudy() {
         };
         const res = await axios.get("/api/agenda-disponibilidad", { params });
         safeDestroyDataTable(dt.value || "#tabla-disponibilidad");
-        registros.value = res.data || [];
+        registros.value = res.data.data || [];
         nextTick(() => {
             if (registros.value.length) {
                 safeInitDataTable(dt.value || "#tabla-disponibilidad", {
@@ -500,7 +500,7 @@ async function listarServiciosCitas() {
         const res = await axios.get("/api/config-servicio-citas/mis-servicios", {
             params: { sede_id: sedeActual.value },
         });
-        serviciosCitas.value = res.data;
+        serviciosCitas.value = res.data.data;
     } catch (error) {
         handleAxiosErrorToast(error, "No fue posible listar servicios de cita.");
     }

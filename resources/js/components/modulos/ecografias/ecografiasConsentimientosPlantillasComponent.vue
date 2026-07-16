@@ -373,7 +373,7 @@ function getHtmlFromEditor() {
 async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
-        productos.value = Array.isArray(res.data) ? res.data : [];
+        productos.value = Array.isArray(res.data?.data) ? res.data.data : [];
     } catch (error) {
         handleAxiosErrorToast(error, "No fue posible listar productos.");
     }
@@ -381,7 +381,7 @@ async function listarProductos() {
 async function listarModulos() {
     try {
         const res = await axios.get("/api/config-modulos-listar");
-        modulos.value = Array.isArray(res.data) ? res.data : [];
+        modulos.value = Array.isArray(res.data?.data) ? res.data.data : [];
         // default EcografÃ­as (id=2) si existe
         if (!filtros.value.config_modulo_id) {
             const eco = modulos.value.find((m) => Number(m.id) === 2);
@@ -408,7 +408,7 @@ async function listar() {
                 config_modulo_id: filtros.value.config_modulo_id,
             },
         });
-        registros.value = Array.isArray(res.data) ? res.data : [];
+        registros.value = Array.isArray(res.data?.data) ? res.data.data : [];
     } catch (error) {
         handleAxiosErrorToast(error, "No fue posible listar plantillas.");
         registros.value = [];
@@ -472,7 +472,7 @@ async function verVersiones(p) {
                 params: { config_modulo_id: filtros.value.config_modulo_id },
             }
         );
-        versions.value = Array.isArray(res.data) ? res.data : [];
+        versions.value = Array.isArray(res.data?.data) ? res.data.data : [];
         $("#modal-versiones").modal("show");
     } catch (error) {
         handleAxiosErrorToast(error, "No fue posible cargar versiones.");
@@ -491,7 +491,7 @@ async function activarVersion(v) {
                     params: { config_modulo_id: filtros.value.config_modulo_id },
                 }
             );
-            versions.value = Array.isArray(res.data) ? res.data : [];
+            versions.value = Array.isArray(res.data?.data) ? res.data.data : [];
         }
         await listar();
     } catch (error) {
