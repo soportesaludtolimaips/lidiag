@@ -271,6 +271,7 @@ async function listarMedicos() {
     }
 }
 async function estableserSede() {
+    if (!sedeSeleccionada.value) return;
     const res = await axios.get("/api/config-sedes/" + sedeSeleccionada.value + "/buscarPorId");
 
     nomSedeSeleccionada = $('select[name="sedes"] option:selected').text();
