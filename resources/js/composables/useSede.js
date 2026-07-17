@@ -13,7 +13,7 @@ export function useSede() {
         isLoading.value = true;
         try {
             const res = await axios.get(`/api/config-sedes/${id}/buscarPorId`);
-            sedeInterface.value = res?.data?.interface_software === "SAHI";
+            sedeInterface.value = res?.data?.data?.interface_software != null;
         } catch {
             sedeInterface.value = false;
         } finally {

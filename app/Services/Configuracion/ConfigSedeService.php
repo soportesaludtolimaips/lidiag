@@ -21,6 +21,11 @@ class ConfigSedeService extends BaseService
         );
     }
 
+    /**
+     * Buscar sede por ID
+     *
+     * @Author: Jhon Javer Lozano Arce
+     */
     public function buscarPorId(int $id): array
     {
         if ($id <= 0) {
@@ -36,6 +41,22 @@ class ConfigSedeService extends BaseService
                     'estado',
                     'plantilla_rx',
                     'plantilla_ecografia',
+                    'url_oviyam',
+                    'tap_oviyam',
+                    'usuario_oviyam',
+                    'password_oviyam',
+                    'interface_software',
+                    'interface_driver',
+                    'interface_host',
+                    'interface_port',
+                    'interface_database',
+                    'interface_username',
+                    'interface_password',
+                    'ip_dcm',
+                    'bd_dcm',
+                    'puerto_dcm',
+                    'usuario_dcm',
+                    'password_dcm',
                 ])
                 ->find($id);
 
@@ -51,11 +72,19 @@ class ConfigSedeService extends BaseService
         }
     }
 
+    /**
+     * Listar sedes activas
+     */
     public function listarActivas(): array
     {
         return $this->success(ConfigSede::where('estado', 1)->get());
     }
 
+    /**
+     * Crear una nueva sede
+     *
+     * @Author: Jhon Javer Lozano Arce
+     */
     public function create(array $data, ?UploadedFile $plantillaRx = null, ?UploadedFile $plantillaEcografia = null): array
     {
         $validated = validator($data, [
@@ -185,12 +214,28 @@ class ConfigSedeService extends BaseService
     private function fillSedeData(ConfigSede $item, array $data): void
     {
         $fields = [
-            'nom_sede', 'email_repor', 'ip_dcm', 'bd_dcm', 'puerto_dcm',
-            'usuario_dcm', 'password_dcm', 'usuario_oviyam', 'password_oviyam',
-            'url_oviyam', 'tap_oviyam', 'encabezado', 'pie_pagina',
-            'logo_1', 'logo_2', 'estado',
-            'interface_software', 'interface_driver', 'interface_host',
-            'interface_port', 'interface_database', 'interface_username',
+            'nom_sede',
+            'email_repor',
+            'ip_dcm',
+            'bd_dcm',
+            'puerto_dcm',
+            'usuario_dcm',
+            'password_dcm',
+            'usuario_oviyam',
+            'password_oviyam',
+            'url_oviyam',
+            'tap_oviyam',
+            'encabezado',
+            'pie_pagina',
+            'logo_1',
+            'logo_2',
+            'estado',
+            'interface_software',
+            'interface_driver',
+            'interface_host',
+            'interface_port',
+            'interface_database',
+            'interface_username',
             'interface_password',
         ];
 
