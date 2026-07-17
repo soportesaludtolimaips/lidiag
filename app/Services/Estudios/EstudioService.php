@@ -289,7 +289,6 @@ class EstudioService extends BaseService
         $query = $this->applyAsignadosFilters($query, $filters);
         $results = $query->orderByDesc('estudios.fec_estudio')
             ->orderByDesc('estudios.created_at')
-            ->limit(1000)
             ->get();
 
         return $this->success($results);
