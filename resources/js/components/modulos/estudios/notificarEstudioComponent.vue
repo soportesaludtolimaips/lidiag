@@ -626,7 +626,7 @@ function btnCerralModalForm() {
 function mostrarRegistro(data = {}) {
     if (loadingAbrirId.value) return;
     loadingAbrirId.value = data.estudio_producto_id;
-    estudio.value = data;
+    estudio.value = { ...data, id_estudio: data.id };
     tituloModal.value = "Notificar al paciente: " + data.nom_pacien;
 
     registro.value.num_docu = data.num_docu;
@@ -642,7 +642,7 @@ function mostrarRegistro(data = {}) {
     loadingAbrirId.value = null;
 }
 function setarDatosPortalPacientes(data = {}) {
-    estudio.value = data;
+    estudio.value = { ...data, id_estudio: data.id };
     tituloModal.value = "Notificar al paciente: " + data.nom_pacien;
 
     registro.value.num_docu = data.num_docu;
