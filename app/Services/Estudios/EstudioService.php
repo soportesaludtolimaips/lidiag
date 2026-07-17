@@ -16,6 +16,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -314,7 +315,7 @@ class EstudioService extends BaseService
     public function guardarTranscripcion(array $data): array
     {
         try {
-            return DB::transaction(function () use ($data) {
+            $result = DB::transaction(function () use ($data) {
                 $sede = ConfigSede::findOrFail($data['sede_id']);
 
                 if ($sede->interface_software === 'SAHI') {
@@ -360,10 +361,16 @@ class EstudioService extends BaseService
                     );
                 }
 
-                $this->estudioNotificacionService->enviarPortalPacientes((object) $data);
-
                 return $this->success(null, 'La transcripción se guardó correctamente.');
             });
+
+            try {
+                $this->estudioNotificacionService->enviarPortalPacientes((object) $data);
+            } catch (\Exception $e) {
+                Log::warning('Error al enviar al portal de pacientes: '.$e->getMessage());
+            }
+
+            return $result;
         } catch (\Exception $e) {
             return $this->error('Error al guardar transcripción: '.$e->getMessage(), 500);
         }

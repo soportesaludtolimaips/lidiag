@@ -132,6 +132,12 @@ class EstudioController extends Controller
             'cod_cups' => 'required|string|max:50',
             'nom_produc' => 'required|string|max:255',
             'medico_id' => 'nullable|integer',
+            'fec_naci' => 'nullable|string|max:50',
+            'nom_sede' => 'nullable|string|max:255',
+            'url_oviyam' => 'nullable|string|max:500',
+            'study_iuid' => 'nullable|string|max:500',
+            'tap_oviyam' => 'nullable|string|max:500',
+            'fechor_lectura' => 'nullable|date',
         ], ['lectura.required' => 'Debe ingresar la lectura.']);
 
         $data['fechor_lectura'] = $request->input('fechor_lectura', $request->input('fec_lectura'));

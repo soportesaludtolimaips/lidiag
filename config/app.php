@@ -160,6 +160,8 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
+    'libreoffice_path' => env('LIBREOFFICE_PATH'),
+
     /*
     |--------------------------------------------------------------------------
     | Maintenance Mode Driver

@@ -2,6 +2,7 @@
 
 namespace App\Services\Ecografias;
 
+use App\Helpers\PdfConverterHelper;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\Ecografias\EcografiaProducto;
 use App\Models\User;
@@ -10,8 +11,6 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use PhpOffice\PhpWord\TemplateProcessor;
-use Symfony\Component\Process\Exception\ProcessFailedException;
-use Symfony\Component\Process\Process;
 
 class PlantillaEcografiaService extends BaseService
 {
@@ -133,46 +132,12 @@ class PlantillaEcografiaService extends BaseService
             return false;
         }
 
-        if (PHP_OS_FAMILY === 'Windows') {
-            $unoconvPath = 'C:\unoconv\unoconv.bat';
-        } else {
-            $unoconvPath = '/usr/bin/unoconv';
-        }
-
-        if (! file_exists($unoconvPath)) {
-            Log::error("unoconv no encontrado en la ruta: {$unoconvPath}");
-
-            return false;
-        }
-
         $filename = pathinfo($nomPlantilla, PATHINFO_FILENAME);
         if (! preg_match('/^[a-zA-Z0-9._-]+$/', $filename)) {
             throw new \InvalidArgumentException('Nombre de archivo inválido');
         }
 
-        try {
-            $outDir = dirname($outputPath);
-            if (! is_dir($outDir)) {
-                @mkdir($outDir, 0775, true);
-            }
-
-            $process = new Process([$unoconvPath, '-f', 'pdf', '-o', $outputPath, $inputPath]);
-            $process->setTimeout(60);
-            $process->run();
-
-            if (! $process->isSuccessful()) {
-                Log::error('unoconv error: '.$process->getErrorOutput());
-                throw new ProcessFailedException($process);
-            }
-        } catch (\Exception $e) {
-            Log::error("Error durante la conversión: ".$e->getMessage());
-
-            return false;
-        }
-
-        if (! file_exists($outputPath)) {
-            Log::error("PDF no generado: {$outputPath}");
-
+        if (! PdfConverterHelper::convert($inputPath, $outputPath)) {
             return false;
         }
 
