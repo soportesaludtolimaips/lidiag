@@ -988,7 +988,7 @@ async function guardarRegistro() {
         }
 
         btnCerralModalForm();
-        limpiar();
+        btnLimpiar();
     } catch (error) {
         errores.value =
             error?.response?.data?.errors && typeof error.response.data.errors === "object"
@@ -1067,7 +1067,8 @@ function obtenerArchivo3(e) {
 async function mostrarRegistro(data = {}, index) {
     if (loadingAbrirRegistroIndex.value !== null) return;
     loadingAbrirRegistroIndex.value = index;
-    limpiar();
+    btnLimpiar();
+
     tituloModal.value = "Agendar al paciente: " + data.pat_name;
     id.value = data.study_pk;
     registro.value.study_pk = data.study_pk;
@@ -1182,7 +1183,7 @@ function abrirModal() {
 function cerrarModal() {
     $(".right-sidebar").removeClass("shw-rside");
 }
-function limpiar() {
+function btnLimpiar() {
     registro.value.study_pk = "";
     registro.value.study_iuid = "";
     registro.value.study_id = "";
@@ -1383,7 +1384,7 @@ onMounted(() => {
     listarProductos();
     listarDiagnosticos();
     establecerSede();
-    limpiar();
+    btnLimpiar();
 
     emitter.on("sedeSeleccionada", (data) => {
         console.log("data", data);
