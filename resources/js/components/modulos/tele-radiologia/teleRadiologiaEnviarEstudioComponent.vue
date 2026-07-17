@@ -716,6 +716,7 @@ const busqueda = ref({
     bus_fech_ini: "",
     bus_fecha_fin: "",
 });
+const sedeInterface = ref(false);
 const interfaceAtenciones = ref([]);
 const interfaceAtencionSeleccionada = ref(null);
 const errores = ref({});
@@ -1012,7 +1013,8 @@ async function mostrarRegistro(data = {}, index) {
      * Verificar si la sede tiene interface, traigo la informacion de las producto y diagnosticos
      */
     const res = await axios.get("/api/config-sedes/" + idSedeActual.value + "/buscarPorId");
-    if (res.data.data.interface_software != null) {
+    sedeInterface.value = res.data.data.interface_software != null;
+    if (sedeInterface.value) {
         const resAtenciones = await axios.get(
             "/api/interface-sahi-listar-atenciones/" + orden.value.paciente.num_docu
         );

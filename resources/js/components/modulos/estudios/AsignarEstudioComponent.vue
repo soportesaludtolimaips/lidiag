@@ -744,13 +744,12 @@ const emitter = proxy.emitter;
 
 const props = defineProps({
     usuarioactual: Object,
-    sedeInterface: { type: Boolean, default: false },
 });
-
 const dataIndex = ref(0);
 const id = ref(0);
 const registros = ref([]);
 const tituloModal = ref("Nuevo registro");
+const sedeInterface = ref(false);
 const sedeActual = ref(sessionStorage.getItem("ST-sede"));
 const dt = ref(null);
 const registro = ref({
@@ -833,6 +832,10 @@ const medicoOptions = computed(() => {
 function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#example23");
 }
+
+/**
+ * Buscar estudios según los criterios de búsqueda.
+ */
 async function buscarStudy() {
     destroyDataTable();
 
@@ -1091,7 +1094,8 @@ async function mostrarRegistro(data = {}, index) {
     try {
         const res = await axios.get("/api/config-sedes/" + sedeActual.value + "/buscarPorId");
 
-        if (res.data.data.interface_software != null) {
+        sedeInterface.value = res.data.data.interface_software != null;
+        if (sedeInterface.value) {
             const resAtenciones = await axios.get(
                 "/api/interface-sahi-listar-atenciones/" + registro.value.num_docu
             );
@@ -1381,6 +1385,7 @@ onMounted(() => {
     limpiar();
 
     emitter.on("sedeSeleccionada", (data) => {
+        console.log("data", data);
         registro.value.sede_id = data.idSede;
         busqueda.value.sede_id = data.idSede;
         establecerSede();
