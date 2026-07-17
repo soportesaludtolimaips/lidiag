@@ -842,6 +842,7 @@ function btnLimpiar() {
     errores.value = {};
     destroyDataTable();
     registros.value = [];
+    limpiar();
 }
 async function listarPendientesTrascribir() {
     if (loadingBuscar.value) return;

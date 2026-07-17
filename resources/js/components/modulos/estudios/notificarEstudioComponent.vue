@@ -397,6 +397,7 @@ function btnLimpiar() {
     erroresBusqueda.value = {};
     destroyDataTable();
     registros.value = [];
+    limpiar();
 }
 async function buscarStudy() {
     if (loadingBuscar.value) return;
