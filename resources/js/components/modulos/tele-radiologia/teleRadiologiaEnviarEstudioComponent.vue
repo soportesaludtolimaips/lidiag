@@ -1084,6 +1084,13 @@ function cerrarModal() {
     $(".right-sidebar").removeClass("shw-rside");
 }
 function btnLimpiar() {
+    busqueda.value.bus_nom_num_docu = "";
+    busqueda.value.bus_fech_ini = "";
+    busqueda.value.bus_fecha_fin = "";
+
+    registros.value = [];
+    destroyDataTable();
+
     orden.value.study_pk = "";
     orden.value.study_iuid = "";
     orden.value.study_id = "";
@@ -1092,15 +1099,13 @@ function btnLimpiar() {
     orden.value.study_desc = "";
     orden.value.mods_in_study = "";
     orden.value.observaciones = "";
-
     orden.value.paciente.num_docu = "";
     orden.value.paciente.nom_pacien = "";
     orden.value.paciente.sexo = "";
     orden.value.paciente.fec_naci = "";
-
     orden.value.priori.id = "";
 
-    productoSelecciondo.value = 0;
+    productoSelecciondo.value = "";
 
     orden.value.producto = [];
     orden.value.adjuntos = [];
@@ -1113,9 +1118,13 @@ function btnLimpiar() {
     registro.value.destino_estudio_id = null;
     registro.value.destino_estudio = "Tele Radiologia";
 
+    sedeInterface.value = false;
+
     soportesHC.value.archivo1 = null;
     soportesHC.value.archivo2 = null;
     soportesHC.value.archivo3 = null;
+
+    cerrarModal();
 }
 async function listarPrioridades() {
     try {
