@@ -589,7 +589,7 @@
                                             <div class="form-group">
                                                 <textarea
                                                     v-model="registro.lectura"
-                                                    class="textarea_editor form-control"
+                                                    class="form-control"
                                                     rows="20"
                                                     id="lectura"
                                                     style="height: 100%"
@@ -722,7 +722,7 @@
     </div>
 </template>
 <script setup>
-import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { listarUsuariosYSedes } from "@/helpers/usuarios";
@@ -808,17 +808,6 @@ const contadorRegistros = computed(() => {
     return registros.value.length;
 });
 
-function initWysiwyg() {
-    try {
-        const $root = $(getCurrentInstance().proxy.$el);
-        $root.find(".textarea_editor").each((_, el) => {
-            const $el = $(el);
-            if ($el.data("wysihtml5")) return;
-            if ($el.prevAll(".wysihtml5-toolbar").length) return;
-            $el.wysihtml5({ stylesheets: ["/lib/css/wysiwyg-color.css"] });
-        });
-    } catch (e) {}
-}
 function initDataTable() {
     safeInitDataTable(dt.value || "#example23", {
         dom: "Bfrtip",
@@ -1146,16 +1135,6 @@ async function mostrarRegistro(data = {}) {
         abrirModal();
 
         await listarAudios();
-
-        nextTick(() => {
-            const $editor = $(getCurrentInstance().proxy.$el).find(".textarea_editor");
-            const wysi = $editor.data("wysihtml5");
-            if (wysi) {
-                const el = document.createElement("div");
-                el.appendChild(document.createTextNode(registro.value.lectura || ""));
-                wysi.editor.setValue(el.innerHTML);
-            }
-        });
     } catch (error) {
         handleAxiosErrorToast(error, "No fue posible cargar el estudio seleccionado.");
     } finally {
@@ -1188,8 +1167,6 @@ function btnCerralModalForm() {
 }
 
 onMounted(async () => {
-    nextTick(() => initWysiwyg());
-
     await listarUsuariosYSedes({
         set quienes_asignaron(v) {
             quienes_asignaron.value = v;
