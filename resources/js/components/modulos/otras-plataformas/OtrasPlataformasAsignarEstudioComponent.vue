@@ -803,9 +803,9 @@ async function guardarRegistro() {
     try {
         const formData = new FormData();
         formData.append("registro", JSON.stringify(registro.value));
-        formData.append("archivo1", soportesHC.value.archivo1);
-        formData.append("archivo2", soportesHC.value.archivo2);
-        formData.append("archivo3", soportesHC.value.archivo3);
+        if (soportesHC.value.archivo1) formData.append("archivo1", soportesHC.value.archivo1);
+        if (soportesHC.value.archivo2) formData.append("archivo2", soportesHC.value.archivo2);
+        if (soportesHC.value.archivo3) formData.append("archivo3", soportesHC.value.archivo3);
 
         const res = await axios.post("/api/estudios", formData, {
             headers: { "Content-Type": "multipart/form-data" },
