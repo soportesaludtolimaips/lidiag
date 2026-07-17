@@ -1005,6 +1005,7 @@ function btnLimpiar() {
 
     safeDestroyDataTable(dt.value || "#example23");
     registros.value = [];
+    limpiarFormulario();
 }
 function safeDestroyDataTable(selector = "#example23") {
     if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)

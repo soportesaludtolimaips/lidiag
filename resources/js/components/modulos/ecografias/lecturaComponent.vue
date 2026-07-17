@@ -788,6 +788,7 @@ function btnLimpiar() {
     registros.value = [];
     pendientesDiaAnterior.value = [];
     bloqueoLectura.value = false;
+    limpiarFormulario();
 }
 function getMedicalReplacementsCompiled() {
     if (medicalReplCompiled.value) return medicalReplCompiled.value;

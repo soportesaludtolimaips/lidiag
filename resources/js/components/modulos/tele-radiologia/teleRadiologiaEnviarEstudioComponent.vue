@@ -1118,8 +1118,6 @@ function btnLimpiar() {
     registro.value.destino_estudio_id = null;
     registro.value.destino_estudio = "Tele Radiologia";
 
-    sedeInterface.value = false;
-
     soportesHC.value.archivo1 = null;
     soportesHC.value.archivo2 = null;
     soportesHC.value.archivo3 = null;

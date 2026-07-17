@@ -844,6 +844,7 @@ function btnLimpiar() {
     diagnosticosEstudio.value = [];
     soportesHC.value = [];
     audiosDeEstudio.value = [];
+    limpiar();
 }
 async function listarEstudiosAsignados() {
     if (loadingBuscar.value) return;

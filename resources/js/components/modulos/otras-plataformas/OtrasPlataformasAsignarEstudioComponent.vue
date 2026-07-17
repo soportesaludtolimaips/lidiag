@@ -954,9 +954,7 @@ function btnLimpiar() {
     registro.value.diagnosticosEstudio.splice(0, registro.value.diagnosticosEstudio.length);
     registro.value.productosEstudio.splice(0, registro.value.productosEstudio.length);
 
-    interfaceAtenciones.value = [];
     interfaceAtencionSeleccionada.value = null;
-    sedeInterface.value = false;
 
     productoSelecciondo.value = "";
     diagnosticoSelecciondo.value = "";
