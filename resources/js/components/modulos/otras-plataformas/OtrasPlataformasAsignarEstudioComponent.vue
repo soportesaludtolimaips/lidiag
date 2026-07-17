@@ -828,7 +828,7 @@ async function guardarRegistro() {
         }
 
         /* btnCerralModalForm();
-                limpiar(); */
+                btnLimpiar(); */
     } catch (error) {
         errores.value = error?.response?.data?.errors || error?.response?.data || {};
         handleAxiosErrorToast(error, "No fue posible guardar el registro.");
@@ -846,7 +846,8 @@ function obtenerArchivo3(e) {
     soportesHC.value.archivo3 = e.target.files[0];
 }
 async function mostrarRegistro(data = {}, index) {
-    limpiar();
+    btnLimpiar();
+
     tituloModal.value = "Agendar al paciente: " + data.pat_name;
     id.value = data.study_pk;
     registro.value.study_pk = data.study_pk;
@@ -930,7 +931,7 @@ function abrirModal() {
 function cerrarModal() {
     $(".right-sidebar").removeClass("shw-rside");
 }
-function limpiar() {
+function btnLimpiar() {
     registro.value.study_pk = "";
     registro.value.study_iuid = "";
     registro.value.study_id = "";
@@ -1115,7 +1116,8 @@ onMounted(() => {
     listarProductos();
     listarDiagnosticos();
     establecerSede();
-    limpiar();
+    btnLimpiar();
+
     emitter.on("sedeSeleccionada", (data) => {
         registro.value.sede_id = data.idSede;
         establecerSede();
