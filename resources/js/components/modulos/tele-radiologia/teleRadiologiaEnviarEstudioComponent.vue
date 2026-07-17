@@ -921,7 +921,7 @@ async function guardarRegistro() {
         }
 
         btnCerralModalForm();
-        limpiar();
+        btnLimpiar();
     } catch (error) {
         if (error.response) {
             errores.value = error.response.data;
@@ -1083,7 +1083,7 @@ function abrirModal() {
 function cerrarModal() {
     $(".right-sidebar").removeClass("shw-rside");
 }
-function limpiar() {
+function btnLimpiar() {
     orden.value.study_pk = "";
     orden.value.study_iuid = "";
     orden.value.study_id = "";
