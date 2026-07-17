@@ -1026,29 +1026,24 @@ async function interfaceListarProductosDiagnosticos() {
         "/api/interface-sahi-listar-listarProductosDiagnosticos/" +
             interfaceAtencionSeleccionada.value
     );
-    productosInterface.value = resProuctos.data.data.productos;
+    const data = resProuctos.data.data;
+    productosInterface.value = data.productos;
 
     let EnfermedadActualDiagnosticos = "";
 
-    /**
-     * Enfermedad actula
-     */
-    const consultas = resProuctos.data.consultas;
+    const consultas = data.consultas || [];
     EnfermedadActualDiagnosticos = "Enfermedad Actual: ";
     if (consultas.length > 0) {
-        consultas.map((consultas) => {
-            EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos}\n ${consultas.DesEnfermedadActual} \n`;
+        consultas.forEach((c) => {
+            EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos}\n ${c.DesEnfermedadActual} \n`;
         });
     }
 
-    /**
-     * Diagnosticos
-     */
-    const diagnosticos = resProuctos.data.diagnosticos;
+    const diagnosticos = data.diagnosticos || [];
     EnfermedadActualDiagnosticos += `\nDiagnosticos:`;
     if (diagnosticos.length > 0) {
-        diagnosticos.map((diagnosticos) => {
-            EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos} \n ${diagnosticos.cod_diagnos} - ${diagnosticos.nom_diagnos}`;
+        diagnosticos.forEach((d) => {
+            EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos} \n ${d.cod_diagnos} - ${d.nom_diagnos}`;
         });
     }
 
@@ -1056,8 +1051,8 @@ async function interfaceListarProductosDiagnosticos() {
     registro.value.motivo_examen = EnfermedadActualDiagnosticos;
 
     registro.value.diagnosticosEstudio = [];
-    if (resProuctos.data.diagnosticos.length > 0) {
-        registro.value.diagnosticosEstudio = resProuctos.data.diagnosticos;
+    if (diagnosticos.length > 0) {
+        registro.value.diagnosticosEstudio = diagnosticos;
     }
 
     registro.value.atencion_id = interfaceAtencionSeleccionada.value;

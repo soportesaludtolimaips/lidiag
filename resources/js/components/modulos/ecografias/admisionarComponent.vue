@@ -1192,7 +1192,7 @@ async function establecerMedico() {
 
     try {
         const res = await axios.get(`/api/config-sedes/${registro.value.sede_id}/buscarPorId`);
-        sedeInterface = res?.data?.interface_software === "SAHI";
+        sedeInterface = res?.data?.data?.interface_software != null;
     } catch (error) {
         sedeInterface = false;
     }

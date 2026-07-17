@@ -887,9 +887,10 @@ async function interfaceListarProductosDiagnosticos() {
             interfaceAtencionSeleccionada.value
     );
 
+    const data = resProuctos.data.data;
     registro.value.productosEstudio = [];
-    if (resProuctos.data.productos.length > 0) {
-        resProuctos.data.productos.forEach((element) => {
+    if (data.productos.length > 0) {
+        data.productos.forEach((element) => {
             registro.value.productosEstudio.push({
                 checked: false,
                 id: element.IdProducto,
@@ -900,8 +901,8 @@ async function interfaceListarProductosDiagnosticos() {
     }
 
     registro.value.diagnosticosEstudio = [];
-    if (resProuctos.data.diagnosticos.length > 0) {
-        registro.value.diagnosticosEstudio = resProuctos.data.diagnosticos;
+    if (data.diagnosticos.length > 0) {
+        registro.value.diagnosticosEstudio = data.diagnosticos;
     }
 
     registro.value.atencion_id = interfaceAtencionSeleccionada.value;
@@ -913,7 +914,7 @@ async function establecerSede() {
 
     try {
         const res = await axios.get(`/config-sedes/${sedeActual.value}/buscarPorId`);
-        sedeInterface.value = res?.data?.interface_software === "SAHI";
+        sedeInterface.value = res?.data?.data?.interface_software != null;
     } catch (error) {
         sedeInterface.value = false;
     }
