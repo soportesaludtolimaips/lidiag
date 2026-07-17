@@ -932,6 +932,12 @@ function cerrarModal() {
     $(".right-sidebar").removeClass("shw-rside");
 }
 function btnLimpiar() {
+    busqueda.value.bus_nom_num_docu = "";
+    busqueda.value.bus_fech_ini = "";
+    busqueda.value.bus_fecha_fin = "";
+
+    registros.value = [];
+
     registro.value.study_pk = "";
     registro.value.study_iuid = "";
     registro.value.study_id = "";
@@ -940,27 +946,26 @@ function btnLimpiar() {
     registro.value.study_desc = "";
     registro.value.mods_in_study = "";
     registro.value.email_reportar = "";
-
     registro.value.num_docu = "";
     registro.value.nombres = "";
     registro.value.sexo = "";
     registro.value.email = "";
     registro.value.fec_naci = "";
-
     registro.value.diagnosticosEstudio.splice(0, registro.value.diagnosticosEstudio.length);
     registro.value.productosEstudio.splice(0, registro.value.productosEstudio.length);
 
-    /* registro.value.medico_id = 0;
-            registro.value.prioridad_id = 0; */
-    productoSelecciondo.value = 0;
-    diagnosticoSelecciondo.value = 0;
+    interfaceAtenciones.value = [];
+    interfaceAtencionSeleccionada.value = null;
+    sedeInterface.value = false;
+
+    productoSelecciondo.value = "";
+    diagnosticoSelecciondo.value = "";
 
     soportesHC.value.archivo1 = null;
     soportesHC.value.archivo2 = null;
     soportesHC.value.archivo3 = null;
 
-    /* listarMedicos();
-            listarPrioridades(); */
+    cerrarModal();
 }
 async function listarMedicos() {
     try {
