@@ -916,7 +916,6 @@ async function guardarRegistro() {
                 stack: 6,
             });
 
-            btnCerrarForm.value.click();
             btnCerralModalForm();
             limpiar();
         } else {

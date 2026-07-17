@@ -2,6 +2,7 @@
 
 namespace App\Services\Estudios;
 
+use App\Helpers\PdfConverterHelper;
 use App\Models\Configuracion\ConfigSede;
 use App\Services\BaseService;
 use Carbon\Carbon;
@@ -106,26 +107,7 @@ class PlantillaEstudioService extends BaseService
         $sourceFile = storage_path('app/reporte_lecturas/'.$nomPlantilla.'.docx');
         $destinationFile = storage_path('app/reporte_lecturas/'.$nomPlantilla.'.pdf');
 
-        $unoconvPath = 'C:\unoconv\unoconv.bat';
-        if (! file_exists($unoconvPath)) {
-            \Log::error("unoconv no encontrado en la ruta: {$unoconvPath}");
-
-            return false;
-        }
-
-        $command = escapeshellcmd(
-            $unoconvPath.' -f pdf -o '.escapeshellarg($destinationFile).' '.escapeshellarg($sourceFile)
-        );
-
-        shell_exec($command);
-
-        if (! file_exists($destinationFile)) {
-            \Log::error('Error converting DOCX to PDF: '.($command ?? ''));
-
-            return false;
-        }
-
-        return true;
+        return PdfConverterHelper::convert($sourceFile, $destinationFile);
     }
 
     public function eliminarReporte(string $reportePath): void
