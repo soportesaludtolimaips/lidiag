@@ -517,9 +517,13 @@ async function notificar() {
             stack: 6,
         });
 
-        estudio.value.email = registro.value.email;
-        estudio.value.tel = registro.value.tel;
-        const res = await axios.post("/api/notificar.email", estudio.value);
+        const payload = {
+            ...estudio.value,
+            id_estudio: estudio.value.id,
+            email: registro.value.email,
+            tel: registro.value.tel,
+        };
+        const res = await axios.post("/api/notificar.email", payload);
 
         if (res.status == 200) {
             $.toast({
