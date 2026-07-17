@@ -4,6 +4,7 @@ namespace App\Services\Estudios;
 
 use App\Models\Estudio\EstudioAudio;
 use App\Services\BaseService;
+use App\Services\TranscripcionService;
 use FFMpeg\FFMpeg;
 use FFMpeg\Format\Audio\Mp3;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -15,6 +16,10 @@ use Illuminate\Support\Str;
 
 class EstudioAudioService extends BaseService
 {
+    public function __construct(
+        private readonly TranscripcionService $transcripcionService,
+    ) {}
+
     public function uploadAudio(UploadedFile $file, int $estudioId, int $estudioProductoId): array
     {
         $baseName = 'audio_'.Str::ulid()->toBase32();
@@ -219,7 +224,14 @@ class EstudioAudioService extends BaseService
                 'archivo' => $originalName,
             ]);
 
-            $transcripcionTexto = '';
+            try {
+                $resultado = $this->transcripcionService->transcribir($mp3FullPath);
+                $transcripcionTexto = $resultado['texto'];
+                $duracion = (int) $resultado['duracion'];
+            } catch (\Exception $e) {
+                Log::warning('Transcripcion Whisper fallo, se guarda sin transcripcion: '.$e->getMessage());
+                $transcripcionTexto = '';
+            }
 
             $estudioAudio = EstudioAudio::create([
                 'estudio_id' => $estudioId,
