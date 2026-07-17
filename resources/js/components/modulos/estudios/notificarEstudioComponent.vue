@@ -304,12 +304,16 @@
                                     <hr />
                                     <div class="col-md-12">
                                         <div class="form-group">
+                                            <label class="control-label" for="email"
+                                                >Correo electrónico</label
+                                            >
                                             <input
-                                                type="text"
-                                                id="nom_produc"
-                                                name="nom_produc"
+                                                type="email"
+                                                id="email"
+                                                name="email"
                                                 class="form-control"
-                                                v-model="registro.nom_produc"
+                                                v-model="registro.email"
+                                                placeholder="Correo electrónico del paciente"
                                             />
                                         </div>
                                     </div>
