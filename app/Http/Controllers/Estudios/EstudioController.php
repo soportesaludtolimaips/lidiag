@@ -192,6 +192,12 @@ class EstudioController extends Controller
             'estudio_producto_id' => 'required|integer',
             'cod_cups' => 'required|string',
             'nom_produc' => 'required|string',
+            'fec_naci' => 'nullable|string|max:50',
+            'nom_sede' => 'nullable|string|max:255',
+            'url_oviyam' => 'nullable|string|max:500',
+            'study_iuid' => 'nullable|string|max:500',
+            'tap_oviyam' => 'nullable|string|max:500',
+            'fechor_lectura' => 'nullable|date',
         ]);
 
         $result = $this->estudioService->notificarEmail($data);
@@ -209,6 +215,12 @@ class EstudioController extends Controller
             'estudio_producto_id' => 'required|integer',
             'cod_cups' => 'required|string',
             'nom_produc' => 'required|string',
+            'fec_naci' => 'nullable|string|max:50',
+            'nom_sede' => 'nullable|string|max:255',
+            'url_oviyam' => 'nullable|string|max:500',
+            'study_iuid' => 'nullable|string|max:500',
+            'tap_oviyam' => 'nullable|string|max:500',
+            'fechor_lectura' => 'nullable|date',
         ]);
 
         $result = $this->estudioService->enviarPortalPacientes($data);
