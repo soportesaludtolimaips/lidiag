@@ -848,34 +848,80 @@ function btnLimpiar() {
 }
 async function listarEstudiosAsignados() {
     if (loadingBuscar.value) return;
+
+    if (sessionStorage.getItem("ST-sede") == null) {
+        $.toast({
+            heading: "Upsss!!!",
+            text: "Debes establece la sede en la cual vas a trabajar.",
+            position: "top-right",
+            loaderBg: "#ff6849",
+            icon: "warning",
+            hideAfter: 3500,
+            stack: 6,
+        });
+        return;
+    }
+
+    const q = busqueda.value;
+    const nameDocEntered = q.bus_nom_num_docu != "";
+    const datesEntered = q.bus_fech_ini != "" || q.bus_fecha_fin != "";
+    const userSelected = q.quien_asigno_id != "";
+    const medSelected = q.medico_id != "";
+
+    if (!nameDocEntered && !datesEntered && !userSelected && !medSelected) {
+        $.toast({
+            heading: "Upsss!!!",
+            text: "Debes ingresar al menos un criterio de búsqueda.",
+            position: "top-right",
+            loaderBg: "#ff6849",
+            icon: "warning",
+            hideAfter: 3500,
+            stack: 6,
+        });
+        return;
+    }
+
+    if (datesEntered && (q.bus_fech_ini == "" || q.bus_fecha_fin == "")) {
+        $.toast({
+            heading: "Upsss!!!",
+            text: "Para buscar por fecha debes seleccionar fecha inicio y fecha fin.",
+            position: "top-right",
+            loaderBg: "#ff6849",
+            icon: "warning",
+            hideAfter: 3500,
+            stack: 6,
+        });
+        return;
+    }
+
+    if (q.bus_fech_ini && q.bus_fecha_fin && q.bus_fech_ini > q.bus_fecha_fin) {
+        $.toast({
+            heading: "Upsss!!!",
+            text: "La fecha inicio no puede ser mayor a la fecha fin.",
+            position: "top-right",
+            loaderBg: "#ff6849",
+            icon: "warning",
+            hideAfter: 3500,
+            stack: 6,
+        });
+        return;
+    }
+
     loadingBuscar.value = true;
     try {
-        if (sessionStorage.getItem("ST-sede") == null) {
-            $.toast({
-                heading: "Upsss!!!",
-                text: "Debes establece la sede en la cual vas a trabajar.",
-                position: "top-right",
-                loaderBg: "#ff6849",
-                icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
-            });
-        } else {
-            destroyDataTable();
-            registros.value = [];
+        destroyDataTable();
+        registros.value = [];
 
-            const res = await axios.post("/api/estudio-listarEstudiosAsignados", busqueda.value);
+        const res = await axios.post("/api/estudio-listarEstudiosAsignados", busqueda.value);
 
-            registros.value = res.data.data;
+        registros.value = res.data.data;
 
-            nextTick(() => {
-                initDataTable();
-            });
-        }
+        nextTick(() => {
+            initDataTable();
+        });
     } catch (error) {
         const status = error?.response?.status;
         const message = error?.response?.data?.message;
-        // Si el backend devuelve errores de validación, mostrar mensaje genérico
         if (status === 400 && error?.response?.data && typeof error.response.data === "object") {
             $.toast({
                 heading: "Upss!!!",
