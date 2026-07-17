@@ -98,12 +98,17 @@ class EstudioController extends Controller
     {
         $data = $request->validate([
             'sede_id' => 'required|integer|exists:config_sedes,id',
+            'bus_fech_ini' => 'nullable|date',
+            'bus_fecha_fin' => 'nullable|date',
+            'bus_nom_num_docu' => 'nullable|string|max:255',
+            'quien_asigno_id' => 'nullable|integer|exists:users,id',
+            'medico_id' => 'nullable|integer|exists:users,id',
         ], [
             'sede_id.required' => 'La sede es obligatoria.',
             'sede_id.exists' => 'La sede seleccionada no existe.',
         ]);
 
-        $result = $this->estudioService->listarEstudiosAsignados($data);
+        $result = $this->estudioService->listarEstudiosAsignados($request->all());
 
         return response()->json($result, $result['status']);
     }
