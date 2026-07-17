@@ -12,14 +12,8 @@ class PlantillaEstudioService extends BaseService
 {
     public function editWord(array $data): array
     {
-        \Log::debug('editWord called', ['sede_id' => $data['sede_id'] ?? 'MISSING', 'data_keys' => array_keys($data)]);
-
         $sede = ConfigSede::find($data['sede_id'] ?? null);
-        \Log::debug('Sede lookup', ['found' => $sede ? 'yes' : 'no', 'nom_sede' => $sede?->nom_sede, 'plantilla_rx' => $sede?->plantilla_rx]);
-
         if (! $sede || ! $sede->plantilla_rx) {
-            \Log::warning('Plantilla check failed', ['sede_null' => ! $sede, 'plantilla_rx_empty' => $sede ? empty($sede->plantilla_rx) : 'N/A']);
-
             return $this->error(
                 'La plantilla para la sede '.($sede->nom_sede ?? 'N/A').' no está configurada.',
                 402
@@ -27,8 +21,6 @@ class PlantillaEstudioService extends BaseService
         }
 
         $filePath = storage_path('app/plantillas_lecturas/'.$sede->plantilla_rx);
-        \Log::debug('File check', ['path' => $filePath, 'exists' => file_exists($filePath)]);
-
         if (! file_exists($filePath)) {
             return $this->error('Archivo de plantilla no encontrado.', 404);
         }
@@ -114,8 +106,15 @@ class PlantillaEstudioService extends BaseService
         $sourceFile = storage_path('app/reporte_lecturas/'.$nomPlantilla.'.docx');
         $destinationFile = storage_path('app/reporte_lecturas/'.$nomPlantilla.'.pdf');
 
+        $unoconvPath = 'C:\unoconv\unoconv.bat';
+        if (! file_exists($unoconvPath)) {
+            \Log::error("unoconv no encontrado en la ruta: {$unoconvPath}");
+
+            return false;
+        }
+
         $command = escapeshellcmd(
-            'C:\\unoconv\\unoconv -f pdf -o '.escapeshellarg($destinationFile).' '.escapeshellarg($sourceFile)
+            $unoconvPath.' -f pdf -o '.escapeshellarg($destinationFile).' '.escapeshellarg($sourceFile)
         );
 
         shell_exec($command);
