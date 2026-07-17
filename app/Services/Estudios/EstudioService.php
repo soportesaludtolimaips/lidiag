@@ -355,8 +355,8 @@ class EstudioService extends BaseService
                 $plantillaResult = $this->plantillaEstudioService->editWord($data);
                 if (! $plantillaResult['success']) {
                     return $this->error(
-                        "La plantilla para la sede {$sede->nom_sede} no está configurada.",
-                        402
+                        $plantillaResult['message'] ?? "La plantilla para la sede {$sede->nom_sede} no está configurada.",
+                        $plantillaResult['status'] ?? 402
                     );
                 }
 
