@@ -231,12 +231,11 @@
     </div>
 </template>
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-const { proxy } = getCurrentInstance();
 const dt = ref(null);
 
-import { handleAxiosErrorToast, confirmAction } from "@/helpers/alerts";
+import { confirmAction } from "@/helpers/alerts";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import axios from "axios";
 
@@ -273,8 +272,8 @@ async function ListarDatos() {
         permisos.value = [];
         registro.value.permisosRol = [];
 
-        listarRoles.value = res.data[0];
-        permisos.value = res.data[1];
+        listarRoles.value = res.data.data.roles;
+        permisos.value = res.data.data.permissions;
 
         listarPermisosRol();
 
@@ -282,7 +281,6 @@ async function ListarDatos() {
             initDataTable();
         });
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar roles.");
     } finally {
         loadingListar.value = false;
     }
@@ -343,16 +341,13 @@ async function guardarRegistro() {
         }
     } catch (error) {
         errores.value = error?.response?.data?.message || "";
-        handleAxiosErrorToast(error, "No fue posible guardar el rol.");
     } finally {
         loadingGuardar.value = false;
     }
 }
 function listarPermisosRol() {
-    let me = proxy;
-
-    me.permisos.map(function (x, y) {
-        me.registro.permisosRol.push({
+    permisos.value.forEach(function (x) {
+        registro.value.permisosRol.push({
             id: x.id,
             name: x.name,
             checked: false,
@@ -370,20 +365,17 @@ function mostrarRegistro(data = {}) {
             .then((res) => {
                 registro.value.permisos = [];
                 const permisosDelRol = Object.keys(res.data.data.permisosRol);
-                let me = proxy;
 
-                me.permisos.forEach(function (permisos, index) {
-                    me.registro.permisosRol[index].checked = false;
+                permisos.value.forEach(function (permiso, index) {
+                    registro.value.permisosRol[index].checked = false;
                 });
 
-                permisosDelRol.forEach(function (permisosDelRol) {
-                    let permisoActivo = me.permisos.findIndex((x) => x.id == permisosDelRol);
-                    me.registro.permisosRol[permisoActivo].checked = true;
+                permisosDelRol.forEach(function (permisoDelRol) {
+                    let permisoActivo = permisos.value.findIndex((x) => x.id == permisoDelRol);
+                    registro.value.permisosRol[permisoActivo].checked = true;
                 });
             })
-            .catch((error) => {
-                handleAxiosErrorToast(error, "No fue posible cargar los permisos del rol.");
-            });
+            .catch((error) => {});
     } else {
         actualizar.value = false;
         tituloModal.value = "Nuevo registro";
@@ -426,9 +418,7 @@ async function cambiarEstado(estado, data = {}) {
             stack: 6,
         });
         ListarDatos();
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible actualizar el estado del rol.");
-    }
+    } catch (error) {}
 }
 function btnCerralModalForm() {
     $(".right-sidebar").slideDown(50);
@@ -441,9 +431,8 @@ function limpiarFormulario() {
     registro.value.name = "";
     errores.value = "";
 
-    let me = proxy;
-    me.permisos.forEach(function (permisos, index) {
-        me.registro.permisosRol[index].checked = false;
+    permisos.value.forEach(function (permiso, index) {
+        registro.value.permisosRol[index].checked = false;
     });
 }
 

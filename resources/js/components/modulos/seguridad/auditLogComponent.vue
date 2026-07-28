@@ -268,7 +268,6 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const dt = ref(null);
 
-import { handleAxiosErrorToast } from "@/helpers/alerts";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import axios from "axios";
 
@@ -303,9 +302,7 @@ async function cargarEventos() {
     try {
         const res = await axios.get("/api/seguridad-auditoria/eventos");
         eventosDisponibles.value = res.data;
-    } catch (e) {
-        handleAxiosErrorToast(e, "Error al cargar tipos de evento");
-    }
+    } catch (e) {}
 }
 async function cargarLogs() {
     if (loading.value) return;
@@ -343,7 +340,6 @@ async function cargarLogs() {
             });
         });
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible cargar los registros de auditoría.");
     } finally {
         loading.value = false;
     }

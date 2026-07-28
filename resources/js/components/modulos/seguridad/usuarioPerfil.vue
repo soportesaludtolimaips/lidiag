@@ -225,7 +225,6 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from "vue";
 
-import { handleAxiosErrorToast } from "@/helpers/alerts";
 import axios from "axios";
 
 const props = defineProps({ usuarioactual: Object });
@@ -261,7 +260,6 @@ async function obtenerRegistro() {
         }
     } catch (error) {
         errores.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible cargar el perfil.");
     } finally {
         loadingObtener.value = false;
     }
@@ -296,7 +294,6 @@ async function actualizarPerfil() {
         }
     } catch (error) {
         errores.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible actualizar el perfil.");
     } finally {
         loadingActualizar.value = false;
     }

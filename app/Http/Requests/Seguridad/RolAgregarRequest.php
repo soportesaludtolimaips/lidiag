@@ -25,6 +25,11 @@ class RolAgregarRequest extends FormRequest
     {
         return [
             'name' => 'required|unique:roles|min:2|max:100',
+            'permisosRol' => 'nullable|array',
+            'permisosRol.*' => 'nullable|array',
+            'permisosRol.*.id' => 'required_with:permisosRol.*|integer',
+            'permisosRol.*.name' => 'required_with:permisosRol.*|string',
+            'permisosRol.*.checked' => 'required_with:permisosRol.*|boolean',
         ];
     }
 

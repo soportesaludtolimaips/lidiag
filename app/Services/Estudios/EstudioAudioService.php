@@ -59,14 +59,36 @@ class EstudioAudioService extends BaseService
                 return $this->error('Error al convertir el audio.', 500);
             }
 
+            $transcripcionTexto = '';
+            $duracion = 0;
+
+            try {
+                $resultado = $this->transcripcionService->transcribir($mp3FullPath);
+                $transcripcionTexto = $resultado['texto'];
+                $duracion = (int) $resultado['duracion'];
+                Log::info('Transcripcion completada (grabacion)', [
+                    'audio' => $mp3RelativePath,
+                    'caracteres' => strlen($transcripcionTexto),
+                ]);
+            } catch (\Exception $e) {
+                Log::warning('Transcripcion Whisper fallo en grabacion: '.$e->getMessage());
+            }
+
             $estudioAudio = EstudioAudio::create([
                 'estudio_id' => $estudioId,
                 'estudio_producto_id' => $estudioProductoId,
                 'audio' => $mp3RelativePath,
                 'tipo' => 'audio',
+                'duracion' => $duracion,
+                'transcripcion' => $transcripcionTexto,
             ]);
 
-            return $this->created($estudioAudio, 'Audio subido con éxito');
+            return $this->created([
+                'audio_id' => $estudioAudio->id,
+                'audio_file' => $mp3RelativePath,
+                'transcripcion' => $transcripcionTexto,
+                'duracion' => $duracion,
+            ], 'Audio grabado y transcrito con éxito');
         } catch (\Exception $e) {
             Log::error('Error al convertir audio: '.$e->getMessage());
 
@@ -228,8 +250,12 @@ class EstudioAudioService extends BaseService
                 $resultado = $this->transcripcionService->transcribir($mp3FullPath);
                 $transcripcionTexto = $resultado['texto'];
                 $duracion = (int) $resultado['duracion'];
+                Log::info('Transcripcion completada (carga)', [
+                    'archivo' => $originalName,
+                    'caracteres' => strlen($transcripcionTexto),
+                ]);
             } catch (\Exception $e) {
-                Log::warning('Transcripcion Whisper fallo, se guarda sin transcripcion: '.$e->getMessage());
+                Log::error('Transcripcion Whisper fallo: '.$e->getMessage());
                 $transcripcionTexto = '';
             }
 
@@ -246,12 +272,17 @@ class EstudioAudioService extends BaseService
                 'transcripcion' => $transcripcionTexto,
             ]);
 
+            $mensaje = $transcripcionTexto !== ''
+                ? 'Audio cargado y transcrito exitosamente'
+                : 'Audio cargado correctamente (la transcripción no está disponible)';
+
             return $this->success([
                 'audio_id' => $estudioAudio->id,
                 'audio_file' => $mp3RelativePath,
                 'transcripcion' => $transcripcionTexto,
                 'duracion' => $duracion,
-            ], 'Audio cargado y transcrito exitosamente');
+                'transcripcion_estado' => $transcripcionTexto !== '' ? 'transcrito' : 'pendiente',
+            ], $mensaje);
 
         } catch (\Exception $e) {
             Log::error('Error en carga/transcripcion de audio', [

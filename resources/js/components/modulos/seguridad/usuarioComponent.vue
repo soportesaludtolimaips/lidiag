@@ -687,7 +687,7 @@
 import { nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
 const { proxy } = getCurrentInstance();
-import { handleAxiosErrorToast, confirmAction, alertError, alertSuccess } from "@/helpers/alerts";
+import { confirmAction, alertError, alertSuccess } from "@/helpers/alerts";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import axios from "axios";
 
@@ -758,7 +758,6 @@ async function ListarDatos() {
             initDataTable();
         });
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar usuarios.");
     } finally {
         loadingListar.value = false;
     }
@@ -827,7 +826,6 @@ async function guardarRegistro() {
         }
     } catch (error) {
         errores.value = error?.response?.data || {};
-        handleAxiosErrorToast(error, "No fue posible guardar el usuario.");
     } finally {
         loadingGuardar.value = false;
     }
@@ -863,7 +861,6 @@ async function cambiarEstado(estado, data = {}) {
         );
         ListarDatos();
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible actualizar el estado.");
         alertError(
             "Error",
             error?.response?.data?.message || "No fue posible actualizar el estado.",
@@ -888,7 +885,6 @@ async function elimnarRegistro(id) {
         alertSuccess("Eliminado!", res?.data?.message || "Registro eliminado.", "success");
         ListarDatos();
     } catch (err) {
-        handleAxiosErrorToast(err, "No fue posible eliminar.");
         alertError("Error", err?.response?.data?.message || "No fue posible eliminar.", "error");
     } finally {
         loadingEliminarId.value = null;
@@ -901,9 +897,7 @@ async function ListarModulos() {
             ...modulo,
             checked: false,
         }));
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar módulos.");
-    }
+    } catch (error) {}
 }
 async function ListarSedes() {
     try {
@@ -913,9 +907,7 @@ async function ListarSedes() {
             ...sede,
             checked: false,
         }));
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar sedes.");
-    }
+    } catch (error) {}
 }
 async function ListarServiciosCitas() {
     try {
@@ -924,9 +916,7 @@ async function ListarServiciosCitas() {
             ...sc,
             checked: false,
         }));
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar servicios de cita.");
-    }
+    } catch (error) {}
 }
 function obtenerFirma(event) {
     firma.value = event.target.files[0];
