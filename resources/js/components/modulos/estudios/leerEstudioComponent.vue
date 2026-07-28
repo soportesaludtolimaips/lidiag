@@ -1526,9 +1526,18 @@ async function guardarRegistro() {
             limpiar();
 
             if (audioPendiente && audioPendiente instanceof Blob) {
+                audioBlob.value = audioPendiente;
+                console.log("[guardarRegistro] Enviando audio:", {
+                    size: audioPendiente.size,
+                    type: audioPendiente.type,
+                });
                 try {
                     await sendToBackend(estudioId, productoId);
-                } catch (e) {}
+                } catch (e) {
+                    console.error("[guardarRegistro] Error enviando audio:", e);
+                }
+            } else {
+                console.log("[guardarRegistro] No hay audio pendiente:", { audioPendiente });
             }
         }
     } catch (error) {
