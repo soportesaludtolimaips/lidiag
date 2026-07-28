@@ -1501,7 +1501,7 @@ async function guardarRegistro() {
 
         const res = await axios.post("/api/estudio-leerEstudio", registro.value);
 
-        if (res.status == 200) {
+        if (res.status >= 200 && res.status < 300) {
             if (audioBlob.value && audioBlob.value instanceof Blob) {
                 try {
                     await sendToBackend(id.value, registro.value.estudio_producto_id);
