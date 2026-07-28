@@ -203,7 +203,6 @@ import { onMounted, ref } from "vue";
 
 import { listarUsuariosYSedes } from "../../../helpers/usuarios";
 import usePermissions from "@/helpers/permissions.js";
-import { handleAxiosErrorToast } from "@/helpers/alerts";
 import axios from "axios";
 
 const props = defineProps({ usuarioactual: Object, permisos: Array });
@@ -228,9 +227,7 @@ async function listarSedes() {
 
         const res = await axios.get("/api/config-sedes/listar/sedes/activas");
         sedes.value = res.data.data;
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible cargar sedes/usuarios.");
-    }
+    } catch (error) {}
 }
 async function descargarReporte() {
     if (loadingDescargar.value) return;
@@ -275,7 +272,6 @@ async function descargarReporte() {
             "noopener,noreferrer"
         );
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible descargar el reporte.");
     } finally {
         // pequeño delay para evitar doble click inmediato
         setTimeout(() => {

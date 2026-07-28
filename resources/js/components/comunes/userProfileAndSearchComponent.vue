@@ -195,7 +195,6 @@
 <script setup>
 import { computed, getCurrentInstance, onBeforeUnmount, onMounted, ref } from "vue";
 
-import { handleAxiosErrorToast } from "@/helpers/alerts.js";
 import axios from "axios";
 
 const props = defineProps({
@@ -328,7 +327,6 @@ async function cargarHdNotificaciones(silent = false) {
         if (status === 403 || status === 404) {
             hdDisponible.value = false;
         } else if (!silent) {
-            handleAxiosErrorToast(error, "No se pudieron cargar notificaciones.");
         }
     } finally {
         hdLoading.value = false;
@@ -338,17 +336,13 @@ async function marcarHdLeida(n) {
     try {
         await axios.post(`/api/helpdesk-notificaciones/${n.id}/read`);
         n.read_at = new Date().toISOString();
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudo marcar como leída.");
-    }
+    } catch (error) {}
 }
 async function marcarHdTodas() {
     try {
         await axios.post("/api/helpdesk-notificaciones/read-all");
         await cargarHdNotificaciones(true);
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudieron marcar todas.");
-    }
+    } catch (error) {}
 }
 async function abrirHdNotificacion(n) {
     if (!n.read_at) await marcarHdLeida(n);

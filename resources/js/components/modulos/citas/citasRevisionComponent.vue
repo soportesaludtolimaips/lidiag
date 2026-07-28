@@ -504,7 +504,7 @@ const dt = ref(null);
 
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { handleAxiosErrorToast, alertSuccess, alertError } from "@/helpers/alerts";
+import { alertSuccess, alertError } from "@/helpers/alerts";
 import { formatFecha } from "@/composables/useCitasUtils.js";
 import axios from "axios";
 
@@ -632,7 +632,6 @@ async function listarRegistros() {
             });
         }
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible cargar las solicitudes.");
     } finally {
         loadingBuscar.value = false;
     }

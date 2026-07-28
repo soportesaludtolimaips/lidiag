@@ -320,7 +320,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 const dt = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { handleAxiosErrorToast, alertSuccess, alertError, confirmAction } from "@/helpers/alerts";
+import { alertSuccess, alertError, confirmAction } from "@/helpers/alerts";
 import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import axios from "axios";
@@ -366,18 +366,14 @@ async function cargarSedes() {
     try {
         const res = await axios.get("/api/config-sedes/listar/sedes/activas");
         sedes.value = res.data?.data || [];
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible cargar las sedes.");
-    }
+    } catch (error) {}
 }
 async function cargarServicios() {
     try {
         const res = await axios.get("/api/citas/servicios");
         servicios.value = res.data?.data || [];
         filtrarServicios();
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible cargar los servicios.");
-    }
+    } catch (error) {}
 }
 function filtrarServicios() {
     if (filtro.value.sede_id) {
@@ -403,7 +399,6 @@ async function cargarProductos() {
         productos.value = res.data?.data || [];
     } catch (error) {
         productos.value = [];
-        handleAxiosErrorToast(error, "No fue posible cargar los productos.");
     }
 }
 function onFilterProductoSelect(value) {
@@ -429,7 +424,6 @@ async function buscar() {
             });
         });
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar las recomendaciones.");
         registros.value = [];
     } finally {
         loadingBuscar.value = false;
@@ -462,7 +456,6 @@ async function guardar() {
         await buscar();
     } catch (error) {
         errores.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible guardar la recomendación.");
     } finally {
         loadingGuardar.value = false;
     }
@@ -481,7 +474,6 @@ async function eliminarRegistro(id) {
         alertSuccess("Éxito", res?.data?.message || "Recomendación eliminada.");
         await buscar();
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible eliminar la recomendación.");
     } finally {
         loadingEliminarId.value = null;
     }

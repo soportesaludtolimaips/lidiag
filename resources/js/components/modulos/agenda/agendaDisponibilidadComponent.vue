@@ -343,7 +343,7 @@ const emitter = proxy.emitter;
 import { nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { handleAxiosErrorToast, confirmAction } from "@/helpers/alerts";
+import { confirmAction } from "@/helpers/alerts";
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import axios from "axios";
 
@@ -392,7 +392,6 @@ async function buscarStudy() {
             }
         });
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar disponibilidades.");
         registros.value = [];
     } finally {
         loadingBuscar.value = false;
@@ -448,7 +447,6 @@ async function guardarRegistro() {
         await buscarStudy();
     } catch (error) {
         errores.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible guardar la disponibilidad.");
     } finally {
         loadingGuardar.value = false;
     }
@@ -490,7 +488,6 @@ async function elimnarRegistro(id) {
         });
         await buscarStudy();
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible eliminar la disponibilidad.");
     } finally {
         loadingEliminarId.value = null;
     }
@@ -501,9 +498,7 @@ async function listarServiciosCitas() {
             params: { sede_id: sedeActual.value },
         });
         serviciosCitas.value = res.data.data;
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar servicios de cita.");
-    }
+    } catch (error) {}
 }
 function establecerSede() {
     registro.value.sede_id = sessionStorage.getItem("ST-sede");

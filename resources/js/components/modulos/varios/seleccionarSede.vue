@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <div>
         <a
             class="nav-link dropdown-toggle waves-effect waves-dark"
@@ -27,7 +27,6 @@ const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
 import { onMounted, ref, getCurrentInstance } from "vue";
 
-import { handleAxiosErrorToast } from "@/helpers/alerts";
 import axios from "axios";
 
 const sucursalActual = ref(1);
@@ -44,7 +43,6 @@ async function listarSucursales() {
             emitter.emit("sedeSeleccionada", { idSede: registros.value[0].id });
         }
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar sucursales.");
         registros.value = [];
     }
 }
