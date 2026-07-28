@@ -29,12 +29,12 @@
 | 2.5 | CRUD Sedes | 🟢 | Listar, crear, editar, eliminar OK |
 | 2.6 | CRUD Servicios de Citas | 🟢 | Faltaban permisos en BD, creados y asignados. CRUD OK |
 | 2.7 | CRUD Productos por Servicio | 🟢 | Incluido en config WhatsApp (pestaña Productos). Fix: faltaba método misServicios |
-| 2.8 | CRUD Tipos de Plantilla | 🔴 | |
-| 2.9 | CRUD Plantillas (WYSIWYG) | 🔴 | |
-| 2.10 | CRUD Tipos de Documento | 🔴 | |
-| 2.11 | CRUD Consentimiento Informado | 🔴 | |
-| 2.12 | CRUD WhatsApp Bot | 🔴 | |
-| 2.13 | CRUD Motivos de Rechazo | 🔴 | |
+| 2.8 | CRUD Tipos de Plantilla | 🟢 | Fix: permisos FormRequest 'configuracion.' → 'config.', columna producto_id nullable, status check 200→2xx |
+| 2.9 | CRUD Plantillas (WYSIWYG) | ⚪ | No construido |
+| 2.10 | CRUD Tipos de Documento | ⚪ | No construido |
+| 2.11 | CRUD Consentimiento Informado | ⚪ | No construido |
+| 2.12 | CRUD WhatsApp Bot | ⚪ | No construido |
+| 2.13 | CRUD Motivos de Rechazo | ⚪ | No construido |
 
 ## 3. ESTUDIOS (Rx)
 | # | Prueba | Estado | Observaciones |
