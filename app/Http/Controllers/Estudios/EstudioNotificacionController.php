@@ -14,7 +14,7 @@ class EstudioNotificacionController extends Controller
     ) {
         ini_set('max_execution_time', -1);
         $this->middleware('auth:sanctum')->only(['store', 'update', 'destroy']);
-        $this->middleware('permission:estudios.notificar.index');
+        $this->middleware('permission:estudios.notificar.index')->only(['store', 'update', 'destroy']);
     }
 
     public function listarEstudios(ListarEstudiosNotificarRequest $request): JsonResponse
