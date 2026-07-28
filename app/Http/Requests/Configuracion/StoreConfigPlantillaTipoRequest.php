@@ -9,7 +9,7 @@ class StoreConfigPlantillaTipoRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return Auth::check() && Auth::user()->can('configuracion.plantillas-tipos.create');
+        return Auth::check() && Auth::user()->can('config.plantillas.tipos.create');
     }
 
     public function rules(): array

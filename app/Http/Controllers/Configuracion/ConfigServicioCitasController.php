@@ -15,6 +15,13 @@ class ConfigServicioCitasController extends Controller
         private readonly ConfigServicioCitaService $configServicioCitaService,
     ) {}
 
+    public function misServicios(): JsonResponse
+    {
+        $result = $this->configServicioCitaService->all();
+
+        return response()->json($result['data'] ?? []);
+    }
+
     public function index(Request $request): JsonResponse
     {
         $result = $this->configServicioCitaService->all($request->integer('sede_id'));

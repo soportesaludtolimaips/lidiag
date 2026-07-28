@@ -43,4 +43,3 @@ public/build/manifest.json
 # SSL certs (no comitear)
 ssl.crt
 ssl.key
-

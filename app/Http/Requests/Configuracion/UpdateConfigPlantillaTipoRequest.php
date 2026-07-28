@@ -9,7 +9,7 @@ class UpdateConfigPlantillaTipoRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return Auth::check() && Auth::user()->can('configuracion.plantillas-tipos.edit');
+        return Auth::check() && Auth::user()->can('config.plantillas.tipos.edit');
     }
 
     public function rules(): array

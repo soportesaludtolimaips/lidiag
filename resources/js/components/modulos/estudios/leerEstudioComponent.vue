@@ -262,7 +262,9 @@
                                         <button
                                             type="button"
                                             class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm"
-                                            :disabled="loadingImagenId === item.estudio_producto_id"
+                                            :disabled="
+                                                loadingVerImagen === item.estudio_producto_id
+                                            "
                                             @click="
                                                 verImagen(
                                                     item.url_oviyam,
@@ -276,7 +278,7 @@
                                             aria-label="Ver imágenes"
                                         >
                                             <i
-                                                v-if="loadingImagenId === item.estudio_producto_id"
+                                                v-if="loadingVerImagen === item.estudio_producto_id"
                                                 class="fa fa-spinner fa-spin"
                                             ></i>
                                             <i v-else class="fa fa-file-photo-o"></i>
@@ -446,7 +448,7 @@
                                                 <button
                                                     type="button"
                                                     class="btn btn-secondary btn-xs"
-                                                    :disabled="loadingImagenSidebar"
+                                                    :disabled="loadingVerImagen"
                                                     @click="
                                                         verImagen(
                                                             registro.urlOviyam,
@@ -457,7 +459,7 @@
                                                     "
                                                 >
                                                     <i
-                                                        v-if="loadingImagenSidebar"
+                                                        v-if="loadingVerImagen"
                                                         class="fa fa-spinner fa-spin"
                                                     ></i>
                                                     <i v-else class="fa fa-file-image-o"></i>
@@ -556,7 +558,9 @@
                                                     data-toggle="tab"
                                                     href="#audios_hc"
                                                     role="tab"
-                                                    @click="listarAudios()"
+                                                    @click="
+                                                        listarAudios(registro.estudio_producto_id)
+                                                    "
                                                 >
                                                     <span>
                                                         <h5 class="card-title text-info">
@@ -612,13 +616,13 @@
                                                         href="javascript:void(0)"
                                                         :style="{
                                                             pointerEvents:
-                                                                loadingDescargaSoporte ===
+                                                                loadingDescarga ===
                                                                 itemArchivo.archivo_encrip
                                                                     ? 'none'
                                                                     : 'auto',
                                                         }"
                                                         @click="
-                                                            descargaSoportte(
+                                                            descargaSoporte(
                                                                 itemArchivo.archivo_original,
                                                                 itemArchivo.archivo_encrip
                                                             )
@@ -626,7 +630,7 @@
                                                     >
                                                         <i
                                                             v-if="
-                                                                loadingDescargaSoporte ===
+                                                                loadingDescarga ===
                                                                 itemArchivo.archivo_encrip
                                                             "
                                                             class="fa fa-spinner fa-spin"
@@ -1142,13 +1146,13 @@
                                                                     title="Imprimir reporte"
                                                                     aria-label="Imprimir reporte"
                                                                     :disabled="
-                                                                        loadingImprimirId ===
+                                                                        loadingImprimir ===
                                                                         item.estudio_producto_id
                                                                     "
                                                                 >
                                                                     <i
                                                                         v-if="
-                                                                            loadingImprimirId ===
+                                                                            loadingImprimir ===
                                                                             item.estudio_producto_id
                                                                         "
                                                                         class="fa fa-spinner fa-spin"
@@ -1199,9 +1203,6 @@ const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import DatosPacienteDisplay from "@/components/comunes/datosPacienteDisplayComponent.vue";
 import { normalizarFecha } from "@/helpers/dateUtils.js";
@@ -1210,23 +1211,58 @@ import {
     safeInitDataTable,
     safeRemoveDataTableRow,
 } from "@/helpers/datatables.js";
-import {
-    confirmAction,
-    alertSuccess,
-    alertError,
-    handleAxiosErrorToast,
-    toastMessage,
-} from "@/helpers/alerts";
+import { toastMessage } from "@/helpers/alerts";
 import { useMedicalDictionary } from "@/composables/useMedicalDictionary";
 import { useDictationFlow } from "@/composables/useDictationFlow";
 import { useAudioUploadFlow } from "@/composables/useAudioUploadFlow";
+import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 import axios from "axios";
 
-const props = defineProps({ usuarioactual: Object });
+const props = defineProps({ usuarioactual: Object, permisos: { type: Array, default: () => [] } });
 
 const medicalDict = useMedicalDictionary();
 const dictationFlow = useDictationFlow();
+const {
+    recording,
+    recognizing,
+    uppercase,
+    microfono,
+    toggleSpeechRecognition,
+    stopAll,
+    sendToBackend,
+    clearAudioBuffer,
+    setCallbacks,
+    setupKeyboardShortcut,
+} = dictationFlow;
 const audioUploadFlow = useAudioUploadFlow({ showToast: (cfg) => $.toast(cfg) });
+const {
+    audiosCargadosPendientes,
+    audioSeleccionados,
+    modoTranscripcion,
+    transcribiendo,
+    insertandoAudios,
+    progresoTranscripcion,
+    eliminandoAudioId,
+    audiosSubiendo,
+    limpiarAudiosCargados,
+    obtenerAudioUrl,
+    previewTranscripcion,
+    badgeClaseEstado,
+    formatDuracion,
+    formatSize,
+} = audioUploadFlow;
+const {
+    loadingDescarga,
+    loadingAudios,
+    loadingImprimir,
+    loadingVerImagen,
+    audiosDeEstudio,
+    formatDate,
+    descargaSoporte,
+    listarAudios,
+    imprimirReporte,
+    verImagen,
+} = useEstudioHelpers();
 const dt = ref(null);
 const loadingBuscar = ref(false);
 
@@ -1235,7 +1271,6 @@ const registros = ref([]);
 const productoEstudio = ref({ cod_produc: "", nom_produc: "" });
 const diagnosticosEstudio = ref([]);
 const historial_estudios = ref([]);
-const loadingImprimirId = ref(null);
 const soportesHC = ref([]);
 const tituloModal = ref("Nuevo registro");
 const registro = ref({
@@ -1270,16 +1305,16 @@ const autoRefreshTimer = ref(null);
 const loadingGuardar = ref(false);
 const loadingAbrirId = ref(null);
 const loadingVistoId = ref(null);
-const loadingDescargaSoporte = ref(null);
-const loadingImagenId = ref(null);
-const loadingImagenSidebar = ref(false);
-const loadingAudios = ref(false);
-const audiosDeEstudio = ref([]);
 
 const contadorPendientes = computed(() => {
     return registros.value ? registros.value.length : 0;
 });
 
+/**
+ * Aplica un prellenado del dashboard si existe un accession almacenado en sessionStorage. Si se encuentra un accession válido, se busca el estudio correspondiente y se muestra en la interfaz. Si no hay un accession válido, simplemente se listan los estudios pendientes.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function applyDashboardPrefill() {
     try {
         const accession = sessionStorage.getItem("ST-accession");
@@ -1302,6 +1337,12 @@ function applyDashboardPrefill() {
 function normalizeWord(text) {
     return medicalDict.normalizeWord(text);
 }
+
+/**
+ * Inicializa la tabla de datos con las configuraciones necesarias, incluyendo botones de exportación y opciones de idioma.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function initDataTable() {
     safeInitDataTable(dt.value || "#example23", {
         dom: "Bfrtip",
@@ -1327,28 +1368,21 @@ function destroyDataTable() {
 function destroyDataTableHistorial() {
     safeDestroyDataTable("#example23-1");
 }
-async function listarAudios() {
-    if (loadingAudios.value) return;
-    loadingAudios.value = true;
-    try {
-        if (!registro.value.estudio_producto_id) {
-            audiosDeEstudio.value = [];
-            return;
-        }
-        const res = await axios.get(
-            "/api/listar-audios-estudio/" + registro.value.estudio_producto_id
-        );
-        audiosDeEstudio.value = res.data.data || [];
-    } catch (e) {
-        handleAxiosErrorToast(e, "No fue posible listar audios.");
-        audiosDeEstudio.value = [];
-    } finally {
-        loadingAudios.value = false;
-    }
-}
+
 function handleAudioFileSelect(event) {
-    audioUploadFlow.handleAudioFileSelect(event, id.value, registro.value.estudio_producto_id);
+    audioUploadFlow.handleAudioFileSelect(
+        event,
+        id.value,
+        registro.value.estudio_producto_id,
+        (texto) => {
+            registro.value.lectura = audioUploadFlow.insertarTranscripcion(
+                texto,
+                registro.value.lectura
+            );
+        }
+    );
 }
+
 async function transcribirAudiosSeleccionados() {
     const texto = await audioUploadFlow.transcribirAudiosSeleccionados();
     if (texto) {
@@ -1358,6 +1392,7 @@ async function transcribirAudiosSeleccionados() {
         );
     }
 }
+
 function insertarAudioIndividual(audio) {
     const texto = audioUploadFlow.insertarAudioIndividual(audio);
     if (texto) {
@@ -1367,11 +1402,18 @@ function insertarAudioIndividual(audio) {
         );
     }
 }
+
 function eliminarAudioCargado(audioId) {
     audioUploadFlow.eliminarAudioCargado(audioId, () => {
-        listarAudios();
+        listarAudios(registro.value.estudio_producto_id);
     });
 }
+
+/**
+ * Lista los estudios pendientes del médico actual según la sede seleccionada y actualiza la tabla de datos con los resultados obtenidos.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function listarMisPendientes() {
     if (sessionStorage.getItem("ST-sede") == null) {
         toastMessage({
@@ -1387,7 +1429,7 @@ async function listarMisPendientes() {
 
         try {
             const res = await axios.post("/api/estudio-listarPendientesMedico", {
-                id: props.usuarioactual.id,
+                id: props.usuarioactual?.id,
                 sede_id: sede_id.value,
             });
             destroyDataTable();
@@ -1399,12 +1441,19 @@ async function listarMisPendientes() {
                 tablaVisible.value = true;
             });
         } catch (error) {
-            handleAxiosErrorToast(error, "No fue posible listar los estudios pendientes.");
         } finally {
             loadingListar.value = false;
         }
     }
 }
+
+/**
+ * Activa o desactiva la función de auto-refresh para actualizar automáticamente la lista de estudios pendientes cada cierto intervalo de tiempo.
+ * Si el auto-refresh está activado, se detiene; si está desactivado, se inicia un temporizador que llama a
+ * la función `listarMisPendientes` cada `autoRefreshInterval` milisegundos.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function toggleAutoRefresh() {
     if (autoRefreshEnabled.value) {
         if (autoRefreshTimer.value) {
@@ -1431,12 +1480,16 @@ function toggleAutoRefresh() {
         });
     }
 }
+
+/**
+ * Guarda el registro de lectura del estudio actual. Antes de guardar, detiene cualquier dictado en curso y verifica que haya un estudio seleccionado.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
     try {
-        await dictationFlow.stopAll();
-
         if (!registro.value || !registro.value.estudio_producto_id) {
             toastMessage({
                 heading: "Upsss!!!",
@@ -1449,7 +1502,11 @@ async function guardarRegistro() {
         const res = await axios.post("/api/estudio-leerEstudio", registro.value);
 
         if (res.status == 200) {
-            await dictationFlow.sendToBackend(id.value, registro.value.estudio_producto_id);
+            if (audioBlob.value && audioBlob.value instanceof Blob) {
+                try {
+                    await sendToBackend(id.value, registro.value.estudio_producto_id);
+                } catch (e) {}
+            }
 
             toastMessage({
                 heading: "Completado",
@@ -1461,13 +1518,9 @@ async function guardarRegistro() {
                 (x) => x.estudio_producto_id == idRow.value
             );
             if (estudioEliminar >= 0) {
-                // En guardado NO destruimos/reinicializamos la tabla:
-                // solo removemos la fila correspondiente y mantenemos el resto de pendientes visible.
                 try {
                     safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idRow.value);
-                } catch (e) {
-                    // best-effort: si DataTables no está listo, seguimos con el splice (Vue actualizará el DOM)
-                }
+                } catch (e) {}
                 registros.value.splice(estudioEliminar, 1);
             }
 
@@ -1479,11 +1532,18 @@ async function guardarRegistro() {
             error?.response?.data?.errors && typeof error.response.data.errors === "object"
                 ? error.response.data.errors
                 : {};
-        handleAxiosErrorToast(error, "No fue posible guardar la lectura.");
     } finally {
+        await stopAll();
         loadingGuardar.value = false;
     }
 }
+
+/**
+ * Marca un estudio como "visto" en la interfaz y realiza una llamada al backend para actualizar el estado en la base de datos.
+ * @param {number} id - El ID del estudio a marcar como visto.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function visto(id) {
     if (loadingVistoId.value) return;
     loadingVistoId.value = id;
@@ -1511,11 +1571,17 @@ async function visto(id) {
             if (row) row.classList.remove("text-info");
         });
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible marcar como visto.");
     } finally {
         loadingVistoId.value = null;
     }
 }
+
+/**
+ * Lista el historial de estudios de un paciente según su número de documento y actualiza la tabla correspondiente en la interfaz.
+ * @param {string} num_docu - El número de documento del paciente.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function listar_historial_estudios(num_docu) {
     try {
         const res = await axios.post("/api/listar.estudios.notificaciones", {
@@ -1535,46 +1601,22 @@ async function listar_historial_estudios(num_docu) {
             });
         }
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar el historial de estudios.");
     } finally {
         loadingBuscar.value = false;
     }
 }
-async function imprimirReporte(estudio) {
-    if (loadingImprimirId.value) return;
-    loadingImprimirId.value = estudio.estudio_producto_id;
-    try {
-        $.toast({
-            heading: "Procesando...",
-            text: "Generando reportes, por favor espere",
-            position: "top-right",
-            loaderBg: "#ff6849",
-            icon: "info",
-            hideAfter: 3500,
-            stack: 6,
-        });
 
-        const res = await axios.post("/api/edit-word", estudio);
-
-        window.open(
-            `/descargar.pdf.lectura/${res.data.data.plantilla}`,
-            "_blank",
-            "noopener,noreferrer"
-        );
-    } catch (error) {
-        errores.value =
-            error?.response?.data?.errors && typeof error.response.data.errors === "object"
-                ? error.response.data.errors
-                : {};
-    } finally {
-        loadingImprimirId.value = null;
-    }
-}
+/**
+ * Muestra el registro del estudio seleccionado en el panel lateral, deteniendo cualquier dictado en curso y cargando los datos relevantes del estudio.
+ * @param {Object} data - Los datos del estudio a mostrar.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function mostrarRegistro(data = {}) {
     if (loadingAbrirId.value !== null) return;
     loadingAbrirId.value = data.estudio_producto_id;
 
-    await dictationFlow.stopAll();
+    await stopAll();
     audiosDeEstudio.value = [];
     audioUploadFlow.limpiarAudiosCargados();
 
@@ -1612,66 +1654,19 @@ async function mostrarRegistro(data = {}) {
         const resSoportesHC = await axios.get("/api/listar-soportes-hc-estudio?id=" + id.value);
         soportesHC.value = resSoportesHC.data.data;
 
-        await listarAudios();
+        await listarAudios(registro.value.estudio_producto_id);
 
         abrirSidebar();
         errores.value = {};
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible cargar el estudio seleccionado.");
     } finally {
         loadingAbrirId.value = null;
     }
 }
-function descargaSoportte(nomArchivoOriginal, nomArchivoEncriptado) {
-    if (loadingDescargaSoporte.value) return;
-    loadingDescargaSoporte.value = nomArchivoEncriptado;
-    const url = `/api/descarga-soportes-hc/${nomArchivoEncriptado}`;
 
-    axios
-        .get(url, { responseType: "blob" })
-        .then((response) => {
-            const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement("a");
-            link.href = blobUrl;
-            link.setAttribute("download", nomArchivoOriginal);
-            document.body.appendChild(link);
-            link.click();
-            setTimeout(() => window.URL.revokeObjectURL(blobUrl), 2000);
-        })
-        .catch((error) => {
-            handleAxiosErrorToast(error, "No fue posible descargar el soporte.");
-        })
-        .finally(() => {
-            loadingDescargaSoporte.value = null;
-        });
-}
-function verImagen(url, pat_id, study_iuid, servername, estudio_producto_id = null) {
-    // No hace axios, pero evitamos doble click y mostramos spinner breve
-    if (estudio_producto_id !== null) {
-        if (loadingImagenId.value) return;
-        loadingImagenId.value = estudio_producto_id;
-    } else {
-        if (loadingImagenSidebar.value) return;
-        loadingImagenSidebar.value = true;
-    }
-
-    try {
-        const Url = `${url}?patientID=${encodeURIComponent(pat_id)}&studyUID=${encodeURIComponent(study_iuid)}&serverName=${encodeURIComponent(servername)}`;
-        window.open(Url, "_blank", "noopener,noreferrer");
-    } finally {
-        setTimeout(() => {
-            loadingImagenId.value = null;
-            loadingImagenSidebar.value = false;
-        }, 500);
-    }
-}
 function establecerSede() {
     sede_id.value = sessionStorage.getItem("ST-sede");
     registros.value = [];
-}
-function formatDate(timestamp) {
-    // Convertir el timestamp UTC a la zona horaria local y formatear
-    return dayjs.utc(timestamp).local().format("YYYY-MM-DD HH:mm:ss");
 }
 function limpiar() {
     tituloModal.value = "";
@@ -1689,17 +1684,17 @@ function limpiar() {
     registro.value.direccion = "";
     registro.value.lectura = "";
 
-    dictationFlow.clearAudioBuffer();
+    clearAudioBuffer();
     audioUploadFlow.limpiarAudiosCargados();
     audiosDeEstudio.value = [];
 }
 async function abrirSidebar() {
-    await dictationFlow.stopAll();
+    await stopAll();
     $(".right-sidebar").slideDown(50);
     $(".right-sidebar").addClass("shw-rside");
 }
 async function cerrarSidebar() {
-    await dictationFlow.stopAll();
+    await stopAll();
     $(".right-sidebar").slideUp(50);
     $(".right-sidebar").removeClass("shw-rside");
 }
@@ -1709,7 +1704,7 @@ onMounted(() => {
     sede_id.value = sessionStorage.getItem("ST-sede");
     applyDashboardPrefill();
 
-    dictationFlow.setCallbacks({
+    setCallbacks({
         onText: (text) => {
             if (registro.value) registro.value.lectura += text;
         },
@@ -1718,7 +1713,7 @@ onMounted(() => {
         },
         onState: (state) => {},
         onAudioSaved: () => {
-            listarAudios();
+            listarAudios(registro.value.estudio_producto_id);
         },
     });
 
@@ -1728,7 +1723,7 @@ onMounted(() => {
         listarMisPendientes();
     });
 
-    dictationFlow.setupKeyboardShortcut();
+    setupKeyboardShortcut();
 });
 
 onBeforeUnmount(() => {
@@ -1802,11 +1797,13 @@ onBeforeUnmount(() => {
     width: 50px;
     height: 5px;
 }
+
 .sidebar-scroll {
     overflow-x: hidden;
     overflow-y: scroll;
     height: 100%;
 }
+
 .lectura-textarea {
     height: 100%;
 }

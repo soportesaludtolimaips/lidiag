@@ -37,6 +37,17 @@ export function useDictationFlow() {
     let _audioRevoke = null;
     let onKeydownHandler = null;
 
+    function handleVisibilityChange() {
+        if (
+            !document.hidden &&
+            recording.value &&
+            mediaRecorder.value &&
+            mediaRecorder.value.state === "paused"
+        ) {
+            mediaRecorder.value.resume();
+        }
+    }
+
     function setCallbacks({ onText, showToast, onState, onAudioSaved } = {}) {
         if (typeof onText === "function") _onText = onText;
         if (typeof showToast === "function") _showToast = showToast;
@@ -548,6 +559,7 @@ export function useDictationFlow() {
 
     async function stopAll() {
         try {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
             clearRecognitionRestartTimer();
             noSpeechCount.value = 0;
             recognitionBackoffMs.value = 500;
@@ -721,6 +733,7 @@ export function useDictationFlow() {
                     audioBlob.value = null;
                     audioUrl.value = null;
                     recording.value = true;
+                    document.addEventListener("visibilitychange", handleVisibilityChange);
                 })
                 .catch((error) => {
                     recording.value = false;
@@ -802,7 +815,7 @@ export function useDictationFlow() {
                 status: res?.status,
                 data: res?.data,
             });
-            if (res && res.status === 200) {
+            if (res && (res.status === 200 || res.status === 201)) {
                 showToast({
                     heading: "Ok!!!",
                     text: "Audio enviado correctamente",
@@ -874,7 +887,7 @@ export function useDictationFlow() {
         onKeydownHandler = (e) => {
             if (e.key === "F2" && !e.repeat) {
                 e.preventDefault();
-                if (recording.value || recognizing.value) stopRecording();
+                if (recording.value || recognizing.value) stopAll();
                 else startRecording();
             }
         };

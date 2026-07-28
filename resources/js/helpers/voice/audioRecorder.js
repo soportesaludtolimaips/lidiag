@@ -64,7 +64,19 @@ export async function createAudioRecorderSession({
         if (event && event.data && event.data.size) chunks.push(event.data);
     };
 
+    let autoResumeTimer = null;
+    let isRecording = false;
+    mediaRecorder.onpause = () => {
+        clearTimeout(autoResumeTimer);
+        autoResumeTimer = setTimeout(() => {
+            if (mediaRecorder && mediaRecorder.state === "paused" && isRecording) {
+                mediaRecorder.resume();
+            }
+        }, 500);
+    };
+
     const start = () => {
+        isRecording = true;
         mediaRecorder.start();
     };
 
@@ -80,6 +92,8 @@ export async function createAudioRecorderSession({
 
     const stop = () =>
         new Promise((resolve) => {
+            isRecording = false;
+            clearTimeout(autoResumeTimer);
             if (!mediaRecorder || mediaRecorder.state === "inactive") {
                 resolve({ blob: null, url: null, chunks, revoke: () => {} });
                 return;
@@ -88,16 +102,31 @@ export async function createAudioRecorderSession({
                 const blob = new Blob(chunks, { type: "audio/webm" });
                 const url = URL.createObjectURL(blob);
                 lastUrl = url;
-                resolve({ blob, url, chunks, revoke: () => { if (lastUrl) { URL.revokeObjectURL(lastUrl); lastUrl = null; } } });
+                resolve({
+                    blob,
+                    url,
+                    chunks,
+                    revoke: () => {
+                        if (lastUrl) {
+                            URL.revokeObjectURL(lastUrl);
+                            lastUrl = null;
+                        }
+                    },
+                });
             };
             mediaRecorder.stop();
         });
 
     const cleanup = () => {
+        isRecording = false;
+        clearTimeout(autoResumeTimer);
         try {
             if (stream && stream.getTracks) stream.getTracks().forEach((t) => t.stop());
         } catch (e) {}
-        if (lastUrl) { URL.revokeObjectURL(lastUrl); lastUrl = null; }
+        if (lastUrl) {
+            URL.revokeObjectURL(lastUrl);
+            lastUrl = null;
+        }
     };
 
     return { stream, mediaRecorder, chunks, start, pause, resume, stop, cleanup };

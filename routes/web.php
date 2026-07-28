@@ -111,7 +111,7 @@ Route::get('/descargar.pdf.lectura/{nomArchivo}', [EstudioController::class, 'de
 Route::get('/audios/{filename}', [EstudioAudioController::class, 'stream'])
     ->name('audios.stream')
     ->middleware(['auth', 'permission:estudio.transcribir|estudio.leerestudio|estudio.leerEstudio'])
-    ->where('filename', 'audio_[A-Z0-9]{10,}\.mp3');
+    ->where('filename', '(audio|cargado)_[A-Z0-9]{10,}\.mp3');
 
 Route::view('/estudios.leer.estudio.listar', 'modulos.estudios.leer-estudio')
     ->name('estudios.leer.estudio.listar')
