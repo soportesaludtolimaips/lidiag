@@ -695,7 +695,6 @@ async function listarPendientesTrascribir() {
             });
         }
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar los pendientes.");
     } finally {
         loadingBuscar.value = false;
     }
@@ -834,7 +833,6 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
             alertError("Ups!", "No fue posible anular el producto.", "error");
         }
     } catch (err) {
-        handleAxiosErrorToast(err, "No fue posible anular el producto.");
         alertError("Error", "No fue posible anular el producto.", "error");
     } finally {
         loadingAnularId.value = null;
@@ -863,7 +861,6 @@ async function listarAudios() {
         const res = await axios.get("/api/listar-audios-estudio/" + id);
         audiosDeEstudio.value = res.data.data;
     } catch (e) {
-        handleAxiosErrorToast(e, "No fue posible listar audios.");
         audiosDeEstudio.value = [];
     } finally {
         loadingAudios.value = false;
@@ -877,7 +874,6 @@ async function listarMedicos() {
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = res.data.data;
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar médicos.");
         medicos.value = [];
     }
 }

@@ -619,7 +619,6 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance
 
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { handleAxiosErrorToast } from "@/helpers/alerts";
 import axios from "axios";
 
 const props = defineProps({ usuarioactual: Object });
@@ -792,7 +791,6 @@ async function buscarStudy() {
         }
     } catch (error) {
         erroresBusqueda.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible listar estudios.");
     } finally {
         loadingBuscar.value = false;
     }
@@ -831,7 +829,6 @@ async function guardarRegistro() {
                 btnLimpiar(); */
     } catch (error) {
         errores.value = error?.response?.data?.errors || error?.response?.data || {};
-        handleAxiosErrorToast(error, "No fue posible guardar el registro.");
     } finally {
         loadingGuardar.value = false;
     }
@@ -973,7 +970,6 @@ async function listarMedicos() {
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = res.data.data;
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar médicos.");
         medicos.value = [];
     }
 }
@@ -982,7 +978,6 @@ async function listarPrioridades() {
         const res = await axios.get("/api/config-prioridades");
         prioridades.value = res.data.data;
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar prioridades.");
         prioridades.value = [];
     }
 }
@@ -991,7 +986,6 @@ async function listarProductos() {
         const res = await axios.get("/api/config-productos");
         productos.value = res.data.data;
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar productos.");
         productos.value = [];
     }
 }
@@ -1000,7 +994,6 @@ async function listarDiagnosticos() {
         const res = await axios.get("/api/config-diagnosticos");
         diagnosticos.value = res.data.data;
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar diagnósticos.");
         diagnosticos.value = [];
     }
 }

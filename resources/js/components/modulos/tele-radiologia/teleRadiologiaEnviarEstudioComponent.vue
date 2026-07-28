@@ -639,7 +639,6 @@ const emitter = proxy.emitter;
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { handleAxiosErrorToast } from "@/helpers/alerts";
 import axios from "axios";
 
 const props = defineProps({ usuarioactual: Object });
@@ -829,7 +828,6 @@ async function buscarStudy() {
         if (error.response && error.response.data && error.response.data.errors) {
             erroresBusqueda.value = error.response.data.errors;
         }
-        handleAxiosErrorToast(error, "No fue posible listar estudios.");
     } finally {
         loadingBuscar.value = false;
     }
@@ -926,7 +924,6 @@ async function guardarRegistro() {
         if (error.response) {
             errores.value = error.response.data;
         }
-        handleAxiosErrorToast(error, "No fue posible guardar/enviar el estudio.");
     } finally {
         loadingGuardar.value = false;
     }
@@ -1130,7 +1127,6 @@ async function listarPrioridades() {
         prioridades.value = res.data.data;
     } catch (error) {
         prioridades.value = [];
-        handleAxiosErrorToast(error, "No fue posible listar prioridades.");
     }
 }
 async function listarProductos() {
@@ -1139,7 +1135,6 @@ async function listarProductos() {
         productos.value = res.data.data;
     } catch (error) {
         productos.value = [];
-        handleAxiosErrorToast(error, "No fue posible listar productos.");
     }
 }
 function onMedicoSelect(value) {
