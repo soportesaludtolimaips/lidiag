@@ -210,7 +210,7 @@ const sedeSeleccionada = ref(sessionStorage.getItem("ST-sede"));
 const medicoSeleccionado = ref(sessionStorage.getItem("ST-medico"));
 const medicos = ref([]);
 const nomMedicoSeleccionado = ref(null);
-const mostrarMedico = ref(true);
+const mostrarMedico = ref(false);
 const hdDisponible = ref(true);
 const hdLoading = ref(false);
 const hdItems = ref([]);
@@ -379,13 +379,12 @@ onMounted(() => {
     const sedeSeleccionada = sessionStorage.getItem("ST-sede");
 
     const url = window.location.pathname;
-    if (
-        url === "/ecografias.admisiones" ||
-        url === "/ecografias-pendientes-lecturas" ||
-        url === "/estudios.leer.estudio.listar"
-    ) {
-        mostrarMedico.value = true;
-    }
+    const rutasEcografias = [
+        "/ecografias.admisiones",
+        "/ecografias.admisionadas",
+        "/ecografias-pendientes-lecturas",
+    ];
+    mostrarMedico.value = rutasEcografias.includes(url);
 });
 
 onBeforeUnmount(() => {
