@@ -170,7 +170,6 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 
-import { handleAxiosErrorToast } from "@/helpers/alerts";
 import usePermissions from "@/helpers/permissions.js";
 import axios from "axios";
 
@@ -233,7 +232,6 @@ async function buscar() {
         });
         registros.value = Array.isArray(res.data?.data) ? res.data.data : [];
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar consentimientos.");
         registros.value = [];
     } finally {
         loading.value = false;
@@ -247,7 +245,6 @@ async function generarPdfSeleccionado() {
         await axios.post(`/api/ecografias-consentimientos/${id}/pdf`);
         await buscar();
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible generar el PDF.");
     } finally {
         loading.value = false;
     }
@@ -280,7 +277,6 @@ async function generarZip() {
         a.remove();
         window.URL.revokeObjectURL(url);
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible generar el ZIP.");
     } finally {
         loading.value = false;
     }
@@ -324,7 +320,6 @@ async function _ejecutarAnulacion(id, obs) {
         });
         await buscar();
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible anular el consentimiento.");
     } finally {
         loading.value = false;
     }

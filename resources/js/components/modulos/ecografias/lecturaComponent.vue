@@ -692,7 +692,7 @@ const emitter = proxy.emitter;
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
 import usePermissions from "@/helpers/permissions.js";
-import { handleAxiosErrorToast, toastMessage } from "@/helpers/alerts";
+import { toastMessage } from "@/helpers/alerts";
 import { setMapValue } from "@/helpers/sahi";
 import { createVoiceSession } from "@/helpers/voice/voiceSession";
 import medicalReplacements from "@/data/medical_replacements.json";
@@ -1311,14 +1311,6 @@ async function listarPendiestePorLectura() {
     const medicoId = String(busqueda.value?.medico_id ?? "").trim();
     if (!medicoId || medicoId === "null" || medicoId === "undefined") {
         registros.value = [];
-        handleAxiosErrorToast(
-            {
-                response: {
-                    data: { message: "No hay médico seleccionado para listar pendientes." },
-                },
-            },
-            "No fue posible listar pendientes por lectura."
-        );
         return;
     }
     try {
@@ -1335,7 +1327,6 @@ async function listarPendiestePorLectura() {
             evaluarPendientesConsentimientosDiaAnterior();
         }
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar pendientes por lectura.");
         registros.value = [];
     } finally {
         isBuscandoPendientes.value = false;
@@ -1382,7 +1373,6 @@ async function firmarConsentimientoMedico(item) {
 
         evaluarPendientesConsentimientosDiaAnterior();
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible firmar el consentimiento.");
     } finally {
         setMapValue(proxy, "isFirmandoConsentimiento", id, false);
     }
@@ -1410,8 +1400,6 @@ async function generarLectura() {
             return false;
         }
     } catch (error) {
-        handleAxiosErrorToast(error, "Ocurrió un error al guardar la lectura.");
-
         // Mostrar errores específicos en el formulario
         if (error.response?.data?.errors) {
             errores.value = error.response.data.errors;
@@ -1532,8 +1520,6 @@ async function generarReporte() {
 
         return true;
     } catch (error) {
-        handleAxiosErrorToast(error, "Ocurrió un error al generar el reporte.");
-
         // Mostrar errores específicos en el formulario
         if (error.response?.data?.errors) {
             errores.value = error.response.data.errors;
@@ -1564,7 +1550,6 @@ async function listarTiposPlantillas() {
         const res = await axios.get("/api/config-tipos-plantillas/listar/activos");
         tiposPlantillas.value = res.data.data;
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar tipos de plantillas.");
         tiposPlantillas.value = [];
     }
 }
@@ -1581,9 +1566,7 @@ async function onTipoPlantillaSelect(value) {
             return String(t.id) === String(selectedId);
         });
         registro.value.tipo_estudio = (tipo && tipo.nom_tipo) || "";
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar plantillas.");
-    }
+    } catch (error) {}
 }
 function onPlantillaSelect(value) {
     var plantilla = plantillasOptions.value.find(function (p) {

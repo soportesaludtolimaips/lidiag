@@ -905,7 +905,6 @@ import { computed, nextTick, onMounted, ref, getCurrentInstance } from "vue";
 import usePermissions from "@/helpers/permissions.js";
 import { formatoMoneda } from "@/helpers/funciones.js";
 import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
-import { handleAxiosErrorToast } from "@/helpers/alerts";
 import { setMapValue } from "@/helpers/sahi";
 import axios from "axios";
 
@@ -1051,7 +1050,6 @@ async function listarAtenciones() {
         }
     } catch (error) {
         erroresBusqueda.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible listar atenciones.");
     } finally {
         isBuscandoAtenciones.value = false;
     }
@@ -1079,7 +1077,6 @@ async function generarLinkFirma() {
         // refrescar estado del consentimiento en el listado
         await refrescarConsentimientoItem();
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible generar el link de firma.");
     } finally {
         isGenerandoLinkFirma.value = false;
     }
@@ -1130,8 +1127,6 @@ async function guardarRegistro() {
             });
         }
     } catch (error) {
-        handleAxiosErrorToast(error, "Ocurrió un error al guardar la agenda.");
-
         // Mostrar errores específicos en el formulario
         if (error.response?.data?.errors) {
             errores.value = error.response.data.errors;
@@ -1172,7 +1167,6 @@ function anularEcografia() {
             if (cerrarModal) cerrarModal.click();
             await listarAtenciones();
         } catch (error) {
-            handleAxiosErrorToast(error, "No fue posible anular la ecografía.");
             alertError("Error", "No fue posible anular la ecografía.", "error");
         } finally {
             isAnulandoEcografia.value = false;
@@ -1258,7 +1252,6 @@ async function listarMedicos() {
         medicos.value = res.data.data;
     } catch (error) {
         medicos.value = [];
-        handleAxiosErrorToast(error, "No fue posible listar médicos.");
     }
 }
 async function listarTipoDocumentos() {
@@ -1267,7 +1260,6 @@ async function listarTipoDocumentos() {
         tipoDocumentos.value = res.data.data;
     } catch (error) {
         tipoDocumentos.value = [];
-        handleAxiosErrorToast(error, "No fue posible listar tipos de documento.");
     }
 }
 async function listarProductos() {
@@ -1276,7 +1268,6 @@ async function listarProductos() {
         productos.value = res.data.data;
     } catch (error) {
         productos.value = [];
-        handleAxiosErrorToast(error, "No fue posible listar productos.");
     }
 }
 function onMedicoSelect(value) {

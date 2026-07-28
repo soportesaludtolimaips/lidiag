@@ -327,7 +327,7 @@
 import { nextTick, onMounted, ref, getCurrentInstance } from "vue";
 
 import usePermissions from "@/helpers/permissions.js";
-import { handleAxiosErrorToast, confirmAction } from "@/helpers/alerts";
+import { confirmAction } from "@/helpers/alerts";
 import axios from "axios";
 
 const props = defineProps({ usuarioactual: Object, permisos: Array });
@@ -374,9 +374,7 @@ async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
         productos.value = Array.isArray(res.data?.data) ? res.data.data : [];
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar productos.");
-    }
+    } catch (error) {}
 }
 async function listarModulos() {
     try {
@@ -387,16 +385,10 @@ async function listarModulos() {
             const eco = modulos.value.find((m) => Number(m.id) === 2);
             if (eco) filtros.value.config_modulo_id = eco.id;
         }
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar módulos.");
-    }
+    } catch (error) {}
 }
 async function listar() {
     if (!filtros.value.config_modulo_id) {
-        handleAxiosErrorToast(
-            { response: { data: { message: "Seleccione un módulo." } } },
-            "Seleccione un módulo."
-        );
         return;
     }
     loading.value = true;
@@ -410,7 +402,6 @@ async function listar() {
         });
         registros.value = Array.isArray(res.data?.data) ? res.data.data : [];
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar plantillas.");
         registros.value = [];
     } finally {
         loading.value = false;
@@ -443,7 +434,6 @@ async function guardar() {
         await listar();
         $("#modal-plantilla").modal("hide");
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible guardar la plantilla.");
     } finally {
         loadingGuardar.value = false;
     }
@@ -475,7 +465,6 @@ async function verVersiones(p) {
         versions.value = Array.isArray(res.data?.data) ? res.data.data : [];
         $("#modal-versiones").modal("show");
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible cargar versiones.");
     } finally {
         loadingVersions.value = false;
     }
@@ -494,9 +483,7 @@ async function activarVersion(v) {
             versions.value = Array.isArray(res.data?.data) ? res.data.data : [];
         }
         await listar();
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible activar la versión.");
-    }
+    } catch (error) {}
 }
 async function desactivar(p) {
     const ok = await confirmAction({
@@ -508,9 +495,7 @@ async function desactivar(p) {
     try {
         await axios.delete(`/api/consentimientos-plantillas/${p.id}`);
         await listar();
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible desactivar la plantilla.");
-    }
+    } catch (error) {}
 }
 
 onMounted(() => {

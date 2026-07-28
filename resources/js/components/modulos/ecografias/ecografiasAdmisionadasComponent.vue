@@ -373,7 +373,6 @@ import { nextTick, onMounted, ref, getCurrentInstance } from "vue";
 
 import usePermissions from "@/helpers/permissions.js";
 import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
-import { handleAxiosErrorToast } from "@/helpers/alerts";
 import { setMapValue } from "@/helpers/sahi";
 import axios from "axios";
 
@@ -480,7 +479,6 @@ async function listarAtenciones() {
         }
     } catch (error) {
         erroresBusqueda.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible listar ecografías admisionadas.");
     } finally {
         isBuscandoAdmisionadas.value = false;
     }
@@ -500,7 +498,6 @@ async function imprimirReporte(id) {
             });
         }
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible generar el reporte.");
     } finally {
         isImprimiendoReporte.value = false;
     }
@@ -537,7 +534,6 @@ function anularEcografia() {
             if (cerrarModal) cerrarModal.click();
             await listarAtenciones();
         } catch (error) {
-            handleAxiosErrorToast(error, "No fue posible anular la ecografía.");
             alertError("Error", "No fue posible anular la ecografía.", "error");
         } finally {
             isAnulandoAdmisionada.value = false;
