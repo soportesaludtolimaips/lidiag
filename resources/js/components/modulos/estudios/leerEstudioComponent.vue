@@ -1500,6 +1500,10 @@ async function guardarRegistro() {
             return;
         }
 
+        if (recording.value) {
+            await stopRecording();
+        }
+
         const res = await axios.post("/api/estudio-leerEstudio", registro.value);
 
         if (res.status >= 200 && res.status < 300) {
@@ -1528,21 +1532,12 @@ async function guardarRegistro() {
 
             if (audioPendiente && audioPendiente instanceof Blob) {
                 audioBlob.value = audioPendiente;
-                console.log("[guardarRegistro] Enviando audio:", {
-                    size: audioPendiente.size,
-                    type: audioPendiente.type,
-                });
                 try {
                     await sendToBackend(estudioId, productoId);
-                } catch (e) {
-                    console.error("[guardarRegistro] Error enviando audio:", e);
-                }
-            } else {
-                console.log("[guardarRegistro] No hay audio pendiente:", { audioPendiente });
+                } catch (e) {}
             }
         }
     } catch (error) {
-        console.error("[guardarRegistro] Error:", error);
         errores.value =
             error?.response?.data?.errors && typeof error.response.data.errors === "object"
                 ? error.response.data.errors
