@@ -48,7 +48,10 @@ class RolController extends Controller
             'registro' => 'required|array',
             'registro.name' => 'required|string|min:2|max:100',
             'registro.permisosRol' => 'nullable|array',
-            'registro.permisosRol.*' => 'nullable|string',
+            'registro.permisosRol.*' => 'nullable|array',
+            'registro.permisosRol.*.id' => 'required_with:registro.permisosRol.*|integer',
+            'registro.permisosRol.*.name' => 'required_with:registro.permisosRol.*|string',
+            'registro.permisosRol.*.checked' => 'required_with:registro.permisosRol.*|boolean',
         ]);
 
         $result = $this->rolService->update((int) $id, $data);
