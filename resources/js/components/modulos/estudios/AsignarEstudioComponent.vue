@@ -210,20 +210,23 @@
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
                                                 @click="
                                                     verImagen(
+                                                        sessionStorage.getItem('ST-urlsede'),
                                                         item.pat_id,
                                                         item.study_iuid,
+                                                        sessionStorage.getItem('ST-servername'),
                                                         item.estudio_producto_id
                                                     )
                                                 "
                                                 title="Ver imagenes"
                                                 aria-label="Ver imagenes"
                                                 :disabled="
-                                                    loadingImagenId === item.estudio_producto_id
+                                                    loadingVerImagen === item.estudio_producto_id
                                                 "
                                             >
                                                 <i
                                                     v-if="
-                                                        loadingImagenId === item.estudio_producto_id
+                                                        loadingVerImagen ===
+                                                        item.estudio_producto_id
                                                     "
                                                     class="fa fa-spinner fa-spin"
                                                 ></i>
@@ -734,13 +737,16 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { confirmAction, handleAxiosErrorToast } from "@/helpers/alerts";
+import { confirmAction } from "@/helpers/alerts";
 import { normalizarFecha } from "@/helpers/dateUtils.js";
 import { useSede } from "@/composables/useSede";
+import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 import axios from "axios";
 
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
+
+const { loadingVerImagen, verImagen } = useEstudioHelpers();
 
 const props = defineProps({
     usuarioactual: Object,
@@ -802,7 +808,6 @@ const selectedRows = ref({});
 const loadingBuscar = ref(false);
 const loadingGuardar = ref(false);
 const loadingAbrirRegistroIndex = ref(null);
-const loadingImagenId = ref(null);
 const progresoUpload = ref(null);
 const primerInput = ref(null);
 
@@ -835,6 +840,8 @@ function destroyDataTable() {
 
 /**
  * Buscar estudios según los criterios de búsqueda.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
  */
 async function buscarStudy() {
     destroyDataTable();
@@ -929,11 +936,16 @@ async function buscarStudy() {
         }
     } catch (error) {
         erroresBusqueda.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible listar estudios.");
     } finally {
         loadingBuscar.value = false;
     }
 }
+
+/**
+ * Guardar el registro del estudio asignado.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa el guardado del registro.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
@@ -1006,13 +1018,19 @@ async function guardarRegistro() {
                 stack: 6,
             });
         } else {
-            handleAxiosErrorToast(error, "No fue posible guardar el estudio.");
         }
     } finally {
         loadingGuardar.value = false;
         progresoUpload.value = null;
     }
 }
+
+/**
+ * Obtener el archivo seleccionado y verificar su tamaño.
+ * @param {Event} e - El evento de cambio del input de archivo.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function obtenerArchivo1(e) {
     const file = e.target.files[0];
     if (file && file.size > 10 * 1024 * 1024) {
@@ -1030,6 +1048,13 @@ function obtenerArchivo1(e) {
     }
     soportesHC.value.archivo1 = file || null;
 }
+
+/**
+ * Obtener el archivo seleccionado y verificar su tamaño.
+ * @param {Event} e - El evento de cambio del input de archivo.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function obtenerArchivo2(e) {
     const file = e.target.files[0];
     if (file && file.size > 10 * 1024 * 1024) {
@@ -1047,6 +1072,13 @@ function obtenerArchivo2(e) {
     }
     soportesHC.value.archivo2 = file || null;
 }
+
+/**
+ * Obtener el archivo seleccionado y verificar su tamaño.
+ * @param {Event} e - El evento de cambio del input de archivo.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function obtenerArchivo3(e) {
     const file = e.target.files[0];
     if (file && file.size > 10 * 1024 * 1024) {
@@ -1064,6 +1096,14 @@ function obtenerArchivo3(e) {
     }
     soportesHC.value.archivo3 = file || null;
 }
+
+/**
+ * Mostrar el registro del estudio en el modal para agendar al paciente.
+ * @param {Object} data - Objeto que contiene los datos del estudio a mostrar.
+ * @param {number} index - Índice del registro en la lista de estudios.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa la carga del registro.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function mostrarRegistro(data = {}, index) {
     if (loadingAbrirRegistroIndex.value !== null) return;
     loadingAbrirRegistroIndex.value = index;
@@ -1103,14 +1143,16 @@ async function mostrarRegistro(data = {}, index) {
             interfaceAtenciones.value = resAtenciones.data.data;
         }
     } catch (error) {
-        handleAxiosErrorToast(
-            error,
-            "No fue posible cargar la configuración/atenciones de la sede."
-        );
     } finally {
         loadingAbrirRegistroIndex.value = null;
     }
 }
+
+/**
+ * Listar los productos y diagnosticos de la atencion seleccionada en la interface.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa la carga de productos y diagnosticos.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function interfaceListarProductosDiagnosticos() {
     const resProuctos = await axios.get(
         "/api/interface-sahi-listar-listarProductosDiagnosticos/" +
@@ -1219,39 +1261,62 @@ function btnLimpiar() {
     cerrarModal();
     idRow.value = null;
 }
+
+/**
+ * Listar los médicos disponibles para la sede actual.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa la carga de médicos.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function listarMedicos() {
     try {
         const moduloId = sessionStorage.getItem("ST-modulo") || "1";
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = res.data.data || [];
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar médicos.");
-    }
+    } catch (error) {}
 }
+
+/**
+ * Listar las prioridades disponibles para la sede actual.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa la carga de prioridades.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function listarPrioridades() {
     try {
         const res = await axios.get("/api/config-prioridades");
         prioridades.value = res.data.data || [];
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar prioridades.");
-    }
+    } catch (error) {}
 }
+
+/**
+ * Listar los productos disponibles para la sede actual.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa la carga de productos.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
         productos.value = res.data.data || [];
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar productos.");
-    }
+    } catch (error) {}
 }
+
+/**
+ * Listar los diagnósticos disponibles para la sede actual.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa la carga de diagnósticos.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function listarDiagnosticos() {
     try {
         const res = await axios.get("/api/config-diagnosticos");
         diagnosticos.value = res.data.data || [];
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar diagnósticos.");
-    }
+    } catch (error) {}
 }
+
+/**
+ * Manejar la selección de un médico en el formulario.
+ * @param {any} value - El valor seleccionado del médico.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function onMedicoSelect(value) {
     let selectedId = null;
     if (Array.isArray(value) && value.length > 0) {
@@ -1264,6 +1329,13 @@ function onMedicoSelect(value) {
     }
     registro.value.medico_id = selectedId || "";
 }
+
+/**
+ * Manejar la selección de un producto en el formulario.
+ * @param {any} value - El valor seleccionado del producto.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function onProductoSelect(value) {
     let selectedId = null;
     if (Array.isArray(value) && value.length > 0) {
@@ -1279,6 +1351,13 @@ function onProductoSelect(value) {
         guardarProductosEstudio();
     }
 }
+
+/**
+ * Manejar la selección de un diagnóstico en el formulario.
+ * @param {any} value - El valor seleccionado del diagnóstico.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function onDiagnosticoSelect(value) {
     let selectedId = null;
     if (Array.isArray(value) && value.length > 0) {
@@ -1294,6 +1373,12 @@ function onDiagnosticoSelect(value) {
         guardarDiagnosticosEstudio();
     }
 }
+
+/**
+ * Guardar un producto seleccionado en el estudio.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function guardarProductosEstudio() {
     const indexProductoEstudio = productos.value.findIndex(
         (x) => x.id == productoSelecciondo.value
@@ -1318,6 +1403,13 @@ function guardarProductosEstudio() {
         productoSelecciondo.value = "";
     }
 }
+
+/**
+ * Quitar un producto del estudio según el índice proporcionado.
+ * @param {number} indexEliminar - Índice del producto a eliminar en el arreglo productosEstudio.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function quitarProductoEstudio(indexEliminar) {
     if (!confirm("¿Está seguro de eliminar este producto?")) return;
     confirmAction({
@@ -1330,6 +1422,12 @@ function quitarProductoEstudio(indexEliminar) {
         },
     });
 }
+
+/**
+ * Guardar un diagnóstico seleccionado en el estudio.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function guardarDiagnosticosEstudio() {
     const idx = diagnosticos.value.findIndex(
         (x) => String(x.id) === String(diagnosticoSelecciondo.value)
@@ -1350,6 +1448,13 @@ function guardarDiagnosticosEstudio() {
         diagnosticoSelecciondo.value = "";
     }
 }
+
+/**
+ * Quitar un diagnóstico del estudio según el índice proporcionado.
+ * @param {number} indexEliminar - Índice del diagnóstico a eliminar en el arreglo diagnosticosEstudio.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function quitarDiagnosticoEstudio(indexEliminar) {
     if (!confirm("¿Está seguro de eliminar este diagnóstico?")) return;
     confirmAction({
@@ -1361,25 +1466,6 @@ function quitarDiagnosticoEstudio(indexEliminar) {
             registro.value.diagnosticosEstudio.splice(indexEliminar, 1);
         },
     });
-}
-function verImagen(pat_id, study_iuid, estudio_producto_id = null) {
-    if (estudio_producto_id !== null) {
-        if (loadingImagenId.value) return;
-        loadingImagenId.value = estudio_producto_id;
-    }
-    try {
-        const base = sessionStorage.getItem("ST-urlsede") || "";
-        const params = new URLSearchParams({
-            patientID: String(pat_id ?? ""),
-            studyUID: String(study_iuid ?? ""),
-            serverName: String(sessionStorage.getItem("ST-servername") || ""),
-        });
-        window.open(`${base}?${params.toString()}`, "_blank", "noopener,noreferrer");
-    } finally {
-        setTimeout(() => {
-            loadingImagenId.value = null;
-        }, 500);
-    }
 }
 
 onMounted(() => {

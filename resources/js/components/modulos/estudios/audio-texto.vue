@@ -40,7 +40,7 @@
 import { onBeforeUnmount, onMounted, ref } from "vue";
 
 import { useDictationFlow } from "@/composables/useDictationFlow";
-import { handleAxiosErrorToast, toastMessage } from "@/helpers/alerts.js";
+import { toastMessage } from "@/helpers/alerts.js";
 import axios from "axios";
 
 const props = defineProps({
@@ -97,7 +97,6 @@ async function sendToBackend() {
             icon: "success",
         });
     } catch (error) {
-        handleAxiosErrorToast(error, "Error al enviar audio.");
     } finally {
         loadingEnviar.value = false;
     }

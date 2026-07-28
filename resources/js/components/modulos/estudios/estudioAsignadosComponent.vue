@@ -570,7 +570,14 @@
                                                     type="button"
                                                     class="btn btn-secondary btn-xs"
                                                     :disabled="loadingVerImagen"
-                                                    @click="verImagen()"
+                                                    @click="
+                                                        verImagen(
+                                                            datosImagen.urlOviyam,
+                                                            datosImagen.patientId,
+                                                            datosImagen.studyUID,
+                                                            datosImagen.serverName
+                                                        )
+                                                    "
                                                 >
                                                     <i
                                                         v-if="loadingVerImagen"
@@ -647,13 +654,13 @@
                                                             href="javascript:void(0)"
                                                             :style="{
                                                                 pointerEvents:
-                                                                    loadingDescargaSoporte ===
+                                                                    loadingDescarga ===
                                                                     itemArchivo.archivo_encrip
                                                                         ? 'none'
                                                                         : 'auto',
                                                             }"
                                                             @click="
-                                                                descargaSoportte(
+                                                                descargaSoporte(
                                                                     itemArchivo.archivo_original,
                                                                     itemArchivo.archivo_encrip
                                                                 )
@@ -661,7 +668,7 @@
                                                         >
                                                             <i
                                                                 v-if="
-                                                                    loadingDescargaSoporte ===
+                                                                    loadingDescarga ===
                                                                     itemArchivo.archivo_encrip
                                                                 "
                                                                 class="fa fa-spinner fa-spin"
@@ -731,16 +738,14 @@ import {
     safeInitDataTable,
     safeRemoveDataTableRow,
 } from "@/helpers/datatables.js";
-import {
-    confirmAction,
-    alertSuccess,
-    alertError,
-    handleAxiosErrorToast,
-    getUserSafeError,
-} from "@/helpers/alerts";
+import { confirmAction, alertSuccess, alertError, getUserSafeError } from "@/helpers/alerts";
 import axios from "axios";
+import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 
 const props = defineProps({ usuarioactual: Object });
+
+const { loadingDescarga, loadingVerImagen, audiosDeEstudio, descargaSoporte, listarAudios } =
+    useEstudioHelpers();
 
 const dt = ref(null);
 const primerInput = ref(null);
@@ -791,7 +796,6 @@ const busqueda = ref({
     bus_fecha_fin: "",
 });
 const datosImagen = ref({ urlOviyam: "", patientId: "", studyUID: "", serverName: "" });
-const audiosDeEstudio = ref([]);
 const quienes_asignaron = ref([]);
 const medicos = ref([]);
 const errores = ref({});
@@ -800,9 +804,6 @@ const loadingBuscar = ref(false);
 const loadingAnularId = ref(null);
 const loadingAbrirRegistroId = ref(null);
 const loadingGuardar = ref(false);
-const loadingDescargaSoporte = ref(null);
-const loadingAudios = ref(false);
-const loadingVerImagen = ref(false);
 
 const contadorRegistros = computed(() => {
     return registros.value.length;
@@ -835,6 +836,12 @@ function btnLimpiar() {
     audiosDeEstudio.value = [];
     limpiar();
 }
+
+/**
+ * Listar los estudios asignados según los criterios de búsqueda.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function listarEstudiosAsignados() {
     if (loadingBuscar.value) return;
 
@@ -922,47 +929,17 @@ async function listarEstudiosAsignados() {
                 stack: 6,
             });
         } else {
-            handleAxiosErrorToast(
-                error,
-                message || "No fue posible listar los estudios asignados."
-            );
         }
     } finally {
         loadingBuscar.value = false;
     }
 }
-async function listarAudios() {
-    loadingAudios.value = true;
-    try {
-        const res = await axios.get("/api/listar-audios-estudio/" + idRow.value);
-        audiosDeEstudio.value = res.data.data || [];
-    } catch (e) {
-        handleAxiosErrorToast(e, "No fue posible listar audios.");
-        audiosDeEstudio.value = [];
-    } finally {
-        loadingAudios.value = false;
-    }
-}
-function descargaSoportte(nomArchivoOriginal, nomArchivoEncriptado) {
-    if (loadingDescargaSoporte.value) return;
-    loadingDescargaSoporte.value = nomArchivoEncriptado;
-    const url = `/api/descarga-soportes-hc/${nomArchivoEncriptado}`;
-    axios
-        .get(url, { responseType: "blob" })
-        .then((response) => {
-            const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement("a");
-            link.href = blobUrl;
-            link.setAttribute("download", nomArchivoOriginal || nomArchivoEncriptado);
-            document.body.appendChild(link);
-            link.click();
-            setTimeout(() => window.URL.revokeObjectURL(blobUrl), 2000);
-        })
-        .catch(() => {})
-        .finally(() => {
-            loadingDescargaSoporte.value = null;
-        });
-}
+
+/**
+ * Guardar la transcripción del estudio en el servidor.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
@@ -1026,6 +1003,14 @@ async function guardarRegistro() {
         loadingGuardar.value = false;
     }
 }
+
+/**
+ * Anular la asignación de un estudio a un paciente.
+ * @param {number} idProductoEstudio - ID del producto estudio a anular.
+ * @param {string} paciente - Nombre del paciente.
+ * @param {string} producto - Nombre del producto.
+ * @returns {Promise<void>}
+ */
 async function anularAsignacion(idProductoEstudio, paciente, producto) {
     const ok = await confirmAction({
         title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
@@ -1056,29 +1041,18 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
             alertError("Ups!", "No fue posible anular el producto.", "error");
         }
     } catch (err) {
-        handleAxiosErrorToast(err, "No fue posible anular el producto.");
         alertError("Error", "No fue posible anular el producto.", "error");
     } finally {
         loadingAnularId.value = null;
     }
 }
-function verImagen() {
-    if (loadingVerImagen.value) return;
-    loadingVerImagen.value = true;
-    const base = datosImagen.value.urlOviyam || "";
-    const params = new URLSearchParams({
-        patientID: String(datosImagen.value.patientId ?? ""),
-        studyUID: String(datosImagen.value.studyUID ?? ""),
-        serverName: String(datosImagen.value.serverName ?? ""),
-    });
-    try {
-        window.open(`${base}?${params.toString()}`, "_blank", "noopener,noreferrer");
-    } finally {
-        setTimeout(() => {
-            loadingVerImagen.value = false;
-        }, 500);
-    }
-}
+
+/**
+ * Mostrar el registro del estudio seleccionado en el panel lateral.
+ * @param {Object} data - Datos del estudio seleccionado.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function mostrarRegistro(data = {}) {
     if (loadingAbrirRegistroId.value !== null) return;
     loadingAbrirRegistroId.value = data.estudio_producto_id;
@@ -1134,9 +1108,8 @@ async function mostrarRegistro(data = {}) {
         audiosDeEstudio.value = [];
         abrirModal();
 
-        await listarAudios();
+        await listarAudios(idRow.value);
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible cargar el estudio seleccionado.");
     } finally {
         loadingAbrirRegistroId.value = null;
     }
@@ -1221,6 +1194,7 @@ onBeforeUnmount(() => {
         width: 100%;
     }
 }
+
 .sidebar-scroll {
     overflow-x: hidden;
     overflow-y: scroll;

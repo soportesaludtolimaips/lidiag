@@ -452,11 +452,18 @@
                                                 <button
                                                     type="button"
                                                     class="btn btn-secondary btn-xs"
-                                                    @click="verImagen()"
-                                                    :disabled="loadingImagen"
+                                                    @click="
+                                                        verImagen(
+                                                            datosImagen.urlOviyam,
+                                                            datosImagen.patientId,
+                                                            datosImagen.studyUID,
+                                                            datosImagen.serverName
+                                                        )
+                                                    "
+                                                    :disabled="loadingVerImagen"
                                                 >
                                                     <i
-                                                        v-if="loadingImagen"
+                                                        v-if="loadingVerImagen"
                                                         class="fa fa-spinner fa-spin"
                                                     ></i>
                                                     <i v-else class="fa fa-file-image-o"></i>
@@ -530,20 +537,20 @@
                                                             href="javascript:void(0)"
                                                             :style="{
                                                                 pointerEvents:
-                                                                    loadingDescargaSoporte ===
+                                                                    loadingDescarga ===
                                                                     itemArchivo.archivo_encrip
                                                                         ? 'none'
                                                                         : 'auto',
                                                             }"
                                                             @click="
-                                                                descargaSoportte(
+                                                                descargaSoporte(
                                                                     itemArchivo.archivo_encrip
                                                                 )
                                                             "
                                                         >
                                                             <i
                                                                 v-if="
-                                                                    loadingDescargaSoporte ===
+                                                                    loadingDescarga ===
                                                                     itemArchivo.archivo_encrip
                                                                 "
                                                                 class="fa fa-spinner fa-spin"
@@ -714,19 +721,22 @@ import {
     safeInitDataTable,
     safeRemoveDataTableRow,
 } from "@/helpers/datatables.js";
-import {
-    confirmAction,
-    alertSuccess,
-    alertError,
-    handleAxiosErrorToast,
-    getUserSafeError,
-} from "@/helpers/alerts";
+import { confirmAction, alertSuccess, alertError, getUserSafeError } from "@/helpers/alerts";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
+import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 import axios from "axios";
 
 const props = defineProps({ usuarioactual: Object });
+
+const {
+    loadingDescarga,
+    loadingAudios,
+    loadingVerImagen,
+    audiosDeEstudio,
+    formatDate,
+    descargaSoporte,
+    listarAudios,
+} = useEstudioHelpers();
 
 const dt = ref(null);
 const primerInput = ref(null);
@@ -782,7 +792,6 @@ const busqueda = ref({
     destino_estudio: "Salud Tolima",
 });
 const datosImagen = ref({ urlOviyam: "", patientId: "", studyUID: "", serverName: "" });
-const audiosDeEstudio = ref([]);
 const quienes_asignaron = ref([]);
 const medicos = ref([]);
 const errores = ref({});
@@ -791,14 +800,16 @@ const loadingBuscar = ref(false);
 const loadingGuardar = ref(false);
 const loadingAbrirRegistroId = ref(null);
 const loadingAnularId = ref(null);
-const loadingDescargaSoporte = ref(null);
-const loadingAudios = ref(false);
-const loadingImagen = ref(false);
 
 const contadorRegistros = computed(() => {
     return registros.value.length;
 });
 
+/**
+ * Aplica un prellenado del dashboard si existe un accession almacenado en sessionStorage. Si se encuentra un accession válido, se busca el estudio correspondiente y se muestra en la interfaz. Si no hay un accession válido, simplemente se listan los estudios pendientes.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function applyDashboardPrefill() {
     try {
         const accession = sessionStorage.getItem("ST-accession");
@@ -814,6 +825,7 @@ function applyDashboardPrefill() {
         listarPendientesTrascribir();
     }
 }
+
 function initWysiwyg() {
     try {
         const $root = $(getCurrentInstance().proxy.$el);
@@ -828,9 +840,11 @@ function initWysiwyg() {
         });
     } catch (e) {}
 }
+
 function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#example23");
 }
+
 function btnLimpiar() {
     const hoy = new Date();
     const yearActual = hoy.getFullYear();
@@ -844,6 +858,12 @@ function btnLimpiar() {
     registros.value = [];
     limpiar();
 }
+
+/**
+ * Lista los estudios pendientes de transcribir según los filtros de búsqueda. Si no se ha establecido una sede en sessionStorage, muestra un mensaje de advertencia. De lo contrario, realiza una solicitud al backend para obtener los estudios y los muestra en la tabla.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function listarPendientesTrascribir() {
     if (loadingBuscar.value) return;
     loadingBuscar.value = true;
@@ -873,11 +893,16 @@ async function listarPendientesTrascribir() {
             });
         }
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar los pendientes.");
     } finally {
         loadingBuscar.value = false;
     }
 }
+
+/**
+ * Guarda la transcripción del estudio en el backend. Si ya se está guardando, la función retorna inmediatamente. Muestra mensajes de estado durante el proceso y maneja errores de validación y otros errores del servidor.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
@@ -961,27 +986,15 @@ async function guardarRegistro() {
         loadingGuardar.value = false;
     }
 }
-function descargaSoportte(nomArchivoEncriptado) {
-    if (loadingDescargaSoporte.value) return;
-    loadingDescargaSoporte.value = nomArchivoEncriptado;
-    const url = `/api/descarga-soportes-hc/${nomArchivoEncriptado}`;
-    axios
-        .get(url, { responseType: "blob" })
-        .then((response) => {
-            const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement("a");
-            link.href = blobUrl;
-            link.setAttribute("download", nomArchivoEncriptado);
-            document.body.appendChild(link);
-            link.click();
-            // cleanup best-effort
-            setTimeout(() => window.URL.revokeObjectURL(blobUrl), 2000);
-        })
-        .catch(() => {})
-        .finally(() => {
-            loadingDescargaSoporte.value = null;
-        });
-}
+
+/**
+ * Anula la asignación de un estudio para un paciente y producto específico. Solicita confirmación al usuario antes de proceder. Si la acción es confirmada, realiza una solicitud al backend para anular la asignación y actualiza la lista de registros en la interfaz. Maneja errores y muestra mensajes de estado durante el proceso.
+ * @param {number} idProductoEstudio - ID del producto de estudio a anular.
+ * @param {string} paciente - Nombre del paciente.
+ * @param {string} producto - Nombre del producto.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function anularAsignacion(idProductoEstudio, paciente, producto) {
     const ok = await confirmAction({
         title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
@@ -1011,64 +1024,41 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
             alertError("Ups!", "No fue posible anular el producto.", "error");
         }
     } catch (err) {
-        handleAxiosErrorToast(err, "No fue posible anular el producto.");
         alertError("Error", "No fue posible anular el producto.", "error");
     } finally {
         loadingAnularId.value = null;
     }
 }
-function verImagen() {
-    if (loadingImagen.value) return;
-    loadingImagen.value = true;
-    try {
-        const base = datosImagen.value.urlOviyam || "";
-        const params = new URLSearchParams({
-            patientID: String(datosImagen.value.patientId ?? ""),
-            studyUID: String(datosImagen.value.studyUID ?? ""),
-            serverName: String(datosImagen.value.serverName ?? ""),
-        });
-        window.open(`${base}?${params.toString()}`, "_blank", "noopener,noreferrer");
-    } finally {
-        setTimeout(() => {
-            loadingImagen.value = false;
-        }, 500);
-    }
-}
-async function listarAudios(estudioProductoId) {
-    loadingAudios.value = true;
-    try {
-        const url = "/api/listar-audios-estudio/" + estudioProductoId;
-        const res = await axios.get(url);
-        audiosDeEstudio.value = res.data.data || [];
-    } catch (e) {
-        handleAxiosErrorToast(e, "No fue posible listar audios.");
-        audiosDeEstudio.value = [];
-    } finally {
-        loadingAudios.value = false;
-    }
-}
+
 function audioUrl(item) {
     if (!item || !item.audio) return null;
     return "/audios/" + item.audio;
 }
+
 function formatDuracion(segundos) {
     if (!segundos) return "0:00";
     const mins = Math.floor(segundos / 60);
     const secs = Math.floor(segundos % 60);
     return mins + ":" + (secs < 10 ? "0" : "") + secs;
 }
+
 function previewTranscripcion(texto, maxLen) {
     if (!texto) return "";
     if (texto.length <= maxLen) return texto;
     return texto.substring(0, maxLen);
 }
+
 function establecerSede() {
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
     registros.value = [];
 }
-function formatDate(timestamp) {
-    return dayjs.utc(timestamp).local().format("YYYY-MM-DD HH:mm:ss");
-}
+
+/**
+ * Muestra el registro de un estudio específico en el modal de transcripción. Si ya se está cargando un registro, la función retorna inmediatamente. Realiza una solicitud al backend para obtener los detalles del estudio y los muestra en la interfaz. Maneja errores y muestra mensajes de estado si no es posible cargar el registro.
+ * @param {Object} data - Objeto que contiene los datos del estudio a mostrar.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function mostrarRegistro(data = {}) {
     if (loadingAbrirRegistroId.value !== null) return;
     loadingAbrirRegistroId.value = data.estudio_producto_id;
@@ -1139,7 +1129,6 @@ async function mostrarRegistro(data = {}) {
         await listarAudios(registro.value.estudio_producto_id);
         errores.value = {};
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible cargar el estudio seleccionado.");
     } finally {
         loadingAbrirRegistroId.value = null;
     }
@@ -1232,6 +1221,7 @@ onBeforeUnmount(() => {
         width: 100%;
     }
 }
+
 .sidebar-scroll {
     overflow-x: hidden;
     overflow-y: scroll;

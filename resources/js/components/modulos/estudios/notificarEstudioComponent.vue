@@ -201,13 +201,12 @@
                                                 title="Imprimir reporte"
                                                 aria-label="Imprimir reporte"
                                                 :disabled="
-                                                    loadingImprimirId === item.estudio_producto_id
+                                                    loadingImprimir === item.estudio_producto_id
                                                 "
                                             >
                                                 <i
                                                     v-if="
-                                                        loadingImprimirId ===
-                                                        item.estudio_producto_id
+                                                        loadingImprimir === item.estudio_producto_id
                                                     "
                                                     class="fa fa-spinner fa-spin"
                                                 ></i>
@@ -356,10 +355,13 @@ import { computed, nextTick, onBeforeUnmount, ref } from "vue";
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import DatosPacienteDisplay from "@/components/comunes/datosPacienteDisplayComponent.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { getUserSafeError, handleAxiosErrorToast } from "@/helpers/alerts.js";
+import { getUserSafeError } from "@/helpers/alerts.js";
+import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 import axios from "axios";
 
 const props = defineProps({ usuarioactual: Object, permisos: Array });
+
+const { loadingImprimir, imprimirReporte } = useEstudioHelpers();
 
 const dt = ref(null);
 const registros = ref([]);
@@ -382,7 +384,6 @@ const errores = ref({});
 const erroresBusqueda = ref({});
 const loadingBuscar = ref(false);
 const loadingNotificar = ref(false);
-const loadingImprimirId = ref(null);
 const loadingAbrirId = ref(null);
 const loadingPortalId = ref(null);
 
@@ -403,6 +404,12 @@ function btnLimpiar() {
     registros.value = [];
     limpiar();
 }
+
+/**
+ * Buscar estudios para notificar
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa la búsqueda de estudios.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function buscarStudy() {
     if (loadingBuscar.value) return;
     loadingBuscar.value = true;
@@ -472,37 +479,13 @@ async function buscarStudy() {
         loadingBuscar.value = false;
     }
 }
-async function imprimirReporte(estudio) {
-    if (loadingImprimirId.value) return;
-    loadingImprimirId.value = estudio.estudio_producto_id;
-    try {
-        $.toast({
-            heading: "Procesando...",
-            text: "Generando reportes, por favor espere",
-            position: "top-right",
-            loaderBg: "#ff6849",
-            icon: "info",
-            hideAfter: 3500,
-            stack: 6,
-        });
 
-        const res = await axios.post("/api/edit-word", estudio);
-
-        window.open(
-            `/descargar.pdf.lectura/${res.data.data.plantilla}`,
-            "_blank",
-            "noopener,noreferrer"
-        );
-    } catch (error) {
-        errores.value =
-            error?.response?.data?.errors && typeof error.response.data.errors === "object"
-                ? error.response.data.errors
-                : {};
-        handleAxiosErrorToast(error, "No se pudo imprimir el reporte.");
-    } finally {
-        loadingImprimirId.value = null;
-    }
-}
+/**
+ * Notificar estudio
+ * @param {Object} estudio - Objeto que contiene los datos del estudio a notificar.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa la notificación del estudio.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function notificar() {
     if (loadingNotificar.value) return;
     loadingNotificar.value = true;
@@ -566,6 +549,13 @@ async function notificar() {
         loadingNotificar.value = false;
     }
 }
+
+/**
+ * Enviar al portal de pacientes
+ * @param {Object} item - Objeto que contiene los datos del estudio a enviar al portal de pacientes.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa el envío al portal de pacientes.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function enviarPortal(item) {
     if (loadingPortalId.value) return;
     loadingPortalId.value = item.estudio_producto_id;
@@ -576,6 +566,12 @@ async function enviarPortal(item) {
         loadingPortalId.value = null;
     }
 }
+
+/**
+ * Enviar al portal de pacientes
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa el envío al portal de pacientes.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function enviarPortalPacientes() {
     try {
         $.toast({
@@ -615,18 +611,26 @@ async function enviarPortalPacientes() {
                 stack: 6,
             });
         } else {
-            handleAxiosErrorToast(e, "No se pudo enviar al portal.");
         }
     }
 }
+
 function abrirModal() {
     $(".right-sidebar").slideDown(50);
     $(".right-sidebar").addClass("shw-rside");
 }
+
 function btnCerralModalForm() {
     $(".right-sidebar").slideUp(50);
     $(".right-sidebar").removeClass("shw-rside");
 }
+
+/**
+ * Mostrar el registro del estudio en el modal para notificar al paciente.
+ * @param {Object} data - Objeto que contiene los datos del estudio a mostrar.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa la carga del registro.
+ * @author: Jhon Javer Lozano Arce
+ */
 function mostrarRegistro(data = {}) {
     if (loadingAbrirId.value) return;
     loadingAbrirId.value = data.estudio_producto_id;
@@ -645,6 +649,13 @@ function mostrarRegistro(data = {}) {
     abrirModal();
     loadingAbrirId.value = null;
 }
+
+/**
+ * Setear los datos del estudio en el registro para enviar al portal de pacientes.
+ * @param {Object} data - Objeto que contiene los datos del estudio a enviar al portal de pacientes.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function setarDatosPortalPacientes(data = {}) {
     estudio.value = { ...data, id_estudio: data.id };
     tituloModal.value = "Notificar al paciente: " + data.nom_pacien;
@@ -658,6 +669,7 @@ function setarDatosPortalPacientes(data = {}) {
     registro.value.nom_produc = data.nom_produc;
     registro.value.id_producto_lectura = data.id;
 }
+
 function limpiar() {
     registro.value.num_docu = "";
     registro.value.nombres = "";
