@@ -1233,6 +1233,7 @@ const {
     clearAudioBuffer,
     setCallbacks,
     setupKeyboardShortcut,
+    audioBlob,
 } = dictationFlow;
 const audioUploadFlow = useAudioUploadFlow({ showToast: (cfg) => $.toast(cfg) });
 const {
