@@ -1502,12 +1502,6 @@ async function guardarRegistro() {
         const res = await axios.post("/api/estudio-leerEstudio", registro.value);
 
         if (res.status >= 200 && res.status < 300) {
-            if (audioBlob.value && audioBlob.value instanceof Blob) {
-                try {
-                    await sendToBackend(id.value, registro.value.estudio_producto_id);
-                } catch (e) {}
-            }
-
             toastMessage({
                 heading: "Completado",
                 text: res.data.message,
@@ -1526,6 +1520,12 @@ async function guardarRegistro() {
 
             cerrarSidebar();
             limpiar();
+
+            if (audioBlob.value && audioBlob.value instanceof Blob) {
+                try {
+                    await sendToBackend(id.value, registro.value.estudio_producto_id);
+                } catch (e) {}
+            }
         }
     } catch (error) {
         errores.value =
