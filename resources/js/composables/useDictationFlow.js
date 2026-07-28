@@ -526,6 +526,14 @@ export function useDictationFlow() {
 
     async function stopRecording() {
         return new Promise(async (resolve) => {
+            let resolved = false;
+            const doResolve = () => {
+                if (!resolved) {
+                    resolved = true;
+                    resolve();
+                }
+            };
+            let usingMediaRecorder = false;
             try {
                 if (audioSession.value && typeof audioSession.value.stop === "function") {
                     const { blob, url, revoke } = await audioSession.value.stop();
@@ -533,14 +541,15 @@ export function useDictationFlow() {
                     audioBlob.value = blob instanceof Blob ? blob : null;
                     audioUrl.value = url || null;
                 } else if (mediaRecorder.value && recording.value) {
+                    usingMediaRecorder = true;
                     const safetyTimer = setTimeout(() => {
-                        resolve();
+                        doResolve();
                     }, 5000);
                     mediaRecorder.value.onstop = () => {
                         clearTimeout(safetyTimer);
                         audioBlob.value = new Blob(audioChunks.value, { type: "audio/webm" });
                         audioUrl.value = URL.createObjectURL(audioBlob.value);
-                        resolve();
+                        doResolve();
                     };
                     mediaRecorder.value.stop();
                     recording.value = false;
@@ -552,7 +561,9 @@ export function useDictationFlow() {
             } finally {
                 recording.value = false;
                 microfono.value = "admin-wrap/assets/images/mic.gif";
-                resolve();
+                if (!usingMediaRecorder) {
+                    doResolve();
+                }
             }
         });
     }
