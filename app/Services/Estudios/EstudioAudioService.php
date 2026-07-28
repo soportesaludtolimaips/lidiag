@@ -78,7 +78,7 @@ class EstudioAudioService extends BaseService
                 'estudio_id' => $estudioId,
                 'estudio_producto_id' => $estudioProductoId,
                 'audio' => $mp3RelativePath,
-                'tipo' => 'audio',
+                'tipo' => 'grabado',
                 'duracion' => $duracion,
                 'transcripcion' => $transcripcionTexto,
             ]);
