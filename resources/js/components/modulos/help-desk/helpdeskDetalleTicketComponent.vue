@@ -273,7 +273,7 @@
 import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import DOMPurify from "dompurify";
-import { toastMessage, handleAxiosErrorToast, confirmAction } from "@/helpers/alerts.js";
+import { toastMessage, confirmAction } from "@/helpers/alerts.js";
 import { formatDateTime } from "@/helpers/dateUtils.js";
 import { initWysiwyg } from "@/helpers/wysiwyg.js";
 import { helpdesk } from "@/helpers/api.js";
@@ -315,9 +315,7 @@ async function recargarTicket() {
     try {
         const ticketRes = await helpdesk.ticket(props.ticketId);
         ticket.value = ticketRes.data;
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudo actualizar el ticket.");
-    }
+    } catch (error) {}
 }
 async function cargar() {
     loading.value = true;
@@ -344,7 +342,6 @@ async function cargar() {
         }
         nextTick(() => initWysiwyg());
     } catch (error) {
-        handleAxiosErrorToast(error, "No se pudo cargar el ticket.");
     } finally {
         loading.value = false;
     }
@@ -358,7 +355,6 @@ async function comentar() {
         toastMessage({ heading: "Ok", text: "Comentario agregado.", icon: "success" });
         await recargarTicket();
     } catch (error) {
-        handleAxiosErrorToast(error, "No se pudo guardar el comentario.");
     } finally {
         savingComentario.value = false;
     }
@@ -382,7 +378,6 @@ async function cambiarEstado() {
         toastMessage({ heading: "Ok", text: "Estado actualizado.", icon: "success" });
         await recargarTicket();
     } catch (error) {
-        handleAxiosErrorToast(error, "No se pudo cambiar el estado.");
     } finally {
         savingEstado.value = false;
     }
@@ -405,7 +400,6 @@ async function reasignar() {
         toastMessage({ heading: "Ok", text: "Ticket reasignado.", icon: "success" });
         await recargarTicket();
     } catch (error) {
-        handleAxiosErrorToast(error, "No se pudo reasignar.");
     } finally {
         savingReasignar.value = false;
     }
@@ -425,7 +419,6 @@ async function subirAdjuntos() {
         toastMessage({ heading: "Ok", text: "Adjuntos subidos.", icon: "success" });
         await recargarTicket();
     } catch (error) {
-        handleAxiosErrorToast(error, "No se pudieron subir adjuntos.");
     } finally {
         savingAdjuntos.value = false;
     }

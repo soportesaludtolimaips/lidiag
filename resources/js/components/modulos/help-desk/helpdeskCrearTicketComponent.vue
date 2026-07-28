@@ -157,7 +157,7 @@
 <script setup>
 import { getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-import { toastMessage, handleAxiosErrorToast } from "@/helpers/alerts.js";
+import { toastMessage } from "@/helpers/alerts.js";
 import { initWysiwyg, getWysiwygValue, isHtmlEffectivelyEmpty } from "@/helpers/wysiwyg.js";
 import { helpdesk } from "@/helpers/api.js";
 
@@ -190,9 +190,7 @@ async function cargar() {
         categorias.value = (cats.data || []).filter((x) => x.activo);
         prioridades.value = (prios.data || []).filter((x) => x.activo);
         asignables.value = asignables.data || [];
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudieron cargar datos para el formulario.");
-    }
+    } catch (error) {}
 }
 async function guardar() {
     if (!form.value.sede_id) {
@@ -281,7 +279,6 @@ async function guardar() {
         });
         window.location.href = `/helpdesk-tickets/${ticket.id}`;
     } catch (error) {
-        handleAxiosErrorToast(error, "No se pudo crear el ticket.");
     } finally {
         loading.value = false;
     }

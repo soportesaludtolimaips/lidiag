@@ -266,7 +266,6 @@
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { handleAxiosErrorToast } from "@/helpers/alerts.js";
 import { formatDateTime } from "@/helpers/dateUtils.js";
 import { helpdesk } from "@/helpers/api.js";
 
@@ -307,9 +306,7 @@ async function cargarCatalogos() {
         prioridades.value = (prios.data || []).filter((x) => x.activo);
         estados.value = (ests.data || []).filter((x) => x.activo);
         sedes.value = sedesRes.data || [];
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudieron cargar catálogos.");
-    }
+    } catch (error) {}
 }
 function setScope(newScope) {
     scope.value = newScope;
@@ -363,7 +360,6 @@ async function buscar() {
             initDataTable();
         });
     } catch (error) {
-        handleAxiosErrorToast(error, "No se pudieron cargar los tickets.");
         tickets.value = [];
         nextTick(() => {
             destroyDataTable();

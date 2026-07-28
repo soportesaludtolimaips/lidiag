@@ -381,7 +381,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { toastMessage, handleAxiosErrorToast } from "@/helpers/alerts.js";
+import { toastMessage } from "@/helpers/alerts.js";
 import { formatDateTime } from "@/helpers/dateUtils.js";
 import { helpdesk } from "@/helpers/api.js";
 
@@ -430,9 +430,7 @@ async function cargarCatalogos() {
         prioridades.value = (prios.data || []).filter((x) => x.activo);
         estados.value = (ests.data || []).filter((x) => x.activo);
         sedes.value = sedesRes.data || [];
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudieron cargar catálogos.");
-    }
+    } catch (error) {}
 }
 function limpiar() {
     const today = new Date();
@@ -515,7 +513,6 @@ async function buscar() {
             initDT();
         });
     } catch (error) {
-        handleAxiosErrorToast(error, "No se pudo generar el reporte.");
     } finally {
         loading.value = false;
     }

@@ -109,7 +109,7 @@
 <script setup>
 import { onMounted, ref, watch } from "vue";
 
-import { toastMessage, handleAxiosErrorToast } from "@/helpers/alerts.js";
+import { toastMessage } from "@/helpers/alerts.js";
 import { formatDateTime } from "@/helpers/dateUtils.js";
 import { helpdesk } from "@/helpers/api.js";
 
@@ -132,7 +132,6 @@ async function cargar(pagina) {
         items.value = res.data?.data?.items || [];
         totalPaginas.value = res.data?.data?.last_page || 1;
     } catch (error) {
-        handleAxiosErrorToast(error, "No se pudieron cargar notificaciones.");
     } finally {
         loading.value = false;
     }
@@ -153,17 +152,13 @@ async function marcarLeida(n) {
             text: "Notificación marcada como leída.",
             icon: "success",
         });
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudo marcar como leída.");
-    }
+    } catch (error) {}
 }
 async function marcarTodas() {
     try {
         await helpdesk.marcarTodasLeidas();
         await cargar();
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudieron marcar todas.");
-    }
+    } catch (error) {}
 }
 async function abrir(n) {
     if (!n.read_at) await marcarLeida(n);
