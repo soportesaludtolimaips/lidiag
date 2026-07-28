@@ -1541,6 +1541,7 @@ async function guardarRegistro() {
             }
         }
     } catch (error) {
+        console.error("[guardarRegistro] Error:", error);
         errores.value =
             error?.response?.data?.errors && typeof error.response.data.errors === "object"
                 ? error.response.data.errors

@@ -795,7 +795,9 @@ export function useDictationFlow() {
             tieneBlob: !!audioBlob.value,
             blobSize: audioBlob.value?.size,
         });
-        await stopRecording();
+        if (!audioBlob.value || !(audioBlob.value instanceof Blob)) {
+            await stopRecording();
+        }
         if (!audioBlob.value || !(audioBlob.value instanceof Blob)) {
             console.warn("[sendToBackend] No hay audioBlob para enviar", { blob: audioBlob.value });
             return;
