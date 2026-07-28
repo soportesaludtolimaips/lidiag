@@ -1502,15 +1502,12 @@ async function guardarRegistro() {
 
         if (recording.value) {
             await stopRecording();
+            await new Promise((r) => setTimeout(r, 300));
         }
 
         const res = await axios.post("/api/estudio-leerEstudio", registro.value);
 
         if (res.status >= 200 && res.status < 300) {
-            const audioPendiente = audioBlob.value;
-            const estudioId = id.value;
-            const productoId = registro.value.estudio_producto_id;
-
             toastMessage({
                 heading: "Completado",
                 text: res.data.message,
@@ -1530,11 +1527,13 @@ async function guardarRegistro() {
             cerrarSidebar();
             limpiar();
 
-            if (audioPendiente && audioPendiente instanceof Blob) {
-                audioBlob.value = audioPendiente;
-                try {
-                    await sendToBackend(estudioId, productoId);
-                } catch (e) {}
+            if (audioBlob.value && audioBlob.value instanceof Blob) {
+                const blobToSend = audioBlob.value;
+                const formData = new FormData();
+                formData.append("audio", blobToSend, "audio.webm");
+                formData.append("estudio_id", id.value);
+                formData.append("estudio_producto_id", registro.value.estudio_producto_id);
+                axios.post("/api/upload-audio", formData).catch(() => {});
             }
         }
     } catch (error) {

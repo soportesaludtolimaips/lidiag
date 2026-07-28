@@ -540,7 +540,7 @@ export function useDictationFlow() {
                     _audioRevoke = revoke || null;
                     audioBlob.value = blob instanceof Blob ? blob : null;
                     audioUrl.value = url || null;
-                } else if (mediaRecorder.value && recording.value) {
+                } else if (mediaRecorder.value && mediaRecorder.value.state !== "inactive") {
                     usingMediaRecorder = true;
                     const safetyTimer = setTimeout(() => {
                         doResolve();
