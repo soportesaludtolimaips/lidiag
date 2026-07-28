@@ -925,12 +925,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import {
-    handleAxiosErrorToast,
-    alertSuccess,
-    alertError,
-    confirmAction,
-} from "@/helpers/alerts.js";
+import { alertSuccess, alertError, confirmAction } from "@/helpers/alerts.js";
 import EmojiPicker from "@/components/shared/EmojiPicker.vue";
 import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
 import axios from "axios";
@@ -1028,7 +1023,6 @@ async function listarNumeros() {
     } catch (error) {
         errorNumeros.value =
             error?.response?.data?.message || "No fue posible cargar los números WhatsApp.";
-        handleAxiosErrorToast(error, "No fue posible listar números WhatsApp.");
         registrosNumeros.value = [];
     } finally {
         loadingNumeros.value = false;
@@ -1052,7 +1046,6 @@ async function listarSaludos() {
         });
     } catch (error) {
         errorSaludos.value = error?.response?.data?.message || "No fue posible cargar los saludos.";
-        handleAxiosErrorToast(error, "No fue posible listar saludos.");
         registrosSaludos.value = [];
     } finally {
         loadingSaludos.value = false;
@@ -1144,7 +1137,6 @@ async function guardarRegistro() {
         }
     } catch (error) {
         errores.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible guardar el registro.");
     } finally {
         loadingGuardar.value = false;
     }
@@ -1168,7 +1160,6 @@ async function eliminarRegistro(id) {
         alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
         recargarTabActivo();
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
         alertError("Error", "No fue posible eliminar el registro.", "error");
     } finally {
         loadingEliminarId.value = null;
@@ -1320,7 +1311,6 @@ async function agregarProducto() {
         cargarProductosVinculados();
         cargarServiciosProductos();
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible agregar el producto.");
     } finally {
         loadingGuardar.value = false;
     }
@@ -1338,9 +1328,7 @@ async function eliminarVinculo(id) {
         alertSuccess("Éxito", "Producto desvinculado");
         cargarProductosVinculados();
         cargarServiciosProductos();
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible eliminar el producto.");
-    }
+    } catch (error) {}
 }
 function abrirProbarEnvio() {
     testPhoneNumber.value = "";
@@ -1404,7 +1392,6 @@ async function probarEnvio() {
             ok: false,
             mensaje: msg,
         };
-        handleAxiosErrorToast(error, "No fue posible enviar el mensaje de prueba.");
     } finally {
         loadingTestEnvio.value = false;
     }

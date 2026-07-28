@@ -56,7 +56,6 @@
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { handleAxiosErrorToast } from "@/helpers/alerts.js";
 import axios from "axios";
 
 const dt = ref(null);
@@ -77,7 +76,6 @@ async function listar() {
             });
         });
     } catch (error) {
-        handleAxiosErrorToast(error, "No se pudo listar.");
     } finally {
         loadingListar.value = false;
     }

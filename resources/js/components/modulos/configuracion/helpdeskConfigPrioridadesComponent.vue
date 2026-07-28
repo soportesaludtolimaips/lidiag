@@ -196,7 +196,7 @@
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { toastMessage, confirmAction, handleAxiosErrorToast } from "@/helpers/alerts.js";
+import { toastMessage, confirmAction } from "@/helpers/alerts.js";
 import axios from "axios";
 
 const dt = ref(null);
@@ -223,7 +223,6 @@ async function listar() {
             });
         });
     } catch (error) {
-        handleAxiosErrorToast(error, "No se pudo listar.");
     } finally {
         loadingListar.value = false;
     }
@@ -274,7 +273,6 @@ async function guardarRegistro() {
         if (error?.response?.status === 422) {
             errores.value = error.response.data.errors || {};
         } else {
-            handleAxiosErrorToast(error, "No se pudo guardar.");
         }
     } finally {
         loadingGuardar.value = false;
@@ -292,7 +290,6 @@ async function desactivarRegistro(item) {
         toastMessage({ heading: "Ok", text: "Prioridad desactivada.", icon: "success" });
         await listar();
     } catch (error) {
-        handleAxiosErrorToast(error, "No se pudo desactivar.");
     } finally {
         loadingEliminarId.value = null;
     }

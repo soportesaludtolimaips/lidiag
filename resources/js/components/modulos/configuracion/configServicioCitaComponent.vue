@@ -212,12 +212,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 const dt = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import {
-    alertError,
-    alertSuccess,
-    confirmAction,
-    handleAxiosErrorToast,
-} from "@/helpers/alerts.js";
+import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts.js";
 import axios from "axios";
 
 const registros = ref([]);
@@ -234,9 +229,7 @@ async function cargarSedes() {
     try {
         const res = await axios.get("/api/config-sedes");
         sedes.value = res.data.data;
-    } catch (e) {
-        handleAxiosErrorToast(e, "No fue posible cargar sedes.");
-    }
+    } catch (e) {}
 }
 async function ListarDatos() {
     try {
@@ -252,7 +245,6 @@ async function ListarDatos() {
             });
         });
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar servicios.");
         registros.value = [];
     }
 }
@@ -290,7 +282,6 @@ async function guardarRegistro() {
         cerrarModal();
     } catch (error) {
         errores.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible guardar el servicio.");
     } finally {
         loadingGuardar.value = false;
     }
@@ -308,7 +299,6 @@ async function eliminarRegistro(id) {
         alertSuccess("Ok!", response?.data?.message || "Registro eliminado.");
         ListarDatos();
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
     } finally {
         loadingEliminarId.value = null;
     }

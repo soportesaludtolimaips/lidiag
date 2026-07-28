@@ -327,12 +327,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 const dt = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import {
-    alertError,
-    alertSuccess,
-    confirmAction,
-    handleAxiosErrorToast,
-} from "@/helpers/alerts.js";
+import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts.js";
 import axios from "axios";
 
 const id = ref(0);
@@ -369,7 +364,6 @@ async function ListarDatos() {
             });
         });
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar productos.");
         registros.value = [];
     } finally {
         loadingListar.value = false;
@@ -419,7 +413,6 @@ async function guardarRegistro() {
         }
     } catch (error) {
         errores.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible guardar el producto.");
     } finally {
         loadingGuardar.value = false;
     }
@@ -439,7 +432,6 @@ async function elimnarRegistro(id) {
         alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
         ListarDatos();
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
         alertError("Error", "No fue posible eliminar el registro.", "error");
     } finally {
         loadingEliminarId.value = null;
