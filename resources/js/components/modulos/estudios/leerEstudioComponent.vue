@@ -1502,7 +1502,6 @@ async function guardarRegistro() {
 
         if (recording.value) {
             await stopRecording();
-            await new Promise((r) => setTimeout(r, 300));
         }
 
         const res = await axios.post("/api/estudio-leerEstudio", registro.value);

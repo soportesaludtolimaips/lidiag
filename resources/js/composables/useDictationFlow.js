@@ -542,18 +542,15 @@ export function useDictationFlow() {
                     audioUrl.value = url || null;
                 } else if (mediaRecorder.value && mediaRecorder.value.state !== "inactive") {
                     usingMediaRecorder = true;
-                    const safetyTimer = setTimeout(() => {
-                        doResolve();
-                    }, 5000);
-                    mediaRecorder.value.onstop = () => {
-                        clearTimeout(safetyTimer);
-                        audioBlob.value = new Blob(audioChunks.value, { type: "audio/webm" });
-                        audioUrl.value = URL.createObjectURL(audioBlob.value);
-                        doResolve();
-                    };
                     mediaRecorder.value.stop();
                     recording.value = false;
                     microfono.value = "admin-wrap/assets/images/mic.gif";
+                    await new Promise((r) => setTimeout(r, 200));
+                    if (audioChunks.value && audioChunks.value.length > 0) {
+                        audioBlob.value = new Blob(audioChunks.value, { type: "audio/webm" });
+                        audioUrl.value = URL.createObjectURL(audioBlob.value);
+                    }
+                    doResolve();
                     return;
                 }
             } catch (e) {
