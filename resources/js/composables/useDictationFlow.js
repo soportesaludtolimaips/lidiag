@@ -536,7 +536,16 @@ export function useDictationFlow() {
             let usingMediaRecorder = false;
             try {
                 if (audioSession.value && typeof audioSession.value.stop === "function") {
-                    const { blob, url, revoke } = await audioSession.value.stop();
+                    const timeoutPromise = new Promise((r) =>
+                        setTimeout(
+                            () => r({ blob: null, url: null, chunks: [], revoke: () => {} }),
+                            3000
+                        )
+                    );
+                    const { blob, url, revoke } = await Promise.race([
+                        audioSession.value.stop(),
+                        timeoutPromise,
+                    ]);
                     _audioRevoke = revoke || null;
                     audioBlob.value = blob instanceof Blob ? blob : null;
                     audioUrl.value = url || null;

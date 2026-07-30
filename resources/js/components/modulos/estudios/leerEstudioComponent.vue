@@ -1507,6 +1507,10 @@ async function guardarRegistro() {
         const res = await axios.post("/api/estudio-leerEstudio", registro.value);
 
         if (res.status >= 200 && res.status < 300) {
+            const blobToSend = audioBlob.value;
+            const estudioId = id.value;
+            const productoId = registro.value.estudio_producto_id;
+
             toastMessage({
                 heading: "Completado",
                 text: res.data.message,
@@ -1526,12 +1530,11 @@ async function guardarRegistro() {
             cerrarSidebar();
             limpiar();
 
-            if (audioBlob.value && audioBlob.value instanceof Blob) {
-                const blobToSend = audioBlob.value;
+            if (blobToSend && blobToSend instanceof Blob) {
                 const formData = new FormData();
                 formData.append("audio", blobToSend, "audio.webm");
-                formData.append("estudio_id", id.value);
-                formData.append("estudio_producto_id", registro.value.estudio_producto_id);
+                formData.append("estudio_id", estudioId);
+                formData.append("estudio_producto_id", productoId);
                 axios.post("/api/upload-audio", formData).catch(() => {});
             }
         }
