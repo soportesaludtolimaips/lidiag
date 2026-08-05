@@ -2,17 +2,13 @@
 
 namespace App\Services\Estudios;
 
+use App\Helpers\DicomHelper;
 use App\Mail\NotificacionDeLectura;
 use App\Mail\ReportarLectura;
-use App\Models\Configuracion\ConfigSede;
-use App\Models\Dcm4chee\Instance;
 use App\Models\Estudio\Estudio;
 use App\Services\BaseService;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
 
 class EstudioNotificacionService extends BaseService
 {
@@ -80,13 +76,7 @@ class EstudioNotificacionService extends BaseService
 
         @unlink($archivoReporte);
 
-        $imagenesAdjuntos = Storage::exists('img_dicom/'.$estudio->study_iuid)
-            ? Storage::files('img_dicom/'.$estudio->study_iuid) : [];
-
-        foreach ($imagenesAdjuntos as $imagen) {
-            Storage::delete($imagen);
-        }
-        Storage::deleteDirectory('img_dicom/'.$estudio->study_iuid);
+        DicomHelper::cleanupTempImages("img_dicom/{$estudio->study_iuid}");
 
         return $this->success(null, 'La notificación se generó correctamente.');
     }
@@ -161,53 +151,27 @@ class EstudioNotificacionService extends BaseService
 
     public static function descargaImagenesDicom($sedeId, $study_iuid): array
     {
-        $sedeActual = ConfigSede::find($sedeId);
-        if (! $sedeActual) {
-            return (new self)->notFound('Sede no encontrada');
+        $result = DicomHelper::downloadStudyImages(
+            $sedeId,
+            $study_iuid,
+            'image/jpeg',
+            "img_dicom/{$study_iuid}",
+            20
+        );
+
+        if (isset($result['error'])) {
+            return (new self)->error($result['error'], 404);
         }
 
-        Config::set('database.connections.mysql_sucursal', [
-            'driver' => 'mysql',
-            'host' => env('DB_SUCURSAL_HOST', $sedeActual->ip_dcm),
-            'port' => env('DB_SUCURSAL_PUERTO', $sedeActual->puerto_dcm),
-            'database' => env('DB_SUCURSAL_DATABASE', $sedeActual->bd_dcm),
-            'username' => env('DB_SUCURSAL_USERNAME', $sedeActual->usuario_dcm),
-            'password' => env('DB_SUCURSAL_PASSWORD', $sedeActual->password_dcm),
-            'charset' => env('DB_SUCURSAL_charset', 'latin1'),
-            'collation' => env('DB_SUCURSAL_collation', 'latin1_swedish_ci'),
-        ]);
-
-        $originalDefault = Config::get('database.default');
-        Config::set('database.default', 'mysql_sucursal');
-
-        try {
-            $imagenes = Instance::join('series', 'instance.series_fk', '=', 'series.pk')
-                ->join('study', 'series.study_fk', '=', 'study.pk')
-                ->where('study.study_iuid', $study_iuid)
-                ->select('series.series_iuid', 'instance.sop_iuid')
-                ->limit(20)
-                ->get();
-
-            if ($imagenes->isEmpty()) {
-                return (new self)->notFound('No se encontraron imágenes para el estudio especificado');
-            }
-
-            foreach ($imagenes as $imagen) {
-                $wadoUrl = "http://{$sedeActual->ip_dcm}:8080/wado?requestType=WADO&studyUID={$study_iuid}&seriesUID={$imagen->series_iuid}&objectUID={$imagen->sop_iuid}&contentType=image/jpeg";
-
-                $response = Http::get($wadoUrl);
-                if ($response->successful()) {
-                    $filename = "imagen_{$study_iuid}_{$imagen->series_iuid}_{$imagen->sop_iuid}.jpg";
-                    Storage::put("img_dicom/{$study_iuid}/{$filename}", $response->body());
-                } else {
-                    return (new self)->error('Error al descargar una de las imágenes', 500);
-                }
-            }
-
-            return (new self)->success(null, 'Todas las imágenes se han descargado y guardado correctamente');
-        } finally {
-            Config::set('database.default', $originalDefault);
+        if ($result['success'] === 0) {
+            return (new self)->error('No se encontraron imágenes para el estudio especificado', 404);
         }
+
+        if ($result['failed'] > 0) {
+            return (new self)->error('Error al descargar algunas imágenes', 500);
+        }
+
+        return (new self)->success(null, 'Todas las imágenes se han descargado y guardado correctamente');
     }
 
     public function eliminarReporte($reportePath): void

@@ -2,11 +2,9 @@
 
 namespace App\Services;
 
+use App\Helpers\DicomHelper;
 use App\Models\Configuracion\ConfigSede;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class DicomBurnerService
@@ -48,30 +46,21 @@ class DicomBurnerService
         try {
             $sedeId = $data['sede_id'] ?? session('ST-sede');
             $sede = ConfigSede::findOrFail($sedeId);
-            $ipDcm = $sede->ip_dcm;
 
             $totalFiles = 0;
             $failedDownloads = 0;
             foreach ($studyUids as $studyUid) {
-                $instances = $this->getStudyInstances($sede, $studyUid);
-                $totalInstances = count($instances);
-                foreach ($instances as $idx => $inst) {
-                    $dicomData = $this->downloadDicomViaWado(
-                        $ipDcm,
-                        $inst['study_iuid'],
-                        $inst['series_iuid'],
-                        $inst['sop_iuid']
-                    );
-                    if ($dicomData) {
-                        $filename = "{$studyUid}_{$inst['series_iuid']}_{$inst['sop_iuid']}.dcm";
-                        Storage::put("{$dicomFolder}/{$filename}", $dicomData);
-                        $totalFiles++;
-                    } else {
-                        $failedDownloads++;
-                    }
-                    $downloadProgress = 10 + (int) (30 * ($idx + 1) / max($totalInstances, 1));
-                    $this->updateProgress($burnId, $downloadProgress);
-                }
+                $result = DicomHelper::downloadStudyImages(
+                    $sedeId,
+                    $studyUid,
+                    'application/dicom',
+                    $dicomFolder
+                );
+
+                $totalFiles += $result['success'];
+                $failedDownloads += $result['failed'];
+
+                $this->updateProgress($burnId, 10 + (int) (30 * ($totalFiles + $failedDownloads) / max(count($studyUids), 1)));
             }
 
             if ($totalFiles === 0) {
@@ -94,62 +83,6 @@ class DicomBurnerService
                 $this->updateError($burnId, $e->getMessage());
             }
             throw $e;
-        }
-    }
-
-    private function getStudyInstances(ConfigSede $sede, string $studyUid): array
-    {
-        Config::set('database.connections.mysql_sucursal', [
-            'driver' => 'mysql',
-            'host' => $sede->ip_dcm,
-            'port' => $sede->puerto_dcm,
-            'database' => $sede->bd_dcm,
-            'username' => $sede->usuario_dcm,
-            'password' => $sede->password_dcm,
-            'charset' => 'latin1',
-            'collation' => 'latin1_swedish_ci',
-        ]);
-
-        DB::purge('mysql_sucursal');
-
-        $results = DB::connection('mysql_sucursal')
-            ->table('instance')
-            ->join('series', 'instance.series_fk', '=', 'series.pk')
-            ->join('study', 'series.study_fk', '=', 'study.pk')
-            ->where('study.study_iuid', $studyUid)
-            ->select('series.series_iuid', 'instance.sop_iuid', 'study.study_iuid')
-            ->get()
-            ->toArray();
-
-        return array_map(fn ($row) => [
-            'study_iuid' => $row->study_iuid,
-            'series_iuid' => $row->series_iuid,
-            'sop_iuid' => $row->sop_iuid,
-        ], $results);
-    }
-
-    private function downloadDicomViaWado(string $ipDcm, string $studyUid, string $seriesUid, string $objectUid): ?string
-    {
-        $wadoUrl = "http://{$ipDcm}:8080/wado?requestType=WADO"
-            ."&studyUID={$studyUid}"
-            ."&seriesUID={$seriesUid}"
-            ."&objectUID={$objectUid}"
-            ."&contentType=application/dicom";
-
-        try {
-            $response = Http::timeout(30)
-                ->withHeaders(['Accept' => 'application/dicom'])
-                ->get($wadoUrl);
-
-            if ($response->successful()) {
-                return $response->body();
-            }
-
-            return null;
-        } catch (\Throwable $e) {
-            Log::warning("WADO download failed for {$objectUid}: ".$e->getMessage());
-
-            return null;
         }
     }
 
