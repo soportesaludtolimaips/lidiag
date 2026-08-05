@@ -49,8 +49,8 @@
 | 3.8 | Transcripción automática (Whisper) | 🟢 | Whisper service localhost:8001, transcripción aparece en textarea |
 | 3.9 | Auto-inserción de transcripción en textarea | 🟢 | Fix res.data.data + callback |
 | 3.10 | Guardar lectura | 🟢 | Fix guardarRegistro flow |
-| 3.11 | Transcribir estudio | 🔴 | |
-| 3.12 | Notificar estudio | 🔴 | |
+| 3.11 | Transcribir estudio | 🟢 | Listar pendientes, abrir estudio, editar transcripción, guardar, generar PDF |
+| 3.12 | Notificar estudio | 🟢 | Imprimir PDF, notificar por correo, enviar al portal de pacientes |
 | 3.13 | Eliminar audio cargado (SweetAlert) | 🟢 | Fix confirm → SweetAlert |
 | 3.14 | Stream de audio (reproducción) | 🟢 | Fix regex cargado_ prefix |
 
@@ -155,4 +155,4 @@
 | 14.4 | WhatsApp | 🔴 | |
 
 ---
-**Resumen:** 93 pruebas | 🟢 10 completados | 🔴 83 sin iniciar
+**Resumen:** 93 pruebas | 🟢 12 completados | 🔴 81 sin iniciar
