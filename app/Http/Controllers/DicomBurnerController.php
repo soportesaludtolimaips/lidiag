@@ -313,7 +313,7 @@ class DicomBurnerController extends Controller
                 if ($line !== false) {
                     $line = trim($line);
                     if (preg_match('/^\[(\d+)%\]\s*(.*)$/', $line, $m)) {
-                        $pct = (int) $m[1];
+                        $pct = min(100, max(0, (int) $m[1]));
                         $msg = $m[2];
                         $this->updateProgress($burnId, $pct, $msg);
                     }

@@ -60,7 +60,7 @@ class DicomBurnerService
                 $totalFiles += $result['success'];
                 $failedDownloads += $result['failed'];
 
-                $this->updateProgress($burnId, 10 + (int) (30 * ($totalFiles + $failedDownloads) / max(count($studyUids), 1)));
+                $this->updateProgress($burnId, min(90, 10 + (int) (30 * ($totalFiles + $failedDownloads) / max(count($studyUids), 1))));
             }
 
             if ($totalFiles === 0) {

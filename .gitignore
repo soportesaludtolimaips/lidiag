@@ -43,3 +43,11 @@ public/build/manifest.json
 # SSL certs (no comitear)
 ssl.crt
 ssl.key
+resources/js/admin-wrap/assets/node_modules.rar
+
+# Tauri build artifacts and logs
+storage/src-tauri/target/
+storage/src-tauri/*.log*
+storage/src-tauri/*.bak*
+storage/src-tauri/*.txt
+storage/src-tauri/output.txt
