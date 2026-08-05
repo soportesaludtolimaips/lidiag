@@ -22,3 +22,7 @@ Route::post('/dicom/burn', [DicomBurnerController::class, 'burn'])->middleware('
     ->name('dicom.burn');
 Route::post('/dicom/cleanup', [DicomBurnerController::class, 'cleanup'])->middleware('auth:sanctum')
     ->name('dicom.cleanup');
+Route::post('/dicom/generate-zip', [DicomBurnerController::class, 'generateZip'])->middleware('auth:sanctum')
+    ->name('dicom.generate-zip');
+Route::get('/dicom/zip-status/{id}', [DicomBurnerController::class, 'zipStatus'])->middleware('auth:sanctum')
+    ->name('dicom.zip-status');

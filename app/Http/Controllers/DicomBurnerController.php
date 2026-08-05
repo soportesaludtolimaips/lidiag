@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\DicomHelper;
 use App\Services\DicomBurnerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -346,6 +347,139 @@ class DicomBurnerController extends Controller
             }
             throw new \RuntimeException('Error al quemar disco: '.$outputText);
         }
+    }
+
+    /**
+     * Generate ZIP file with MicroDicom viewer + DICOM images.
+     */
+    public function generateZip(Request $request)
+    {
+        $validated = $request->validate([
+            'study_instance_uid' => 'required|string',
+            'sede_id' => 'required|integer',
+            'patient_name' => 'nullable|string|max:255',
+        ]);
+
+        $studyUid = $validated['study_instance_uid'];
+        $sedeId = (int) $validated['sede_id'];
+        $patientName = $validated['patient_name'] ?? 'estudio';
+        $safeName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $patientName);
+
+        $zipId = uniqid('zip_', true);
+        $tempDir = storage_path("app/zips/{$zipId}");
+        $dicomDir = "{$tempDir}/DICOM";
+        $zipPath = storage_path("app/zips/{$safeName}_{$studyUid}.zip");
+
+        try {
+            // Create directories
+            if (! is_dir($tempDir)) {
+                mkdir($tempDir, 0755, true);
+            }
+            if (! is_dir($dicomDir)) {
+                mkdir($dicomDir, 0755, true);
+            }
+
+            // Store progress file
+            $progressFile = storage_path("app/zips/{$zipId}_progress.json");
+            file_put_contents($progressFile, json_encode(['progress' => 0, 'status' => 'Descargando imágenes...']));
+
+            // Copy MicroDicom viewer
+            $viewerSource = storage_path('microdicom');
+            if (is_dir($viewerSource)) {
+                $this->copyDirectory($viewerSource, $tempDir);
+            }
+
+            // Download DICOM images
+            $result = DicomHelper::downloadStudyImages(
+                $sedeId,
+                $studyUid,
+                'application/dicom',
+                "zips/{$zipId}/DICOM"
+            );
+
+            if (isset($result['error'])) {
+                throw new \RuntimeException($result['error']);
+            }
+
+            if ($result['success'] === 0) {
+                throw new \RuntimeException('No se encontraron imágenes DICOM para el estudio.');
+            }
+
+            // Update progress: downloading complete
+            file_put_contents($progressFile, json_encode(['progress' => 60, 'status' => 'Comprimiendo archivos...']));
+
+            // Create ZIP
+            $zip = new \ZipArchive;
+            if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+                throw new \RuntimeException('Error al crear el archivo ZIP.');
+            }
+
+            $files = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($tempDir),
+                \RecursiveIteratorIterator::LEAVES_ONLY
+            );
+
+            foreach ($files as $file) {
+                if (! $file->isDir()) {
+                    $filePath = $file->getRealPath();
+                    $relativePath = substr($filePath, strlen($tempDir) + 1);
+                    $zip->addFile($filePath, $relativePath);
+                }
+            }
+
+            $zip->close();
+
+            // Update progress: complete
+            file_put_contents($progressFile, json_encode([
+                'progress' => 100,
+                'status' => 'Listo',
+                'download_url' => "/api/dicom/download-zip/{$safeName}_{$studyUid}.zip",
+                'filename' => "{$safeName}_{$studyUid}.zip",
+            ]));
+
+            // Cleanup temp directory
+            $this->removeDirectory($tempDir);
+
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'zip_id' => $zipId,
+                    'filename' => "{$safeName}_{$studyUid}.zip",
+                    'total_files' => $result['success'],
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('DicomBurnerController.generateZip failed', ['error' => $e->getMessage()]);
+            $this->removeDirectory($tempDir);
+            @unlink($zipPath);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => mb_convert_encoding($e->getMessage(), 'UTF-8', 'UTF-8'),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get ZIP generation status.
+     */
+    public function zipStatus($id)
+    {
+        $progressFile = storage_path("app/zips/{$id}_progress.json");
+
+        if (! file_exists($progressFile)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'ZIP job not found.',
+            ], 404);
+        }
+
+        $data = json_decode(file_get_contents($progressFile), true);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $data,
+        ]);
     }
 
     /**

@@ -234,12 +234,21 @@
                                             </button>
                                             <button
                                                 type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
                                                 @click="abrirQuemador(item)"
                                                 title="Quemar CD"
                                                 aria-label="Quemar CD"
                                             >
-                                                <i class="fa fa-compact-disc"></i>
+                                                <i class="fa fa-fire"></i>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm"
+                                                @click="abrirDescargaZip(item)"
+                                                title="Descargar ZIP"
+                                                aria-label="Descargar ZIP"
+                                            >
+                                                <i class="fa fa-file-archive-o"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -773,6 +782,40 @@
                 </div>
             </div>
         </div>
+
+        <!-- ============================================================== -->
+        <!-- Modal Descargar ZIP -->
+        <!-- ============================================================== -->
+        <div
+            class="modal fade"
+            id="descargarZipModal"
+            tabindex="-1"
+            role="dialog"
+            aria-labelledby="descargarZipModalLabel"
+            aria-hidden="true"
+        >
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="descargarZipModalLabel">
+                            <i class="fa fa-file-archive-o"></i> Descargar Estudio ZIP
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <descargar-zip-component
+                            v-if="estudioParaDescargar !== null"
+                            :estudio="estudioParaDescargar"
+                            :usuarioactual="usuarioactual"
+                            @cerrar="cerrarDescargaZip"
+                            @completado="onDescargaZipCompletado"
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 <script setup>
@@ -785,6 +828,7 @@ import { normalizarFecha } from "@/helpers/dateUtils.js";
 import { useSede } from "@/composables/useSede";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 import QuemadorCdComponent from "@/components/modulos/estudios/QuemadorCdComponent.vue";
+import DescargarZipComponent from "@/components/modulos/estudios/DescargarZipComponent.vue";
 import axios from "axios";
 
 const { proxy } = getCurrentInstance();
@@ -856,6 +900,7 @@ const loadingAbrirRegistroIndex = ref(null);
 const progresoUpload = ref(null);
 const primerInput = ref(null);
 const estudioParaQuemar = ref(null);
+const estudioParaDescargar = ref(null);
 
 const contadorRegistros = computed(() => {
     return registros.value.length;
@@ -1535,6 +1580,29 @@ function onQuemadoCompletado() {
         stack: 6,
     });
     cerrarQuemador();
+}
+
+function abrirDescargaZip(estudio) {
+    estudioParaDescargar.value = estudio;
+    $("#descargarZipModal").modal("show");
+}
+
+function cerrarDescargaZip() {
+    $("#descargarZipModal").modal("hide");
+    estudioParaDescargar.value = null;
+}
+
+function onDescargaZipCompletado() {
+    $.toast({
+        heading: "Completado",
+        text: "El archivo ZIP ha sido descargado exitosamente.",
+        position: "top-right",
+        loaderBg: "#ff6849",
+        icon: "success",
+        hideAfter: 3500,
+        stack: 6,
+    });
+    cerrarDescargaZip();
 }
 
 onMounted(() => {
