@@ -1,5 +1,5 @@
 # Plan de Pruebas — Lidiag
-> Última actualización: 2026-07-27
+> Última actualización: 2026-08-05
 
 ## Leyenda
 - 🔴 Sin iniciar
@@ -39,13 +39,13 @@
 ## 3. ESTUDIOS (Rx)
 | # | Prueba | Estado | Observaciones |
 |---|--------|--------|---------------|
-| 3.1 | Asignar estudio a médico/transcriptor | 🔴 | |
-| 3.2 | Listar estudios asignados | 🔴 | |
-| 3.3 | Leer estudio — sidebar derecho | 🔴 | |
-| 3.4 | Grabación de audio por micrófono | 🔴 | |
+| 3.1 | Asignar estudio a médico/transcriptor | 🟢 | OK |
+| 3.2 | Listar estudios asignados | 🟢 | OK |
+| 3.3 | Leer estudio — sidebar derecho | 🟢 | OK con usuario médico |
+| 3.4 | Grabación de audio por micrófono | 🟢 | Fix: `stopRecording` no estaba destructurado de `dictationFlow` |
 | 3.5 | Grabación continua al cambiar de pestaña | 🟢 | Fix MediaRecorder auto-resume |
 | 3.6 | F2 para iniciar/detener grabación | 🟢 | Fix stopAll en F2 |
-| 3.7 | Carga de archivos de audio | 🔴 | |
+| 3.7 | Carga de archivos de audio | 🟢 | Upload mp3/wav/m4a/webm/ogg/flac, max 100MB, conversión FFmpeg OK |
 | 3.8 | Transcripción automática (Whisper) | 🔴 | |
 | 3.9 | Auto-inserción de transcripción en textarea | 🟢 | Fix res.data.data + callback |
 | 3.10 | Guardar lectura | 🟢 | Fix guardarRegistro flow |
@@ -155,4 +155,4 @@
 | 14.4 | WhatsApp | 🔴 | |
 
 ---
-**Resumen:** 93 pruebas | 🟢 8 completados | 🔴 85 sin iniciar
+**Resumen:** 93 pruebas | 🟢 9 completados | 🔴 84 sin iniciar
