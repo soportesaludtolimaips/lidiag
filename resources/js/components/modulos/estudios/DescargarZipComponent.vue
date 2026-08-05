@@ -115,9 +115,16 @@ function startGeneration() {
     progress.value = 0;
     statusMessage.value = "Iniciando...";
 
+    const sedeId = sessionStorage.getItem("ST-sede");
+    if (!sedeId) {
+        error.value = "No se encontró la sede seleccionada.";
+        generating.value = false;
+        return;
+    }
+
     const payload = {
         study_instance_uid: props.estudio.study_iuid,
-        sede_id: props.estudio.sede_id,
+        sede_id: parseInt(sedeId, 10),
         patient_name: props.estudio.nom_pacien || "estudio",
     };
 
@@ -175,14 +182,37 @@ function checkStatus() {
 }
 
 function downloadZip() {
-    const link = document.createElement("a");
-    link.href = `/api/dicom/download-zip/${filename.value}`;
-    link.download = filename.value;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const url = `/api/dicom/download-zip/${filename.value}`;
 
-    emit("completado");
+    // Get XSRF token from cookie for Sanctum
+    let xsrfToken = null;
+    const match = document.cookie.match(new RegExp("(^|;)\\s*XSRF-TOKEN\\s*=\\s*([^;]+)"));
+    if (match) {
+        xsrfToken = decodeURIComponent(match[2]);
+    }
+
+    fetch(url, {
+        credentials: "same-origin",
+        headers: xsrfToken ? { "X-XSRF-TOKEN": xsrfToken } : {},
+    })
+        .then((res) => {
+            if (!res.ok) throw new Error("Error al descargar");
+            return res.blob();
+        })
+        .then((blob) => {
+            const blobUrl = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = blobUrl;
+            link.download = filename.value;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(blobUrl);
+            emit("completado");
+        })
+        .catch((err) => {
+            error.value = err.message || "Error al descargar el ZIP";
+        });
 }
 
 function cerrar() {

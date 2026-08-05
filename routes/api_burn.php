@@ -26,3 +26,5 @@ Route::post('/dicom/generate-zip', [DicomBurnerController::class, 'generateZip']
     ->name('dicom.generate-zip');
 Route::get('/dicom/zip-status/{id}', [DicomBurnerController::class, 'zipStatus'])->middleware('auth:sanctum')
     ->name('dicom.zip-status');
+Route::get('/dicom/download-zip/{filename}', [DicomBurnerController::class, 'downloadZip'])->middleware('auth:sanctum')
+    ->name('dicom.download-zip');

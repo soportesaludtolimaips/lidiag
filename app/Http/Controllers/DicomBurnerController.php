@@ -483,6 +483,26 @@ class DicomBurnerController extends Controller
     }
 
     /**
+     * Download a generated ZIP file.
+     */
+    public function downloadZip($filename)
+    {
+        $filePath = storage_path("app/zips/{$filename}");
+
+        if (! file_exists($filePath)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Archivo ZIP no encontrado.',
+            ], 404);
+        }
+
+        return response()->download($filePath, $filename, [
+            'Content-Type' => 'application/zip',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ])->deleteFileAfterSend(true);
+    }
+
+    /**
      * Clean up old burn folders (older than 7 days).
      */
     public function cleanup()
