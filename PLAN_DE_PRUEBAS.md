@@ -46,7 +46,7 @@
 | 3.5 | Grabación continua al cambiar de pestaña | 🟢 | Fix MediaRecorder auto-resume |
 | 3.6 | F2 para iniciar/detener grabación | 🟢 | Fix stopAll en F2 |
 | 3.7 | Carga de archivos de audio | 🟢 | Upload mp3/wav/m4a/webm/ogg/flac, max 100MB, conversión FFmpeg OK |
-| 3.8 | Transcripción automática (Whisper) | 🔴 | |
+| 3.8 | Transcripción automática (Whisper) | 🟢 | Whisper service localhost:8001, transcripción aparece en textarea |
 | 3.9 | Auto-inserción de transcripción en textarea | 🟢 | Fix res.data.data + callback |
 | 3.10 | Guardar lectura | 🟢 | Fix guardarRegistro flow |
 | 3.11 | Transcribir estudio | 🔴 | |
@@ -155,4 +155,4 @@
 | 14.4 | WhatsApp | 🔴 | |
 
 ---
-**Resumen:** 93 pruebas | 🟢 9 completados | 🔴 84 sin iniciar
+**Resumen:** 93 pruebas | 🟢 10 completados | 🔴 83 sin iniciar
