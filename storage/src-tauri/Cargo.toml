@@ -1,0 +1,36 @@
+[package]
+name = "lidiag-tauri"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+repository = ""
+description = "Tauri application for Lidiag CD/DVD burning functionality"
+# Add more metadata here: https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[package.metadata]
+
+[dependencies]
+tauri = { version = "2.0.0", features = [] }
+tauri-plugin-deep-link = "2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+reqwest = { version = "0.11", features = ["blocking"], default-features = true }
+zip = { version = "0.6", features = ["deflate"] }
+sysinfo = "0.30"
+tempfile = "3.0"
+url = "2"
+
+[build-dependencies]
+tauri-build = { version = "2.0.0", features = [] }
+
+[features]
+default = []
+default-windows = []
+default-linux = []
+default-macos = []
+
+[target.'cfg(windows)'.dependencies]
+wmi = { version = "0.10" }
+
+[target.'cfg(not(windows))'.dependencies]
+# no wmi

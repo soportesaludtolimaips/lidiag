@@ -1,0 +1,48 @@
+{
+    "productName": "Lidiag Burner",
+    "version": "0.1.0",
+    "identifier": "com.lidiag.burner",
+    "app": {
+                "security": {
+                                 "capabilities":  [
+                                     {
+                                         "identifier": "burner-capability",
+                                         "windows": ["*"],
+                                         "permissions": [
+                                             "core:default",
+                                             "event:default",
+                                             "deep-link:default"
+                                         ]
+                                     }
+                                 ]
+                             },
+                "windows":  [
+                                {
+                                    "title": "Lidiag Burner",
+                                    "width": 800,
+                                    "height": 600,
+                                    "resizable": true,
+                                    "visible": false
+                                }
+                            ]
+        },
+    "plugins": {
+        "deep-link": {
+            "desktop": {
+                "schemes": ["lidiag"]
+            }
+        }
+    },
+    "build":  {
+                  "beforeDevCommand": "",
+                  "devUrl": "http://localhost:5179",
+                  "frontendDist": "../../../public/build"
+              },
+    "bundle":  {
+                   "active": true,
+                   "targets": "all",
+                   "icon": [
+                                "icons/icon.ico"
+                        ]
+               }
+}
