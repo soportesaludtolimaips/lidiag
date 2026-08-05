@@ -58,6 +58,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 'api_agendamiento_dashboard.php',
                 'api_helpdesk.php',
                 'api_OHIF_visor.php',
+                'api_burn.php',
+                'api_burn.php',
             ];
             foreach ($apiFiles as $file) {
                 Route::middleware('api')
@@ -153,6 +155,8 @@ return Application::configure(basePath: dirname(__DIR__))
                     $e instanceof NotFoundHttpException => 'Ruta no encontrada.',
                     default => config('app.debug') && app()->isLocal() ? $e->getMessage() : 'Error interno del servidor.',
                 };
+
+                $message = mb_convert_encoding($message, 'UTF-8', 'UTF-8');
 
                 $data = $e instanceof ValidationException ? $e->errors() : null;
 

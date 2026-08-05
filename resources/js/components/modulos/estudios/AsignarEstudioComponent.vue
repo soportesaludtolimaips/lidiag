@@ -232,6 +232,15 @@
                                                 ></i>
                                                 <i v-else class="fa fa-file-photo-o"></i>
                                             </button>
+                                            <button
+                                                type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm"
+                                                @click="abrirQuemador(item)"
+                                                title="Quemar CD"
+                                                aria-label="Quemar CD"
+                                            >
+                                                <i class="fa fa-compact-disc"></i>
+                                            </button>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -730,6 +739,40 @@
         <!-- ============================================================== -->
         <!-- End Right sidebar -->
         <!-- ============================================================== -->
+
+        <!-- ============================================================== -->
+        <!-- Modal Quemador CD -->
+        <!-- ============================================================== -->
+        <div
+            class="modal fade"
+            id="quemadorCdModal"
+            tabindex="-1"
+            role="dialog"
+            aria-labelledby="quemadorCdModalLabel"
+            aria-hidden="true"
+        >
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="quemadorCdModalLabel">
+                            <i class="fa fa-compact-disc"></i> Quemador de CD/DVD
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <quemador-cd-component
+                            v-if="estudioParaQuemar !== null"
+                            :estudio="estudioParaQuemar"
+                            :usuarioactual="usuarioactual"
+                            @cerrar="cerrarQuemador"
+                            @completado="onQuemadoCompletado"
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 <script setup>
@@ -741,6 +784,7 @@ import { confirmAction } from "@/helpers/alerts";
 import { normalizarFecha } from "@/helpers/dateUtils.js";
 import { useSede } from "@/composables/useSede";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
+import QuemadorCdComponent from "@/components/modulos/estudios/QuemadorCdComponent.vue";
 import axios from "axios";
 
 const { proxy } = getCurrentInstance();
@@ -750,6 +794,7 @@ const { loadingVerImagen, verImagen } = useEstudioHelpers();
 
 const props = defineProps({
     usuarioactual: Object,
+    permisos: { type: Array, default: () => [] },
 });
 const dataIndex = ref(0);
 const id = ref(0);
@@ -810,6 +855,7 @@ const loadingGuardar = ref(false);
 const loadingAbrirRegistroIndex = ref(null);
 const progresoUpload = ref(null);
 const primerInput = ref(null);
+const estudioParaQuemar = ref(null);
 
 const contadorRegistros = computed(() => {
     return registros.value.length;
@@ -1466,6 +1512,29 @@ function quitarDiagnosticoEstudio(indexEliminar) {
             registro.value.diagnosticosEstudio.splice(indexEliminar, 1);
         },
     });
+}
+
+function abrirQuemador(estudio) {
+    estudioParaQuemar.value = estudio;
+    $("#quemadorCdModal").modal("show");
+}
+
+function cerrarQuemador() {
+    $("#quemadorCdModal").modal("hide");
+    estudioParaQuemar.value = null;
+}
+
+function onQuemadoCompletado() {
+    $.toast({
+        heading: "Completado",
+        text: "El disco ha sido quemado exitosamente.",
+        position: "top-right",
+        loaderBg: "#ff6849",
+        icon: "success",
+        hideAfter: 3500,
+        stack: 6,
+    });
+    cerrarQuemador();
 }
 
 onMounted(() => {
