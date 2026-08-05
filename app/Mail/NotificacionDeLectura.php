@@ -73,7 +73,7 @@ class NotificacionDeLectura extends Mailable
         $imagenesAdjuntos = Storage::files('img_dicom/'.$this->study_iuid);
 
         // Agregar el reporte al array de adjuntos
-        $adjuntos = [public_path('reporte_lecturas/'.$this->nomArchivoReporte)];
+        $adjuntos = [storage_path('app/reporte_lecturas/'.$this->nomArchivoReporte)];
 
         // Recorrer cada imagen y añadirla al array de adjuntos
         foreach ($imagenesAdjuntos as $imagen) {

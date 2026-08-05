@@ -8,6 +8,7 @@ use App\Mail\ReportarLectura;
 use App\Models\Estudio\Estudio;
 use App\Services\BaseService;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 
 class EstudioNotificacionService extends BaseService
@@ -74,7 +75,7 @@ class EstudioNotificacionService extends BaseService
             Mail::to($estudio->email_reportar)->send($mailable);
         }
 
-        @unlink($archivoReporte);
+        @unlink($reportePath);
 
         DicomHelper::cleanupTempImages("img_dicom/{$estudio->study_iuid}");
 
