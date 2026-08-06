@@ -130,8 +130,8 @@
                     <!-- Aqui va el contenido de los formularios -->
                     <!-- ============================================================== -->
                     <form action="#">
-                        <div class="form-body">
-                            <div class="row p-t-20">
+                        <div class="form-body" style="padding-top: 5px">
+                            <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label class="control-label">Nombre de la plantilla</label>
@@ -200,9 +200,9 @@
                                             id="plantilla"
                                             name="plantilla"
                                             v-model="registro.plantilla"
-                                            class="form-control"
+                                            class="form-control textarea_editor"
                                             placeholder="Descripción de la plantilla"
-                                            rows="9"
+                                            rows="4"
                                         ></textarea>
                                         <span class="text-danger" v-if="errores.plantilla">{{
                                             errores.plantilla[0]
@@ -216,9 +216,9 @@
                                             id="opinion"
                                             name="opinion"
                                             v-model="registro.opinion"
-                                            class="form-control"
+                                            class="form-control textarea_editor"
                                             placeholder="Opinion"
-                                            rows="5"
+                                            rows="3"
                                         ></textarea>
                                         <span class="text-danger" v-if="errores.opinion">{{
                                             errores.opinion[0]
@@ -299,6 +299,7 @@ const dt = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts.js";
+import { initWysiwyg, getWysiwygValue } from "@/helpers/wysiwyg.js";
 import axios from "axios";
 
 const id = ref(0);
@@ -343,10 +344,24 @@ async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
     try {
+        const sidebar = $(".right-sidebar")[0];
+        const $plantilla = $(sidebar).find("#plantilla");
+        const $opinion = $(sidebar).find("#opinion");
+        const instPlantilla = $plantilla.data("wysihtml5");
+        const instOpinion = $opinion.data("wysihtml5");
+        registro.value.plantilla =
+            instPlantilla && instPlantilla.editor
+                ? instPlantilla.editor.getValue()
+                : $plantilla.val() || "";
+        registro.value.opinion =
+            instOpinion && instOpinion.editor
+                ? instOpinion.editor.getValue()
+                : $opinion.val() || "";
+
         if (actualizar.value === false) {
             const res = await axios.post("/api/config-plantillas", registro.value);
 
-            if (res.status == 200) {
+            if (res.status >= 200 && res.status < 300) {
                 $.toast({
                     heading: "Ok!!!",
                     text: res.data.data.message,
@@ -363,7 +378,7 @@ async function guardarRegistro() {
             }
         } else {
             const res = await axios.put("/api/config-plantillas/" + id.value, registro.value);
-            if (res.status == 200) {
+            if (res.status >= 200 && res.status < 300) {
                 $.toast({
                     heading: "Ok!!!",
                     text: res.data.data.message,
@@ -443,6 +458,10 @@ function mostrarRegistro(data = {}) {
     }
 
     btnCerralModalForm();
+
+    nextTick(() => {
+        initWysiwyg($(".right-sidebar")[0]);
+    });
 }
 function btnCerralModalForm() {
     $(".right-sidebar").slideDown(50);
@@ -478,6 +497,7 @@ onBeforeUnmount(() => {
     top: 0px;
     padding-bottom: 20px;
     height: 100%;
+    overflow-y: auto;
     -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
     box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
     -webkit-transition: all 0.3s ease;
@@ -489,5 +509,14 @@ onBeforeUnmount(() => {
     right: 0px;
     width: 80%;
     display: block;
+}
+
+.right-sidebar .form-group {
+    margin-bottom: 10px;
+}
+
+.right-sidebar .form-body .row .col-md-12,
+.right-sidebar .form-body .row .col-md-6 {
+    margin-bottom: 0;
 }
 </style>

@@ -41,11 +41,10 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de roles</h4>
-                        <div v-if="loadingListar" class="text-center p-5">
-                            <i class="fa fa-spinner fa-spin fa-3x"></i>
-                            <p class="m-t-10">Cargando roles...</p>
+                        <div v-if="loadingListar" class="text-center p-3">
+                            <i class="fa fa-spinner fa-spin"></i> Cargando...
                         </div>
-                        <div class="table-responsive m-t-40" v-else>
+                        <div class="table-responsive m-t-40">
                             <table
                                 id="example23"
                                 ref="dt"
@@ -102,6 +101,15 @@
                                                 v-if="item.estado == 0"
                                             >
                                                 <i class="fa fa-lock"></i>
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                title="Eliminar rol"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-l-5"
+                                                @click="eliminarRol(item)"
+                                            >
+                                                <i class="fa fa-trash"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -168,22 +176,71 @@
                                     <div class="form-group">
                                         <div class="controls">
                                             <div
-                                                v-for="itemPermiso in registro.permisosRol"
-                                                :key="itemPermiso.id"
+                                                v-for="(permisosGrupo, modulo) in permisosAgrupados"
+                                                :key="modulo"
+                                                class="mb-3"
                                             >
-                                                <div class="custom-control custom-checkbox">
-                                                    <input
-                                                        type="checkbox"
-                                                        class="custom-control-input"
-                                                        :id="itemPermiso.name"
-                                                        v-model="itemPermiso.checked"
-                                                    />
-                                                    <label
-                                                        class="custom-control-label"
-                                                        :for="itemPermiso.name"
-                                                    >
-                                                        {{ itemPermiso.name }}
-                                                    </label>
+                                                <div
+                                                    class="d-flex align-items-center justify-content-between p-2 rounded"
+                                                    style="background: #f0f2f5; cursor: pointer"
+                                                    @click="toggleGrupo(modulo)"
+                                                >
+                                                    <div class="d-flex align-items-center">
+                                                        <i
+                                                            class="fa m-r-5"
+                                                            :class="
+                                                                gruposAbiertos[modulo]
+                                                                    ? 'fa-chevron-down'
+                                                                    : 'fa-chevron-right'
+                                                            "
+                                                        ></i>
+                                                        <strong>{{
+                                                            modulosTraducidos[modulo] || modulo
+                                                        }}</strong>
+                                                        <span class="badge badge-secondary ml-2">{{
+                                                            permisosGrupo.length
+                                                        }}</span>
+                                                    </div>
+                                                    <div @click.stop>
+                                                        <small
+                                                            class="text-info mr-2"
+                                                            role="button"
+                                                            @click="seleccionarGrupo(modulo, true)"
+                                                            >Todos</small
+                                                        >
+                                                        <small
+                                                            class="text-muted"
+                                                            role="button"
+                                                            @click="seleccionarGrupo(modulo, false)"
+                                                            >Ninguno</small
+                                                        >
+                                                    </div>
+                                                </div>
+                                                <div v-show="gruposAbiertos[modulo]" class="pt-2">
+                                                    <div class="row">
+                                                        <div
+                                                            v-for="itemPermiso in permisosGrupo"
+                                                            :key="itemPermiso.id"
+                                                            class="col-md-6 col-lg-4 mb-1"
+                                                        >
+                                                            <div
+                                                                class="custom-control custom-checkbox"
+                                                            >
+                                                                <input
+                                                                    type="checkbox"
+                                                                    class="custom-control-input"
+                                                                    :id="'perm_' + itemPermiso.id"
+                                                                    v-model="itemPermiso.checked"
+                                                                />
+                                                                <label
+                                                                    class="custom-control-label"
+                                                                    :for="'perm_' + itemPermiso.id"
+                                                                >
+                                                                    {{ itemPermiso.name }}
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -231,7 +288,7 @@
     </div>
 </template>
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const dt = ref(null);
 
@@ -249,37 +306,73 @@ const errores = ref("");
 const erroresRpermisosElegidos = ref("");
 const loadingListar = ref(false);
 const loadingGuardar = ref(false);
+const gruposAbiertos = ref({});
+
+const permisosAgrupados = computed(() => {
+    const grupos = {};
+    registro.value.permisosRol.forEach((permiso) => {
+        const partes = permiso.name.split(".");
+        const modulo = partes.length > 1 ? partes[0] : "Otros";
+        if (!grupos[modulo]) {
+            grupos[modulo] = [];
+        }
+        grupos[modulo].push(permiso);
+    });
+    return grupos;
+});
+
+const modulosTraducidos = {
+    seguridad: "Seguridad",
+    config: "Configuración",
+    estudio: "Estudios",
+    estudios: "Estudios",
+    reportes: "Reportes",
+    agenda: "Agenda",
+    agendamiento: "Agendamiento",
+    ecografias: "Ecografías",
+    consentimientos: "Consentimientos",
+    citas: "Citas",
+    helpdesk: "Help Desk",
+    otrasPlataformas: "Otras Plataformas",
+    tele: "Tele-Radiología",
+    gestion: "Gestión",
+    Otros: "Otros",
+};
+
+function toggleGrupo(modulo) {
+    gruposAbiertos.value[modulo] = !gruposAbiertos.value[modulo];
+}
+
+function seleccionarGrupo(modulo, seleccionar) {
+    permisosAgrupados.value[modulo].forEach((permiso) => {
+        permiso.checked = seleccionar;
+    });
+}
 
 function initDataTable() {
     safeInitDataTable(dt.value || "#example23", {
         dom: "Bfrtip",
         buttons: ["copy", "csv", "excel", "pdf", "print"],
-        retrieve: true,
     });
 }
 function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#example23");
 }
 async function ListarDatos() {
-    if (loadingListar.value) return;
     loadingListar.value = true;
     try {
-        const res = await axios.get("/api/seguridad-roles");
-
         destroyDataTable();
 
-        listarRoles.value = [];
-        permisos.value = [];
-        registro.value.permisosRol = [];
+        const res = await axios.get("/api/seguridad-roles");
 
         listarRoles.value = res.data.data.roles;
         permisos.value = res.data.data.permissions;
 
+        registro.value.permisosRol = [];
         listarPermisosRol();
 
-        nextTick(() => {
-            initDataTable();
-        });
+        await nextTick();
+        initDataTable();
     } catch (error) {
     } finally {
         loadingListar.value = false;
@@ -420,9 +513,44 @@ async function cambiarEstado(estado, data = {}) {
         ListarDatos();
     } catch (error) {}
 }
+async function eliminarRol(data = {}) {
+    const ok = await confirmAction({
+        title: "Confirmación",
+        text: "¿Estás seguro de que deseas eliminar el rol " + data.name + "?",
+        icon: "warning",
+    });
+    if (!ok) return;
+    try {
+        const res = await axios.delete("/api/seguridad-roles/" + data.id);
+        $.toast({
+            heading: "Ok!!!",
+            text: res.data.data.message,
+            position: "top-right",
+            loaderBg: "#ff6849",
+            icon: "success",
+            hideAfter: 3500,
+            stack: 6,
+        });
+        ListarDatos();
+    } catch (error) {
+        const msg = error?.response?.data?.message || "Error al eliminar el rol";
+        $.toast({
+            heading: "Error",
+            text: msg,
+            position: "top-right",
+            loaderBg: "#ff6849",
+            icon: "error",
+            hideAfter: 5000,
+            stack: 6,
+        });
+    }
+}
 function btnCerralModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").toggleClass("shw-rside");
+    if ($(".right-sidebar").hasClass("shw-rside")) {
+        $(".right-sidebar").removeClass("shw-rside");
+    } else {
+        $(".right-sidebar").addClass("shw-rside");
+    }
 }
 function limpiarFormulario() {
     actualizar.value = false;
@@ -447,8 +575,8 @@ onBeforeUnmount(() => {
 <style scoped>
 .right-sidebar {
     position: fixed;
-    right: -35%;
-    width: 35%;
+    right: -50%;
+    width: 50%;
     display: none;
     z-index: 1100;
     background: #ffffff;
@@ -464,7 +592,7 @@ onBeforeUnmount(() => {
 
 .shw-rside {
     right: 0px;
-    width: 35%;
+    width: 50%;
     display: block;
 }
 </style>

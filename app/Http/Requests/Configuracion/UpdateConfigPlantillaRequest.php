@@ -9,7 +9,7 @@ class UpdateConfigPlantillaRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return Auth::check() && Auth::user()->can('configuracion.plantillas.edit');
+        return Auth::check() && Auth::user()->can('config.plantillas.edit');
     }
 
     public function rules(): array

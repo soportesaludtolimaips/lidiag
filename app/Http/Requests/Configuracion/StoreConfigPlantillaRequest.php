@@ -9,7 +9,7 @@ class StoreConfigPlantillaRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return Auth::check() && Auth::user()->can('configuracion.plantillas.create');
+        return Auth::check() && Auth::user()->can('config.plantillas.create');
     }
 
     public function rules(): array

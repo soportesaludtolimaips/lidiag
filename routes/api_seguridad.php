@@ -47,6 +47,10 @@ Route::middleware(['auth'])->group(function () {
         ->names('api.seguridad.roles')
         ->middleware(['permission:seguridad.roles.index|seguridad.roles.create|seguridad.roles.edit|seguridad.roles.show|seguridad.roles.destroy,web']);
 
+    Route::put('/seguridad-roles/estado/{id}', [RolController::class, 'estadoRol'])
+        ->name('api.seguridad.roles.estado')
+        ->middleware(['permission:seguridad.roles.edit,web']);
+
     Route::get('/usuario-por-modulo/{modulo_id}', [UserController::class, 'usuariosPorModulo'])
         ->name('api.usuarios.por.modulo')
         ->middleware(['permission:seguridad.usuarios.index,web']);

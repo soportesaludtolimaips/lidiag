@@ -1013,8 +1013,11 @@ function cerrarModalFirma() {
     $("#modalAmpliarFirma").modal("hide");
 }
 function btnCerralModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").toggleClass("shw-rside");
+    if ($(".right-sidebar").hasClass("shw-rside")) {
+        $(".right-sidebar").removeClass("shw-rside");
+    } else {
+        $(".right-sidebar").addClass("shw-rside");
+    }
 }
 function limpiarFormulario() {
     actualizar.value = false;

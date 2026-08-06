@@ -16,7 +16,7 @@ class ConfigPlantillaController extends Controller
         $this->middleware('auth:sanctum')->except(['index', 'listarActivos']);
         $this->middleware('permission:config.plantillas.create')->only(['store']);
         $this->middleware('permission:config.plantillas.edit')->only(['update']);
-        $this->middleware('permission:config.plantillas.destroy')->only(['destroy']);
+        $this->middleware('permission:config.plantillas.delete')->only(['destroy']);
     }
 
     public function index(): JsonResponse

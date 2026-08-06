@@ -65,4 +65,11 @@ class RolController extends Controller
 
         return response()->json($result, $result['status']);
     }
+
+    public function estadoRol($id): JsonResponse
+    {
+        $result = $this->rolService->toggleEstado((int) $id);
+
+        return response()->json($result, $result['status']);
+    }
 }

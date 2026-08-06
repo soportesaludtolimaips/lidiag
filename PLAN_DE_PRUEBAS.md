@@ -12,12 +12,12 @@
 ## 1. SEGURIDAD
 | # | Prueba | Estado | Observaciones |
 |---|--------|--------|---------------|
-| 1.1 | Login con credenciales válidas | 🔴 | |
-| 1.2 | Login con credenciales inválidas | 🔴 | |
-| 1.3 | Logout | 🔴 | |
-| 1.4 | Cambio de contraseña | 🔴 | |
-| 1.5 | Control de permisos por rol (7 roles) | 🔴 | |
-| 1.6 | Sesiones concurrentes | 🔴 | |
+| 1.1 | Login con credenciales válidas | 🟢 | POST /login → 200, redirect a dashboard |
+| 1.2 | Login con credenciales inválidas | 🟢 | 401 "Credenciales inválidas". Lockout 5 intentos/15 min funciona |
+| 1.3 | Logout | 🟢 | POST /logout → 204, sesión invalidada |
+| 1.4 | Cambio de contraseña | 🟢 | Valida contraseña actual, min 8 chars, confirmed. password_changed_at se actualiza |
+| 1.5 | Control de permisos por rol (7 roles) | 🟢 | 8 roles (extra: Reportes). Admin: 134 permisos. Medico: 9. Admin no tiene permisos de seguridad bloqueados |
+| 1.6 | Sesiones concurrentes | 🟢 | Tabla sessions OK. detectPreviousSession registra sesiones anteriores |
 
 ## 2. CONFIGURACIÓN
 | # | Prueba | Estado | Observaciones |
@@ -30,7 +30,7 @@
 | 2.6 | CRUD Servicios de Citas | 🟢 | Faltaban permisos en BD, creados y asignados. CRUD OK |
 | 2.7 | CRUD Productos por Servicio | 🟢 | Incluido en config WhatsApp (pestaña Productos). Fix: faltaba método misServicios |
 | 2.8 | CRUD Tipos de Plantilla | 🟢 | Fix: permisos FormRequest 'configuracion.' → 'config.', columna producto_id nullable, status check 200→2xx |
-| 2.9 | CRUD Plantillas (WYSIWYG) | ⚪ | No construido |
+| 2.9 | CRUD Plantillas (WYSIWYG) | 🟢 | Fix: permisos FormRequest 'configuracion.' → 'config.', delete permission name, status 201 check. Implementado wysihtml5 en textarea |
 | 2.10 | CRUD Tipos de Documento | ⚪ | No construido |
 | 2.11 | CRUD Consentimiento Informado | ⚪ | No construido |
 | 2.12 | CRUD WhatsApp Bot | ⚪ | No construido |

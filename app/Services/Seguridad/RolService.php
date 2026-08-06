@@ -111,8 +111,33 @@ class RolService extends BaseService
             return $this->notFound('El rol no se encontró');
         }
 
+        $usersCount = DB::table('model_has_roles')
+            ->where('role_id', $id)
+            ->count();
+
+        if ($usersCount > 0) {
+            return $this->error("No se puede eliminar el rol \"{$role->name}\" porque está asignado a {$usersCount} usuario(s).", 422);
+        }
+
         $role->delete();
 
         return $this->deleted('Registro eliminado satisfactoriamente.');
+    }
+
+    public function toggleEstado(int $id): array
+    {
+        $role = Role::find($id);
+
+        if (! $role) {
+            return $this->notFound('El rol no se encontró');
+        }
+
+        $role->estado = $role->estado ? 0 : 1;
+        $role->save();
+
+        return $this->success([
+            'message' => $role->estado ? 'Rol activado correctamente.' : 'Rol desactivado correctamente.',
+            'estado' => $role->estado,
+        ]);
     }
 }
