@@ -40,6 +40,13 @@ class ConfigPlantillaController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    public function listarActivosPorTipo(int $tipoId, int $medicoId): JsonResponse
+    {
+        $result = $this->configPlantillaService->listarActivosPorTipo($tipoId, $medicoId);
+
+        return response()->json($result, $result['status']);
+    }
+
     public function store(StoreConfigPlantillaRequest $request): JsonResponse
     {
         $result = $this->configPlantillaService->create($request->validated());

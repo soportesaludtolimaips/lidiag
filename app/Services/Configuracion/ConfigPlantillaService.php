@@ -35,6 +35,17 @@ class ConfigPlantillaService extends BaseService
         );
     }
 
+    public function listarActivosPorTipo(int $tipoId, int $medicoId): array
+    {
+        return $this->success(
+            ConfigPlantilla::with(['plantillaTipo', 'medico'])
+                ->where('estado', true)
+                ->where('plantilla_tipo_id', $tipoId)
+                ->where('medico_id', $medicoId)
+                ->get()
+        );
+    }
+
     public function create(array $data): array
     {
         $item = ConfigPlantilla::create($data);

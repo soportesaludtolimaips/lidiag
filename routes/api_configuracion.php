@@ -89,6 +89,9 @@ Route::middleware(['auth'])->group(function () {
         ->names('api.config.plantillas')
         ->except(['create', 'edit']);
 
+    Route::get('/config-plantillas/listar/activos/{tipoId}/{medicoId}', [ConfigPlantillaController::class, 'listarActivosPorTipo'])
+        ->name('api.config.plantillas.listar.activos.por.tipo');
+
     Route::get('/config-tipos-plantillas/listar/activos', [ConfigPlantillaTipoController::class, 'listarActivos'])
         ->name('api.config.tipos.plantillas.listar.activos');
 

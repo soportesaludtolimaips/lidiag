@@ -1558,7 +1558,9 @@ async function onTipoPlantillaSelect(value) {
     if (selectedId == null) return;
 
     try {
-        const res = await axios.get(`/api/config-plantillas/listar/activos/${selectedId}`);
+        const res = await axios.get(
+            `/api/config-plantillas/listar/activos/${selectedId}/${medico.value}`
+        );
 
         plantillas.value = res.data.data;
         plantillasOptions.value;
