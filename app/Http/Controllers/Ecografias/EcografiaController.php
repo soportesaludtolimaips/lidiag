@@ -27,7 +27,7 @@ class EcografiaController extends Controller
         $result = $this->ecografiaService->all([
             'bus_nom_num_docu' => $request->input('bus_nom_num_docu'),
             'bus_fech_ini' => $request->input('bus_fech_ini'),
-            'bus_fehc_fin' => $request->input('bus_fehc_fin'),
+            'bus_fecha_fin' => $request->input('bus_fecha_fin'),
         ]);
 
         return response()->json($result, $result['status']);
@@ -38,7 +38,7 @@ class EcografiaController extends Controller
         $result = $this->ecografiaService->filtarEcografias([
             'bus_nom_num_docu' => $request->input('bus_nom_num_docu'),
             'bus_fech_ini' => $request->input('bus_fech_ini'),
-            'bus_fehc_fin' => $request->input('bus_fehc_fin'),
+            'bus_fecha_fin' => $request->input('bus_fecha_fin'),
         ]);
 
         return response()->json($result, $result['status']);

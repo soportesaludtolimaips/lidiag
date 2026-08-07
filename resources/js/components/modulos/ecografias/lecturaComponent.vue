@@ -697,9 +697,14 @@ import { setMapValue } from "@/helpers/sahi";
 import { createVoiceSession } from "@/helpers/voice/voiceSession";
 import medicalReplacements from "@/data/medical_replacements.json";
 import medicalTermsRaw from "@/data/terminos_medicos.txt?raw";
+import { useSede } from "@/composables/useSede.js";
+import { useSahiInterface } from "@/composables/useSahiInterface.js";
 import axios from "axios";
 
 const props = defineProps({ usuarioactual: Object, permisos: Array });
+const { can } = usePermissions(props.permisos);
+const { sedeActual, sedeInterface, establecerSede: establecerSedeComposable } = useSede();
+const { consultarEstado, enviarEcografiaProducto, startPolling, stopPolling } = useSahiInterface();
 
 const dt = ref(null);
 const actualizar = ref(false);
@@ -708,7 +713,7 @@ const tituloModal = ref("Nueva admisión");
 const subTituloModal = ref("");
 const tituloAtencion = ref("");
 const busqueda = ref({
-    sede_id: sedeActual,
+    sede_id: "",
     medico_id: "",
     bus_nom_num_docu: "",
     bus_fech_ini: "",
@@ -719,7 +724,7 @@ const registro = ref({
     ecografia_id: "",
     ecografia_producto_id: "",
     producto_id: "",
-    sede_id: sedeActual,
+    sede_id: "",
     medico_id: "",
     quien_registro_id: props.usuarioactual.id,
     atencion_id: null,
@@ -793,7 +798,7 @@ function btnLimpiar() {
 function getMedicalReplacementsCompiled() {
     if (medicalReplCompiled.value) return medicalReplCompiled.value;
     const compiled = [];
-    MEDICAL_REPLACEMENTS_FROM_JSON.forEach((rule) => {
+    medicalReplacements.forEach((rule) => {
         if (!Array.isArray(rule) || rule.length < 3) return;
         const [regexString, flags, replacement] = rule;
         try {
@@ -879,7 +884,7 @@ function rebuildMedicalVocabulary() {
     };
 
     // Fuente principal: archivo grande de términos
-    MEDICAL_TERMS_FROM_TXT.forEach(addPhrase);
+    medicalTermsRaw.split("\n").forEach(addPhrase);
 
     medicalVocabularyMap.value = map;
     const keys = Object.keys(map);
@@ -1526,16 +1531,15 @@ async function generarReporte() {
         }
     }
 }
-async function establecerSede() {
+async function initSede() {
     registro.value.sede_id = sessionStorage.getItem("ST-sede");
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
-    sedeActual = sessionStorage.getItem("ST-sede");
-    await establecerSede(); // composable call
+    await establecerSedeComposable();
     registros.value = [];
 }
 function establecerMedico() {
     // Siempre usar el usuario logueado como médico (evita null y evita depender de sessionStorage)
-    const medicoId = usuarioactual?.id != null ? String(usuarioactual.id) : "";
+    const medicoId = props.usuarioactual?.id != null ? String(props.usuarioactual.id) : "";
 
     busqueda.value.medico_id = medicoId;
     registro.value.medico_id = medicoId;
@@ -1559,11 +1563,10 @@ async function onTipoPlantillaSelect(value) {
 
     try {
         const res = await axios.get(
-            `/api/config-plantillas/listar/activos/${selectedId}/${medico.value}`
+            `/api/config-plantillas/listar/activos/${selectedId}/${registro.value.medico_id}`
         );
 
         plantillas.value = res.data.data;
-        plantillasOptions.value;
         var tipo = tiposPlantillasOptions.value.find(function (t) {
             return String(t.id) === String(selectedId);
         });
@@ -1652,14 +1655,14 @@ function limpiarFormulario() {
 }
 
 onMounted(() => {
-    establecerSede();
+    initSede();
     listarTiposPlantillas();
     establecerMedico();
     rebuildMedicalVocabulary();
 
     emitter.on("sedeSeleccionada", (data) => {
         registro.value.sede_id = data.idSede;
-        establecerSede();
+        initSede();
     });
 
     emitter.on("medicoSeleccionado", (data) => {

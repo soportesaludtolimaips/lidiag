@@ -374,9 +374,14 @@ import { nextTick, onMounted, ref, getCurrentInstance } from "vue";
 import usePermissions from "@/helpers/permissions.js";
 import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
 import { setMapValue } from "@/helpers/sahi";
+import { useSede } from "@/composables/useSede.js";
+import { useSahiInterface } from "@/composables/useSahiInterface.js";
 import axios from "axios";
 
 const props = defineProps({ usuarioactual: Object, permisos: Array });
+const { can } = usePermissions(props.permisos);
+const { sedeActual, sedeInterface, establecerSede: establecerSedeComposable } = useSede();
+const { consultarEstado, enviarEcografiaProducto } = useSahiInterface();
 
 const { proxy } = getCurrentInstance();
 
@@ -384,8 +389,8 @@ const dt = ref(null);
 const actualizar = ref(false);
 
 const busqueda = ref({
-    sede_id: sedeActual,
-    medico_id: medicoActual,
+    sede_id: "",
+    medico_id: "",
     bus_nom_num_docu: "",
     bus_fech_ini: "",
     bus_fecha_fin: "",
@@ -418,12 +423,12 @@ function btnLimpiar() {
     safeDestroyDataTable(dt.value || "#example23");
     registros.value = [];
 }
-async function establecerSede() {
+async function initSede() {
     const sede = sessionStorage.getItem("ST-sede");
     if (sede != null) {
         busqueda.value.sede_id = sede;
     }
-    await establecerSede();
+    await establecerSedeComposable();
 }
 function safeDestroyDataTable(selector = "#example23") {
     if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
@@ -598,7 +603,7 @@ async function reenviarASahi(item) {
 }
 
 onMounted(() => {
-    establecerSede();
+    initSede();
 });
 </script>
 <style scoped>

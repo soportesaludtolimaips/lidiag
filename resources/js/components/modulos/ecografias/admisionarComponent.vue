@@ -906,9 +906,14 @@ import usePermissions from "@/helpers/permissions.js";
 import { formatoMoneda } from "@/helpers/funciones.js";
 import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
 import { setMapValue } from "@/helpers/sahi";
+import { useSede } from "@/composables/useSede.js";
+import { useSahiInterface } from "@/composables/useSahiInterface.js";
 import axios from "axios";
 
 const props = defineProps({ usuarioactual: Object, permisos: Array });
+const { can } = usePermissions(props.permisos);
+const { sedeActual, sedeInterface, establecerSede: establecerSedeComposable } = useSede();
+const { consultarEstado, enviarEcografiaProducto } = useSahiInterface();
 
 const dt = ref(null);
 const actualizar = ref(false);
@@ -955,7 +960,6 @@ const errores = ref({});
 const erroresBusqueda = ref({});
 const medicos = ref([]);
 const tipoDocumentos = ref([]);
-const sedeActual = ref(sessionStorage.getItem("ST-sede"));
 const medicoActual = ref(sessionStorage.getItem("ST-medico"));
 const productoSelecciondo = ref(null);
 const productos = ref([]);
@@ -1173,11 +1177,10 @@ function anularEcografia() {
         }
     });
 }
-async function establecerSede() {
+async function initSede() {
     registro.value.sede_id = sessionStorage.getItem("ST-sede");
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
-    sedeActual.value = sessionStorage.getItem("ST-sede");
-    await establecerSede();
+    await establecerSedeComposable();
     registros.value = [];
 }
 async function establecerMedico() {
@@ -1185,16 +1188,11 @@ async function establecerMedico() {
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
     medicoActual.value = sessionStorage.getItem("ST-medico");
 
-    try {
-        const res = await axios.get(`/api/config-sedes/${registro.value.sede_id}/buscarPorId`);
-        sedeInterface = res?.data?.data?.interface_software != null;
-    } catch (error) {
-        sedeInterface = false;
-    }
+    await establecerSedeComposable();
     registros.value = [];
 }
 async function consultarEstadoSahi(item) {
-    if (!sedeInterface) return;
+    if (!sedeInterface.value) return;
     if (!item?.ecografia_producto_id) return;
 
     const id = item.ecografia_producto_id;
@@ -1218,7 +1216,7 @@ async function consultarEstadoSahi(item) {
     }
 }
 async function reenviarASahi(item) {
-    if (!sedeInterface) return;
+    if (!sedeInterface.value) return;
     if (!item?.ecografia_producto_id) return;
 
     const id = item.ecografia_producto_id;
@@ -1382,13 +1380,13 @@ function quitarProductoAgenda(codProduc) {
 
 onMounted(() => {
     listarMedicos();
-    establecerSede();
+    initSede();
     listarTipoDocumentos();
     listarProductos();
 
     emitter.on("sedeSeleccionada", (data) => {
         registro.value.sede_id = data.idSede;
-        establecerSede();
+        initSede();
         establecerMedico();
     });
 });
