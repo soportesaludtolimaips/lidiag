@@ -7,6 +7,7 @@ use App\Models\Consentimientos\EcografiaConsentimiento;
 use App\Models\Ecografias\EcografiaProducto;
 use App\Services\BaseService;
 use Carbon\Carbon;
+use Dompdf\Dompdf;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -327,9 +328,11 @@ class EcografiaConsentimientosService extends BaseService
 
         $html = $this->renderHtmlForPdf($consent);
 
-        $pdf = app('dompdf.wrapper');
-        $pdf->loadHTML($html)->setPaper('a4', 'portrait');
-        $output = $pdf->output();
+        $dompdf = new Dompdf;
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('a4', 'portrait');
+        $dompdf->render();
+        $output = $dompdf->output();
 
         $p = $consent->ecografiaProducto?->ecografia?->paciente;
         $numDoc = (string) ($p?->num_docu ?? 'NA');

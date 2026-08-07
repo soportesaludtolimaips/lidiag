@@ -31,7 +31,7 @@ class HelpDeskTicketNotification extends Notification
             'titulo' => $this->titulo,
             'evento' => $this->evento,
             'mensaje' => $this->mensaje,
-            'url' => $this->url,
+            'url' => '/helpdesk-tickets/'.$this->ticketId,
         ];
     }
 }

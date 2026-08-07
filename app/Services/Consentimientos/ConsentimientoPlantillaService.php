@@ -4,6 +4,7 @@ namespace App\Services\Consentimientos;
 
 use App\Models\Consentimientos\ConsentimientoPlantilla;
 use App\Services\BaseService;
+use Dompdf\Dompdf;
 use Illuminate\Support\Facades\DB;
 
 class ConsentimientoPlantillaService extends BaseService
@@ -158,9 +159,11 @@ class ConsentimientoPlantillaService extends BaseService
         $p = ConsentimientoPlantilla::query()->findOrFail($id);
         $html = '<div style="font-family: DejaVu Sans, sans-serif; font-size: 12px;">'.$p->html.'</div>';
 
-        $pdf = app('dompdf.wrapper');
-        $pdf->loadHTML($html)->setPaper('a4', 'portrait');
+        $dompdf = new Dompdf;
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('a4', 'portrait');
+        $dompdf->render();
 
-        return $pdf->stream('plantilla_consentimiento.pdf');
+        $dompdf->stream('plantilla_consentimiento.pdf', ['Attachment' => false]);
     }
 }
