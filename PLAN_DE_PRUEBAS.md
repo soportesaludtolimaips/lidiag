@@ -57,10 +57,10 @@
 ## 4. ECOGRAFÍAS
 | # | Prueba | Estado | Observaciones |
 |---|--------|--------|---------------|
-| 4.1 | Admisión de ecografía | 🔴 | |
-| 4.2 | Listado de ecografías admitidas | 🔴 | |
-| 4.3 | Lectura de ecografía | 🔴 | |
-| 4.4 | Reporte de ecografía | 🔴 | |
+| 4.1 | Admisión de ecografía | 🟢 | Fix: columna `medico_id` faltante en tabla ecografias (migración), columna `estado` era tinyint en vez de enum. CRUD funciona correctamente |
+| 4.2 | Listado de ecografías admitidas | 🟢 | Filtros por nombre/doc, fechas. Retorna relaciones (paciente, medico, productos) |
+| 4.3 | Lectura de ecografía | 🟢 | IMPRIMIR_LECTURA y TERMINAR_LECTURA funcionan. Estado cambia a LEIDO |
+| 4.4 | Reporte de ecografía | 🟡 | Código funciona (valida, retorna error 402 si no hay plantilla). Requiere plantilla Word configurada en sede (no hay ninguna configurada actualmente) |
 
 ## 5. CONSENTIMIENTOS
 | # | Prueba | Estado | Observaciones |
@@ -155,4 +155,4 @@
 | 14.4 | WhatsApp | 🔴 | |
 
 ---
-**Resumen:** 93 pruebas | 🟢 12 completados | 🔴 81 sin iniciar
+**Resumen:** 93 pruebas | 🟢 15 completados | 🟡 1 parcial | 🔴 77 sin iniciar
