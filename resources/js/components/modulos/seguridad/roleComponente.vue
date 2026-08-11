@@ -353,6 +353,23 @@ function initDataTable() {
     safeInitDataTable(dt.value || "#example23", {
         dom: "Bfrtip",
         buttons: ["copy", "csv", "excel", "pdf", "print"],
+        pageLength: 10,
+        lengthMenu: [5, 10, 25, 50, 100],
+        order: [[0, "asc"]],
+        language: {
+            lengthMenu: "Mostrar _MENU_ registros por página",
+            zeroRecords: "No se encontraron roles",
+            info: "Mostrando _START_ a _END_ de _TOTAL_ roles",
+            infoEmpty: "No hay roles disponibles",
+            infoFiltered: "(filtrado de _MAX_ registros totales)",
+            search: "Buscar:",
+            paginate: {
+                first: "Primero",
+                last: "Último",
+                next: "Siguiente",
+                previous: "Anterior",
+            },
+        },
     });
 }
 function destroyDataTable() {
@@ -374,6 +391,10 @@ async function ListarDatos() {
         await nextTick();
         initDataTable();
     } catch (error) {
+        console.error("Error al listar roles:", error);
+        if (error?.response?.status === 401) {
+            window.location.href = "/login";
+        }
     } finally {
         loadingListar.value = false;
     }
@@ -468,7 +489,12 @@ function mostrarRegistro(data = {}) {
                     registro.value.permisosRol[permisoActivo].checked = true;
                 });
             })
-            .catch((error) => {});
+            .catch((error) => {
+                console.error("Error al cargar permisos del rol:", error);
+                if (error?.response?.status === 401) {
+                    window.location.href = "/login";
+                }
+            });
     } else {
         actualizar.value = false;
         tituloModal.value = "Nuevo registro";
@@ -511,7 +537,19 @@ async function cambiarEstado(estado, data = {}) {
             stack: 6,
         });
         ListarDatos();
-    } catch (error) {}
+    } catch (error) {
+        console.error("Error al cambiar estado:", error);
+        const msg = error?.response?.data?.message || "Error al cambiar estado del rol";
+        $.toast({
+            heading: "Error",
+            text: msg,
+            position: "top-right",
+            loaderBg: "#ff6849",
+            icon: "error",
+            hideAfter: 5000,
+            stack: 6,
+        });
+    }
 }
 async function eliminarRol(data = {}) {
     const ok = await confirmAction({

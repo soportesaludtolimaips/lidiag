@@ -63,8 +63,6 @@
                                         <th>Firma</th>
                                         <th>Modulos</th>
                                         <th>Permisos</th>
-                                        <th>Sedes</th>
-                                        <th>Servicios de Cita</th>
                                         <th>Estado</th>
                                         <th></th>
                                     </tr>
@@ -88,7 +86,7 @@
                                                 />
                                                 <img
                                                     v-else
-                                                    :src="item.imagen_perfil"
+                                                    :src="'/files/' + item.imagen_perfil"
                                                     :alt="item.name"
                                                     class="img-circle"
                                                     height="40"
@@ -103,7 +101,7 @@
                                         <td>
                                             <img
                                                 v-if="item.firma"
-                                                :src="'/' + item.firma"
+                                                :src="'/files/' + item.firma"
                                                 alt="Firma"
                                                 :title="'Firma de ' + item.name"
                                                 height="30"
@@ -132,29 +130,6 @@
                                                 :key="rol.id"
                                             >
                                                 {{ rol.name }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span
-                                                class="badge badge-warning m-1"
-                                                v-for="sede in item.sedes"
-                                                :key="sede.id"
-                                            >
-                                                {{ sede.nom_sede }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span
-                                                class="badge badge-success m-1"
-                                                v-for="sc in item.serviciosCita"
-                                                :key="sc.id"
-                                                style="white-space: normal"
-                                            >
-                                                {{ sc.nombre }}
-                                                <br /><small
-                                                    style="font-size: 10px; opacity: 0.9"
-                                                    >{{ sc.sede?.nom_sede || "" }}</small
-                                                >
                                             </span>
                                         </td>
                                         <td>
@@ -684,9 +659,7 @@
     </div>
 </template>
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
-
-const { proxy } = getCurrentInstance();
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { confirmAction, alertError, alertSuccess } from "@/helpers/alerts";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import axios from "axios";
@@ -750,28 +723,25 @@ async function ListarDatos() {
         roles.value = [];
         registro.value.rolesUsuario = [];
 
-        registros.value = res.data;
-        roles.value = resRoles.data[0];
+        registros.value = res.data.data;
+        roles.value = resRoles.data.data.roles;
         listarRoles();
 
         nextTick(() => {
             initDataTable();
         });
     } catch (error) {
+        console.error("ListarDatos error:", error);
     } finally {
         loadingListar.value = false;
     }
 }
 function listarRoles() {
-    let me = proxy;
-
-    me.roles.map(function (x, y) {
-        me.registro.rolesUsuario.push({
-            id: x.id,
-            name: x.name,
-            checked: false,
-        });
-    });
+    registro.value.rolesUsuario = roles.value.map((x) => ({
+        id: x.id,
+        name: x.name,
+        checked: false,
+    }));
 }
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
@@ -912,7 +882,7 @@ async function ListarSedes() {
 async function ListarServiciosCitas() {
     try {
         const res = await axios.get("/api/config-servicio-citas");
-        registro.value.serviciosCitas = (res.data || []).map((sc) => ({
+        registro.value.serviciosCitas = (res.data?.data || res.data || []).map((sc) => ({
             ...sc,
             checked: false,
         }));
@@ -975,15 +945,14 @@ function mostrarRegistro(data = {}) {
          */
         axios.get("/api/seguridad-usuarios/" + id.value).then((res) => {
             const RolesDelUsuario = res.data.data.RolesDeUsuario;
-            let me = proxy;
 
-            me.roles.forEach(function (roles, index) {
-                me.registro.rolesUsuario[index].checked = false;
+            roles.value.forEach(function (rol, index) {
+                registro.value.rolesUsuario[index].checked = false;
             });
 
-            RolesDelUsuario.forEach(function (RolesDelUsuario) {
-                let rolActivo = me.roles.findIndex((x) => x.id == RolesDelUsuario);
-                me.registro.rolesUsuario[rolActivo].checked = true;
+            RolesDelUsuario.forEach(function (rolId) {
+                let rolActivo = roles.value.findIndex((x) => x.id == rolId);
+                registro.value.rolesUsuario[rolActivo].checked = true;
             });
         });
     } else {

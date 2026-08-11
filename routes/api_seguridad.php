@@ -36,12 +36,7 @@ Route::middleware(['auth'])->group(function () {
         ->middleware(['permission:seguridad.usuarios.edit,web']);
 
     Route::get('/user.listarUsuarios/{tipo_user}/{modulo}', [UserController::class, 'listarUsuarios'])
-        ->name('api.user.listarUsuarios')
-        // Este endpoint se consume desde vistas Blade + Vue (misma app). En algunos entornos
-        // `auth:sanctum` puede dar 401 si el dominio no se reconoce como "stateful" (cookies/sesión).
-        // Forzamos sesión web para evitar 401 al usuario logueado.
-        ->withoutMiddleware(['auth:sanctum'])
-        ->middleware(['web', 'auth']);
+        ->name('api.user.listarUsuarios');
 
     Route::resource('/seguridad-roles', RolController::class)
         ->names('api.seguridad.roles')

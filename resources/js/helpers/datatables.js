@@ -76,7 +76,8 @@ export function safeInitDataTable(target = "#example23", options = {}) {
             return $t.DataTable();
         }
         return $t.DataTable(options);
-    } catch (_) {
+    } catch (e) {
+        console.error("DataTables init error:", e);
         return null;
     }
 }

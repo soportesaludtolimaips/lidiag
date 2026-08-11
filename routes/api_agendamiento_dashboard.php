@@ -31,9 +31,5 @@ Route::middleware(['auth'])->group(function () {
      * Dashboard API Endpoints
      */
     Route::get('/reportes.dashboard', [DashBoardController::class, 'dashboard'])
-        ->name('api.reportes.dashboard')
-        // Este dashboard se consume desde la misma app (Blade + Vue). Forzamos sesión web
-        // para evitar 401 cuando Sanctum no reconoce la request como "stateful".
-        ->withoutMiddleware(['auth:sanctum'])
-        ->middleware(['web', 'auth']);
+        ->name('api.reportes.dashboard');
 });
