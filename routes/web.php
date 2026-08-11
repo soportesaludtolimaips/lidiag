@@ -105,7 +105,7 @@ Route::get('/descarga-soportes-hc/{nomArchivoEncriptadote}', [EstudioSoporteHCCo
     ->middleware(['auth', 'permission:estudio.asignar|estudio.transcribir|estudio.leerestudio|estudio.leerEstudio']);
 Route::get('/descargar.pdf.lectura/{nomArchivo}', [EstudioController::class, 'descargarPdfLectura'])
     ->name('descargar.pdf.lectura')
-    ->middleware('auth:sanctum');
+    ->middleware('auth');
 
 // Audios (fallback sin depender de symlink `public/audios`)
 Route::get('/audios/{filename}', [EstudioAudioController::class, 'stream'])

@@ -100,7 +100,7 @@
                                         <td>{{ item.email }}</td>
                                         <td>
                                             <img
-                                                v-if="item.firma"
+                                                v-if="item.firma && !firmaError[item.id]"
                                                 :src="'/files/' + item.firma"
                                                 alt="Firma"
                                                 :title="'Firma de ' + item.name"
@@ -111,7 +111,16 @@
                                                     object-fit: contain;
                                                 "
                                                 @click="ampliarFirma(item.firma, item.name)"
+                                                @error="firmaError[item.id] = true"
                                             />
+                                            <span
+                                                v-else-if="item.firma && firmaError[item.id]"
+                                                class="badge badge-warning"
+                                                title="Archivo de firma no encontrado en el servidor"
+                                            >
+                                                <i class="fa fa-exclamation-triangle"></i> Firma no
+                                                disponible
+                                            </span>
                                             <span class="label label-danger" v-else>No</span>
                                         </td>
                                         <td>
@@ -642,11 +651,16 @@
                     </div>
                     <div class="modal-body text-center">
                         <img
-                            v-if="firmaAmpliadaSrc"
+                            v-if="firmaAmpliadaSrc && !firmaAmpliadaError"
                             :src="firmaAmpliadaSrc"
                             alt="Firma"
                             style="max-width: 100%; max-height: 300px"
+                            @error="firmaAmpliadaError = true"
                         />
+                        <p v-else-if="firmaAmpliadaSrc && firmaAmpliadaError" class="text-warning">
+                            <i class="fa fa-exclamation-triangle fa-2x m-b-10 d-block"></i>
+                            Firma no disponible
+                        </p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-inverse" @click="cerrarModalFirma">
@@ -699,6 +713,8 @@ const loadingEstadoId = ref(null);
 const loadingEliminarId = ref(null);
 const firmaAmpliadaSrc = ref("");
 const firmaAmpliadaNombre = ref("");
+const firmaAmpliadaError = ref(false);
+const firmaError = ref({});
 
 function initDataTable() {
     safeInitDataTable(dt.value || "#example23", {
@@ -974,6 +990,7 @@ function mostrarRegistro(data = {}) {
     btnCerralModalForm();
 }
 function ampliarFirma(firma, nombre) {
+    firmaAmpliadaError.value = false;
     firmaAmpliadaSrc.value = "/" + firma;
     firmaAmpliadaNombre.value = nombre || "Firma";
     $("#modalAmpliarFirma").modal("show");

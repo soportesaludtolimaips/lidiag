@@ -75,12 +75,19 @@
                                 style="max-width: 100%; max-height: 80px"
                             />
                             <img
-                                v-else-if="registro.firma"
-                                :src="'/' + registro.firma"
+                                v-else-if="registro.firma && !firmaError"
+                                :src="'/files/' + registro.firma"
                                 alt="Firma"
                                 class="m-b-10"
                                 style="max-width: 100%; max-height: 80px"
+                                @error="firmaError = true"
                             />
+                            <p
+                                v-else-if="registro.firma && firmaError"
+                                class="text-warning small m-b-10"
+                            >
+                                <i class="fa fa-exclamation-triangle"></i> Firma no disponible
+                            </p>
                             <p v-else class="text-muted small m-b-10">Sin firma</p>
                             <div class="row">
                                 <div class="col-md-12">
@@ -107,12 +114,6 @@
                     <div class="card-body">
                         <small class="text-muted">Email address</small>
                         <h6>{{ registro.email }}</h6>
-                        <!-- <small class="text-muted p-t-30 db">Teléfono</small>
-                        <h6>{{ registro.tel }}</h6>
-                        <br />
-                        <button class="btn btn-circle btn-secondary"><i class="fa fa-facebook"></i></button>
-                        <button class="btn btn-circle btn-secondary"><i class="fa fa-twitter"></i></button>
-                        <button class="btn btn-circle btn-secondary"><i class="fa fa-youtube"></i></button> -->
                     </div>
                 </div>
             </div>
@@ -242,6 +243,7 @@ const registro = ref({
     firma: null,
 });
 const firmaPreview = ref("");
+const firmaError = ref(false);
 const errores = ref({});
 const loadingObtener = ref(false);
 const loadingActualizar = ref(false);
