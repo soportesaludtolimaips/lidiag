@@ -6,17 +6,6 @@ class PdfConverterHelper
 {
     public static function convert(string $sourcePath, string $destinationPath): bool
     {
-        $soffice = config('app.libreoffice_path');
-        if (! $soffice) {
-            $soffice = base_path('storage/LibreOfficePortable/App/libreoffice/program/soffice.exe');
-        }
-
-        if (! file_exists($soffice)) {
-            \Log::error("LibreOffice no encontrado en: {$soffice}");
-
-            return false;
-        }
-
         if (! file_exists($sourcePath)) {
             \Log::error("DOCX no encontrado: {$sourcePath}");
 
@@ -28,20 +17,16 @@ class PdfConverterHelper
             @mkdir($outDir, 0775, true);
         }
 
-        $tmpProfile = storage_path('app/lo-profile-'.uniqid());
+        try {
+            $soffice = base_path('storage/LibreOfficePortable/App/libreoffice/program/soffice.com');
 
-        $command = sprintf(
-            '"%s" -env:UserInstallation=file:///%s --headless --convert-to pdf --outdir "%s" "%s" 2>&1',
-            $soffice,
-            str_replace('\\', '/', $tmpProfile),
-            $outDir,
-            $sourcePath
-        );
+            $command = escapeshellcmd('"'.$soffice.'" --headless --norestore --convert-to pdf --outdir "'.$outDir.'" "'.$sourcePath.'"');
 
-        shell_exec($command);
+            shell_exec($command.' 2>&1');
+        } catch (\Exception $e) {
+            \Log::error('Error ejecutando comando de conversión: '.$e->getMessage());
 
-        if (is_dir($tmpProfile)) {
-            @rmdir($tmpProfile);
+            return false;
         }
 
         if (! file_exists($destinationPath)) {

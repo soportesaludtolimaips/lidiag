@@ -60,6 +60,11 @@ return [
             'root' => storage_path('app/reporte_lecturas'),
             'visibility' => 'private',
         ],
+        'reporte_lecturas_ecografias' => [
+            'driver' => 'local',
+            'root' => storage_path('app/reporte_lecturas_ecografias'),
+            'visibility' => 'private',
+        ],
         'avatars' => [
             'driver' => 'local',
             'root' => storage_path('app/avatars'),
@@ -106,6 +111,11 @@ return [
             'root' => storage_path('app/files_consentimientos'),
             'visibility' => 'private',
         ],
+        'microdicom' => [
+            'driver' => 'local',
+            'root' => storage_path('app/microdicom'),
+            'visibility' => 'public',
+        ],
     ],
 
     /*
@@ -121,6 +131,7 @@ return [
 
     'links' => [
         public_path('storage') => storage_path('app/public'),
+        public_path('microdicom') => storage_path('app/microdicom'),
     ],
 
 ];

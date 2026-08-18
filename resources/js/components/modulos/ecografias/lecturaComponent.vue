@@ -319,7 +319,12 @@
                                                 <li>
                                                     <i
                                                         class="fa fa-file-pdf-o text-danger fa-2x model_img img-responsive"
-                                                        @click="generarReporte"
+                                                        :class="{
+                                                            'opacity-50': isGenerandoReporte,
+                                                        }"
+                                                        @click="
+                                                            !isGenerandoReporte && generarReporte()
+                                                        "
                                                         data-toggle="modal"
                                                         data-target=".bs-example-modal-lg-impri-repor"
                                                     />
@@ -622,7 +627,7 @@ import axios from "axios";
 
 const props = defineProps({ usuarioactual: Object, permisos: Array });
 const { can } = usePermissions(props.permisos);
-const { sedeActual, sedeInterface, establecerSede: establecerSedeComposable } = useSede();
+const { sedeInterface, sedeNombre, establecerSede: establecerSedeComposable } = useSede();
 const { consultarEstado, enviarEcografiaProducto, startPolling, stopPolling } = useSahiInterface();
 
 const dt = ref(null);
@@ -680,6 +685,7 @@ const isGuardandoLectura = ref(false);
 const isBuscandoPendientes = ref(false);
 const isConsultando = ref(false);
 const isEnviando = ref(false);
+const isGenerandoReporte = ref(false);
 const bloqueoLectura = ref(false);
 const pendientesDiaAnterior = ref([]);
 const isFirmandoConsentimiento = ref({});
@@ -1225,6 +1231,14 @@ function startSahiPolling() {
 function stopSahiPolling() {
     stopPolling();
 }
+
+/**
+ * Consulta el estado de envío a SAHI para la ecografía actual y actualiza el registro con la información obtenida.
+ * @param {any} silent=false - Si es true, no muestra mensajes de toast al usuario.
+ * @returns {any}
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 async function consultarEstadoSahi(silent = false) {
     if (!sedeInterface) return;
     const id = registro.value.ecografia_producto_id;
@@ -1264,6 +1278,13 @@ async function consultarEstadoSahi(silent = false) {
         }
     }
 }
+
+/**
+ * Destruye de manera segura un DataTable en el selector dado, si existe y está inicializado.
+ * @param {string} selector - Selector del DataTable a destruir (por defecto: "#example23").
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 function safeDestroyDataTable(selector = "#example23") {
     if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
         return;
@@ -1273,6 +1294,13 @@ function safeDestroyDataTable(selector = "#example23") {
         $t.DataTable().clear().destroy();
     }
 }
+
+/**
+ * Inicializa de manera segura un DataTable en el selector dado, si no está ya inicializado.
+ * @param {string} selector - Selector del DataTable a inicializar (por defecto: "#example23").
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 function safeInitDataTable(selector = "#example23") {
     if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
         return;
@@ -1501,10 +1529,14 @@ async function guardarRegistro() {
  * @date 2024-06-10
  */
 async function generarReporte() {
+    if (isGenerandoReporte.value) return;
+    isGenerandoReporte.value = true;
     try {
         accion.value = "IMPRIMIR_LECTURA";
-        generarLectura();
+        const guardadoOk = await generarLectura();
         accion.value = null;
+
+        if (!guardadoOk) return;
 
         const iframe = document.getElementById("ifrReporteEcografia");
         iframe.src = "";
@@ -1515,19 +1547,32 @@ async function generarReporte() {
         );
         const pathReporte = res.data.data.plantilla;
 
-        // Mostrar el reporte en el iframe
         iframe.src = pathReporte;
 
         listarPendiestePorLectura();
 
         return true;
     } catch (error) {
-        // Mostrar errores específicos en el formulario
         if (error.response?.data?.errors) {
             errores.value = error.response.data.errors;
         }
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible generar el reporte.",
+            icon: "error",
+        });
+        $(".bs-example-modal-lg-impri-repor").modal("hide");
+    } finally {
+        isGenerandoReporte.value = false;
     }
 }
+
+/**
+ * Inicializa la sede actual del usuario a partir del almacenamiento de sesión y establece la sede en el composable correspondiente.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando la sede ha sido establecida correctamente.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 async function initSede() {
     registro.value.sede_id = sessionStorage.getItem("ST-sede");
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
@@ -1661,19 +1706,40 @@ function mostrarRegistro(data = {}) {
     registro.value.atencion_id = data.atencion_id;
     registro.value.paciente_id = data.paciente_id;
     registro.value.num_docu = data.paciente.num_docu;
-    registro.value.nom_pacien = data.paciente.nombres;
+    registro.value.nom_pacien =
+        `${data.paciente.nombres || ""} ${data.paciente.seg_nom || ""} ${data.paciente.pri_ape || ""} ${data.paciente.seg_ape || ""}`.trim();
     registro.value.seg_nom = data.paciente.seg_nom;
     registro.value.pri_ape = data.paciente.pri_ape;
     registro.value.seg_ape = data.paciente.seg_ape;
     registro.value.sexo = data.paciente.sexo;
     registro.value.fec_naci = data.paciente.fec_naci;
     registro.value.direccion = data.paciente.direccion;
+    registro.value.dir = data.paciente.direccion;
     registro.value.tel = data.paciente.tel;
     registro.value.cel = data.paciente.cel;
-    registro.value.atencion_id = data.atencion_id;
     registro.value.contrato = data.contrato;
     registro.value.plan = data.plan;
-    registro.value.admin_salud = data.admin_salud.nom_admin_salud;
+    registro.value.admin_salud = data.admin_salud?.nom_admin_salud || "";
+
+    registro.value.fec_estudio = data.fec_cita_sahi || "";
+    registro.value.nom_produc = data.nom_produc || "";
+    registro.value.cod_cups = data.cod_cups || "";
+    registro.value.nom_sede = sedeNombre.value || "";
+    registro.value.atencion = String(data.atencion_id || "");
+    registro.value.tipo_estudio = data.tipo_estudio || "";
+
+    if (data.paciente.fec_naci) {
+        const hoy = new Date();
+        const nac = new Date(data.paciente.fec_naci);
+        let edad = hoy.getFullYear() - nac.getFullYear();
+        const mes = hoy.getMonth() - nac.getMonth();
+        if (mes < 0 || (mes === 0 && hoy.getDate() < nac.getDate())) {
+            edad--;
+        }
+        registro.value.edad = String(edad);
+    } else {
+        registro.value.edad = "";
+    }
 
     registro.value.lectura = data.lectura;
     registro.value.opinion = data.opinion;
@@ -1681,7 +1747,6 @@ function mostrarRegistro(data = {}) {
     registro.value.plantilla_id = "";
     plantillas.value = [];
 
-    // Estado de envío a SAHI (si viene en el select)
     registro.value.estado_envio_sahi = data.estado_envio_sahi || null;
     registro.value.fechor_envio_sahi = data.fechor_envio_sahi || null;
     registro.value.error_envio_sahi = data.error_envio_sahi || null;
