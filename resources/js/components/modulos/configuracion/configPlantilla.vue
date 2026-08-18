@@ -59,50 +59,7 @@
                                         <th></th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr v-for="item in registros" :key="item.id">
-                                        <td>{{ item.plantilla_tipo.nom_tipo }}</td>
-                                        <td>{{ item.nom_plantilla }}</td>
-                                        <td>{{ item.medico.name }}</td>
-                                        <td>
-                                            <span class="label label-success" v-if="item.estado"
-                                                >Activo</span
-                                            >
-                                            <span class="label label-danger" v-if="!item.estado"
-                                                >Inactivo</span
-                                            >
-                                        </td>
-                                        <td class="text-nowrap">
-                                            <button
-                                                type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="
-                                                    actualizar = true;
-                                                    mostrarRegistro(item);
-                                                "
-                                            >
-                                                <i class="fa fa-pencil"></i>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="
-                                                    elimnarRegistro(item.id, item.nom_plantilla)
-                                                "
-                                                :disabled="loadingEliminarId === item.id"
-                                            >
-                                                <i
-                                                    class="fa"
-                                                    :class="
-                                                        loadingEliminarId === item.id
-                                                            ? 'fa-spinner fa-spin'
-                                                            : 'fa-trash'
-                                                    "
-                                                ></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tbody>
+                                <tbody></tbody>
                             </table>
                         </div>
                     </div>
@@ -196,14 +153,11 @@
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label class="control-label">Plantillas</label>
-                                        <textarea
-                                            id="plantilla"
-                                            name="plantilla"
+                                        <WysiwygEditor
                                             v-model="registro.plantilla"
-                                            class="form-control textarea_editor"
                                             placeholder="Descripción de la plantilla"
-                                            rows="4"
-                                        ></textarea>
+                                            :rows="4"
+                                        />
                                         <span class="text-danger" v-if="errores.plantilla">{{
                                             errores.plantilla[0]
                                         }}</span>
@@ -212,14 +166,11 @@
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label class="control-label">Opinion</label>
-                                        <textarea
-                                            id="opinion"
-                                            name="opinion"
+                                        <WysiwygEditor
                                             v-model="registro.opinion"
-                                            class="form-control textarea_editor"
                                             placeholder="Opinion"
-                                            rows="3"
-                                        ></textarea>
+                                            :rows="3"
+                                        />
                                         <span class="text-danger" v-if="errores.opinion">{{
                                             errores.opinion[0]
                                         }}</span>
@@ -297,13 +248,13 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const dt = ref(null);
 
-import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import { safeDestroyDataTable } from "@/helpers/datatables.js";
 import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts.js";
-import { initWysiwyg, getWysiwygValue } from "@/helpers/wysiwyg.js";
+import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import axios from "axios";
 
 const id = ref(0);
-const registros = ref([]);
+const registrosData = ref([]);
 const registro = ref({
     plantilla_tipo_id: "",
     medico_id: "",
@@ -326,16 +277,47 @@ async function ListarDatos() {
     loadingListar.value = true;
     try {
         const res = await axios.get("/api/config-plantillas");
+        registrosData.value = res.data.data;
+
         safeDestroyDataTable(dt.value || "#example23");
-        registros.value = res.data.data;
+
         nextTick(() => {
-            safeInitDataTable(dt.value || "#example23", {
+            const table = $(dt.value || "#example23");
+            table.DataTable({
+                data: registrosData.value,
+                columns: [
+                    {
+                        data: null,
+                        render: (d) => d.plantilla_tipo?.nom_tipo || "",
+                    },
+                    { data: "nom_plantilla" },
+                    {
+                        data: null,
+                        render: (d) => d.medico?.name || "",
+                    },
+                    {
+                        data: "estado",
+                        render: (d) =>
+                            d
+                                ? '<span class="label label-success">Activo</span>'
+                                : '<span class="label label-danger">Inactivo</span>',
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        render: (d, type, row) =>
+                            `<button type="button" class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5 dt-edit" data-id="${row.id}"><i class="fa fa-pencil"></i></button>` +
+                            `<button type="button" class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm dt-delete" data-id="${row.id}" data-nom="${row.nom_plantilla}"><i class="fa fa-trash"></i></button>`,
+                    },
+                ],
                 dom: "Bfrtip",
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
+                destroy: true,
             });
         });
     } catch (error) {
-        registros.value = [];
+        registrosData.value = [];
     } finally {
         loadingListar.value = false;
     }
@@ -344,20 +326,6 @@ async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
     try {
-        const sidebar = $(".right-sidebar")[0];
-        const $plantilla = $(sidebar).find("#plantilla");
-        const $opinion = $(sidebar).find("#opinion");
-        const instPlantilla = $plantilla.data("wysihtml5");
-        const instOpinion = $opinion.data("wysihtml5");
-        registro.value.plantilla =
-            instPlantilla && instPlantilla.editor
-                ? instPlantilla.editor.getValue()
-                : $plantilla.val() || "";
-        registro.value.opinion =
-            instOpinion && instOpinion.editor
-                ? instOpinion.editor.getValue()
-                : $opinion.val() || "";
-
         if (actualizar.value === false) {
             const res = await axios.post("/api/config-plantillas", registro.value);
 
@@ -444,7 +412,7 @@ function mostrarRegistro(data = {}) {
         registro.value.nom_plantilla = data.nom_plantilla;
         registro.value.plantilla = data.plantilla;
         registro.value.opinion = data.opinion;
-        registro.value.estado = Boolean(data.estado);
+        registro.value.estado = data.estado;
     } else {
         actualizar.value = false;
         tituloModal.value = "Nuevo registro";
@@ -458,10 +426,6 @@ function mostrarRegistro(data = {}) {
     }
 
     btnCerralModalForm();
-
-    nextTick(() => {
-        initWysiwyg($(".right-sidebar")[0]);
-    });
 }
 function btnCerralModalForm() {
     $(".right-sidebar").slideDown(50);
@@ -478,11 +442,28 @@ function limpiarFormulario() {
 }
 
 onMounted(() => {
+    $(document).on("click", "#example23 .dt-edit", function () {
+        const rowId = $(this).data("id");
+        const item = registrosData.value.find((r) => r.id === rowId);
+        if (item) {
+            actualizar.value = true;
+            mostrarRegistro(item);
+        }
+    });
+
+    $(document).on("click", "#example23 .dt-delete", function () {
+        const rowId = $(this).data("id");
+        const rowNom = $(this).data("nom");
+        elimnarRegistro(rowId, rowNom);
+    });
+
     ListarDatos();
     (listarMedicos(), listarTiposPlantillas());
 });
 
 onBeforeUnmount(() => {
+    $(document).off("click", "#example23 .dt-edit");
+    $(document).off("click", "#example23 .dt-delete");
     safeDestroyDataTable(dt.value || "#example23");
 });
 </script>

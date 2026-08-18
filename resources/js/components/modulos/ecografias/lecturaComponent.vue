@@ -138,91 +138,6 @@
         <!-- Start Page Content -->
         <!-- ============================================================== -->
         <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros para búsqueda de atención
-                        </h4>
-                        <form action="#">
-                            <div class="form-body">
-                                <div class="row p-t-2">
-                                    <div class="col-md-3">
-                                        <div class="form-group">
-                                            <label class="control-label">
-                                                # de atención, # de documento ó Nombres de paciente
-                                            </label>
-                                            <input
-                                                type="text"
-                                                id="bus_nom_num_docu"
-                                                name="bus_nom_num_docu"
-                                                v-model="busqueda.bus_nom_num_docu"
-                                                class="form-control"
-                                                placeholder=" Atención, Nombres de paciente o # de documento"
-                                                @keyup.enter="buscarStudy()"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="control-label">Fecha Inicio</label>
-                                            <input
-                                                type="date"
-                                                id="bus_fech_ini"
-                                                name="bus_fech_ini"
-                                                v-model="busqueda.bus_fech_ini"
-                                                class="form-control"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="control-label">Fecha Fin</label>
-                                            <input
-                                                type="date"
-                                                id="bus_fecha_fin"
-                                                name="bus_fecha_fin"
-                                                v-model="busqueda.bus_fecha_fin"
-                                                class="form-control"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="form-actions mt-3">
-                                    <button
-                                        type="button"
-                                        class="btn btn-success m-r-5"
-                                        @click="listarPendiestePorLectura()"
-                                        :disabled="isBuscandoPendientes"
-                                    >
-                                        <i
-                                            class="fa"
-                                            :class="
-                                                isBuscandoPendientes
-                                                    ? 'fa-spinner fa-spin'
-                                                    : 'fa-search'
-                                            "
-                                        ></i>
-                                        {{ isBuscandoPendientes ? "Buscando..." : "Buscar" }}
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="btn btn-inverse"
-                                        @click="btnLimpiar()"
-                                    >
-                                        <i class="fa fa-refresh"></i> Limpiar
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
             <div class="col-12 table-responsive">
                 <div class="card">
                     <div class="card-body">
@@ -230,6 +145,11 @@
                         <h6 class="card-subtitle text-info">
                             Asigne los médicos para su respectiva lectura.
                         </h6>
+                        <div v-if="!busqueda.medico_id" class="alert alert-warning mt-3">
+                            <i class="fa fa-exclamation-triangle"></i>
+                            Seleccione un médico desde el menú superior (Módulo → Médico) para
+                            listar las ecografías pendientes.
+                        </div>
                         <div class="table-responsive">
                             <table
                                 id="example23"
@@ -240,11 +160,11 @@
                             >
                                 <thead>
                                     <tr>
-                                        <th with="5%">Atención</th>
-                                        <th with="5%"># Documento</th>
+                                        <th with="3%">Atención</th>
+                                        <th with="3%"># Documento</th>
                                         <th with="30%">Paciente</th>
-                                        <th>Examen</th>
-                                        <th>Administradora</th>
+                                        <th with="30%">Examen</th>
+                                        <th with="30%">Administradora</th>
                                         <th>Contrato</th>
                                         <th>Plan</th>
                                         <th></th>
@@ -416,10 +336,12 @@
                                 <div class="form-group">
                                     <label>Tipos de plantillas</label>
                                     <Select2
+                                        :value="registro.tipo_plantilla_id"
                                         :options="tiposPlantillasOptions"
                                         width="100%"
                                         :allow-clear="true"
                                         :label-fields="['nom_tipo']"
+                                        placeholder="Elija el tipo de plantilla"
                                         @input="onTipoPlantillaSelect"
                                     />
                                 </div>
@@ -428,10 +350,12 @@
                                 <div class="form-group">
                                     <label>Plantilla</label>
                                     <Select2
+                                        :value="registro.plantilla_id"
                                         width="100%"
                                         :allow-clear="true"
                                         :options="plantillasOptions"
                                         :label-fields="['nom_plantilla']"
+                                        placeholder="Elija la plantilla"
                                         @input="onPlantillaSelect"
                                     />
                                 </div>
@@ -444,14 +368,11 @@
                                     <i class="fa fa-pencil"></i> Lectura
                                 </h5>
                                 <div class="form-group">
-                                    <textarea
-                                        id="plantilla"
-                                        name="plantilla"
+                                    <WysiwygEditor
                                         v-model="registro.lectura"
-                                        class="form-control"
                                         placeholder="Ingrese aquí la lectura del procedimiento"
-                                        rows="17"
-                                    ></textarea>
+                                        :rows="17"
+                                    />
                                     <span class="text-danger" v-if="errores.plantilla">{{
                                         errores.plantilla[0]
                                     }}</span>
@@ -462,14 +383,11 @@
                                     <h5 class="card-title text-info">
                                         <i class="fa fa-info"></i> Opinión
                                     </h5>
-                                    <textarea
-                                        id="opinion"
-                                        name="opinion"
+                                    <WysiwygEditor
                                         v-model="registro.opinion"
-                                        class="form-control"
                                         placeholder="Ingrese aquí la opinión del procedimiento"
-                                        rows="17"
-                                    ></textarea>
+                                        :rows="17"
+                                    />
                                     <span class="text-danger" v-if="errores.opinion">{{
                                         errores.opinion[0]
                                     }}</span>
@@ -699,6 +617,7 @@ import medicalReplacements from "@/data/medical_replacements.json";
 import medicalTermsRaw from "@/data/terminos_medicos.txt?raw";
 import { useSede } from "@/composables/useSede.js";
 import { useSahiInterface } from "@/composables/useSahiInterface.js";
+import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import axios from "axios";
 
 const props = defineProps({ usuarioactual: Object, permisos: Array });
@@ -731,6 +650,8 @@ const registro = ref({
     lectura: null,
     opinion: null,
     tipo_estudio: null,
+    tipo_plantilla_id: "",
+    plantilla_id: "",
     nom_pacien: null,
     estado_envio_sahi: null,
     fechor_envio_sahi: null,
@@ -757,44 +678,56 @@ const medicalVocabularyKeys = ref([]);
 const medicalVocabularyIndex = ref({});
 const isGuardandoLectura = ref(false);
 const isBuscandoPendientes = ref(false);
+const isConsultando = ref(false);
+const isEnviando = ref(false);
 const bloqueoLectura = ref(false);
 const pendientesDiaAnterior = ref([]);
 const isFirmandoConsentimiento = ref({});
 
+/**
+ * Compila las opciones de tipos de plantillas para el Select2 local a partir de `tiposPlantillas`.
+ *
+ * @returns {Array} Array de objetos con las propiedades `id` y `nom_tipo`.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 const tiposPlantillasOptions = computed(() => {
-    // Opciones para el Select2 local de medicos.
     return (tiposPlantillas.value || []).map((p) => ({
         id: String(p.id),
         nom_tipo: p.nom_tipo,
     }));
 });
+
+/**
+ * Compila las opciones de plantillas para el Select2 local a partir de `plantillas`.
+ *
+ * @returns {Array} Array de objetos con las propiedades `id`, `nom_plantilla`, `plantilla` y `opinion`.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 const plantillasOptions = computed(() => {
-    // Opciones para el Select2 local de medicos.
-    return (plantillas.value || []).map((p) => ({
+    const opts = (plantillas.value || []).map((p) => ({
         id: String(p.id),
         nom_plantilla: p.nom_plantilla,
         plantilla: p.plantilla,
         opinion: p.opinion,
     }));
+    console.log(
+        "[DEBUG plantillasOptions] computed recalculated, count:",
+        opts.length,
+        "options:",
+        opts
+    );
+    return opts;
 });
 
-function buscarStudy() {
-    // Soporte para Enter en el input de búsqueda
-    return listarPendiestePorLectura();
-}
-function btnLimpiar() {
-    // Limpia criterios de búsqueda (mantiene sede/medico del contexto)
-    busqueda.value.bus_nom_num_docu = "";
-    busqueda.value.bus_fech_ini = "";
-    busqueda.value.bus_fecha_fin = "";
-    erroresBusqueda.value = {};
-
-    safeDestroyDataTable(dt.value || "#example23");
-    registros.value = [];
-    pendientesDiaAnterior.value = [];
-    bloqueoLectura.value = false;
-    limpiarFormulario();
-}
+/**
+ * Compila las reglas de reemplazo médico desde el archivo JSON y las almacena en `medicalReplCompiled`.
+ *
+ * @returns {Array} Array de reglas compiladas, cada una como un array con un RegExp y un string de reemplazo.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 function getMedicalReplacementsCompiled() {
     if (medicalReplCompiled.value) return medicalReplCompiled.value;
     const compiled = [];
@@ -813,6 +746,14 @@ function getMedicalReplacementsCompiled() {
     medicalReplCompiled.value = compiled;
     return compiled;
 }
+
+/**
+ * Aplica las reglas de reemplazo médico al texto dado.
+ *
+ * @returns {string} Texto con los reemplazos aplicados.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 function applyMedicalReplacements(text) {
     let out = String(text ?? "");
     const compiled = getMedicalReplacementsCompiled();
@@ -821,11 +762,20 @@ function applyMedicalReplacements(text) {
     });
     return out;
 }
+
+/**
+ * Elimina los diacríticos (acentos) de un texto dado.
+ *
+ * @param {string} text - El texto del cual se eliminarán los diacríticos.
+ * @returns {string} El texto sin diacríticos.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 function stripDiacritics(text) {
     try {
         return String(text)
             .normalize("NFD")
-            .replace(/[u0300-u036f]/g, "");
+            .replace(/[\u0300-\u036f]/g, "");
     } catch (e) {
         return String(text);
     }
@@ -838,6 +788,18 @@ function normalizeWord(text) {
         .toLowerCase()
         .replace(/[^a-z0-9ñ]+/gi, "");
 }
+
+/**
+ * Calcula la distancia de Levenshtein entre dos cadenas, con un límite máximo de distancia.
+ * Si la distancia excede `maxDist`, la función devuelve `maxDist + 1` para indicar que las cadenas son demasiado diferentes.
+ *
+ * @param {string} a - La primera cadena.
+ * @param {string} b - La segunda cadena.
+ * @param {number} [maxDist=2] - La distancia máxima permitida antes de devolver un valor que indica que las cadenas son demasiado diferentes.
+ * @returns {number} La distancia de Levenshtein entre las dos cadenas, o `maxDist + 1` si la distancia excede `maxDist`.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 function levenshteinMax(a, b, maxDist = 2) {
     if (a === b) return 0;
     if (!a || !b) return Math.max(a ? a.length : 0, b ? b.length : 0);
@@ -866,6 +828,14 @@ function levenshteinMax(a, b, maxDist = 2) {
     }
     return prev[lb];
 }
+
+/**
+ * Reconstruye el vocabulario médico a partir de un archivo de términos médicos y lo almacena en `medicalVocabularyMap`, `medicalVocabularyKeys` y `medicalVocabularyIndex`.
+ *
+ * @returns {void}
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 function rebuildMedicalVocabulary() {
     const map = {};
     const addPhrase = (phrase) => {
@@ -901,6 +871,15 @@ function rebuildMedicalVocabulary() {
     });
     medicalVocabularyIndex.value = index;
 }
+
+/**
+ * Aplica correcciones médicas al texto dado, incluyendo normalizaciones y correcciones basadas en un vocabulario médico indexado.
+ *
+ * @param {string} text - El texto al que aplicar las correcciones.
+ * @returns {string} - El texto corregido.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 function applyMedicalCorrections(text) {
     // 1) Normalizaciones (regex)
     let out = applyMedicalReplacements(text);
@@ -910,8 +889,8 @@ function applyMedicalCorrections(text) {
     const vocabIndex = medicalVocabularyIndex.value || {};
     if (!vocabMap || !Object.keys(vocabMap).length) return out;
 
-    out = String(out).replace(/[p{L}p{N}]+/gu, (token) => {
-        if (/^d+$/u.test(token)) return token;
+    out = String(out).replace(/[\p{L}\p{N}]+/gu, (token) => {
+        if (/^\d+$/u.test(token)) return token;
         if (token.length < 4) return token;
         const n = normalizeWord(token);
         if (!n) return token;
@@ -1051,12 +1030,12 @@ function getUppercaseCommands() {
 }
 function getLineBreakCommands() {
     return {
-        "punto aparte": () => ".nn",
-        "salto de línea": () => "n",
-        "doble salto de línea": () => "nn",
-        enter: () => "n",
-        "doble enter": () => "nn",
-        "línea en blanco": () => "nn",
+        "punto aparte": () => ".\nn",
+        "salto de línea": () => "\n",
+        "doble salto de línea": () => "\nn",
+        enter: () => "\n",
+        "doble enter": () => "\nn",
+        "línea en blanco": () => "\nn",
     };
 }
 function getPunctuationCommands() {
@@ -1121,7 +1100,7 @@ function processCommands(text) {
     out = applyCommandMap(out, punctuationCommands);
     out = uppercase.value ? out.toUpperCase() : out;
     if (capitalizeNext.value) {
-        out = out.replace(/(^|n)(s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
+        out.replace(/(^|\n)(\s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
             capitalizeNext.value = false;
             return `${start}${spaces}${first.toUpperCase()}`;
         });
@@ -1314,7 +1293,7 @@ function safeInitDataTable(selector = "#example23") {
 async function listarPendiestePorLectura() {
     // Evita llamar al backend con "null"/vacío (causa 404 "El medico no se encontro")
     const medicoId = String(busqueda.value?.medico_id ?? "").trim();
-    if (!medicoId || medicoId === "null" || medicoId === "undefined") {
+    if (!medicoId || medicoId === "null" || medicoId === "undefined" || isNaN(Number(medicoId))) {
         registros.value = [];
         return;
     }
@@ -1483,6 +1462,15 @@ async function enviarASahiEcografiaProducto() {
         return false;
     }
 }
+
+/**
+ * Guarda el registro de lectura actual y, si corresponde, envía la información a SAHI.
+ * Después de guardar, actualiza la lista de pendientes y limpia el formulario.
+ *
+ * @returns {Promise<boolean>} - Una promesa que resuelve a true si el registro se guardó correctamente, false en caso contrario.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 async function guardarRegistro() {
     const accionActual = "TERMINAR_LECTURA";
     accion.value = accionActual;
@@ -1503,6 +1491,15 @@ async function guardarRegistro() {
     limpiarFormulario();
     btnCerralModalForm();
 }
+
+/**
+ * Genera un reporte de la lectura actual y lo muestra en un iframe.
+ * Después de generar el reporte, actualiza la lista de pendientes.
+ *
+ * @returns {Promise<boolean>} - Una promesa que resuelve a true si el reporte se generó correctamente, false en caso contrario.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 async function generarReporte() {
     try {
         accion.value = "IMPRIMIR_LECTURA";
@@ -1535,20 +1532,26 @@ async function initSede() {
     registro.value.sede_id = sessionStorage.getItem("ST-sede");
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
     await establecerSedeComposable();
-    registros.value = [];
 }
 function establecerMedico() {
-    // Siempre usar el usuario logueado como médico (evita null y evita depender de sessionStorage)
-    const medicoId = props.usuarioactual?.id != null ? String(props.usuarioactual.id) : "";
+    const medicoId = localStorage.getItem("ST-ecografia-medico") || props.usuarioactual?.id;
 
-    busqueda.value.medico_id = medicoId;
-    registro.value.medico_id = medicoId;
-
-    // Opcional: sincronizamos para otras pantallas que lean ST-medico
-    if (medicoId) sessionStorage.setItem("ST-medico", medicoId);
+    if (medicoId && !isNaN(Number(medicoId))) {
+        busqueda.value.medico_id = String(medicoId);
+        registro.value.medico_id = String(medicoId);
+    }
 
     listarPendiestePorLectura();
 }
+
+/**
+ * Lista los tipos de plantillas activas desde el backend y actualiza la variable `tiposPlantillas`.
+ * Si hay tipos de plantillas disponibles, selecciona automáticamente el primer tipo y carga sus plantillas correspondientes.
+ *
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando la operación de listado ha finalizado.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 async function listarTiposPlantillas() {
     try {
         const res = await axios.get("/api/config-tipos-plantillas/listar/activos");
@@ -1557,25 +1560,86 @@ async function listarTiposPlantillas() {
         tiposPlantillas.value = [];
     }
 }
+
+/**
+ * Maneja la selección de un tipo de plantilla, cargando las plantillas correspondientes desde el backend.
+ * Si no se selecciona un tipo válido, limpia la lista de plantillas y el campo `tipo_estudio` del registro.
+ *
+ * @param {string|null} value - El ID del tipo de plantilla seleccionado. Si es null o vacío, se considera que no se ha seleccionado un tipo válido.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando la operación de carga de plantillas ha finalizado.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 async function onTipoPlantillaSelect(value) {
-    let selectedId = value || null;
-    if (selectedId == null) return;
+    console.log("[DEBUG onTipoPlantillaSelect] value:", value, "type:", typeof value);
+    let selectedId = null;
+    if (value != null && value !== "" && value !== "0" && value !== 0) {
+        selectedId = String(value);
+    }
+    console.log("[DEBUG onTipoPlantillaSelect] selectedId:", selectedId);
+    console.log("[DEBUG onTipoPlantillaSelect] medico_id:", registro.value.medico_id);
+    registro.value.tipo_plantilla_id = selectedId || "";
+
+    if (!selectedId) {
+        console.log("[DEBUG onTipoPlantillaSelect] sin selectedId, limpiando plantillas");
+        plantillas.value = [];
+        registro.value.tipo_estudio = "";
+        registro.value.plantilla_id = "";
+        return;
+    }
 
     try {
-        const res = await axios.get(
-            `/api/config-plantillas/listar/activos/${selectedId}/${registro.value.medico_id}`
-        );
+        const url = `/api/config-plantillas/listar/activos/${selectedId}/${registro.value.medico_id}`;
+        console.log("[DEBUG onTipoPlantillaSelect] llamando API:", url);
+        const res = await axios.get(url);
+        console.log("[DEBUG onTipoPlantillaSelect] API response:", res.data);
 
         plantillas.value = res.data.data;
+        console.log(
+            "[DEBUG onTipoPlantillaSelect] plantillas.value:",
+            plantillas.value.length,
+            "items"
+        );
         var tipo = tiposPlantillasOptions.value.find(function (t) {
             return String(t.id) === String(selectedId);
         });
         registro.value.tipo_estudio = (tipo && tipo.nom_tipo) || "";
-    } catch (error) {}
+        console.log("[DEBUG onTipoPlantillaSelect] tipo_estudio:", registro.value.tipo_estudio);
+    } catch (error) {
+        console.error("[DEBUG onTipoPlantillaSelect] ERROR:", error);
+        plantillas.value = [];
+        toastMessage({
+            heading: "Plantillas",
+            text: "No se pudieron cargar las plantillas para este tipo.",
+            icon: "warning",
+        });
+    }
 }
+
+/**
+ * Maneja la selección de una plantilla específica, actualizando los campos `lectura` y `opinion` del registro con los valores correspondientes de la plantilla seleccionada.
+ * Si no se encuentra la plantilla seleccionada, se establecen los campos `lectura` y `opinion` como null.
+ *
+ * @param {string} value - El ID de la plantilla seleccionada.
+ * @returns {void}
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 function onPlantillaSelect(value) {
+    let selectedId = null;
+    if (value != null && value !== "" && value !== "0" && value !== 0) {
+        selectedId = String(value);
+    }
+    registro.value.plantilla_id = selectedId || "";
+
+    if (!selectedId) {
+        registro.value.lectura = null;
+        registro.value.opinion = null;
+        return;
+    }
+
     var plantilla = plantillasOptions.value.find(function (p) {
-        return String(p.id) === String(value);
+        return String(p.id) === String(selectedId);
     });
     registro.value.lectura = (plantilla && plantilla.plantilla) || null;
     registro.value.opinion = (plantilla && plantilla.opinion) || null;
@@ -1613,6 +1677,9 @@ function mostrarRegistro(data = {}) {
 
     registro.value.lectura = data.lectura;
     registro.value.opinion = data.opinion;
+    registro.value.tipo_plantilla_id = "";
+    registro.value.plantilla_id = "";
+    plantillas.value = [];
 
     // Estado de envío a SAHI (si viene en el select)
     registro.value.estado_envio_sahi = data.estado_envio_sahi || null;
@@ -1668,11 +1735,9 @@ onMounted(() => {
     emitter.on("medicoSeleccionado", (data) => {
         registro.value.medico_id = data.idMedico;
         establecerMedico();
-        listarPendiestePorLectura();
     });
 
     url.value = window.location.pathname;
-    establecerMedico();
 });
 
 onBeforeUnmount(() => {

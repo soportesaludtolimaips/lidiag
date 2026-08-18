@@ -210,12 +210,7 @@
 
                         <div class="mt-3">
                             <label for="form_html">Contenido</label>
-                            <textarea
-                                id="form_html"
-                                class="textarea_editor form-control"
-                                rows="10"
-                                v-model="form.html"
-                            ></textarea>
+                            <WysiwygEditor v-model="form.html" :rows="10" />
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -324,14 +319,14 @@
     </div>
 </template>
 <script setup>
-import { nextTick, onMounted, ref, getCurrentInstance } from "vue";
+import { onMounted, ref } from "vue";
 
 import usePermissions from "@/helpers/permissions.js";
 import { confirmAction } from "@/helpers/alerts";
+import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import axios from "axios";
 
 const props = defineProps({ usuarioactual: Object, permisos: Array });
-const { proxy } = getCurrentInstance();
 
 const q = ref("");
 const loading = ref(false);
@@ -345,31 +340,6 @@ const form = ref({ id: null, producto_id: "", nombre: "", html: "" });
 const versions = ref([]);
 const loadingVersions = ref(false);
 const productoVersionsId = ref(null);
-
-function initWysiwyg() {
-    try {
-        const $root = $(proxy.$el);
-        $root.find(".textarea_editor").each((_, el) => {
-            const $el = $(el);
-            if ($el.data("wysihtml5")) return;
-            if ($el.prevAll(".wysihtml5-toolbar").length) return;
-            $el.wysihtml5({ stylesheets: ["/lib/css/wysiwyg-color.css"] });
-        });
-    } catch (e) {}
-}
-function getHtmlFromEditor() {
-    try {
-        const $editor = $(proxy.$el).find("textarea.textarea_editor").first();
-        if (!$editor.length) return form.value.html || "";
-        const inst = $editor.data("wysihtml5");
-        if (inst && inst.editor && typeof inst.editor.getValue === "function") {
-            return inst.editor.getValue();
-        }
-        return $editor.val() || form.value.html || "";
-    } catch (_) {
-        return form.value.html || "";
-    }
-}
 async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
@@ -409,11 +379,9 @@ async function listar() {
 }
 function nuevo() {
     form.value = { id: null, producto_id: "", nombre: "", html: "" };
-    nextTick(() => initWysiwyg());
 }
 function editar(p) {
     form.value = { id: p.id, producto_id: p.producto_id, nombre: p.nombre, html: p.html };
-    nextTick(() => initWysiwyg());
 }
 async function guardar() {
     if (!form.value.producto_id) return;
@@ -424,7 +392,7 @@ async function guardar() {
             config_modulo_id: filtros.value.config_modulo_id,
             producto_id: form.value.producto_id,
             nombre: form.value.nombre,
-            html: getHtmlFromEditor(),
+            html: form.value.html,
         };
         if (!form.value.id) {
             await axios.post("/api/consentimientos-plantillas", payload);
@@ -502,7 +470,6 @@ onMounted(() => {
     listarProductos();
     listarModulos();
     listar();
-    nextTick(() => initWysiwyg());
 });
 </script>
 <style scoped>

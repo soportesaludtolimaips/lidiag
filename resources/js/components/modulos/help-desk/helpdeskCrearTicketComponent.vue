@@ -117,12 +117,7 @@
                                     <div class="col-md-12">
                                         <div class="form-group">
                                             <label for="crearDescripcion">Descripción</label>
-                                            <textarea
-                                                id="crearDescripcion"
-                                                v-model="form.descripcion"
-                                                class="form-control textarea_editor"
-                                                rows="6"
-                                            ></textarea>
+                                            <WysiwygEditor v-model="form.descripcion" :rows="6" />
                                         </div>
                                     </div>
                                 </div>
@@ -155,13 +150,13 @@
     </div>
 </template>
 <script setup>
-import { getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { nextTick, onMounted, ref } from "vue";
 
 import { toastMessage } from "@/helpers/alerts.js";
-import { initWysiwyg, getWysiwygValue, isHtmlEffectivelyEmpty } from "@/helpers/wysiwyg.js";
+import { isHtmlEffectivelyEmpty } from "@/helpers/wysiwyg.js";
+import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import { helpdesk } from "@/helpers/api.js";
 
-const { proxy } = getCurrentInstance();
 const loading = ref(false);
 const categorias = ref([]);
 const prioridades = ref([]);
@@ -177,9 +172,6 @@ const form = ref({
     sede_id: "",
 });
 
-function getDescripcionFromEditor() {
-    return getWysiwygValue(proxy.$el) || form.value.descripcion || "";
-}
 async function cargar() {
     try {
         const [cats, prios, asignables] = await Promise.all([
@@ -237,8 +229,6 @@ async function guardar() {
         nextTick(() => document.getElementById("crearAsignado")?.focus());
         return;
     }
-    // Importante: WYSIHTML5 usa iframe; sincronizamos el valor real antes de validar.
-    form.value.descripcion = getDescripcionFromEditor();
     if (isHtmlEffectivelyEmpty(form.value.descripcion)) {
         toastMessage({
             heading: "Upss!!!",
@@ -285,8 +275,6 @@ async function guardar() {
 }
 
 onMounted(async () => {
-    nextTick(() => initWysiwyg());
-
     try {
         const sedeActiva = sessionStorage.getItem("ST-sede");
         if (sedeActiva) form.value.sede_id = sedeActiva;
@@ -295,16 +283,5 @@ onMounted(async () => {
     }
 
     await cargar();
-});
-
-onBeforeUnmount(() => {
-    try {
-        const $root = $(proxy.$el);
-        $root.find(".textarea_editor").each((_, el) => {
-            const $el = $(el);
-            const inst = $el.data("wysihtml5");
-            if (inst && inst.editor) inst.editor.destroy();
-        });
-    } catch (_) {}
 });
 </script>

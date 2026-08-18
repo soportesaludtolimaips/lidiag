@@ -93,21 +93,11 @@
                         </div>
                         <div class="form-group" v-if="accion.estado_id">
                             <label for="detalleComentarioEstado">Comentario (opcional)</label>
-                            <textarea
-                                id="detalleComentarioEstado"
-                                v-model="accion.comentario"
-                                class="form-control textarea_editor"
-                                rows="4"
-                            ></textarea>
+                            <WysiwygEditor v-model="accion.comentario" :rows="4" />
                         </div>
                         <div class="form-group" v-if="estadoSeleccionadoNombre === 'Resuelto'">
                             <label for="detalleSolucion">Descripción solución (obligatoria)</label>
-                            <textarea
-                                id="detalleSolucion"
-                                v-model="accion.descripcion_solucion"
-                                class="form-control textarea_editor"
-                                rows="4"
-                            ></textarea>
+                            <WysiwygEditor v-model="accion.descripcion_solucion" :rows="4" />
                         </div>
                         <button
                             class="btn btn-info btn-sm"
@@ -174,12 +164,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Agregar comentario</h4>
-                        <textarea
-                            id="detalleNuevoComentario"
-                            v-model="nuevoComentario"
-                            class="form-control textarea_editor"
-                            rows="4"
-                        ></textarea>
+                        <WysiwygEditor v-model="nuevoComentario" :rows="4" />
                         <button
                             class="btn btn-success btn-sm m-t-10"
                             type="button"
@@ -270,18 +255,17 @@
     </div>
 </template>
 <script setup>
-import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 
 import DOMPurify from "dompurify";
 import { toastMessage, confirmAction } from "@/helpers/alerts.js";
 import { formatDateTime } from "@/helpers/dateUtils.js";
-import { initWysiwyg } from "@/helpers/wysiwyg.js";
+import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import { helpdesk } from "@/helpers/api.js";
 
 const props = defineProps({
     ticketId: { type: [Number, String], required: true },
 });
-const { proxy } = getCurrentInstance();
 
 const loading = ref(false);
 const savingComentario = ref(false);
@@ -340,7 +324,6 @@ async function cargar() {
             console.warn("No se pudieron cargar usuarios asignables", e);
             asignables.value = [];
         }
-        nextTick(() => initWysiwyg());
     } catch (error) {
     } finally {
         loading.value = false;
@@ -425,18 +408,6 @@ async function subirAdjuntos() {
 }
 
 onMounted(async () => {
-    nextTick(() => initWysiwyg());
     await cargar();
-});
-
-onBeforeUnmount(() => {
-    try {
-        const $root = $(proxy.$el);
-        $root.find(".textarea_editor").each((_, el) => {
-            const $el = $(el);
-            const inst = $el.data("wysihtml5");
-            if (inst && inst.editor) inst.editor.destroy();
-        });
-    } catch (_) {}
 });
 </script>

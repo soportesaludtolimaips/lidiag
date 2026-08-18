@@ -477,14 +477,11 @@
                                     <div class="row">
                                         <div class="col-12">
                                             <div class="form-group">
-                                                <textarea
+                                                <WysiwygEditor
                                                     v-model="registro.lectura"
-                                                    class="textarea_editor form-control"
-                                                    rows="20"
-                                                    id="lectura"
-                                                    style="height: 100%"
+                                                    :rows="20"
                                                     placeholder="Ingrese aquí la lectura del estudio ..."
-                                                ></textarea>
+                                                />
                                             </div>
                                         </div>
                                     </div>
@@ -722,6 +719,7 @@ import {
     safeRemoveDataTableRow,
 } from "@/helpers/datatables.js";
 import { confirmAction, alertSuccess, alertError, getUserSafeError } from "@/helpers/alerts";
+import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import dayjs from "dayjs";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 import axios from "axios";
@@ -824,21 +822,6 @@ function applyDashboardPrefill() {
     } catch (e) {
         listarPendientesTrascribir();
     }
-}
-
-function initWysiwyg() {
-    try {
-        const $root = $(getCurrentInstance().proxy.$el);
-        // soporte legacy: id textarea_editor y/o clase textarea_editor
-        const $targets = $root.find("#textarea_editor, .textarea_editor");
-        $targets.each((_, el) => {
-            const $el = $(el);
-            // si ya tiene toolbar asociada, no reinicializar
-            if ($el.data("wysihtml5")) return;
-            if ($el.prevAll(".wysihtml5-toolbar").length) return;
-            $el.wysihtml5({ stylesheets: ["/lib/css/wysiwyg-color.css"] });
-        });
-    } catch (e) {}
 }
 
 function destroyDataTable() {
@@ -1153,7 +1136,6 @@ function btnCerralModalForm() {
 }
 
 onMounted(async () => {
-    nextTick(() => initWysiwyg());
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
 
     await listarUsuariosYSedes(
