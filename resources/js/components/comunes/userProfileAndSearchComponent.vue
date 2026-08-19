@@ -105,7 +105,7 @@
                                     <option>Seleccione la sede</option>
                                     <option
                                         v-for="ItemSede in sedes"
-                                        :key="ItemSede"
+                                        :key="ItemSede.id"
                                         :value="ItemSede.id"
                                     >
                                         {{ ItemSede.nom_sede }}
@@ -121,10 +121,10 @@
                                     v-model="medicoSeleccionado"
                                     name="medicos"
                                 >
-                                    <option>Seleccione el médico</option>
+                                    <option value="">Seleccione el médico</option>
                                     <option
                                         v-for="ItemMedico in medicos"
-                                        :key="ItemMedico"
+                                        :key="ItemMedico.id"
                                         :value="ItemMedico.id"
                                     >
                                         {{ ItemMedico.name }}
@@ -264,7 +264,11 @@ async function listarMedicos() {
     try {
         const moduloId = sessionStorage.getItem("ST-modulo") || establecerModuloActual();
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
-        medicos.value = res.data;
+        medicos.value = res.data.data;
+        if (medicos.value.length === 1 && !medicoSeleccionado.value) {
+            medicoSeleccionado.value = medicos.value[0].id;
+            estableserMedico();
+        }
     } catch (error) {
         console.log(error);
     }
@@ -294,6 +298,9 @@ async function estableserMedico() {
 
     sessionStorage.setItem("ST-medico", medicoSeleccionado.value);
     sessionStorage.setItem("ST-nomMedico", nomMedicoSeleccionado.value);
+
+    localStorage.setItem("ST-ecografia-medico", medicoSeleccionado.value);
+    localStorage.setItem("ST-ecografia-nomMedico", nomMedicoSeleccionado.value);
 
     emitter.emit("medicoSeleccionado", {
         idMedico: medicoSeleccionado.value,
@@ -383,6 +390,8 @@ onMounted(() => {
         "/ecografias.admisiones",
         "/ecografias.admisionadas",
         "/ecografias-pendientes-lecturas",
+        "/ecografias-consentimientos",
+        "/ecografias-consentimientos-plantillas",
     ];
     mostrarMedico.value = rutasEcografias.includes(url);
 });

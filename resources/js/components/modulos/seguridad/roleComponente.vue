@@ -333,7 +333,6 @@ const modulosTraducidos = {
     consentimientos: "Consentimientos",
     citas: "Citas",
     helpdesk: "Help Desk",
-    otrasPlataformas: "Otras Plataformas",
     tele: "Tele-Radiología",
     gestion: "Gestión",
     Otros: "Otros",

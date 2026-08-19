@@ -5,13 +5,14 @@
         :style="{ width, height: height + 'px' }"
         :multiple="multiple"
     >
+        <option v-if="placeholder" value="0">{{ placeholder }}</option>
         <option v-for="opt in options" :key="opt[optionValue]" :value="opt[optionValue]">
             {{ formatLabel(opt) }}
         </option>
     </select>
 </template>
 <script setup>
-import { nextTick, onMounted, ref } from "vue";
+import { nextTick, onMounted, ref, watch } from "vue";
 
 const el = ref(null);
 
@@ -31,6 +32,7 @@ const props = defineProps({
     multiple: { type: Boolean, default: false },
     returnArray: { type: Boolean, default: false },
     returnObject: { type: Boolean, default: false },
+    placeholder: { type: String, default: "" },
 });
 
 const emit = defineEmits(["input", "select", "update:modelValue"]);
@@ -109,6 +111,7 @@ function initSelect2() {
 
     $el.on("select2:select", () => {
         const out = buildOutput();
+        console.log("[DEBUG Select2] select2:select fired, out:", out);
         emit("input", out);
         emit("update:modelValue", out);
         emit("select", out);
@@ -143,6 +146,19 @@ function rebuild() {
 onMounted(() => {
     nextTick(() => initSelect2());
 });
+
+watch(
+    () => props.options,
+    (newOpts) => {
+        console.log(
+            "[DEBUG Select2] watch options fired, new count:",
+            newOpts?.length,
+            "options:",
+            newOpts
+        );
+        nextTick(() => initSelect2());
+    }
+);
 </script>
 <style>
 .select2-results__option {

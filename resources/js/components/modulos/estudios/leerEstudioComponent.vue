@@ -1229,6 +1229,7 @@ const {
     microfono,
     toggleSpeechRecognition,
     stopAll,
+    stopRecording,
     sendToBackend,
     clearAudioBuffer,
     setCallbacks,
@@ -1698,6 +1699,7 @@ function limpiar() {
     clearAudioBuffer();
     audioUploadFlow.limpiarAudiosCargados();
     audiosDeEstudio.value = [];
+    console.log("[limpiar] FIN");
 }
 async function abrirSidebar() {
     await stopAll();

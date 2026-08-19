@@ -806,17 +806,10 @@ export function useDictationFlow() {
     }
 
     async function sendToBackend(estudioId, estudioProductoId) {
-        console.log("[sendToBackend] INICIO", {
-            estudioId,
-            estudioProductoId,
-            tieneBlob: !!audioBlob.value,
-            blobSize: audioBlob.value?.size,
-        });
         if (!audioBlob.value || !(audioBlob.value instanceof Blob)) {
             await stopRecording();
         }
         if (!audioBlob.value || !(audioBlob.value instanceof Blob)) {
-            console.warn("[sendToBackend] No hay audioBlob para enviar", { blob: audioBlob.value });
             return;
         }
         const formData = new FormData();
@@ -824,16 +817,7 @@ export function useDictationFlow() {
         formData.append("estudio_id", estudioId);
         formData.append("estudio_producto_id", estudioProductoId);
         try {
-            console.log("[sendToBackend] Enviando POST a /api/upload-audio", {
-                blobSize: audioBlob.value.size,
-                estudioId,
-                estudioProductoId,
-            });
             const res = await axios.post("/api/upload-audio", formData);
-            console.log("[sendToBackend] Respuesta del servidor:", {
-                status: res?.status,
-                data: res?.data,
-            });
             if (res && (res.status === 200 || res.status === 201)) {
                 showToast({
                     heading: "Ok!!!",
@@ -852,7 +836,6 @@ export function useDictationFlow() {
                     msg.includes("El audio debe tener contenido") ||
                     msg.includes("No se proporcionó un archivo de audio")
                 ) {
-                    console.warn("[sendToBackend] Audio vacío, limpiando buffer");
                     clearAudioBuffer();
                     return;
                 }
@@ -875,17 +858,11 @@ export function useDictationFlow() {
                 error && error.response && error.response.data && error.response.data.message
                     ? String(error.response.data.message)
                     : "";
-            console.error("[sendToBackend] Error capturado:", {
-                status,
-                message: error.message,
-                responseData: error?.response?.data,
-            });
             if (
                 status === 400 &&
                 (msg.includes("El audio debe tener contenido") ||
                     msg.includes("No se proporcionó un archivo de audio"))
             ) {
-                console.warn("[sendToBackend] Audio vacío, limpiando buffer");
                 clearAudioBuffer();
                 return;
             }

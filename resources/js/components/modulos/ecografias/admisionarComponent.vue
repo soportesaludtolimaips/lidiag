@@ -921,7 +921,7 @@ const actualizar = ref(false);
 const tituloModal = ref("Nueva admisión");
 const busqueda = ref({
     sede_id: sedeActual,
-    medico_id: medicoActual,
+    medico_id: null,
     bus_nom_num_docu: "",
     bus_fech_ini: "",
     bus_fecha_fin: "",
@@ -940,7 +940,7 @@ const registro = ref({
     direccion: "",
     tel: "",
     sede_id: sedeActual,
-    medico_id: medicoActual,
+    medico_id: null,
     quien_registro_id: props.usuarioactual.id,
     cel: "",
     atencion_id: null,
@@ -960,7 +960,9 @@ const errores = ref({});
 const erroresBusqueda = ref({});
 const medicos = ref([]);
 const tipoDocumentos = ref([]);
-const medicoActual = ref(sessionStorage.getItem("ST-medico"));
+const medicoActual = ref(
+    localStorage.getItem("ST-ecografia-medico") || sessionStorage.getItem("ST-medico")
+);
 const productoSelecciondo = ref(null);
 const productos = ref([]);
 const isBuscandoAtenciones = ref(false);
@@ -1186,7 +1188,8 @@ async function initSede() {
 async function establecerMedico() {
     registro.value.sede_id = sessionStorage.getItem("ST-sede");
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
-    medicoActual.value = sessionStorage.getItem("ST-medico");
+    medicoActual.value =
+        localStorage.getItem("ST-ecografia-medico") || sessionStorage.getItem("ST-medico");
 
     await establecerSedeComposable();
     registros.value = [];
@@ -1379,6 +1382,19 @@ function quitarProductoAgenda(codProduc) {
 }
 
 onMounted(() => {
+    if (sessionStorage.getItem("ST-sede") == null) {
+        $.toast({
+            heading: "Upsss!!!",
+            text: "Debes seleccionar una sede para realizar la busqueda.",
+            position: "top-right",
+            loaderBg: "#ff6849",
+            icon: "warning",
+            hideAfter: 3500,
+            stack: 6,
+        });
+        return;
+    }
+
     listarMedicos();
     initSede();
     listarTipoDocumentos();

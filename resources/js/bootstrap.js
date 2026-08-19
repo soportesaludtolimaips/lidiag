@@ -66,18 +66,6 @@ window.axios.interceptors.response.use(
     function (response) {
         refreshCsrfToken();
 
-        const method = response.config?.method?.toLowerCase();
-        const message = response.data?.message;
-
-        if (message && method && method !== "get" && method !== "head" && method !== "options") {
-            const icon = response.status === 201 ? "success" : "info";
-            // Dynamic import to avoid circular deps
-            import("@/composables/useToast.js").then(({ useToast }) => {
-                const toast = useToast();
-                if (toast[icon]) toast[icon](message);
-            });
-        }
-
         return response;
     },
     function (error) {

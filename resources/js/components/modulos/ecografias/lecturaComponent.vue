@@ -1578,6 +1578,13 @@ async function initSede() {
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
     await establecerSedeComposable();
 }
+
+/**
+ * Establece el médico actual a partir del almacenamiento local o del usuario actual y actualiza los registros pendientes de lectura.
+ * @returns {void}
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 function establecerMedico() {
     const medicoId = localStorage.getItem("ST-ecografia-medico") || props.usuarioactual?.id;
 

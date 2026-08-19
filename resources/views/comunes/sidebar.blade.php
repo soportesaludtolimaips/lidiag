@@ -88,26 +88,6 @@
                         </li>
                     @endif
 
-                    {{-- @if (auth()->user()->hasAnyPermission(['otrasPlataformas.index', 'otrasPlataformas.enviar', 'otrasPlataformas.trasbcribir']))
-                        <li class="nav-small-cap">--- Otras Plataformas</li>
-                        <li>
-                            <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
-                                <i class="fa fa-exchange"></i>
-                                <span class="hide-menu">Otras Plataformas</span>
-                            </a>
-                            <ul aria-expanded="false" class="collapse">
-                                @can('otrasPlataformas.index')
-                                    <li>
-                                        <a href="{{ route('otras.plataformas.listar.estudio.enviar') }}">
-                                            <i class="fa fa-upload text-info"></i> Enviar Estudios
-                                        </a>
-                                    </li>
-                                @endcan
-
-                            </ul>
-                        </li>
-                    @endif --}}
-
                     @if (auth()->user()->hasAnyPermission(['tele.ragiologia.index', 'tele.ragiologia.enviar', 'tele.ragiologia.transcribir']))
                         <li class="nav-small-cap">--- Tele Radiología</li>
                         <li>
