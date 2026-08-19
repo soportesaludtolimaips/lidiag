@@ -4,6 +4,17 @@ namespace App\Helpers;
 
 class PdfConverterHelper
 {
+    /**
+     * Convierte un archivo DOCX a PDF utilizando LibreOffice en modo headless.
+     *
+     * @param  string  $sourcePath  - La ruta del archivo DOCX a convertir.
+     * @param  string  $destinationPath  - La ruta donde se guardará el archivo PDF resultante.
+     * @return bool - true si la conversión es exitosa, false en caso contrario.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-06-10
+     */
     public static function convert(string $sourcePath, string $destinationPath): bool
     {
         if (! file_exists($sourcePath)) {

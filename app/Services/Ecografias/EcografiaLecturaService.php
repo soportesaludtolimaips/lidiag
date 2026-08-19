@@ -74,6 +74,7 @@ class EcografiaLecturaService extends BaseService
             'ep.error_envio_sahi',
             'p.id as producto_id',
             'p.nom_produc',
+            'p.cod_cups',
             'c.id as consentimiento_id',
             'c.estado as consentimiento_estado',
             'c.firma_paciente_at as consentimiento_firma_paciente_at',

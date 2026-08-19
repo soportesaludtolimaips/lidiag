@@ -4,11 +4,28 @@ namespace App\Helpers;
 
 use PhpOffice\PhpWord\Element\Section;
 use PhpOffice\PhpWord\Element\TextRun;
+use PhpOffice\PhpWord\Exception\Exception;
 
 class HtmlToPhpWordHelper
 {
     private static array $normalStyle = ['size' => 10, 'name' => 'Arial'];
 
+    /**
+     * Agrega contenido HTML a una sección de PhpWord, interpretando etiquetas básicas como <p>, <br>, <strong>, <em>, <ul>, <ol> y <li>.
+     *
+     * @param  Section  $section  - La sección de PhpWord a la que se agregará el contenido HTML.
+     * @param  string  $html  - El contenido HTML que se desea agregar a la sección.
+     * @param  array|null  $baseStyle  - Un arreglo opcional que define el estilo base para el texto agregado. Si no se proporciona, se utilizará un estilo predeterminado.
+     *
+     * @throws Exception - Si ocurre un error al agregar el contenido a la sección de PhpWord.
+     * @throws \InvalidArgumentException - Si los parámetros proporcionados no son válidos o no cumplen con los requisitos esperados.
+     * @throws \RuntimeException - Si ocurre un error en tiempo de ejecución al procesar el contenido HTML o al interactuar con la sección de PhpWord.
+     * @throws \UnexpectedValueException - Si se encuentra un valor inesperado o no válido en el contenido HTML que se está procesando.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-06-10
+     */
     public static function addHtmlToSection(Section $section, string $html, ?array $baseStyle = null): void
     {
         $html = self::cleanHtml($html);
@@ -55,6 +72,22 @@ class HtmlToPhpWordHelper
         }
     }
 
+    /**
+     * Agrega contenido HTML a un TextRun de PhpWord, interpretando etiquetas básicas como <strong>, <em> y <br>.
+     *
+     * @param  TextRun  $textRun  - El TextRun de PhpWord al que se agregará el contenido HTML.
+     * @param  string  $html  - El contenido HTML que se desea agregar al TextRun.
+     * @param  array  $baseStyle  - Un arreglo que define el estilo base para el texto agregado.
+     *
+     * @throws Exception - Si ocurre un error al agregar el contenido al TextRun de PhpWord.
+     * @throws \InvalidArgumentException - Si los parámetros proporcionados no son válidos o no cumplen con los requisitos esperados.
+     * @throws \RuntimeException - Si ocurre un error en tiempo de ejecución al procesar el contenido HTML o al interactuar con el TextRun de PhpWord.
+     * @throws \UnexpectedValueException - Si se encuentra un valor inesperado o no válido en el contenido HTML que se está procesando.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-06-10
+     */
     public static function addToTextRun(TextRun $textRun, string $html, array $baseStyle = []): void
     {
         $html = self::cleanHtml($html);
@@ -85,6 +118,22 @@ class HtmlToPhpWordHelper
         }
     }
 
+    /**
+     * Parses inline HTML content and adds it to a TextRun, interpreting <strong>, <em>, and <br> tags.
+     *
+     * @param  TextRun  $textRun  - The TextRun to which the parsed content will be added.
+     * @param  string  $html  - The inline HTML content to parse and add to the TextRun.
+     * @param  array  $baseStyle  - An array defining the base style for the text being added.
+     *
+     * @throws Exception - If an error occurs while adding content to the TextRun.
+     * @throws \InvalidArgumentException - If the provided parameters are invalid or do not meet the expected requirements.
+     * @throws \RuntimeException - If a runtime error occurs while processing the HTML content or interacting with the TextRun.
+     * @throws \UnexpectedValueException - If an unexpected or invalid value is encountered in the HTML content being processed.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-06-10
+     */
     private static function parseInlineToTextRun(TextRun $textRun, string $html, array $baseStyle): void
     {
         $html = trim($html);
@@ -110,6 +159,20 @@ class HtmlToPhpWordHelper
         }
     }
 
+    /**
+     * Splits the HTML content into blocks based on specific tags.
+     *
+     * @param  string  $html  - The HTML content to split.
+     * @return array - An array of HTML blocks.
+     *
+     * @throws \InvalidArgumentException - If the provided HTML content is not a valid string.
+     * @throws \RuntimeException - If an error occurs while processing the HTML content.
+     * @throws \UnexpectedValueException - If an unexpected or invalid value is encountered in the HTML content being processed.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-06-10
+     */
     private static function splitIntoBlocks(string $html): array
     {
         $html = preg_replace('/<br\s*\/?>/i', "\n", $html);
@@ -127,6 +190,20 @@ class HtmlToPhpWordHelper
         return $result;
     }
 
+    /**
+     * Cleans the HTML content by removing unwanted tags and decoding entities.
+     *
+     * @param  string  $html  - The HTML content to clean.
+     * @return string - The cleaned HTML content.
+     *
+     * @throws \InvalidArgumentException - If the provided HTML content is not a valid string.
+     * @throws \RuntimeException - If an error occurs while processing the HTML content.
+     * @throws \UnexpectedValueException - If an unexpected or invalid value is encountered in the HTML content being processed.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-06-10
+     */
     private static function cleanHtml(string $html): string
     {
         $html = strip_tags($html, '<p><br><strong><b><em><i><ul><ol><li>');

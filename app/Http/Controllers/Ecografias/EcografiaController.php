@@ -37,6 +37,16 @@ class EcografiaController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Filtra las ecografías según los criterios proporcionados en la solicitud.
+     *
+     * @param  Request  $request  - La solicitud HTTP que contiene los criterios de filtrado.
+     * @return JsonResponse - Una respuesta JSON que contiene el resultado de la operación, incluyendo el estado y cualquier mensaje relevante.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-06-10
+     */
     public function filtarEcografias(Request $request): JsonResponse
     {
         $result = $this->ecografiaService->filtarEcografias([

@@ -18,7 +18,7 @@ class EcografiaConsentimientosController extends Controller
     public function __construct(
         private readonly EcografiaConsentimientosService $consentimientosService,
     ) {
-        $this->middleware('auth:sanctum')->only(['index', 'crearToken', 'firmarMedico', 'vigentePorEcografiaProducto', 'generarPdf', 'descargarPdf', 'generarZip']);
+        $this->middleware('auth')->only(['index', 'crearToken', 'firmarMedico', 'vigentePorEcografiaProducto', 'generarPdf', 'descargarPdf', 'generarZip']);
 
         $this->middleware('permission:ecografias.consentimientos.capturar_firma,web')->only(['crearToken']);
         $this->middleware('permission:ecografias.consentimientos.firmar_medico,web')->only(['firmarMedico']);

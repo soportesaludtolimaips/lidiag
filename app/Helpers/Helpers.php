@@ -4,6 +4,16 @@ namespace App\Helpers;
 
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * Generates a unique filename based on the original name and current timestamp.
+ *
+ * @param  string  $originalName  The original filename.
+ * @return string The unique filename.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-06-10
+ */
 function generateUniqueFilename($originalName)
 {
     $extension = pathinfo($originalName, PATHINFO_EXTENSION);
@@ -15,6 +25,17 @@ function generateUniqueFilename($originalName)
     return "{$filenameWithoutExtension}_{$timestamp}_{$uniqueId}.{$extension}";
 }
 
+/**
+ * Stores a base64-encoded signature image to the public storage disk.
+ *
+ * @param  string  $base64String  The base64-encoded image data.
+ * @param  string  $medicoDoc  The medical doctor's document number.
+ * @return string The path to the stored image.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-06-10
+ */
 function storeSignature($base64String, $medicoDoc)
 {
     // 1. Limpiar el string si viene con el prefijo 'data:image/png;base64,'

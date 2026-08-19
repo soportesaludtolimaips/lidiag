@@ -19,6 +19,18 @@ class PlantillaEcografiaService extends BaseService
 {
     private const TEMPLATE_PATH = 'app/plantillas/reporte_ecografia.docx';
 
+    /**
+     * Genera un reporte de ecografía en formato Word utilizando los datos proporcionados.
+     *
+     * @param  array  $data  - Los datos necesarios para generar el reporte de ecografía.
+     * @return array - Un arreglo que contiene el resultado de la operación, incluyendo el estado y cualquier mensaje relevante.
+     *
+     * @throws \Exception - Si ocurre algún error durante la generación del reporte.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-06-10
+     */
     public function editWord(array $data): array
     {
         $medico = User::find($data['medico_id'] ?? null);
@@ -81,6 +93,20 @@ class PlantillaEcografiaService extends BaseService
         return $this->error('No fue posible convertir la plantilla a PDF', 400);
     }
 
+    /**
+     * Llena la plantilla de Word con los datos proporcionados y genera un archivo DOCX.
+     *
+     * @param  string  $templatePath  - La ruta de la plantilla de Word.
+     * @param  array  $data  - Los datos necesarios para llenar la plantilla.
+     * @param  string  $nombrePaciente  - El nombre del paciente.
+     * @param  string  $outputPath  - La ruta donde se guardará el archivo DOCX generado.
+     *
+     * @throws \Exception - Si ocurre algún error durante el llenado de la plantilla.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-06-10
+     */
     private function fillTemplateWithHtml(string $templatePath, array $data, string $nombrePaciente, string $outputPath): void
     {
         $templateProcessor = new TemplateProcessor($templatePath);
@@ -141,6 +167,19 @@ class PlantillaEcografiaService extends BaseService
         $templateProcessor->saveAs($outputPath);
     }
 
+    /**
+     * Construye un documento Word desde los datos proporcionados sin utilizar una plantilla.
+     *
+     * @param  array  $data  - Los datos necesarios para construir el documento Word.
+     * @param  string  $nombrePaciente  - El nombre del paciente.
+     * @param  string  $outputPath  - La ruta donde se guardará el archivo DOCX generado.
+     *
+     * @throws \Exception - Si ocurre algún error durante la construcción del documento Word.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-06-10
+     */
     private function buildWordFromData(array $data, string $nombrePaciente, string $outputPath): void
     {
         $phpWord = new PhpWord;
@@ -230,6 +269,16 @@ class PlantillaEcografiaService extends BaseService
         $writer->save($outputPath);
     }
 
+    /**
+     * Convierte un archivo DOCX a PDF utilizando la ruta del archivo generado.
+     *
+     * @param  string  $nomPlantilla  - El nombre del archivo DOCX (sin extensión) que se desea convertir a PDF.
+     * @return bool - Retorna true si la conversión fue exitosa, false en caso contrario.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-06-10
+     */
     public function convertDocxToPdf(string $nomPlantilla): bool
     {
         $inputPath = storage_path("app/reporte_lecturas_ecografias/{$nomPlantilla}.docx");
