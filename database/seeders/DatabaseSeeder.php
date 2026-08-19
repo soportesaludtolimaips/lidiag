@@ -50,7 +50,6 @@ class DatabaseSeeder extends Seeder
         $this->call(HelpDeskCatalogosSeeder::class);
         $this->call(HelpDeskPermisosSeeder::class);
 
-        $this->call(OtrasInterfacesSeeder::class);
         $this->call(InterfaceTeleRadiologiaSeeder::class);
         $this->call(PermisosAgendamientoSeeder::class);
 

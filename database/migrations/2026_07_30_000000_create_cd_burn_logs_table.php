@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('cd_burn_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('patient_id')->nullable()->constrained('patients')->onDelete('set null');
+            $table->foreignId('patient_id')->nullable()->constrained('pacientes')->onDelete('set null');
             $table->json('study_instance_uids');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->string('device_letter', 2);
