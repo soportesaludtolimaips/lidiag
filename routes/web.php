@@ -125,13 +125,6 @@ Route::view('/estudios.tele-radiologia', 'modulos.tele-radiologia.tele-radiologi
     ->middleware(['auth', 'permission:tele.ragiologia.index|tele.ragiologia.enviar|tele.ragiologia.transcribir|estudio.asignar|estudio.transcribir']);
 
 /**
- * Otras Plataformas
- */
-Route::view('/otras-plataformas.listar-estudio-enviar', 'modulos.otras-plataformas.listar-estudio-enviar')
-    ->name('otras.plataformas.listar.estudio.enviar')
-    ->middleware(['auth', 'permission:otrasPlataformas.index|otrasPlataformas.enviar|otrasPlataformas.trasbcribir']);
-
-/**
  * Tele Radiologia
  */
 Route::view('/tele-radiologia', 'modulos.tele-radiologia.tele-radiologia')

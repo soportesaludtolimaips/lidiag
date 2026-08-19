@@ -1,15 +1,28 @@
 const js = require('@eslint/js');
 const pluginVue = require('eslint-plugin-vue');
-const prettier = require('eslint-config-prettier');
+const pluginPrettier = require('eslint-plugin-prettier');
+const eslintConfigPrettier = require('eslint-config-prettier');
 const globals = require('globals');
 
 module.exports = [
     {
-        ignores: ['public/build/**', 'public/admin-wrap/**', 'resources/js/admin-wrap/**'],
+        ignores: [
+            'public/build/**',
+            'public/admin-wrap/**',
+            'resources/js/admin-wrap/**'
+        ]
     },
     js.configs.recommended,
     ...pluginVue.configs['flat/recommended'],
-    prettier,
+    {
+        plugins: {
+            prettier: pluginPrettier
+        },
+        rules: {
+            'prettier/prettier': 'error'
+        }
+    },
+    eslintConfigPrettier,
     {
         languageOptions: {
             ecmaVersion: 'latest',
@@ -24,6 +37,7 @@ module.exports = [
             },
         },
         rules: {
+            // Override or add rules here
             'vue/multi-word-component-names': 'off',
             'vue/attributes-order': 'off',
             'vue/first-attribute-linebreak': 'off',
@@ -47,5 +61,5 @@ module.exports = [
             'vue/no-reserved-keys': 'warn',
             'vue/return-in-computed-property': 'warn',
         },
-    },
+    }
 ];

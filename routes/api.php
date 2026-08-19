@@ -3,6 +3,7 @@
 use App\Http\Controllers\OHIF_visor\OhifVisorController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -37,7 +38,7 @@ Route::middleware('auth')->get('/debug-session', function (Request $request) {
     foreach (explode(';', $cookieHeader) as $pair) {
         $parts = explode('=', trim($pair), 2);
         if (count($parts) === 2) {
-            $cookies[$parts[0]] = substr($parts[1], 0, 80) . '...';
+            $cookies[$parts[0]] = substr($parts[1], 0, 80).'...';
         }
     }
 
@@ -59,7 +60,7 @@ Route::middleware('auth')->get('/debug-session', function (Request $request) {
     $sessionFromCookie = null;
     try {
         $sessionFromCookie = DB::table('sessions')->find($sessionId);
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
         logger()->warning('debug-session: fallo al leer sesión', [
             'session_id' => $sessionId,
             'error' => $e->getMessage(),
@@ -124,3 +125,6 @@ Route::get('/test-ohif', [OhifVisorController::class, 'qidoStudies']);
 
 // Rutas de Citas
 require __DIR__.'/api_citas.php';
+
+// Rutas de DICOM Burn
+require __DIR__.'/api_burn.php';

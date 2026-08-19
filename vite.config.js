@@ -3,7 +3,7 @@ import laravel from "laravel-vite-plugin";
 import vue from "@vitejs/plugin-vue";
 import fs from "fs";
 
-const host = "lidiag.test";
+const host = "localhost";
 
 export default defineConfig({
     define: {
@@ -14,15 +14,24 @@ export default defineConfig({
     },
     server: {
         host,
+        port: 5179,
+        strictPort: true,
         hmr: { host },
-        https: {
-            key: fs.readFileSync("C:/laragon/etc/ssl/laragon.key"),
-            cert: fs.readFileSync("C:/laragon/etc/ssl/laragon.crt"),
+        https: false,
+        watch: {
+            ignored: ['**/src-tauri/**']
         },
+        proxy: {
+            '/api': {
+                target: 'http://127.0.0.1:8000',
+                changeOrigin: true,
+                secure: false,
+                ws: true,
+            }
+        }
     },
     plugins: [
         laravel({
-            //input: ["resources/sass/app.scss", "resources/js/app.js"],
             input: ["resources/js/app.js"],
             refresh: true,
         }),
@@ -57,8 +66,8 @@ export default defineConfig({
                     if (id.includes("modulos/ecografias/lecturaComponent")) return "ecografiasLectura";
                     if (id.includes("modulos/ecografias/consentimiento")) return "ecografiasConsentimientos";
                     if (id.includes("modulos/ecografias/")) return "ecografias";
-                    if (id.includes("modulos/estudios/")) return "estudios";
                     if (id.includes("modulos/tele-radiologia/")) return "teleRadiologia";
+                    if (id.includes("modulos/estudios/")) return "estudios";
                     if (id.includes("modulos/seguridad/")) return "seguridad";
                 },
             },
