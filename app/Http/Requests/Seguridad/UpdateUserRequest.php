@@ -14,12 +14,20 @@ class UpdateUserRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
+        $rules = [
             'id' => 'required|integer|exists:users,id',
             'registro' => 'required|json',
-            'firma' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:10240',
-            'avatar' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:10240',
         ];
+
+        if ($this->hasFile('firma')) {
+            $rules['firma'] = 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:10240';
+        }
+
+        if ($this->hasFile('avatar')) {
+            $rules['avatar'] = 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:10240';
+        }
+
+        return $rules;
     }
 
     public function messages(): array

@@ -26,7 +26,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot()
     {
-        \URL::forceScheme('https');
+        //         \URL::forceScheme('https');
 
         Gate::before(function ($user, $ability) {
             return $user->hasRole('Super Admin') ? true : null;

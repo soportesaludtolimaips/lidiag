@@ -7,6 +7,7 @@ use App\Http\Requests\Estudios\StoreEstudioRequest;
 use App\Services\Estudios\EstudioService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class EstudioController extends Controller
 {
@@ -21,6 +22,18 @@ class EstudioController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Almacena un nuevo estudio en la base de datos.
+     *
+     * @param  StoreEstudioRequest  $request  - La solicitud HTTP que contiene los datos para crear el estudio.
+     * @return JsonResponse - Una respuesta JSON que contiene el resultado de la operación, incluyendo el estado y cualquier mensaje relevante.
+     *
+     * @throws ValidationException - Si los datos proporcionados en la solicitud no cumplen con las reglas de validación definidas.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-06-10
+     */
     public function store(StoreEstudioRequest $request): JsonResponse
     {
         $result = $this->estudioService->create(
@@ -33,6 +46,18 @@ class EstudioController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Lista los estudios pendientes de un médico específico en una sede determinada.
+     *
+     * @param  Request  $request  - La solicitud HTTP que contiene los parámetros necesarios para listar los estudios pendientes.
+     * @return JsonResponse - Una respuesta JSON que contiene el resultado de la operación, incluyendo el estado y cualquier mensaje relevante.
+     *
+     * @throws ValidationException - Si los datos proporcionados en la solicitud no cumplen con las reglas de validación definidas.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-06-10
+     */
     public function listarPendientesMedico(Request $request): JsonResponse
     {
         $request->validate([
@@ -48,6 +73,18 @@ class EstudioController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Marca un estudio como leído por un médico específico.
+     *
+     * @param  Request  $request  - La solicitud HTTP que contiene los parámetros necesarios para marcar el estudio como leído.
+     * @return JsonResponse - Una respuesta JSON que contiene el resultado de la operación, incluyendo el estado y cualquier mensaje relevante.
+     *
+     * @throws ValidationException - Si los datos proporcionados en la solicitud no cumplen con las reglas de validación definidas.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-06-10
+     */
     public function leerEstudio(Request $request): JsonResponse
     {
         $request->validate([
@@ -63,6 +100,16 @@ class EstudioController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Marca un estudio como visto.
+     *
+     * @param  int  $id  - El ID del estudio a marcar como visto.
+     * @return JsonResponse - Una respuesta JSON que contiene el resultado de la operación, incluyendo el estado y cualquier mensaje relevante.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-06-10
+     */
     public function marcarEstudioVisto(int $id): JsonResponse
     {
         $result = $this->estudioService->marcarVisto($id);
@@ -204,6 +251,18 @@ class EstudioController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Envía los resultados de un estudio al portal de pacientes.
+     *
+     * @param  Request  $request  - La solicitud HTTP que contiene los datos necesarios para enviar los resultados del estudio.
+     * @return JsonResponse - Una respuesta JSON que contiene el resultado de la operación, incluyendo el estado y cualquier mensaje relevante.
+     *
+     * @throws ValidationException - Si los datos proporcionados en la solicitud no cumplen con las reglas de validación definidas.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-06-10
+     */
     public function enviarPortalPacientes(Request $request): JsonResponse
     {
         $data = $request->validate([

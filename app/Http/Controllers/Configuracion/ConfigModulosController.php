@@ -18,4 +18,11 @@ class ConfigModulosController extends Controller
 
         return response()->json($result, $result['status']);
     }
+
+    public function listarModulos(): JsonResponse
+    {
+        $result = $this->configModuloService->all();
+
+        return response()->json($result, $result['status']);
+    }
 }

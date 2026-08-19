@@ -43,7 +43,7 @@ class PlantillaEstudioService extends BaseService
 
         $template->setValue('fechor_estudio', $fecEstudio);
         $template->setValue('fechor_lectura', $fecLectura);
-        $template->setValue('fechor_transcipcion', $fecTrascrito);
+        $template->setValue('fechor_transcripcion', $fecTrascrito);
 
         $template->setValue('atencion', ($data['atencion'] ?? '') === 'null' ? '' : ($data['atencion'] ?? ''));
 

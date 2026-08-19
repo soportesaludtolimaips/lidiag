@@ -13,7 +13,7 @@ class ConfigPlantillaController extends Controller
     public function __construct(
         private readonly ConfigPlantillaService $configPlantillaService,
     ) {
-        $this->middleware('auth:sanctum')->except(['index', 'listarActivos']);
+        $this->middleware('auth:sanctum')->except(['index', 'listarActivos', 'listarActivosPorTipo']);
         $this->middleware('permission:config.plantillas.create')->only(['store']);
         $this->middleware('permission:config.plantillas.edit')->only(['update']);
         $this->middleware('permission:config.plantillas.delete')->only(['destroy']);
