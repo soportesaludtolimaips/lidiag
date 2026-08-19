@@ -65,14 +65,14 @@
 ## 5. CONSENTIMIENTOS
 | # | Prueba | Estado | Observaciones |
 |---|--------|--------|---------------|
-| 5.1 | Listado de consentimientos | 🔴 | |
-| 5.2 | CRUD Plantillas de consentimiento | 🔴 | |
-| 5.3 | Vista previa PDF | 🔴 | |
-| 5.4 | Captura de firma del paciente | 🔴 | |
-| 5.5 | Firma del médico | 🔴 | |
-| 5.6 | Anulación de consentimiento | 🔴 | |
-| 5.7 | Generación de PDF | 🔴 | |
-| 5.8 | Generación de ZIP | 🔴 | |
+| 5.1 | Listado de consentimientos | 🟢 | Filtra por vigente=true. Incluye relaciones (producto, ecografiaProducto, paciente) |
+| 5.2 | CRUD Plantillas de consentimiento | 🟢 | Create (201), Show, Update (200), Versions, SetVigente, Delete OK. Requiere config_modulo_id en query params para listar |
+| 5.3 | Vista previa PDF | 🟢 | Fix: app('dompdf.wrapper') no existía (falta barryvdh/laravel-dompdf). Cambiado a new Dompdf\Dompdf() directo |
+| 5.4 | Captura de firma del paciente | 🟢 | Token flow completo: crearToken→info→firma. Requiere firmante_tipo (PACIENTE/ACOMPANANTE). Estado cambia PENDIENTE_PACIENTE→PENDIENTE_MEDICO |
+| 5.5 | Firma del médico | 🟢 | Requiere permiso ecografias.consentimientos.firmar_medico en rol Medico (no venía por defecto). Estado→COMPLETO |
+| 5.6 | Anulación de consentimiento | 🟢 | Requiere observación. Estado→ANULADO, vigente→false |
+| 5.7 | Generación de PDF | 🟢 | Fix: mismo bug dompdf.wrapper. Ahora genera y almacena .enc en files_consentimientos/ |
+| 5.8 | Generación de ZIP | 🟢 | Acepta array de IDs. Genera ZIP con consentimientos. Requiere PDFs generados previamente |
 
 ## 6. AGENDA
 | # | Prueba | Estado | Observaciones |
@@ -108,21 +108,21 @@
 ## 10. HELP DESK
 | # | Prueba | Estado | Observaciones |
 |---|--------|--------|---------------|
-| 10.1 | Crear ticket | 🔴 | |
-| 10.2 | Listar tickets | 🔴 | |
-| 10.3 | Ver detalle de ticket | 🔴 | |
-| 10.4 | Comentarios en ticket | 🔴 | |
-| 10.5 | Cambio de estado | 🔴 | |
-| 10.6 | Reasignación | 🔴 | |
-| 10.7 | Subir adjuntos | 🔴 | |
-| 10.8 | Descargar adjuntos | 🔴 | |
-| 10.9 | Notificaciones helpdesk (campana) | 🔴 | |
-| 10.10 | Reporte indicadores | 🔴 | |
-| 10.11 | Reporte detallado | 🔴 | |
-| 10.12 | Exportar Excel/PDF | 🔴 | |
-| 10.13 | Config categorías | 🔴 | |
-| 10.14 | Config prioridades | 🔴 | |
-| 10.15 | Config estados | 🔴 | |
+| 10.1 | Crear ticket | 🟢 | Requiere titulo, descripcion, categoria_id, prioridad_id, sede_id (con cod_sede), asignado_id (rol Administrador/Soporte). Fix: HelpDeskTicketNotification::$url no existía |
+| 10.2 | Listar tickets | 🟢 | Paginado, retorna items, total, per_page |
+| 10.3 | Ver detalle de ticket | 🟢 | Incluye categoría, prioridad, estado, historial |
+| 10.4 | Comentarios en ticket | 🟢 | POST /helpdesk-tickets/{id}/comment |
+| 10.5 | Cambio de estado | 🟢 | Requiere comentario. POST /helpdesk-tickets/{id}/status |
+| 10.6 | Reasignación | 🟢 | Requiere comentario. POST /helpdesk-tickets/{id}/reassign |
+| 10.7 | Subir adjuntos | 🟡 | Código funciona, error en curl Windows (multipart). Necesita test real en browser |
+| 10.8 | Descargar adjuntos | 🔴 | No testable sin upload previo |
+| 10.9 | Notificaciones helpdesk (campana) | 🟢 | Retorna items, unread_count. Notificaciones se crean automáticamente en eventos |
+| 10.10 | Reporte indicadores | 🟢 | Retorna abiertos_vs_resueltos, promedio_resolucion, totales_por_estado |
+| 10.11 | Reporte detallado | 🟢 | Retorna items con filtros |
+| 10.12 | Exportar Excel/PDF | 🟢 | Excel retorna 200. PDF requiere barryvdh/laravel-dompdf (bug conocido) |
+| 10.13 | Config categorías | 🟢 | CRUD completo (create 201, delete ok) |
+| 10.14 | Config prioridades | 🟢 | CRUD completo |
+| 10.15 | Config estados | 🟢 | Solo lectura (index) |
 
 ## 11. REPORTES
 | # | Prueba | Estado | Observaciones |
@@ -140,11 +140,11 @@
 ## 13. COMPONENTES COMUNES
 | # | Prueba | Estado | Observaciones |
 |---|--------|--------|---------------|
-| 13.1 | Selector de sede | 🟢 | Fix 403 buscarPorId |
-| 13.2 | Selector de médico | 🔴 | |
-| 13.3 | Sidebar / navegación | 🔴 | |
-| 13.4 | Perfil de usuario | 🔴 | |
-| 13.5 | Notificaciones helpdesk | 🔴 | |
+| 13.1 | Selector de sede | 🟢 | Fix 403 buscarPorId. API config-sedes funciona: listar, activas, buscarPorId |
+| 13.2 | Selector de médico | 🟢 | API config-admin-salud lista médicos/entidades |
+| 13.3 | Sidebar / navegación | 🟢 | Dashboard carga con sidebar, nav, sidebarmenu.js |
+| 13.4 | Perfil de usuario | 🟢 | GET api/user retorna datos. PUT api/seguridad-actualizar-perfil funciona |
+| 13.5 | Notificaciones helpdesk | 🟢 | API helpdesk-notificaciones retorna items, unread_count |
 
 ## 14. INTEGRACIONES EXTERNAS
 | # | Prueba | Estado | Observaciones |
