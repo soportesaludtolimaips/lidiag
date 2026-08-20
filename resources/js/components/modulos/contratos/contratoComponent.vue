@@ -372,16 +372,24 @@ import { toastMessage, confirmAction } from "@/helpers/alerts.js";
 import axios from "axios";
 import Select2 from "@/components/shared/Select2.vue";
 
+// ─── REFERENCIAS ──────────────────────────────────────────────────────────────
+
 /**
- * Referencia a la tabla DataTable
+ * Referencia al elemento DOM de la tabla DataTable
  * @type {import('vue').Ref<HTMLElement|null>}
  */
 const dt = ref(null);
 
-/** Listado de contratos */
+/**
+ * Listado de contratos cargados desde la API
+ * @type {import('vue').Ref<Array>}
+ */
 const registros = ref([]);
 
-/** Formulario del contrato */
+/**
+ * Formulario del contrato (crear/editar)
+ * @type {import('vue').Ref<Object>}
+ */
 const registro = ref({
     id: 0,
     sede_id: "",
@@ -391,25 +399,54 @@ const registro = ref({
     estado: 1,
 });
 
-/** Título dinámico del sidebar de crear/editar */
+/**
+ * Título dinámico del sidebar de crear/editar contrato
+ * @type {import('vue').Ref<string>}
+ */
 const tituloModal = ref("Nuevo contrato");
 
-/** Flag: true = actualizar, false = crear */
+/**
+ * Flag: true = modo actualizar, false = modo crear
+ * @type {import('vue').Ref<boolean>}
+ */
 const actualizar = ref(false);
 
-/** Errores de validación del formulario principal */
+/**
+ * Errores de validación del formulario principal
+ * @type {import('vue').Ref<Object>}
+ */
 const errores = ref({});
 
-/** Flags de carga */
+// ─── FLAGS DE CARGA ───────────────────────────────────────────────────────────
+
+/**
+ * Flag de carga al listar contratos
+ * @type {import('vue').Ref<boolean>}
+ */
 const loadingListar = ref(false);
+
+/**
+ * Flag de carga al guardar contrato
+ * @type {import('vue').Ref<boolean>}
+ */
 const loadingGuardar = ref(false);
+
+/**
+ * ID del contrato que se está eliminando (para deshabilitar botón)
+ * @type {import('vue').Ref<number|null>}
+ */
 const loadingEliminarId = ref(null);
 
 // ─── SEDE ACTUAL DESDE SESSION STORAGE ────────────────────────────────────────
 
 /**
- * Obtiene la sede actual desde sessionStorage (key: ST-sede)
+ * Obtiene la sede actual desde sessionStorage (key: ST-sede).
+ * Parsea el JSON almacenado y retorna un objeto con id y nombre.
+ *
  * @returns {{ id: number, nom_sede: string } | null}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
  */
 function getSedeActual() {
     try {
@@ -425,58 +462,94 @@ function getSedeActual() {
     }
 }
 
+/**
+ * Sede actual del usuario logueado, obtenida de sessionStorage
+ * @type {import('vue').Ref<{ id: number, nom_sede: string }|null>}
+ */
 const sedeActual = ref(getSedeActual());
 
 /**
- * Nombre legible de la sede actual para el formulario
- * @returns {string}
+ * Nombre legible de la sede actual para mostrar en el formulario (readonly)
+ * @type {import('vue').ComputedRef<string>}
  */
 const sedeNombreActual = computed(() => sedeActual.value?.nom_sede ?? "No disponible");
 
 // ─── DETALLE ──────────────────────────────────────────────────────────────────
 
-/** Contrato seleccionado para ver/editar detalle */
+/**
+ * Contrato seleccionado para ver/editar su detalle de médicos/productos
+ * @type {import('vue').Ref<Object|null>}
+ */
 const contratoSeleccionado = ref(null);
 
-/** Detalle local: array de productos con valores */
+/**
+ * Lista local de detalles del contrato en edición.
+ * Cada elemento: { id, medico_id, producto_id, cod_cups, nom_produc, valor_contrato, valor_consulta, valor_urgencias }
+ * @type {import('vue').Ref<Array>}
+ */
 const detallesLocales = ref([]);
 
-/** Médico seleccionado (id) en Select2 */
+/**
+ * ID del médico seleccionado en el Select2 de médicos
+ * @type {import('vue').Ref<string|null>}
+ */
 const medicoSeleccionado = ref(null);
 
-/** Producto seleccionado (id) en Select2 */
+/**
+ * ID del producto seleccionado en el Select2 de productos
+ * @type {import('vue').Ref<string|null>}
+ */
 const productoSeleccionado = ref(null);
 
-/** Catálogo de médicos (reg_med != null) */
+/**
+ * Catálogo de usuarios médicos (con reg_med no nulo)
+ * @type {import('vue').Ref<Array>}
+ */
 const medicos = ref([]);
 
-/** Catálogo completo de productos */
+/**
+ * Catálogo completo de productos (config_productos)
+ * @type {import('vue').Ref<Array>}
+ */
 const productos = ref([]);
 
-/** Flag de carga al guardar detalle */
+/**
+ * Flag de carga al guardar detalles
+ * @type {import('vue').Ref<boolean>}
+ */
 const loadingGuardarDetalle = ref(false);
 
 // ─── COMPUTED: OPTIONS PARA SELECT2 ──────────────────────────────────────────
 
 /**
- * Opciones formateadas para Select2 de médicos
- * @returns {Array<{id: number, name: string, reg_med: string}>}
+ * Opciones formateadas para Select2 de médicos.
+ * Convierte IDs a String para compatibilidad con Select2.
+ *
+ * @returns {Array<{id: string, name: string, reg_med: string}>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
  */
 const medicoOptions = computed(() =>
     medicos.value.map((m) => ({
-        id: m.id,
+        id: String(m.id),
         name: m.name,
         reg_med: m.reg_med || "",
     }))
 );
 
 /**
- * Opciones formateadas para Select2 de productos
- * @returns {Array<{id: number, cod_cups: string, nom_produc: string}>}
+ * Opciones formateadas para Select2 de productos.
+ * Convierte IDs a String para compatibilidad con Select2.
+ *
+ * @returns {Array<{id: string, cod_cups: string, nom_produc: string}>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
  */
 const productoOptions = computed(() =>
     productos.value.map((p) => ({
-        id: p.id,
+        id: String(p.id),
         cod_cups: p.cod_cups || "",
         nom_produc: p.nom_produc || "",
     }))
@@ -485,9 +558,13 @@ const productoOptions = computed(() =>
 // ─── UTILIDADES ───────────────────────────────────────────────────────────────
 
 /**
- * Formatea una fecha ISO a formato local colombiano
- * @param {string|null} dateStr
- * @returns {string}
+ * Formatea una fecha ISO a formato local colombiano (dd/mm/yyyy)
+ *
+ * @param {string|null} dateStr - Fecha en formato ISO o null
+ * @returns {string} Fecha formateada o cadena vacía
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
  */
 function formatDate(dateStr) {
     if (!dateStr) return "";
@@ -495,9 +572,13 @@ function formatDate(dateStr) {
 }
 
 /**
- * Formatea un número a moneda COP
- * @param {number|null} value
- * @returns {string}
+ * Formatea un número a moneda colombiana (COP)
+ *
+ * @param {number|null} value - Valor numérico a formatear
+ * @returns {string} Cadena con formato de moneda o "$0"
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
  */
 function formatMoney(value) {
     if (!value) return "$0";
@@ -507,8 +588,13 @@ function formatMoney(value) {
 // ─── LISTADO PRINCIPAL ────────────────────────────────────────────────────────
 
 /**
- * Carga el listado de contratos y renderiza la DataTable
+ * Carga el listado de contratos desde la API y renderiza la DataTable.
+ * Destruye la instancia previa antes de inicializar una nueva.
+ *
  * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
  */
 async function listar() {
     if (loadingListar.value) return;
@@ -533,8 +619,13 @@ async function listar() {
 
 /**
  * Abre el sidebar para crear o actualizar un contrato.
- * Si se pasa item, se carga en modo edición.
- * @param {Object|null} item - Contrato existente o null para crear nuevo
+ * Si se pasa un item, carga el formulario en modo edición.
+ *
+ * @param {Object|null} item - Contrato existente para edición, o null para crear nuevo
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
  */
 function mostrarRegistro(item = null) {
     errores.value = {};
@@ -565,15 +656,25 @@ function mostrarRegistro(item = null) {
 }
 
 /**
- * Cierra el sidebar de crear/editar contrato
+ * Cierra el sidebar de crear/editar contrato eliminando la clase CSS.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
  */
 function btnCerralModalForm() {
     $(".right-sidebar").removeClass("shw-rside");
 }
 
 /**
- * Guarda o actualiza el contrato actual
+ * Guarda o actualiza el contrato actual según el modo (crear/actualizar).
+ * Envía los datos como JSON string en el campo 'registro'.
+ *
  * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
  */
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
@@ -608,9 +709,14 @@ async function guardarRegistro() {
 }
 
 /**
- * Elimina un contrato tras confirmación del usuario
- * @param {Object} item - Contrato a eliminar
+ * Elimina un contrato tras confirmación del usuario.
+ * Muestra diálogo de confirmación antes de proceder.
+ *
+ * @param {Object} item - Contrato a eliminar (debe contener id)
  * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
  */
 async function desactivarRegistro(item) {
     const confirmed = await confirmAction("¿Está seguro de eliminar este contrato?");
@@ -630,17 +736,24 @@ async function desactivarRegistro(item) {
 // ─── CATÁLOGOS ────────────────────────────────────────────────────────────────
 
 /**
- * Carga los catálogos de médicos y productos para los Select2 del detalle
+ * Carga los catálogos de médicos y productos para los Select2 del detalle.
+ * Se ejecuta una vez en onMounted (patrón AsignarEstudio).
+ * Médicos: usuarios con reg_med no nulo.
+ * Productos: todos los config_productos activos.
+ *
  * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
  */
 async function cargarCatalogos() {
     try {
         const [medRes, prodRes] = await Promise.all([
-            axios.get("/api/seguridad-usuarios", { params: { per_page: 500 } }),
-            axios.get("/api/config-productos", { params: { per_page: 500 } }),
+            axios.get("/api/seguridad-usuarios"),
+            axios.get("/api/config-productos"),
         ]);
-        medicos.value = (medRes.data.data?.data || medRes.data.data || []).filter((u) => u.reg_med);
-        productos.value = prodRes.data.data?.data || prodRes.data.data || [];
+        medicos.value = (medRes.data.data || []).filter((u) => u.reg_med);
+        productos.value = prodRes.data.data || [];
     } catch (e) {
         console.error("Error cargando catálogos:", e);
         const msg = e.response?.data?.message || e.message || "Error desconocido";
@@ -652,14 +765,17 @@ async function cargarCatalogos() {
 
 /**
  * Abre el sidebar de detalle de un contrato.
- * Carga catálogos y puebla detallesLocales desde el contrato existente.
- * @param {Object} contrato
+ * Puebla detallesLocales desde el contrato existente y muestra el sidebar.
+ * Los catálogos ya se cargaron en onMounted.
+ *
+ * @param {Object} contrato - Contrato con su sede y detalles
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
  */
 async function abrirDetalle(contrato) {
     contratoSeleccionado.value = contrato;
-    await nextTick();
-    $(".right-sidebar").addClass("shw-rside");
-    await cargarCatalogos();
     detallesLocales.value = (contrato.detalles || []).map((d) => ({
         id: d.id,
         medico_id: d.medico_id,
@@ -672,10 +788,17 @@ async function abrirDetalle(contrato) {
     }));
     medicoSeleccionado.value = null;
     productoSeleccionado.value = null;
+    await nextTick();
+    $(".right-sidebar").addClass("shw-rside");
 }
 
 /**
- * Cierra el sidebar de detalle y limpia el estado
+ * Cierra el sidebar de detalle y limpia todo el estado relacionado.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
  */
 function cerrarDetalle() {
     contratoSeleccionado.value = null;
@@ -686,28 +809,38 @@ function cerrarDetalle() {
 }
 
 /**
- * Handler: cuando se selecciona un médico en el Select2
- * @param {number|null} id
+ * Handler: se ejecuta cuando el usuario selecciona un médico en el Select2.
+ * Almacena el ID del médico seleccionado.
+ *
+ * @param {string|null} id - ID del médico seleccionado (String por Select2)
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
  */
 function onMedicoSelect(id) {
     medicoSeleccionado.value = id;
 }
 
 /**
- * Handler: cuando se selecciona un producto en el Select2.
- * Agrega el producto a la tabla local si no existe.
- * @param {number|null} id
+ * Handler: se ejecuta cuando el usuario selecciona un producto en el Select2.
+ * Agrega el producto a la tabla local de detalles si no existe previamente.
+ *
+ * @param {string|null} id - ID del producto seleccionado (String por Select2)
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
  */
 function onProductoSelect(id) {
     if (!id) return;
-    // Evitar duplicados por producto_id
-    const yaExiste = detallesLocales.value.some((d) => d.producto_id === id);
+    const yaExiste = detallesLocales.value.some((d) => String(d.producto_id) === String(id));
     if (yaExiste) {
         toastMessage("Este producto ya fue agregado", "warning");
         productoSeleccionado.value = null;
         return;
     }
-    const prod = productos.value.find((p) => p.id === id);
+    const prod = productos.value.find((p) => String(p.id) === String(id));
     if (!prod) return;
     detallesLocales.value.push({
         id: 0,
@@ -723,16 +856,27 @@ function onProductoSelect(id) {
 }
 
 /**
- * Elimina un producto de la tabla local por índice
- * @param {number} index
+ * Elimina un producto de la tabla local de detalles por índice.
+ *
+ * @param {number} index - Índice del elemento a eliminar en detallesLocales
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
  */
 function quitarProductoDetalle(index) {
     detallesLocales.value.splice(index, 1);
 }
 
 /**
- * Guarda todos los detalles del contrato (sync completo) hacia el backend
+ * Guarda todos los detalles del contrato (sync completo) hacia el backend.
+ * Reemplaza todos los detalles existentes por la lista local actual.
+ * Después de guardar, recarga el contrato y el listado principal.
+ *
  * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
  */
 async function guardarDetalles() {
     if (loadingGuardarDetalle.value) return;
@@ -755,10 +899,8 @@ async function guardarDetalles() {
         };
         await axios.put(`/api/contratos/${contratoSeleccionado.value.id}/detalles`, payload);
         toastMessage("Detalle guardado correctamente");
-        // Recargar contrato actualizado
         const res = await axios.get(`/api/contratos/${contratoSeleccionado.value.id}`);
         contratoSeleccionado.value = res.data.data;
-        // Poblar detallesLocales de nuevo
         detallesLocales.value = (res.data.data.detalles || []).map((d) => ({
             id: d.id,
             medico_id: d.medico_id,
@@ -783,11 +925,26 @@ async function guardarDetalles() {
 
 // ─── LIFECYCLE ────────────────────────────────────────────────────────────────
 
+/**
+ * Lifecycle onMounted: inicializa la sede, carga catálogos y listado.
+ * Los catálogos se cargan UNA VEZ aquí (patrón AsignarEstudio),
+ * no al abrir el drawer, para que Select2 ya tenga datos disponibles.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
+ */
 onMounted(() => {
     sedeActual.value = getSedeActual();
+    cargarCatalogos();
     listar();
 });
 
+/**
+ * Lifecycle onBeforeUnmount: destruye la DataTable para evitar memory leaks.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
+ */
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#example23");
 });

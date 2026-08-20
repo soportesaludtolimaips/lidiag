@@ -8,6 +8,18 @@ use App\Services\BaseService;
 
 class ContratoService extends BaseService
 {
+    /**
+     * Lista contratos con filtros opcionales y paginación.
+     * Incluye relaciones: sede, detalles.medico, detalles.producto.
+     *
+     * @param  array  $filters  Filtros: sede_id, estado, q (búsqueda), per_page, page.
+     *
+     * @returns array Respuesta con items paginados y metadata.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-20
+     */
     public function list(array $filters): array
     {
         $q = Contrato::query()
@@ -51,6 +63,17 @@ class ContratoService extends BaseService
         ]);
     }
 
+    /**
+     * Busca un contrato por ID con todas sus relaciones.
+     *
+     * @param  int  $id  Identificador del contrato.
+     *
+     * @returns array Respuesta con el contrato encontrado o error 404.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-20
+     */
     public function find(int $id): array
     {
         $contrato = Contrato::with([
@@ -66,6 +89,17 @@ class ContratoService extends BaseService
         return $this->success($contrato);
     }
 
+    /**
+     * Crea un nuevo contrato dentro de una transacción.
+     *
+     * @param  array  $data  Datos del contrato: sede_id, fecha_inicio, fecha_fin, observaciones, estado.
+     *
+     * @returns array Respuesta con el contrato creado (con sede cargada).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-20
+     */
     public function create(array $data): array
     {
         return $this->transaction(function () use ($data) {
@@ -81,6 +115,18 @@ class ContratoService extends BaseService
         });
     }
 
+    /**
+     * Actualiza un contrato existente dentro de una transacción.
+     *
+     * @param  int  $id  Identificador del contrato a actualizar.
+     * @param  array  $data  Datos a actualizar (campos opcionales).
+     *
+     * @returns array Respuesta con el contrato actualizado o error 404.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-20
+     */
     public function update(int $id, array $data): array
     {
         $contrato = Contrato::find($id);
@@ -102,6 +148,17 @@ class ContratoService extends BaseService
         });
     }
 
+    /**
+     * Elimina un contrato y todos sus detalles dentro de una transacción.
+     *
+     * @param  int  $id  Identificador del contrato a eliminar.
+     *
+     * @returns array Respuesta de confirmación o error 404.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-20
+     */
     public function delete(int $id): array
     {
         $contrato = Contrato::find($id);
@@ -118,6 +175,17 @@ class ContratoService extends BaseService
         });
     }
 
+    /**
+     * Cambia el estado (activo/inactivo) de un contrato.
+     *
+     * @param  int  $id  Identificador del contrato.
+     *
+     * @returns array Respuesta con el contrato y estado actualizado o error 404.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-20
+     */
     public function toggleEstado(int $id): array
     {
         $contrato = Contrato::find($id);
@@ -133,6 +201,18 @@ class ContratoService extends BaseService
         });
     }
 
+    /**
+     * Agrega un detalle individual (médico + producto) a un contrato.
+     *
+     * @param  int  $contratoId  Identificador del contrato padre.
+     * @param  array  $data  Datos del detalle: medico_id, producto_id, valores.
+     *
+     * @returns array Respuesta con el detalle creado o error 404.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-20
+     */
     public function addDetalle(int $contratoId, array $data): array
     {
         $contrato = Contrato::find($contratoId);
@@ -159,6 +239,18 @@ class ContratoService extends BaseService
         });
     }
 
+    /**
+     * Actualiza un detalle existente de un contrato.
+     *
+     * @param  int  $detalleId  Identificador del detalle a actualizar.
+     * @param  array  $data  Datos a actualizar (campos opcionales).
+     *
+     * @returns array Respuesta con el detalle actualizado o error 404.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-20
+     */
     public function updateDetalle(int $detalleId, array $data): array
     {
         $detalle = ContratoDetalle::find($detalleId);
@@ -184,6 +276,17 @@ class ContratoService extends BaseService
         });
     }
 
+    /**
+     * Elimina un detalle individual de un contrato.
+     *
+     * @param  int  $detalleId  Identificador del detalle a eliminar.
+     *
+     * @returns array Respuesta de confirmación o error 404.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-20
+     */
     public function deleteDetalle(int $detalleId): array
     {
         $detalle = ContratoDetalle::find($detalleId);
@@ -205,18 +308,18 @@ class ContratoService extends BaseService
      *
      * @param  int  $contratoId  Identificador del contrato cuyos detalles se van a sincronizar.
      * @param  array  $data  Datos enviados desde el frontend.
-     *                       - medico_id (int): Identificación del médico asociado a todos los detalles.
      *                       - detalles (array): Lista de productos con sus valores.
-     *                       - producto_id (int): Identificación del producto (CUPS).
-     *                       - valor_contrato (float): Valor contratado por lectura con la sede.
-     *                       - valor_consulta (float): Valor a pagar por lectura de consulta externa.
-     *                       - valor_urgencias (float): Valor a pagar por lectura de urgencias.
+     *                       - detalles.*.medico_id (int): Identificación del médico.
+     *                       - detalles.*.producto_id (int): Identificación del producto (CUPS).
+     *                       - detalles.*.valor_contrato (float): Valor contratado por lectura.
+     *                       - detalles.*.valor_consulta (float): Valor por lectura de consulta externa.
+     *                       - detalles.*.valor_urgencias (float): Valor por lectura de urgencias.
      *
      * @returns array Respuesta con el contrato actualizado o mensaje de error.
      *
-     * @author  Jhon Javer Lozano Arce
+     * @author Jhon Javer Lozano Arce
      *
-     * @date    2026-08-20
+     * @date 2026-08-20
      */
     public function syncDetalles(int $contratoId, array $data): array
     {
@@ -227,17 +330,14 @@ class ContratoService extends BaseService
         }
 
         return $this->transaction(function () use ($contrato, $data) {
-            $medicoId = $data['medico_id'];
             $detalles = $data['detalles'];
 
-            // Eliminar todos los detalles existentes del contrato
             ContratoDetalle::where('contrato_id', $contrato->id)->delete();
 
-            // Insertar los nuevos detalles
             foreach ($detalles as $item) {
                 ContratoDetalle::create([
                     'contrato_id' => $contrato->id,
-                    'medico_id' => $medicoId,
+                    'medico_id' => $item['medico_id'],
                     'producto_id' => $item['producto_id'],
                     'valor_contrato' => $item['valor_contrato'] ?? 0,
                     'valor_consulta' => $item['valor_consulta'] ?? 0,
