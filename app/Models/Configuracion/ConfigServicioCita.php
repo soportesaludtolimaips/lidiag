@@ -2,6 +2,7 @@
 
 namespace App\Models\Configuracion;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -28,7 +29,7 @@ class ConfigServicioCita extends Model
 
     public function usuarios()
     {
-        return $this->belongsToMany(\App\Models\User::class, 'user_servicio_citas', 'servicio_cita_id', 'user_id');
+        return $this->belongsToMany(User::class, 'user_servicio_citas', 'servicio_cita_id', 'user_id');
     }
 
     public function productos()

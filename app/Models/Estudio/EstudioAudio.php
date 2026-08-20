@@ -50,6 +50,7 @@ class EstudioAudio extends Model
         if (str_starts_with($path, 'audios/')) {
             $path = substr($path, 7);
         }
+
         return Storage::disk('audios')->url($path);
     }
 

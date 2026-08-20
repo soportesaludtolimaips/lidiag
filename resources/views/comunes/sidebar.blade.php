@@ -267,6 +267,25 @@
                         </li>
                     @endif
 
+                    @if (auth()->user()->hasAnyPermission(['contratos.index', 'contratos.create']))
+                        <li class="nav-small-cap">--- CONTRATACIÓN</li>
+                        <li>
+                            <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
+                                <i class="icon-Contract"></i>
+                                <span class="hide-menu">Contratación</span>
+                            </a>
+                            <ul aria-expanded="false" class="collapse">
+                                @can('contratos.index')
+                                    <li>
+                                        <a href="{{ route('contratos.listar') }}">
+                                            <i class="fa fa-file-text-o text-info"></i> Contratos
+                                        </a>
+                                    </li>
+                                @endcan
+                            </ul>
+                        </li>
+                    @endif
+
                     @if (auth()->user()->hasAnyPermission(['config.admin.salud.index', 'config.diagnosticos.index', 'config.prioridades.index', 'config.productos.index', 'config.sedes.index', 'config.servicio.citas.index', 'config.plantillas.index', 'config.tipo.documento.index', 'config.consentimiento_informado.index', 'config.whatsapp.saludo.index', 'ecografias.consentimientos.index', 'ecografias.consentimientos.plantillas.index', 'helpdesk.config.categorias.index', 'helpdesk.config.prioridades.index', 'helpdesk.config.estados.index']))
                         <li class="nav-small-cap">--- PARAMETRIZACIÓN</li>
                         <li>

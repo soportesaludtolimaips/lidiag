@@ -20,7 +20,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '997300',
                 'nom_produc' => 'SALUD BUCAL DETARTRAJE SUPRAGINGIVAL SOD CONTROL MECANICO',
@@ -31,7 +31,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '21601-CCG',
                 'nom_produc' => 'PortAtiles sin fluoroscopia e intensificador de imAgenes practicado en habitacion  UCI RN o quirofanos al valor del estudio agregar',
@@ -42,7 +42,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '871121',
                 'nom_produc' => 'PortAtiles con fluoroscopia y o intensificador de imagen practicado en quirofanos  al valor del estudio agregar',
@@ -53,7 +53,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => 'R03BB01',
                 'nom_produc' => 'Ioversol 320 mg iodo  x  ml Sln Iny Optiray',
@@ -64,7 +64,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '870001',
                 'nom_produc' => 'RADIOGRAFIA DE CRANEO SIMPLE',
@@ -75,7 +75,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '870101',
                 'nom_produc' => 'RADIOGRAFIA DE CARA [PERFILOGRAMA',
@@ -86,7 +86,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '870102',
                 'nom_produc' => 'RADIOGRAFIA DE ORBITAS',
@@ -97,7 +97,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '870103',
                 'nom_produc' => 'RADIOGRAFIA DE AGUJEROS OPTICOS',
@@ -108,7 +108,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '870105',
                 'nom_produc' => 'RADIOGRAFIA DE ARCO CIGOMATICO',
@@ -119,7 +119,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '870107',
                 'nom_produc' => 'RADIOGRAFIA DE HUESOS NASALES',
@@ -130,7 +130,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '870108',
                 'nom_produc' => 'RADIOGRAFIA DE SENOS PARANASALES',
@@ -141,7 +141,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '870112',
                 'nom_produc' => 'RADIOGRAFIA DE MAXILAR SUPERIOR',
@@ -152,7 +152,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '870113',
                 'nom_produc' => 'RADIOGRAFIA DE MAXILAR INFERIOR',
@@ -163,7 +163,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '870131',
                 'nom_produc' => 'RADIOGRAFIA DE ARTICULACION TEMPOROMAXILAR',
@@ -174,7 +174,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '870601',
                 'nom_produc' => 'RADIOGRAFIA DE TEJIDOS BLANDOS DE CUELLO',
@@ -185,7 +185,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '870602',
                 'nom_produc' => 'RADIOGRAFIA DE CAVUM FARINGEO',
@@ -196,7 +196,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '870603',
                 'nom_produc' => 'RADIOGRAFIA DE FARINGE [FARINGOGRAFIA',
@@ -207,7 +207,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '871010',
                 'nom_produc' => 'RADIOGRAFIA DE COLUMNA CERVICAL',
@@ -218,7 +218,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '871019',
                 'nom_produc' => 'RADIOGRAFIA DE COLUMNA UNION CERVICO DORSAL',
@@ -229,7 +229,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '871020',
                 'nom_produc' => 'RADIOGRAFIA DE COLUMNA TORACICA',
@@ -240,7 +240,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '871030',
                 'nom_produc' => 'RADIOGRAFIA DE COLUMNA DORSOLUMBAR',
@@ -251,7 +251,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '871040',
                 'nom_produc' => 'RADIOGRAFIA DE COLUMNA LUMBOSACRA',
@@ -262,7 +262,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '871050',
                 'nom_produc' => 'RADIOGRAFIA DE SACRO COCCIX',
@@ -273,7 +273,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '871060',
                 'nom_produc' => 'RADIOGRAFIA DE COLUMNA VERTEBRAL TOTAL TEST DE ESCOLIOSIS',
@@ -284,7 +284,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '871070',
                 'nom_produc' => 'RADIOGRAFIA DINAMICA DE COLUMNA VERTEBRAL',
@@ -295,7 +295,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '871091',
                 'nom_produc' => 'RADIOGRAFIA DE ARTICULACIONES SACROILIACAS',
@@ -306,7 +306,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '871111',
                 'nom_produc' => 'RADIOGRAFIA DE REJA COSTAL',
@@ -317,7 +317,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '871112',
                 'nom_produc' => 'RADIOGRAFIA DE ESTERNON',
@@ -328,7 +328,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '871121',
                 'nom_produc' => 'RADIOGRAFIA DE TORAX P A  O A P  LATERAL DECUBITO LATERAL  OBLICUAS O LATERAL CON BARIO',
@@ -339,7 +339,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '871129',
                 'nom_produc' => 'RADIOGRAFIA DE ARTICULACIONES ESTERNOCLAVICULARES',
@@ -350,7 +350,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '871402',
                 'nom_produc' => 'TOMOGRAFIA DE TORAX EN DOS PROYECCIONES',
@@ -361,7 +361,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '871404',
                 'nom_produc' => 'TOMOGRAFIA LINEAL DE COLUMNA CERVICAL TORACCICA O LUMBAR',
@@ -372,7 +372,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '872002',
                 'nom_produc' => 'RADIOGRAFIA DE ABDOMEN SIMPLE',
@@ -383,7 +383,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '872011',
                 'nom_produc' => 'RADIOGRAFIA DE ABDOMEN SIMPLE CON PROYECCIONES  ADICIONALES SERIE DE ABDOMEN AGUDO',
@@ -394,7 +394,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873002',
                 'nom_produc' => 'RADIOGRAFIA DE HUESOS LARGOS SERIE COMPLETA   ESQUELETO AXIAL Y APENDIPULAR',
@@ -405,7 +405,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873111',
                 'nom_produc' => 'RADIOGRAFIA DE OMOPLATO',
@@ -416,7 +416,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873112',
                 'nom_produc' => 'RADIOGRAFIA DE CLAVICULA',
@@ -427,7 +427,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873121',
                 'nom_produc' => 'RADIOGRAFIA DE HUMERO',
@@ -438,7 +438,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873122',
                 'nom_produc' => 'RADIOGRAFIA DE ANTEBRAZO',
@@ -449,7 +449,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873202',
                 'nom_produc' => 'RADIOGRAFIA DE ARTICULACIONES ACROMIO CLAVICULARES COMPARATIVAS',
@@ -460,7 +460,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873204',
                 'nom_produc' => 'RADIOGRAFIA DE HOMBRO',
@@ -471,7 +471,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873205',
                 'nom_produc' => 'RADIOGRAFIA DE CODO',
@@ -482,7 +482,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873206',
                 'nom_produc' => 'RADIOGRAFIA DE MUÑECA',
@@ -493,7 +493,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873210',
                 'nom_produc' => 'RADIOGRAFIA DE MANO Y O DEDOS DE MANO',
@@ -504,7 +504,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873302',
                 'nom_produc' => 'RADIOGRAFIA PARA MEDICION DE  MIEMBROS INFERIORES [ESTUDIO DE FARILL U OSTEOMETRIA ESTUDIO DE PIE PLANO  PIES CON APOYO',
@@ -515,7 +515,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873311',
                 'nom_produc' => 'RADIOGRAFIA DE ANTEVERSION FEMORAL',
@@ -526,7 +526,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873312',
                 'nom_produc' => 'RADIOGRAFIA DE FEMUR AP Y  LATERAL',
@@ -537,7 +537,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873313',
                 'nom_produc' => 'RADIOGRAFIA DE PIERNA AP Y LATERAL',
@@ -548,7 +548,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873314',
                 'nom_produc' => 'RADIOGRAFIA DE ANTEVERSION TIBIAL',
@@ -559,7 +559,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873333',
                 'nom_produc' => 'RADIOGRAFIA DE PIE AP Y LATERAL',
@@ -570,7 +570,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873335',
                 'nom_produc' => 'RADIOGRAFIA DE CALCANEO AXIAL Y LATERAL',
@@ -581,7 +581,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873340',
                 'nom_produc' => 'RADIOGRAFIA DE MIEMBRO INFERIOR  AP Y LATERAL',
@@ -592,7 +592,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873411',
                 'nom_produc' => 'RADIOGRAFIA DE PELVIS O CADERA O ARTICULACION COXO FEMORAL AP LATERAL',
@@ -603,7 +603,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873412',
                 'nom_produc' => 'RADIOGRAFIA DE PELVIS CADERA COMPARATIVA',
@@ -614,7 +614,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873420',
                 'nom_produc' => 'RADIOGRAFIA DE RODILLA AP LATERAL',
@@ -625,7 +625,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873422',
                 'nom_produc' => 'RADIOGRAFIA DE RODILLAS COMPARATIVAS POSICION VERTICAL UNICAMENTE VISTA ANTEROPOSTERIOR',
@@ -636,7 +636,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873424',
                 'nom_produc' => 'RADIOGRAFIA TANGENCIAL DE ROTULA',
@@ -647,7 +647,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873431',
                 'nom_produc' => 'RADIOGRAFIA DE TOBILLO AP LATERAL Y ROTACION INTERNA',
@@ -658,7 +658,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873432',
                 'nom_produc' => 'RADIOGRAFIA DE ANTEPIE AP Y OBLICUA',
@@ -669,7 +669,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873443',
                 'nom_produc' => 'RADIOGRAFIAS COMPARATIVAS DE EXTREMIDADES INFERIORES',
@@ -680,7 +680,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873710',
                 'nom_produc' => 'TOMOGRAFIA OSTEOARTICULAR EN MIEMBRO SUPERIOR',
@@ -691,7 +691,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873720',
                 'nom_produc' => 'TOMOGRAFIA OSTEOARTICULAR EN MIEMBRO INFERIOR',
@@ -702,7 +702,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 0,
-                ],
+            ],
             [
                 'cod_cups' => '876801',
                 'nom_produc' => 'XEROMAMOGRAFIA O MAMOGRAFIA UNILATERAL O DE PIEZA QUIRURGICA',
@@ -713,7 +713,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '876802',
                 'nom_produc' => 'XEROMAMOGRAFIA O MAMOGRAFIA  BILATERAL',
@@ -724,7 +724,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879111',
                 'nom_produc' => 'TOMOGRAFIA AXIAL COMPUTADA DE CRANEO SIMPLE',
@@ -735,7 +735,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879112',
                 'nom_produc' => 'TOMOGRAFIA AXIAL COMPUTADA DE CRANEO CON CONTRASTE',
@@ -746,7 +746,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879113',
                 'nom_produc' => 'TOMOGRAFIA AXIAL COMPUTADA DE CRANEO SIMPLE Y CON CONTRASTE',
@@ -757,7 +757,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879116',
                 'nom_produc' => 'TOMOGRAFIA AXIAL COMPUTADA DE SILLA TURCA HIPOFISIS',
@@ -768,7 +768,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879121',
                 'nom_produc' => 'TOMOGRAFIA AXIAL COMPUTADA DE ORBITAS CORTES AXIALES Y CORONALES',
@@ -779,7 +779,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879122',
                 'nom_produc' => 'TOMOGRAFIA AXIAL COMPUTADA DE OIDO PEÑASCO Y CONDUCTO AUDITIVO INTERNO CORTES AXIALES Y CORONALES',
@@ -790,7 +790,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879131',
                 'nom_produc' => 'TOMOGRAFIA AXIAL COMPUTADA DE SENOS PARANASALES O CARA CORTES AXIALES Y CORONALES',
@@ -801,7 +801,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879150',
                 'nom_produc' => 'TOMOGRAFIA AXIAL COMPUTADA DE ARTICULACION TEMPORO MANDIBULAR BILATERAL',
@@ -812,7 +812,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879161',
                 'nom_produc' => 'TOMOGRAFIA COMPUTADA DE CUELLO',
@@ -823,7 +823,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879162',
                 'nom_produc' => 'TOMOGRAFIA  COMPUTADA DE LARINGE',
@@ -834,7 +834,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879201',
                 'nom_produc' => 'TOMOGRAFIA AXIAL COMPUTADA DE COLUMNA SEGMENTOS CERVICAL TORACICO  LUMBAR Y O SACRO  POR CADA NIVEL TRES ESPACIOS',
@@ -845,7 +845,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879205',
                 'nom_produc' => 'TOMOGRAFIA AXIAL COMPUTADA DE COLUMNA SEGMENTOS CERVICAL TORACICO  LUMBAR Y O SACRO  COMPLEMENTO A MIELOGRAFIA CADA SEGMENTO',
@@ -856,7 +856,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879301',
                 'nom_produc' => 'TOMOGRAFIA AXIAL COMPUTADA DE TORAX SIMPLE',
@@ -867,7 +867,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879391',
                 'nom_produc' => 'TOMOGRAFIA AXIAL COMPUTADA DE TORAX EXTENDIDO AL ABDOMEN SUPERIOR CON SUPRARRENALES',
@@ -878,7 +878,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879410',
                 'nom_produc' => 'TOMOGRAFIA AXIAL COMPUTADA DE ABDOMEN SUPERIOR',
@@ -889,7 +889,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879420',
                 'nom_produc' => 'TOMOGRAFIA AXIAL COMPUTADA DE ABDOMEN Y  PELVIS ABDOMEN TOTAL',
@@ -900,7 +900,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879460',
                 'nom_produc' => 'TOMOGRAFIA AXIAL COMPUTADA DE PELVIS',
@@ -911,7 +911,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879510',
                 'nom_produc' => 'TOMOGRAFIA AXIAL COMPUTADA DE MIEMBROS SUPERIORES Y ARTICULACIONES',
@@ -922,7 +922,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879520',
                 'nom_produc' => 'TOMOGRAFIA AXIAL COMPUTADA DE MIEMBROS INFERIORES Y ARTICULACIONES',
@@ -933,7 +933,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879522',
                 'nom_produc' => 'TOMOGRAFIA AXIAL COMPUTADA DE MIEMBROS INFERIORES  ANTEVERSION FEMORAL O TORSION TIBIAL',
@@ -944,7 +944,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879523',
                 'nom_produc' => 'TOMOGRAFIA AXIAL COMPUTADA DE MIEMBROS INFERIORES AXIALES DE  ROTULA O LONGITUD DE MIEMBROS INFERIORES',
@@ -955,7 +955,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879910',
                 'nom_produc' => 'TOMOGRAFIA AXIAL COMPUTADA EN RECONSTRUCCION TRIDIMENSIONAL',
@@ -966,7 +966,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879920',
                 'nom_produc' => 'TOMOGRAFIA AXIAL COMPUTADA CON MODALIDAD DINAMICA SECUENCIA RAPIDA',
@@ -977,7 +977,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '881211',
                 'nom_produc' => 'ECOGRAFIA DIAGNOSTICA DE TORAX PERICARDIO O PLEURA',
@@ -988,7 +988,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '881301',
                 'nom_produc' => 'ECOGRAFIA DIAGNOSTICA DE TEJIDOS BLANDOS DE PARED ABDOMINAL Y DE PELVIS',
@@ -999,7 +999,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '881302',
                 'nom_produc' => 'ECOGRAFIA DE ABDOMEN TOTAL HIGADO  PANCREAS VESICULA VIAS BILIARES RIÑONES BAZO GRANDES VASOS PELVIS Y FLANCOS',
@@ -1010,7 +1010,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '881306',
                 'nom_produc' => 'ECOGRAFIA DE   HIGADO PANCREAS VIA BILIAR Y VESICULA',
@@ -1021,7 +1021,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '881313',
                 'nom_produc' => 'ECOGRAFIA DE ABDOMEN PILORO',
@@ -1032,7 +1032,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '881332',
                 'nom_produc' => 'ECOGRAFIA DE VIAS URINARIAS RIÑONES VEJIGA Y PROSTATA TRANSABDOMINAL',
@@ -1043,7 +1043,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '881401',
                 'nom_produc' => 'ECOGRAFIA PELVICA O GINECOLOGICA TRANSVAGINAL',
@@ -1054,7 +1054,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '881602',
                 'nom_produc' => 'ECOGRAFIA DE TEJIDOS BLANDOS EN LAS EXTREMIDADES INFERIORES CON TRANSDUCTOR DE 7 MHZ O MAS',
@@ -1065,7 +1065,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '881620',
                 'nom_produc' => 'ECOGRAFIA ARTICULAR DE RODILLA',
@@ -1076,7 +1076,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883101',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA DE CEREBRO',
@@ -1087,7 +1087,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883102',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA DE BASE DE CRANEO SILLA TURCA',
@@ -1098,7 +1098,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883103',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA DE ORBITAS',
@@ -1109,7 +1109,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883105',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA DE ARTICULACION TEMPOROMANDIBULAR',
@@ -1120,7 +1120,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883108',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA DE PARES CRANEANOS',
@@ -1131,7 +1131,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883210',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA DE COLUMNA CERVICAL SIMPLE',
@@ -1142,7 +1142,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883211',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA DE COLUMNA CERVICAL',
@@ -1153,7 +1153,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883220',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA DE COLUMNA TORACICA SIMPLE',
@@ -1164,7 +1164,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883221',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA DE COLUMNA TORACICA CON CONTRASTE',
@@ -1175,7 +1175,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883230',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA DE COLUMNA LUMBOSACRA SIMPLE',
@@ -1186,7 +1186,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883231',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA DE COLUMNA LUMBAR CON CONTRASTE',
@@ -1197,7 +1197,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883301',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA DE TORAX PROYECCIONES PA Y LATERAL',
@@ -1208,7 +1208,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883401',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA DE ABDOMEN',
@@ -1219,7 +1219,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883430',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA DE VIAS BILIARES',
@@ -1230,7 +1230,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883434',
                 'nom_produc' => 'COLANGIOGRAFIA X RESONANCIA NUCLEAR MAGNETICA',
@@ -1241,7 +1241,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883440',
                 'nom_produc' => 'RESONANCIA MAGNETICA DE PELVIS',
@@ -1252,7 +1252,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883511',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA DE MIEMBRO SUPERIOR SIN INCLUIR ARTICULACIONES',
@@ -1263,7 +1263,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883512',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA DE ARTICULACIONES DE MIEMBRO SUPERIOR CODO HOMBRO Y O PUÑO',
@@ -1274,7 +1274,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883521',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA DE MIEMBRO INFERIOR SIN INCLUIR ARTICULACIONES',
@@ -1285,7 +1285,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883522',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA DE ARTICULACIONES DE MIEMBRO INFERIOR PELVIS   RODILLA  PIE Y O CUELLO DE PIE',
@@ -1296,7 +1296,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883545',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA DE ARTICULACIONES COMPARATIVA',
@@ -1307,7 +1307,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883560',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA DE PLEJO BRAQUIAL',
@@ -1318,7 +1318,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883590',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA DE SISTEMA MUSCULO ESQUELETICO NCOC',
@@ -1329,7 +1329,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883900',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA DE SITIO NCOC',
@@ -1340,7 +1340,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883901',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA CON GADOLINIO DTPA (COD SOAT 37301 Examen para magnetico (Gadolinio DTPA)  al valor del examen  agregar',
@@ -1351,7 +1351,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883909',
                 'nom_produc' => 'RESONANCIA NUCLEAR MAGNETICA CON ANGIOGRAFIA',
@@ -1362,7 +1362,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '890303BT',
                 'nom_produc' => 'SALUD BUCAL  TRATAMIENTO TERMINADOS',
@@ -1373,7 +1373,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => 'V08AB04',
                 'nom_produc' => 'Iopamidol 300 mg de Yodo ml Solucion Inyectable',
@@ -1384,7 +1384,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => 'V08AA99',
                 'nom_produc' => 'Diatrizoato de Meglumina 66 xciento mas  Diatrizoato de sodio 10 porciento Gastroview Dosis Oral',
@@ -1395,7 +1395,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879201',
                 'nom_produc' => 'Tomografia Axial Computarizada de Columna Segmentos Cervical Toracico Lumbar Cada Espacio Adicional',
@@ -1406,7 +1406,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873004',
                 'nom_produc' => 'CARPOGRAMA  RADIOGRAFIA PARA DETECTAR EDAD OSEA',
@@ -1417,7 +1417,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883109',
                 'nom_produc' => 'RESONANCIA MAGNETICA DE OIDOS',
@@ -1428,7 +1428,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883902',
                 'nom_produc' => 'RESONANCIA MAGNETICA DE SITIO NO ESPECIFICADO',
@@ -1439,7 +1439,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883111',
                 'nom_produc' => 'RESONANCIA MAGNETICA DE CABEZA  CARA Y CUELLO',
@@ -1450,7 +1450,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879430',
                 'nom_produc' => 'TOMOGRAFIA COMPUTADA DE VIAS URINARIAS [UROTC]',
@@ -1461,7 +1461,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883110',
                 'nom_produc' => 'RESONANCIA MAGNETICA DE SENOS PARANASALES O CARA',
@@ -1472,7 +1472,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873123',
                 'nom_produc' => 'RADIOGRAFIAS COMPARATIVAS DE EXTREMIDADES SUPERIORES',
@@ -1483,7 +1483,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '879431',
                 'nom_produc' => 'UROGRAFIA CON TOMOGRAFIA COMPUTADA',
@@ -1494,7 +1494,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '871410',
                 'nom_produc' => 'TOMOGRAFIA DE TORAX AP',
@@ -1505,7 +1505,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883904',
                 'nom_produc' => 'RESONANCIA MAGNETICA CON PERFUSION',
@@ -1516,7 +1516,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883443',
                 'nom_produc' => 'RESONANCIA MAGNETICA DE PLACENTA',
@@ -1527,7 +1527,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '21601-CCG',
                 'nom_produc' => 'Portatiles sin fluoroscopia e intensificador de imAgenes practicado en habitacion  UCI RN o quirofanos al valor del estudio agregar (CRITICAL CARE GROUP)',
@@ -1538,7 +1538,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => 'V08CA02',
                 'nom_produc' => 'Acido Gadoterico 0.5mmol/mL ampolla Dotarem',
@@ -1549,7 +1549,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '883232',
                 'nom_produc' => 'RESONANCIA MAGNETICA DE COLUMNA SACROILIACA SIMPLE',
@@ -1560,7 +1560,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '871040',
                 'nom_produc' => 'ST RADIOGRAFIA DE COLUMNA LUMBOSACRA',
@@ -1571,7 +1571,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873112',
                 'nom_produc' => 'ST RADIOGRAFIA DE CLAVICULA',
@@ -1582,7 +1582,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873204',
                 'nom_produc' => 'ST    RADIOGRAFIA DE HOMBRO',
@@ -1593,7 +1593,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '8732050',
                 'nom_produc' => 'ST RADIOGRAFIA DE CODO',
@@ -1604,7 +1604,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873206',
                 'nom_produc' => 'ST RADIOGRAFIA DE PUÑO O MUÑECA',
@@ -1615,7 +1615,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873312',
                 'nom_produc' => 'ST    RADIOGRAFIA DE FEMUR (AP, LATERAL)',
@@ -1626,7 +1626,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873313',
                 'nom_produc' => 'ST RADIOGRAFIA DE PIERNA (AP LATERAL)',
@@ -1637,7 +1637,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873333',
                 'nom_produc' => 'ST RADIOGRAFIA DE PIE (AP, LATERAL Y OBLICUA)',
@@ -1648,7 +1648,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873420',
                 'nom_produc' => 'ST RADIOGRAFIA DE RODILLA (AP, LATERAL)',
@@ -1659,7 +1659,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '871121',
                 'nom_produc' => 'ST  RADIOGRAFIA DE TORAX (PA O AP Y LATERAL DECUBITO LATERAL OBLICUAS O LATERAL)',
@@ -1670,7 +1670,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => 'V08AB11',
                 'nom_produc' => 'IOBITRIDOL SOLUCION INYECTABLE XENETIX 300',
@@ -1681,7 +1681,7 @@ class ConfigProductosEcografiasSeeder extends Seeder
                 'tipo_venoso' => 0,
                 'factura' => 0,
                 'estado' => 1,
-                ],
+            ],
             [
                 'cod_cups' => '873303',
                 'nom_produc' => 'RADIOGRAFIAS COMPARATIVAS DE PIES CON APOYO ( AP Y LATERAL )',

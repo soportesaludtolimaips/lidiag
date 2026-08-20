@@ -167,6 +167,12 @@ import helpdeskReportesComponent from "./components/modulos/help-desk/helpdeskRe
 app.component("HelpdeskReportesComponent", helpdeskReportesComponent);
 
 /**
+ * Contratación
+ */
+import contratoComponent from "./components/modulos/contratos/contratoComponent.vue";
+app.component("ContratoComponent", contratoComponent);
+
+/**
  * Configuración Helpdesk
  */
 import helpdeskConfigCategoriasComponent from "./components/modulos/configuracion/helpdeskConfigCategoriasComponent.vue";

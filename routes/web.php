@@ -321,6 +321,13 @@ Route::get('/citas/media/{filename}', [AgendaCitaController::class, 'descargarMe
     ->name('citas.media')
     ->middleware(['auth', 'permission:citas.index']);
 
+/**
+ * Contratación
+ */
+Route::view('/contratos', 'modulos.contratos.contratos')
+    ->name('contratos.listar')
+    ->middleware(['auth', 'permission:contratos.index']);
+
 require __DIR__.'/files.php';
 
 /* Route::get('/{optional?}', function () {

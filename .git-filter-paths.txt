@@ -1,0 +1,9 @@
+storage/LibreOfficePortable/
+Documentos/Micro Dicom/
+Documentos/Plantilla Micro Dicom/
+public/log_importar.txt
+node_modules.rar
+storage/microdicom/
+public/admin-wrap-login/assets/node_modules.rar
+public/admin-wrap/assets/node_modules.rar
+vendor/laravel/pint/builds/pint

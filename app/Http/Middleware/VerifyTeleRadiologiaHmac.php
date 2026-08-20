@@ -31,7 +31,7 @@ class VerifyTeleRadiologiaHmac
         }
 
         $method = $request->method();
-        $path = '/' . $request->path();
+        $path = '/'.$request->path();
         $body = $request->getContent();
         $utf8Body = mb_convert_encoding($body ?: '', 'UTF-8', 'ISO-8859-1');
         $bodySha = hash('sha256', $utf8Body);

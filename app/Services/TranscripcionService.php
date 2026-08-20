@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -26,8 +27,9 @@ class TranscripcionService
     /**
      * Transcribe un archivo de audio usando el servicio Whisper local.
      *
-     * @param string $audioPath Ruta absoluta del archivo de audio
+     * @param  string  $audioPath  Ruta absoluta del archivo de audio
      * @return array ['texto' => string, 'duracion' => float, 'idioma' => string]
+     *
      * @throws \Exception
      */
     public function transcribir(string $audioPath): array
@@ -69,15 +71,14 @@ class TranscripcionService
             ]);
 
             throw new \Exception("Error transcribiendo audio: {$errorMessage} (HTTP {$statusCode})");
-
-        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+        } catch (ConnectionException $e) {
             Log::error('No se pudo conectar al servicio de transcripcion', [
                 'url' => $this->serviceUrl,
                 'error' => $e->getMessage(),
             ]);
 
             throw new \Exception(
-                'No se pudo conectar al servicio de transcripcion. Verifique que el servicio Python este corriendo en ' . $this->serviceUrl
+                'No se pudo conectar al servicio de transcripcion. Verifique que el servicio Python este corriendo en '.$this->serviceUrl
             );
         } catch (\Exception $e) {
             if (str_starts_with($e->getMessage(), 'Error transcribiendo audio') ||
@@ -90,14 +91,12 @@ class TranscripcionService
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            throw new \Exception('Error inesperado al transcribir audio: ' . $e->getMessage());
+            throw new \Exception('Error inesperado al transcribir audio: '.$e->getMessage());
         }
     }
 
     /**
      * Verifica que el servicio de transcripcion este disponible.
-     *
-     * @return bool
      */
     public function healthCheck(): bool
     {
@@ -106,6 +105,7 @@ class TranscripcionService
 
             if ($response->successful()) {
                 $data = $response->json();
+
                 return ($data['status'] ?? '') === 'ok' && ($data['model_loaded'] ?? false);
             }
 
