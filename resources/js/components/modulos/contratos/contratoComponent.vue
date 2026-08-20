@@ -12,6 +12,14 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
+                    class="btn btn-success btn-sm m-r-5"
+                    @click="descargarPlantillaGeneral()"
+                    title="Descargar plantilla general (sin contrato específico)"
+                >
+                    <i class="fa fa-file-excel-o m-r-5"></i> Plantilla General
+                </button>
+                <button
+                    type="button"
                     class="btn btn-info btnDesplegarRigthSidebar"
                     @click="
                         actualizar = false;
@@ -85,6 +93,22 @@
                                                 title="Configurar detalle"
                                             >
                                                 <i class="fa fa-cogs"></i> Detalle
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-success btn-sm m-r-5"
+                                                @click="descargarPlantilla(item)"
+                                                title="Descargar plantilla Excel para este contrato"
+                                            >
+                                                <i class="fa fa-file-excel-o"></i>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
+                                                @click="abrirModalImportar(item)"
+                                                title="Importar detalles desde Excel"
+                                            >
+                                                <i class="fa fa-upload"></i>
                                             </button>
                                             <button
                                                 type="button"
@@ -356,6 +380,90 @@
                             Guardar
                         </button>
                         <button type="button" class="btn btn-inverse" @click="cerrarDetalle()">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: IMPORTAR DETALLES DESDE EXCEL -->
+        <div
+            class="modal fade"
+            id="modalImportar"
+            tabindex="-1"
+            role="dialog"
+            aria-labelledby="modalImportarLabel"
+            aria-hidden="true"
+        >
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="modalImportarLabel">
+                            <i class="fa fa-upload"></i> Importar Detalles de Contrato
+                        </h5>
+                        <button
+                            type="button"
+                            class="close text-white"
+                            data-dismiss="modal"
+                            aria-label="Cerrar"
+                        >
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="control-label">Contrato</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                :value="importarForm.contratoLabel"
+                                readonly
+                                disabled
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">
+                                Médico <span class="text-danger">*</span>
+                            </label>
+                            <Select2
+                                :value="importarForm.medico_id"
+                                :options="medicoOptions"
+                                :label-fields="['name', 'reg_med']"
+                                width="100%"
+                                :allow-clear="true"
+                                placeholder="Seleccionar médico..."
+                                @input="onImportMedicoSelect"
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">
+                                Archivo Excel <span class="text-danger">*</span>
+                            </label>
+                            <input
+                                type="file"
+                                ref="archivoImportarRef"
+                                accept=".xlsx,.xls"
+                                class="form-control"
+                            />
+                            <small class="text-muted">
+                                Formato: Código CUPS | Sede | Valor Contrato | Valor Consulta |
+                                Valor Urgencias
+                            </small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-success"
+                            @click="procesarImportacion()"
+                            :disabled="loadingImportar"
+                        >
+                            <i v-if="loadingImportar" class="fa fa-spinner fa-spin"></i>
+                            <i v-else class="fa fa-upload"></i>
+                            Importar
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
                             Cancelar
                         </button>
                     </div>
@@ -920,6 +1028,137 @@ async function guardarDetalles() {
         }
     } finally {
         loadingGuardarDetalle.value = false;
+    }
+}
+
+// ─── IMPORTAR DESDE EXCEL ────────────────────────────────────────────────────
+
+/**
+ * Referencia al input de archivo del modal de importación
+ * @type {import('vue').Ref<HTMLInputElement|null>}
+ */
+const archivoImportarRef = ref(null);
+
+/**
+ * Formulario del modal de importación
+ * @type {import('vue').Ref<Object>}
+ */
+const importarForm = ref({
+    contratoId: null,
+    contratoLabel: "",
+    medico_id: null,
+});
+
+/**
+ * Flag de carga al procesar importación
+ * @type {import('vue').Ref<boolean>}
+ */
+const loadingImportar = ref(false);
+
+/**
+ * Descarga la plantilla Excel para un contrato específico.
+ * Abre el enlace de descarga en una nueva pestaña.
+ *
+ * @param {Object} item - Contrato con id y sede
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
+ */
+function descargarPlantilla(item) {
+    window.open(`/api/contratos/${item.id}/plantilla`, "_blank");
+}
+
+/**
+ * Descarga la plantilla general (sin contrato específico).
+ * Redirige a una ruta que genera una plantilla vacía.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
+ */
+function descargarPlantillaGeneral() {
+    toastMessage("Seleccione un contrato específico para descargar la plantilla", "info");
+}
+
+/**
+ * Abre el modal de importación para un contrato específico.
+ * Puebla el formulario con la información del contrato.
+ *
+ * @param {Object} item - Contrato con id, sede y otros datos
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
+ */
+function abrirModalImportar(item) {
+    importarForm.value = {
+        contratoId: item.id,
+        contratoLabel: `Contrato #${item.id} - ${item.sede?.nom_sede || "N/A"} (${formatDate(item.fecha_inicio)} - ${formatDate(item.fecha_fin)})`,
+        medico_id: null,
+    };
+    if (archivoImportarRef.value) {
+        archivoImportarRef.value.value = "";
+    }
+    $("#modalImportar").modal("show");
+}
+
+/**
+ * Handler: se ejecuta cuando el usuario selecciona un médico en el Select2 del modal.
+ *
+ * @param {string|null} id - ID del médico seleccionado
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
+ */
+function onImportMedicoSelect(id) {
+    importarForm.value.medico_id = id;
+}
+
+/**
+ * Procesa la importación de detalles desde un archivo Excel.
+ * Envía el archivo y el medico_id al backend.
+ * Si hay error (CUPS no existe), muestra el mensaje con número de fila.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
+ */
+async function procesarImportacion() {
+    if (loadingImportar.value) return;
+
+    if (!importarForm.value.medico_id) {
+        toastMessage("Seleccione un médico", "warning");
+        return;
+    }
+
+    const file = archivoImportarRef.value?.files?.[0];
+    if (!file) {
+        toastMessage("Seleccione un archivo Excel", "warning");
+        return;
+    }
+
+    loadingImportar.value = true;
+    try {
+        const formData = new FormData();
+        formData.append("archivo", file);
+        formData.append("medico_id", importarForm.value.medico_id);
+
+        await axios.post(`/api/contratos/${importarForm.value.contratoId}/importar`, formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        toastMessage("Detalles importados correctamente");
+        $("#modalImportar").modal("hide");
+        await listar();
+    } catch (e) {
+        const msg = e.response?.data?.message || "Error al importar el archivo";
+        toastMessage(msg, "error");
+    } finally {
+        loadingImportar.value = false;
     }
 }
 

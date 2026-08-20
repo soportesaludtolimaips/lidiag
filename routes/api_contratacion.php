@@ -30,4 +30,12 @@ Route::middleware(['auth'])->group(function () {
         ->name('api.contratos.detalles.sync')
         ->middleware(['permission:contratos.detalle.edit']);
 
+    Route::get('/contratos/{contratoId}/plantilla', [ContratoController::class, 'exportPlantilla'])
+        ->name('api.contratos.plantilla')
+        ->middleware(['permission:contratos.index']);
+
+    Route::post('/contratos/{contratoId}/importar', [ContratoController::class, 'importDetalles'])
+        ->name('api.contratos.importar')
+        ->middleware(['permission:contratos.detalle.create']);
+
 });

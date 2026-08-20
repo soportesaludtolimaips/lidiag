@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers\Contratacion;
 
+use App\Exports\ContratoPlantillaExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Contratacion\ContratoDetalleRequest;
 use App\Http\Requests\Contratacion\ContratoRequest;
+use App\Imports\ContratoDetalleImport;
+use App\Models\Contratacion\Contrato;
 use App\Services\Contratacion\ContratoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ContratoController extends Controller
 {
@@ -228,5 +233,74 @@ class ContratoController extends Controller
         $result = $this->contratoService->syncDetalles($contratoId, $validated);
 
         return response()->json($result, $result['status']);
+    }
+
+    /**
+     * Descarga la plantilla Excel para importar detalles de contratos.
+     * El Excel incluye: info del contrato (fila 2), headers (fila 3),
+     * productos CUPS con requi_lectura=1 (fila 4+), y desplegable de sedes.
+     *
+     * @param  int  $contratoId  Identificador del contrato.
+     *
+     * @returns BinaryFileResponse Respuesta con el archivo Excel para descargar.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-20
+     */
+    public function exportPlantilla(int $contratoId): BinaryFileResponse
+    {
+        $contrato = Contrato::find($contratoId);
+
+        if (! $contrato) {
+            abort(404, 'Contrato no encontrado');
+        }
+
+        $nombreSede = $contrato->sede->nom_sede ?? 'General';
+        $nombreArchivo = "Plantilla_Contrato_{$contratoId}_{$nombreSede}.xlsx";
+
+        return Excel::download(
+            new ContratoPlantillaExport($contratoId),
+            $nombreArchivo
+        );
+    }
+
+    /**
+     * Importa detalles de contratos desde un archivo Excel.
+     * Lee el contrato_id del Excel, valida CUPS por fila,
+     * y crea registros en contrato_detalle dentro de una transacción atómica.
+     *
+     * @param  Request  $request  Petición con archivo Excel y medico_id.
+     * @param  int  $contratoId  Identificador del contrato (de la ruta).
+     *
+     * @returns \Illuminate\Http\JsonResponse Respuesta JSON de éxito o error detallado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-20
+     */
+    public function importDetalles(Request $request, int $contratoId): JsonResponse
+    {
+        $validated = $request->validate([
+            'archivo' => 'required|file|mimes:xlsx,xls|max:10240',
+            'medico_id' => 'required|integer|exists:users,id',
+        ]);
+
+        try {
+            Excel::import(
+                new ContratoDetalleImport($validated['medico_id']),
+                $request->file('archivo')
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Detalles importados correctamente',
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 }
