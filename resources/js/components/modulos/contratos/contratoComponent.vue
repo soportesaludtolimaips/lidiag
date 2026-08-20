@@ -657,8 +657,9 @@ async function cargarCatalogos() {
  */
 async function abrirDetalle(contrato) {
     contratoSeleccionado.value = contrato;
+    await nextTick();
+    $(".right-sidebar").addClass("shw-rside");
     await cargarCatalogos();
-    // Poblar detallesLocales desde el contrato existente
     detallesLocales.value = (contrato.detalles || []).map((d) => ({
         id: d.id,
         medico_id: d.medico_id,
@@ -671,7 +672,6 @@ async function abrirDetalle(contrato) {
     }));
     medicoSeleccionado.value = null;
     productoSeleccionado.value = null;
-    $(".right-sidebar").addClass("shw-rside");
 }
 
 /**
