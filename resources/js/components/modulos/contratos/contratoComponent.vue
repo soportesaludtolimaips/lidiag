@@ -82,9 +82,9 @@
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
                                                 @click="abrirDetalle(item)"
-                                                title="Ver detalle"
+                                                title="Configurar detalle"
                                             >
-                                                <i class="fa fa-list"></i>
+                                                <i class="fa fa-cogs"></i> Detalle
                                             </button>
                                             <button
                                                 type="button"
@@ -249,6 +249,7 @@
                             <Select2
                                 :value="medicoSeleccionado"
                                 :options="medicoOptions"
+                                :label-fields="['name', 'reg_med']"
                                 width="100%"
                                 :allow-clear="true"
                                 placeholder="Buscar médico..."
@@ -459,23 +460,25 @@ const loadingGuardarDetalle = ref(false);
 
 /**
  * Opciones formateadas para Select2 de médicos
- * @returns {Array<{id: number, text: string}>}
+ * @returns {Array<{id: number, name: string, reg_med: string}>}
  */
 const medicoOptions = computed(() =>
     medicos.value.map((m) => ({
         id: m.id,
-        text: `${m.name} ${m.reg_med ? "(" + m.reg_med + ")" : ""}`,
+        name: m.name,
+        reg_med: m.reg_med || "",
     }))
 );
 
 /**
  * Opciones formateadas para Select2 de productos
- * @returns {Array<{id: number, text: string}>}
+ * @returns {Array<{id: number, cod_cups: string, nom_produc: string}>}
  */
 const productoOptions = computed(() =>
     productos.value.map((p) => ({
         id: p.id,
-        text: `${p.cod_cups} - ${p.nom_produc}`,
+        cod_cups: p.cod_cups || "",
+        nom_produc: p.nom_produc || "",
     }))
 );
 
@@ -639,7 +642,9 @@ async function cargarCatalogos() {
         medicos.value = (medRes.data.data?.data || medRes.data.data || []).filter((u) => u.reg_med);
         productos.value = prodRes.data.data?.data || prodRes.data.data || [];
     } catch (e) {
-        console.error(e);
+        console.error("Error cargando catálogos:", e);
+        const msg = e.response?.data?.message || e.message || "Error desconocido";
+        toastMessage("Error cargando médicos/productos: " + msg, "error");
     }
 }
 

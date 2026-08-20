@@ -165,22 +165,22 @@ Route::middleware(['auth'])->group(function () {
     // Protegemos store/update/destroy con permisos
     Route::post('/config-whatsapp', [ConfigWhatsappController::class, 'store'])
         ->name('api.config.whatsapp.store')
-        ->middleware('permission:config.whatsapp.saludo.create,web');
+        ->middleware('permission:config.whatsapp.saludo.create');
 
     Route::put('/config-whatsapp/{id}', [ConfigWhatsappController::class, 'update'])
         ->name('api.config.whatsapp.update')
-        ->middleware('permission:config.whatsapp.saludo.edit,web');
+        ->middleware('permission:config.whatsapp.saludo.edit');
 
     Route::delete('/config-whatsapp/{id}', [ConfigWhatsappController::class, 'destroy'])
         ->name('api.config.whatsapp.destroy')
-        ->middleware('permission:config.whatsapp.saludo.destroy,web');
+        ->middleware('permission:config.whatsapp.saludo.destroy');
 
     // Index y show son de lectura (permiso index)
     Route::get('/config-whatsapp', [ConfigWhatsappController::class, 'index'])
         ->name('api.config.whatsapp.index')
-        ->middleware('permission:config.whatsapp.saludo.index,web');
+        ->middleware('permission:config.whatsapp.saludo.index');
 
     Route::get('/config-whatsapp/{id}', [ConfigWhatsappController::class, 'show'])
         ->name('api.config.whatsapp.show')
-        ->middleware('permission:config.whatsapp.saludo.index,web');
+        ->middleware('permission:config.whatsapp.saludo.index');
 });
