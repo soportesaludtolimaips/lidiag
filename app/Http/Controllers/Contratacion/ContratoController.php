@@ -12,6 +12,7 @@ use App\Services\Contratacion\ContratoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ContratoController extends Controller
@@ -267,8 +268,8 @@ class ContratoController extends Controller
 
     /**
      * Importa detalles de contratos desde un archivo Excel.
-     * Lee el contrato_id del Excel, valida CUPS por fila,
-     * y crea registros en contrato_detalle dentro de una transacción atómica.
+     * Valida que el contrato_id en D2 del Excel coincida con el de la ruta.
+     * CUPS por fila, y crea registros en contrato_detalle dentro de una transacción atómica.
      *
      * @param  Request  $request  Petición con archivo Excel y medico_id.
      * @param  int  $contratoId  Identificador del contrato (de la ruta).
@@ -287,8 +288,28 @@ class ContratoController extends Controller
         ]);
 
         try {
+            // Leer contrato_id del Excel (celda D2) para validar que corresponda al contrato de la ruta
+            $excel = IOFactory::load($request->file('archivo')->getPathname());
+            $d2Value = $excel->getActiveSheet()->getCell('D2')->getValue();
+
+            if (! $d2Value || ! preg_match('/(\d+)/', $d2Value, $matches)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se encontró el ID del contrato en el archivo Excel (celda D2).',
+                ], 422);
+            }
+
+            $excelContratoId = (int) $matches[1];
+
+            if ($excelContratoId !== $contratoId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "El archivo no corresponde a este contrato. Se esperaba ID {$contratoId}, el archivo tiene ID {$excelContratoId}.",
+                ], 422);
+            }
+
             Excel::import(
-                new ContratoDetalleImport($validated['medico_id']),
+                new ContratoDetalleImport($contratoId, $validated['medico_id']),
                 $request->file('archivo')
             );
 
