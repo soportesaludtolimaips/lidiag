@@ -137,7 +137,7 @@
         </div>
 
         <!-- SIDEBAR: CREAR/EDITAR CONTRATO -->
-        <div class="right-sidebar sidebar-scroll" style="width: 450px">
+        <div class="right-sidebar" style="width: 450px">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -251,7 +251,7 @@
         </div>
 
         <!-- SIDEBAR: DETALLE (MÉDICOS + PRODUCTOS) -->
-        <div class="right-sidebar sidebar-scroll" style="width: 750px" v-if="contratoSeleccionado">
+        <div class="right-sidebar sidebar-scroll" v-show="contratoSeleccionado">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     Detalle: {{ contratoSeleccionado.sede?.nom_sede }}
@@ -273,7 +273,7 @@
                             <Select2
                                 :value="medicoSeleccionado"
                                 :options="medicoOptions"
-                                :label-fields="['name']"
+                                :label-fields="['name', 'reg_med']"
                                 width="100%"
                                 :allow-clear="true"
                                 placeholder="Buscar médico..."
@@ -429,7 +429,7 @@
                             <Select2
                                 :value="importarForm.medico_id"
                                 :options="medicoOptions"
-                                :label-fields="['name']"
+                                :label-fields="['name', 'reg_med']"
                                 width="100%"
                                 :allow-clear="true"
                                 placeholder="Seleccionar médico..."
@@ -642,6 +642,7 @@ const medicoOptions = computed(() =>
     medicos.value.map((m) => ({
         id: String(m.id),
         name: m.name,
+        reg_med: m.reg_med || "",
     }))
 );
 
@@ -758,8 +759,8 @@ function mostrarRegistro(item = null) {
             estado: 1,
         };
     }
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").addClass("shw-rside");
+    $(".right-sidebar:not(.sidebar-scroll)").slideDown(50);
+    $(".right-sidebar:not(.sidebar-scroll)").addClass("shw-rside");
 }
 
 /**
@@ -771,7 +772,7 @@ function mostrarRegistro(item = null) {
  * @date 2026-08-20
  */
 function btnCerralModalForm() {
-    $(".right-sidebar").removeClass("shw-rside");
+    $(".right-sidebar:not(.sidebar-scroll)").removeClass("shw-rside");
 }
 
 /**
@@ -855,12 +856,11 @@ async function desactivarRegistro(item) {
  */
 async function cargarCatalogos() {
     try {
-        const moduloId = sessionStorage.getItem("ST-modulo") || "1";
         const [medRes, prodRes] = await Promise.all([
-            axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`),
+            axios.get("/api/seguridad-usuarios"),
             axios.get("/api/config-productos"),
         ]);
-        medicos.value = medRes.data.data || [];
+        medicos.value = (medRes.data.data || []).filter((u) => u.reg_med);
         productos.value = prodRes.data.data || [];
     } catch (e) {
         console.error("Error cargando catálogos:", e);
@@ -897,7 +897,7 @@ async function abrirDetalle(contrato) {
     medicoSeleccionado.value = null;
     productoSeleccionado.value = null;
     await nextTick();
-    $(".right-sidebar").addClass("shw-rside");
+    $(".right-sidebar.sidebar-scroll").addClass("shw-rside");
 }
 
 /**
@@ -913,7 +913,7 @@ function cerrarDetalle() {
     detallesLocales.value = [];
     medicoSeleccionado.value = null;
     productoSeleccionado.value = null;
-    $(".right-sidebar").removeClass("shw-rside");
+    $(".right-sidebar.sidebar-scroll").removeClass("shw-rside");
 }
 
 /**
@@ -926,17 +926,8 @@ function cerrarDetalle() {
  * @author Jhon Javer Lozano Arce
  * @date 2026-08-20
  */
-function onMedicoSelect(value) {
-    let selectedId = null;
-    if (Array.isArray(value) && value.length > 0) {
-        const v = value[0];
-        selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
-    } else if (value && typeof value === "object" && value.id != null) {
-        selectedId = String(value.id);
-    } else if (value != null) {
-        selectedId = String(value);
-    }
-    medicoSeleccionado.value = selectedId || "";
+function onMedicoSelect(id) {
+    medicoSeleccionado.value = id;
 }
 
 /**
@@ -1200,8 +1191,8 @@ onBeforeUnmount(() => {
 <style scoped>
 .right-sidebar {
     position: fixed;
-    right: -750px;
-    width: 750px;
+    right: -70%;
+    width: 70%;
     display: none;
     z-index: 1100;
     background: #ffffff;
@@ -1214,23 +1205,16 @@ onBeforeUnmount(() => {
     -o-transition: all 0.3s ease;
     transition: all 0.3s ease;
 }
+
+.shw-rside {
+    right: 0px;
+    width: 70%;
+    display: block;
+}
+
 .sidebar-scroll {
     overflow-x: hidden;
     overflow-y: scroll;
     height: 100%;
-}
-.shw-rside {
-    right: 0px;
-    display: block;
-}
-.table-scroll {
-    max-height: 400px;
-    overflow-y: auto;
-}
-.table-scroll thead th {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    background: #fff;
 }
 </style>
