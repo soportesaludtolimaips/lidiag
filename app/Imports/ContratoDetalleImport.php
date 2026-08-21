@@ -90,8 +90,15 @@ class ContratoDetalleImport implements ToCollection, WithHeadingRow
             ->pluck('id', 'cod_cups')
             ->toArray();
 
-        DB::transaction(function () use ($rows, $productosCache) {
-            $filaNum = 4; // Los datos empiezan en fila 4 del Excel
+        // Cache de duplicados existentes en la BD para este contrato + médico
+        $existentes = ContratoDetalle::where('contrato_id', $this->contratoId)
+            ->where('medico_id', $this->medicoId)
+            ->pluck('producto_id')
+            ->toArray();
+        $existentesSet = array_flip($existentes);
+
+        DB::transaction(function () use ($rows, $productosCache, $existentesSet) {
+            $filaNum = 4;
 
             foreach ($rows as $row) {
                 $codCups = trim($row['codigo_cups'] ?? '');
@@ -99,28 +106,34 @@ class ContratoDetalleImport implements ToCollection, WithHeadingRow
                 $valorConsulta = (float) ($row['valor_consulta'] ?? 0);
                 $valorUrgencias = (float) ($row['valor_urgencias'] ?? 0);
 
-                if (empty($codCups)) {
-                    throw new \Exception(
-                        "Error en fila {$filaNum}: el código CUPS está vacío."
-                    );
+                if (! empty($codCups)) {
+
+                    if (! isset($productosCache[$codCups])) {
+                        throw new \Exception(
+                            "Error en fila {$filaNum}: el código CUPS '{$codCups}' no existe en la base de datos."
+                        );
+                    }
+
+                    $productoId = $productosCache[$codCups];
+
+                    if (isset($existentesSet[$productoId])) {
+                        throw new \Exception(
+                            "Error en fila {$filaNum}: el producto CUPS '{$codCups}' ya está registrado para este médico en este contrato."
+                        );
+                    }
+
+                    ContratoDetalle::create([
+                        'contrato_id' => $this->contratoId,
+                        'medico_id' => $this->medicoId,
+                        'producto_id' => $productoId,
+                        'valor_contrato' => $valorContrato,
+                        'valor_consulta' => $valorConsulta,
+                        'valor_urgencias' => $valorUrgencias,
+                        'estado' => 1,
+                    ]);
+
+                    $existentesSet[$productoId] = true;
                 }
-
-                if (! isset($productosCache[$codCups])) {
-                    throw new \Exception(
-                        "Error en fila {$filaNum}: el código CUPS '{$codCups}' no existe en la base de datos."
-                    );
-                }
-
-                ContratoDetalle::create([
-                    'contrato_id' => $this->contratoId,
-                    'medico_id' => $this->medicoId,
-                    'producto_id' => $productosCache[$codCups],
-                    'valor_contrato' => $valorContrato,
-                    'valor_consulta' => $valorConsulta,
-                    'valor_urgencias' => $valorUrgencias,
-                    'estado' => 1,
-                ]);
-
                 $filaNum++;
             }
         });
