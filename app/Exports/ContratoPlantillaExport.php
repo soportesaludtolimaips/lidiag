@@ -3,7 +3,6 @@
 namespace App\Exports;
 
 use App\Models\Configuracion\ConfigProducto;
-use App\Models\Configuracion\ConfigSede;
 use App\Models\Contratacion\Contrato;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -14,7 +13,6 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -24,9 +22,8 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  * Export de plantilla para importar detalles de contratos.
  * Genera un Excel con:
  * - Filas 1-2: Información del contrato (sede, fechas, observaciones)
- * - Fila 3: Encabezados de columnas
+ * - Fila 3: Encabezados de columnas (Código CUPS, Valor Contrato, Valor Consulta, Valor Urgencias)
  * - Filas 4+: Productos CUPS con requi_lectura=1 (vacíos para llenar)
- * - Columna B (Sede): Data Validation con lista de sedes activas
  *
  * @author Jhon Javer Lozano Arce
  *
@@ -85,7 +82,6 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
     {
         return [
             'Código CUPS',
-            'Sede',
             'Valor Contrato',
             'Valor Consulta',
             'Valor Urgencias',
@@ -108,7 +104,6 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
     {
         return [
             $producto->cod_cups ?? '',
-            '', // Sede (dropdown)
             '', // Valor Contrato
             '', // Valor Consulta
             '', // Valor Urgencias
@@ -155,7 +150,7 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
 
                 // ── FILA 1: TÍTULO ─────────────────────────────────────
                 $sheet->setCellValue('A1', 'Plantilla Importación de Detalles de Contrato');
-                $sheet->mergeCells('A1:E1');
+                $sheet->mergeCells('A1:D1');
                 $sheet->getStyle('A1')->applyFromArray([
                     'font' => [
                         'bold' => true,
@@ -182,13 +177,11 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
                     $fechaFin = $contrato->fecha_fin instanceof Carbon
                         ? $contrato->fecha_fin->format('d/m/Y')
                         : 'N/A';
-                    $observaciones = $contrato->observaciones ?? '';
 
                     $sheet->setCellValue('A2', "Sede: {$nomSede}");
                     $sheet->setCellValue('B2', "Inicio: {$fechaInicio}");
                     $sheet->setCellValue('C2', "Fin: {$fechaFin}");
                     $sheet->setCellValue('D2', "Contrato ID: {$contrato->id}");
-                    $sheet->setCellValue('E2', $observaciones ? "Obs: {$observaciones}" : '');
                 } else {
                     $sheet->setCellValue('A2', 'Sede: N/A');
                     $sheet->setCellValue('B2', 'Inicio: N/A');
@@ -196,7 +189,7 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
                     $sheet->setCellValue('D2', 'Contrato ID: N/A');
                 }
 
-                $sheet->getStyle('A2:E2')->applyFromArray([
+                $sheet->getStyle('A2:D2')->applyFromArray([
                     'font' => [
                         'bold' => true,
                         'size' => 11,
@@ -210,7 +203,7 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
                 // ── BORDES ─────────────────────────────────────────────
                 $highestRow = $sheet->getHighestRow();
                 if ($highestRow > 3) {
-                    $sheet->getStyle('A4:E'.$highestRow)->applyFromArray([
+                    $sheet->getStyle('A4:D'.$highestRow)->applyFromArray([
                         'borders' => [
                             'allBorders' => [
                                 'borderStyle' => Border::BORDER_THIN,
@@ -218,30 +211,6 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
                             ],
                         ],
                     ]);
-                }
-
-                // ── DATA VALIDATION: SEDE EN COLUMNA B ─────────────────
-                $sedes = ConfigSede::where('estado', 1)
-                    ->orderBy('nom_sede')
-                    ->pluck('nom_sede')
-                    ->toArray();
-
-                if (! empty($sedes)) {
-                    $lastRow = max($highestRow, 100);
-
-                    $validation = new DataValidation;
-                    $validation->setType(DataValidation::TYPE_LIST);
-                    $validation->setAllowBlank(true);
-                    $validation->setShowDropDown(true);
-                    $validation->setShowInputMessage(true);
-                    $validation->setShowErrorMessage(true);
-                    $validation->setErrorTitle('Sede inválida');
-                    $validation->setError('Seleccione una sede de la lista desplegable.');
-                    $validation->setPromptTitle('Seleccionar Sede');
-                    $validation->setPrompt('Seleccione la sede a la cual pertenece este contrato.');
-                    $validation->setFormula1('"'.implode(',', $sedes).'"');
-
-                    $sheet->setDataValidation("B4:B{$lastRow}", $validation);
                 }
             },
         ];
@@ -260,10 +229,9 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
     {
         return [
             'A' => 18,
-            'B' => 25,
+            'B' => 18,
             'C' => 18,
             'D' => 18,
-            'E' => 18,
         ];
     }
 

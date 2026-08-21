@@ -15,7 +15,7 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
  * El contrato_id se recibe del controller (validado contra D2 del Excel).
  *
  * Estructura esperada del Excel:
- * - Fila 3: Encabezados (Código CUPS, Sede, Valor Contrato, Valor Consulta, Valor Urgencias)
+ * - Fila 3: Encabezados (Código CUPS, Valor Contrato, Valor Consulta, Valor Urgencias)
  * - Filas 4+: Datos de productos
  *
  * @author Jhon Javer Lozano Arce
