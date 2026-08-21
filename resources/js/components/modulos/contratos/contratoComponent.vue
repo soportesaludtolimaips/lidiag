@@ -137,7 +137,7 @@
         </div>
 
         <!-- SIDEBAR: CREAR/EDITAR CONTRATO -->
-        <div class="right-sidebar" style="width: 450px">
+        <div class="right-sidebar sidebar-scroll" style="width: 450px">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -273,7 +273,7 @@
                             <Select2
                                 :value="medicoSeleccionado"
                                 :options="medicoOptions"
-                                :label-fields="['name', 'reg_med']"
+                                :label-fields="['name']"
                                 width="100%"
                                 :allow-clear="true"
                                 placeholder="Buscar médico..."
@@ -429,7 +429,7 @@
                             <Select2
                                 :value="importarForm.medico_id"
                                 :options="medicoOptions"
-                                :label-fields="['name', 'reg_med']"
+                                :label-fields="['name']"
                                 width="100%"
                                 :allow-clear="true"
                                 placeholder="Seleccionar médico..."
@@ -642,7 +642,6 @@ const medicoOptions = computed(() =>
     medicos.value.map((m) => ({
         id: String(m.id),
         name: m.name,
-        reg_med: m.reg_med || "",
     }))
 );
 
@@ -856,11 +855,12 @@ async function desactivarRegistro(item) {
  */
 async function cargarCatalogos() {
     try {
+        const moduloId = sessionStorage.getItem("ST-modulo") || "1";
         const [medRes, prodRes] = await Promise.all([
-            axios.get("/api/seguridad-usuarios"),
+            axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`),
             axios.get("/api/config-productos"),
         ]);
-        medicos.value = (medRes.data.data || []).filter((u) => u.reg_med);
+        medicos.value = medRes.data.data || [];
         productos.value = prodRes.data.data || [];
     } catch (e) {
         console.error("Error cargando catálogos:", e);
@@ -926,8 +926,17 @@ function cerrarDetalle() {
  * @author Jhon Javer Lozano Arce
  * @date 2026-08-20
  */
-function onMedicoSelect(id) {
-    medicoSeleccionado.value = id;
+function onMedicoSelect(value) {
+    let selectedId = null;
+    if (Array.isArray(value) && value.length > 0) {
+        const v = value[0];
+        selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
+    } else if (value && typeof value === "object" && value.id != null) {
+        selectedId = String(value.id);
+    } else if (value != null) {
+        selectedId = String(value);
+    }
+    medicoSeleccionado.value = selectedId || "";
 }
 
 /**
@@ -1204,7 +1213,11 @@ onBeforeUnmount(() => {
     -webkit-transition: all 0.3s ease;
     -o-transition: all 0.3s ease;
     transition: all 0.3s ease;
-    overflow-y: auto;
+}
+.sidebar-scroll {
+    overflow-x: hidden;
+    overflow-y: scroll;
+    height: 100%;
 }
 .shw-rside {
     right: 0px;
