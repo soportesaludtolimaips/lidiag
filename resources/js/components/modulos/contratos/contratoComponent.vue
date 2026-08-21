@@ -271,13 +271,13 @@
                     <div class="row">
                         <div class="col-md-12">
                             <Select2
-                                :key="'med-' + detailKey"
                                 :value="medicoSeleccionado"
                                 :options="medicoOptions"
                                 :label-fields="['name']"
                                 width="100%"
                                 :allow-clear="true"
                                 placeholder="Buscar médico..."
+                                dropdown-parent-selector=".right-sidebar.sidebar-scroll"
                                 @input="onMedicoSelectDetalle"
                             />
                         </div>
@@ -291,12 +291,12 @@
                     <div class="row">
                         <div class="col-md-12">
                             <Select2
-                                :key="'prod-' + detailKey"
                                 :value="productoSeleccionado"
                                 :options="productoOptions"
                                 width="100%"
                                 :allow-clear="true"
                                 placeholder="Buscar producto..."
+                                dropdown-parent-selector=".right-sidebar.sidebar-scroll"
                                 @input="onProductoSelect"
                             />
                         </div>
@@ -434,6 +434,7 @@
                                 :label-fields="['name']"
                                 width="100%"
                                 :allow-clear="true"
+                                dropdown-parent-selector="#modalImportar .modal-body"
                                 @input="onMedicoSelectDetalleImport"
                             />
                         </div>
@@ -609,12 +610,6 @@ const medicoSeleccionado = ref(null);
  * @type {import('vue').Ref<string|null>}
  */
 const productoSeleccionado = ref(null);
-
-/**
- * Key dinámico para forzar recreación de Select2 al abrir el sidebar de detalle
- * @type {import('vue').Ref<number>}
- */
-const detailKey = ref(0);
 
 /**
  * Catálogo de usuarios médicos (con reg_med no nulo)
@@ -904,9 +899,12 @@ async function abrirDetalle(contrato) {
     }));
     medicoSeleccionado.value = null;
     productoSeleccionado.value = null;
-    detailKey.value++;
     await nextTick();
     $(".right-sidebar.sidebar-scroll").addClass("shw-rside");
+    // Re-inicializar Select2 después de que el sidebar sea visible
+    setTimeout(() => {
+        $(".right-sidebar.sidebar-scroll .select2").trigger("change");
+    }, 350);
 }
 
 /**

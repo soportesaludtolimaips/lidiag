@@ -12,7 +12,7 @@
     </select>
 </template>
 <script setup>
-import { nextTick, onMounted, ref, watch } from "vue";
+import { nextTick, onMounted, onBeforeUnmount, ref, watch } from "vue";
 
 const el = ref(null);
 
@@ -145,6 +145,10 @@ function rebuild() {
 
 onMounted(() => {
     nextTick(() => initSelect2());
+});
+
+onBeforeUnmount(() => {
+    destroySelect2();
 });
 
 watch(
