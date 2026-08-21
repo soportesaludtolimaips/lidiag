@@ -277,7 +277,7 @@
                                 width="100%"
                                 :allow-clear="true"
                                 placeholder="Buscar médico..."
-                                @input="onMedicoSelect"
+                                @input="onMedicoSelectDetalle"
                             />
                         </div>
                     </div>
@@ -429,11 +429,10 @@
                             <Select2
                                 :value="importarForm.medico_id"
                                 :options="medicoOptions"
-                                :label-fields="['name', 'reg_med']"
+                                :label-fields="['name']"
                                 width="100%"
                                 :allow-clear="true"
-                                placeholder="Seleccionar médico..."
-                                @input="onImportMedicoSelect"
+                                @input="onMedicoSelectDetalleImport"
                             />
                         </div>
                         <div class="form-group">
@@ -926,7 +925,7 @@ function cerrarDetalle() {
  * @author Jhon Javer Lozano Arce
  * @date 2026-08-20
  */
-function onMedicoSelect(id) {
+function onMedicoSelectDetalle(id) {
     medicoSeleccionado.value = id;
 }
 
@@ -1113,7 +1112,7 @@ function abrirModalImportar(item) {
  * @author Jhon Javer Lozano Arce
  * @date 2026-08-20
  */
-function onImportMedicoSelect(id) {
+function onMedicoSelectDetalleImport(id) {
     importarForm.value.medico_id = id;
 }
 
