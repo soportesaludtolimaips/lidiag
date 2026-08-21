@@ -271,6 +271,7 @@
                     <div class="row">
                         <div class="col-md-12">
                             <Select2
+                                :key="'med-' + detailKey"
                                 :value="medicoSeleccionado"
                                 :options="medicoOptions"
                                 :label-fields="['name']"
@@ -290,6 +291,7 @@
                     <div class="row">
                         <div class="col-md-12">
                             <Select2
+                                :key="'prod-' + detailKey"
                                 :value="productoSeleccionado"
                                 :options="productoOptions"
                                 width="100%"
@@ -609,6 +611,12 @@ const medicoSeleccionado = ref(null);
 const productoSeleccionado = ref(null);
 
 /**
+ * Key dinámico para forzar recreación de Select2 al abrir el sidebar de detalle
+ * @type {import('vue').Ref<number>}
+ */
+const detailKey = ref(0);
+
+/**
  * Catálogo de usuarios médicos (con reg_med no nulo)
  * @type {import('vue').Ref<Array>}
  */
@@ -855,11 +863,12 @@ async function desactivarRegistro(item) {
  */
 async function cargarCatalogos() {
     try {
+        const moduloId = sessionStorage.getItem("ST-modulo") || "1";
         const [medRes, prodRes] = await Promise.all([
-            axios.get("/api/seguridad-usuarios"),
+            axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`),
             axios.get("/api/config-productos"),
         ]);
-        medicos.value = (medRes.data.data || []).filter((u) => u.reg_med);
+        medicos.value = medRes.data.data || [];
         productos.value = prodRes.data.data || [];
     } catch (e) {
         console.error("Error cargando catálogos:", e);
@@ -895,6 +904,7 @@ async function abrirDetalle(contrato) {
     }));
     medicoSeleccionado.value = null;
     productoSeleccionado.value = null;
+    detailKey.value++;
     await nextTick();
     $(".right-sidebar.sidebar-scroll").addClass("shw-rside");
 }
