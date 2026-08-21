@@ -254,7 +254,7 @@
         <div class="right-sidebar sidebar-scroll" v-show="contratoSeleccionado">
             <div class="slimscrollright">
                 <div class="rpanel-title">
-                    Detalle: {{ contratoSeleccionado.sede?.nom_sede }}
+                    Detalle: {{ contratoSeleccionado?.sede?.nom_sede }}
                     <button
                         type="button"
                         class="right-side-toggle"
@@ -273,7 +273,7 @@
                             <Select2
                                 :value="medicoSeleccionado"
                                 :options="medicoOptions"
-                                :label-fields="['name', 'reg_med']"
+                                :label-fields="['name']"
                                 width="100%"
                                 :allow-clear="true"
                                 placeholder="Buscar médico..."
