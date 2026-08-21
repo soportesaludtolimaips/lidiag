@@ -82,7 +82,8 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
     {
         return [
             'Código CUPS',
-            'Valor Contrato',
+            'Producto',
+            'Valor Contratado',
             'Valor Consulta',
             'Valor Urgencias',
         ];
@@ -104,6 +105,7 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
     {
         return [
             $producto->cod_cups ?? '',
+            $producto->nom_produc ?? '',
             '', // Valor Contrato
             '', // Valor Consulta
             '', // Valor Urgencias
@@ -150,7 +152,7 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
 
                 // ── FILA 1: TÍTULO ─────────────────────────────────────
                 $sheet->setCellValue('A1', 'Plantilla Importación de Detalles de Contrato');
-                $sheet->mergeCells('A1:D1');
+                $sheet->mergeCells('A1:E1');
                 $sheet->getStyle('A1')->applyFromArray([
                     'font' => [
                         'bold' => true,
@@ -189,7 +191,7 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
                     $sheet->setCellValue('D2', 'Contrato ID: N/A');
                 }
 
-                $sheet->getStyle('A2:D2')->applyFromArray([
+                $sheet->getStyle('A2:E2')->applyFromArray([
                     'font' => [
                         'bold' => true,
                         'size' => 11,
@@ -203,7 +205,7 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
                 // ── BORDES ─────────────────────────────────────────────
                 $highestRow = $sheet->getHighestRow();
                 if ($highestRow > 3) {
-                    $sheet->getStyle('A4:D'.$highestRow)->applyFromArray([
+                    $sheet->getStyle('A4:E'.$highestRow)->applyFromArray([
                         'borders' => [
                             'allBorders' => [
                                 'borderStyle' => Border::BORDER_THIN,
@@ -229,9 +231,10 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
     {
         return [
             'A' => 18,
-            'B' => 18,
+            'B' => 60,
             'C' => 18,
             'D' => 18,
+            'E' => 18,
         ];
     }
 
