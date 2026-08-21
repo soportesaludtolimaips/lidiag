@@ -86,8 +86,7 @@ class ContratoDetalleImport implements ToCollection, WithHeadingRow
         }
 
         // Cache de productos CUPS para evitar consultas repetidas
-        $productosCache = ConfigProducto::where('requi_lectura', 1)
-            ->where('estado', 1)
+        $productosCache = ConfigProducto::where('estado', 1)
             ->pluck('id', 'cod_cups')
             ->toArray();
 
