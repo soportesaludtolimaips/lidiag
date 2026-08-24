@@ -270,6 +270,8 @@ class ContratoService extends BaseService
      * Sincroniza los médicos-producto de un contrato: elimina los existentes e inserta los nuevos.
      * Cada item se recibe con `producto_id`; internamente se resuelve al registro
      * correspondiente en `contratos_productos` del mismo contrato.
+     * El campo valor_contrato queda en 0 porque la tarifa pactada vive en
+     * contratos_productos; a nivel de médico solo se guardan consulta y urgencias.
      * Operación atómica dentro de una transacción.
      *
      * @param  int  $contratoId  Identificador del contrato cuyos médicos se sincronizan.
@@ -277,7 +279,6 @@ class ContratoService extends BaseService
      *                       - medicos (array): Lista de vinculaciones médico-producto.
      *                       - medicos.*.medico_id (int): Identificación del médico (users).
      *                       - medicos.*.producto_id (int): Identificación del producto (config_productos).
-     *                       - medicos.*.valor_contrato (float): Valor contratado por lectura.
      *                       - medicos.*.valor_consulta (float): Valor por lectura de consulta externa.
      *                       - medicos.*.valor_urgencias (float): Valor por lectura de urgencias.
      *
@@ -315,7 +316,7 @@ class ContratoService extends BaseService
                     'contrato_id' => $contrato->id,
                     'medico_id' => $item['medico_id'],
                     'contratos_productos_id' => $contratoProductoId,
-                    'valor_contrato' => $item['valor_contrato'] ?? 0,
+                    'valor_contrato' => 0,
                     'valor_consulta' => $item['valor_consulta'] ?? 0,
                     'valor_urgencias' => $item['valor_urgencias'] ?? 0,
                     'estado' => 1,

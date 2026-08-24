@@ -106,7 +106,7 @@
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-success btn-sm m-r-5"
                                                 @click="descargarPlantilla(item)"
-                                                title="Descargar plantilla de productos con valores del contrato"
+                                                title="Descargar plantilla de detalle del contrato (m&eacute;dicos-producto)"
                                             >
                                                 <i class="fa fa-file-excel-o"></i>
                                             </button>
@@ -301,7 +301,6 @@
                                     <th>M&eacute;dico</th>
                                     <th>C&oacute;digo</th>
                                     <th>Producto</th>
-                                    <th>Val Contratado</th>
                                     <th>Val Consulta</th>
                                     <th>Val Urgencias</th>
                                     <th></th>
@@ -315,7 +314,7 @@
                                     <td>
                                         <input
                                             type="number"
-                                            v-model.number="item.valor_contrato"
+                                            v-model.number="item.valor_consulta"
                                             class="form-control"
                                             step="0.01"
                                             min="0"
@@ -351,7 +350,7 @@
                                     </td>
                                 </tr>
                                 <tr v-if="!detallesLocales.length">
-                                    <td colspan="7" class="text-center text-muted">
+                                    <td colspan="6" class="text-center text-muted">
                                         No hay m&eacute;dicos-producto agregados. Use el
                                         bot&oacute;n "Importar m&eacute;dicos" o el bot&oacute;n de
                                         importaci&oacute;n del listado.
@@ -442,8 +441,8 @@
                                 class="form-control"
                             />
                             <small class="text-muted">
-                                Formato: CODIGO | ACTIVIDAD | Valor Contrato | Valor Consulta |
-                                Valor Urgencias
+                                Formato: C&oacute;digo CUPS | Producto | Valor Consulta | Valor
+                                Urgencias (plantilla del contrato)
                             </small>
                         </div>
                     </div>
@@ -667,7 +666,7 @@ const contratoSeleccionado = ref(null);
 
 /**
  * Lista local de médicos-producto del contrato en edición.
- * Cada elemento: { id, medico_id, medico_name, producto_id, cod_cups, nom_produc, valor_contrato, valor_consulta, valor_urgencias }
+ * Cada elemento: { id, medico_id, medico_name, producto_id, cod_cups, nom_produc, valor_consulta, valor_urgencias }
  * @type {import('vue').Ref<Array>}
  */
 const detallesLocales = ref([]);
@@ -954,7 +953,7 @@ async function abrirDetalle(contrato) {
  * estructura plana que usa la tabla local del sidebar de detalle.
  *
  * @param {Array} medicosContrato - Registros con medico y contratoProducto.producto incluidos
- * @returns {Array<{id: number, medico_id: number, medico_name: string, producto_id: number|null, cod_cups: string, nom_produc: string, valor_contrato: number, valor_consulta: number, valor_urgencias: number}>}
+ * @returns {Array<{id: number, medico_id: number, medico_name: string, producto_id: number|null, cod_cups: string, nom_produc: string, valor_consulta: number, valor_urgencias: number}>}
  *
  * @author Jhon Javer Lozano Arce
  * @date 2026-08-20
@@ -967,7 +966,6 @@ function mapearMedicosDetalle(medicosContrato) {
         producto_id: m.contratoProducto?.producto?.id ?? null,
         cod_cups: m.contratoProducto?.producto?.cod_cups || "",
         nom_produc: m.contratoProducto?.producto?.nom_produc || "",
-        valor_contrato: m.valor_contrato ?? 0,
         valor_consulta: m.valor_consulta ?? 0,
         valor_urgencias: m.valor_urgencias ?? 0,
     }));
@@ -1026,7 +1024,6 @@ async function guardarDetalles() {
             medicos: detallesLocales.value.map((d) => ({
                 medico_id: d.medico_id,
                 producto_id: d.producto_id,
-                valor_contrato: d.valor_contrato ?? 0,
                 valor_consulta: d.valor_consulta ?? 0,
                 valor_urgencias: d.valor_urgencias ?? 0,
             })),
@@ -1078,9 +1075,9 @@ const importarForm = ref({
 const loadingImportar = ref(false);
 
 /**
- * Descarga la plantilla Excel para un contrato específico.
- * Usa la plantilla general con el parámetro contrato_id para precargar
- * los valores contratados existentes.
+ * Descarga la plantilla de detalle del contrato para cargar médicos-producto.
+ * Incluye los productos configurados en el contrato con las columnas de
+ * valores vacías, y el Contrato ID en la celda C2 para validación.
  *
  * @param {Object} item - Contrato con id y sede
  * @returns {void}
@@ -1089,7 +1086,7 @@ const loadingImportar = ref(false);
  * @date 2026-08-20
  */
 function descargarPlantilla(item) {
-    window.open(`/api/contratos/plantilla-general?contrato_id=${item.id}`, "_blank");
+    window.open(`/api/contratos/${item.id}/plantilla-detalle`, "_blank");
 }
 
 /**

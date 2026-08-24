@@ -29,6 +29,11 @@ Route::middleware(['auth'])->group(function () {
         ->name('api.contratos.productos.importar')
         ->middleware(['permission:contratos.detalle.create']);
 
+    // Plantilla de detalle del contrato (productos configurados, valores por médico)
+    Route::get('/contratos/{contratoId}/plantilla-detalle', [ContratoController::class, 'exportPlantillaDetalle'])
+        ->name('api.contratos.plantilla.detalle')
+        ->middleware(['permission:contratos.index']);
+
     // Importar médicos-producto al contrato desde Excel (crea contratos_medicos)
     Route::post('/contratos/{contratoId}/importar-medicos', [ContratoController::class, 'importarMedicos'])
         ->name('api.contratos.medicos.importar')

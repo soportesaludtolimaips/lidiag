@@ -3,15 +3,18 @@
 namespace App\Http\Controllers\Contratacion;
 
 use App\Exceptions\CupsFaltantesException;
+use App\Exports\ContratoDetallePlantillaExport;
 use App\Exports\ContratoPlantillaExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Contratacion\ContratoRequest;
 use App\Imports\ContratoMedicoImport;
 use App\Imports\ContratoProductoImport;
+use App\Models\Contratacion\Contrato;
 use App\Services\Contratacion\ContratoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
@@ -264,7 +267,6 @@ class ContratoController extends Controller
             'medicos' => 'required|array',
             'medicos.*.medico_id' => 'required|integer|exists:users,id',
             'medicos.*.producto_id' => 'required|integer|exists:config_productos,id',
-            'medicos.*.valor_contrato' => 'required|numeric|min:0',
             'medicos.*.valor_consulta' => 'required|numeric|min:0',
             'medicos.*.valor_urgencias' => 'required|numeric|min:0',
         ]);
@@ -277,8 +279,9 @@ class ContratoController extends Controller
     /**
      * Importa médicos-producto a un contrato desde un archivo Excel.
      * El médico se selecciona previamente en el modal; cada fila del Excel contiene
-     * CODIGO | ACTIVIDAD | Valor Contrato | Valor Consulta | Valor Urgencias.
-     * Valida que el CUPS esté configurado en contratos_productos del contrato.
+     * Código CUPS | Producto | Valor Consulta | Valor Urgencias (encabezados fila 3).
+     * Valida que el Contrato ID en la celda C2 coincida con el contrato de la ruta
+     * y que el CUPS esté configurado en contratos_productos del contrato.
      *
      * Flujo de confirmación: si el Excel trae CUPS inexistentes en config_productos
      * y no se envió crear_faltantes=1, responde 200 con requiere_confirmacion=true
@@ -303,6 +306,26 @@ class ContratoController extends Controller
         ]);
 
         try {
+            // Validar Contrato ID de la celda C2 contra el contrato de la ruta
+            $excel = IOFactory::load($request->file('archivo')->getPathname());
+            $c2Value = $excel->getActiveSheet()->getCell('C2')->getValue();
+
+            if (! $c2Value || ! preg_match('/(\d+)/', (string) $c2Value, $matches)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se encontró el ID del contrato en el archivo Excel (celda C2).',
+                ], 422);
+            }
+
+            $excelContratoId = (int) $matches[1];
+
+            if ($excelContratoId !== $contratoId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "El archivo no corresponde a este contrato. Se esperaba ID {$contratoId}, el archivo tiene ID {$excelContratoId}.",
+                ], 422);
+            }
+
             $import = new ContratoMedicoImport(
                 $contratoId,
                 (int) $validated['medico_id'],
@@ -329,5 +352,36 @@ class ContratoController extends Controller
                 'message' => $e->getMessage(),
             ], 422);
         }
+    }
+
+    /**
+     * Descarga la plantilla de detalle de un contrato para cargar médicos-producto.
+     * Estructura: título (fila 1), Sede/Inicio/Contrato ID en C2 (fila 2),
+     * encabezados (fila 3) y productos configurados en el contrato (filas 4+)
+     * con las columnas de valores vacías para diligenciar por médico.
+     *
+     * @param  int  $contratoId  Identificador del contrato.
+     *
+     * @returns BinaryFileResponse Respuesta con el archivo Excel para descargar.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-24
+     */
+    public function exportPlantillaDetalle(int $contratoId): BinaryFileResponse
+    {
+        $contrato = Contrato::find($contratoId);
+
+        if (! $contrato) {
+            abort(404, 'Contrato no encontrado');
+        }
+
+        $nombreSede = $contrato->sede->nom_sede ?? 'General';
+        $nombreArchivo = "Detalle_Contrato_{$contratoId}_{$nombreSede}.xlsx";
+
+        return Excel::download(
+            new ContratoDetallePlantillaExport($contratoId),
+            $nombreArchivo
+        );
     }
 }
