@@ -114,7 +114,7 @@
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
                                                 @click="abrirModalImportar(item)"
-                                                title="Importar detalles desde Excel"
+                                                title="Importar m&eacute;dicos-producto desde Excel"
                                             >
                                                 <i class="fa fa-upload"></i>
                                             </button>

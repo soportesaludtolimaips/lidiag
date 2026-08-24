@@ -219,54 +219,6 @@ class ContratoService extends BaseService
     }
 
     /**
-     * Sincroniza los productos de un contrato: elimina los existentes e inserta los nuevos.
-     * Cada producto se resuelve por su código CUPS contra `config_productos`.
-     * Operación atómica dentro de una transacción.
-     *
-     * @param  int  $contratoId  Identificador del contrato cuyos productos se sincronizan.
-     * @param  array  $data  Datos enviados desde el frontend o la importación.
-     *                       - productos (array): Lista de productos a vincular.
-     *                       - productos.*.producto_id (int): Identificación del producto (config_productos).
-     *                       - productos.*.valor_contrato (float): Valor contratado para el producto.
-     *
-     * @returns array Respuesta con el contrato y productos actualizados o mensaje de error.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-08-20
-     */
-    public function syncProductos(int $contratoId, array $data): array
-    {
-        $contrato = Contrato::find($contratoId);
-
-        if (! $contrato) {
-            return $this->notFound('Contrato no encontrado');
-        }
-
-        return $this->transaction(function () use ($contrato, $data) {
-            $productos = $data['productos'];
-
-            // Eliminar primero los médicos vinculados porque referencian contratos_productos
-            ContratoMedico::where('contrato_id', $contrato->id)->delete();
-            ContratoProducto::where('contrato_id', $contrato->id)->delete();
-
-            foreach ($productos as $item) {
-                ContratoProducto::create([
-                    'contrato_id' => $contrato->id,
-                    'producto_id' => $item['producto_id'],
-                    'valor_contrato' => $item['valor_contrato'] ?? 0,
-                    'estado' => 1,
-                ]);
-            }
-
-            return $this->updated(
-                $contrato->load(['sede:id,cod_sede,nom_sede', 'productos.producto:id,cod_cups,nom_produc']),
-                'Productos del contrato sincronizados correctamente'
-            );
-        });
-    }
-
-    /**
      * Sincroniza los médicos-producto de un contrato: elimina los existentes e inserta los nuevos.
      * Cada item se recibe con `producto_id`; internamente se resuelve al registro
      * correspondiente en `contratos_productos` del mismo contrato.
