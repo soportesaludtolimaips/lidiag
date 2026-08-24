@@ -5,6 +5,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
 
+    // Plantilla general de productos (config_productos activos)
+    Route::get('/contratos/plantilla-general', [ContratoController::class, 'exportPlantillaGeneral'])
+        ->name('api.contratos.plantilla.general')
+        ->middleware(['permission:contratos.index']);
+
     Route::resource('/contratos', ContratoController::class)
         ->names('api.contratos')
         ->except(['create', 'edit'])
@@ -14,28 +19,19 @@ Route::middleware(['auth'])->group(function () {
         ->name('api.contratos.estado')
         ->middleware(['permission:contratos.edit']);
 
-    Route::post('/contratos/{contratoId}/detalle', [ContratoController::class, 'storeDetalle'])
-        ->name('api.contratos.detalle.store')
+    // Sincronizar médicos-producto del contrato (delete all + insert)
+    Route::put('/contratos/{contratoId}/medicos', [ContratoController::class, 'syncMedicos'])
+        ->name('api.contratos.medicos.sync')
+        ->middleware(['permission:contratos.detalle.edit']);
+
+    // Importar productos al contrato desde Excel (crea contratos_productos)
+    Route::post('/contratos/{contratoId}/importar-productos', [ContratoController::class, 'importarProductos'])
+        ->name('api.contratos.productos.importar')
         ->middleware(['permission:contratos.detalle.create']);
 
-    Route::put('/contratos/detalle/{detalleId}', [ContratoController::class, 'updateDetalle'])
-        ->name('api.contratos.detalle.update')
-        ->middleware(['permission:contratos.detalle.edit']);
-
-    Route::delete('/contratos/detalle/{detalleId}', [ContratoController::class, 'destroyDetalle'])
-        ->name('api.contratos.detalle.destroy')
-        ->middleware(['permission:contratos.detalle.destroy']);
-
-    Route::put('/contratos/{contratoId}/detalles', [ContratoController::class, 'syncDetalles'])
-        ->name('api.contratos.detalles.sync')
-        ->middleware(['permission:contratos.detalle.edit']);
-
-    Route::get('/contratos/{contratoId}/plantilla', [ContratoController::class, 'exportPlantilla'])
-        ->name('api.contratos.plantilla')
-        ->middleware(['permission:contratos.index']);
-
-    Route::post('/contratos/{contratoId}/importar', [ContratoController::class, 'importDetalles'])
-        ->name('api.contratos.importar')
+    // Importar médicos-producto al contrato desde Excel (crea contratos_medicos)
+    Route::post('/contratos/{contratoId}/importar-medicos', [ContratoController::class, 'importarMedicos'])
+        ->name('api.contratos.medicos.importar')
         ->middleware(['permission:contratos.detalle.create']);
 
 });

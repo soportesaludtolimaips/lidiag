@@ -14,9 +14,17 @@
                     type="button"
                     class="btn btn-success btn-sm m-r-5"
                     @click="descargarPlantillaGeneral()"
-                    title="Descargar plantilla general (sin contrato específico)"
+                    title="Descargar plantilla general de productos activos"
                 >
                     <i class="fa fa-file-excel-o m-r-5"></i> Plantilla General
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-warning btn-sm m-r-5"
+                    @click="abrirModalImportarProductos()"
+                    title="Importar productos al contrato desde Excel"
+                >
+                    <i class="fa fa-upload m-r-5"></i> Importar productos
                 </button>
                 <button
                     type="button"
@@ -65,7 +73,7 @@
                                         <td>{{ formatDate(item.fecha_fin) }}</td>
                                         <td>
                                             <span class="label label-info">
-                                                {{ item.detalles?.length || 0 }} productos
+                                                {{ item.medicos?.length || 0 }} m&eacute;dicos
                                             </span>
                                         </td>
                                         <td>
@@ -98,7 +106,7 @@
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-success btn-sm m-r-5"
                                                 @click="descargarPlantilla(item)"
-                                                title="Descargar plantilla Excel para este contrato"
+                                                title="Descargar plantilla de productos con valores del contrato"
                                             >
                                                 <i class="fa fa-file-excel-o"></i>
                                             </button>
@@ -265,49 +273,33 @@
                     </button>
                 </div>
                 <div class="r-panel-body">
-                    <!-- Médico -->
-                    <h5 class="card-title text-info"><i class="fa fa-user"></i> MÉDICO</h5>
-                    <hr />
-                    <div class="row">
-                        <div class="col-md-12">
-                            <Select2
-                                :value="medicoSeleccionado"
-                                :options="medicoOptions"
-                                :label-fields="['name']"
-                                width="100%"
-                                :allow-clear="true"
-                                placeholder="Buscar médico..."
-                                dropdown-parent-selector=".right-sidebar.sidebar-scroll"
-                                @input="onMedicoSelectDetalle"
-                            />
-                        </div>
-                    </div>
-
-                    <!-- Productos -->
-                    <h5 class="card-title text-info m-t-40">
-                        <i class="fa fa-plus-circle"></i> PRODUCTOS
+                    <!-- Acción: importar médicos-producto -->
+                    <h5 class="card-title text-info">
+                        <i class="fa fa-users"></i> M&Eacute;DICOS-PRODUCTO DEL CONTRATO
                     </h5>
                     <hr />
                     <div class="row">
                         <div class="col-md-12">
-                            <Select2
-                                :value="productoSeleccionado"
-                                :options="productoOptions"
-                                width="100%"
-                                :allow-clear="true"
-                                placeholder="Buscar producto..."
-                                dropdown-parent-selector=".right-sidebar.sidebar-scroll"
-                                @input="onProductoSelect"
-                            />
+                            <button
+                                type="button"
+                                class="btn btn-primary btn-sm"
+                                @click="abrirModalImportar(contratoSeleccionado)"
+                                :disabled="loadingImportar"
+                            >
+                                <i v-if="loadingImportar" class="fa fa-spinner fa-spin"></i>
+                                <i v-else class="fa fa-upload"></i>
+                                Importar m&eacute;dicos (Excel)
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Tabla de productos -->
+                    <!-- Tabla de médicos-producto -->
                     <div class="col-md-12 table-responsive table-scroll mt-3">
                         <table class="table table-bordered table-striped">
                             <thead>
                                 <tr>
-                                    <th>Código</th>
+                                    <th>M&eacute;dico</th>
+                                    <th>C&oacute;digo</th>
                                     <th>Producto</th>
                                     <th>Val Contratado</th>
                                     <th>Val Consulta</th>
@@ -316,10 +308,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr
-                                    v-for="(item, index) in detallesLocales"
-                                    :key="item.producto_id"
-                                >
+                                <tr v-for="(item, index) in detallesLocales" :key="index">
+                                    <td>{{ item.medico_name }}</td>
                                     <td>{{ item.cod_cups }}</td>
                                     <td>{{ item.nom_produc }}</td>
                                     <td>
@@ -361,8 +351,10 @@
                                     </td>
                                 </tr>
                                 <tr v-if="!detallesLocales.length">
-                                    <td colspan="6" class="text-center text-muted">
-                                        No hay productos agregados
+                                    <td colspan="7" class="text-center text-muted">
+                                        No hay m&eacute;dicos-producto agregados. Use el
+                                        bot&oacute;n "Importar m&eacute;dicos" o el bot&oacute;n de
+                                        importaci&oacute;n del listado.
                                     </td>
                                 </tr>
                             </tbody>
@@ -449,7 +441,7 @@
                                 class="form-control"
                             />
                             <small class="text-muted">
-                                Formato: Código CUPS | Sede | Valor Contrato | Valor Consulta |
+                                Formato: CODIGO | ACTIVIDAD | Valor Contrato | Valor Consulta |
                                 Valor Urgencias
                             </small>
                         </div>
@@ -462,6 +454,79 @@
                             :disabled="loadingImportar"
                         >
                             <i v-if="loadingImportar" class="fa fa-spinner fa-spin"></i>
+                            <i v-else class="fa fa-upload"></i>
+                            Importar
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: IMPORTAR PRODUCTOS AL CONTRATO DESDE EXCEL -->
+        <div
+            class="modal fade"
+            id="modalImportarProductos"
+            tabindex="-1"
+            role="dialog"
+            aria-labelledby="modalImportarProductosLabel"
+            aria-hidden="true"
+        >
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-warning text-white">
+                        <h5 class="modal-title" id="modalImportarProductosLabel">
+                            <i class="fa fa-upload"></i> Importar Productos al Contrato
+                        </h5>
+                        <button
+                            type="button"
+                            class="close text-white"
+                            data-dismiss="modal"
+                            aria-label="Cerrar"
+                        >
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="control-label">
+                                Contrato <span class="text-danger">*</span>
+                            </label>
+                            <Select2
+                                :value="importarProductosForm.contrato_id"
+                                :options="contratoOptions"
+                                :label-fields="['label']"
+                                width="100%"
+                                :allow-clear="true"
+                                dropdown-parent-selector="#modalImportarProductos .modal-body"
+                                @input="onContratoSelectImportProductos"
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">
+                                Archivo Excel <span class="text-danger">*</span>
+                            </label>
+                            <input
+                                type="file"
+                                ref="archivoProductosRef"
+                                accept=".xlsx,.xls"
+                                class="form-control"
+                            />
+                            <small class="text-muted">
+                                Formato: CODIGO | ACTIVIDAD | Tarifa Actividad
+                            </small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-success"
+                            @click="procesarImportacionProductos()"
+                            :disabled="loadingImportarProductos"
+                        >
+                            <i v-if="loadingImportarProductos" class="fa fa-spinner fa-spin"></i>
                             <i v-else class="fa fa-upload"></i>
                             Importar
                         </button>
@@ -593,35 +658,17 @@ const sedeNombreActual = computed(() => sedeActual.value?.nom_sede ?? "No dispon
 const contratoSeleccionado = ref(null);
 
 /**
- * Lista local de detalles del contrato en edición.
- * Cada elemento: { id, medico_id, producto_id, cod_cups, nom_produc, valor_contrato, valor_consulta, valor_urgencias }
+ * Lista local de médicos-producto del contrato en edición.
+ * Cada elemento: { id, medico_id, medico_name, producto_id, cod_cups, nom_produc, valor_contrato, valor_consulta, valor_urgencias }
  * @type {import('vue').Ref<Array>}
  */
 const detallesLocales = ref([]);
-
-/**
- * ID del médico seleccionado en el Select2 de médicos
- * @type {import('vue').Ref<string|null>}
- */
-const medicoSeleccionado = ref(null);
-
-/**
- * ID del producto seleccionado en el Select2 de productos
- * @type {import('vue').Ref<string|null>}
- */
-const productoSeleccionado = ref(null);
 
 /**
  * Catálogo de usuarios médicos (con reg_med no nulo)
  * @type {import('vue').Ref<Array>}
  */
 const medicos = ref([]);
-
-/**
- * Catálogo completo de productos (config_productos)
- * @type {import('vue').Ref<Array>}
- */
-const productos = ref([]);
 
 /**
  * Flag de carga al guardar detalles
@@ -649,19 +696,18 @@ const medicoOptions = computed(() =>
 );
 
 /**
- * Opciones formateadas para Select2 de productos.
+ * Opciones formateadas para Select2 de contratos (modal importar productos).
  * Convierte IDs a String para compatibilidad con Select2.
  *
- * @returns {Array<{id: string, cod_cups: string, nom_produc: string}>}
+ * @returns {Array<{id: string, label: string}>}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
+ * @date 2026-08-24
  */
-const productoOptions = computed(() =>
-    productos.value.map((p) => ({
-        id: String(p.id),
-        cod_cups: p.cod_cups || "",
-        nom_produc: p.nom_produc || "",
+const contratoOptions = computed(() =>
+    registros.value.map((r) => ({
+        id: String(r.id),
+        label: `#${r.id} - ${r.sede?.nom_sede || "N/A"} (${formatDate(r.fecha_inicio)} - ${formatDate(r.fecha_fin)})`,
     }))
 );
 
@@ -846,29 +892,24 @@ async function desactivarRegistro(item) {
 // ─── CATÁLOGOS ────────────────────────────────────────────────────────────────
 
 /**
- * Carga los catálogos de médicos y productos para los Select2 del detalle.
+ * Carga el catálogo de médicos para los Select2 del módulo.
  * Se ejecuta una vez en onMounted (patrón AsignarEstudio).
- * Médicos: usuarios con reg_med no nulo.
- * Productos: todos los config_productos activos.
+ * Médicos: usuarios con reg_med no nulo del módulo actual.
  *
  * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
+ * @date 2026-08-24
  */
 async function cargarCatalogos() {
     try {
         const moduloId = sessionStorage.getItem("ST-modulo") || "1";
-        const [medRes, prodRes] = await Promise.all([
-            axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`),
-            axios.get("/api/config-productos"),
-        ]);
+        const medRes = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = medRes.data.data || [];
-        productos.value = prodRes.data.data || [];
     } catch (e) {
         console.error("Error cargando catálogos:", e);
         const msg = e.response?.data?.message || e.message || "Error desconocido";
-        toastMessage("Error cargando médicos/productos: " + msg, "error");
+        toastMessage("Error cargando médicos: " + msg, "error");
     }
 }
 
@@ -876,35 +917,44 @@ async function cargarCatalogos() {
 
 /**
  * Abre el sidebar de detalle de un contrato.
- * Puebla detallesLocales desde el contrato existente y muestra el sidebar.
+ * Puebla detallesLocales desde los médicos vinculados del contrato y muestra el sidebar.
  * Los catálogos ya se cargaron en onMounted.
  *
- * @param {Object} contrato - Contrato con su sede y detalles
+ * @param {Object} contrato - Contrato con su sede y médicos vinculados
  * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
+ * @date 2026-08-24
  */
 async function abrirDetalle(contrato) {
     contratoSeleccionado.value = contrato;
-    detallesLocales.value = (contrato.detalles || []).map((d) => ({
-        id: d.id,
-        medico_id: d.medico_id,
-        producto_id: d.producto_id,
-        cod_cups: d.producto?.cod_cups || "",
-        nom_produc: d.producto?.nom_produc || "",
-        valor_contrato: d.valor_contrato ?? 0,
-        valor_consulta: d.valor_consulta ?? 0,
-        valor_urgencias: d.valor_urgencias ?? 0,
-    }));
-    medicoSeleccionado.value = null;
-    productoSeleccionado.value = null;
+    detallesLocales.value = mapearMedicosDetalle(contrato.medicos || []);
     await nextTick();
     $(".right-sidebar.sidebar-scroll").addClass("shw-rside");
-    // Re-inicializar Select2 después de que el sidebar sea visible
-    setTimeout(() => {
-        $(".right-sidebar.sidebar-scroll .select2").trigger("change");
-    }, 350);
+}
+
+/**
+ * Mapea la colección de contratos_medicos (con relaciones cargadas) a la
+ * estructura plana que usa la tabla local del sidebar de detalle.
+ *
+ * @param {Array} medicosContrato - Registros con medico y contratoProducto.producto incluidos
+ * @returns {Array<{id: number, medico_id: number, medico_name: string, producto_id: number|null, cod_cups: string, nom_produc: string, valor_contrato: number, valor_consulta: number, valor_urgencias: number}>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-24
+ */
+function mapearMedicosDetalle(medicosContrato) {
+    return (medicosContrato || []).map((m) => ({
+        id: m.id,
+        medico_id: m.medico_id,
+        medico_name: m.medico?.name || "",
+        producto_id: m.contratoProducto?.producto?.id ?? null,
+        cod_cups: m.contratoProducto?.producto?.cod_cups || "",
+        nom_produc: m.contratoProducto?.producto?.nom_produc || "",
+        valor_contrato: m.valor_contrato ?? 0,
+        valor_consulta: m.valor_consulta ?? 0,
+        valor_urgencias: m.valor_urgencias ?? 0,
+    }));
 }
 
 /**
@@ -913,126 +963,67 @@ async function abrirDetalle(contrato) {
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
+ * @date 2026-08-24
  */
 function cerrarDetalle() {
     contratoSeleccionado.value = null;
     detallesLocales.value = [];
-    medicoSeleccionado.value = null;
-    productoSeleccionado.value = null;
     $(".right-sidebar.sidebar-scroll").removeClass("shw-rside");
 }
 
 /**
- * Handler: se ejecuta cuando el usuario selecciona un médico en el Select2.
- * Almacena el ID del médico seleccionado.
- *
- * @param {string|null} id - ID del médico seleccionado (String por Select2)
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
- */
-function onMedicoSelectDetalle(id) {
-    medicoSeleccionado.value = id;
-}
-
-/**
- * Handler: se ejecuta cuando el usuario selecciona un producto en el Select2.
- * Agrega el producto a la tabla local de detalles si no existe previamente.
- *
- * @param {string|null} id - ID del producto seleccionado (String por Select2)
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
- */
-function onProductoSelect(id) {
-    if (!id) return;
-    const yaExiste = detallesLocales.value.some((d) => String(d.producto_id) === String(id));
-    if (yaExiste) {
-        toastMessage("Este producto ya fue agregado", "warning");
-        productoSeleccionado.value = null;
-        return;
-    }
-    const prod = productos.value.find((p) => String(p.id) === String(id));
-    if (!prod) return;
-    detallesLocales.value.push({
-        id: 0,
-        medico_id: medicoSeleccionado.value || null,
-        producto_id: prod.id,
-        cod_cups: prod.cod_cups || "",
-        nom_produc: prod.nom_produc || "",
-        valor_contrato: 0,
-        valor_consulta: 0,
-        valor_urgencias: 0,
-    });
-    productoSeleccionado.value = null;
-}
-
-/**
- * Elimina un producto de la tabla local de detalles por índice.
+ * Elimina un médico-producto de la tabla local de detalles por índice.
  *
  * @param {number} index - Índice del elemento a eliminar en detallesLocales
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
+ * @date 2026-08-24
  */
 function quitarProductoDetalle(index) {
     detallesLocales.value.splice(index, 1);
 }
 
 /**
- * Guarda todos los detalles del contrato (sync completo) hacia el backend.
- * Reemplaza todos los detalles existentes por la lista local actual.
+ * Guarda todos los médicos-producto del contrato (sync completo) hacia el backend.
+ * Reemplaza todos los registros existentes por la lista local actual.
  * Después de guardar, recarga el contrato y el listado principal.
  *
  * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
+ * @date 2026-08-24
  */
 async function guardarDetalles() {
     if (loadingGuardarDetalle.value) return;
     if (!detallesLocales.value.length) {
-        toastMessage("Agregue al menos un producto", "warning");
+        toastMessage("Agregue al menos un médico-producto", "warning");
         return;
     }
     loadingGuardarDetalle.value = true;
     try {
         const payload = {
-            detalles: JSON.stringify(
-                detallesLocales.value.map((d) => ({
-                    medico_id: d.medico_id,
-                    producto_id: d.producto_id,
-                    valor_contrato: d.valor_contrato,
-                    valor_consulta: d.valor_consulta,
-                    valor_urgencias: d.valor_urgencias,
-                }))
-            ),
+            medicos: detallesLocales.value.map((d) => ({
+                medico_id: d.medico_id,
+                producto_id: d.producto_id,
+                valor_contrato: d.valor_contrato ?? 0,
+                valor_consulta: d.valor_consulta ?? 0,
+                valor_urgencias: d.valor_urgencias ?? 0,
+            })),
         };
-        await axios.put(`/api/contratos/${contratoSeleccionado.value.id}/detalles`, payload);
-        toastMessage("Detalle guardado correctamente");
+        await axios.put(`/api/contratos/${contratoSeleccionado.value.id}/medicos`, payload);
+        toastMessage("Médicos-producto guardados correctamente");
         const res = await axios.get(`/api/contratos/${contratoSeleccionado.value.id}`);
         contratoSeleccionado.value = res.data.data;
-        detallesLocales.value = (res.data.data.detalles || []).map((d) => ({
-            id: d.id,
-            medico_id: d.medico_id,
-            producto_id: d.producto_id,
-            cod_cups: d.producto?.cod_cups || "",
-            nom_produc: d.producto?.nom_produc || "",
-            valor_contrato: d.valor_contrato ?? 0,
-            valor_consulta: d.valor_consulta ?? 0,
-            valor_urgencias: d.valor_urgencias ?? 0,
-        }));
+        detallesLocales.value = mapearMedicosDetalle(res.data.data.medicos || []);
         await listar();
     } catch (e) {
-        if (e.response?.status === 422) {
-            const errs = e.response.data.errors || {};
-            const msg = Object.values(errs).flat().join(", ");
-            toastMessage(msg || "Error de validación", "error");
-        }
+        const msg =
+            e.response?.data?.message ||
+            Object.values(e.response?.data?.errors || {})
+                .flat()
+                .join(", ");
+        toastMessage(msg || "Error de validación", "error");
     } finally {
         loadingGuardarDetalle.value = false;
     }
@@ -1064,40 +1055,40 @@ const loadingImportar = ref(false);
 
 /**
  * Descarga la plantilla Excel para un contrato específico.
- * Abre el enlace de descarga en una nueva pestaña.
+ * Usa la plantilla general con el parámetro contrato_id para precargar
+ * los valores contratados existentes.
  *
  * @param {Object} item - Contrato con id y sede
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
+ * @date 2026-08-24
  */
 function descargarPlantilla(item) {
-    window.open(`/api/contratos/${item.id}/plantilla`, "_blank");
+    window.open(`/api/contratos/plantilla-general?contrato_id=${item.id}`, "_blank");
 }
 
 /**
- * Descarga la plantilla general (sin contrato específico).
- * Redirige a una ruta que genera una plantilla vacía.
+ * Descarga la plantilla general de productos activos (sin contrato específico).
  *
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
+ * @date 2026-08-24
  */
 function descargarPlantillaGeneral() {
-    toastMessage("Seleccione un contrato específico para descargar la plantilla", "info");
+    window.open("/api/contratos/plantilla-general", "_blank");
 }
 
 /**
- * Abre el modal de importación para un contrato específico.
+ * Abre el modal de importación de médicos-producto para un contrato específico.
  * Puebla el formulario con la información del contrato.
  *
  * @param {Object} item - Contrato con id, sede y otros datos
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
+ * @date 2026-08-24
  */
 function abrirModalImportar(item) {
     importarForm.value = {
@@ -1118,21 +1109,21 @@ function abrirModalImportar(item) {
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
+ * @date 2026-08-24
  */
 function onMedicoSelectDetalleImport(id) {
     importarForm.value.medico_id = id;
 }
 
 /**
- * Procesa la importación de detalles desde un archivo Excel.
- * Envía el archivo y el medico_id al backend.
- * Si hay error (CUPS no existe), muestra el mensaje con número de fila.
+ * Procesa la importación de médicos-producto desde un archivo Excel.
+ * Envía el archivo y el medico_id al backend; tras éxito refresca el
+ * sidebar de detalle si está abierto para el mismo contrato.
  *
  * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
+ * @date 2026-08-24
  */
 async function procesarImportacion() {
     if (loadingImportar.value) return;
@@ -1154,18 +1145,135 @@ async function procesarImportacion() {
         formData.append("archivo", file);
         formData.append("medico_id", importarForm.value.medico_id);
 
-        await axios.post(`/api/contratos/${importarForm.value.contratoId}/importar`, formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-        });
+        await axios.post(
+            `/api/contratos/${importarForm.value.contratoId}/importar-medicos`,
+            formData,
+            {
+                headers: { "Content-Type": "multipart/form-data" },
+            }
+        );
 
-        toastMessage("Detalles importados correctamente");
+        toastMessage("Detalle importado correctamente");
         $("#modalImportar").modal("hide");
+
+        // Refrescar sidebar de detalle si está abierto para este contrato
+        if (contratoSeleccionado.value?.id === importarForm.value.contratoId) {
+            const res = await axios.get(`/api/contratos/${importarForm.value.contratoId}`);
+            contratoSeleccionado.value = res.data.data;
+            detallesLocales.value = mapearMedicosDetalle(res.data.data.medicos || []);
+        }
         await listar();
     } catch (e) {
         const msg = e.response?.data?.message || "Error al importar el archivo";
         toastMessage(msg, "error");
     } finally {
         loadingImportar.value = false;
+    }
+}
+
+// ─── IMPORTAR PRODUCTOS AL CONTRATO ──────────────────────────────────────────
+
+/**
+ * Referencia al input de archivo del modal de importación de productos
+ * @type {import('vue').Ref<HTMLInputElement|null>}
+ */
+const archivoProductosRef = ref(null);
+
+/**
+ * Formulario del modal de importación de productos al contrato
+ * @type {import('vue').Ref<Object>}
+ */
+const importarProductosForm = ref({
+    contrato_id: null,
+});
+
+/**
+ * Flag de carga al procesar importación de productos
+ * @type {import('vue').Ref<boolean>}
+ */
+const loadingImportarProductos = ref(false);
+
+/**
+ * Abre el modal de importación de productos al contrato.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-24
+ */
+function abrirModalImportarProductos() {
+    importarProductosForm.value = { contrato_id: null };
+    if (archivoProductosRef.value) {
+        archivoProductosRef.value.value = "";
+    }
+    $("#modalImportarProductos").modal("show");
+}
+
+/**
+ * Handler: se ejecuta cuando el usuario selecciona un contrato en el
+ * Select2 del modal de importación de productos.
+ *
+ * @param {string|null} id - ID del contrato seleccionado (String por Select2)
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-24
+ */
+function onContratoSelectImportProductos(id) {
+    importarProductosForm.value.contrato_id = id;
+}
+
+/**
+ * Procesa la importación de productos al contrato seleccionado.
+ * Envía el archivo Excel (CODIGO | ACTIVIDAD | Tarifa Actividad) al backend,
+ * que hace upsert de los registros en contratos_productos.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-24
+ */
+async function procesarImportacionProductos() {
+    if (loadingImportarProductos.value) return;
+
+    if (!importarProductosForm.value.contrato_id) {
+        toastMessage("Seleccione un contrato", "warning");
+        return;
+    }
+
+    const file = archivoProductosRef.value?.files?.[0];
+    if (!file) {
+        toastMessage("Seleccione un archivo Excel", "warning");
+        return;
+    }
+
+    loadingImportarProductos.value = true;
+    try {
+        const formData = new FormData();
+        formData.append("archivo", file);
+
+        await axios.post(
+            `/api/contratos/${importarProductosForm.value.contrato_id}/importar-productos`,
+            formData,
+            { headers: { "Content-Type": "multipart/form-data" } }
+        );
+
+        toastMessage("Productos importados correctamente");
+        $("#modalImportarProductos").modal("hide");
+
+        // Refrescar sidebar de detalle si está abierto para este contrato
+        if (contratoSeleccionado.value?.id === Number(importarProductosForm.value.contrato_id)) {
+            const res = await axios.get(
+                `/api/contratos/${importarProductosForm.value.contrato_id}`
+            );
+            contratoSeleccionado.value = res.data.data;
+        }
+        await listar();
+    } catch (e) {
+        const msg = e.response?.data?.message || "Error al importar el archivo";
+        toastMessage(msg, "error");
+    } finally {
+        loadingImportarProductos.value = false;
     }
 }
 

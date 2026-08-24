@@ -4,17 +4,27 @@ namespace App\Http\Controllers\Contratacion;
 
 use App\Exports\ContratoPlantillaExport;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Contratacion\ContratoDetalleRequest;
 use App\Http\Requests\Contratacion\ContratoRequest;
-use App\Imports\ContratoDetalleImport;
-use App\Models\Contratacion\Contrato;
+use App\Imports\ContratoMedicoImport;
+use App\Imports\ContratoProductoImport;
 use App\Services\Contratacion\ContratoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
-use PhpOffice\PhpSpreadsheet\IOFactory;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
+/**
+ * Controller ContratoController: API REST del módulo de contratación.
+ *
+ * Gestiona el CRUD de contratos, la descarga de la plantilla general,
+ * la sincronización de médicos-producto y las importaciones Excel
+ * (productos al contrato y médicos-producto).
+ *
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-24
+ */
 class ContratoController extends Controller
 {
     /**
@@ -25,7 +35,7 @@ class ContratoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
     public function __construct(
         private readonly ContratoService $contratoService,
@@ -40,7 +50,7 @@ class ContratoController extends Controller
 
     /**
      * Lista todos los contratos con filtros opcionales (sede_id, estado, q).
-     * Retorna paginación con sede y detalles incluidos.
+     * Retorna paginación con sede, productos y médicos incluidos.
      *
      * @param  Request  $request  Petición HTTP con filtros opcionales.
      *
@@ -48,7 +58,7 @@ class ContratoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
     public function index(Request $request): JsonResponse
     {
@@ -68,7 +78,7 @@ class ContratoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
     public function store(ContratoRequest $request): JsonResponse
     {
@@ -78,7 +88,7 @@ class ContratoController extends Controller
     }
 
     /**
-     * Muestra un contrato específico por su ID, con sede y detalles.
+     * Muestra un contrato específico por su ID, con sede, productos y médicos.
      *
      * @param  int  $id  Identificador del contrato.
      *
@@ -86,7 +96,7 @@ class ContratoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
     public function show(int $id): JsonResponse
     {
@@ -105,7 +115,7 @@ class ContratoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
     public function update(ContratoRequest $request, int $id): JsonResponse
     {
@@ -115,7 +125,7 @@ class ContratoController extends Controller
     }
 
     /**
-     * Elimina un contrato por su ID.
+     * Elimina un contrato por su ID junto con sus médicos y productos vinculados.
      *
      * @param  int  $id  Identificador del contrato a eliminar.
      *
@@ -123,7 +133,7 @@ class ContratoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
     public function destroy(int $id): JsonResponse
     {
@@ -141,7 +151,7 @@ class ContratoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
     public function toggleEstado(int $id): JsonResponse
     {
@@ -151,114 +161,27 @@ class ContratoController extends Controller
     }
 
     /**
-     * Agrega un detalle individual (médico + producto) a un contrato.
+     * Descarga la plantilla general de productos desde config_productos.
+     * Formato: CODIGO | ACTIVIDAD | Tarifa Actividad (todos los productos activos).
+     * Si se envía ?contrato_id=, precarga el valor contratado existente en contratos_productos.
      *
-     * @param  ContratoDetalleRequest  $request  Petición validada con datos del detalle.
-     * @param  int  $contratoId  Identificador del contrato padre.
-     *
-     * @returns \Illuminate\Http\JsonResponse Respuesta JSON con el detalle creado.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-08-20
-     */
-    public function storeDetalle(ContratoDetalleRequest $request, int $contratoId): JsonResponse
-    {
-        $result = $this->contratoService->addDetalle($contratoId, $request->decoded());
-
-        return response()->json($result, $result['status']);
-    }
-
-    /**
-     * Actualiza un detalle existente de un contrato.
-     *
-     * @param  ContratoDetalleRequest  $request  Petición validada con datos actualizados.
-     * @param  int  $detalleId  Identificador del detalle a actualizar.
-     *
-     * @returns \Illuminate\Http\JsonResponse Respuesta JSON con el detalle actualizado.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-08-20
-     */
-    public function updateDetalle(ContratoDetalleRequest $request, int $detalleId): JsonResponse
-    {
-        $result = $this->contratoService->updateDetalle($detalleId, $request->decoded());
-
-        return response()->json($result, $result['status']);
-    }
-
-    /**
-     * Elimina un detalle individual de un contrato.
-     *
-     * @param  int  $detalleId  Identificador del detalle a eliminar.
-     *
-     * @returns \Illuminate\Http\JsonResponse Respuesta JSON de confirmación.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-08-20
-     */
-    public function destroyDetalle(int $detalleId): JsonResponse
-    {
-        $result = $this->contratoService->deleteDetalle($detalleId);
-
-        return response()->json($result, $result['status']);
-    }
-
-    /**
-     * Sincroniza los detalles de un contrato: reemplaza todos los detalles existentes
-     * por una nueva lista enviada desde el frontend.
-     *
-     * @param  Request  $request  Petición HTTP con los datos validados.
-     *                            - detalles (array): Lista de productos con valores.
-     * @param  int  $contratoId  Identificador del contrato a actualizar.
-     *
-     * @returns \Illuminate\Http\JsonResponse Respuesta JSON con el contrato actualizado o error.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-08-20
-     */
-    public function syncDetalles(Request $request, int $contratoId): JsonResponse
-    {
-        $validated = $request->validate([
-            'detalles' => 'required|array|min:1',
-            'detalles.*.medico_id' => 'required|integer|exists:users,id',
-            'detalles.*.producto_id' => 'required|integer|exists:config_productos,id',
-            'detalles.*.valor_contrato' => 'required|numeric|min:0',
-            'detalles.*.valor_consulta' => 'required|numeric|min:0',
-            'detalles.*.valor_urgencias' => 'required|numeric|min:0',
-        ]);
-
-        $result = $this->contratoService->syncDetalles($contratoId, $validated);
-
-        return response()->json($result, $result['status']);
-    }
-
-    /**
-     * Descarga la plantilla Excel para importar detalles de contratos.
-     * El Excel incluye: info del contrato (fila 2), headers (fila 3),
-     * productos CUPS con requi_lectura=1 (fila 4+), y desplegable de sedes.
-     *
-     * @param  int  $contratoId  Identificador del contrato.
+     * @param  Request  $request  Petición HTTP con el parámetro opcional contrato_id.
      *
      * @returns BinaryFileResponse Respuesta con el archivo Excel para descargar.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
-    public function exportPlantilla(int $contratoId): BinaryFileResponse
+    public function exportPlantillaGeneral(Request $request): BinaryFileResponse
     {
-        $contrato = Contrato::find($contratoId);
+        $contratoId = $request->query('contrato_id') !== null
+            ? (int) $request->query('contrato_id')
+            : null;
 
-        if (! $contrato) {
-            abort(404, 'Contrato no encontrado');
-        }
-
-        $nombreSede = $contrato->sede->nom_sede ?? 'General';
-        $nombreArchivo = "Plantilla_Contrato_{$contratoId}_{$nombreSede}.xlsx";
+        $nombreArchivo = $contratoId
+            ? "Plantilla_Contrato_{$contratoId}.xlsx"
+            : 'Plantilla_General_Productos.xlsx';
 
         return Excel::download(
             new ContratoPlantillaExport($contratoId),
@@ -267,9 +190,77 @@ class ContratoController extends Controller
     }
 
     /**
-     * Importa detalles de contratos desde un archivo Excel.
-     * Valida que el contrato_id en D2 del Excel coincida con el de la ruta.
-     * CUPS por fila, y crea registros en contrato_detalle dentro de una transacción atómica.
+     * Importa productos a un contrato desde un archivo Excel.
+     * Cada fila contiene CODIGO | ACTIVIDAD | Tarifa Actividad; se hace upsert
+     * en contratos_productos por (contrato_id, producto_id).
+     *
+     * @param  Request  $request  Petición con el archivo Excel.
+     * @param  int  $contratoId  Identificador del contrato destino.
+     *
+     * @returns \Illuminate\Http\JsonResponse Respuesta JSON de éxito o error detallado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-24
+     */
+    public function importarProductos(Request $request, int $contratoId): JsonResponse
+    {
+        $validated = $request->validate([
+            'archivo' => 'required|file|mimes:xlsx,xls|max:10240',
+        ]);
+
+        try {
+            $import = new ContratoProductoImport($contratoId);
+            Excel::import($import, $request->file('archivo'));
+
+            return response()->json([
+                'success' => true,
+                'message' => "Productos importados correctamente ({$import->importados} creados/actualizados).",
+                'data' => ['importados' => $import->importados],
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Sincroniza los médicos-producto de un contrato: reemplaza todos los registros
+     * existentes por la lista enviada desde el frontend (delete all + insert).
+     *
+     * @param  Request  $request  Petición HTTP con los datos validados.
+     *                            - medicos (array): Lista de vinculaciones médico-producto.
+     * @param  int  $contratoId  Identificador del contrato a actualizar.
+     *
+     * @returns \Illuminate\Http\JsonResponse Respuesta JSON con el contrato actualizado o error.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-24
+     */
+    public function syncMedicos(Request $request, int $contratoId): JsonResponse
+    {
+        $validated = $request->validate([
+            'medicos' => 'required|array',
+            'medicos.*.medico_id' => 'required|integer|exists:users,id',
+            'medicos.*.producto_id' => 'required|integer|exists:config_productos,id',
+            'medicos.*.valor_contrato' => 'required|numeric|min:0',
+            'medicos.*.valor_consulta' => 'required|numeric|min:0',
+            'medicos.*.valor_urgencias' => 'required|numeric|min:0',
+        ]);
+
+        $result = $this->contratoService->syncMedicos($contratoId, $validated);
+
+        return response()->json($result, $result['status']);
+    }
+
+    /**
+     * Importa médicos-producto a un contrato desde un archivo Excel.
+     * El médico se selecciona previamente en el modal; cada fila del Excel contiene
+     * CODIGO | ACTIVIDAD | Valor Contrato | Valor Consulta | Valor Urgencias.
+     * Valida que el CUPS esté configurado en contratos_productos del contrato.
      *
      * @param  Request  $request  Petición con archivo Excel y medico_id.
      * @param  int  $contratoId  Identificador del contrato (de la ruta).
@@ -278,9 +269,9 @@ class ContratoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
-    public function importDetalles(Request $request, int $contratoId): JsonResponse
+    public function importarMedicos(Request $request, int $contratoId): JsonResponse
     {
         $validated = $request->validate([
             'archivo' => 'required|file|mimes:xlsx,xls|max:10240',
@@ -288,34 +279,13 @@ class ContratoController extends Controller
         ]);
 
         try {
-            // Leer contrato_id del Excel (celda D2) para validar que corresponda al contrato de la ruta
-            $excel = IOFactory::load($request->file('archivo')->getPathname());
-            $d2Value = $excel->getActiveSheet()->getCell('D2')->getValue();
-
-            if (! $d2Value || ! preg_match('/(\d+)/', $d2Value, $matches)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No se encontró el ID del contrato en el archivo Excel (celda D2).',
-                ], 422);
-            }
-
-            $excelContratoId = (int) $matches[1];
-
-            if ($excelContratoId !== $contratoId) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "El archivo no corresponde a este contrato. Se esperaba ID {$contratoId}, el archivo tiene ID {$excelContratoId}.",
-                ], 422);
-            }
-
-            Excel::import(
-                new ContratoDetalleImport($contratoId, $validated['medico_id']),
-                $request->file('archivo')
-            );
+            $import = new ContratoMedicoImport($contratoId, (int) $validated['medico_id']);
+            Excel::import($import, $request->file('archivo'));
 
             return response()->json([
                 'success' => true,
-                'message' => 'Detalles importados correctamente',
+                'message' => "Detalle importado correctamente ({$import->importados} registros).",
+                'data' => ['importados' => $import->importados],
             ], 200);
         } catch (\Exception $e) {
             return response()->json([

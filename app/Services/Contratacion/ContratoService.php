@@ -3,14 +3,27 @@
 namespace App\Services\Contratacion;
 
 use App\Models\Contratacion\Contrato;
-use App\Models\Contratacion\ContratoDetalle;
+use App\Models\Contratacion\ContratoMedico;
+use App\Models\Contratacion\ContratoProducto;
 use App\Services\BaseService;
 
+/**
+ * Service ContratoService: lógica de negocio del módulo de contratación.
+ *
+ * Gestiona el CRUD de contratos y la sincronización de sus relaciones:
+ * productos contratados (`contratos_productos`) y médicos vinculados con
+ * sus valores por lectura (`contratos_medicos`).
+ *
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-24
+ */
 class ContratoService extends BaseService
 {
     /**
      * Lista contratos con filtros opcionales y paginación.
-     * Incluye relaciones: sede, detalles.medico, detalles.producto.
+     * Incluye relaciones: sede, productos.producto, medicos.medico y medicos.producto.
      *
      * @param  array  $filters  Filtros: sede_id, estado, q (búsqueda), per_page, page.
      *
@@ -18,15 +31,16 @@ class ContratoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
     public function list(array $filters): array
     {
         $q = Contrato::query()
             ->with([
                 'sede:id,cod_sede,nom_sede',
-                'detalles.medico:id,name,reg_med',
-                'detalles.producto:id,cod_cups,nom_produc',
+                'productos.producto:id,cod_cups,nom_produc',
+                'medicos.medico:id,name,reg_med',
+                'medicos.contratoProducto.producto:id,cod_cups,nom_produc',
             ]);
 
         if (! empty($filters['sede_id'])) {
@@ -72,14 +86,15 @@ class ContratoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
     public function find(int $id): array
     {
         $contrato = Contrato::with([
             'sede:id,cod_sede,nom_sede',
-            'detalles.medico:id,name,reg_med',
-            'detalles.producto:id,cod_cups,nom_produc',
+            'productos.producto:id,cod_cups,nom_produc',
+            'medicos.medico:id,name,reg_med',
+            'medicos.contratoProducto.producto:id,cod_cups,nom_produc',
         ])->find($id);
 
         if (! $contrato) {
@@ -98,7 +113,7 @@ class ContratoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
     public function create(array $data): array
     {
@@ -125,7 +140,7 @@ class ContratoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
     public function update(int $id, array $data): array
     {
@@ -149,7 +164,8 @@ class ContratoService extends BaseService
     }
 
     /**
-     * Elimina un contrato y todos sus detalles dentro de una transacción.
+     * Elimina un contrato junto con sus médicos vinculados y productos contratados.
+     * Operación atómica dentro de una transacción.
      *
      * @param  int  $id  Identificador del contrato a eliminar.
      *
@@ -157,7 +173,7 @@ class ContratoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
     public function delete(int $id): array
     {
@@ -168,7 +184,8 @@ class ContratoService extends BaseService
         }
 
         return $this->transaction(function () use ($contrato) {
-            $contrato->detalles()->delete();
+            $contrato->medicos()->delete();
+            $contrato->productos()->delete();
             $contrato->delete();
 
             return $this->deleted('Contrato eliminado correctamente');
@@ -184,7 +201,7 @@ class ContratoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
     public function toggleEstado(int $id): array
     {
@@ -202,126 +219,23 @@ class ContratoService extends BaseService
     }
 
     /**
-     * Agrega un detalle individual (médico + producto) a un contrato.
-     *
-     * @param  int  $contratoId  Identificador del contrato padre.
-     * @param  array  $data  Datos del detalle: medico_id, producto_id, valores.
-     *
-     * @returns array Respuesta con el detalle creado o error 404.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-08-20
-     */
-    public function addDetalle(int $contratoId, array $data): array
-    {
-        $contrato = Contrato::find($contratoId);
-
-        if (! $contrato) {
-            return $this->notFound('Contrato no encontrado');
-        }
-
-        return $this->transaction(function () use ($contrato, $data) {
-            $detalle = ContratoDetalle::create([
-                'contrato_id' => $contrato->id,
-                'medico_id' => $data['medico_id'],
-                'producto_id' => $data['producto_id'],
-                'valor_contrato' => $data['valor_contrato'] ?? 0,
-                'valor_consulta' => $data['valor_consulta'] ?? 0,
-                'valor_urgencias' => $data['valor_urgencias'] ?? 0,
-                'estado' => $data['estado'] ?? 1,
-            ]);
-
-            return $this->created($detalle->load([
-                'medico:id,name,reg_med',
-                'producto:id,cod_cups,nom_produc',
-            ]));
-        });
-    }
-
-    /**
-     * Actualiza un detalle existente de un contrato.
-     *
-     * @param  int  $detalleId  Identificador del detalle a actualizar.
-     * @param  array  $data  Datos a actualizar (campos opcionales).
-     *
-     * @returns array Respuesta con el detalle actualizado o error 404.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-08-20
-     */
-    public function updateDetalle(int $detalleId, array $data): array
-    {
-        $detalle = ContratoDetalle::find($detalleId);
-
-        if (! $detalle) {
-            return $this->notFound('Detalle no encontrado');
-        }
-
-        return $this->transaction(function () use ($detalle, $data) {
-            $detalle->update([
-                'medico_id' => $data['medico_id'] ?? $detalle->medico_id,
-                'producto_id' => $data['producto_id'] ?? $detalle->producto_id,
-                'valor_contrato' => $data['valor_contrato'] ?? $detalle->valor_contrato,
-                'valor_consulta' => $data['valor_consulta'] ?? $detalle->valor_consulta,
-                'valor_urgencias' => $data['valor_urgencias'] ?? $detalle->valor_urgencias,
-                'estado' => $data['estado'] ?? $detalle->estado,
-            ]);
-
-            return $this->updated($detalle->load([
-                'medico:id,name,reg_med',
-                'producto:id,cod_cups,nom_produc',
-            ]));
-        });
-    }
-
-    /**
-     * Elimina un detalle individual de un contrato.
-     *
-     * @param  int  $detalleId  Identificador del detalle a eliminar.
-     *
-     * @returns array Respuesta de confirmación o error 404.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-08-20
-     */
-    public function deleteDetalle(int $detalleId): array
-    {
-        $detalle = ContratoDetalle::find($detalleId);
-
-        if (! $detalle) {
-            return $this->notFound('Detalle no encontrado');
-        }
-
-        return $this->transaction(function () use ($detalle) {
-            $detalle->delete();
-
-            return $this->deleted('Detalle eliminado correctamente');
-        });
-    }
-
-    /**
-     * Sincroniza los detalles de un contrato: elimina los existentes e inserta los nuevos.
+     * Sincroniza los productos de un contrato: elimina los existentes e inserta los nuevos.
+     * Cada producto se resuelve por su código CUPS contra `config_productos`.
      * Operación atómica dentro de una transacción.
      *
-     * @param  int  $contratoId  Identificador del contrato cuyos detalles se van a sincronizar.
-     * @param  array  $data  Datos enviados desde el frontend.
-     *                       - detalles (array): Lista de productos con sus valores.
-     *                       - detalles.*.medico_id (int): Identificación del médico.
-     *                       - detalles.*.producto_id (int): Identificación del producto (CUPS).
-     *                       - detalles.*.valor_contrato (float): Valor contratado por lectura.
-     *                       - detalles.*.valor_consulta (float): Valor por lectura de consulta externa.
-     *                       - detalles.*.valor_urgencias (float): Valor por lectura de urgencias.
+     * @param  int  $contratoId  Identificador del contrato cuyos productos se sincronizan.
+     * @param  array  $data  Datos enviados desde el frontend o la importación.
+     *                       - productos (array): Lista de productos a vincular.
+     *                       - productos.*.producto_id (int): Identificación del producto (config_productos).
+     *                       - productos.*.valor_contrato (float): Valor contratado para el producto.
      *
-     * @returns array Respuesta con el contrato actualizado o mensaje de error.
+     * @returns array Respuesta con el contrato y productos actualizados o mensaje de error.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
-    public function syncDetalles(int $contratoId, array $data): array
+    public function syncProductos(int $contratoId, array $data): array
     {
         $contrato = Contrato::find($contratoId);
 
@@ -330,15 +244,77 @@ class ContratoService extends BaseService
         }
 
         return $this->transaction(function () use ($contrato, $data) {
-            $detalles = $data['detalles'];
+            $productos = $data['productos'];
 
-            ContratoDetalle::where('contrato_id', $contrato->id)->delete();
+            // Eliminar primero los médicos vinculados porque referencian contratos_productos
+            ContratoMedico::where('contrato_id', $contrato->id)->delete();
+            ContratoProducto::where('contrato_id', $contrato->id)->delete();
 
-            foreach ($detalles as $item) {
-                ContratoDetalle::create([
+            foreach ($productos as $item) {
+                ContratoProducto::create([
+                    'contrato_id' => $contrato->id,
+                    'producto_id' => $item['producto_id'],
+                    'valor_contrato' => $item['valor_contrato'] ?? 0,
+                    'estado' => 1,
+                ]);
+            }
+
+            return $this->updated(
+                $contrato->load(['sede:id,cod_sede,nom_sede', 'productos.producto:id,cod_cups,nom_produc']),
+                'Productos del contrato sincronizados correctamente'
+            );
+        });
+    }
+
+    /**
+     * Sincroniza los médicos-producto de un contrato: elimina los existentes e inserta los nuevos.
+     * Cada item se recibe con `producto_id`; internamente se resuelve al registro
+     * correspondiente en `contratos_productos` del mismo contrato.
+     * Operación atómica dentro de una transacción.
+     *
+     * @param  int  $contratoId  Identificador del contrato cuyos médicos se sincronizan.
+     * @param  array  $data  Datos enviados desde el frontend o la importación.
+     *                       - medicos (array): Lista de vinculaciones médico-producto.
+     *                       - medicos.*.medico_id (int): Identificación del médico (users).
+     *                       - medicos.*.producto_id (int): Identificación del producto (config_productos).
+     *                       - medicos.*.valor_contrato (float): Valor contratado por lectura.
+     *                       - medicos.*.valor_consulta (float): Valor por lectura de consulta externa.
+     *                       - medicos.*.valor_urgencias (float): Valor por lectura de urgencias.
+     *
+     * @returns array Respuesta con el contrato y médicos actualizados o mensaje de error.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-24
+     */
+    public function syncMedicos(int $contratoId, array $data): array
+    {
+        $contrato = Contrato::find($contratoId);
+
+        if (! $contrato) {
+            return $this->notFound('Contrato no encontrado');
+        }
+
+        return $this->transaction(function () use ($contrato, $data) {
+            $items = $data['medicos'];
+
+            // Mapa producto_id => id de contratos_productos para este contrato
+            $mapaProductos = ContratoProducto::where('contrato_id', $contrato->id)
+                ->pluck('id', 'producto_id');
+
+            ContratoMedico::where('contrato_id', $contrato->id)->delete();
+
+            foreach ($items as $item) {
+                $contratoProductoId = $mapaProductos[(int) $item['producto_id']] ?? null;
+
+                if (! $contratoProductoId) {
+                    abort(422, "El producto {$item['producto_id']} no está configurado en este contrato");
+                }
+
+                ContratoMedico::create([
                     'contrato_id' => $contrato->id,
                     'medico_id' => $item['medico_id'],
-                    'producto_id' => $item['producto_id'],
+                    'contratos_productos_id' => $contratoProductoId,
                     'valor_contrato' => $item['valor_contrato'] ?? 0,
                     'valor_consulta' => $item['valor_consulta'] ?? 0,
                     'valor_urgencias' => $item['valor_urgencias'] ?? 0,
@@ -349,10 +325,10 @@ class ContratoService extends BaseService
             return $this->updated(
                 $contrato->load([
                     'sede:id,cod_sede,nom_sede',
-                    'detalles.medico:id,name,reg_med',
-                    'detalles.producto:id,cod_cups,nom_produc',
+                    'medicos.medico:id,name,reg_med',
+                    'medicos.contratoProducto.producto:id,cod_cups,nom_produc',
                 ]),
-                'Detalles sincronizados correctamente'
+                'Médicos del contrato sincronizados correctamente'
             );
         });
     }

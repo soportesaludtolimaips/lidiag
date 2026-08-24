@@ -3,8 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Configuracion\ConfigProducto;
-use App\Models\Contratacion\Contrato;
-use Carbon\Carbon;
+use App\Models\Contratacion\ContratoProducto;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithCustomStartCell;
@@ -19,114 +18,125 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 /**
- * Export de plantilla para importar detalles de contratos.
- * Genera un Excel con:
- * - Filas 1-2: Información del contrato (sede, fechas, observaciones)
- * - Fila 3: Encabezados de columnas (Código CUPS, Valor Contrato, Valor Consulta, Valor Urgencias)
- * - Filas 4+: Productos CUPS con requi_lectura=1 (vacíos para llenar)
+ * Export de la plantilla general de productos para contratación.
+ * Genera un Excel con el catálogo completo de productos activos:
+ * - Fila 1: Título
+ * - Fila 2: Encabezados (CODIGO | ACTIVIDAD | Tarifa Actividad)
+ * - Filas 3+: Productos activos de config_productos
+ *
+ * Si se recibe un contrato_id, precarga en "Tarifa Actividad" el valor
+ * contratado existente en contratos_productos; de lo contrario queda en 0
+ * para que el usuario lo diligencie antes de importar.
+ *
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-20
+ * @date 2026-08-24
  */
 class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithCustomStartCell, WithEvents, WithHeadings, WithMapping, WithStyles
 {
     /**
-     * @var int ID del contrato para el cual se genera la plantilla
+     * ID opcional del contrato para precargar valores contratados existentes.
      */
-    protected int $contratoId;
+    protected ?int $contratoId;
+
+    /**
+     * Mapa producto_id => valor_contrato del contrato (si aplica).
+     *
+     * @var array<int, float>
+     */
+    protected array $valoresContrato = [];
 
     /**
      * Constructor del export.
      *
-     * @param  int  $contratoId  Identificador del contrato.
+     * @param  int|null  $contratoId  Identificador opcional del contrato para precargar tarifas.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
-    public function __construct(int $contratoId)
+    public function __construct(?int $contratoId = null)
     {
         $this->contratoId = $contratoId;
+
+        if ($contratoId !== null) {
+            $this->valoresContrato = ContratoProducto::where('contrato_id', $contratoId)
+                ->pluck('valor_contrato', 'producto_id')
+                ->toArray();
+        }
     }
 
     /**
-     * Consulta los productos activos con requi_lectura=1.
-     * Estos se listan en la plantilla para que el usuario los seleccione.
+     * Consulta todos los productos activos del catálogo config_productos.
      *
-     * @returns \Illuminate\Support\Collection Colección de productos CUPS.
+     * @returns \Illuminate\Support\Collection<int, mixed> Colección de productos activos ordenada por código CUPS.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
     public function collection()
     {
-        return ConfigProducto::where('requi_lectura', 1)
-            ->where('estado', 1)
+        return ConfigProducto::where('estado', 1)
             ->select('id', 'cod_cups', 'nom_produc')
             ->orderBy('cod_cups')
             ->get();
     }
 
     /**
-     * Encabezados de las columnas del Excel (fila 3).
+     * Encabezados de las columnas del Excel (fila 2).
      *
-     * @returns array<int, string>
+     * @returns array<int, string> Nombres de columnas según formato de referencia.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
     public function headings(): array
     {
         return [
-            'Código CUPS',
-            'Producto',
-            'Valor Contratado',
-            'Valor Consulta',
-            'Valor Urgencias',
+            'CODIGO',
+            'ACTIVIDAD',
+            'Tarifa Actividad',
         ];
     }
 
     /**
      * Mapea cada producto a una fila del Excel.
-     * Las columnas de valores quedan vacías para que el usuario las llene.
+     * La columna Tarifa se precarga del contrato si existe, si no queda en 0.
      *
      * @param  object  $producto  Modelo de config_productos.
      *
-     * @returns array<int, mixed>
+     * @returns array<int, mixed> Fila con [codigo, actividad, tarifa].
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
     public function map($producto): array
     {
         return [
             $producto->cod_cups ?? '',
             $producto->nom_produc ?? '',
-            '', // Valor Contrato
-            '', // Valor Consulta
-            '', // Valor Urgencias
+            (float) ($this->valoresContrato[$producto->id] ?? 0),
         ];
     }
 
     /**
-     * Estilos del Excel: headers, bordes.
+     * Estilos del Excel: encabezados en negrita con fondo.
      *
      * @param  Worksheet  $sheet  Hoja de cálculo.
-     *
-     * @returns array
+     * @return array<string, array<string, mixed>> Estilos aplicados por fila.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
     public function styles(Worksheet $sheet): array
     {
         return [
-            3 => [
+            2 => [
                 'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
                 'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1A2274']],
                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
@@ -136,13 +146,13 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
 
     /**
      * Registra eventos de Maatwebsite/Excel.
-     * AfterSheet: escribe info del contrato (fila 1-2) y Data Validation de sedes.
+     * AfterSheet: escribe el título en la fila 1 y aplica bordes a los datos.
      *
-     * @returns array<string, callable>
+     * @returns array<string, callable> Eventos registrados.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
     public function registerEvents(): array
     {
@@ -151,8 +161,8 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
                 $sheet = $event->sheet;
 
                 // ── FILA 1: TÍTULO ─────────────────────────────────────
-                $sheet->setCellValue('A1', 'Plantilla Importación de Detalles de Contrato');
-                $sheet->mergeCells('A1:E1');
+                $sheet->setCellValue('A1', 'PLANTILLA GENERAL DE PRODUCTOS - CONTRATACIÓN');
+                $sheet->mergeCells('A1:C1');
                 $sheet->getStyle('A1')->applyFromArray([
                     'font' => [
                         'bold' => true,
@@ -168,44 +178,10 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
                     ],
                 ]);
 
-                // ── FILA 2: INFO DEL CONTRATO ──────────────────────────
-                $contrato = Contrato::with('sede:id,nom_sede')->find($this->contratoId);
-
-                if ($contrato) {
-                    $nomSede = $contrato->sede->nom_sede ?? 'N/A';
-                    $fechaInicio = $contrato->fecha_inicio instanceof Carbon
-                        ? $contrato->fecha_inicio->format('d/m/Y')
-                        : 'N/A';
-                    $fechaFin = $contrato->fecha_fin instanceof Carbon
-                        ? $contrato->fecha_fin->format('d/m/Y')
-                        : 'N/A';
-
-                    $sheet->setCellValue('A2', "Sede: {$nomSede}");
-                    $sheet->setCellValue('B2', "Inicio: {$fechaInicio}");
-                    $sheet->setCellValue('C2', "Fin: {$fechaFin}");
-                    $sheet->setCellValue('D2', "Contrato ID: {$contrato->id}");
-                } else {
-                    $sheet->setCellValue('A2', 'Sede: N/A');
-                    $sheet->setCellValue('B2', 'Inicio: N/A');
-                    $sheet->setCellValue('C2', 'Fin: N/A');
-                    $sheet->setCellValue('D2', 'Contrato ID: N/A');
-                }
-
-                $sheet->getStyle('A2:E2')->applyFromArray([
-                    'font' => [
-                        'bold' => true,
-                        'size' => 11,
-                    ],
-                    'fill' => [
-                        'fillType' => Fill::FILL_SOLID,
-                        'startColor' => ['rgb' => 'D9E1F2'],
-                    ],
-                ]);
-
-                // ── BORDES ─────────────────────────────────────────────
+                // ── BORDES DE DATOS ────────────────────────────────────
                 $highestRow = $sheet->getHighestRow();
-                if ($highestRow > 3) {
-                    $sheet->getStyle('A4:E'.$highestRow)->applyFromArray([
+                if ($highestRow > 2) {
+                    $sheet->getStyle('A3:C'.$highestRow)->applyFromArray([
                         'borders' => [
                             'allBorders' => [
                                 'borderStyle' => Border::BORDER_THIN,
@@ -221,34 +197,32 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
     /**
      * Anchos de columna del Excel.
      *
-     * @returns array<string, int>
+     * @return array<string, int> Ancho por columna.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
     public function columnWidths(): array
     {
         return [
             'A' => 18,
-            'B' => 60,
-            'C' => 18,
-            'D' => 18,
-            'E' => 18,
+            'B' => 70,
+            'C' => 20,
         ];
     }
 
     /**
-     * Celda de inicio de los datos (después de título + info contrato + headers).
+     * Celda de inicio: encabezados en fila 2 (la fila 1 es el título).
      *
-     * @returns string
+     * @return string Celda de inicio.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-08-24
      */
     public function startCell(): string
     {
-        return 'A3';
+        return 'A2';
     }
 }
