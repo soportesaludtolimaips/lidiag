@@ -243,11 +243,29 @@ function establecerModuloActual() {
         return "1";
     }
 }
+/**
+ * Cierra la sesión: llama al logout del backend y purga TODOS los datos de
+ * contexto del navegador (claves ST-* en sessionStorage y localStorage) para
+ * que el siguiente usuario no herede sede/médico/visor del anterior.
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 async function Logout() {
     try {
         // Usa el logout estándar de Laravel UI (Auth::routes)
         await axios.post("/logout");
     } finally {
+        // Purga total de claves propias en ambos storages
+        const esPropia = (key) => key.startsWith("ST-");
+        Object.keys(window.sessionStorage)
+            .filter(esPropia)
+            .forEach((key) => window.sessionStorage.removeItem(key));
+        Object.keys(window.localStorage)
+            .filter(esPropia)
+            .forEach((key) => window.localStorage.removeItem(key));
+
         // Asegura salida al login aunque el response sea 204 sin body
         window.location.href = "/";
     }

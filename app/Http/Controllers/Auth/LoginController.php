@@ -27,6 +27,9 @@ class LoginController extends Controller
         );
 
         if ($result['success'] && ! ($result['data']['type'] ?? null)) {
+            // Mitigar fijación de sesión: nuevo ID tras autenticar
+            $request->session()->regenerate();
+
             if ($request->expectsJson()) {
                 return response()->json($result, $result["status"]);
             }

@@ -60,6 +60,8 @@ class User extends Authenticatable
         'updated_at' => 'datetime',
         'estado' => 'boolean',
         'transcrip_remoto' => 'boolean',
+        // Garantiza hash automático ante cualquier asignación masiva de password
+        'password' => 'hashed',
     ];
 
     public function getDefaultGuardName(): string
