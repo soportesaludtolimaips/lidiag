@@ -30,8 +30,10 @@
         <div class="col-md-7 align-self-center text-right d-none d-md-block">
             <i
                 class="fa fa-life-ring model_img img-responsive"
-                data-toggle="modal"
-                data-target=".bs-example-modal-lg"
+                @click="abrirModalAyuda()"
+                role="button"
+                aria-label="Ayuda: comandos de voz"
+                tabindex="0"
             ></i>
         </div>
 
@@ -48,7 +50,12 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h4 class="modal-title" id="myLargeModalLabel">Comando de voz</h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <button
+                            type="button"
+                            class="close"
+                            @click="cerrarModalAyuda()"
+                            aria-hidden="true"
+                        >
                             ×
                         </button>
                     </div>
@@ -118,7 +125,7 @@
                         <button
                             type="button"
                             class="btn btn-danger waves-effect text-left"
-                            data-dismiss="modal"
+                            @click="cerrarModalAyuda()"
                         >
                             Close
                         </button>
@@ -1733,6 +1740,28 @@ async function cerrarSidebar() {
     await stopAll();
     $(".right-sidebar").slideUp(50);
     $(".right-sidebar").removeClass("shw-rside");
+}
+
+/**
+ * Abre el modal de ayuda con los comandos de voz del dictado.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
+function abrirModalAyuda() {
+    $(".bs-example-modal-lg").modal("show");
+}
+
+/**
+ * Cierra el modal de ayuda de comandos de voz.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
+function cerrarModalAyuda() {
+    $(".bs-example-modal-lg").modal("hide");
 }
 
 function onSedeSeleccionada(data) {
