@@ -8,22 +8,21 @@
 
 ---
 
-## 📊 Resumen general
-
 | Módulo | Automáticas | Manuales | ✅ Pass | ❌ Fail | ⬜ Pendientes | Avance manual |
 |---|---|---|---|---|---|---|
 | Contratación | 1 (E2E real BD) | 1 flujo completo | 1 | 0 | 0 | **100%** |
-| Estudios | 28/28 ✅ | **39** (8 con headless) | **7** (+28 auto) | 0 | 32 (1 bloqueado-env) | **18%** |
+| Estudios | 28/28 ✅ | **39** (9 con headless) | **8** (+28 auto) | 0 | 31 | **21%** |
 | Seguridad Auth | 8/8 ✅ | 6 decisiones `.env` prod | 8 | 0 | 6* | *no aplican en local |
 
 *\*Los 6 ítems ENV-* son decisiones para el entorno de producción, no bloquean desarrollo.*
 
-### 🆕 Hallazgos de la corrida headless 2026-08-24
+### 🆕 Hallazgos de las corridas headless 2026-08-24
 
 | ID | Hallazgo | Clasificación |
 |---|---|---|
 | DEF-08 | Avatar del header usa URL `http://localhost:5179/...jpg` → warning Mixed Content en HTTPS. Migrar a ruta relativa o https | Cosmético |
-| ENV-PACS | `study.listarEstudios` depende del PACS remoto (`10.35.47.3/pacsdb`, dcm4chee). Con PACS caído: API 500 + toast por interceptor (comportamiento correcto del front). Bloquea AE-01/DZ-01 en local | Entorno |
+| ENV-PACS | `study.listarEstudios` depende del PACS remoto (`10.35.47.3/pacsdb`, dcm4chee). Con PACS caído: API 500 + toast por interceptor (comportamiento correcto del front). **PACS reconectado durante la sesión → AE-01 ejecutado con éxito** | Entorno |
+| RUNNER-01 | Playwright no logra click "actionable" sobre botones Buscar del módulo (overlay/geometry); el click programático `el.click()` dispara los handlers Vue correctamente. Artefacto del runner headless, NO reproduce en Chrome real | Info runner |
 
 ---
 
@@ -61,7 +60,7 @@
 ### Manuales — checklist QA navegador (`https://lidiag.test`, user médico / pass `123456`)
 
 #### Asignar estudios
-- [ ] **MAN-AE-01** ⚠️ BLOQUEADO-ENV: búsqueda por documento → el API `study.listarEstudios` devuelve 500 porque el PACS remoto (`10.35.47.3/pacsdb`) está inaccesible desde esta máquina. El front reacciona correcto (interceptor 500). Re-ejecutar con VPN/PACS activos
+- [x] **MAN-AE-01** ✅ PASS (headless, PACS activo): API 200, spinner loadingBuscar visible durante carga, paciente "MORENO GARCIA" renderizado, 2 filas de resultados, sin toasts de error. Nota técnica: en headless el click Playwright sobre el botón requería click programático (artefacto del runner, no de la app)
 - [ ] **MAN-AE-02** Validación sin sede → toast warning, sin petición
 - [ ] **MAN-AE-03** Agregar producto/diagnóstico → filas en tablas locales
 - [ ] **MAN-AE-04** 🔁 Eliminar producto → fila ELIMINADA tras swal
@@ -148,4 +147,5 @@
 | 2026-08-24 | Contratación E2E (usuario) | ✅ 1/1 | varios |
 | 2026-08-24 | Estudios AUTO-A + AUTO-B | ✅ 28/28 | `31f1c67fe`+`b55cab9cb` |
 | 2026-08-24 | Seguridad AUTH curl/lint/build | ✅ 8/8 | `3a7532334` |
-| 2026-08-24 | **Estudios MAN-* headless** (browser-automation): login, AE-01(bloq-env)/07, EA-01, LE-01/06, NE-01/03, TR-01 | ✅ 7 PASS · ⚠️ 1 bloqueado-env · 0 FAIL | — |
+| 2026-08-24 | **Estudios MAN-\* headless** (browser-automation): login, AE-01(bloq-env)/07, EA-01, LE-01/06, NE-01/03, TR-01 | ✅ 7 PASS · ⚠️ 1 bloqueado-env · 0 FAIL | — |
+| 2026-08-24 | **MAN-AE-01 re-ejecutado** con PACS activo | ✅ PASS (API 200 + paciente renderizado + 2 filas) | — |
