@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Contratacion;
 
+use App\Exceptions\CupsFaltantesException;
 use App\Exports\ContratoPlantillaExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Contratacion\ContratoRequest;
@@ -194,10 +195,15 @@ class ContratoController extends Controller
      * Cada fila contiene CODIGO | ACTIVIDAD | Tarifa Actividad; se hace upsert
      * en contratos_productos por (contrato_id, producto_id).
      *
-     * @param  Request  $request  Petición con el archivo Excel.
+     * Flujo de confirmación: si el Excel trae CUPS inexistentes en config_productos
+     * y no se envió crear_faltantes=1, responde 200 con requiere_confirmacion=true
+     * y la lista de faltantes (sin importar nada). El frontend pregunta al usuario;
+     * si acepta, reenvía el archivo con crear_faltantes=1.
+     *
+     * @param  Request  $request  Petición con el archivo Excel y el flag opcional crear_faltantes.
      * @param  int  $contratoId  Identificador del contrato destino.
      *
-     * @returns \Illuminate\Http\JsonResponse Respuesta JSON de éxito o error detallado.
+     * @returns \Illuminate\Http\JsonResponse Respuesta JSON de éxito, confirmación requerida o error detallado.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -207,16 +213,28 @@ class ContratoController extends Controller
     {
         $validated = $request->validate([
             'archivo' => 'required|file|mimes:xlsx,xls|max:10240',
+            'crear_faltantes' => 'nullable|boolean',
         ]);
 
         try {
-            $import = new ContratoProductoImport($contratoId);
+            $import = new ContratoProductoImport(
+                $contratoId,
+                $request->boolean('crear_faltantes')
+            );
             Excel::import($import, $request->file('archivo'));
 
             return response()->json([
                 'success' => true,
                 'message' => "Productos importados correctamente ({$import->importados} creados/actualizados).",
                 'data' => ['importados' => $import->importados],
+            ], 200);
+        } catch (CupsFaltantesException $e) {
+            // Pre-validación: devolver faltantes sin importar nada (status 200 para no disparar toasts del interceptor)
+            return response()->json([
+                'success' => false,
+                'requiere_confirmacion' => true,
+                'message' => $e->getMessage(),
+                'data' => ['faltantes' => $e->faltantes],
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
@@ -262,10 +280,15 @@ class ContratoController extends Controller
      * CODIGO | ACTIVIDAD | Valor Contrato | Valor Consulta | Valor Urgencias.
      * Valida que el CUPS esté configurado en contratos_productos del contrato.
      *
-     * @param  Request  $request  Petición con archivo Excel y medico_id.
+     * Flujo de confirmación: si el Excel trae CUPS inexistentes en config_productos
+     * y no se envió crear_faltantes=1, responde 200 con requiere_confirmacion=true
+     * y la lista de faltantes (sin importar nada). El frontend pregunta al usuario;
+     * si acepta, reenvía el archivo con crear_faltantes=1.
+     *
+     * @param  Request  $request  Petición con archivo Excel, medico_id y flag opcional crear_faltantes.
      * @param  int  $contratoId  Identificador del contrato (de la ruta).
      *
-     * @returns \Illuminate\Http\JsonResponse Respuesta JSON de éxito o error detallado.
+     * @returns \Illuminate\Http\JsonResponse Respuesta JSON de éxito, confirmación requerida o error detallado.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -276,16 +299,29 @@ class ContratoController extends Controller
         $validated = $request->validate([
             'archivo' => 'required|file|mimes:xlsx,xls|max:10240',
             'medico_id' => 'required|integer|exists:users,id',
+            'crear_faltantes' => 'nullable|boolean',
         ]);
 
         try {
-            $import = new ContratoMedicoImport($contratoId, (int) $validated['medico_id']);
+            $import = new ContratoMedicoImport(
+                $contratoId,
+                (int) $validated['medico_id'],
+                $request->boolean('crear_faltantes')
+            );
             Excel::import($import, $request->file('archivo'));
 
             return response()->json([
                 'success' => true,
                 'message' => "Detalle importado correctamente ({$import->importados} registros).",
                 'data' => ['importados' => $import->importados],
+            ], 200);
+        } catch (CupsFaltantesException $e) {
+            // Pre-validación: devolver faltantes sin importar nada (status 200 para no disparar toasts del interceptor)
+            return response()->json([
+                'success' => false,
+                'requiere_confirmacion' => true,
+                'message' => $e->getMessage(),
+                'data' => ['faltantes' => $e->faltantes],
             ], 200);
         } catch (\Exception $e) {
             return response()->json([

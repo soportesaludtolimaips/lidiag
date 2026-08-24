@@ -1132,9 +1132,31 @@ function onMedicoSelectDetalleImport(id) {
 }
 
 /**
+ * Construye el texto de confirmación para los CUPS faltantes detectados.
+ * Muestra máximo 10 códigos y agrega un resumen del resto.
+ *
+ * @param {Array<{codigo: string, actividad: string}>} faltantes - Productos CUPS no encontrados en el catálogo
+ * @returns {string} Texto formateado para el diálogo de confirmación
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
+ */
+function construirTextoFaltantes(faltantes) {
+    const MAX = 10;
+    const visibles = faltantes.slice(0, MAX);
+    const lista = visibles
+        .map((f) => `${f.codigo}${f.actividad ? " - " + f.actividad : ""}`)
+        .join("\n");
+    const restantes = faltantes.length - visibles.length;
+    const sufijo = restantes > 0 ? `\n... y ${restantes} más` : "";
+    return `${faltantes.length} código(s) CUPS no existen en el catálogo:\n\n${lista}${sufijo}\n\n¿Desea crearlos automáticamente en el catálogo y continuar con la importación?`;
+}
+
+/**
  * Procesa la importación de médicos-producto desde un archivo Excel.
- * Envía el archivo y el medico_id al backend; tras éxito refresca el
- * sidebar de detalle si está abierto para el mismo contrato.
+ * Envía el archivo y el medico_id al backend. Si el backend detecta CUPS
+ * inexistentes en el catálogo, pregunta al usuario si desea crearlos y reintenta
+ * con crear_faltantes=1. Tras éxito refresca el sidebar de detalle si está abierto.
  *
  * @returns {Promise<void>}
  *
@@ -1157,28 +1179,59 @@ async function procesarImportacion() {
 
     loadingImportar.value = true;
     try {
-        const formData = new FormData();
-        formData.append("archivo", file);
-        formData.append("medico_id", importarForm.value.medico_id);
+        let crearFaltantes = false;
 
-        await axios.post(
-            `/api/contratos/${importarForm.value.contratoId}/importar-medicos`,
-            formData,
-            {
-                headers: { "Content-Type": "multipart/form-data" },
+        while (true) {
+            const formData = new FormData();
+            formData.append("archivo", file);
+            formData.append("medico_id", importarForm.value.medico_id);
+            if (crearFaltantes) {
+                formData.append("crear_faltantes", "1");
             }
-        );
 
-        toastMessage({ heading: "Ok", text: "Detalle importado correctamente", icon: "success" });
-        $("#modalImportar").modal("hide");
+            const res = await axios.post(
+                `/api/contratos/${importarForm.value.contratoId}/importar-medicos`,
+                formData,
+                {
+                    headers: { "Content-Type": "multipart/form-data" },
+                }
+            );
 
-        // Refrescar sidebar de detalle si está abierto para este contrato
-        if (contratoSeleccionado.value?.id === importarForm.value.contratoId) {
-            const res = await axios.get(`/api/contratos/${importarForm.value.contratoId}`);
-            contratoSeleccionado.value = res.data.data;
-            detallesLocales.value = mapearMedicosDetalle(res.data.data.medicos || []);
+            // Pre-validación: preguntar al usuario sobre los CUPS faltantes
+            if (res.data?.requiere_confirmacion) {
+                const ok = await confirmAction({
+                    title: "Productos no encontrados",
+                    text: construirTextoFaltantes(res.data.data?.faltantes || []),
+                    icon: "warning",
+                });
+                if (!ok) {
+                    toastMessage({
+                        heading: "Información",
+                        text: "Importación cancelada. Ningún dato fue modificado.",
+                        icon: "info",
+                    });
+                    return;
+                }
+                crearFaltantes = true;
+                continue;
+            }
+
+            toastMessage({
+                heading: "Ok",
+                text: "Detalle importado correctamente",
+                icon: "success",
+            });
+            $("#modalImportar").modal("hide");
+
+            // Refrescar sidebar de detalle si está abierto para este contrato
+            if (contratoSeleccionado.value?.id === importarForm.value.contratoId) {
+                const detalle = await axios.get(`/api/contratos/${importarForm.value.contratoId}`);
+                contratoSeleccionado.value = detalle.data.data;
+                detallesLocales.value = mapearMedicosDetalle(detalle.data.data.medicos || []);
+            }
+            await listar();
+            break;
         }
-        await listar();
     } catch (e) {
         const msg = e.response?.data?.message || "Error al importar el archivo";
         toastMessage({ heading: "Error", text: msg, icon: "error" });
@@ -1242,7 +1295,9 @@ function onContratoSelectImportProductos(id) {
 /**
  * Procesa la importación de productos al contrato seleccionado.
  * Envía el archivo Excel (CODIGO | ACTIVIDAD | Tarifa Actividad) al backend,
- * que hace upsert de los registros en contratos_productos.
+ * que hace upsert de los registros en contratos_productos. Si el backend detecta
+ * CUPS inexistentes en el catálogo, pregunta al usuario si desea crearlos y
+ * reintenta con crear_faltantes=1.
  *
  * @returns {Promise<void>}
  *
@@ -1265,30 +1320,59 @@ async function procesarImportacionProductos() {
 
     loadingImportarProductos.value = true;
     try {
-        const formData = new FormData();
-        formData.append("archivo", file);
+        let crearFaltantes = false;
 
-        await axios.post(
-            `/api/contratos/${importarProductosForm.value.contrato_id}/importar-productos`,
-            formData,
-            { headers: { "Content-Type": "multipart/form-data" } }
-        );
+        while (true) {
+            const formData = new FormData();
+            formData.append("archivo", file);
+            if (crearFaltantes) {
+                formData.append("crear_faltantes", "1");
+            }
 
-        toastMessage({
-            heading: "Ok",
-            text: "Productos importados correctamente",
-            icon: "success",
-        });
-        $("#modalImportarProductos").modal("hide");
-
-        // Refrescar sidebar de detalle si está abierto para este contrato
-        if (contratoSeleccionado.value?.id === Number(importarProductosForm.value.contrato_id)) {
-            const res = await axios.get(
-                `/api/contratos/${importarProductosForm.value.contrato_id}`
+            const res = await axios.post(
+                `/api/contratos/${importarProductosForm.value.contrato_id}/importar-productos`,
+                formData,
+                { headers: { "Content-Type": "multipart/form-data" } }
             );
-            contratoSeleccionado.value = res.data.data;
+
+            // Pre-validación: preguntar al usuario sobre los CUPS faltantes
+            if (res.data?.requiere_confirmacion) {
+                const ok = await confirmAction({
+                    title: "Productos no encontrados",
+                    text: construirTextoFaltantes(res.data.data?.faltantes || []),
+                    icon: "warning",
+                });
+                if (!ok) {
+                    toastMessage({
+                        heading: "Información",
+                        text: "Importación cancelada. Ningún dato fue modificado.",
+                        icon: "info",
+                    });
+                    return;
+                }
+                crearFaltantes = true;
+                continue;
+            }
+
+            toastMessage({
+                heading: "Ok",
+                text: res.data?.message || "Productos importados correctamente",
+                icon: "success",
+            });
+            $("#modalImportarProductos").modal("hide");
+
+            // Refrescar sidebar de detalle si está abierto para este contrato
+            if (
+                contratoSeleccionado.value?.id === Number(importarProductosForm.value.contrato_id)
+            ) {
+                const detalle = await axios.get(
+                    `/api/contratos/${importarProductosForm.value.contrato_id}`
+                );
+                contratoSeleccionado.value = detalle.data.data;
+            }
+            await listar();
+            break;
         }
-        await listar();
     } catch (e) {
         const msg = e.response?.data?.message || "Error al importar el archivo";
         toastMessage({ heading: "Error", text: msg, icon: "error" });
