@@ -61,7 +61,7 @@
                                         <th>Sede</th>
                                         <th>Fecha Inicio</th>
                                         <th>Fecha Fin</th>
-                                        <th>Detalle</th>
+                                        <th>Total M&eacute;dicos</th>
                                         <th>Estado</th>
                                         <th></th>
                                     </tr>
@@ -73,7 +73,7 @@
                                         <td>{{ formatDate(item.fecha_fin) }}</td>
                                         <td>
                                             <span class="label label-info">
-                                                {{ item.medicos?.length || 0 }} m&eacute;dicos
+                                                {{ contarMedicos(item) }} m&eacute;dicos
                                             </span>
                                         </td>
                                         <td>
@@ -746,6 +746,22 @@ function formatDate(dateStr) {
 function formatMoney(value) {
     if (!value) return "$0";
     return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP" }).format(value);
+}
+
+/**
+ * Cuenta los médicos únicos vinculados a un contrato.
+ * Como cada registro de contratos_medicos es un par médico+producto,
+ * se descuentan duplicados por medico_id para obtener el total real.
+ *
+ * @param {Object} item - Contrato con su colección medicos cargada
+ * @returns {number} Cantidad de médicos distintos del contrato
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-24
+ */
+function contarMedicos(item) {
+    const unicos = new Set((item.medicos || []).map((m) => m.medico_id));
+    return unicos.size;
 }
 
 // ─── LISTADO PRINCIPAL ────────────────────────────────────────────────────────
