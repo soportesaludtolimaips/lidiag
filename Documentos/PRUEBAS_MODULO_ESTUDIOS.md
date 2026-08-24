@@ -111,77 +111,79 @@ Precondiciones globales: sesión con usuario médico (`123456`), sede selecciona
 
 ### 4.1 Asignar estudios (`/estudios` → Asignar)
 
-| ID | Caso | Pasos | Esperado |
-|---|---|---|---|
-| MAN-AE-01 | Búsqueda por documento | Ingresar documento existente → Buscar | Tabla lista estudios; spinner desaparece |
-| MAN-AE-02 | Validación sin sede | Vaciar `ST-sede` en sessionStorage → Buscar | Toast warning "Debes establecer la sede", sin petición |
-| MAN-AE-03 | Agregar producto/diagnóstico | Abrir sidebar → agregar producto y diagnóstico | Filas aparecen en tablas locales |
-| MAN-AE-04 | **Eliminar producto (regresión)** | Click 🗑 en producto → confirmar en swal | Fila ELIMINADA de la tabla local (bug: antes no eliminaba) |
-| MAN-AE-05 | **Eliminar diagnóstico (regresión)** | Ídem con diagnóstico | Ídem |
-| MAN-AE-06 | Guardar asignación | Completar obligatorios → Guardar | Toast éxito; fila actualizada a "agendado" |
-| MAN-AE-07 | Un solo fetch de catálogos | DevTools Network al cargar página | Médicos/Prioridades/Productos/Diagnósticos: 1 request cada uno |
-| MAN-AE-08 | Cambio de sede global | Cambiar sede en header | Lista se limpia y catálogos se recargan 1 vez (sin handlers duplicados) |
+> El estado de ejecución de estos casos se controla desde el tablero maestro [`PROGRESO_PRUEBAS.md`](./PROGRESO_PRUEBAS.md).
+
+| ID | Caso | Pasos | Esperado | Estado |
+|---|---|---|---|---|
+| MAN-AE-01 | Búsqueda por documento | Ingresar documento existente → Buscar | Tabla lista estudios; spinner desaparece | ☐ |
+| MAN-AE-02 | Validación sin sede | Vaciar `ST-sede` en sessionStorage → Buscar | Toast warning "Debes establecer la sede", sin petición | ☐ |
+| MAN-AE-03 | Agregar producto/diagnóstico | Abrir sidebar → agregar producto y diagnóstico | Filas aparecen en tablas locales | ☐ |
+| MAN-AE-04 | **Eliminar producto (regresión)** | Click 🗑 en producto → confirmar en swal | Fila ELIMINADA de la tabla local (bug: antes no eliminaba) | ☐ |
+| MAN-AE-05 | **Eliminar diagnóstico (regresión)** | Ídem con diagnóstico | Ídem | ☐ |
+| MAN-AE-06 | Guardar asignación | Completar obligatorios → Guardar | Toast éxito; fila actualizada a "agendado" | ☐ |
+| MAN-AE-07 | Un solo fetch de catálogos | DevTools Network al cargar página | Médicos/Prioridades/Productos/Diagnósticos: 1 request cada uno | ☐ |
+| MAN-AE-08 | Cambio de sede global | Cambiar sede en header | Lista se limpia y catálogos se recargan 1 vez (sin handlers duplicados) | ☐ |
 
 ### 4.2 Descarga ZIP (modal desde Asignar)
 
-| ID | Caso | Esperado |
-|---|---|---|
-| MAN-DZ-01 | Generación normal | Barra progresa → "ZIP listo" → botón habilitado |
-| MAN-DZ-02 | Descarga exitosa | Archivo .zip baja; nombre correcto incluso con espacios |
-| MAN-DZ-03 | **Fallo de red durante generación (regresión)** | Detener backend >5s durante progreso → aparece panel de ERROR con Reintentar (antes polling eterno) |
-| MAN-DZ-04 | **Fallo de descarga visible (regresión)** | Simular 500 en download-zip → panel ERROR con Reintentar (antes seguía diciendo "listo") |
-| MAN-DZ-05 | Navegar fuera durante generación | No quedan requests zip-status cada 1s (cleanup unmount) |
+| ID | Caso | Esperado | Estado |
+|---|---|---|---|
+| MAN-DZ-01 | Generación normal | Barra progresa → "ZIP listo" → botón habilitado | ☐ |
+| MAN-DZ-02 | Descarga exitosa | Archivo .zip baja; nombre correcto incluso con espacios | ☐ |
+| MAN-DZ-03 | **Fallo de red durante generación (regresión)** | Detener backend >5s durante progreso → aparece panel de ERROR con Reintentar (antes polling eterno) | ☐ |
+| MAN-DZ-04 | **Fallo de descarga visible (regresión)** | Simular 500 en download-zip → panel ERROR con Reintentar (antes seguía diciendo "listo") | ☐ |
+| MAN-DZ-05 | Navegar fuera durante generación | No quedan requests zip-status cada 1s (cleanup unmount) | ☐ |
 
 ### 4.3 Estudios asignados
 
-| ID | Caso | Esperado |
-|---|---|---|
-| MAN-EA-01 | Listar con filtros | Tabla pinta badges de prioridad/urgente correctamente |
-| MAN-EA-02 | **Fallo de listado (regresión)** | Detener backend → toast de error visible (antes tabla vacía silenciosa) |
-| MAN-EA-03 | Anular asignación | Confirmación swal → fila removida |
-| MAN-EA-04 | Panel de detalle con soportes | Abre con datos; si falla carga complementaria muestra toast warning pero abre |
+| ID | Caso | Esperado | Estado |
+|---|---|---|---|
+| MAN-EA-01 | Listar con filtros | Tabla pinta badges de prioridad/urgente correctamente | ☐ |
+| MAN-EA-02 | **Fallo de listado (regresión)** | Detener backend → toast de error visible (antes tabla vacía silenciosa) | ☐ |
+| MAN-EA-03 | Anular asignación | Confirmación swal → fila removida | ☐ |
+| MAN-EA-04 | Panel de detalle con soportes | Abre con datos; si falla carga complementaria muestra toast warning pero abre | ☐ |
 
 ### 4.4 Leer estudio
 
-| ID | Caso | Esperado |
-|---|---|---|
-| MAN-LE-01 | Abrir lectura | Sidebar abre SIEMPRE (aunque falle carga de soportes → toast warning); spinner del botón termina |
-| MAN-LE-02 | Visor desde tabla vs sidebar | Ambos botones muestran spinner propio mientras cargan |
-| MAN-LE-03 | Marcar visto OK | Texto cambia a azul; persiste tras refresh |
-| MAN-LE-04 | **Marcar visto con fallo (regresión)** | Detener backend → toast error, texto vuelve a normal, botón reutilizable (antes quedaba trabado) |
-| MAN-LE-05 | Dictado F2 + guardar audio (audio-texto) | Grabación inicia/detiene; audio preview visible; Guardar envía a `/api/upload-audio` (200) y emite `audio-saved` |
-| MAN-LE-06 | Modal de ayuda comandos | Ícono life-ring abre modal; × y Close lo cierran |
-| MAN-LE-07 | Auto-refresh toggle | Toasts info activado/desactivado; interval limpio al desmontar |
+| ID | Caso | Esperado | Estado |
+|---|---|---|---|
+| MAN-LE-01 | Abrir lectura | Sidebar abre SIEMPRE (aunque falle carga de soportes → toast warning); spinner del botón termina | ☐ |
+| MAN-LE-02 | Visor desde tabla vs sidebar | Ambos botones muestran spinner propio mientras cargan | ☐ |
+| MAN-LE-03 | Marcar visto OK | Texto cambia a azul; persiste tras refresh | ☐ |
+| MAN-LE-04 | **Marcar visto con fallo (regresión)** | Detener backend → toast error, texto vuelve a normal, botón reutilizable (antes quedaba trabado) | ☐ |
+| MAN-LE-05 | Dictado F2 + guardar audio (audio-texto) | Grabación inicia/detiene; audio preview visible; Guardar envía a `/api/upload-audio` (200) y emite `audio-saved` | ☐ |
+| MAN-LE-06 | Modal de ayuda comandos | Ícono life-ring abre modal; × y Close lo cierran | ☐ |
+| MAN-LE-07 | Auto-refresh toggle | Toasts info activado/desactivado; interval limpio al desmontar | ☐ |
 
 ### 4.5 Notificaciones
 
-| ID | Caso | Esperado |
-|---|---|---|
-| MAN-NE-01 | Notificar con email inválido | Toast warning "Ingrese un correo válido"; NO hay POST |
-| MAN-NE-02 | Notificar exitoso | Toast éxito; modal cierra; formulario limpio |
-| MAN-NE-03 | **PHI entre pacientes (regresión)** | Notificar paciente A → abrir paciente B sin email → campo email VACÍO (antes conservaba el de A) |
-| MAN-NE-04 | Portal saldo insuficiente | Toast "Saldo insuficiente" (402) |
-| MAN-NE-05 | Portal error genérico | Toast de error visible (antes silencioso) |
+| ID | Caso | Esperado | Estado |
+|---|---|---|---|
+| MAN-NE-01 | Notificar con email inválido | Toast warning "Ingrese un correo válido"; NO hay POST | ☐ |
+| MAN-NE-02 | Notificar exitoso | Toast éxito; modal cierra; formulario limpio | ☐ |
+| MAN-NE-03 | **PHI entre pacientes (regresión)** | Notificar paciente A → abrir paciente B sin email → campo email VACÍO (antes conservaba el de A) | ☐ |
+| MAN-NE-04 | Portal saldo insuficiente | Toast "Saldo insuficiente" (402) | ☐ |
+| MAN-NE-05 | Portal error genérico | Toast de error visible (antes silencioso) | ☐ |
 
 ### 4.6 Quemador CD
 
-| ID | Caso | Esperado |
-|---|---|---|
-| MAN-QC-01 | Listar unidades | Radios con unidades reales; selección default primera |
-| MAN-QC-02 | Confirmación previa | Botón quemar pide swal antes de enviar orden |
-| MAN-QC-03 | **Quemado real (regresión)** | Tras aceptar: estado "Quemando disco..." ~70%; `completado` SOLO cuando burn-status reporte `burned`; barra verde 100% |
-| MAN-QC-04 | Burn fallido | Estado Fallido en rojo con mensaje; botón rehabilitado |
-| MAN-QC-05 | Unidad desconectada | Al re-listar, selección inválida se resetea (canBurn false) |
+| ID | Caso | Esperado | Estado |
+|---|---|---|---|
+| MAN-QC-01 | Listar unidades | Radios con unidades reales; selección default primera | ☐ |
+| MAN-QC-02 | Confirmación previa | Botón quemar pide swal antes de enviar orden | ☐ |
+| MAN-QC-03 | **Quemado real (regresión)** | Tras aceptar: estado "Quemando disco..." ~70%; `completado` SOLO cuando burn-status reporte `burned`; barra verde 100% | ☐ |
+| MAN-QC-04 | Burn fallido | Estado Fallido en rojo con mensaje; botón rehabilitado | ☐ |
+| MAN-QC-05 | Unidad desconectada | Al re-listar, selección inválida se resetea (canBurn false) | ☐ |
 
 ### 4.7 Transcribir
 
-| ID | Caso | Esperado |
-|---|---|---|
-| MAN-TR-01 | Listar pendientes | Tabla carga; título dice "Transcribir estudio" (typo corregido) |
-| MAN-TR-02 | **Fallo de listado (regresión)** | Backend caído → toast error visible |
-| MAN-TR-03 | Guardar con errores Laravel 422 | Mensajes inline bajo inputs aparecen (se maneja 400 Y 422) |
-| MAN-TR-04 | Prefill de plantilla | Si estudio no trae lectura, NO aparece literal "undefined" |
-| MAN-TR-05 | Cambio de sede repetido | Una sola búsqueda por cambio (sin listeners duplicados) |
+| ID | Caso | Esperado | Estado |
+|---|---|---|---|
+| MAN-TR-01 | Listar pendientes | Tabla carga; título dice "Transcribir estudio" (typo corregido) | ☐ |
+| MAN-TR-02 | **Fallo de listado (regresión)** | Backend caído → toast error visible | ☐ |
+| MAN-TR-03 | Guardar con errores Laravel 422 | Mensajes inline bajo inputs aparecen (se maneja 400 Y 422) | ☐ |
+| MAN-TR-04 | Prefill de plantilla | Si estudio no trae lectura, NO aparece literal "undefined" | ☐ |
+| MAN-TR-05 | Cambio de sede repetido | Una sola búsqueda por cambio (sin listeners duplicados) | ☐ |
 
 ---
 
@@ -202,7 +204,7 @@ Precondiciones globales: sesión con usuario médico (`123456`), sede selecciona
 ## 6. Conclusión
 
 - **Automatizado**: 2/2 capas A + 26/26 aserciones B en PASS.
-- **Manual**: protocolo de 33 casos definido; los casos marcados *(regresión)* corresponden 1:1 a bugs corregidos en esta iteración y son prioritarios para QA.
+- **Manual**: protocolo de **39 casos** definido con columna de estado; los casos marcados *(regresión)* corresponden 1:1 a bugs corregidos en esta iteración y son prioritarios para QA. El control de avance vive en el tablero [`PROGRESO_PRUEBAS.md`](./PROGRESO_PRUEBAS.md).
 - El módulo queda consistente con las convenciones del proyecto (toasts/confirmaciones objeto, endpoints `/api/*`, limpieza de listeners/timers, feedback explícito en fallos).
 
 *Documento generado como cierre del ciclo de auditoría y estabilización del módulo Estudios.*
