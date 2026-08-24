@@ -81,15 +81,15 @@
             <div v-if="burnStatus" class="mt-3">
                 <div class="d-flex justify-content-between align-items-center mb-1">
                     <small class="text-muted">{{ statusLabel }}</small>
-                    <small class="text-muted">{{ burnStatus.progress }}%</small>
+                    <small class="text-muted">{{ progressPct }}%</small>
                 </div>
                 <div class="progress" style="height: 20px">
                     <div
                         class="progress-bar"
                         :class="progressBarClass"
                         role="progressbar"
-                        :style="{ width: burnStatus.progress + '%' }"
-                        :aria-valuenow="burnStatus.progress"
+                        :style="{ width: progressPct + '%' }"
+                        :aria-valuenow="progressPct"
                         aria-valuemin="0"
                         aria-valuemax="100"
                     >
@@ -129,6 +129,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
+import { confirmAction, toastMessage } from "@/helpers/alerts.js";
 import axios from "axios";
 
 const props = defineProps({
@@ -147,10 +148,37 @@ const burnStatus = ref(null);
 const burnId = ref(null);
 let pollTimer = null;
 
+/**
+ * Porcentaje de progreso del quemado garantizado entre 0 y 100.
+ * @returns {number} Progreso numérico seguro para renderizar.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-05
+ */
+const progressPct = computed(() => {
+    const p = Number(burnStatus.value?.progress);
+    if (!Number.isFinite(p)) return 0;
+    return Math.min(100, Math.max(0, Math.round(p)));
+});
+
+/**
+ * Indica si se puede iniciar el quemado con la unidad seleccionada.
+ * @returns {boolean}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-05
+ */
 const canBurn = computed(() => {
     return selectedDrive.value && !burning.value;
 });
 
+/**
+ * Clase de color de la barra de progreso según el estado del quemado.
+ * @returns {string} Clase CSS de Bootstrap.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-05
+ */
 const progressBarClass = computed(() => {
     if (!burnStatus.value) return "bg-info";
     const s = burnStatus.value.status;
@@ -160,10 +188,17 @@ const progressBarClass = computed(() => {
     return "bg-info";
 });
 
+/**
+ * Etiqueta legible del estado actual del quemado.
+ * @returns {string}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-05
+ */
 const statusLabel = computed(() => {
     if (!burnStatus.value) return "";
     const s = burnStatus.value.status;
-    const p = burnStatus.value.progress || 0;
+    const p = progressPct.value;
     const labels = {
         pending: "Pendiente",
         processing: p <= 40 ? "Descargando archivos DICOM..." : "Preparando paquete...",
@@ -175,6 +210,16 @@ const statusLabel = computed(() => {
     return labels[s] || s;
 });
 
+/**
+ * Inicia el sondeo periódico del estado del quemado en el backend.
+ * Termina solo ante estados terminales (burned/failed) y emite
+ * `completado` únicamente cuando el disco terminó físicamente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-05
+ */
 function startPolling() {
     stopPolling();
     pollTimer = setInterval(async () => {
@@ -203,6 +248,13 @@ function startPolling() {
     }, 2000);
 }
 
+/**
+ * Detiene el sondeo de estado del quemado.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-05
+ */
 function stopPolling() {
     if (pollTimer) {
         clearInterval(pollTimer);
@@ -210,31 +262,67 @@ function stopPolling() {
     }
 }
 
+/**
+ * Lista las unidades de CD/DVD disponibles en el servidor de quemado.
+ * Si la unidad seleccionada previamente ya no existe, la deselecciona.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-05
+ */
 async function listarUnidades() {
     loadingDrives.value = true;
     try {
         const res = await axios.get("/api/dicom/list-drives");
         if (res.data.status === "success") {
             drives.value = res.data.data || [];
-            if (drives.value.length > 0 && !selectedDrive.value) {
-                selectedDrive.value = drives.value[0];
+            const sigueDisponible =
+                selectedDrive.value && drives.value.includes(selectedDrive.value);
+            if (!sigueDisponible) {
+                selectedDrive.value = drives.value.length > 0 ? drives.value[0] : null;
             }
         }
     } catch (e) {
         console.error("Error listando unidades:", e);
         drives.value = [];
+        selectedDrive.value = null;
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible consultar las unidades de CD/DVD del servidor.",
+            icon: "error",
+        });
     } finally {
         loadingDrives.value = false;
     }
 }
 
+/**
+ * Inicia el flujo de quemado del estudio en CD/DVD.
+ * Pide confirmación al usuario, genera el paquete DICOM, envía la orden de
+ * quemado y activa el sondeo de estado hasta que el disco termine físicamente.
+ * Solo emite `completado` cuando el backend reporta `burned`.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-05
+ */
 async function iniciarQuemado() {
-    if (!canBurn.value) return;
+    if (!canBurn.value || burning.value) return;
+
+    const ok = await confirmAction({
+        title: "Quemar estudio en CD/DVD",
+        text: `Se grabará el estudio en la unidad ${selectedDrive.value}. Esta acción no puede detenerse. ¿Continuar?`,
+        icon: "warning",
+    });
+    if (!ok) return;
+
     burning.value = true;
     burnStatus.value = { status: "processing", progress: 5 };
 
     try {
-        const studyUid = props.estudio.study_iuid || props.estudio.study_iuid;
+        const studyUid = props.estudio.study_iuid;
         if (!studyUid) {
             throw new Error("No hay Study Instance UID disponible para este estudio.");
         }
@@ -246,7 +334,7 @@ async function iniciarQuemado() {
 
         const resGenerate = await axios.post("/api/dicom/generate-iso", {
             study_instance_uids: [String(studyUid)],
-            user_id: props.usuarioactual.id || null,
+            user_id: props.usuarioactual?.id ?? null,
             device_letter: selectedDrive.value,
             sede_id: parseInt(sedeId, 10),
         });
@@ -255,7 +343,10 @@ async function iniciarQuemado() {
             throw new Error(resGenerate.data.message || "Error al generar paquete DICOM.");
         }
 
-        const { burn_id } = resGenerate.data.data;
+        const { burn_id } = resGenerate.data.data ?? {};
+        if (!burn_id) {
+            throw new Error("El servidor no devolvió el identificador del quemado.");
+        }
         burnId.value = burn_id;
         burnStatus.value = { status: "processing", progress: 45 };
 
@@ -264,13 +355,14 @@ async function iniciarQuemado() {
             device_letter: selectedDrive.value,
         });
 
-        if (resBurn.data.status === "success") {
-            burnStatus.value = { status: "burned", progress: 100 };
-            stopPolling();
-            emit("completado");
-        } else {
-            throw new Error(resBurn.data.message || "Error al quemar disco.");
+        if (resBurn.data.status !== "success") {
+            throw new Error(resBurn.data.message || "Error al iniciar el quemado del disco.");
         }
+
+        // La orden fue aceptada: el disco aún se está grabando.
+        // Sondear hasta un estado terminal; completado se emite desde startPolling.
+        burnStatus.value = { status: "burning", progress: 70 };
+        startPolling();
     } catch (e) {
         console.error("Error en quemado:", e);
         burnStatus.value = {
@@ -279,7 +371,6 @@ async function iniciarQuemado() {
             error_message: e.response?.data?.message || e.message,
         };
         stopPolling();
-    } finally {
         burning.value = false;
     }
 }
@@ -289,6 +380,12 @@ onMounted(async () => {
     loading.value = false;
 });
 
+/**
+ * Limpieza al desmontar: detiene el sondeo pendiente.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-05
+ */
 onBeforeUnmount(() => {
     stopPolling();
 });

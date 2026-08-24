@@ -448,13 +448,14 @@
                                                 <button
                                                     type="button"
                                                     class="btn btn-secondary btn-xs"
-                                                    :disabled="loadingVerImagen"
+                                                    :disabled="loadingVerImagen !== null"
                                                     @click="
                                                         verImagen(
                                                             registro.urlOviyam,
                                                             registro.patientId,
                                                             registro.studyUID,
-                                                            registro.serverName
+                                                            registro.serverName,
+                                                            registro.estudio_producto_id
                                                         )
                                                     "
                                                 >
@@ -1211,7 +1212,7 @@ import {
     safeInitDataTable,
     safeRemoveDataTableRow,
 } from "@/helpers/datatables.js";
-import { toastMessage } from "@/helpers/alerts";
+import { toastMessage, getUserSafeError } from "@/helpers/alerts";
 import { useMedicalDictionary } from "@/composables/useMedicalDictionary";
 import { useDictationFlow } from "@/composables/useDictationFlow";
 import { useAudioUploadFlow } from "@/composables/useAudioUploadFlow";
@@ -1236,7 +1237,7 @@ const {
     setupKeyboardShortcut,
     audioBlob,
 } = dictationFlow;
-const audioUploadFlow = useAudioUploadFlow({ showToast: (cfg) => $.toast(cfg) });
+const audioUploadFlow = useAudioUploadFlow({ showToast: (cfg) => toastMessage(cfg) });
 const {
     audiosCargadosPendientes,
     audioSeleccionados,
@@ -1443,6 +1444,13 @@ async function listarMisPendientes() {
                 tablaVisible.value = true;
             });
         } catch (error) {
+            // Restaurar visibilidad de la tabla para no dejar el spinner eterno
+            tablaVisible.value = true;
+            toastMessage({
+                heading: "Error",
+                text: getUserSafeError(error, "No fue posible listar tus estudios pendientes."),
+                icon: "error",
+            });
         } finally {
             loadingListar.value = false;
         }
@@ -1463,10 +1471,9 @@ function toggleAutoRefresh() {
             autoRefreshTimer.value = null;
         }
         autoRefreshEnabled.value = false;
-        $.toast({
+        toastMessage({
             heading: "Auto-refresh",
             text: "Auto-refresh desactivado",
-            position: "top-right",
             icon: "info",
             hideAfter: 2000,
         });
@@ -1558,12 +1565,13 @@ async function guardarRegistro() {
  */
 async function visto(id) {
     if (loadingVistoId.value) return;
-    loadingVistoId.value = id;
 
     const row = document.getElementById("row-" + id);
 
     // Evitar doble click verificando de forma inmediata si ya tiene la clase
     if (row && row.classList.contains("text-info")) return;
+
+    loadingVistoId.value = id;
 
     // 1. Modificación directa del DOM (Instantáneo y compatible con DataTables)
     if (row) {
@@ -1577,12 +1585,18 @@ async function visto(id) {
     }
 
     try {
-        // 3. Verdadera llamada "fire-and-forget" en segundo plano
-        const marcarVisto = await axios.post("/api/marcar-visto/" + id).catch(() => {
-            // Opcional: Si falla, podríamos revertir la clase
-            if (row) row.classList.remove("text-info");
-        });
+        // 3. Llamada en segundo plano; si falla, revertir DOM y estado reactivo
+        await axios.post("/api/marcar-visto/" + id);
     } catch (error) {
+        if (row) row.classList.remove("text-info");
+        if (idx !== -1) {
+            registros.value[idx].visto = 0;
+        }
+        toastMessage({
+            heading: "Error",
+            text: getUserSafeError(error, "No fue posible marcar el estudio como visto."),
+            icon: "error",
+        });
     } finally {
         loadingVistoId.value = null;
     }
@@ -1659,6 +1673,8 @@ async function mostrarRegistro(data = {}) {
 
     listar_historial_estudios(data.num_docu);
 
+    // El panel debe abrirse aunque fallen las cargas complementarias;
+    // el médico necesita ver los datos base del estudio.
     try {
         const res = await axios.get("/api/study-listar-diagnostico-por-estudio?id=" + id.value);
         diagnosticosEstudio.value = res.data.data;
@@ -1668,10 +1684,18 @@ async function mostrarRegistro(data = {}) {
 
         await listarAudios(registro.value.estudio_producto_id);
 
-        abrirSidebar();
         errores.value = {};
     } catch (error) {
+        toastMessage({
+            heading: "Atención",
+            text: getUserSafeError(
+                error,
+                "No fue posible cargar diagnósticos/soportes del estudio."
+            ),
+            icon: "warning",
+        });
     } finally {
+        abrirSidebar();
         loadingAbrirId.value = null;
     }
 }
@@ -1699,7 +1723,6 @@ function limpiar() {
     clearAudioBuffer();
     audioUploadFlow.limpiarAudiosCargados();
     audiosDeEstudio.value = [];
-    console.log("[limpiar] FIN");
 }
 async function abrirSidebar() {
     await stopAll();
@@ -1712,6 +1735,12 @@ async function cerrarSidebar() {
     $(".right-sidebar").removeClass("shw-rside");
 }
 
+function onSedeSeleccionada(data) {
+    sede_id.value = data.idSede;
+    destroyDataTable();
+    listarMisPendientes();
+}
+
 onMounted(() => {
     establecerSede();
     sede_id.value = sessionStorage.getItem("ST-sede");
@@ -1721,25 +1750,20 @@ onMounted(() => {
         onText: (text) => {
             if (registro.value) registro.value.lectura += text;
         },
-        showToast: (cfg) => {
-            $.toast(cfg);
-        },
+        showToast: (cfg) => toastMessage(cfg),
         onState: (state) => {},
         onAudioSaved: () => {
             listarAudios(registro.value.estudio_producto_id);
         },
     });
 
-    emitter.on("sedeSeleccionada", (data) => {
-        sede_id.value = data.idSede;
-        destroyDataTable();
-        listarMisPendientes();
-    });
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
 
     setupKeyboardShortcut();
 });
 
 onBeforeUnmount(() => {
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
     if (autoRefreshTimer.value) {
         clearInterval(autoRefreshTimer.value);
         autoRefreshTimer.value = null;

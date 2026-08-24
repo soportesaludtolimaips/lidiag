@@ -2,12 +2,12 @@
     <div>
         <button
             type="button"
-            @click="toggleSpeechRecognition"
+            @click="toggleSpeechRecognition()"
             :aria-label="recognizing ? 'Detener grabación' : 'Iniciar grabación'"
             :aria-pressed="String(recognizing)"
             class="mic-btn"
         >
-            <img title="Grabadora" :src="microfono" />
+            <img title="Grabadora" :src="microfono" alt="Micrófono" />
         </button>
         <div class="row">
             <div class="col-7">
@@ -40,7 +40,7 @@
 import { onBeforeUnmount, onMounted, ref } from "vue";
 
 import { useDictationFlow } from "@/composables/useDictationFlow";
-import { toastMessage } from "@/helpers/alerts.js";
+import { toastMessage, getUserSafeError } from "@/helpers/alerts.js";
 import axios from "axios";
 
 const props = defineProps({
@@ -49,21 +49,57 @@ const props = defineProps({
 });
 const emit = defineEmits(["audio-saved"]);
 
+// Refs reactivos expuestos por el composable de dictado
+const { recognizing, microfono, audioBlob, audioUrl } = useDictationFlow();
 const dictationFlow = useDictationFlow();
 
+/**
+ * ID numérico del estudio asociado al audio.
+ * @type {import('vue').Ref<number>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2025-03-19
+ */
 const id = ref(props.estudioId ? Number(props.estudioId) : 0);
+
+/**
+ * Formulario local con la lectura dictada y el producto de estudio.
+ * @type {import('vue').Ref<{lectura: string, estudio_producto_id: number}>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2025-03-19
+ */
 const registro = ref({
     lectura: "",
     estudio_producto_id: props.estudioProductoId ? Number(props.estudioProductoId) : 0,
 });
+
+/**
+ * Flag de carga al enviar el audio al backend.
+ * @type {import('vue').Ref<boolean>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2025-03-19
+ */
 const loadingEnviar = ref(false);
 
+/**
+ * Detiene la grabación y envía el audio junto con el texto dictado al backend.
+ * Valida existencia de blob e IDs; notifica al padre vía evento `audio-saved`.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2025-03-19
+ */
 async function sendToBackend() {
     if (loadingEnviar.value) return;
     loadingEnviar.value = true;
     await dictationFlow.stopRecording();
 
-    if (!audioBlob || !(audioBlob instanceof Blob)) {
+    const blob = audioBlob?.value;
+
+    if (!blob || !(blob instanceof Blob)) {
         toastMessage({
             heading: "Upss!!!",
             text: "No hay audio para enviar.",
@@ -84,19 +120,25 @@ async function sendToBackend() {
     }
 
     const formData = new FormData();
-    formData.append("audio", audioBlob, "audio.webm");
+    formData.append("audio", blob, "audio.webm");
     formData.append("text", registro.value.lectura);
     formData.append("estudio_id", id.value);
     formData.append("estudio_producto_id", registro.value.estudio_producto_id);
 
     try {
-        const res = await axios.post("/upload-audio", formData);
+        const res = await axios.post("/api/upload-audio", formData);
         toastMessage({
             heading: "Completado",
             text: res?.data?.message || "Audio enviado correctamente.",
             icon: "success",
         });
+        emit("audio-saved");
     } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: getUserSafeError(error, "No fue posible enviar el audio."),
+            icon: "error",
+        });
     } finally {
         loadingEnviar.value = false;
     }
@@ -114,7 +156,7 @@ onMounted(() => {
         onText: (text) => {
             registro.value.lectura += text;
         },
-        showToast: (cfg) => $.toast(cfg),
+        showToast: (cfg) => toastMessage(cfg),
         onState: () => {},
         onAudioSaved: () => {
             emit("audio-saved");

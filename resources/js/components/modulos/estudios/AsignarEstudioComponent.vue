@@ -766,7 +766,12 @@
                         <h5 class="modal-title" id="quemadorCdModalLabel">
                             <i class="fa fa-compact-disc"></i> Quemador de CD/DVD
                         </h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <button
+                            type="button"
+                            class="close"
+                            @click="cerrarQuemador()"
+                            aria-label="Close"
+                        >
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
@@ -800,7 +805,12 @@
                         <h5 class="modal-title" id="descargarZipModalLabel">
                             <i class="fa fa-file-archive-o"></i> Descargar Estudio ZIP
                         </h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <button
+                            type="button"
+                            class="close"
+                            @click="cerrarDescargaZip()"
+                            aria-label="Close"
+                        >
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
@@ -823,7 +833,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { confirmAction } from "@/helpers/alerts";
+import { confirmAction, toastMessage } from "@/helpers/alerts";
 import { normalizarFecha } from "@/helpers/dateUtils.js";
 import { useSede } from "@/composables/useSede";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
@@ -939,55 +949,39 @@ async function buscarStudy() {
 
     try {
         if (sessionStorage.getItem("ST-sede") == null) {
-            $.toast({
+            toastMessage({
                 heading: "Upsss!!!",
                 text: "Debes establece la sede en la cual vas a trabajar.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
             });
         } else if (
             busqueda.value.bus_nom_num_docu == "" &&
             busqueda.value.bus_fech_ini == "" &&
             busqueda.value.bus_fecha_fin == ""
         ) {
-            $.toast({
+            toastMessage({
                 heading: "Upsss!!!",
                 text: "Debes establece la fecha de inicio o finalización para la busqueda.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
             });
         } else if (
             busqueda.value.bus_nom_num_docu == "" &&
             (busqueda.value.bus_fech_ini == "" || busqueda.value.bus_fecha_fin == "")
         ) {
-            $.toast({
+            toastMessage({
                 heading: "Upsss!!!",
                 text: "Para buscar por fecha debes seleccionar fecha inicio y fecha fin.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
             });
         } else if (
             busqueda.value.bus_fech_ini &&
             busqueda.value.bus_fecha_fin &&
             busqueda.value.bus_fech_ini > busqueda.value.bus_fecha_fin
         ) {
-            $.toast({
+            toastMessage({
                 heading: "Upsss!!!",
                 text: "La fecha inicio no puede ser mayor a la fecha fin.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
             });
         } else {
             if (loadingBuscar.value) return;
@@ -1014,14 +1008,10 @@ async function buscarStudy() {
                     });
                 });
             } else if (res.status == 500) {
-                $.toast({
+                toastMessage({
                     heading: "Upsss!!!",
                     text: res.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "danger",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
             }
         }
@@ -1046,14 +1036,10 @@ async function guardarRegistro() {
             props.usuarioactual.transcrip_remoto == null) &&
         registro.value.motivo_examen == ""
     ) {
-        $.toast({
+        toastMessage({
             heading: "Upsss!!!",
             text: "El motivo del examen es obligatorio. Debes ingresarlo antes de guardar.",
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "warning",
-            hideAfter: 3500,
-            stack: 6,
         });
 
         loadingGuardar.value = false;
@@ -1075,14 +1061,10 @@ async function guardarRegistro() {
         });
 
         if (res.status == 200) {
-            $.toast({
+            toastMessage({
                 heading: "Completado",
                 text: res.data.message,
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "success",
-                hideAfter: 3500,
-                stack: 6,
             });
 
             // Actualiza el valor de `agendado` para que se refleje el cambio de clase
@@ -1099,14 +1081,11 @@ async function guardarRegistro() {
                 : {};
         const status = error?.response?.status;
         if (status == 400) {
-            $.toast({
+            toastMessage({
                 heading: "Upsss!!!",
                 text: error.response.data.message,
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "warning",
                 hideAfter: 5500,
-                stack: 6,
             });
         } else {
         }
@@ -1125,14 +1104,10 @@ async function guardarRegistro() {
 function obtenerArchivo1(e) {
     const file = e.target.files[0];
     if (file && file.size > 10 * 1024 * 1024) {
-        $.toast({
+        toastMessage({
             heading: "Archivo muy grande",
             text: "El archivo no debe superar los 10MB.",
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "warning",
-            hideAfter: 3500,
-            stack: 6,
         });
         e.target.value = "";
         return;
@@ -1149,14 +1124,10 @@ function obtenerArchivo1(e) {
 function obtenerArchivo2(e) {
     const file = e.target.files[0];
     if (file && file.size > 10 * 1024 * 1024) {
-        $.toast({
+        toastMessage({
             heading: "Archivo muy grande",
             text: "El archivo no debe superar los 10MB.",
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "warning",
-            hideAfter: 3500,
-            stack: 6,
         });
         e.target.value = "";
         return;
@@ -1173,14 +1144,10 @@ function obtenerArchivo2(e) {
 function obtenerArchivo3(e) {
     const file = e.target.files[0];
     if (file && file.size > 10 * 1024 * 1024) {
-        $.toast({
+        toastMessage({
             heading: "Archivo muy grande",
             text: "El archivo no debe superar los 10MB.",
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "warning",
-            hideAfter: 3500,
-            stack: 6,
         });
         e.target.value = "";
         return;
@@ -1497,21 +1464,19 @@ function guardarProductosEstudio() {
 
 /**
  * Quitar un producto del estudio según el índice proporcionado.
+ * Pide confirmación al usuario antes de eliminarlo del arreglo local.
  * @param {number} indexEliminar - Índice del producto a eliminar en el arreglo productosEstudio.
- * @returns {void}
+ * @returns {Promise<void>}
  * @author: Jhon Javer Lozano Arce
  */
-function quitarProductoEstudio(indexEliminar) {
-    if (!confirm("¿Está seguro de eliminar este producto?")) return;
-    confirmAction({
+async function quitarProductoEstudio(indexEliminar) {
+    const ok = await confirmAction({
         title: "¿Está seguro?",
         text: "¿Desea eliminar este producto del estudio?",
         icon: "warning",
-        confirmButtonText: "Sí, eliminar",
-        onConfirm: () => {
-            registro.value.productosEstudio.splice(indexEliminar, 1);
-        },
     });
+    if (!ok) return;
+    registro.value.productosEstudio.splice(indexEliminar, 1);
 }
 
 /**
@@ -1542,21 +1507,19 @@ function guardarDiagnosticosEstudio() {
 
 /**
  * Quitar un diagnóstico del estudio según el índice proporcionado.
+ * Pide confirmación al usuario antes de eliminarlo del arreglo local.
  * @param {number} indexEliminar - Índice del diagnóstico a eliminar en el arreglo diagnosticosEstudio.
- * @returns {void}
+ * @returns {Promise<void>}
  * @author: Jhon Javer Lozano Arce
  */
-function quitarDiagnosticoEstudio(indexEliminar) {
-    if (!confirm("¿Está seguro de eliminar este diagnóstico?")) return;
-    confirmAction({
+async function quitarDiagnosticoEstudio(indexEliminar) {
+    const ok = await confirmAction({
         title: "¿Está seguro?",
         text: "¿Desea eliminar este diagnóstico del estudio?",
         icon: "warning",
-        confirmButtonText: "Sí, eliminar",
-        onConfirm: () => {
-            registro.value.diagnosticosEstudio.splice(indexEliminar, 1);
-        },
     });
+    if (!ok) return;
+    registro.value.diagnosticosEstudio.splice(indexEliminar, 1);
 }
 
 function abrirQuemador(estudio) {
@@ -1570,14 +1533,10 @@ function cerrarQuemador() {
 }
 
 function onQuemadoCompletado() {
-    $.toast({
+    toastMessage({
         heading: "Completado",
         text: "El disco ha sido quemado exitosamente.",
-        position: "top-right",
-        loaderBg: "#ff6849",
         icon: "success",
-        hideAfter: 3500,
-        stack: 6,
     });
     cerrarQuemador();
 }
@@ -1593,43 +1552,46 @@ function cerrarDescargaZip() {
 }
 
 function onDescargaZipCompletado() {
-    $.toast({
+    toastMessage({
         heading: "Completado",
         text: "El archivo ZIP ha sido descargado exitosamente.",
-        position: "top-right",
-        loaderBg: "#ff6849",
         icon: "success",
-        hideAfter: 3500,
-        stack: 6,
     });
     cerrarDescargaZip();
 }
 
+/**
+ * Handler del evento global de sede seleccionada: actualiza la sede activa,
+ * recarga los catálogos y limpia la tabla de resultados.
+ *
+ * @param {Object} data - Payload emitido con { idSede }
+ * @returns {void}
+ */
+function onSedeSeleccionada(data) {
+    registro.value.sede_id = data.idSede;
+    busqueda.value.sede_id = data.idSede;
+    establecerSede();
+    destroyDataTable();
+}
+
 onMounted(() => {
     registro.value.email_reportar = "";
-    listarMedicos();
-    listarPrioridades();
-    listarProductos();
-    listarDiagnosticos();
+    // Los catálogos se cargan una sola vez vía establecerSede() → cargarDatosSede()
     establecerSede();
     btnLimpiar();
 
-    emitter.on("sedeSeleccionada", (data) => {
-        console.log("data", data);
-        registro.value.sede_id = data.idSede;
-        busqueda.value.sede_id = data.idSede;
-        establecerSede();
-        destroyDataTable();
-    });
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
 });
 
 onBeforeUnmount(() => {
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
     destroyDataTable();
     registros.value = [];
     registro.value = { productosEstudio: [], diagnosticosEstudio: [] };
     soportesHC.value = { archivo1: null, archivo2: null, archivo3: null };
 });
 </script>
+
 <style scoped>
 .right-sidebar {
     position: fixed;

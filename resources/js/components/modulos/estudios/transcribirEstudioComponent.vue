@@ -718,7 +718,13 @@ import {
     safeInitDataTable,
     safeRemoveDataTableRow,
 } from "@/helpers/datatables.js";
-import { confirmAction, alertSuccess, alertError, getUserSafeError } from "@/helpers/alerts";
+import {
+    confirmAction,
+    alertSuccess,
+    alertError,
+    getUserSafeError,
+    toastMessage,
+} from "@/helpers/alerts";
 import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import dayjs from "dayjs";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
@@ -744,7 +750,7 @@ const id = ref(0);
 const diagnosticosEstudio = ref([]);
 const soportesHC = ref([]);
 const registros = ref([]);
-const tituloModal = ref("Transcirbir estudio");
+const tituloModal = ref("Transcribir estudio");
 const registro = ref({
     id_estudio: 0,
     estudio_producto_id: 0,
@@ -852,14 +858,10 @@ async function listarPendientesTrascribir() {
     loadingBuscar.value = true;
     try {
         if (sessionStorage.getItem("ST-sede") == null) {
-            $.toast({
+            toastMessage({
                 heading: "Upsss!!!",
                 text: "Debes establece la sede en la cual vas a trabajar.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
             });
         } else {
             destroyDataTable();
@@ -876,6 +878,14 @@ async function listarPendientesTrascribir() {
             });
         }
     } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: getUserSafeError(
+                error,
+                "No fue posible listar los estudios pendientes de transcribir."
+            ),
+            icon: "error",
+        });
     } finally {
         loadingBuscar.value = false;
     }
@@ -890,14 +900,10 @@ async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
     try {
-        $.toast({
+        toastMessage({
             heading: "Procesando...",
             text: "Enviando lectura, por favor espere",
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "info",
-            hideAfter: 3500,
-            stack: 6,
         });
 
         const res = await axios.post("/api/estudio-guardarTranscripcion", registro.value);
@@ -914,55 +920,43 @@ async function guardarRegistro() {
                 registros.value.splice(estudioEliminar, 1);
             }
 
-            $.toast({
+            toastMessage({
                 heading: "Completado",
                 text: res.data.message,
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "success",
-                hideAfter: 3500,
-                stack: 6,
             });
 
             btnCerralModalForm();
             limpiar();
         } else {
-            $.toast({
+            toastMessage({
                 heading: "Upss!!!",
                 text: res.data.message,
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "danger",
-                hideAfter: 3500,
-                stack: 6,
             });
         }
     } catch (error) {
         const status = error?.response?.status;
         // Errores de validación (400) vienen como objeto con campos
-        if (status == 400 && error?.response?.data && typeof error.response.data === "object") {
+        if (
+            (status == 400 || status == 422) &&
+            error?.response?.data &&
+            typeof error.response.data === "object"
+        ) {
             const data = error.response.data;
             errores.value = data.errors && typeof data.errors === "object" ? data.errors : data;
         }
         if (status == 402) {
-            $.toast({
+            toastMessage({
                 heading: "Upss!!!",
                 text: getUserSafeError(error, "La plantilla no está configurada para esta sede."),
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "error",
-                hideAfter: 3500,
-                stack: 6,
             });
         } else {
-            $.toast({
+            toastMessage({
                 heading: "Upss!!!",
                 text: getUserSafeError(error, "No fue posible guardar la transcripción."),
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "error",
-                hideAfter: 3500,
-                stack: 6,
             });
         }
     } finally {
@@ -1087,7 +1081,7 @@ async function mostrarRegistro(data = {}) {
         registro.value.reg_medico = data.reg_medico;
         registro.value.nombres_medico = data.nombres_medico;
         registro.value.firma_medico = data.firma_medico;
-        registro.value.lectura = `Atención: ${data.atencion}\nFecha y Hora del estudio: ${data.fec_estudio}\nFecha y Hora de transcripción: ${fechaActual}\n\n${data.nom_produc}\n\n${data.lectura}`;
+        registro.value.lectura = `Atención: ${data.atencion}\nFecha y Hora del estudio: ${data.fec_estudio}\nFecha y Hora de transcripción: ${fechaActual}\n\n${data.nom_produc}\n\n${data.lectura || ""}`;
         datosImagen.value.urlOviyam = data.url_oviyam;
         datosImagen.value.patientId = data.num_docu;
         datosImagen.value.studyUID = data.study_iuid;
@@ -1112,6 +1106,14 @@ async function mostrarRegistro(data = {}) {
         await listarAudios(registro.value.estudio_producto_id);
         errores.value = {};
     } catch (error) {
+        toastMessage({
+            heading: "Atención",
+            text: getUserSafeError(
+                error,
+                "No fue posible cargar diagnósticos/soportes del estudio."
+            ),
+            icon: "warning",
+        });
     } finally {
         loadingAbrirRegistroId.value = null;
     }
@@ -1152,14 +1154,17 @@ onMounted(async () => {
 
     applyDashboardPrefill();
 
-    emitter.on("sedeSeleccionada", (data) => {
-        busqueda.value.sede_id = data.idSede;
-        destroyDataTable();
-        listarPendientesTrascribir();
-    });
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
 });
 
+function onSedeSeleccionada(data) {
+    busqueda.value.sede_id = data.idSede;
+    destroyDataTable();
+    listarPendientesTrascribir();
+}
+
 onBeforeUnmount(() => {
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
     destroyDataTable();
     registros.value = [];
     registro.value = { productosEstudio: [], diagnosticosEstudio: [], soportesHC: [] };

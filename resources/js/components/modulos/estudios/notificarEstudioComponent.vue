@@ -355,7 +355,7 @@ import { computed, nextTick, onBeforeUnmount, ref } from "vue";
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import DatosPacienteDisplay from "@/components/comunes/datosPacienteDisplayComponent.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { getUserSafeError } from "@/helpers/alerts.js";
+import { getUserSafeError, toastMessage } from "@/helpers/alerts.js";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 import axios from "axios";
 
@@ -422,14 +422,10 @@ async function buscarStudy() {
             busqueda.value.bus_fecha_fin == "" &&
             busqueda.value.bus_nom == ""
         ) {
-            $.toast({
+            toastMessage({
                 heading: "Upsss!!!",
                 text: "Debe indicar documento, nombre o un rango de fechas para la búsqueda.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
             });
         } else {
             const res = await axios.post("/api/listar.estudios.notificaciones", busqueda.value);
@@ -444,14 +440,10 @@ async function buscarStudy() {
                     });
                 });
             } else if (res.status == 500) {
-                $.toast({
+                toastMessage({
                     heading: "Upsss!!!",
                     text: res.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "danger",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
             }
         }
@@ -460,14 +452,10 @@ async function buscarStudy() {
 
         const status = error?.response?.status;
         if (status == 500) {
-            $.toast({
+            toastMessage({
                 heading: "Upss!!!",
                 text: getUserSafeError(error, "Error al listar estudios."),
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "error",
-                hideAfter: 3500,
-                stack: 6,
             });
         }
 
@@ -488,35 +476,40 @@ async function buscarStudy() {
  */
 async function notificar() {
     if (loadingNotificar.value) return;
+
+    // Validar destinatario antes de enviar: evita correos vacíos o inválidos
+    const email = (registro.value.email || "").trim();
+    const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!emailValido) {
+        toastMessage({
+            heading: "Atención",
+            text: "Ingrese un correo electrónico válido para notificar al paciente.",
+            icon: "warning",
+        });
+        return;
+    }
+
     loadingNotificar.value = true;
     try {
-        $.toast({
+        toastMessage({
             heading: "Procesando...",
             text: "Generando reporte, por favor espere.",
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "info",
-            hideAfter: 3500,
-            stack: 6,
         });
 
         const payload = {
             ...estudio.value,
             id_estudio: estudio.value.id,
-            email: registro.value.email,
+            email: email,
             tel: registro.value.tel,
         };
         const res = await axios.post("/api/notificar.email", payload);
 
         if (res.status == 200) {
-            $.toast({
+            toastMessage({
                 heading: "Completado",
                 text: "La notificación se realizó correctamente, estamos enviando el correo electronico, por favor espere..",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "success",
-                hideAfter: 3500,
-                stack: 6,
             });
         }
 
@@ -525,24 +518,16 @@ async function notificar() {
     } catch (e) {
         const status = e?.response?.status;
         if (status == 402) {
-            $.toast({
+            toastMessage({
                 heading: "Error",
                 text: getUserSafeError(e, "Saldo insuficiente."),
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "error",
-                hideAfter: 3500,
-                stack: 6,
             });
         } else {
-            $.toast({
+            toastMessage({
                 heading: "Upss!!!",
                 text: getUserSafeError(e, "No fue posible notificar."),
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "error",
-                hideAfter: 3500,
-                stack: 6,
             });
         }
     } finally {
@@ -572,45 +557,43 @@ async function enviarPortal(item) {
  * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa el envío al portal de pacientes.
  * @author: Jhon Javer Lozano Arce
  */
+/**
+ * Enviar al portal de pacientes
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa el envío al portal de pacientes.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function enviarPortalPacientes() {
     try {
-        $.toast({
+        toastMessage({
             heading: "Procesando...",
             text: "Enviando al portal de pacientes, por favor espere.",
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "info",
-            hideAfter: 3500,
-            stack: 6,
         });
 
         const res = await axios.post("/api/enviar-portal-pacientes", estudio.value);
 
         if (res.status == 200) {
-            $.toast({
+            toastMessage({
                 heading: "Completado",
                 text: "Enviado al portal de pacientes.",
-                position: "top-right",
-                loaderBg: "#39cb14",
                 icon: "success",
-                hideAfter: 3500,
-                stack: 6,
             });
 
             limpiar();
         }
     } catch (e) {
         if (e.response && e.response.status == 402) {
-            $.toast({
+            toastMessage({
                 heading: "Error",
                 text: getUserSafeError(e, "Saldo insuficiente."),
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "error",
-                hideAfter: 3500,
-                stack: 6,
             });
         } else {
+            toastMessage({
+                heading: "Error",
+                text: getUserSafeError(e, "No fue posible enviar al portal de pacientes."),
+                icon: "error",
+            });
         }
     }
 }
@@ -670,12 +653,22 @@ function setarDatosPortalPacientes(data = {}) {
     registro.value.id_producto_lectura = data.id;
 }
 
+/**
+ * Limpia el formulario de notificación, incluyendo email y dirección del
+ * paciente para evitar el envío accidental de datos (PHI) al paciente
+ * equivocado en una notificación posterior.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function limpiar() {
     registro.value.num_docu = "";
     registro.value.nombres = "";
     registro.value.sexo = "";
     registro.value.fec_naci = "";
     registro.value.tel = "";
+    registro.value.email = "";
+    registro.value.email_reportar = "";
+    registro.value.direccion = "";
     registro.value.nom_produc = "";
     registro.value.id_producto_lectura = "";
 }

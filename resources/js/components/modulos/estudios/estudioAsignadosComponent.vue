@@ -738,7 +738,13 @@ import {
     safeInitDataTable,
     safeRemoveDataTableRow,
 } from "@/helpers/datatables.js";
-import { confirmAction, alertSuccess, alertError, getUserSafeError } from "@/helpers/alerts";
+import {
+    confirmAction,
+    alertSuccess,
+    alertError,
+    getUserSafeError,
+    toastMessage,
+} from "@/helpers/alerts";
 import axios from "axios";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 
@@ -754,7 +760,7 @@ const id = ref(0);
 const diagnosticosEstudio = ref([]);
 const soportesHC = ref([]);
 const registros = ref([]);
-const tituloModal = ref("Transcirbir estudio");
+const tituloModal = ref("Transcribir estudio");
 const registro = ref({
     id_estudio: 0,
     estudio_producto_id: 0,
@@ -846,14 +852,10 @@ async function listarEstudiosAsignados() {
     if (loadingBuscar.value) return;
 
     if (sessionStorage.getItem("ST-sede") == null) {
-        $.toast({
+        toastMessage({
             heading: "Upsss!!!",
             text: "Debes establece la sede en la cual vas a trabajar.",
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "warning",
-            hideAfter: 3500,
-            stack: 6,
         });
         return;
     }
@@ -865,40 +867,28 @@ async function listarEstudiosAsignados() {
     const medSelected = q.medico_id != "";
 
     if (!nameDocEntered && !datesEntered && !userSelected && !medSelected) {
-        $.toast({
+        toastMessage({
             heading: "Upsss!!!",
             text: "Debes ingresar al menos un criterio de búsqueda.",
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "warning",
-            hideAfter: 3500,
-            stack: 6,
         });
         return;
     }
 
     if (datesEntered && (q.bus_fech_ini == "" || q.bus_fecha_fin == "")) {
-        $.toast({
+        toastMessage({
             heading: "Upsss!!!",
             text: "Para buscar por fecha debes seleccionar fecha inicio y fecha fin.",
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "warning",
-            hideAfter: 3500,
-            stack: 6,
         });
         return;
     }
 
     if (q.bus_fech_ini && q.bus_fecha_fin && q.bus_fech_ini > q.bus_fecha_fin) {
-        $.toast({
+        toastMessage({
             heading: "Upsss!!!",
             text: "La fecha inicio no puede ser mayor a la fecha fin.",
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "warning",
-            hideAfter: 3500,
-            stack: 6,
         });
         return;
     }
@@ -919,16 +909,17 @@ async function listarEstudiosAsignados() {
         const status = error?.response?.status;
         const message = error?.response?.data?.message;
         if (status === 400 && error?.response?.data && typeof error.response.data === "object") {
-            $.toast({
+            toastMessage({
                 heading: "Upss!!!",
                 text: "Revisa los filtros de búsqueda.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
             });
         } else {
+            toastMessage({
+                heading: "Error",
+                text: getUserSafeError(error, "No fue posible listar los estudios asignados."),
+                icon: "error",
+            });
         }
     } finally {
         loadingBuscar.value = false;
@@ -952,14 +943,10 @@ async function guardarRegistro() {
         const res = await axios.post("/api/estudio-guardarTranscripcion", payload);
 
         if (res.status === 200) {
-            $.toast({
+            toastMessage({
                 heading: "Completado",
                 text: res.data.message || "Guardado correctamente.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "success",
-                hideAfter: 3500,
-                stack: 6,
             });
 
             const idx = registros.value.findIndex((x) => x.estudio_producto_id == idRow.value);
@@ -974,14 +961,10 @@ async function guardarRegistro() {
             btnCerralModalForm();
             limpiar();
         } else {
-            $.toast({
+            toastMessage({
                 heading: "Upss!!!",
                 text: res.data.message || "No fue posible guardar.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "danger",
-                hideAfter: 3500,
-                stack: 6,
             });
         }
     } catch (error) {
@@ -990,14 +973,10 @@ async function guardarRegistro() {
             const data = error.response.data;
             errores.value = data.errors && typeof data.errors === "object" ? data.errors : data;
         }
-        $.toast({
+        toastMessage({
             heading: "Upss!!!",
             text: getUserSafeError(error, "No fue posible guardar la transcripción."),
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "error",
-            hideAfter: 3500,
-            stack: 6,
         });
     } finally {
         loadingGuardar.value = false;
@@ -1110,6 +1089,14 @@ async function mostrarRegistro(data = {}) {
 
         await listarAudios(idRow.value);
     } catch (error) {
+        toastMessage({
+            heading: "Atención",
+            text: getUserSafeError(
+                error,
+                "No fue posible cargar diagnósticos/soportes del estudio."
+            ),
+            icon: "warning",
+        });
     } finally {
         loadingAbrirRegistroId.value = null;
     }
