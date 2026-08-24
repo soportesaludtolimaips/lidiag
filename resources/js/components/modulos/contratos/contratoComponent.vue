@@ -848,10 +848,14 @@ async function guardarRegistro() {
         };
         if (actualizar.value) {
             await axios.put(`/api/contratos/${registro.value.id}`, payload);
-            toastMessage("Contrato actualizado correctamente");
+            toastMessage({
+                heading: "Ok",
+                text: "Contrato actualizado correctamente",
+                icon: "success",
+            });
         } else {
             await axios.post("/api/contratos", payload);
-            toastMessage("Contrato creado correctamente");
+            toastMessage({ heading: "Ok", text: "Contrato creado correctamente", icon: "success" });
         }
         btnCerralModalForm();
         await listar();
@@ -875,12 +879,16 @@ async function guardarRegistro() {
  * @date 2026-08-20
  */
 async function desactivarRegistro(item) {
-    const confirmed = await confirmAction("¿Está seguro de eliminar este contrato?");
+    const confirmed = await confirmAction({
+        title: "Eliminar contrato",
+        text: "¿Está seguro de eliminar este contrato? Se eliminarán también sus productos y médicos vinculados.",
+        icon: "warning",
+    });
     if (!confirmed) return;
     loadingEliminarId.value = item.id;
     try {
         await axios.delete(`/api/contratos/${item.id}`);
-        toastMessage("Contrato eliminado correctamente");
+        toastMessage({ heading: "Ok", text: "Contrato eliminado correctamente", icon: "success" });
         await listar();
     } catch (e) {
         console.error(e);
@@ -909,7 +917,7 @@ async function cargarCatalogos() {
     } catch (e) {
         console.error("Error cargando catálogos:", e);
         const msg = e.response?.data?.message || e.message || "Error desconocido";
-        toastMessage("Error cargando médicos: " + msg, "error");
+        toastMessage({ heading: "Error", text: "Error cargando médicos: " + msg, icon: "error" });
     }
 }
 
@@ -997,7 +1005,11 @@ function quitarProductoDetalle(index) {
 async function guardarDetalles() {
     if (loadingGuardarDetalle.value) return;
     if (!detallesLocales.value.length) {
-        toastMessage("Agregue al menos un médico-producto", "warning");
+        toastMessage({
+            heading: "Atención",
+            text: "Agregue al menos un médico-producto",
+            icon: "warning",
+        });
         return;
     }
     loadingGuardarDetalle.value = true;
@@ -1012,7 +1024,11 @@ async function guardarDetalles() {
             })),
         };
         await axios.put(`/api/contratos/${contratoSeleccionado.value.id}/medicos`, payload);
-        toastMessage("Médicos-producto guardados correctamente");
+        toastMessage({
+            heading: "Ok",
+            text: "Médicos-producto guardados correctamente",
+            icon: "success",
+        });
         const res = await axios.get(`/api/contratos/${contratoSeleccionado.value.id}`);
         contratoSeleccionado.value = res.data.data;
         detallesLocales.value = mapearMedicosDetalle(res.data.data.medicos || []);
@@ -1023,7 +1039,7 @@ async function guardarDetalles() {
             Object.values(e.response?.data?.errors || {})
                 .flat()
                 .join(", ");
-        toastMessage(msg || "Error de validación", "error");
+        toastMessage({ heading: "Error", text: msg || "Error de validación", icon: "error" });
     } finally {
         loadingGuardarDetalle.value = false;
     }
@@ -1129,13 +1145,13 @@ async function procesarImportacion() {
     if (loadingImportar.value) return;
 
     if (!importarForm.value.medico_id) {
-        toastMessage("Seleccione un médico", "warning");
+        toastMessage({ heading: "Atención", text: "Seleccione un médico", icon: "warning" });
         return;
     }
 
     const file = archivoImportarRef.value?.files?.[0];
     if (!file) {
-        toastMessage("Seleccione un archivo Excel", "warning");
+        toastMessage({ heading: "Atención", text: "Seleccione un archivo Excel", icon: "warning" });
         return;
     }
 
@@ -1153,7 +1169,7 @@ async function procesarImportacion() {
             }
         );
 
-        toastMessage("Detalle importado correctamente");
+        toastMessage({ heading: "Ok", text: "Detalle importado correctamente", icon: "success" });
         $("#modalImportar").modal("hide");
 
         // Refrescar sidebar de detalle si está abierto para este contrato
@@ -1165,7 +1181,7 @@ async function procesarImportacion() {
         await listar();
     } catch (e) {
         const msg = e.response?.data?.message || "Error al importar el archivo";
-        toastMessage(msg, "error");
+        toastMessage({ heading: "Error", text: msg, icon: "error" });
     } finally {
         loadingImportar.value = false;
     }
@@ -1237,13 +1253,13 @@ async function procesarImportacionProductos() {
     if (loadingImportarProductos.value) return;
 
     if (!importarProductosForm.value.contrato_id) {
-        toastMessage("Seleccione un contrato", "warning");
+        toastMessage({ heading: "Atención", text: "Seleccione un contrato", icon: "warning" });
         return;
     }
 
     const file = archivoProductosRef.value?.files?.[0];
     if (!file) {
-        toastMessage("Seleccione un archivo Excel", "warning");
+        toastMessage({ heading: "Atención", text: "Seleccione un archivo Excel", icon: "warning" });
         return;
     }
 
@@ -1258,7 +1274,11 @@ async function procesarImportacionProductos() {
             { headers: { "Content-Type": "multipart/form-data" } }
         );
 
-        toastMessage("Productos importados correctamente");
+        toastMessage({
+            heading: "Ok",
+            text: "Productos importados correctamente",
+            icon: "success",
+        });
         $("#modalImportarProductos").modal("hide");
 
         // Refrescar sidebar de detalle si está abierto para este contrato
@@ -1271,7 +1291,7 @@ async function procesarImportacionProductos() {
         await listar();
     } catch (e) {
         const msg = e.response?.data?.message || "Error al importar el archivo";
-        toastMessage(msg, "error");
+        toastMessage({ heading: "Error", text: msg, icon: "error" });
     } finally {
         loadingImportarProductos.value = false;
     }
