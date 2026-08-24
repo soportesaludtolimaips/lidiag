@@ -392,17 +392,12 @@
         >
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
-                    <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title" id="modalImportarLabel">
-                            <i class="fa fa-upload"></i> Importar Detalles de Contrato
-                        </h5>
-                        <button
-                            type="button"
-                            class="close text-white"
-                            data-dismiss="modal"
-                            aria-label="Cerrar"
-                        >
-                            <span aria-hidden="true">&times;</span>
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="modalImportarLabel">
+                            Importar Detalles de Contrato
+                        </h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                            &times;
                         </button>
                     </div>
                     <div class="modal-body">
@@ -418,7 +413,7 @@
                         </div>
                         <div class="form-group">
                             <label class="control-label">
-                                Médico <span class="text-danger">*</span>
+                                M&eacute;dico <span class="text-danger">*</span>
                             </label>
                             <Select2
                                 :value="importarForm.medico_id"
@@ -449,16 +444,19 @@
                     <div class="modal-footer">
                         <button
                             type="button"
-                            class="btn btn-success"
+                            class="btn btn-default waves-effect"
+                            data-dismiss="modal"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-primary waves-effect waves-light"
                             @click="procesarImportacion()"
                             :disabled="loadingImportar"
                         >
                             <i v-if="loadingImportar" class="fa fa-spinner fa-spin"></i>
-                            <i v-else class="fa fa-upload"></i>
                             Importar
-                        </button>
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                            Cancelar
                         </button>
                     </div>
                 </div>
@@ -476,17 +474,12 @@
         >
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
-                    <div class="modal-header bg-warning text-white">
-                        <h5 class="modal-title" id="modalImportarProductosLabel">
-                            <i class="fa fa-upload"></i> Importar Productos al Contrato
-                        </h5>
-                        <button
-                            type="button"
-                            class="close text-white"
-                            data-dismiss="modal"
-                            aria-label="Cerrar"
-                        >
-                            <span aria-hidden="true">&times;</span>
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="modalImportarProductosLabel">
+                            Importar Productos al Contrato
+                        </h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                            &times;
                         </button>
                     </div>
                     <div class="modal-body">
@@ -522,16 +515,19 @@
                     <div class="modal-footer">
                         <button
                             type="button"
-                            class="btn btn-success"
+                            class="btn btn-default waves-effect"
+                            data-dismiss="modal"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-primary waves-effect waves-light"
                             @click="procesarImportacionProductos()"
                             :disabled="loadingImportarProductos"
                         >
                             <i v-if="loadingImportarProductos" class="fa fa-spinner fa-spin"></i>
-                            <i v-else class="fa fa-upload"></i>
                             Importar
-                        </button>
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                            Cancelar
                         </button>
                     </div>
                 </div>
