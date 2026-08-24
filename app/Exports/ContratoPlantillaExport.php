@@ -19,10 +19,10 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 /**
  * Export de la plantilla general de productos para contratación.
- * Genera un Excel con el catálogo completo de productos activos:
+ * Genera un Excel con los productos activos que requieren lectura (requi_lectura = 1):
  * - Fila 1: Título
  * - Fila 2: Encabezados (CODIGO | ACTIVIDAD | Tarifa Actividad)
- * - Filas 3+: Productos activos de config_productos
+ * - Filas 3+: Productos activos con lectura de config_productos
  *
  * Si se recibe un contrato_id, precarga en "Tarifa Actividad" el valor
  * contratado existente en contratos_productos; de lo contrario queda en 0
@@ -68,9 +68,10 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
     }
 
     /**
-     * Consulta todos los productos activos del catálogo config_productos.
+     * Consulta los productos activos del catálogo config_productos
+     * que requieren lectura de estudios (requi_lectura = 1).
      *
-     * @returns \Illuminate\Support\Collection<int, mixed> Colección de productos activos ordenada por código CUPS.
+     * @returns \Illuminate\Support\Collection<int, mixed> Colección de productos activos con lectura ordenada por código CUPS.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -78,7 +79,8 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
      */
     public function collection()
     {
-        return ConfigProducto::where('estado', 1)
+        return ConfigProducto::where('requi_lectura', 1)
+            ->where('estado', 1)
             ->select('id', 'cod_cups', 'nom_produc')
             ->orderBy('cod_cups')
             ->get();
