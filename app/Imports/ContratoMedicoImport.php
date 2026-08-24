@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Exceptions\CupsFaltantesException;
+use App\Imports\Concerns\ValidaEncabezados;
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Contratacion\ContratoMedico;
 use App\Models\Contratacion\ContratoProducto;
@@ -36,6 +37,8 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
  */
 class ContratoMedicoImport implements ToCollection, WithHeadingRow
 {
+    use ValidaEncabezados;
+
     /**
      * Contador de filas importadas correctamente.
      */
@@ -96,9 +99,15 @@ class ContratoMedicoImport implements ToCollection, WithHeadingRow
             throw new \Exception('El archivo Excel no contiene datos para importar.');
         }
 
-        // ── FASE 0: validar formato (encabezados legibles) ─────────────
-        // Si ninguna fila trae código CUPS, los encabezados no coinciden
-        // con el formato esperado y el import sería un no-op silencioso.
+        // ── FASE 0: validar encabezados de la fila 2 ───────────────────
+        $this->validarEncabezados(
+            $rows->first(),
+            ['codigo', 'actividad', 'valor_contrato', 'valor_consulta', 'valor_urgencias'],
+            'CODIGO | ACTIVIDAD | Valor Contrato | Valor Consulta | Valor Urgencias (encabezados en fila 2, datos desde fila 3)'
+        );
+
+        // ── FASE 0b: validar que existan códigos CUPS legibles ─────────
+        // Si ninguna fila trae código CUPS, los datos no inician en la fila 3.
         $hayCodigos = false;
 
         foreach ($rows as $row) {
@@ -110,7 +119,7 @@ class ContratoMedicoImport implements ToCollection, WithHeadingRow
 
         if (! $hayCodigos) {
             throw new \Exception(
-                'No se encontraron códigos CUPS válidos en el archivo. Verifique que la fila 2 contenga los encabezados CODIGO | ACTIVIDAD | Valor Contrato | Valor Consulta | Valor Urgencias y que los datos inicien en la fila 3.'
+                'No se encontraron códigos CUPS válidos en el archivo. Verifique que los datos inicien en la fila 3, debajo de los encabezados.'
             );
         }
 

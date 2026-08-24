@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Exceptions\CupsFaltantesException;
+use App\Imports\Concerns\ValidaEncabezados;
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Contratacion\ContratoProducto;
 use Illuminate\Support\Collection;
@@ -35,6 +36,8 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
  */
 class ContratoProductoImport implements ToCollection, WithHeadingRow
 {
+    use ValidaEncabezados;
+
     /**
      * Contador de filas importadas correctamente (creadas o actualizadas).
      */
@@ -81,7 +84,7 @@ class ContratoProductoImport implements ToCollection, WithHeadingRow
      *
      * @param  Collection<int, Collection<string, mixed>>  $rows  Filas del Excel mapeadas por encabezados.
      *
-     * @throws \Exception Si no hay filas o ninguna contiene un código CUPS legible (formato inválido).
+     * @throws \Exception Si los encabezados no coinciden con el formato esperado, o ninguna fila contiene un código CUPS legible.
      * @throws CupsFaltantesException Si hay CUPS inexistentes y no se autorizó crearlos.
      *
      * @author Jhon Javer Lozano Arce
@@ -94,7 +97,14 @@ class ContratoProductoImport implements ToCollection, WithHeadingRow
             throw new \Exception('El archivo Excel no contiene datos para importar.');
         }
 
-        // ── FASE 0: parsear filas y validar formato ────────────────────
+        // ── FASE 0: validar encabezados de la fila 2 ───────────────────
+        $this->validarEncabezados(
+            $rows->first(),
+            ['codigo', 'actividad', 'tarifa_actividad'],
+            'CODIGO | ACTIVIDAD | Tarifa Actividad (encabezados en fila 2, datos desde fila 3)'
+        );
+
+        // ── FASE 1: parsear filas ──────────────────────────────────────
         $productosCache = ConfigProducto::where('estado', 1)
             ->pluck('id', 'cod_cups')
             ->toArray();
@@ -115,7 +125,7 @@ class ContratoProductoImport implements ToCollection, WithHeadingRow
 
         if (empty($items)) {
             throw new \Exception(
-                'No se encontraron códigos CUPS válidos en el archivo. Verifique que la fila 2 contenga los encabezados CODIGO | ACTIVIDAD | Tarifa Actividad y que los datos inicien en la fila 3.'
+                'No se encontraron códigos CUPS válidos en el archivo. Verifique que los datos inicien en la fila 3, debajo de los encabezados.'
             );
         }
 
