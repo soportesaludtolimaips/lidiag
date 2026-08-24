@@ -31,7 +31,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-24
+ * @date 2026-08-20
  */
 class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithCustomStartCell, WithEvents, WithHeadings, WithMapping, WithStyles
 {
@@ -54,7 +54,7 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function __construct(?int $contratoId = null)
     {
@@ -74,7 +74,7 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function collection()
     {
@@ -91,7 +91,7 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function headings(): array
     {
@@ -112,7 +112,7 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function map($producto): array
     {
@@ -131,7 +131,7 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function styles(Worksheet $sheet): array
     {
@@ -152,7 +152,7 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function registerEvents(): array
     {
@@ -201,7 +201,7 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function columnWidths(): array
     {
@@ -219,7 +219,7 @@ class ContratoPlantillaExport implements FromCollection, WithColumnWidths, WithC
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function startCell(): string
     {

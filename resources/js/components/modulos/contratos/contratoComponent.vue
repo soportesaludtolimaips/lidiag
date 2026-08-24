@@ -702,7 +702,7 @@ const medicoOptions = computed(() =>
  * @returns {Array<{id: string, label: string}>}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-24
+ * @date 2026-08-20
  */
 const contratoOptions = computed(() =>
     registros.value.map((r) => ({
@@ -899,7 +899,7 @@ async function desactivarRegistro(item) {
  * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-24
+ * @date 2026-08-20
  */
 async function cargarCatalogos() {
     try {
@@ -924,7 +924,7 @@ async function cargarCatalogos() {
  * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-24
+ * @date 2026-08-20
  */
 async function abrirDetalle(contrato) {
     contratoSeleccionado.value = contrato;
@@ -941,7 +941,7 @@ async function abrirDetalle(contrato) {
  * @returns {Array<{id: number, medico_id: number, medico_name: string, producto_id: number|null, cod_cups: string, nom_produc: string, valor_contrato: number, valor_consulta: number, valor_urgencias: number}>}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-24
+ * @date 2026-08-20
  */
 function mapearMedicosDetalle(medicosContrato) {
     return (medicosContrato || []).map((m) => ({
@@ -963,7 +963,7 @@ function mapearMedicosDetalle(medicosContrato) {
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-24
+ * @date 2026-08-20
  */
 function cerrarDetalle() {
     contratoSeleccionado.value = null;
@@ -978,7 +978,7 @@ function cerrarDetalle() {
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-24
+ * @date 2026-08-20
  */
 function quitarProductoDetalle(index) {
     detallesLocales.value.splice(index, 1);
@@ -992,7 +992,7 @@ function quitarProductoDetalle(index) {
  * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-24
+ * @date 2026-08-20
  */
 async function guardarDetalles() {
     if (loadingGuardarDetalle.value) return;
@@ -1062,7 +1062,7 @@ const loadingImportar = ref(false);
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-24
+ * @date 2026-08-20
  */
 function descargarPlantilla(item) {
     window.open(`/api/contratos/plantilla-general?contrato_id=${item.id}`, "_blank");
@@ -1074,7 +1074,7 @@ function descargarPlantilla(item) {
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-24
+ * @date 2026-08-20
  */
 function descargarPlantillaGeneral() {
     window.open("/api/contratos/plantilla-general", "_blank");
@@ -1088,7 +1088,7 @@ function descargarPlantillaGeneral() {
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-24
+ * @date 2026-08-20
  */
 function abrirModalImportar(item) {
     importarForm.value = {
@@ -1109,7 +1109,7 @@ function abrirModalImportar(item) {
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-24
+ * @date 2026-08-20
  */
 function onMedicoSelectDetalleImport(id) {
     importarForm.value.medico_id = id;
@@ -1123,7 +1123,7 @@ function onMedicoSelectDetalleImport(id) {
  * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-24
+ * @date 2026-08-20
  */
 async function procesarImportacion() {
     if (loadingImportar.value) return;
@@ -1199,7 +1199,7 @@ const loadingImportarProductos = ref(false);
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-24
+ * @date 2026-08-20
  */
 function abrirModalImportarProductos() {
     importarProductosForm.value = { contrato_id: null };
@@ -1217,7 +1217,7 @@ function abrirModalImportarProductos() {
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-24
+ * @date 2026-08-20
  */
 function onContratoSelectImportProductos(id) {
     importarProductosForm.value.contrato_id = id;
@@ -1231,7 +1231,7 @@ function onContratoSelectImportProductos(id) {
  * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-24
+ * @date 2026-08-20
  */
 async function procesarImportacionProductos() {
     if (loadingImportarProductos.value) return;

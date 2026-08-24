@@ -17,7 +17,7 @@ use App\Services\BaseService;
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-24
+ * @date 2026-08-20
  */
 class ContratoService extends BaseService
 {
@@ -31,7 +31,7 @@ class ContratoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function list(array $filters): array
     {
@@ -86,7 +86,7 @@ class ContratoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function find(int $id): array
     {
@@ -113,7 +113,7 @@ class ContratoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function create(array $data): array
     {
@@ -140,7 +140,7 @@ class ContratoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function update(int $id, array $data): array
     {
@@ -173,7 +173,7 @@ class ContratoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function delete(int $id): array
     {
@@ -201,7 +201,7 @@ class ContratoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function toggleEstado(int $id): array
     {
@@ -233,7 +233,7 @@ class ContratoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function syncProductos(int $contratoId, array $data): array
     {
@@ -285,7 +285,7 @@ class ContratoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function syncMedicos(int $contratoId, array $data): array
     {

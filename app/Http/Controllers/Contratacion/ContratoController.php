@@ -23,7 +23,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-24
+ * @date 2026-08-20
  */
 class ContratoController extends Controller
 {
@@ -35,7 +35,7 @@ class ContratoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function __construct(
         private readonly ContratoService $contratoService,
@@ -58,7 +58,7 @@ class ContratoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function index(Request $request): JsonResponse
     {
@@ -78,7 +78,7 @@ class ContratoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function store(ContratoRequest $request): JsonResponse
     {
@@ -96,7 +96,7 @@ class ContratoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function show(int $id): JsonResponse
     {
@@ -115,7 +115,7 @@ class ContratoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function update(ContratoRequest $request, int $id): JsonResponse
     {
@@ -133,7 +133,7 @@ class ContratoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function destroy(int $id): JsonResponse
     {
@@ -151,7 +151,7 @@ class ContratoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function toggleEstado(int $id): JsonResponse
     {
@@ -171,7 +171,7 @@ class ContratoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function exportPlantillaGeneral(Request $request): BinaryFileResponse
     {
@@ -201,7 +201,7 @@ class ContratoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function importarProductos(Request $request, int $contratoId): JsonResponse
     {
@@ -238,7 +238,7 @@ class ContratoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function syncMedicos(Request $request, int $contratoId): JsonResponse
     {
@@ -269,7 +269,7 @@ class ContratoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function importarMedicos(Request $request, int $contratoId): JsonResponse
     {

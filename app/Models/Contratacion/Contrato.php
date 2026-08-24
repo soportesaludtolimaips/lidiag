@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-24
+ * @date 2026-08-20
  */
 class Contrato extends Model
 {
@@ -63,7 +63,7 @@ class Contrato extends Model
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function sede(): BelongsTo
     {
@@ -77,7 +77,7 @@ class Contrato extends Model
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function productos(): HasMany
     {
@@ -91,7 +91,7 @@ class Contrato extends Model
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-24
+     * @date 2026-08-20
      */
     public function medicos(): HasMany
     {
