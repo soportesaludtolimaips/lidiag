@@ -396,7 +396,13 @@
                         <h4 class="modal-title" id="modalImportarLabel">
                             Importar Detalles de Contrato
                         </h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <button
+                            type="button"
+                            class="close"
+                            @click="cerrarModalImportar()"
+                            aria-label="Cerrar"
+                            aria-hidden="true"
+                        >
                             &times;
                         </button>
                     </div>
@@ -445,7 +451,7 @@
                         <button
                             type="button"
                             class="btn btn-default waves-effect"
-                            data-dismiss="modal"
+                            @click="cerrarModalImportar()"
                         >
                             Cancelar
                         </button>
@@ -476,9 +482,15 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h4 class="modal-title" id="modalImportarProductosLabel">
-                            Importar Productos al Contrato
+                            <i class="fa fa-upload"></i> Importar Productos al Contrato
                         </h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <button
+                            type="button"
+                            class="close"
+                            @click="cerrarModalImportarProductos()"
+                            aria-label="Cerrar"
+                            aria-hidden="true"
+                        >
                             &times;
                         </button>
                     </div>
@@ -516,7 +528,7 @@
                         <button
                             type="button"
                             class="btn btn-default waves-effect"
-                            data-dismiss="modal"
+                            @click="cerrarModalImportarProductos()"
                         >
                             Cancelar
                         </button>
@@ -1115,6 +1127,19 @@ function abrirModalImportar(item) {
 }
 
 /**
+ * Cierra el modal de importación de médicos-producto.
+ * Usa el API jQuery de Bootstrap para garantizar el cierre sin depender de data-dismiss.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
+ */
+function cerrarModalImportar() {
+    $("#modalImportar").modal("hide");
+}
+
+/**
  * Handler: se ejecuta cuando el usuario selecciona un médico en el Select2 del modal.
  *
  * @param {string|null} id - ID del médico seleccionado
@@ -1272,6 +1297,19 @@ function abrirModalImportarProductos() {
         archivoProductosRef.value.value = "";
     }
     $("#modalImportarProductos").modal("show");
+}
+
+/**
+ * Cierra el modal de importación de productos al contrato.
+ * Usa el API jQuery de Bootstrap para garantizar el cierre sin depender de data-dismiss.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-20
+ */
+function cerrarModalImportarProductos() {
+    $("#modalImportarProductos").modal("hide");
 }
 
 /**

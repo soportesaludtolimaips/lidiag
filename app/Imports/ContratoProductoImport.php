@@ -72,13 +72,16 @@ class ContratoProductoImport implements ToCollection, WithHeadingRow
 
     /**
      * Procesa las filas del Excel dentro de una transacción atómica.
-     * Primero detecta todos los códigos CUPS inexistentes en config_productos;
-     * si hay faltantes y no se autorizó su creación, lanza CupsFaltantesException
-     * con la lista completa (sin importar nada). Si se autorizó, los crea en el
-     * catálogo y continúa con el upsert de contratos_productos.
+     * Primero parsea las filas y valida que existan códigos CUPS legibles;
+     * si el archivo trae filas pero ninguna con código válido (formato de
+     * encabezados incorrecto), lanza excepción explicativa. Luego detecta los
+     * códigos inexistentes en config_productos; si hay faltantes y no se
+     * autorizó su creación, lanza CupsFaltantesException con la lista completa.
+     * Finalmente hace el upsert de contratos_productos.
      *
      * @param  Collection<int, Collection<string, mixed>>  $rows  Filas del Excel mapeadas por encabezados.
      *
+     * @throws \Exception Si no hay filas o ninguna contiene un código CUPS legible (formato inválido).
      * @throws CupsFaltantesException Si hay CUPS inexistentes y no se autorizó crearlos.
      *
      * @author Jhon Javer Lozano Arce
@@ -91,20 +94,39 @@ class ContratoProductoImport implements ToCollection, WithHeadingRow
             throw new \Exception('El archivo Excel no contiene datos para importar.');
         }
 
-        // ── FASE 1: parsear filas y detectar faltantes ────────────────
+        // ── FASE 0: parsear filas y validar formato ────────────────────
         $productosCache = ConfigProducto::where('estado', 1)
             ->pluck('id', 'cod_cups')
             ->toArray();
 
-        $faltantes = [];
+        $items = [];
 
         foreach ($rows as $row) {
             $codCups = trim((string) ($row['codigo'] ?? ''));
 
-            if ($codCups !== '' && ! isset($productosCache[$codCups])) {
-                $faltantes[] = [
+            if ($codCups !== '') {
+                $items[] = [
                     'codigo' => $codCups,
                     'actividad' => trim((string) ($row['actividad'] ?? '')),
+                    'tarifa' => (float) ($row['tarifa_actividad'] ?? 0),
+                ];
+            }
+        }
+
+        if (empty($items)) {
+            throw new \Exception(
+                'No se encontraron códigos CUPS válidos en el archivo. Verifique que la fila 2 contenga los encabezados CODIGO | ACTIVIDAD | Tarifa Actividad y que los datos inicien en la fila 3.'
+            );
+        }
+
+        // ── FASE 1: detectar faltantes en el catálogo ──────────────────
+        $faltantes = [];
+
+        foreach ($items as $item) {
+            if (! isset($productosCache[$item['codigo']])) {
+                $faltantes[$item['codigo']] = [
+                    'codigo' => $item['codigo'],
+                    'actividad' => $item['actividad'],
                 ];
             }
         }
@@ -112,7 +134,7 @@ class ContratoProductoImport implements ToCollection, WithHeadingRow
         if (! empty($faltantes)) {
             if (! $this->crearFaltantes) {
                 // Pre-validación: no importa nada, devuelve la lista al frontend
-                throw new CupsFaltantesException($faltantes);
+                throw new CupsFaltantesException(array_values($faltantes));
             }
 
             // Crear los productos faltantes en el catálogo maestro
@@ -129,25 +151,20 @@ class ContratoProductoImport implements ToCollection, WithHeadingRow
         }
 
         // ── FASE 2: upsert de contratos_productos ──────────────────────
-        DB::transaction(function () use ($rows, $productosCache) {
-            foreach ($rows as $row) {
-                $codCups = trim((string) ($row['codigo'] ?? ''));
-                $tarifa = (float) ($row['tarifa_actividad'] ?? 0);
+        DB::transaction(function () use ($items, $productosCache) {
+            foreach ($items as $item) {
+                ContratoProducto::updateOrCreate(
+                    [
+                        'contrato_id' => $this->contratoId,
+                        'producto_id' => $productosCache[$item['codigo']],
+                    ],
+                    [
+                        'valor_contrato' => $item['tarifa'],
+                        'estado' => 1,
+                    ]
+                );
 
-                if ($codCups !== '') {
-                    ContratoProducto::updateOrCreate(
-                        [
-                            'contrato_id' => $this->contratoId,
-                            'producto_id' => $productosCache[$codCups],
-                        ],
-                        [
-                            'valor_contrato' => $tarifa,
-                            'estado' => 1,
-                        ]
-                    );
-
-                    $this->importados++;
-                }
+                $this->importados++;
             }
         });
     }

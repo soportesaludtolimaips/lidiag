@@ -84,7 +84,7 @@ class ContratoMedicoImport implements ToCollection, WithHeadingRow
      * @param  Collection<int, Collection<string, mixed>>  $rows  Filas del Excel mapeadas por encabezados.
      *
      * @throws CupsFaltantesException Si hay CUPS inexistentes en el catálogo y no se autorizó crearlos.
-     * @throws \Exception Si un CUPS existe en el catálogo pero no está configurado en el contrato.
+     * @throws \Exception Si los encabezados no coinciden con el formato esperado, o un CUPS no está configurado en el contrato.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -94,6 +94,24 @@ class ContratoMedicoImport implements ToCollection, WithHeadingRow
     {
         if ($rows->isEmpty()) {
             throw new \Exception('El archivo Excel no contiene datos para importar.');
+        }
+
+        // ── FASE 0: validar formato (encabezados legibles) ─────────────
+        // Si ninguna fila trae código CUPS, los encabezados no coinciden
+        // con el formato esperado y el import sería un no-op silencioso.
+        $hayCodigos = false;
+
+        foreach ($rows as $row) {
+            if (trim((string) ($row['codigo'] ?? '')) !== '') {
+                $hayCodigos = true;
+                break;
+            }
+        }
+
+        if (! $hayCodigos) {
+            throw new \Exception(
+                'No se encontraron códigos CUPS válidos en el archivo. Verifique que la fila 2 contenga los encabezados CODIGO | ACTIVIDAD | Valor Contrato | Valor Consulta | Valor Urgencias y que los datos inicien en la fila 3.'
+            );
         }
 
         // ── FASE 1: parsear filas y detectar faltantes en el catálogo ──
