@@ -1,8 +1,0 @@
-fastapi
-uvicorn
-openai-whisper
-python-multipart
-torch
-torchaudio
-numpy
-ffmpeg-python
