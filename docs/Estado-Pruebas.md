@@ -31,14 +31,14 @@
 
 | Módulo | Total | ⬜ Sin iniciar | 🔵 Iniciado | 🟡 En progreso | ✅ Terminado | Automatizadas |
 |---|---|---|---|---|---|---|
-| Estudios | 27 | 16 | 0 | 1 | 10 | ✅ 28/28 |
+| Estudios | 27 | 15 | 0 | 1 | 11 | ✅ 28/28 |
 | Configuración | 21 | 21 | 0 | 0 | 0 | — |
 | Contratación | 4 | 1 | 0 | 0 | 3 | ✅ 1/1 |
 | Seguridad | 6 | 4 | 0 | 0 | 2 | ✅ 8/8 |
 | Ecografías | 8 | 8 | 0 | 0 | 0 | — |
 | Reportes | 1 | 1 | 0 | 0 | 0 | — |
 | Tele-radiología | 2 | 2 | 0 | 0 | 0 | — |
-| **TOTAL** | **69** | **53** | **0** | **1** | **15** | **37/37** |
+| **TOTAL** | **69** | **52** | **0** | **1** | **16** | **37/37** |
 
 ---
 
@@ -62,8 +62,8 @@
 | # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
 |---|---|---|---|---|---|---|---|
 | 1 | Búsqueda por documento | ✅ Terminado | ✅ PASS | 2026-08-24 | Ox | headless: API 200, paciente "MORENO GARCIA" renderizado, 2 filas | MAN-AE-01; PACS activo requerido |
-| 2 | Sin sede → validación | ⬜ Sin iniciar | — | — | — | — | MAN-AE-02; vaciar ST-sede → toast warning |
-| 3 | Agregar producto/diagnóstico | ⬜ Sin iniciar | — | — | — | — | MAN-AE-03; filas en tablas locales |
+| 2 | Sin sede → validación | ✅ Terminado | ✅ PASS | 2026-08-25 | Ox | headless: toast jq-toast "Debes establece la sede..." visible + 0 peticiones API | MAN-AE-02 |
+| 3 | Agregar producto/diagnóstico | 🟡 En progreso | — | 2026-08-25 | Jhon Javer | — | MAN-AE-03; usar **sede 5 Líbano** (sin interface SAHI → muestra Select2 catálogo local). Doc prueba: `111454545` (estudio CODO/DOLOR 2026-07-15). La selección en Select2 agrega directo (sin botón Agregar) |
 | 4 | Eliminar producto (regresión) | ⬜ Sin iniciar | — | — | — | — | MAN-AE-04; confirmar splice, antes roto |
 | 5 | Eliminar diagnóstico (regresión) | ⬜ Sin iniciar | — | — | — | — | MAN-AE-05; mismo patrón que producto |
 | 6 | Guardar asignación | ⬜ Sin iniciar | — | — | — | — | MAN-AE-06; toast éxito, fila "agendado" |
