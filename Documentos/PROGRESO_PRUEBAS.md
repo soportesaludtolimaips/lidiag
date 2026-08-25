@@ -70,8 +70,8 @@
 - [ ] **MAN-AE-08** Cambio de sede global → lista limpia + recarga única
 
 #### Descarga ZIP
-- [ ] **MAN-DZ-01** Generación normal → barra → "ZIP listo"
-- [ ] **MAN-DZ-02** Descarga exitosa → archivo baja con nombre correcto
+- [ ] **MAN-DZ-01** ⚠️ BLOQUEADO-ENV: `generate-zip` consulta pacsdb (PACS remoto intermitente — 0/8 ventanas buenas en reintentos). Script de re-ejecución listo (`qa_dz01_v2.mjs`, auto-reintenta búsqueda 8×). La ruta de error del componente está cubierta por aserciones estáticas DZ-01..05
+- [ ] **MAN-DZ-02** Descarga exitosa → archivo baja con nombre correcto (depende de DZ-01)
 - [ ] **MAN-DZ-03** 🔁 Backend caído >5s durante progreso → panel ERROR con Reintentar
 - [ ] **MAN-DZ-04** 🔁 Simular 500 en download-zip → panel ERROR visible
 - [ ] **MAN-DZ-05** Navegar fuera durante generación → cero requests zip-status residuales
@@ -149,3 +149,4 @@
 | 2026-08-24 | Seguridad AUTH curl/lint/build | ✅ 8/8 | `3a7532334` |
 | 2026-08-24 | **Estudios MAN-\* headless** (browser-automation): login, AE-01(bloq-env)/07, EA-01, LE-01/06, NE-01/03, TR-01 | ✅ 7 PASS · ⚠️ 1 bloqueado-env · 0 FAIL | — |
 | 2026-08-24 | **MAN-AE-01 re-ejecutado** con PACS activo | ✅ PASS (API 200 + paciente renderizado + 2 filas) | — |
+| 2026-08-24 | **MAN-DZ-01 intento headless** | ⚠️ BLOQUEADO-ENV (PACS intermitente, 0/8 ventanas) — script de reintento guardado | `qa_dz01_v2.mjs` |
