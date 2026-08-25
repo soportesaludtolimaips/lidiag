@@ -192,7 +192,9 @@ class DicomBurnerController extends Controller
      */
     private function prepareCdFolder(int $burnId, string $dicomFolder): string
     {
-        $viewerSource = storage_path('microdicom');
+        // Visor portable en storage/app_lidiag (hogar de apps empaquetadas,
+        // ignorado por git)
+        $viewerSource = storage_path('app_lidiag/microdicom');
         $cdFolder = storage_path("app/burns/{$burnId}/cd");
 
         if (! is_dir($viewerSource)) {
@@ -384,10 +386,11 @@ class DicomBurnerController extends Controller
             file_put_contents($progressFile, json_encode(['progress' => 0, 'status' => 'Descargando imágenes...']));
 
             // Copy MicroDicom viewer
-            $viewerSource = storage_path('microdicom');
-            if (is_dir($viewerSource)) {
-                $this->copyDirectory($viewerSource, $tempDir);
+            $viewerSource = storage_path('app_lidiag/microdicom');
+            if (! is_dir($viewerSource)) {
+                throw new \RuntimeException('Carpeta del visor MicroDicom no encontrada: '.$viewerSource);
             }
+            $this->copyDirectory($viewerSource, $tempDir);
 
             // Download DICOM images
             $result = DicomHelper::downloadStudyImages(

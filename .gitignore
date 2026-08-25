@@ -48,6 +48,9 @@ resources/js/admin-wrap/assets/node_modules.rar
 # LibreOfficePortable (太大，不版本ar)
 storage/LibreOfficePortable/
 
+# app_lidiag (aplicaciones empaquetadas propias)
+storage/app_lidiag/
+
 # Tauri build artifacts and logs
 storage/src-tauri/target/
 storage/src-tauri/*.log*

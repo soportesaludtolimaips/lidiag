@@ -113,7 +113,7 @@ return [
         ],
         'microdicom' => [
             'driver' => 'local',
-            'root' => storage_path('app/microdicom'),
+            'root' => storage_path('app_lidiag/microdicom'),
             'visibility' => 'public',
         ],
     ],
@@ -131,7 +131,7 @@ return [
 
     'links' => [
         public_path('storage') => storage_path('app/public'),
-        public_path('microdicom') => storage_path('app/microdicom'),
+        public_path('microdicom') => storage_path('app_lidiag/microdicom'),
     ],
 
 ];
