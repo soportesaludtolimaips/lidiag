@@ -11,7 +11,7 @@
 | Módulo | Automáticas | Manuales | ✅ Pass | ❌ Fail | ⬜ Pendientes | Avance manual |
 |---|---|---|---|---|---|---|
 | Contratación | 1 (E2E real BD) | 1 flujo completo | 1 | 0 | 0 | **100%** |
-| Estudios | 28/28 ✅ | **39** (9 con headless) | **8** (+28 auto) | 0 | 31 | **21%** |
+| Estudios | 28/28 ✅ | **39** (10 con headless) | **10** (+28 auto) | 0 | 29 | **26%** |
 | Seguridad Auth | 8/8 ✅ | 6 decisiones `.env` prod | 8 | 0 | 6* | *no aplican en local |
 
 *\*Los 6 ítems ENV-* son decisiones para el entorno de producción, no bloquean desarrollo.*
@@ -21,8 +21,9 @@
 | ID | Hallazgo | Clasificación |
 |---|---|---|
 | DEF-08 | Avatar del header usa URL `http://localhost:5179/...jpg` → warning Mixed Content en HTTPS. Migrar a ruta relativa o https | Cosmético |
-| ENV-PACS | `study.listarEstudios` depende del PACS remoto (`10.35.47.3/pacsdb`, dcm4chee). Con PACS caído: API 500 + toast por interceptor (comportamiento correcto del front). **PACS reconectado durante la sesión → AE-01 ejecutado con éxito** | Entorno |
-| RUNNER-01 | Playwright no logra click "actionable" sobre botones Buscar del módulo (overlay/geometry); el click programático `el.click()` dispara los handlers Vue correctamente. Artefacto del runner headless, NO reproduce en Chrome real | Info runner |
+| ENV-PACS | `study.listarEstudios` y `generate-zip` dependen del PACS remoto (`10.35.47.3/pacsdb` MySQL + WADO :8080). Túnel intermitente a mitad de sesión; estable al final → DZ-01/DZ-02 ejecutados con éxito | Entorno |
+| RUNNER-01 | En headless: (a) clicks de locator sobre botones del módulo requieren `el.click()` programático; (b) íconos FontAwesome miden 0×0; (c) descargas blob no emiten evento `download`. Artefactos del runner — NO reproducen en Chrome real | Info runner |
+| DATA-01 | Estudios 2021 del doc 1108828235 tienen metadatos en pacsdb pero imágenes purgadas (WADO 404). El panel de error los reporta correctamente: "No se encontraron imágenes DICOM para el estudio." + botón Reintentar | Dato/Entorno |
 
 ---
 
@@ -70,8 +71,8 @@
 - [ ] **MAN-AE-08** Cambio de sede global → lista limpia + recarga única
 
 #### Descarga ZIP
-- [ ] **MAN-DZ-01** ⚠️ BLOQUEADO-ENV: `generate-zip` consulta pacsdb (PACS remoto intermitente — 0/8 ventanas buenas en reintentos). Script de re-ejecución listo (`qa_dz01_v2.mjs`, auto-reintenta búsqueda 8×). La ruta de error del componente está cubierta por aserciones estáticas DZ-01..05
-- [ ] **MAN-DZ-02** Descarga exitosa → archivo baja con nombre correcto (depende de DZ-01)
+- [x] **MAN-DZ-01** ✅ PASS (headless, PACS activo, estudio de hoy con 1 imagen): modal abre → generación automática → zip-status 1 poll → "ZIP listo para descargar" + filename + botón habilitado. Nota: requiere estudio CON imágenes en storage del PACS (los 2021 del doc de prueba fueron purgados → WADO 404 → panel de error correcto)
+- [x] **MAN-DZ-02** ✅ PASS (headless): `GET download-zip` → **200 · 2.36 MB · application/zip**; UI sin error tras descarga. (El evento `download` de blobs no se surfacea en headless — verificación por red)
 - [ ] **MAN-DZ-03** 🔁 Backend caído >5s durante progreso → panel ERROR con Reintentar
 - [ ] **MAN-DZ-04** 🔁 Simular 500 en download-zip → panel ERROR visible
 - [ ] **MAN-DZ-05** Navegar fuera durante generación → cero requests zip-status residuales
@@ -150,3 +151,4 @@
 | 2026-08-24 | **Estudios MAN-\* headless** (browser-automation): login, AE-01(bloq-env)/07, EA-01, LE-01/06, NE-01/03, TR-01 | ✅ 7 PASS · ⚠️ 1 bloqueado-env · 0 FAIL | — |
 | 2026-08-24 | **MAN-AE-01 re-ejecutado** con PACS activo | ✅ PASS (API 200 + paciente renderizado + 2 filas) | — |
 | 2026-08-24 | **MAN-DZ-01 intento headless** | ⚠️ BLOQUEADO-ENV (PACS intermitente, 0/8 ventanas) — script de reintento guardado | `qa_dz01_v2.mjs` |
+| 2026-08-24 | **MAN-DZ-01 + DZ-02 re-ejecutados** con túnel estable (estudio de hoy, 1 imagen) | ✅ 2/2 PASS — "ZIP listo" + descarga 200 · 2.36 MB · application/zip | `qa_dz01_final.mjs`+`qa_dz02.mjs` |
