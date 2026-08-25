@@ -29,7 +29,7 @@ class PdfConverterHelper
         }
 
         try {
-            $soffice = base_path('storage/LibreOfficePortable/App/libreoffice/program/soffice.com');
+            $soffice = base_path('storage/app_lidiag/LibreOfficePortable/App/libreoffice/program/soffice.com');
 
             $command = escapeshellcmd('"'.$soffice.'" --headless --norestore --convert-to pdf --outdir "'.$outDir.'" "'.$sourcePath.'"');
 
