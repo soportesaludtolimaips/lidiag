@@ -42,7 +42,7 @@ class TranscripcionService
 
         try {
             $response = Http::timeout($this->timeout)
-                ->attach('file', fopen($audioPath, 'r'), basename($audioPath))
+                ->attach('file', fopen($audioPath, 'rb'), basename($audioPath))
                 ->post("{$this->serviceUrl}/transcribir");
 
             if ($response->successful()) {
