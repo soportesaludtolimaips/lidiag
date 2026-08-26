@@ -16,6 +16,7 @@ export function useDictationFlow() {
     const maxNoSpeechRetries = ref(6);
     const lastRecognitionError = ref(null);
     const recording = ref(false);
+    const startingRecording = ref(false);
     const microfono = ref("admin-wrap/assets/images/mic.gif");
     const dictation = ref(null);
     const voiceSession = ref(null);
@@ -218,7 +219,10 @@ export function useDictationFlow() {
         "guion bajo": () => "_",
         "barra diagonal": () => "/",
         "barra invertida": () => "\\",
-        "nueva oración": () => ". ",
+        "nueva oración": () => {
+            capitalizeNext.value = true;
+            return ". ";
+        },
         "por ciento": () => "%",
         menos: () => "-",
         más: () => "+",
@@ -636,8 +640,13 @@ export function useDictationFlow() {
     }
 
     function startRecording() {
+        if (startingRecording.value || recording.value) return;
+        startingRecording.value = true;
         ensureMicApiAvailable().then((ok) => {
-            if (!ok) return;
+            if (!ok) {
+                startingRecording.value = false;
+                return;
+            }
             prepareVoiceCommands();
             const allCommands = {
                 ...uppercaseCommands,
@@ -750,10 +759,12 @@ export function useDictationFlow() {
                     audioBlob.value = null;
                     audioUrl.value = null;
                     recording.value = true;
+                    startingRecording.value = false;
                     document.addEventListener("visibilitychange", handleVisibilityChange);
                 })
                 .catch((error) => {
                     recording.value = false;
+                    startingRecording.value = false;
                     microfono.value = "admin-wrap/assets/images/mic.gif";
                     const cfg = getMicErrorToastConfig(error);
                     showToast({

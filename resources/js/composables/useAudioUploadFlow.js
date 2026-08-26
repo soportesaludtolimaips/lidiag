@@ -80,10 +80,14 @@ export function useAudioUploadFlow({ showToast } = {}) {
         if (audioSeleccionados.value.length === 0) return null;
         insertandoAudios.value = true;
         let procesados = 0;
+        let omitidos = 0;
         let textoCompleto = "";
         for (const audioId of audioSeleccionados.value) {
             const audio = audiosCargadosPendientes.value.find((a) => a.id === audioId);
-            if (!audio || !audio.transcripcion) continue;
+            if (!audio || !audio.transcripcion) {
+                omitidos++;
+                continue;
+            }
             if (textoCompleto.length > 0) {
                 textoCompleto += "\n\n--- " + (audio.nombre_original || "Audio") + " ---\n\n";
             }
@@ -93,11 +97,13 @@ export function useAudioUploadFlow({ showToast } = {}) {
         if (typeof showToast === "function") {
             showToast({
                 heading: "Ok!!!",
-                text: `${procesados} audio(s) insertados en la lectura`,
+                text:
+                    `${procesados} audio(s) insertados en la lectura` +
+                    (omitidos > 0 ? `. ${omitidos} omitido(s) (transcripción pendiente)` : ""),
                 position: "top-right",
                 loaderBg: "#ff6849",
-                icon: "success",
-                hideAfter: 3500,
+                icon: procesados > 0 ? "success" : "warning",
+                hideAfter: 4500,
                 stack: 6,
             });
         }

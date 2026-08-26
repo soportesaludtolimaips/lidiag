@@ -1345,7 +1345,7 @@ function applyDashboardPrefill() {
     listarMisPendientes();
 }
 function normalizeWord(text) {
-    return medicalDict.normalizeWord(text);
+    return String(text || "");
 }
 
 /**
