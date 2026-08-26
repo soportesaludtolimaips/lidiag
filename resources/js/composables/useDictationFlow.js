@@ -199,7 +199,14 @@ export function useDictationFlow() {
             return ". ";
         },
         coma: () => ",",
-        "dos puntos": () => ":",
+        "dos puntos": () => {
+            capitalizeNext.value = true;
+            return ":";
+        },
+        "dos puntos aparte": () => {
+            capitalizeNext.value = true;
+            return ":\n\n";
+        },
         "punto y coma": () => ";",
         "dar espacio": () => " ",
         "un espacio": () => " ",
