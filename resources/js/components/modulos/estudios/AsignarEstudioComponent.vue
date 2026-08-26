@@ -172,9 +172,12 @@
                                 </thead>
                                 <tbody>
                                     <tr v-if="registros.length === 0">
-                                        <td colspan="6" class="text-center text-muted py-3">
-                                            Sin resultados
-                                        </td>
+                                        <td class="text-center text-muted py-3"></td>
+                                        <td class="text-center text-muted py-3"></td>
+                                        <td class="text-center text-muted py-3"></td>
+                                        <td class="text-center text-muted py-3"></td>
+                                        <td class="text-center text-muted py-3"></td>
+                                        <td class="text-center text-muted py-3">Sin resultados</td>
                                     </tr>
                                     <tr
                                         v-for="(item, index) in registros"
