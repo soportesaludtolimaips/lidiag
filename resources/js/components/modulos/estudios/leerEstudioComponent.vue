@@ -533,13 +533,11 @@
                                 <div class="row">
                                     <div class="col-12">
                                         <div class="form-group">
-                                            <textarea
+                                            <WysiwygEditor
                                                 v-model="registro.lectura"
-                                                class="form-control lectura-textarea"
-                                                rows="15"
-                                                id="lectura"
+                                                :rows="15"
                                                 placeholder="Ingrese aquí la lectura del estudio ..."
-                                            ></textarea>
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -1224,6 +1222,7 @@ import { useMedicalDictionary } from "@/composables/useMedicalDictionary";
 import { useDictationFlow } from "@/composables/useDictationFlow";
 import { useAudioUploadFlow } from "@/composables/useAudioUploadFlow";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
+import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import axios from "axios";
 
 const props = defineProps({ usuarioactual: Object, permisos: { type: Array, default: () => [] } });
@@ -1867,10 +1866,6 @@ onBeforeUnmount(() => {
 .sidebar-scroll {
     overflow-x: hidden;
     overflow-y: scroll;
-    height: 100%;
-}
-
-.lectura-textarea {
     height: 100%;
 }
 </style>

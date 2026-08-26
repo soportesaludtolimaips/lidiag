@@ -31,14 +31,14 @@
 
 | Módulo | Total | ⬜ Sin iniciar | 🔵 Iniciado | 🟡 En progreso | ✅ Terminado | Automatizadas |
 |---|---|---|---|---|---|---|
-| Estudios | 27 | 14 | 0 | 1 | 12 | ✅ 28/28 |
+| Estudios | 27 | 13 | 0 | 1 | 14 | ✅ 28/28 |
 | Configuración | 21 | 21 | 0 | 0 | 0 | — |
 | Contratación | 4 | 1 | 0 | 0 | 3 | ✅ 1/1 |
 | Seguridad | 6 | 4 | 0 | 0 | 2 | ✅ 8/8 |
 | Ecografías | 8 | 8 | 0 | 0 | 0 | — |
 | Reportes | 1 | 1 | 0 | 0 | 0 | — |
 | Tele-radiología | 2 | 2 | 0 | 0 | 0 | — |
-| **TOTAL** | **69** | **51** | **0** | **1** | **17** | **37/37** |
+| **TOTAL** | **69** | **50** | **0** | **1** | **18** | **37/37** |
 
 ---
 
@@ -97,6 +97,7 @@
 | 5 | Dictado F2 + comandos de voz | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | MAN-LE-05; F2 inicia/detiene, comandos: mayúsculas, puntuación, saltos, dos puntos aparte. 7 bugs corregidos |
 | 6 | Modal ayuda comandos | ✅ Terminado | ✅ PASS | 2026-08-24 | Ox | headless: life-ring abre, × y footer Close cierran | MAN-LE-06 |
 | 7 | Auto-refresh toggle | ⬜ Sin iniciar | — | — | — | — | MAN-LE-07 |
+| 8 | Cargar audio → transcripción UTF-8 | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | MAN-LE-08; sube mp3/webm, FFmpeg convierte, Whisper transcribe, sin caracteres raros. Fix: PYTHONUTF8=1 + file_get_contents |
 
 ### Sub-Módulo: Notificaciones
 

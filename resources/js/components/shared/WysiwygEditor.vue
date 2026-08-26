@@ -25,6 +25,33 @@ const textareaRef = ref(null);
 const editorId = `wysiwyg-${++idCounter}`;
 let observer = null;
 
+/**
+ * Convierte saltos de linea plano a HTML para wysihtml5.
+ * @param {string} text - Texto plano con \n
+ * @returns {string} HTML con <br> y <p>
+ */
+function plainToHtml(text) {
+    if (!text) return "";
+    return text.replace(/\n/g, "<br>");
+}
+
+/**
+ * Convierte HTML del editor a texto plano para el backend/SAHI.
+ * Reemplaza <br>, </p><p>, </p>, <p> por saltos de linea \n.
+ * @param {string} html - HTML del editor
+ * @returns {string} Texto plano con \n
+ */
+function htmlToPlain(html) {
+    if (!html) return "";
+    return html
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<\/p><p>/gi, "\n\n")
+        .replace(/<\/p>/gi, "\n")
+        .replace(/<p>/gi, "")
+        .replace(/<[^>]+>/g, "")
+        .trim();
+}
+
 function initEditor() {
     const el = textareaRef.value;
     if (!el || !window.$ || !$.fn || !$.fn.wysihtml5) return;
@@ -40,11 +67,11 @@ function initEditor() {
     const inst = $el.data("wysihtml5");
     if (inst?.editor) {
         if (props.modelValue) {
-            inst.editor.setValue(props.modelValue, true);
+            inst.editor.setValue(plainToHtml(props.modelValue), true);
         }
 
         inst.editor.on("blur", () => {
-            const val = inst.editor.getValue();
+            const val = htmlToPlain(inst.editor.getValue());
             emit("update:modelValue", val);
         });
 
@@ -87,7 +114,7 @@ function attachObserver(editor) {
             if (pending) return;
             pending = true;
             setTimeout(() => {
-                emit("update:modelValue", editor.getValue());
+                emit("update:modelValue", htmlToPlain(editor.getValue()));
                 pending = false;
             }, 300);
         });
@@ -116,9 +143,10 @@ watch(
         if (!el) return;
         const inst = $(el).data("wysihtml5");
         if (inst?.editor) {
-            const current = inst.editor.getValue();
-            if (current !== (newVal || "")) {
-                inst.editor.setValue(newVal || "", true);
+            const current = htmlToPlain(inst.editor.getValue());
+            const plain = newVal || "";
+            if (current !== plain) {
+                inst.editor.setValue(plainToHtml(plain), true);
             }
         }
     }
