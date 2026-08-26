@@ -1168,7 +1168,7 @@ function obtenerArchivo3(e) {
 async function mostrarRegistro(data = {}, index) {
     if (loadingAbrirRegistroIndex.value !== null) return;
     loadingAbrirRegistroIndex.value = index;
-    btnLimpiar();
+    limpiarFormulario();
 
     tituloModal.value = "Agendar al paciente: " + data.pat_name;
     id.value = data.study_pk;
@@ -1286,14 +1286,7 @@ function abrirModal() {
 function cerrarModal() {
     $(".right-sidebar").removeClass("shw-rside");
 }
-function btnLimpiar() {
-    busqueda.value.bus_nom_num_docu = "";
-    busqueda.value.bus_fech_ini = "";
-    busqueda.value.bus_fecha_fin = "";
-
-    registros.value = [];
-    destroyDataTable();
-
+function limpiarFormulario() {
     registro.value.study_pk = "";
     registro.value.study_iuid = "";
     registro.value.study_id = "";
@@ -1318,9 +1311,19 @@ function btnLimpiar() {
     soportesHC.value.archivo1 = null;
     soportesHC.value.archivo2 = null;
     soportesHC.value.archivo3 = null;
+}
+
+function btnLimpiar() {
+    busqueda.value.bus_nom_num_docu = "";
+    busqueda.value.bus_fech_ini = "";
+    busqueda.value.bus_fecha_fin = "";
+
+    registros.value = [];
+    destroyDataTable();
+
+    limpiarFormulario();
 
     cerrarModal();
-    idRow.value = null;
 }
 
 /**
