@@ -42,7 +42,7 @@ class TranscripcionService
 
         try {
             $response = Http::timeout($this->timeout)
-                ->attach('file', fopen($audioPath, 'rb'), basename($audioPath))
+                ->attach('file', file_get_contents($audioPath), basename($audioPath))
                 ->post("{$this->serviceUrl}/transcribir");
 
             if ($response->successful()) {
@@ -51,7 +51,8 @@ class TranscripcionService
                 Log::info('Transcripcion completada', [
                     'duracion' => $data['duracion'] ?? 0,
                     'idioma' => $data['idioma'] ?? 'es',
-                    'longitud_texto' => strlen($data['texto'] ?? ''),
+                    'longitud_texto' => mb_strlen($data['texto'] ?? '', 'UTF-8'),
+                    'muestra_texto' => mb_substr($data['texto'] ?? '', 0, 100, 'UTF-8'),
                 ]);
 
                 return [
