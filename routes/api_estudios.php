@@ -62,6 +62,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/edit-word', [PlantillaEstudioController::class, 'editWord']);
 
     Route::post('/estudio-leerEstudio', [EstudioController::class, 'leerEstudio'])
+        ->middleware('consent.bloqueo')
         ->name('api.estudio.leerEstudio');
 
     Route::post('/upload-audio', [EstudioAudioController::class, 'uploadAudio']);

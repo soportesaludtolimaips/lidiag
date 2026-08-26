@@ -102,6 +102,16 @@ import ecografiasAdmisionadasComponent from "./components/modulos/ecografias/eco
 app.component("EcografiasAdmisionadasComponent", ecografiasAdmisionadasComponent);
 import ecografiaFirmaConsentimientoComponent from "./components/modulos/ecografias/ecografiaFirmaConsentimientoComponent.vue";
 app.component("EcografiaFirmaConsentimientoComponent", ecografiaFirmaConsentimientoComponent);
+import consentimientoFirmaComponent from "./components/modulos/consentimientos/consentimientoFirmaComponent.vue";
+app.component("ConsentimientoFirmaComponent", consentimientoFirmaComponent);
+import consentimientosGenerarComponent from "./components/modulos/consentimientos/consentimientosGenerarComponent.vue";
+app.component("ConsentimientosGenerarComponent", consentimientosGenerarComponent);
+import consentimientosMedicoComponent from "./components/modulos/consentimientos/consentimientosMedicoComponent.vue";
+app.component("ConsentimientosMedicoComponent", consentimientosMedicoComponent);
+import consentimientosPlantillasComponent from "./components/modulos/consentimientos/consentimientosPlantillasComponent.vue";
+app.component("ConsentimientosPlantillasComponent", consentimientosPlantillasComponent);
+import consentimientosDashboardComponent from "./components/modulos/consentimientos/consentimientosDashboardComponent.vue";
+app.component("ConsentimientosDashboardComponent", consentimientosDashboardComponent);
 import ecografiasConsentimientosComponent from "./components/modulos/ecografias/ecografiasConsentimientosComponent.vue";
 app.component("EcografiasConsentimientosComponent", ecografiasConsentimientosComponent);
 import ecografiasConsentimientosPlantillasComponent from "./components/modulos/ecografias/ecografiasConsentimientosPlantillasComponent.vue";

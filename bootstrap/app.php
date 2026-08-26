@@ -53,6 +53,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 'api_configuracion.php',
                 'api_estudios.php',
                 'api_ecografias.php',
+                'api_consentimientos.php',
                 'api_seguridad.php',
                 'api_interfaces.php',
                 'api_agendamiento_dashboard.php',
@@ -119,6 +120,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
             'force-password-change' => ForcePasswordChange::class,
+            'consent.bloqueo' => \App\Http\Middleware\BloqueoLecturasConsentimientos::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

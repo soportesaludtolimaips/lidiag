@@ -38,7 +38,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('ecografia-lectura/{ecografia_id}', [ecografiaLecturaController::class, 'leer'])
         ->middleware('throttle:api-lectura')
         ->name('api.ecografias.lectura')
-        ->middleware(['permission:ecografias.leer,web']);
+        ->middleware(['permission:ecografias.leer,web', 'consent.bloqueo']);
 
     Route::post('ecografia-generar-reporte/{ecografia_id}', [EcografiaController::class, 'generarReporte'])
         ->name('api.ecografias.generar.reporte')

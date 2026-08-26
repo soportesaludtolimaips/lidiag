@@ -32,3 +32,66 @@ export const helpdesk = {
     marcarLeida: (id) => axios.post(`${BASE}/helpdesk-notificaciones/${id}/read`),
     marcarTodasLeidas: () => axios.post(`${BASE}/helpdesk-notificaciones/read-all`),
 };
+
+export const consentimientos = {
+    // Combos
+    productos: () => axios.get(`${BASE}/config-productos`),
+    sedesActivas: () => axios.get(`${BASE}/config-sedes/listar/sedes/activas`),
+
+    // Documentos
+    buscarPaciente: (numDocu) =>
+        axios.get(`${BASE}/consentimientos/buscar-paciente`, { params: { num_docu: numDocu } }),
+    medicos: () => axios.get(`${BASE}/consentimientos/medicos`),
+    listar: (params) => axios.get(`${BASE}/consentimientos`, { params }),
+    ver: (id) => axios.get(`${BASE}/consentimientos/${id}`),
+    generar: (data) => axios.post(`${BASE}/consentimientos`, data),
+    crearToken: (data) => axios.post(`${BASE}/consentimientos/token`, data),
+    firmarMedico: (data) => axios.post(`${BASE}/consentimientos/firmar-medico`, data),
+    anular: (id, data) => axios.post(`${BASE}/consentimientos/${id}/anular`, data),
+    generarPdf: (id) => axios.post(`${BASE}/consentimientos/${id}/pdf`),
+    descargarPdfUrl: (id) => `${BASE}/consentimientos/${id}/pdf/download`,
+
+    // Marcas
+    marcas: (docId) => axios.get(`${BASE}/consentimientos/${docId}/marcas`),
+    crearMarca: (docId, data) => axios.post(`${BASE}/consentimientos/${docId}/marcas`, data),
+    editarMarca: (id, data) => axios.put(`${BASE}/consentimientos/marcas/${id}`, data),
+    eliminarMarca: (id) => axios.delete(`${BASE}/consentimientos/marcas/${id}`),
+
+    // Adjuntos
+    adjuntos: (docId) => axios.get(`${BASE}/consentimientos/${docId}/adjuntos`),
+    subirAdjunto: (docId, fd) =>
+        axios.post(`${BASE}/consentimientos/${docId}/adjuntos`, fd, {
+            headers: { "Content-Type": "multipart/form-data" },
+        }),
+    descargarAdjuntoUrl: (id) => `${BASE}/consentimientos/adjuntos/${id}/download`,
+    eliminarAdjunto: (id) => axios.delete(`${BASE}/consentimientos/adjuntos/${id}`),
+
+    // Plantillas + versiones + comparar
+    modulos: () => axios.get(`${BASE}/config-modulos-listar`),
+    plantillas: (params) => axios.get(`${BASE}/consentimientos-plantillas`, { params }),
+    plantillaVersiones: (productoId, params) =>
+        axios.get(`${BASE}/consentimientos-plantillas/producto/${productoId}/versions`, { params }),
+    plantillaComparar: (v1, v2) =>
+        axios.get(`${BASE}/consentimientos-plantillas/comparar`, { params: { v1, v2 } }),
+
+    // Asignación plantilla ↔ productos/sedes (M:N)
+    asignaciones: (plantillaId) =>
+        axios.get(`${BASE}/consentimientos-plantillas/${plantillaId}/productos`),
+    asignar: (plantillaId, data) =>
+        axios.post(`${BASE}/consentimientos-plantillas/${plantillaId}/productos`, data),
+    desasignar: (id) => axios.delete(`${BASE}/consentimientos-plantillas/productos/${id}`),
+
+    // Bloqueo médico
+    bloqueoEstado: () => axios.get(`${BASE}/consentimientos/bloqueo/estado`),
+    liberarBloqueo: (data) => axios.post(`${BASE}/consentimientos/bloqueo/liberar`, data),
+
+    // Estadísticas
+    estadResumen: (params) => axios.get(`${BASE}/consentimientos/estadisticas/resumen`, { params }),
+    estadSede: (params) => axios.get(`${BASE}/consentimientos/estadisticas/sede`, { params }),
+    estadProducto: (params) => axios.get(`${BASE}/consentimientos/estadisticas/producto`, { params }),
+    estadMedico: (params) => axios.get(`${BASE}/consentimientos/estadisticas/medico`, { params }),
+    estadTiempo: (params) =>
+        axios.get(`${BASE}/consentimientos/estadisticas/tiempo-promedio`, { params }),
+    estadPopulares: (params) =>
+        axios.get(`${BASE}/consentimientos/estadisticas/productos-populares`, { params }),
+};

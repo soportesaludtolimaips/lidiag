@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Consentimientos\ConsentimientoDocumentoController;
 use App\Http\Controllers\Ecografias\EcografiaConsentimientosController;
 use App\Http\Controllers\Estudios\EstudioAudioController;
 use App\Http\Controllers\Estudios\EstudioController;
@@ -181,6 +182,37 @@ Route::get('/firma/consentimiento-ecografia/{token}/info', [EcografiaConsentimie
     ->middleware(['throttle:60,1']);
 Route::post('/firma/consentimiento-ecografia/{token}/firmar', [EcografiaConsentimientosController::class, 'firmarPacientePorToken'])
     ->name('ecografias.consentimientos.firma.paciente.post')
+    ->middleware(['throttle:20,1']);
+
+/**
+ * Consentimientos (módulo genérico) - vistas internas
+ */
+Route::view('/consentimientos-generar', 'modulos.consentimientos.generar')
+    ->name('consentimientos.generar.view')
+    ->middleware(['auth', 'permission:consentimientos.generar']);
+
+Route::view('/consentimientos-medico', 'modulos.consentimientos.medico')
+    ->name('consentimientos.medico.view')
+    ->middleware(['auth', 'permission:consentimientos.firmar_medico']);
+
+Route::view('/consentimientos-plantillas-config', 'modulos.consentimientos.plantillas')
+    ->name('consentimientos.plantillas.config.view')
+    ->middleware(['auth', 'permission:consentimientos.configurar']);
+
+Route::view('/consentimientos-dashboard', 'modulos.consentimientos.dashboard')
+    ->name('consentimientos.dashboard.view')
+    ->middleware(['auth', 'permission:consentimientos.estadisticas']);
+
+/**
+ * Firma de consentimiento genérico (paciente/acompañante) - acceso por token (sin login).
+ */
+Route::view('/firma/consentimiento/{token}', 'modulos.consentimientos.firma')
+    ->name('consentimientos.firma.paciente.view');
+Route::get('/firma/consentimiento/{token}/info', [ConsentimientoDocumentoController::class, 'infoPorToken'])
+    ->name('consentimientos.firma.paciente.info')
+    ->middleware(['throttle:60,1']);
+Route::post('/firma/consentimiento/{token}/firmar', [ConsentimientoDocumentoController::class, 'firmarPacientePorToken'])
+    ->name('consentimientos.firma.paciente.post')
     ->middleware(['throttle:20,1']);
 
 /**

@@ -39,4 +39,19 @@ class ConsentimientoPlantilla extends Model
     {
         return $this->belongsTo(User::class, 'usuario_crea_id');
     }
+
+    public function versiones()
+    {
+        return $this->hasMany(ConsentimientoPlantillaVersion::class, 'plantilla_id');
+    }
+
+    public function imagenes()
+    {
+        return $this->hasMany(ConsentimientoPlantillaImagen::class, 'plantilla_id');
+    }
+
+    public function productosAsignados()
+    {
+        return $this->hasMany(ConsentimientoPlantillaProducto::class, 'plantilla_id');
+    }
 }

@@ -123,6 +123,90 @@ class ConsentimientoPlantillaService extends BaseService
         return $this->success($items);
     }
 
+    /**
+     * Compara dos versiones (filas) de plantilla y devuelve un diff por líneas.
+     * Ambas versiones deben pertenecer al mismo (config_modulo_id, producto_id).
+     */
+    public function comparar(int $v1Id, int $v2Id): array
+    {
+        $v1 = ConsentimientoPlantilla::query()->with('usuarioCrea:id,name')->findOrFail($v1Id);
+        $v2 = ConsentimientoPlantilla::query()->with('usuarioCrea:id,name')->findOrFail($v2Id);
+
+        if ((int) $v1->config_modulo_id !== (int) $v2->config_modulo_id
+            || (int) $v1->producto_id !== (int) $v2->producto_id) {
+            return $this->validationError(null, 'Las versiones no corresponden al mismo producto/módulo');
+        }
+
+        return $this->success([
+            'v1' => [
+                'id' => $v1->id,
+                'version' => $v1->version,
+                'nombre' => $v1->nombre,
+                'usuario' => $v1->usuarioCrea?->name,
+                'fecha' => $v1->created_at,
+            ],
+            'v2' => [
+                'id' => $v2->id,
+                'version' => $v2->version,
+                'nombre' => $v2->nombre,
+                'usuario' => $v2->usuarioCrea?->name,
+                'fecha' => $v2->created_at,
+            ],
+            'diff' => $this->diffLineas((string) $v1->html, (string) $v2->html),
+        ]);
+    }
+
+    /**
+     * Diff por líneas basado en LCS. Devuelve una lista de segmentos con tipo:
+     * 'eq' (igual), 'del' (solo en v1), 'add' (solo en v2).
+     *
+     * @return array<int, array{tipo: string, texto: string}>
+     */
+    private function diffLineas(string $a, string $b): array
+    {
+        $x = preg_split("/\r\n|\n|\r/", $a) ?: [];
+        $y = preg_split("/\r\n|\n|\r/", $b) ?: [];
+        $n = count($x);
+        $m = count($y);
+
+        // Tabla LCS
+        $lcs = array_fill(0, $n + 1, array_fill(0, $m + 1, 0));
+        for ($i = $n - 1; $i >= 0; $i--) {
+            for ($j = $m - 1; $j >= 0; $j--) {
+                $lcs[$i][$j] = $x[$i] === $y[$j]
+                    ? $lcs[$i + 1][$j + 1] + 1
+                    : max($lcs[$i + 1][$j], $lcs[$i][$j + 1]);
+            }
+        }
+
+        $out = [];
+        $i = 0;
+        $j = 0;
+        while ($i < $n && $j < $m) {
+            if ($x[$i] === $y[$j]) {
+                $out[] = ['tipo' => 'eq', 'texto' => $x[$i]];
+                $i++;
+                $j++;
+            } elseif ($lcs[$i + 1][$j] >= $lcs[$i][$j + 1]) {
+                $out[] = ['tipo' => 'del', 'texto' => $x[$i]];
+                $i++;
+            } else {
+                $out[] = ['tipo' => 'add', 'texto' => $y[$j]];
+                $j++;
+            }
+        }
+        while ($i < $n) {
+            $out[] = ['tipo' => 'del', 'texto' => $x[$i]];
+            $i++;
+        }
+        while ($j < $m) {
+            $out[] = ['tipo' => 'add', 'texto' => $y[$j]];
+            $j++;
+        }
+
+        return $out;
+    }
+
     public function setVigente(int $id): array
     {
         $p = ConsentimientoPlantilla::query()->findOrFail($id);

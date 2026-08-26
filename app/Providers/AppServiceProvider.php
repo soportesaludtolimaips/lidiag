@@ -26,7 +26,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot()
     {
-        \URL::forceScheme('https');
+        // TEMPORAL (php artisan serve en http://localhost:8000): reactivar en producción/https.
+        if (! app()->runningInConsole() && str_starts_with((string) config('app.url'), 'https')) {
+            \URL::forceScheme('https');
+        }
 
         Gate::before(function ($user, $ability) {
             return $user->hasRole('Super Admin') ? true : null;

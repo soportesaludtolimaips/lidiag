@@ -55,7 +55,7 @@ Route::middleware(['auth'])->group(function () {
         ->except(['create']);
 
     // Modulos
-    Route::get('/config-modulos-listar', [ConfigModulosController::class, 'listarModulos'])
+    Route::get('/config-modulos-listar', [ConfigModulosController::class, 'index'])
         ->name('api.config.modulos.listar');
 
     // Tipos de Documentos
@@ -118,6 +118,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/consentimientos-plantillas/producto/{productoId}/versions', [ConsentimientoPlantillasController::class, 'versions'])
         ->name('api.consentimientos.plantillas.versions');
+
+    Route::get('/consentimientos-plantillas/comparar', [ConsentimientoPlantillasController::class, 'comparar'])
+        ->name('api.consentimientos.plantillas.comparar');
 
     // Servicio de Citas
     Route::get('/config-servicio-citas/mis-servicios', [ConfigServicioCitasController::class, 'misServicios'])

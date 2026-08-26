@@ -26,3 +26,7 @@ Schedule::command('sessions:prune --hours=24 --user-hours=168')
 Schedule::command('notifications:prune --days=90')
     ->daily()
     ->withoutOverlapping();
+
+Schedule::command('consentimientos:expirar --limit=500')
+    ->everyFiveMinutes()
+    ->withoutOverlapping();
