@@ -311,10 +311,16 @@ export function useDictationFlow() {
         text = applyCommandMap(text, formatCommands);
         text = uppercase.value ? text.toUpperCase() : text;
         if (capitalizeNext.value) {
-            text = text.replace(/(^|\n)(\s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
+            text = text.replace(/\n\n(\s*)([a-záéíóúüñ])/i, (m, spaces, first) => {
                 capitalizeNext.value = false;
-                return `${start}${spaces}${first.toUpperCase()}`;
+                return `\n\n${spaces}${first.toUpperCase()}`;
             });
+            if (capitalizeNext.value) {
+                text = text.replace(/(^|\n)(\s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
+                    capitalizeNext.value = false;
+                    return `${start}${spaces}${first.toUpperCase()}`;
+                });
+            }
         }
         return text;
     }
