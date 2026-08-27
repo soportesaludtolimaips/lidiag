@@ -104,10 +104,10 @@
 | # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
 |---|---|---|---|---|---|---|---|
 | 1 | Email inválido → warning | ✅ Terminado | ✅ PASS | 2026-08-24 | Ox | headless: warning visible, 0 POST | MAN-NE-01 |
-| 2 | Notificar exitoso | ⬜ Sin iniciar | — | — | — | — | MAN-NE-02 |
+| 2 | Notificar exitoso | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-NE-02 |
 | 3 | PHI entre pacientes (regresión) | ✅ Terminado | ✅ PASS | 2026-08-24 | Ox | headless: email VACÍO en paciente B | MAN-NE-03 |
-| 4 | Portal saldo insuficiente (402) | ⬜ Sin iniciar | — | — | — | — | MAN-NE-04; requiere portal real |
-| 5 | Portal error genérico → toast | ⬜ Sin iniciar | — | — | — | — | MAN-NE-05 |
+| 4 | Enviar al portal de pacientes | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-NE-04 |
+| 5 | Error del portal → toast | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-NE-05; fix: quitar toast "Procesando" duplicado |
 
 ### Sub-Módulo: Quemador CD
 
