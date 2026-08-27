@@ -59,6 +59,28 @@
                     </div>
                 </div>
             </div>
+            <div class="col-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title text-themecolor">
+                            <i class="fa fa-filter"></i> Estudios tomados en PAC
+                        </h4>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <a
+                                    href="javascript:void(0)"
+                                    data-toggle="modal"
+                                    data-target="#responsive-modal-pac"
+                                >
+                                    <i class="fa fa-check text-info"></i>
+                                    Descargar reporte de estudios tomados
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- ============================================================== -->
@@ -196,6 +218,101 @@
             </div>
         </div>
         <!-- /.modal -->
+
+        <!-- ============================================================== -->
+        <!-- Modal Filtro -->
+        <!-- ============================================================== -->
+        <div
+            id="responsive-modal-pac"
+            class="modal fade"
+            tabindex="-1"
+            role="dialog"
+            aria-labelledby="myModalLabel"
+            aria-hidden="true"
+            style="display: none"
+        >
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Filtro para el reporte</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                            ×
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="form-group">
+                                <label class="control-label">Sede</label>
+                                <select
+                                    class="form-control custom-select"
+                                    style="width: 100%; height: 36px"
+                                    v-model="datosReporte.sedeId"
+                                >
+                                    <option value="0">...::: Seleccione una sede :::...</option>
+                                    <option
+                                        v-for="ItemSede in sedes"
+                                        :key="ItemSede.id"
+                                        :value="ItemSede.id"
+                                    >
+                                        {{ ItemSede.nom_sede }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <div class="example">
+                                            <h5 class="box-title m-t-30">Desde</h5>
+                                            <input
+                                                class="form-control"
+                                                type="date"
+                                                id="fechaIni"
+                                                name="fechaIni"
+                                                v-model="datosReporte.fechaIni"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <div class="example">
+                                            <h5 class="box-title m-t-30">Hasta</h5>
+                                            <input
+                                                class="form-control"
+                                                type="date"
+                                                id="fechaFin"
+                                                name="fechaFin"
+                                                v-model="datosReporte.fechaFin"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-default waves-effect"
+                            data-dismiss="modal"
+                        >
+                            Close
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-info waves-effect waves-light"
+                            @click="descargarReporte()"
+                            :disabled="loadingDescargar"
+                        >
+                            <i v-if="loadingDescargar" class="fa fa-spinner fa-spin"></i>
+                            <i v-else class="fa fa-download"></i>
+                            Descargar reporte
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.modal -->
     </div>
 </template>
 <script setup>
@@ -206,6 +323,8 @@ import usePermissions from "@/helpers/permissions.js";
 import axios from "axios";
 
 const props = defineProps({ usuarioactual: Object, permisos: Array });
+
+const { can } = usePermissions(props.permisos);
 
 const sedes = ref([]);
 const datosReporte = ref({ sedeId: 0, quien_asigno: "", medico: "", fechaIni: "", fechaFin: "" });
@@ -274,6 +393,54 @@ async function descargarReporte() {
     } catch (error) {
     } finally {
         // pequeño delay para evitar doble click inmediato
+        setTimeout(() => {
+            loadingDescargar.value = false;
+        }, 700);
+    }
+}
+
+async function descargarReporteEstudiosPAC() {
+    if (loadingDescargar.value) return;
+    loadingDescargar.value = true;
+    try {
+        if (!datosReporte.value.sedeId || datosReporte.value.sedeId === 0) {
+            toastMessage({
+                heading: "Atención",
+                text: "Debes seleccionar una sede.",
+                icon: "warning",
+            });
+            return;
+        }
+        if (!datosReporte.value.fechaIni || !datosReporte.value.fechaFin) {
+            toastMessage({
+                heading: "Atención",
+                text: "Debes seleccionar fecha inicio y fecha fin.",
+                icon: "warning",
+            });
+            return;
+        }
+        if (datosReporte.value.fechaIni > datosReporte.value.fechaFin) {
+            toastMessage({
+                heading: "Atención",
+                text: "La fecha inicio no puede ser mayor a la fecha fin.",
+                icon: "warning",
+            });
+            return;
+        }
+
+        const params = new URLSearchParams({
+            sedeId: String(datosReporte.value.sedeId),
+            fechaIni: String(datosReporte.value.fechaIni),
+            fechaFin: String(datosReporte.value.fechaFin),
+        });
+        window.open(
+            `/descarga-reportes-estudios-pac?${params.toString()}`,
+            "_blank",
+            "noopener,noreferrer"
+        );
+    } catch (error) {
+        /* noop */
+    } finally {
         setTimeout(() => {
             loadingDescargar.value = false;
         }, 700);
