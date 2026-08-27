@@ -32,13 +32,13 @@
 | Módulo | Total | ⬜ Sin iniciar | 🔵 Iniciado | 🟡 En progreso | ✅ Terminado | Automatizadas |
 |---|---|---|---|---|---|---|
 | Estudios | 37 | 0 | 0 | 0 | 37 | ✅ 28/28 |
-| Configuración | 21 | 21 | 0 | 0 | 0 | — |
+| Configuración | 21 | 0 | 0 | 0 | 21 | — |
 | Contratación | 4 | 1 | 0 | 0 | 3 | ✅ 1/1 |
 | Seguridad | 6 | 4 | 0 | 0 | 2 | ✅ 8/8 |
 | Ecografías | 8 | 8 | 0 | 0 | 0 | — |
 | Reportes | 1 | 1 | 0 | 0 | 0 | — |
 | Tele-radiología | 2 | 2 | 0 | 0 | 0 | — |
-| **TOTAL** | **79** | **36** | **0** | **1** | **42** | **37/37** |
+| **TOTAL** | **79** | **15** | **0** | **1** | **63** | **37/37** |
 
 ---
 
@@ -142,44 +142,44 @@
 
 | # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
 |---|---|---|---|---|---|---|---|
-| 1 | Sedes (CRUD + credenciales PACS/Oviyam) | ⬜ Sin iniciar | — | — | — | — | `configSedeComponent.vue` |
-| 2 | Productos/CUPS (CRUD + %, valor, flags lectura) | ⬜ Sin iniciar | — | — | — | — | `configProductoComponent.vue` |
-| 3 | Diagnósticos CIE-10 (CRUD) | ⬜ Sin iniciar | — | — | — | — | `configDiagnosticoComponent.vue` |
-| 4 | Administradoras de Salud / EPS (CRUD) | ⬜ Sin iniciar | — | — | — | — | `configAdminSaludComponent.vue` |
-| 5 | Prioridades de lectura (CRUD + tiempo en seg) | ⬜ Sin iniciar | — | — | — | — | `configPrioridadComponent.vue` |
-| 6 | Tipos de documento (CRUD código+nombre) | ⬜ Sin iniciar | — | — | — | — | `configTipoDocumentoComponent.vue` |
+| 1 | Sedes (CRUD + credenciales PACS/Oviyam) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | CFG-SED-01 |
+| 2 | Productos/CUPS (CRUD + %, valor, flags lectura) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | CFG-PRO-01 |
+| 3 | Diagnósticos CIE-10 (CRUD) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | CFG-DIA-01 |
+| 4 | Administradoras de Salud / EPS (CRUD) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | CFG-EPS-01 |
+| 5 | Prioridades de lectura (CRUD + tiempo en seg) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | CFG-PRI-01 |
+| 6 | Tipos de documento (CRUD código+nombre) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | CFG-TDO-01 |
 
 ### Sub-Módulo: Citas y servicios
 
 | # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
 |---|---|---|---|---|---|---|---|
-| 1 | Servicios de cita (CRUD + filtro sede) | ⬜ Sin iniciar | — | — | — | — | `configServicioCitaComponent.vue` |
-| 2 | Vincular productos a servicio | ⬜ Sin iniciar | — | — | — | — | `configServicioProductoComponent.vue`; master-detalle |
-| 3 | Motivos rechazo de citas (CRUD) | ⬜ Sin iniciar | — | — | — | — | `configCitaRechazoMotivoComponent.vue` |
+| 1 | Servicios de cita (CRUD + filtro sede) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | CFG-SER-01 |
+| 2 | Vincular productos a servicio | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | CFG-SER-02; master-detalle |
+| 3 | Motivos rechazo de citas (CRUD) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | CFG-MOT-01 |
 
 ### Sub-Módulo: Plantillas y consentimientos
 
 | # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
 |---|---|---|---|---|---|---|---|
-| 1 | Tipos de plantilla (CRUD) | ⬜ Sin iniciar | — | — | — | — | `configTipoPlantilla.vue` |
-| 2 | Plantillas (CRUD + DataTables server-side) | ⬜ Sin iniciar | — | — | — | — | `configPlantilla.vue` |
-| 3 | Consentimientos informados (CRUD + PDF) | ⬜ Sin iniciar | — | — | — | — | `configConsentimientoInformadoComponent.vue` |
+| 1 | Tipos de plantilla (CRUD) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | CFG-TPL-01 |
+| 2 | Plantillas (CRUD + DataTables server-side) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | CFG-PLA-01 |
+| 3 | Consentimientos informados (CRUD + PDF) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | CFG-CON-01 |
 
 ### Sub-Módulo: WhatsApp Bot
 
 | # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
 |---|---|---|---|---|---|---|---|
-| 1 | Números por sede (CRUD) | ⬜ Sin iniciar | — | — | — | — | `configWhatsappComponent.vue`; 3 tabs |
-| 2 | Saludos del bot (CRUD) | ⬜ Sin iniciar | — | — | — | — | tab 2 |
-| 3 | Productos por servicio (CRUD) | ⬜ Sin iniciar | — | — | — | — | tab 3 |
+| 1 | Números por sede (CRUD) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | CFG-WA-01; 3 tabs |
+| 2 | Saludos del bot (CRUD) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | CFG-WA-02; tab 2 |
+| 3 | Productos por servicio (CRUD) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | CFG-WA-03; tab 3 |
 
 ### Sub-Módulo: Helpdesk
 
 | # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
 |---|---|---|---|---|---|---|---|
-| 1 | Prioridades helpdesk (CRUD + orden + activo) | ⬜ Sin iniciar | — | — | — | — | `helpdeskConfigPrioridadesComponent.vue` |
-| 2 | Estados helpdesk (solo lectura + export) | ⬜ Sin iniciar | — | — | — | — | `helpdeskConfigEstadosComponent.vue` |
-| 3 | Categorías helpdesk (CRUD) | ⬜ Sin iniciar | — | — | — | — | `helpdeskConfigCategoriasComponent.vue` |
+| 1 | Prioridades helpdesk (CRUD + orden + activo) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | CFG-HD-01 |
+| 2 | Estados helpdesk (solo lectura + export) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | CFG-HD-02 |
+| 3 | Categorías helpdesk (CRUD) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | CFG-HD-03 |
 
 ### Automatizadas
 
