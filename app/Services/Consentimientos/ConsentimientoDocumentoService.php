@@ -3,6 +3,7 @@
 namespace App\Services\Consentimientos;
 
 use App\Models\Configuracion\ConfigProducto;
+use App\Models\Configuracion\ConfigSede;
 use App\Models\Consentimientos\ConsentimientoDocumento;
 use App\Models\Consentimientos\ConsentimientoDocumentoAuditoria;
 use App\Models\Consentimientos\ConsentimientoDocumentoToken;
@@ -363,7 +364,7 @@ class ConsentimientoDocumentoService extends BaseService
     public function generarPdf(int $id): array
     {
         $doc = ConsentimientoDocumento::query()
-            ->with(['producto', 'medico'])
+            ->with(['producto', 'medico', 'sede'])
             ->where('id', $id)
             ->where('vigente', true)
             ->firstOrFail();
@@ -597,6 +598,7 @@ class ConsentimientoDocumentoService extends BaseService
         $firmaPaciente = $this->dataUriFromStoredPath($doc->firma_paciente_path);
         $firmaMedico = $this->dataUriFromStoredPath($doc->firma_medico_path);
 
+        // Firmas más bajas y separadas del contenido
         if ($firmaPaciente) {
             $img = '<img style="max-height:80px;" src="'.$firmaPaciente.'">';
             $html = str_replace(['${firma_paciente}', '${firma_acompanante}', '${firma_acompañante}'], $img, $html);
@@ -605,10 +607,76 @@ class ConsentimientoDocumentoService extends BaseService
             $html = str_replace('${firma_medico}', '<img style="max-height:80px;" src="'.$firmaMedico.'">', $html);
         }
 
+        $sede = $doc->sede;
+        $encabezado = $this->encabezadoSedeHtml($sede);
+        $pie = $sede && $sede->pie_pagina
+            ? '<div style="margin-top:10px; text-align:center; color:#555; font-size:10px;">'.nl2br(e((string) $sede->pie_pagina)).'</div>'
+            : '';
+
         $genBy = Auth::user()?->name ?: 'Sistema';
         $meta = '<hr><small>Generado: '.now()->format('Y-m-d H:i:s').' · Usuario: '.e($genBy).'</small>';
 
-        return '<div style="font-family: DejaVu Sans, sans-serif; font-size: 12px;">'.$html.$meta.'</div>';
+        return '<div style="font-family: DejaVu Sans, sans-serif; font-size: 12px;">'
+            .$encabezado
+            .'<div style="margin-top:12px;">'.$html.'</div>'
+            .'<div style="margin-top:70px;"></div>' // empuja las firmas/pie más abajo
+            .$pie
+            .$meta
+            .'</div>';
+    }
+
+    /**
+     * Encabezado del PDF con el logo (public/logos/logo_1) e información de la
+     * sede (texto libre `encabezado`). Convención existente del proyecto.
+     */
+    private function encabezadoSedeHtml(?ConfigSede $sede): string
+    {
+        if (! $sede) {
+            return '';
+        }
+
+        $logo = $this->dataUriLogoSede($sede->logo_1);
+        $logoCol = $logo
+            ? '<td style="width:120px; vertical-align:middle;"><img style="max-height:70px; max-width:110px;" src="'.$logo.'"></td>'
+            : '';
+
+        $info = array_filter([
+            '<strong style="font-size:14px;">'.e((string) $sede->nom_sede).'</strong>',
+            $sede->encabezado ? nl2br(e((string) $sede->encabezado)) : null,
+        ]);
+
+        return '<table style="width:100%; border-bottom:2px solid #0d6efd; padding-bottom:6px;"><tr>'
+            .$logoCol
+            .'<td style="vertical-align:middle; line-height:1.4;">'.implode('<br>', $info).'</td>'
+            .'</tr></table>';
+    }
+
+    /**
+     * Lee un logo de sede (archivo en public/logos/) y lo devuelve como data URI
+     * para incrustarlo en el PDF (dompdf).
+     */
+    private function dataUriLogoSede(?string $logo): ?string
+    {
+        if (! $logo) {
+            return null;
+        }
+
+        $ruta = is_file(public_path('logos/'.$logo)) ? public_path('logos/'.$logo)
+            : (is_file(public_path($logo)) ? public_path($logo)
+            : (is_file($logo) ? $logo : null));
+
+        if (! $ruta) {
+            return null;
+        }
+
+        $bin = @file_get_contents($ruta);
+        if ($bin === false) {
+            return null;
+        }
+        $ext = strtolower(pathinfo($ruta, PATHINFO_EXTENSION) ?: 'png');
+        $mime = in_array($ext, ['jpg', 'jpeg'], true) ? 'image/jpeg' : 'image/png';
+
+        return 'data:'.$mime.';base64,'.base64_encode($bin);
     }
 
     private function dataUriFromStoredPath(?string $storedPath): ?string

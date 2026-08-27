@@ -63,6 +63,56 @@ class OhifVisorController extends Controller
         return response()->json(['error' => $result['message']], $result['status']);
     }
 
+    /**
+     * Exporta una imagen del estudio como JPEG.
+     * Query: sedeId, study, series, object, conDatos (0/1), rows (opcional).
+     */
+    public function exportarJpeg(Request $request)
+    {
+        $result = $this->service->exportarJpeg(
+            (int) $request->query('sedeId'),
+            (string) $request->query('study'),
+            (string) $request->query('series'),
+            (string) $request->query('object'),
+            $request->boolean('conDatos'),
+            $request->query('rows') ? (int) $request->query('rows') : null,
+        );
+
+        if ($result['status'] !== 200) {
+            return response()->json($result, $result['status']);
+        }
+
+        $sufijo = $result['data']['con_datos'] ? 'con_datos' : 'limpia';
+
+        return response($result['data']['body'], 200)
+            ->header('Content-Type', 'image/jpeg')
+            ->header('Content-Disposition', 'inline; filename="estudio_'.$sufijo.'.jpg"');
+    }
+
+    /**
+     * Exporta el JPEG (limpio o con datos) y lo envía al sistema externo configurado.
+     */
+    public function enviarJpeg(Request $request): JsonResponse
+    {
+        $exp = $this->service->exportarJpeg(
+            (int) $request->query('sedeId'),
+            (string) $request->query('study'),
+            (string) $request->query('series'),
+            (string) $request->query('object'),
+            $request->boolean('conDatos'),
+            $request->query('rows') ? (int) $request->query('rows') : null,
+        );
+
+        if ($exp['status'] !== 200) {
+            return response()->json($exp, $exp['status']);
+        }
+
+        $filename = 'estudio_'.($exp['data']['con_datos'] ? 'con_datos' : 'limpia').'.jpg';
+        $res = $this->service->enviarImagenExterna($exp['data']['body'], $filename);
+
+        return response()->json($res, $res['status']);
+    }
+
     public function qidoStudies(): JsonResponse
     {
         $result = $this->service->qidoStudies();

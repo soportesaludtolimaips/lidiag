@@ -111,6 +111,11 @@ return [
             'root' => storage_path('app/adjuntos_consentimientos'),
             'visibility' => 'private',
         ],
+        'imagenes_consentimientos' => [
+            'driver' => 'local',
+            'root' => storage_path('app/imagenes_consentimientos'),
+            'visibility' => 'private',
+        ],
     ],
 
     /*

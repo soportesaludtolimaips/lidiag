@@ -7,6 +7,7 @@ use App\Services\BaseService;
 use App\Services\Contracts\FileServiceInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class ConfigSedeService extends BaseService
 {
@@ -19,6 +20,50 @@ class ConfigSedeService extends BaseService
         return $this->success(
             ConfigSede::with(['servicios', 'whatsappNumbers'])->get()
         );
+    }
+
+    /**
+     * Actualiza el branding de la sede (logo, encabezado y pie de página)
+     * usado en los encabezados de los PDF. El logo se guarda en public/logos/.
+     */
+    public function actualizarBranding(int $id, array $data, ?UploadedFile $logo = null): array
+    {
+        $sede = ConfigSede::find($id);
+        if (! $sede) {
+            return $this->notFound('Sede no encontrada');
+        }
+
+        if ($logo) {
+            $dir = public_path('logos');
+            if (! is_dir($dir)) {
+                @mkdir($dir, 0755, true);
+            }
+            $ext = strtolower($logo->getClientOriginalExtension() ?: 'png');
+            $filename = 'sede_'.$sede->id.'_'.Str::random(10).'.'.$ext;
+            $logo->move($dir, $filename);
+
+            // Borra el logo anterior si existía y era propio de esta sede
+            if ($sede->logo_1 && str_starts_with((string) $sede->logo_1, 'sede_'.$sede->id.'_') && is_file($dir.'/'.$sede->logo_1)) {
+                @unlink($dir.'/'.$sede->logo_1);
+            }
+            $sede->logo_1 = $filename;
+        }
+
+        if (array_key_exists('encabezado', $data)) {
+            $sede->encabezado = $data['encabezado'];
+        }
+        if (array_key_exists('pie_pagina', $data)) {
+            $sede->pie_pagina = $data['pie_pagina'];
+        }
+
+        $sede->save();
+
+        return $this->updated([
+            'id' => $sede->id,
+            'logo_1' => $sede->logo_1,
+            'encabezado' => $sede->encabezado,
+            'pie_pagina' => $sede->pie_pagina,
+        ], 'Branding de la sede actualizado');
     }
 
     /**

@@ -99,6 +99,50 @@
                                 </tr>
                             </tbody>
                         </table>
+
+                        <!-- Imágenes de la plantilla (decorativas o marcables) -->
+                        <hr />
+                        <h6>Imágenes {{ "" }}<small class="text-muted">(JPG/PNG, máx 5MB)</small></h6>
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-4">
+                                <input ref="imgInput" type="file" accept="image/jpeg,image/png" class="form-control" @change="onImg" />
+                            </div>
+                            <div class="col-md-3">
+                                <input v-model.trim="nuevaImagen.nombre" class="form-control" placeholder="Nombre/descripción" />
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check mt-2">
+                                    <input id="epm" v-model="nuevaImagen.es_para_marcar" class="form-check-input" type="checkbox" />
+                                    <label class="form-check-label" for="epm">Es para marcar (zonas)</label>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <button
+                                    class="btn btn-primary w-100"
+                                    type="button"
+                                    :disabled="subiendoImg || !imgFile || !can('consentimientos.configurar')"
+                                    @click="subirImagen"
+                                >
+                                    Subir
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mt-2">
+                            <div v-for="img in imagenes" :key="img.id" class="col-md-3">
+                                <div class="card">
+                                    <img :src="verImagenUrl(img.id)" class="card-img-top" style="max-height:140px;object-fit:contain;" :alt="img.nombre" />
+                                    <div class="card-body p-2">
+                                        <small class="d-block text-truncate">{{ img.nombre }}</small>
+                                        <span v-if="img.es_para_marcar" class="badge bg-info">Marcable</span>
+                                        <button class="btn btn-sm btn-outline-danger float-end" type="button" @click="eliminarImagen(img.id)">
+                                            Quitar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-if="!imagenes.length" class="col-12 text-muted">Sin imágenes</div>
+                        </div>
                     </template>
                 </div>
             </div>
@@ -186,6 +230,13 @@ const asignaciones = ref([]);
 const nuevaAsignacion = reactive({ producto_id: null, sede_id: null, requiere_firma_medico: true });
 const asignando = ref(false);
 
+const imagenes = ref([]);
+const imgInput = ref(null);
+const imgFile = ref(null);
+const nuevaImagen = reactive({ nombre: "", es_para_marcar: false });
+const subiendoImg = ref(false);
+const verImagenUrl = api.verImagenUrl;
+
 const cmpProductoId = ref(null);
 const versiones = ref([]);
 const v1 = ref(null);
@@ -227,6 +278,58 @@ async function listarAsignaciones() {
         asignaciones.value = res.data?.data ?? [];
     } catch (e) {
         handleAxiosErrorToast(e, "No fue posible listar asignaciones.");
+    }
+    await listarImagenes();
+}
+
+async function listarImagenes() {
+    if (!plantillaId.value) {
+        imagenes.value = [];
+        return;
+    }
+    try {
+        const res = await api.imagenes(plantillaId.value);
+        imagenes.value = res.data?.data ?? [];
+    } catch (e) {
+        handleAxiosErrorToast(e, "No fue posible listar imágenes.");
+    }
+}
+
+function onImg(e) {
+    imgFile.value = e.target.files?.[0] ?? null;
+}
+
+async function subirImagen() {
+    if (!imgFile.value) return;
+    subiendoImg.value = true;
+    try {
+        const fd = new FormData();
+        fd.append("imagen", imgFile.value);
+        fd.append("nombre", nuevaImagen.nombre || imgFile.value.name);
+        fd.append("es_para_marcar", nuevaImagen.es_para_marcar ? "1" : "0");
+        await api.subirImagen(plantillaId.value, fd);
+        imgFile.value = null;
+        nuevaImagen.nombre = "";
+        nuevaImagen.es_para_marcar = false;
+        if (imgInput.value) imgInput.value.value = "";
+        await listarImagenes();
+        alertSuccess("Imagen subida");
+    } catch (e) {
+        handleAxiosErrorToast(e, "No fue posible subir la imagen.");
+    } finally {
+        subiendoImg.value = false;
+    }
+}
+
+async function eliminarImagen(id) {
+    const ok = await confirmAction({ title: "Quitar imagen", text: "¿Eliminar esta imagen?" });
+    if (!ok) return;
+    try {
+        await api.eliminarImagen(id);
+        await listarImagenes();
+        alertSuccess("Imagen eliminada");
+    } catch (e) {
+        handleAxiosErrorToast(e, "No fue posible eliminar la imagen.");
     }
 }
 

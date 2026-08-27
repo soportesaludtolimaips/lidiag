@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Configuracion;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Configuracion\ConfigSedeBrandingRequest;
 use App\Http\Requests\Configuracion\StoreConfigSedeRequest;
 use App\Http\Requests\Configuracion\UpdateConfigSedeRequest;
 use App\Services\Configuracion\ConfigSedeService;
@@ -16,7 +17,7 @@ class ConfigSedeController extends Controller
         $this->middleware('auth:sanctum')->except(['index']);
         $this->middleware('permission:config.sedes.index')->only(['index', 'buscarPorId']);
         $this->middleware('permission:config.sedes.create')->only(['store']);
-        $this->middleware('permission:config.sedes.edit')->only(['update']);
+        $this->middleware('permission:config.sedes.edit')->only(['update', 'actualizarBranding']);
         $this->middleware('permission:config.sedes.destroy')->only(['destroy']);
     }
 
@@ -58,6 +59,17 @@ class ConfigSedeController extends Controller
             $request->decoded(),
             $request->file('plantilla_rx'),
             $request->file('plantilla_rx_ecografia'),
+        );
+
+        return response()->json($result, $result['status']);
+    }
+
+    public function actualizarBranding(ConfigSedeBrandingRequest $request, int $id): JsonResponse
+    {
+        $result = $this->configSedeService->actualizarBranding(
+            $id,
+            $request->only(['encabezado', 'pie_pagina']),
+            $request->file('logo'),
         );
 
         return response()->json($result, $result['status']);

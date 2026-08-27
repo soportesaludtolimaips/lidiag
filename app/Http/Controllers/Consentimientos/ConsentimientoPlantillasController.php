@@ -16,7 +16,7 @@ class ConsentimientoPlantillasController extends Controller
     ) {
         $this->middleware('auth');
         $this->middleware('auth:sanctum');
-        $this->middleware('permission:ecografias.consentimientos.plantillas.index,web')->only(['index', 'show', 'versions']);
+        $this->middleware('permission:ecografias.consentimientos.plantillas.index,web')->only(['index', 'show', 'versions', 'comparar']);
         $this->middleware('permission:ecografias.consentimientos.plantillas.create,web')->only(['store']);
         $this->middleware('permission:ecografias.consentimientos.plantillas.edit,web')->only(['update', 'setVigente']);
         $this->middleware('permission:ecografias.consentimientos.plantillas.destroy,web')->only(['destroy']);
@@ -64,6 +64,19 @@ class ConsentimientoPlantillasController extends Controller
         $result = $this->service->versions($productoId, $moduloId);
 
         return response()->json($result, $result["status"]);
+    }
+
+    public function comparar(Request $request): JsonResponse
+    {
+        $v1 = (int) $request->query('v1', 0);
+        $v2 = (int) $request->query('v2', 0);
+        if ($v1 <= 0 || $v2 <= 0) {
+            return response()->json(['message' => 'v1 y v2 son obligatorios'], 422);
+        }
+
+        $result = $this->service->comparar($v1, $v2);
+
+        return response()->json($result, $result['status']);
     }
 
     public function setVigente(int $id): JsonResponse

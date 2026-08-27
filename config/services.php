@@ -51,4 +51,32 @@ return [
         'retries' => env('TELERADIOLOGIA_RETRIES', 1),
     ],
 
+    /*
+    | PACS / WADO. Plantilla de URL: {ip} = ip_dcm de la sede, {aet} = AE Title.
+    | - dcm4chee 2.x (producción):  http://{ip}:8080/wado
+    | - dcm4chee-arc 5.x (pruebas): http://{ip}:8080/dcm4chee-arc/aets/{aet}/wado
+    */
+    'pacs' => [
+        'wado_url' => env('PACS_WADO_URL', 'http://{ip}:8080/wado'),
+        // QIDO-RS (solo dcm4chee-arc 5.x). Vacío = sin fallback. {ip}/{aet} reemplazables.
+        'qido_url' => env('PACS_QIDO_URL', ''),
+        'aet' => env('PACS_AET', 'DCM4CHEE'),
+        'connect_timeout' => env('PACS_CONNECT_TIMEOUT', 15),
+        'timeout' => env('PACS_TIMEOUT', 60),
+    ],
+
+    /*
+    | Sistema externo que RECIBE las imágenes JPG/JPEG.
+    | Configura la URL y el modo de envío según el contrato del receptor.
+    */
+    'imagen_externa' => [
+        'enabled' => env('IMAGEN_EXTERNA_ENABLED', false),
+        'url' => env('IMAGEN_EXTERNA_URL'),
+        'token' => env('IMAGEN_EXTERNA_TOKEN'),
+        'metodo' => env('IMAGEN_EXTERNA_METODO', 'multipart'), // multipart | base64
+        'campo_archivo' => env('IMAGEN_EXTERNA_CAMPO', 'file'),
+        'connect_timeout' => env('IMAGEN_EXTERNA_CONNECT_TIMEOUT', 15),
+        'timeout' => env('IMAGEN_EXTERNA_TIMEOUT', 60),
+    ],
+
 ];

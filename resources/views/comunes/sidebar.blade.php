@@ -320,6 +320,11 @@
                                         <a href="{{ route('config.sedes.listar') }}">Sedes</a>
                                     </li>
                                 @endcan
+                                @can('config.sedes.edit')
+                                    <li>
+                                        <a href="{{ route('config.sedes.logo') }}">Logo/Encabezado por Sede</a>
+                                    </li>
+                                @endcan
                                 @can('config.servicio.citas.index')
                                     <li>
                                         <a href="{{ route('config.servicio.citas.listar') }}">Servicios de Citas</a>

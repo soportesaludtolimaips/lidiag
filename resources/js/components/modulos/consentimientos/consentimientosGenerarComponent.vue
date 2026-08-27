@@ -155,6 +155,9 @@
 
                     <hr />
 
+                    <!-- Marcar zonas en imágenes de la plantilla -->
+                    <consentimiento-marcas-canvas :documento-id="documento.consentimiento_id" />
+
                     <!-- Adjuntos -->
                     <h6>Adjuntos</h6>
                     <div class="row g-2 align-items-end">

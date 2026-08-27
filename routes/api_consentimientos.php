@@ -5,6 +5,7 @@ use App\Http\Controllers\Consentimientos\ConsentimientoBloqueoController;
 use App\Http\Controllers\Consentimientos\ConsentimientoDocumentoController;
 use App\Http\Controllers\Consentimientos\ConsentimientoEstadisticaController;
 use App\Http\Controllers\Consentimientos\ConsentimientoMarcaController;
+use App\Http\Controllers\Consentimientos\ConsentimientoPlantillaImagenController;
 use App\Http\Controllers\Consentimientos\ConsentimientoPlantillaProductoController;
 use Illuminate\Support\Facades\Route;
 
@@ -116,6 +117,25 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/consentimientos-plantillas/productos/{id}', [ConsentimientoPlantillaProductoController::class, 'destroy'])
         ->whereNumber('id')
         ->name('api.consentimientos.plantilla_productos.destroy');
+
+    /**
+     * Imágenes de plantilla (decorativas o marcables)
+     */
+    Route::get('/consentimientos-plantillas/{plantillaId}/imagenes', [ConsentimientoPlantillaImagenController::class, 'index'])
+        ->whereNumber('plantillaId')
+        ->name('api.consentimientos.plantilla_imagenes.index');
+
+    Route::post('/consentimientos-plantillas/{plantillaId}/imagenes', [ConsentimientoPlantillaImagenController::class, 'store'])
+        ->whereNumber('plantillaId')
+        ->name('api.consentimientos.plantilla_imagenes.store');
+
+    Route::get('/consentimientos-plantillas/imagenes/{id}/ver', [ConsentimientoPlantillaImagenController::class, 'stream'])
+        ->whereNumber('id')
+        ->name('api.consentimientos.plantilla_imagenes.ver');
+
+    Route::delete('/consentimientos-plantillas/imagenes/{id}', [ConsentimientoPlantillaImagenController::class, 'destroy'])
+        ->whereNumber('id')
+        ->name('api.consentimientos.plantilla_imagenes.destroy');
 
     /**
      * Estadísticas / dashboard

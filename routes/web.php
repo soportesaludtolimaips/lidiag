@@ -248,6 +248,10 @@ Route::view('/config-sedes-listar', 'modulos.configuracion.config-sedes')
     ->name('config.sedes.listar')
     ->middleware(['auth', 'permission:config.sedes.index']);
 
+Route::view('/config-sede-logo', 'modulos.configuracion.config-sede-logo')
+    ->name('config.sedes.logo')
+    ->middleware(['auth', 'permission:config.sedes.edit']);
+
 Route::post('/config/sedes/updateWitchPlantillas', [ConfigSedeController::class, 'update'])
     ->name('config.sedes.update')
     ->middleware(['auth', 'permission:config.sedes.edit']);

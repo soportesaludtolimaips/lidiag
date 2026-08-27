@@ -75,6 +75,10 @@ Route::middleware(['auth'])->group(function () {
         ->except(['create', 'show']);
 
     // Sedes
+    Route::post('/config-sedes/{id}/branding', [ConfigSedeController::class, 'actualizarBranding'])
+        ->whereNumber('id')
+        ->name('api.config.sedes.branding');
+
     Route::resource('/config-sedes', ConfigSedeController::class)
         ->names('api.config.sedes')
         ->except(['create', 'edit']);

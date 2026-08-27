@@ -81,6 +81,16 @@ export const consentimientos = {
         axios.post(`${BASE}/consentimientos-plantillas/${plantillaId}/productos`, data),
     desasignar: (id) => axios.delete(`${BASE}/consentimientos-plantillas/productos/${id}`),
 
+    // Imágenes de plantilla (marcables)
+    imagenes: (plantillaId) =>
+        axios.get(`${BASE}/consentimientos-plantillas/${plantillaId}/imagenes`),
+    subirImagen: (plantillaId, fd) =>
+        axios.post(`${BASE}/consentimientos-plantillas/${plantillaId}/imagenes`, fd, {
+            headers: { "Content-Type": "multipart/form-data" },
+        }),
+    verImagenUrl: (id) => `${BASE}/consentimientos-plantillas/imagenes/${id}/ver`,
+    eliminarImagen: (id) => axios.delete(`${BASE}/consentimientos-plantillas/imagenes/${id}`),
+
     // Bloqueo médico
     bloqueoEstado: () => axios.get(`${BASE}/consentimientos/bloqueo/estado`),
     liberarBloqueo: (data) => axios.post(`${BASE}/consentimientos/bloqueo/liberar`, data),

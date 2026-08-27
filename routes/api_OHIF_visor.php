@@ -29,4 +29,11 @@ Route::get('/wado/studies/{studyUID}/series/{seriesUID}/metadata', [OhifVisorCon
 // Originales
 Route::get('/dicom/{sedeId}/studies/{study_iuid}/metadata', [OhifVisorController::class, 'getOhifMetadata']);
 Route::get('/dicom/download', [OhifVisorController::class, 'downloadDicom'])->name('dicom.download');
+
+// Exportar imagen del estudio como JPEG (limpia o con datos quemados, estilo K-PACS)
+// para enviar a sistemas externos que solo aceptan JPG/JPEG.
+Route::get('/dicom/export-jpeg', [OhifVisorController::class, 'exportarJpeg'])->name('dicom.export.jpeg');
+
+// Exporta y ENVÍA el JPEG al sistema externo configurado (services.imagen_externa)
+Route::post('/dicom/enviar-jpeg', [OhifVisorController::class, 'enviarJpeg'])->name('dicom.enviar.jpeg');
 Route::get('/dicom/{sedeId}/studies', [OhifVisorController::class, 'listStudies']);

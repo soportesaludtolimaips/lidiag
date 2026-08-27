@@ -50,6 +50,8 @@ import configProductoComponent from "./components/modulos/configuracion/configPr
 app.component("ConfigProductoComponent", configProductoComponent);
 import configSedeComponent from "./components/modulos/configuracion/configSedeComponent.vue";
 app.component("ConfigSedeComponent", configSedeComponent);
+import configSedeLogoComponent from "./components/modulos/configuracion/configSedeLogoComponent.vue";
+app.component("ConfigSedeLogoComponent", configSedeLogoComponent);
 import configWhatsappComponent from "./components/modulos/configuracion/configWhatsappComponent.vue";
 app.component("ConfigWhatsappComponent", configWhatsappComponent);
 import configCitaRechazoMotivoComponent from "./components/modulos/configuracion/configCitaRechazoMotivoComponent.vue";
@@ -106,6 +108,8 @@ import consentimientoFirmaComponent from "./components/modulos/consentimientos/c
 app.component("ConsentimientoFirmaComponent", consentimientoFirmaComponent);
 import consentimientosGenerarComponent from "./components/modulos/consentimientos/consentimientosGenerarComponent.vue";
 app.component("ConsentimientosGenerarComponent", consentimientosGenerarComponent);
+import consentimientoMarcasCanvas from "./components/modulos/consentimientos/consentimientoMarcasCanvas.vue";
+app.component("ConsentimientoMarcasCanvas", consentimientoMarcasCanvas);
 import consentimientosMedicoComponent from "./components/modulos/consentimientos/consentimientosMedicoComponent.vue";
 app.component("ConsentimientosMedicoComponent", consentimientosMedicoComponent);
 import consentimientosPlantillasComponent from "./components/modulos/consentimientos/consentimientosPlantillasComponent.vue";

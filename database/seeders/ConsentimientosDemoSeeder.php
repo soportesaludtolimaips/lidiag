@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Configuracion\ConfigProducto;
+use App\Models\Configuracion\ConfigSede;
 use App\Models\Consentimientos\ConsentimientoPlantilla;
 use App\Models\Consentimientos\ConsentimientoPlantillaProducto;
 use App\Models\General\Paciente;
@@ -24,6 +25,32 @@ class ConsentimientosDemoSeeder extends Seeder
     {
         $this->crearPacientes();
         $this->crearPlantillaYAsignaciones();
+        $this->configurarSedeDemo();
+    }
+
+    /**
+     * Configura logo + info de la primera sede para el encabezado de los PDF.
+     */
+    private function configurarSedeDemo(): void
+    {
+        $sede = ConfigSede::query()->first();
+        if (! $sede || $sede->logo_1) {
+            return;
+        }
+
+        $destino = public_path('logos/salud_tolima.png');
+        if (! is_file($destino)) {
+            @mkdir(public_path('logos'), 0755, true);
+            $src = public_path('admin-wrap/assets/images/logo-text.png');
+            if (is_file($src)) {
+                @copy($src, $destino);
+            }
+        }
+
+        $sede->logo_1 = 'salud_tolima.png';
+        $sede->encabezado = "IPS SALUD TOLIMA S.A.S.\nCra 5 # 10-20, Espinal - Tolima\nTel: (608) 248 0000  ·  NIT: 900.123.456-7";
+        $sede->pie_pagina = 'Documento generado electronicamente - IPS Salud Tolima S.A.S.';
+        $sede->save();
     }
 
     private function crearPacientes(): void
@@ -86,11 +113,17 @@ las <strong>${hora}</strong>, y manifiesto haber resuelto todas mis dudas.</p>
 
 <p>Observaciones: ${observaciones}</p>
 
-<br>
-<table style="width:100%;">
+<div style="margin-top:110px;"></div>
+<table style="width:100%; text-align:center;">
   <tr>
-    <td style="width:50%;">Firma del paciente/acompañante:<br>${firma_paciente}</td>
-    <td style="width:50%;">Firma del médico (${nombre_medico}):<br>${firma_medico}</td>
+    <td style="width:50%; padding:0 20px;">
+      ${firma_paciente}
+      <div style="border-top:1px solid #333; margin-top:6px; padding-top:4px;">Firma del paciente/acompañante</div>
+    </td>
+    <td style="width:50%; padding:0 20px;">
+      ${firma_medico}
+      <div style="border-top:1px solid #333; margin-top:6px; padding-top:4px;">Firma del médico (${nombre_medico})</div>
+    </td>
   </tr>
 </table>
 HTML;

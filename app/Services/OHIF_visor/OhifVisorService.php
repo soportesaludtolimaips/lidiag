@@ -6,6 +6,7 @@ use App\Models\Configuracion\ConfigSede;
 use App\Models\Dcm4chee\Instance;
 use App\Models\Dcm4chee\Series;
 use App\Models\Dcm4chee\Study;
+use App\Models\Estudio\Estudio;
 use App\Services\BaseService;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
@@ -173,6 +174,242 @@ class OhifVisorService extends BaseService
         }
 
         return $this->error('Error al obtener DICOM', 500);
+    }
+
+    /**
+     * Exporta una imagen del estudio como JPEG desde el PACS (WADO), para
+     * enviarla a sistemas externos que solo aceptan JPG/JPEG.
+     *
+     * @param  bool  $conDatos  false = imagen limpia (solo el estudio);
+     *                          true  = con datos del paciente/técnica quemados
+     *                          sobre la imagen (estilo visor K-PACS),
+     *                          usando el parámetro WADO `annotation`.
+     */
+    public function exportarJpeg(
+        int $sedeId,
+        string $study,
+        string $series,
+        string $object,
+        bool $conDatos = false,
+        ?int $rows = null
+    ): array {
+        $sede = ConfigSede::find($sedeId);
+        if (! $sede) {
+            return $this->notFound('Sede no encontrada');
+        }
+
+        // Base configurable: soporta dcm4chee 2.x (/wado) y arc 5.x (/dcm4chee-arc/aets/{aet}/wado)
+        $base = str_replace(
+            ['{ip}', '{aet}'],
+            [(string) $sede->ip_dcm, (string) config('services.pacs.aet', 'DCM4CHEE')],
+            (string) config('services.pacs.wado_url', 'http://{ip}:8080/wado')
+        );
+
+        $wadoUrl = $base.'?requestType=WADO'
+            ."&studyUID={$study}"
+            ."&seriesUID={$series}"
+            ."&objectUID={$object}"
+            .'&contentType=image/jpeg';
+
+        if ($rows) {
+            $wadoUrl .= "&rows={$rows}";
+        }
+
+        try {
+            $response = Http::connectTimeout((int) config('services.pacs.connect_timeout', 15))
+                ->timeout((int) config('services.pacs.timeout', 60))
+                ->withHeaders(['Accept' => 'image/jpeg'])
+                ->get($wadoUrl);
+
+            if (! $response->successful()) {
+                return $this->error('Error al obtener JPEG del PACS', $response->status(), ['details' => $response->body()]);
+            }
+
+            $body = $response->body();
+
+            // El overlay tipo K-PACS se quema en la app (dcm4chee-arc 5.x ignora
+            // el parámetro WADO `annotation`), usando datos de la BD de LIDiag.
+            if ($conDatos) {
+                $body = $this->quemarOverlay($body, $study, (string) $sede->ip_dcm);
+            }
+
+            return $this->success([
+                'body' => $body,
+                'content_type' => 'image/jpeg',
+                'con_datos' => $conDatos,
+            ]);
+        } catch (\Throwable $e) {
+            return $this->error('Fallo de conexión con el PACS: '.$e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Construye las líneas del overlay: primero desde la BD de LIDiag
+     * (Estudio→Paciente); si no hay estudio local, cae al QIDO-RS del PACS.
+     *
+     * @return array{0: array<int, string>, 1: array<int, string>} [superiorIzq, superiorDer]
+     */
+    private function datosOverlay(string $studyUID, string $ip = ""): array
+    {
+        $estudio = Estudio::query()->with('paciente')->where('study_iuid', $studyUID)->first();
+
+        if ($estudio && $estudio->paciente) {
+            $p = $estudio->paciente;
+
+            return [
+                array_values(array_filter([
+                    trim((string) ($p->nombres.' '.$p->pri_ape.' '.$p->seg_ape)),
+                    $p->num_docu ? 'Doc: '.$p->num_docu : null,
+                    $p->fec_naci ? 'Nac: '.$p->fec_naci : null,
+                ])),
+                array_values(array_filter([
+                    $estudio->created_at ? 'Fecha: '.$estudio->created_at->format('Y-m-d H:i') : null,
+                    $p->sexo ? 'Sexo: '.$p->sexo : null,
+                ])),
+            ];
+        }
+
+        return $this->overlayDesdeQido($studyUID, $ip);
+    }
+
+    /**
+     * Fallback: obtiene demografía del estudio desde el QIDO-RS del PACS
+     * (solo dcm4chee-arc 5.x; requiere services.pacs.qido_url configurado).
+     *
+     * @return array{0: array<int, string>, 1: array<int, string>}
+     */
+    private function overlayDesdeQido(string $studyUID, string $ip = ""): array
+    {
+        $qidoBase = (string) config('services.pacs.qido_url', '');
+        if ($qidoBase === '') {
+            return [[], []];
+        }
+
+        $qidoBase = str_replace(['{ip}', '{aet}'], [$ip, (string) config('services.pacs.aet', 'DCM4CHEE')], $qidoBase);
+
+        try {
+            $resp = Http::connectTimeout((int) config('services.pacs.connect_timeout', 15))
+                ->timeout((int) config('services.pacs.timeout', 60))
+                ->acceptJson()
+                ->get(rtrim($qidoBase, '/')."/studies", ['StudyInstanceUID' => $studyUID, 'limit' => 1]);
+
+            if (! $resp->successful()) {
+                return [[], []];
+            }
+            $j = $resp->json()[0] ?? null;
+            if (! $j) {
+                return [[], []];
+            }
+
+            $nombre = $j['00100010']['Value'][0]['Alphabetic'] ?? '';
+            $docId = $j['00100020']['Value'][0] ?? '';
+            $nac = $j['00100030']['Value'][0] ?? '';
+            $fecha = $j['00080020']['Value'][0] ?? '';
+            $mods = $j['00080061']['Value'] ?? [];
+
+            return [
+                array_values(array_filter([
+                    $nombre ? str_replace('^', ' ', (string) $nombre) : null,
+                    $docId ? 'ID: '.$docId : null,
+                    $nac ? 'Nac: '.$nac : null,
+                ])),
+                array_values(array_filter([
+                    $fecha ? 'Fecha: '.$fecha : null,
+                    $mods ? 'Mod: '.implode(',', (array) $mods) : null,
+                ])),
+            ];
+        } catch (\Throwable $e) {
+            return [[], []];
+        }
+    }
+
+    /**
+     * Quema sobre el JPEG los datos del paciente/estudio (estilo visor K-PACS),
+     * tomados de la BD de LIDiag por study_iuid. Si algo falla, devuelve el
+     * JPEG original sin overlay.
+     */
+    private function quemarOverlay(string $jpeg, string $studyUID, string $ip = ""): string
+    {
+        $img = @imagecreatefromstring($jpeg);
+        if (! $img) {
+            return $jpeg;
+        }
+
+        [$superior, $superiorDer] = $this->datosOverlay($studyUID, $ip);
+
+        $amarillo = imagecolorallocate($img, 255, 255, 0);
+        $negro = imagecolorallocate($img, 0, 0, 0);
+        $font = 3;
+        $lineH = imagefontheight($font) + 2;
+
+        // Esquina superior izquierda (demografía)
+        $y = 4;
+        foreach ($superior as $linea) {
+            imagestring($img, $font, 5, $y + 1, $linea, $negro); // sombra
+            imagestring($img, $font, 4, $y, $linea, $amarillo);
+            $y += $lineH;
+        }
+
+        // Esquina superior derecha (fecha/estudio)
+        $w = imagesx($img);
+        $y = 4;
+        foreach ($superiorDer as $linea) {
+            $x = $w - (imagefontwidth($font) * strlen($linea)) - 5;
+            imagestring($img, $font, $x + 1, $y + 1, $linea, $negro);
+            imagestring($img, $font, $x, $y, $linea, $amarillo);
+            $y += $lineH;
+        }
+
+        ob_start();
+        imagejpeg($img, null, 90);
+        $out = (string) ob_get_clean();
+        imagedestroy($img);
+
+        return $out !== '' ? $out : $jpeg;
+    }
+
+    /**
+     * Envía un JPEG al sistema externo configurado (services.imagen_externa).
+     * Soporta multipart (archivo) o base64 (JSON) según IMAGEN_EXTERNA_METODO.
+     */
+    public function enviarImagenExterna(string $jpeg, string $filename = 'estudio.jpg'): array
+    {
+        if (! config('services.imagen_externa.enabled')) {
+            return $this->error('Envío a sistema externo deshabilitado (IMAGEN_EXTERNA_ENABLED=false)', 422);
+        }
+
+        $url = (string) config('services.imagen_externa.url', '');
+        if ($url === '') {
+            return $this->error('Falta configurar IMAGEN_EXTERNA_URL', 422);
+        }
+
+        $token = config('services.imagen_externa.token');
+        $metodo = (string) config('services.imagen_externa.metodo', 'multipart');
+        $campo = (string) config('services.imagen_externa.campo_archivo', 'file');
+
+        try {
+            $req = Http::connectTimeout((int) config('services.imagen_externa.connect_timeout', 15))
+                ->timeout((int) config('services.imagen_externa.timeout', 60));
+
+            if ($token) {
+                $req = $req->withToken($token);
+            }
+
+            $resp = $metodo === 'base64'
+                ? $req->post($url, [$campo => base64_encode($jpeg), 'filename' => $filename])
+                : $req->attach($campo, $jpeg, $filename)->post($url);
+
+            if ($resp->successful()) {
+                return $this->success([
+                    'receptor_status' => $resp->status(),
+                    'respuesta' => $resp->json() ?? $resp->body(),
+                ], 'Imagen enviada al sistema externo');
+            }
+
+            return $this->error('El receptor respondió error', $resp->status(), ['details' => $resp->body()]);
+        } catch (\Throwable $e) {
+            return $this->error('Fallo al enviar al receptor: '.$e->getMessage(), 500);
+        }
     }
 
     public function qidoStudies(): array
