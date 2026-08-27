@@ -36,9 +36,9 @@
 | Contratación | 4 | 1 | 0 | 0 | 3 | ✅ 1/1 |
 | Seguridad | 6 | 4 | 0 | 0 | 2 | ✅ 8/8 |
 | Ecografías | 8 | 8 | 0 | 0 | 0 | — |
-| Reportes | 1 | 1 | 0 | 0 | 0 | — |
+| Reportes | 3 | 0 | 0 | 0 | 3 | — |
 | Tele-radiología | 2 | 2 | 0 | 0 | 0 | — |
-| **TOTAL** | **79** | **15** | **0** | **1** | **63** | **37/37** |
+| **TOTAL** | **81** | **13** | **0** | **1** | **67** | **37/37** |
 
 ---
 
@@ -305,15 +305,21 @@
 
 | Campo | Valor |
 |---|---|
-| **Componentes** | `reporteProduccionComponent.vue` (único componente) |
+| **Componentes** | `reporteProduccionComponent.vue` (Producción + Estudios PAC) |
 | **Permisos** | `can('ecografias.reporte')` para módulo Ecografías |
 
 ### Sub-Módulo: Producción
 
 | # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
 |---|---|---|---|---|---|---|---|
-| 1 | Reporte producción detallada (RX/Tomografía/Mamografía/Resonancia) | ⬜ Sin iniciar | — | — | — | — | Filtros por modalidad + fechas |
-| 2 | Reporte producción Ecografías (permiso controlado) | ⬜ Sin iniciar | — | — | — | — | `can('ecografias.reporte')` |
+| 1 | Reporte producción detallada (RX/Tomografía/Mamografía/Resonancia) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | REP-01; filtros: sede, quien asignó, médico, fechas |
+| 2 | Reporte producción Ecografías (permiso controlado) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | REP-02; `can('ecografias.reporte')` |
+
+### Sub-Módulo: Estudios PAC
+
+| # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
+|---|---|---|---|---|---|---|---|
+| 1 | Reporte estudios tomados en PAC (filtro sede + fechas) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | REP-PAC-01; fix: ReporteEstudiosPACRequest, toastMessage import |
 
 ### Automatizadas
 
