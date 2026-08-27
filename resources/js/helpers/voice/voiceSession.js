@@ -4,7 +4,11 @@
  *
  * Diseñado para ser reutilizable en múltiples componentes sin tocar UI.
  */
-import { createAudioRecorderSession, createAudioRecorderSessionSmart, getVoiceAudioConstraints } from "./audioRecorder";
+import {
+    createAudioRecorderSession,
+    createAudioRecorderSessionSmart,
+    getVoiceAudioConstraints,
+} from "./audioRecorder";
 import { createSpeechDictation, isSpeechRecognitionSupported } from "./speechDictation";
 
 export function createVoiceSession({
@@ -74,8 +78,14 @@ export function createVoiceSession({
                 await a.start();
             } catch (e) {
                 // Worker interno falló → reintenta con main thread
-                try { a.cleanup(); } catch (e2) {}
-                const fallback = await createAudioRecorderSession({ constraints, mimeType, audioBitsPerSecond });
+                try {
+                    a.cleanup();
+                } catch (e2) {}
+                const fallback = await createAudioRecorderSession({
+                    constraints,
+                    mimeType,
+                    audioBitsPerSecond,
+                });
                 fallback.start();
                 audioSession = fallback;
                 return { audioSession: fallback, dictation: d };
