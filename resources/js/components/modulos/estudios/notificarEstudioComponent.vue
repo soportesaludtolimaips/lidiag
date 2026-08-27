@@ -564,12 +564,6 @@ async function enviarPortal(item) {
  */
 async function enviarPortalPacientes() {
     try {
-        toastMessage({
-            heading: "Procesando...",
-            text: "Enviando al portal de pacientes, por favor espere.",
-            icon: "info",
-        });
-
         const res = await axios.post("/api/enviar-portal-pacientes", estudio.value);
 
         if (res.status == 200) {
