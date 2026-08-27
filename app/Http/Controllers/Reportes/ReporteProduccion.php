@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Reportes;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Reportes\ReporteEstudiosPACRequest;
 use App\Http\Requests\Reportes\ReporteProduccionRequest;
 use App\Services\Reportes\ReporteProduccionService;
 use Illuminate\Http\JsonResponse;
@@ -28,7 +29,7 @@ class ReporteProduccion extends Controller
         return response()->json($result['message'], $result['status']);
     }
 
-    public function reporteEstudiosPAC(ReporteProduccionRequest $request): BinaryFileResponse|JsonResponse
+    public function reporteEstudiosPAC(ReporteEstudiosPACRequest $request): BinaryFileResponse|JsonResponse
     {
         $result = $this->service->generateReporteEstudiosPAC($request->validated());
 
