@@ -301,7 +301,7 @@
                         <button
                             type="button"
                             class="btn btn-info waves-effect waves-light"
-                            @click="descargarReporte()"
+                            @click="descargarReporteEstudiosPAC()"
                             :disabled="loadingDescargar"
                         >
                             <i v-if="loadingDescargar" class="fa fa-spinner fa-spin"></i>
@@ -319,6 +319,7 @@
 import { onMounted, ref } from "vue";
 
 import { listarUsuariosYSedes } from "../../../helpers/usuarios";
+import { toastMessage } from "@/helpers/alerts.js";
 import usePermissions from "@/helpers/permissions.js";
 import axios from "axios";
 
