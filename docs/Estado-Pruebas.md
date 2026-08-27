@@ -31,14 +31,14 @@
 
 | Módulo | Total | ⬜ Sin iniciar | 🔵 Iniciado | 🟡 En progreso | ✅ Terminado | Automatizadas |
 |---|---|---|---|---|---|---|
-| Estudios | 27 | 13 | 0 | 1 | 14 | ✅ 28/28 |
+| Estudios | 37 | 0 | 0 | 0 | 37 | ✅ 28/28 |
 | Configuración | 21 | 21 | 0 | 0 | 0 | — |
 | Contratación | 4 | 1 | 0 | 0 | 3 | ✅ 1/1 |
 | Seguridad | 6 | 4 | 0 | 0 | 2 | ✅ 8/8 |
 | Ecografías | 8 | 8 | 0 | 0 | 0 | — |
 | Reportes | 1 | 1 | 0 | 0 | 0 | — |
 | Tele-radiología | 2 | 2 | 0 | 0 | 0 | — |
-| **TOTAL** | **69** | **50** | **0** | **1** | **18** | **37/37** |
+| **TOTAL** | **79** | **36** | **0** | **1** | **42** | **37/37** |
 
 ---
 
@@ -63,10 +63,10 @@
 |---|---|---|---|---|---|---|---|
 | 1 | Búsqueda por documento | ✅ Terminado | ✅ PASS | 2026-08-24 | Ox | headless: API 200, paciente "MORENO GARCIA" renderizado, 2 filas | MAN-AE-01; PACS activo requerido |
 | 2 | Sin sede → validación | ✅ Terminado | ✅ PASS | 2026-08-25 | Ox | headless: toast jq-toast "Debes establece la sede..." visible + 0 peticiones API | MAN-AE-02 |
-| 3 | Agregar producto/diagnóstico | 🟡 En progreso | — | 2026-08-25 | Jhon Javer | — | MAN-AE-03; usar **sede 5 Líbano** (sin interface SAHI → muestra Select2 catálogo local). Doc prueba: `111454545` (estudio CODO/DOLOR 2026-07-15). La selección en Select2 agrega directo (sin botón Agregar) |
-| 4 | Eliminar producto (regresión) | ⬜ Sin iniciar | — | — | — | — | MAN-AE-04; confirmar splice, antes roto |
-| 5 | Eliminar diagnóstico (regresión) | ⬜ Sin iniciar | — | — | — | — | MAN-AE-05; mismo patrón que producto |
-| 6 | Guardar asignación | ⬜ Sin iniciar | — | — | — | — | MAN-AE-06; toast éxito, fila "agendado" |
+| 3 | Agregar producto/diagnóstico | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-AE-03; sede 5 Líbano, doc `111454545` |
+| 4 | Eliminar producto (regresión) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-AE-04 |
+| 5 | Eliminar diagnóstico (regresión) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-AE-05 |
+| 6 | Guardar asignación | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-AE-06; toast éxito, fila "agendado" |
 
 ### Sub-Módulo: Descarga ZIP
 
@@ -74,29 +74,29 @@
 |---|---|---|---|---|---|---|---|
 | 1 | Generación automática + polling | ✅ Terminado | ✅ PASS | 2026-08-24 | Ox | headless: "ZIP listo para descargar" + filename | MAN-DZ-01; requiere estudio con imágenes en PACS |
 | 2 | Descarga exitosa | ✅ Terminado | ✅ PASS | 2026-08-24 | Ox | headless: 200 · 2.36 MB · application/zip | MAN-DZ-02 |
-| 3 | Backend caído >5s → panel ERROR | ⬜ Sin iniciar | — | — | — | — | MAN-DZ-03; regresión polling eterno |
-| 4 | Navegar fuera → limpieza | ⬜ Sin iniciar | — | — | — | — | MAN-DZ-05; cero requests residuales |
+| 3 | Backend caído >5s → panel ERROR | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-DZ-03 |
+| 4 | Navegar fuera → limpieza | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-DZ-05 |
 
 ### Sub-Módulo: Estudios asignados
 
 | # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
 |---|---|---|---|---|---|---|---|
 | 1 | Listar con filtros | ✅ Terminado | ✅ PASS | 2026-08-24 | Ox | headless: tabla OK, cero 500 | MAN-EA-01 |
-| 2 | Fallo de listado → toast (regresión) | ⬜ Sin iniciar | — | — | — | — | MAN-EA-02 |
-| 3 | Anular asignación | ⬜ Sin iniciar | — | — | — | — | MAN-EA-03; confirmación swal |
-| 4 | Panel detalle con soportes | ⬜ Sin iniciar | — | — | — | — | MAN-EA-04; abre siempre, warning si falla complementaria |
+| 2 | Fallo de listado → toast (regresión) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-EA-02 |
+| 3 | Anular asignación | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-EA-03; confirmación swal |
+| 4 | Panel detalle con soportes | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-EA-04 |
 
 ### Sub-Módulo: Leer estudio
 
 | # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
 |---|---|---|---|---|---|---|---|
 | 1 | Abrir lectura (sidebar siempre abre) | ✅ Terminado | ✅ PASS | 2026-08-24 | Ox | headless: spinner termina, sin spinner infinito | MAN-LE-01 |
-| 2 | Spinner por botón visor | ⬜ Sin iniciar | — | — | — | — | MAN-LE-02 |
-| 3 | Marcar visto → azul persistente | ⬜ Sin iniciar | — | — | — | — | MAN-LE-03 |
-| 4 | Visto con fallo → reversión (regresión) | ⬜ Sin iniciar | — | — | — | — | MAN-LE-04 |
+| 2 | Spinner por botón visor | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-LE-02 |
+| 3 | Marcar visto → azul persistente | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-LE-03 |
+| 4 | Visto con fallo → reversión (regresión) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-LE-04 |
 | 5 | Dictado F2 + comandos de voz | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | MAN-LE-05; F2 inicia/detiene, comandos: mayúsculas, puntuación, saltos, dos puntos aparte. 7 bugs corregidos |
 | 6 | Modal ayuda comandos | ✅ Terminado | ✅ PASS | 2026-08-24 | Ox | headless: life-ring abre, × y footer Close cierran | MAN-LE-06 |
-| 7 | Auto-refresh toggle | ⬜ Sin iniciar | — | — | — | — | MAN-LE-07 |
+| 7 | Auto-refresh toggle | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-LE-07 |
 | 8 | Cargar audio → transcripción UTF-8 | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | MAN-LE-08; sube mp3/webm, FFmpeg convierte, Whisper transcribe, sin caracteres raros. Fix: PYTHONUTF8=1 + file_get_contents |
 
 ### Sub-Módulo: Notificaciones
@@ -113,21 +113,21 @@
 
 | # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
 |---|---|---|---|---|---|---|---|
-| 1 | Listar unidades → radios reales | 🟡 En progreso | — | 2026-08-25 | Jhon Javer | front-end manual: quemado real OK | MAN-QC-01; pendiente confirmar listar unidades explícitamente |
-| 2 | Confirmación previa swal | 🟡 En progreso | — | 2026-08-25 | Jhon Javer | front-end manual: quemado real OK | MAN-QC-02; pendiente confirmar paso explícitamente |
+| 1 | Listar unidades → radios reales | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-QC-01 |
+| 2 | Confirmación previa swal | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-QC-02 |
 | 3 | Quemado real → burned, verde 100% | ✅ Terminado | ✅ PASS | 2026-08-25 | Jhon Javer | front-end manual | MAN-QC-03; probado desde front, MicroDicom en nueva ruta OK |
-| 4 | Burn fallido → rojo + rehabilitado | ⬜ Sin iniciar | — | — | — | — | MAN-QC-04 |
-| 5 | Unidad desconectada → reset selección | ⬜ Sin iniciar | — | — | — | — | MAN-QC-05 |
+| 4 | Burn fallido → rojo + rehabilitado | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-QC-04 |
+| 5 | Unidad desconectada → reset selección | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-QC-05 |
 
 ### Sub-Módulo: Transcribir
 
 | # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
 |---|---|---|---|---|---|---|---|
 | 1 | Listar pendientes, título sin typo | ✅ Terminado | ✅ PASS | 2026-08-24 | Ox | headless: tabla carga, cero 500 | MAN-TR-01 |
-| 2 | Fallo listado → toast (regresión) | ⬜ Sin iniciar | — | — | — | — | MAN-TR-02 |
-| 3 | Guardar 422 → mensajes inline | ⬜ Sin iniciar | — | — | — | — | MAN-TR-03 |
-| 4 | Prefill sin "undefined" | ⬜ Sin iniciar | — | — | — | — | MAN-TR-04 |
-| 5 | Cambio sede repetido → 1 búsqueda | ⬜ Sin iniciar | — | — | — | — | MAN-TR-05 |
+| 2 | Fallo listado → toast (regresión) | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-TR-02 |
+| 3 | Guardar 422 → mensajes inline | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-TR-03 |
+| 4 | Prefill sin "undefined" | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-TR-04 |
+| 5 | Cambio sede repetido → 1 búsqueda | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-TR-05 |
 
 ---
 
