@@ -4,6 +4,7 @@ namespace App\Services\Reportes;
 
 use App\Exports\ProduccionDetalladaEcografiasExport;
 use App\Exports\ProduccionDetalladaExport;
+use App\Exports\ReportesEstudioPAC;
 use App\Services\BaseService;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -36,7 +37,7 @@ class ReporteProduccionService extends BaseService
         return $this->error('Tipo de reporte inválido.', 422);
     }
 
-    private function normalizeNullable($value)
+    public function normalizeNullable($value)
     {
         if ($value === null) {
             return null;
@@ -47,5 +48,21 @@ class ReporteProduccionService extends BaseService
         }
 
         return $v;
+    }
+
+    public function generateReporteEstudiosPAC(array $data): BinaryFileResponse|array
+    {
+        $sedeId = $this->normalizeNullable($data['sedeId'] ?? null);
+        $fechaInicio = $data['fechaIni'] ?? null;
+        $fechaFin = $data['fechaFin'] ?? null;
+
+        if (! $sedeId) {
+            return ['message' => 'Debes seleccionar una sede.', 'status' => 422];
+        }
+
+        return Excel::download(
+            new ReportesEstudioPAC($fechaInicio, $fechaFin, $sedeId, "", ""),
+            'estudios tomados en PAC.xlsx'
+        );
     }
 }

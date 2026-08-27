@@ -14,12 +14,23 @@ class ReporteProduccion extends Controller
         private readonly ReporteProduccionService $service,
     ) {
         $this->middleware('auth');
-        $this->middleware('permission:reportes.detallados|reportes.indicadores')->only(['reporteProduccionDetallado']);
+        $this->middleware('permission:reportes.detallados|reportes.indicadores')->only(['reporteProduccionDetallado', 'reporteEstudiosPAC']);
     }
 
     public function reporteProduccionDetallado(ReporteProduccionRequest $request): BinaryFileResponse|JsonResponse
     {
         $result = $this->service->generateReporteDetallado($request->validated());
+
+        if ($result instanceof BinaryFileResponse) {
+            return $result;
+        }
+
+        return response()->json($result['message'], $result['status']);
+    }
+
+    public function reporteEstudiosPAC(ReporteProduccionRequest $request): BinaryFileResponse|JsonResponse
+    {
+        $result = $this->service->generateReporteEstudiosPAC($request->validated());
 
         if ($result instanceof BinaryFileResponse) {
             return $result;

@@ -186,6 +186,13 @@ Route::get('descarga-reportes-produccion', [ReporteProduccion::class, 'reportePr
     ->name('descarga.reportes.produccion')
     ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores']);
 
+Route::view('reportes-estudios-pac', 'modulos.reportes.reportes-estudios-pac')
+    ->name('reportes.estudios.pac')
+    ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores']);
+Route::get('descarga-reportes-estudios-pac', [ReporteProduccion::class, 'reporteEstudiosPAC'])
+    ->name('descarga.reportes.estudios.pac')
+    ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores']);
+
 /**
  * Configuración
  */
