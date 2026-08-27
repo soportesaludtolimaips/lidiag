@@ -224,12 +224,6 @@
                                 <span class="hide-menu">Producción</span>
                             </a>
                         </li>
-                        <li>
-                            <a href="{{ route('reportes.estudios.pac') }}" class="waves-effect waves-dark" aria-expanded="false">
-                                <i class="icon-Book"></i>
-                                <span class="hide-menu">Estudios PAC</span>
-                            </a>
-                        </li>
                     @endif
 
                     @if (auth()->user()->hasAnyPermission(['helpdesk.tickets.index', 'helpdesk.tickets.create', 'helpdesk.tickets.show', 'helpdesk.reportes.index', 'helpdesk.notificaciones.index']))

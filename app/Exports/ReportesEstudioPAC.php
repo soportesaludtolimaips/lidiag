@@ -59,11 +59,19 @@ class ReportesEstudioPAC implements FromCollection, WithColumnWidths, WithCustom
         try {
 
             Config::set('database.default', 'mysql_sucursal');
-
             $estudios = DB::table('study')
-                ->select('patient.pat_id, patient.pat_name, study.study_datetime, study.study_desc, study.mods_in_study')
+                ->select(
+                    'patient.pat_id',
+                    'patient.pat_name',
+                    'study.study_datetime',
+                    'study.study_desc',
+                    'study.mods_in_study'
+                )
                 ->join('patient', 'patient.pk', '=', 'study.patient_fk')
-                ->whereBetween(DB::raw('DATE(study.study_datetime'), [$this->fechaInicio, $this->fechaFin])
+                ->whereBetween('study.study_datetime', [
+                    $this->fechaInicio.' 00:00:00',
+                    $this->fechaFin.' 23:59:59',
+                ])
                 ->get();
 
             return $estudios;
@@ -87,7 +95,7 @@ class ReportesEstudioPAC implements FromCollection, WithColumnWidths, WithCustom
     public function map($estudio): array
     {
         return [
-            $estudio->sedeNombre ?? 'N/A',
+            $this->sedeNombre ?? 'N/A',
             $estudio->study_datetime ?? 'N/A',
             $estudio->pat_id ?? 'N/A',
             $estudio->pat_name ?? 'N/A',
@@ -99,8 +107,9 @@ class ReportesEstudioPAC implements FromCollection, WithColumnWidths, WithCustom
     public function styles(Worksheet $sheet)
     {
         // Agrega el encabezado personalizado
-        $sheet->setCellValue('A1', 'Salud Tolima - Reporte de Producción');
+        $sheet->setCellValue('A1', 'Salud Tolima - Reporte de Estudios Tomados en PAC');
         $sheet->mergeCells('A1:F1'); // A1 to F1 to include the new column
+
         $sheet->getStyle('A1')->applyFromArray([
             'font' => [
                 'bold' => true,
@@ -132,7 +141,7 @@ class ReportesEstudioPAC implements FromCollection, WithColumnWidths, WithCustom
         ]);
 
         // Establece bordes para todas las celdas de datos
-        $sheet->getStyle('A4:S'.($sheet->getHighestRow()))->applyFromArray([
+        $sheet->getStyle('A4:F'.($sheet->getHighestRow()))->applyFromArray([
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
@@ -151,9 +160,9 @@ class ReportesEstudioPAC implements FromCollection, WithColumnWidths, WithCustom
     {
         return [
             'A' => 30,
-            'B' => 10, // Ancho para la columna de Sede
-            'C' => 10,
-            'D' => 25,
+            'B' => 19, // Ancho para la columna de Sede
+            'C' => 15,
+            'D' => 50,
             'E' => 30,
             'F' => 9,
         ];
