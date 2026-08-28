@@ -287,20 +287,58 @@ const reasignacion = ref({
     comentario: "",
 });
 
+/**
+ * Devuelve el nombre del estado seleccionado en el formulario de cambio de estado.
+ *
+ * @returns {string} Nombre del estado o cadena vacía si no hay selección.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 const estadoSeleccionadoNombre = computed(() => {
     const e = estados.value.find((x) => String(x.id) === String(accion.value.estado_id));
     return e ? e.nombre : "";
 });
 
+/**
+ * Sanitiza una cadena HTML para evitar la inyección de código malicioso.
+ *
+ * @param {string} dirty Cadena HTML sin sanitizar.
+ *
+ * @returns {string} Cadena HTML segura.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 function sanitize(dirty) {
     return DOMPurify.sanitize(dirty || "");
 }
+/**
+ * Recarga únicamente la información del ticket desde la API.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function recargarTicket() {
     try {
         const ticketRes = await helpdesk.ticket(props.ticketId);
         ticket.value = ticketRes.data;
     } catch (error) {}
 }
+/**
+ * Carga el detalle del ticket, los estados y los usuarios asignables al iniciar la vista.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function cargar() {
     loading.value = true;
     try {
@@ -329,6 +367,15 @@ async function cargar() {
         loading.value = false;
     }
 }
+/**
+ * Agrega un comentario al ticket y recarga su información.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function comentar() {
     if (!nuevoComentario.value) return;
     savingComentario.value = true;
@@ -342,6 +389,15 @@ async function comentar() {
         savingComentario.value = false;
     }
 }
+/**
+ * Cambia el estado del ticket previa confirmación del usuario.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function cambiarEstado() {
     if (!accion.value.estado_id) return;
     const ok = await confirmAction({
@@ -365,6 +421,15 @@ async function cambiarEstado() {
         savingEstado.value = false;
     }
 }
+/**
+ * Reasigna el ticket a otro usuario previa confirmación del usuario.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function reasignar() {
     if (!reasignacion.value.asignado_id || !reasignacion.value.comentario) return;
     const ok = await confirmAction({
@@ -387,6 +452,15 @@ async function reasignar() {
         savingReasignar.value = false;
     }
 }
+/**
+ * Sube los archivos adjuntos seleccionados al ticket y recarga su información.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function subirAdjuntos() {
     const input = files.value;
     const rawFiles = input && input.files ? Array.from(input.files) : [];
@@ -407,6 +481,15 @@ async function subirAdjuntos() {
     }
 }
 
+/**
+ * Inicializa el componente cargando el detalle del ticket.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 onMounted(async () => {
     await cargar();
 });

@@ -17,6 +17,18 @@ class HelpDeskTicketService extends BaseService
 {
     use TicketAuthorization;
 
+    /**
+     * Lista los tickets aplicando filtros, ordenamiento por prioridad y paginación.
+     *
+     * @param  array  $filters  Filtros de consulta (scope, estado_id, categoria_id, prioridad_id, sede_id, desde, hasta, q, per_page, page).
+     * @param  User  $user  Usuario autenticado que realiza la consulta.
+     *
+     * @returns array Respuesta con los items paginados y metadatos de paginación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function list(array $filters, User $user): array
     {
         $scope = $filters['scope'] ?? 'mine';
@@ -88,6 +100,18 @@ class HelpDeskTicketService extends BaseService
         ]);
     }
 
+    /**
+     * Obtiene el detalle de un ticket con todas sus relaciones y marca como visto si aplica.
+     *
+     * @param  HelpDeskTickets  $ticket  Ticket a consultar.
+     * @param  User  $user  Usuario autenticado que realiza la consulta.
+     *
+     * @returns array Respuesta con el ticket y sus relaciones cargadas.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function find(HelpDeskTickets $ticket, User $user): array
     {
         $this->assertCanSeeTicket($ticket, $user);
@@ -111,6 +135,18 @@ class HelpDeskTicketService extends BaseService
         );
     }
 
+    /**
+     * Crea un nuevo ticket generando su folio, estado inicial y notificando a las partes.
+     *
+     * @param  array  $data  Datos validados del ticket (titulo, descripcion, categoria_id, prioridad_id, sede_id, asignado_id).
+     * @param  User  $user  Usuario autenticado que registra el ticket.
+     *
+     * @returns array Respuesta con el ticket creado o error de validación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function create(array $data, User $user): array
     {
         $asignado = User::query()->where('id', (int) $data['asignado_id'])->where('estado', 1)->first();
@@ -180,6 +216,19 @@ class HelpDeskTicketService extends BaseService
         return $this->created($ticket->load(['categoria', 'prioridad', 'estado']));
     }
 
+    /**
+     * Actualiza campos editables de un ticket y registra cambios de categoría o prioridad en el historial.
+     *
+     * @param  HelpDeskTickets  $ticket  Ticket a actualizar.
+     * @param  array  $data  Datos validados a modificar.
+     * @param  User  $user  Usuario autenticado que realiza la actualización.
+     *
+     * @returns array Respuesta con el ticket actualizado o error de permisos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function update(HelpDeskTickets $ticket, array $data, User $user): array
     {
         $this->assertCanSeeTicket($ticket, $user);
@@ -223,6 +272,18 @@ class HelpDeskTicketService extends BaseService
         return $this->success($ticket);
     }
 
+    /**
+     * Elimina un ticket (solo administradores y siempre que esté en estado Abierto o Cerrado).
+     *
+     * @param  HelpDeskTickets  $ticket  Ticket a eliminar.
+     * @param  User  $user  Usuario autenticado que realiza la eliminación.
+     *
+     * @returns array Respuesta de eliminación o error de validación/permisos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function delete(HelpDeskTickets $ticket, User $user): array
     {
         if (! $user->hasRole('Administrador')) {
@@ -239,6 +300,19 @@ class HelpDeskTicketService extends BaseService
         return $this->deleted();
     }
 
+    /**
+     * Registra un comentario en el historial del ticket y ajusta el campo pendiente_de.
+     *
+     * @param  HelpDeskTickets  $ticket  Ticket comentado.
+     * @param  array  $data  Datos validados que incluyen el comentario.
+     * @param  User  $user  Usuario autenticado que comenta.
+     *
+     * @returns array Respuesta con resultado de la operación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function comment(HelpDeskTickets $ticket, array $data, User $user): array
     {
         $this->assertCanSeeTicket($ticket, $user);
@@ -263,6 +337,19 @@ class HelpDeskTicketService extends BaseService
         return $this->success(['ok' => true]);
     }
 
+    /**
+     * Reasigna el ticket a otro usuario de soporte y notifica a las partes.
+     *
+     * @param  HelpDeskTickets  $ticket  Ticket a reasignar.
+     * @param  array  $data  Datos validados con el asignado_id y comentario.
+     * @param  User  $user  Usuario autenticado con permisos de reasignación.
+     *
+     * @returns array Respuesta con resultado de la operación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function reassign(HelpDeskTickets $ticket, array $data, User $user): array
     {
         $this->assertCanSeeTicket($ticket, $user);
@@ -294,6 +381,19 @@ class HelpDeskTicketService extends BaseService
         return $this->success(['ok' => true]);
     }
 
+    /**
+     * Cambia el estado del ticket validando la transición, solución o cierre y notificando.
+     *
+     * @param  HelpDeskTickets  $ticket  Ticket a cambiar de estado.
+     * @param  array  $data  Datos validados con estado_id y comentario/solución.
+     * @param  User  $user  Usuario autenticado con permisos de soporte.
+     *
+     * @returns array Respuesta con resultado de la operación o error de transición.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function changeStatus(HelpDeskTickets $ticket, array $data, User $user): array
     {
         $this->assertCanSeeTicket($ticket, $user);

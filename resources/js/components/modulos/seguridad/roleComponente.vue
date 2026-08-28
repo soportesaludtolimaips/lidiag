@@ -308,6 +308,15 @@ const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const gruposAbiertos = ref({});
 
+/**
+ * Agrupa los permisos del rol por módulo a partir de su nombre (prefijo antes del punto).
+ *
+ * @returns {object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 const permisosAgrupados = computed(() => {
     const grupos = {};
     registro.value.permisosRol.forEach((permiso) => {
@@ -338,16 +347,48 @@ const modulosTraducidos = {
     Otros: "Otros",
 };
 
+/**
+ * Alterna la visibilidad (abierto/cerrado) del grupo de permisos de un módulo.
+ *
+ * @param string $modulo Nombre del módulo cuyo grupo se desea expandir o colapsar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function toggleGrupo(modulo) {
     gruposAbiertos.value[modulo] = !gruposAbiertos.value[modulo];
 }
 
+/**
+ * Marca o desmarca todos los permisos de un módulo según la acción indicada.
+ *
+ * @param string $modulo Nombre del módulo afectado.
+ * @param boolean $seleccionar Verdadero para marcar todos, falso para desmarcar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function seleccionarGrupo(modulo, seleccionar) {
     permisosAgrupados.value[modulo].forEach((permiso) => {
         permiso.checked = seleccionar;
     });
 }
 
+/**
+ * Inicializa la tabla DataTable de roles con botones de exportación y traducción al español.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function initDataTable() {
     safeInitDataTable(dt.value || "#example23", {
         dom: "Bfrtip",
@@ -371,9 +412,27 @@ function initDataTable() {
         },
     });
 }
+/**
+ * Destruye la instancia de la DataTable de roles para evitar duplicados al recargar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#example23");
 }
+/**
+ * Solicita al backend la lista de roles y permisos, y reconstruye la DataTable.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function ListarDatos() {
     loadingListar.value = true;
     try {
@@ -398,6 +457,15 @@ async function ListarDatos() {
         loadingListar.value = false;
     }
 }
+/**
+ * Valida y guarda (crea o actualiza) un rol junto con sus permisos seleccionados.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function guardarRegistro() {
     let totalPermisosElegido = 0;
     registro.value.permisosRol.map(function (x, y) {
@@ -458,6 +526,15 @@ async function guardarRegistro() {
         loadingGuardar.value = false;
     }
 }
+/**
+ * Prepara la lista de permisos del rol agregando la propiedad checked en falso para el formulario.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function listarPermisosRol() {
     permisos.value.forEach(function (x) {
         registro.value.permisosRol.push({
@@ -467,6 +544,17 @@ function listarPermisosRol() {
         });
     });
 }
+/**
+ * Configura el formulario para crear un nuevo rol o editar uno existiente y carga sus permisos.
+ *
+ * @param object $data Datos del rol a editar; vacío cuando se trata de un nuevo registro.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function mostrarRegistro(data = {}) {
     if (actualizar.value == true) {
         tituloModal.value = "Actualizar el registro: " + data.name;
@@ -504,6 +592,18 @@ function mostrarRegistro(data = {}) {
 
     btnCerralModalForm();
 }
+/**
+ * Activa o desactiva un rol previa confirmación del usuario y muestra una notificación.
+ *
+ * @param number $estado Estado objetivo (0 para activar, 1 para desactivar).
+ * @param object $data Datos del rol afectado.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function cambiarEstado(estado, data = {}) {
     const ok = await confirmAction({
         title: "Confirmación",
@@ -550,6 +650,17 @@ async function cambiarEstado(estado, data = {}) {
         });
     }
 }
+/**
+ * Elimina un rol previa confirmación del usuario y refresca el listado.
+ *
+ * @param object $data Datos del rol a eliminar.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function eliminarRol(data = {}) {
     const ok = await confirmAction({
         title: "Confirmación",
@@ -582,6 +693,15 @@ async function eliminarRol(data = {}) {
         });
     }
 }
+/**
+ * Alterna la visibilidad del panel lateral del formulario de roles.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function btnCerralModalForm() {
     if ($(".right-sidebar").hasClass("shw-rside")) {
         $(".right-sidebar").removeClass("shw-rside");
@@ -589,6 +709,15 @@ function btnCerralModalForm() {
         $(".right-sidebar").addClass("shw-rside");
     }
 }
+/**
+ * Restablece los campos del formulario y el estado de los permisos a sus valores iniciales.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function limpiarFormulario() {
     actualizar.value = false;
     tituloModal.value = "Nuevo registro";
@@ -601,10 +730,28 @@ function limpiarFormulario() {
     });
 }
 
+/**
+ * Hook de ciclo de vida que se ejecuta al montar el componente; carga la lista de roles.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 onMounted(() => {
     ListarDatos();
 });
 
+/**
+ * Hook de ciclo de vida que se ejecuta antes de desmontar el componente; destruye la DataTable.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 onBeforeUnmount(() => {
     destroyDataTable();
 });

@@ -298,12 +298,31 @@ const detalle = ref({
     datos_nuevos: null,
 });
 
+/**
+ * Carga la lista de eventos disponibles para el filtro del registro de auditoría.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-30
+ */
 async function cargarEventos() {
     try {
         const res = await axios.get("/api/seguridad-auditoria/eventos");
         eventosDisponibles.value = res.data;
     } catch (e) {}
 }
+/**
+ * Obtiene los registros de auditoría aplicando los filtros y la paginación actuales,
+ * e inicializa la tabla DataTable con los resultados.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-30
+ */
 async function cargarLogs() {
     if (loading.value) return;
     loading.value = true;
@@ -344,15 +363,48 @@ async function cargarLogs() {
         loading.value = false;
     }
 }
+/**
+ * Cambia la página actual del listado de auditoría y vuelve a cargar los registros.
+ *
+ * @param number $pagina Número de página destino a mostrar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-30
+ */
 function irPagina(pagina) {
     if (pagina < 1 || pagina > totalPaginas.value) return;
     paginaActual.value = pagina;
     cargarLogs();
 }
+/**
+ * Abre el modal con el detalle completo del registro de auditoría seleccionado.
+ *
+ * @param object $item Registro de auditoría que se desea visualizar en detalle.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-30
+ */
 function verDetalle(item) {
     detalle.value = { ...item };
     $("#modalDetalleAuditoria").modal("show");
 }
+/**
+ * Devuelve la clase de color asociada a un tipo de evento de auditoría.
+ *
+ * @param string $evento Nombre del evento (crear, actualizar, eliminar, etc.).
+ *
+ * @returns {string}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-30
+ */
 function colorEvento(evento) {
     const colores = {
         crear: "success",
@@ -365,11 +417,29 @@ function colorEvento(evento) {
     return colores[evento] || "primary";
 }
 
+/**
+ * Hook de ciclo de vida que se ejecuta al montar el componente; carga eventos y registros.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-30
+ */
 onMounted(() => {
     cargarEventos();
     cargarLogs();
 });
 
+/**
+ * Hook de ciclo de vida que se ejecuta antes de desmontar el componente; destruye la DataTable.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-30
+ */
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#tablaAuditoria");
 });

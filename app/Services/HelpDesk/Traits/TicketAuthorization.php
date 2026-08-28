@@ -7,6 +7,18 @@ use App\Models\User;
 
 trait TicketAuthorization
 {
+    /**
+     * Verifica que el usuario tenga permiso para ver un ticket o aborta con error 403.
+     *
+     * @param  HelpDeskTickets  $ticket  ticket que se intenta visualizar.
+     * @param  User  $user  usuario autenticado que solicita el acceso.
+     *
+     * @returns void
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-15
+     */
     public function assertCanSeeTicket(HelpDeskTickets $ticket, User $user): void
     {
         $isOwner = (int) $ticket->quien_registra_id === (int) $user->id;
@@ -18,6 +30,17 @@ trait TicketAuthorization
         }
     }
 
+    /**
+     * Sanea una cadena HTML permitiendo solo etiquetas seguras y eliminando atributos y esquemas peligrosos.
+     *
+     * @param  string  $html  contenido HTML crudo a sanear.
+     *
+     * @returns string cadena HTML saneada con etiquetas permitidas.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-15
+     */
     public function sanitizeHtml(string $html): string
     {
         $allowed = '<p><br><b><strong><i><em><u><ul><ol><li><a>';

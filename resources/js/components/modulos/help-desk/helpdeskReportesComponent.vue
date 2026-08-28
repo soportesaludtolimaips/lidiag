@@ -408,16 +408,45 @@ const filters = ref({
     tecnicoId: "",
 });
 
+/**
+ * Indica si se permite exportar según la existencia de fechas y registros detallados.
+ *
+ * @returns {boolean} Verdadero si hay fechas y al menos un registro detallado.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 const canExport = computed(() => {
     return !!(filters.value.fechaIni && filters.value.fechaFin && detallado.value.length > 0);
 });
 
+/**
+ * Convierte una cantidad de segundos en una cadena de horas con dos decimales.
+ *
+ * @param {number} segundos Cantidad de segundos a convertir.
+ *
+ * @returns {string} Horas formateadas o cadena vacía si no aplica.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 function formatHoras(segundos) {
     if (!segundos) return "";
     const h = Number(segundos) / 3600;
     if (Number.isNaN(h)) return "";
     return h.toFixed(2);
 }
+/**
+ * Carga los catálogos de categorías, prioridades, estados y sedes activas.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function cargarCatalogos() {
     try {
         const [cats, prios, ests, sedesRes] = await Promise.all([
@@ -432,6 +461,15 @@ async function cargarCatalogos() {
         sedes.value = sedesRes.data || [];
     } catch (error) {}
 }
+/**
+ * Restablece los filtros del reporte a sus valores por defecto y vuelve a consultar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 function limpiar() {
     const today = new Date();
     const yyyy = today.getFullYear();
@@ -456,6 +494,17 @@ function limpiar() {
     }
     buscar();
 }
+/**
+ * Construye el objeto de parámetros de consulta a partir de los filtros activos.
+ *
+ * @param {object} extra Parámetros adicionales a fusionar (opcional).
+ *
+ * @returns {object} Parámetros listos para enviar a la API.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 function buildParams(extra = {}) {
     return {
         fechaIni: filters.value.fechaIni,
@@ -469,6 +518,15 @@ function buildParams(extra = {}) {
         ...extra,
     };
 }
+/**
+ * Inicializa el plugin DataTables para el listado detallado del reporte.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 function initDT() {
     safeInitDataTable(dt.value || "#helpdeskReportesDetallado", {
         dom: "Bfrtip",
@@ -483,6 +541,15 @@ function initDT() {
         order: [],
     });
 }
+/**
+ * Consulta los indicadores y el detalle del reporte según los filtros aplicados.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function buscar() {
     if (!canExport.value) return;
     if (loading.value) return;
@@ -517,17 +584,44 @@ async function buscar() {
         loading.value = false;
     }
 }
+/**
+ * Abre en una nueva pestaña la exportación del reporte a formato Excel.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 function exportExcel() {
     toastMessage({ heading: "Exportando", text: "Generando archivo Excel...", icon: "info" });
     const params = new URLSearchParams(buildParams());
     window.open(helpdesk.exportExcelUrl(params), "_blank", "noopener,noreferrer");
 }
+/**
+ * Abre en una nueva pestaña la exportación del reporte a formato PDF.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 function exportPdf() {
     toastMessage({ heading: "Exportando", text: "Generando archivo PDF...", icon: "info" });
     const params = new URLSearchParams(buildParams());
     window.open(helpdesk.exportPdfUrl(params), "_blank", "noopener,noreferrer");
 }
 
+/**
+ * Inicializa el componente: aplica la sede activa, carga catálogos y consulta el reporte.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 onMounted(async () => {
     // sede activa por defecto
     try {
@@ -540,6 +634,15 @@ onMounted(async () => {
     await buscar();
 });
 
+/**
+ * Destruye la instancia de DataTables al desmontar el componente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#helpdeskReportesDetallado");
 });

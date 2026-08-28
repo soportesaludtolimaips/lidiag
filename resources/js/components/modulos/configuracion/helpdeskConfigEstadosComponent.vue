@@ -62,6 +62,15 @@ const dt = ref(null);
 const registros = ref([]);
 const loadingListar = ref(false);
 
+/**
+ * Lista los estados del helpdesk y reconstruye la tabla DataTables.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function listar() {
     if (loadingListar.value) return;
     loadingListar.value = true;
@@ -81,10 +90,28 @@ async function listar() {
     }
 }
 
+/**
+ * Inicializa el componente listando los estados.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 onMounted(() => {
     listar();
 });
 
+/**
+ * Destruye la instancia de DataTables al desmontar el componente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#example23");
 });

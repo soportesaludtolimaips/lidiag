@@ -192,6 +192,15 @@ const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 
+/**
+ * Lista las categorías del helpdesk y reconstruye la tabla DataTables.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function listar() {
     if (loadingListar.value) return;
     loadingListar.value = true;
@@ -210,6 +219,17 @@ async function listar() {
         loadingListar.value = false;
     }
 }
+/**
+ * Abre el panel lateral para crear o editar una categoría.
+ *
+ * @param {object|null} item Registro a editar o null para uno nuevo.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 function mostrarRegistro(item = null) {
     errores.value = {};
     if (item) {
@@ -221,9 +241,27 @@ function mostrarRegistro(item = null) {
     }
     document.body.classList.add("right-side-toggled");
 }
+/**
+ * Cierra el panel lateral del formulario de registro.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 function btnCerralModalForm() {
     document.body.classList.remove("right-side-toggled");
 }
+/**
+ * Crea o actualiza una categoría del helpdesk según el modo del formulario.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
@@ -257,6 +295,17 @@ async function guardarRegistro() {
         loadingGuardar.value = false;
     }
 }
+/**
+ * Desactiva (elimina) una categoría previa confirmación del usuario.
+ *
+ * @param {object} item Registro de categoría a desactivar.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function desactivarRegistro(item) {
     const ok = await confirmAction({
         title: "¿Desactivar?",
@@ -274,10 +323,28 @@ async function desactivarRegistro(item) {
     }
 }
 
+/**
+ * Inicializa el componente listando las categorías.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 onMounted(() => {
     listar();
 });
 
+/**
+ * Destruye la instancia de DataTables al desmontar el componente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#example23");
 });

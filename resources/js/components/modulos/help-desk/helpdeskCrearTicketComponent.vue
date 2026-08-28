@@ -172,6 +172,15 @@ const form = ref({
     sede_id: "",
 });
 
+/**
+ * Carga los catálogos de categorías, prioridades y usuarios asignables desde la API.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function cargar() {
     try {
         const [cats, prios, asignables] = await Promise.all([
@@ -184,6 +193,15 @@ async function cargar() {
         asignables.value = asignables.data || [];
     } catch (error) {}
 }
+/**
+ * Valida el formulario y crea un nuevo ticket de helpdesk, incluyendo adjuntos iniciales si existen.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function guardar() {
     if (!form.value.sede_id) {
         toastMessage({
@@ -274,6 +292,15 @@ async function guardar() {
     }
 }
 
+/**
+ * Inicializa el componente: recupera la sede activa del sessionStorage y carga los catálogos.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 onMounted(async () => {
     try {
         const sedeActiva = sessionStorage.getItem("ST-sede");

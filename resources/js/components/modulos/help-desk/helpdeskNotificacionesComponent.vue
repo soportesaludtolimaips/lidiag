@@ -120,6 +120,17 @@ const paginaActual = ref(1);
 const totalPaginas = ref(1);
 const porPagina = ref(50);
 
+/**
+ * Carga las notificaciones aplicando los filtros de página y lectura desde la API.
+ *
+ * @param {number} pagina Número de página a cargar (opcional).
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function cargar(pagina) {
     if (pagina) paginaActual.value = pagina;
     loading.value = true;
@@ -136,10 +147,32 @@ async function cargar(pagina) {
         loading.value = false;
     }
 }
+/**
+ * Cambia a la página indicada del listado de notificaciones.
+ *
+ * @param {number} pagina Número de página destino.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 function irPagina(pagina) {
     if (pagina < 1 || pagina > totalPaginas.value) return;
     cargar(pagina);
 }
+/**
+ * Marca una notificación específica como leída y actualiza su estado localmente.
+ *
+ * @param {object} n Objeto de notificación a marcar como leída.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function marcarLeida(n) {
     try {
         await helpdesk.marcarLeida(n.id);
@@ -154,22 +187,60 @@ async function marcarLeida(n) {
         });
     } catch (error) {}
 }
+/**
+ * Marca todas las notificaciones como leídas y recarga el listado.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function marcarTodas() {
     try {
         await helpdesk.marcarTodasLeidas();
         await cargar();
     } catch (error) {}
 }
+/**
+ * Marca la notificación como leída y redirige al ticket correspondiente.
+ *
+ * @param {object} n Objeto de notificación que contiene el ticket_id.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function abrir(n) {
     if (!n.read_at) await marcarLeida(n);
     if (n.data?.ticket_id) window.location.href = `/helpdesk-tickets/${n.data.ticket_id}`;
 }
 
+/**
+ * Reacciona al cambio del filtro "solo no leídas" reiniciando la página y recargando.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 watch(soloNoLeidas, () => {
     paginaActual.value = 1;
     cargar();
 });
 
+/**
+ * Inicializa el componente cargando las notificaciones.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 onMounted(async () => {
     await cargar();
 });

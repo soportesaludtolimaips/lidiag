@@ -287,6 +287,17 @@ const filters = ref({
     q: "",
 });
 
+/**
+ * Devuelve la clase CSS de la fila según el nivel de prioridad del ticket.
+ *
+ * @param {string} nombre Nombre de la prioridad del ticket.
+ *
+ * @returns {string} Clase CSS aplicable a la fila.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 function prioridadRowClass(nombre) {
     if (!nombre) return "";
     const p = nombre.toLowerCase();
@@ -294,6 +305,15 @@ function prioridadRowClass(nombre) {
     if (p.includes("media") || p.includes("normal")) return "table-warning";
     return "";
 }
+/**
+ * Carga los catálogos de categorías, prioridades, estados y sedes activas.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function cargarCatalogos() {
     try {
         const [cats, prios, ests, sedesRes] = await Promise.all([
@@ -308,10 +328,30 @@ async function cargarCatalogos() {
         sedes.value = sedesRes.data || [];
     } catch (error) {}
 }
+/**
+ * Define el alcance del listado (mis tickets, asignados o todos) y consulta.
+ *
+ * @param {string} newScope Nuevo alcance seleccionado.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 function setScope(newScope) {
     scope.value = newScope;
     buscar();
 }
+/**
+ * Restablece los filtros del listado de tickets y vuelve a consultar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 function limpiar() {
     filters.value = {
         estado_id: "",
@@ -330,6 +370,15 @@ function limpiar() {
     }
     buscar();
 }
+/**
+ * Inicializa el plugin DataTables para el listado de tickets.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 function initDataTable() {
     safeInitDataTable(dt.value || "#helpdeskTicketsTable", {
         dom: "Bfrtip",
@@ -344,9 +393,27 @@ function initDataTable() {
         order: [],
     });
 }
+/**
+ * Destruye la instancia de DataTables del listado de tickets.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#helpdeskTicketsTable");
 }
+/**
+ * Consulta los tickets según el alcance y los filtros aplicados.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function buscar() {
     loading.value = true;
     try {
@@ -370,6 +437,15 @@ async function buscar() {
     }
 }
 
+/**
+ * Inicializa el componente: aplica la sede activa, carga catálogos y consulta tickets.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 onMounted(async () => {
     try {
         // sede activa por defecto
@@ -383,6 +459,15 @@ onMounted(async () => {
     await buscar();
 });
 
+/**
+ * Destruye la instancia de DataTables al desmontar el componente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 onBeforeUnmount(() => {
     destroyDataTable();
 });

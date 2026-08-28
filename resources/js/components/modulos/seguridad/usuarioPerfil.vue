@@ -248,6 +248,15 @@ const errores = ref({});
 const loadingObtener = ref(false);
 const loadingActualizar = ref(false);
 
+/**
+ * Solicita al backend los datos del perfil del usuario actual y los asigna al formulario.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function obtenerRegistro() {
     if (loadingObtener.value) return;
     loadingObtener.value = true;
@@ -266,6 +275,15 @@ async function obtenerRegistro() {
         loadingObtener.value = false;
     }
 }
+/**
+ * Envía los datos del perfil (incluida firma y avatar) para actualizarlos en el backend.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function actualizarPerfil() {
     if (loadingActualizar.value) return;
     loadingActualizar.value = true;
@@ -300,9 +318,31 @@ async function actualizarPerfil() {
         loadingActualizar.value = false;
     }
 }
+/**
+ * Captura el archivo de imagen de perfil seleccionado por el usuario.
+ *
+ * @param Event $e Evento change del input de tipo file.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function obtenerArchivo(e) {
     registro.value.imagen_perfil = e.target.files[0];
 }
+/**
+ * Captura el archivo de firma seleccionado y genera una vista previa temporal en memoria.
+ *
+ * @param Event $e Evento change del input de tipo file.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function obtenerFirma(e) {
     const file = e.target.files[0];
     if (file) {
@@ -312,10 +352,28 @@ function obtenerFirma(e) {
     registro.value.firma = file;
 }
 
+/**
+ * Hook de ciclo de vida que se ejecuta al montar el componente; carga el registro del perfil.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 onMounted(() => {
     obtenerRegistro();
 });
 
+/**
+ * Hook de ciclo de vida que libera la URL de objeto de la vista previa de firma al desmontar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 onBeforeUnmount(() => {
     if (firmaPreview.value) URL.revokeObjectURL(firmaPreview.value);
 });
