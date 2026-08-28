@@ -1,7 +1,6 @@
 /**
  * Orquestador de voz (sin librerías externas).
  * Combina dictado (SpeechRecognition) + grabación (MediaRecorder) en una sola sesión.
- *
  * Diseñado para ser reutilizable en múltiples componentes sin tocar UI.
  */
 import {
@@ -11,6 +10,17 @@ import {
 } from "./audioRecorder";
 import { createSpeechDictation, isSpeechRecognitionSupported } from "./speechDictation";
 
+/**
+ * Crea una sesion de voz que combina dictado (SpeechRecognition) y grabacion (MediaRecorder) con controles unificados.
+ *
+ * @param object $options Opciones de audio, dictado y callbacks.
+ *
+ * @returns {object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 export function createVoiceSession({
     enableAudio = true,
     enableDictation = true,
@@ -34,6 +44,15 @@ export function createVoiceSession({
     let audioSession = null;
     let dictation = null;
 
+    /**
+     * Crea o retorna la instancia de dictado de voz, lanzando error si no es soportada.
+     *
+     * @returns {object|null}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     const ensureDictation = () => {
         if (!enableDictation) return null;
         if (dictation) return dictation;
@@ -58,6 +77,15 @@ export function createVoiceSession({
         return dictation;
     };
 
+    /**
+     * Crea o retorna la sesion de grabacion de audio, usando Worker con fallback al hilo principal.
+     *
+     * @returns {Promise<object|null>}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     const ensureAudio = async () => {
         if (!enableAudio) return null;
         if (audioSession) return audioSession;

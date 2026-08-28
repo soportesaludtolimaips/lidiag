@@ -22,6 +22,15 @@ function show(heading, text, icon) {
     });
 }
 
+/**
+ * Proporciona funciones para mostrar notificaciones (toast) de exito, error, advertencia e informacion mediante jQuery Toast.
+ *
+ * @returns {Object} Funciones show, success, error, warning e info para mostrar notificaciones.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-07-14
+ */
 export function useToast() {
     function success(text, heading = "Ok") {
         show(heading, text, "success");

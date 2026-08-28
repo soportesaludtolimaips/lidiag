@@ -1,5 +1,14 @@
 import { getVoiceAudioConstraints } from "./audioRecorder";
 
+/**
+ * Indica si el entorno soporta Web Workers y MediaRecorder para grabar en un hilo separado.
+ *
+ * @returns {boolean}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
 export function isWorkerSupported() {
     try {
         if (typeof Worker === "undefined") return false;
@@ -10,6 +19,17 @@ export function isWorkerSupported() {
     }
 }
 
+/**
+ * Crea una sesion de grabacion de audio delegada a un Web Worker, con los mismos controles que la sesion local.
+ *
+ * @param object $opts Opciones (constraints, mimeType, audioBitsPerSecond).
+ *
+ * @returns {object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
 export async function createAudioRecorderWorkerSession({
     constraints = getVoiceAudioConstraints(),
     mimeType = "audio/wav",

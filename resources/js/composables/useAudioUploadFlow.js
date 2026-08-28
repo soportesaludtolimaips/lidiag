@@ -1,6 +1,18 @@
 import { ref, onBeforeUnmount } from "vue";
 import axios from "axios";
 import { confirmAction } from "../helpers/alerts";
+/**
+ * Gestiona el flujo de carga, transcripcion y eliminacion de audios asociados a un estudio, incluyendo la seleccion de archivos, el envio al servidor y el seguimiento del progreso.
+ *
+ * @param {Object} [options] Opciones de configuracion del composable.
+ * @param {Function} [options.showToast] Funcion para mostrar notificaciones (toast) al usuario.
+ *
+ * @returns {Object} Conjunto de referencias reactivas (Ref) y funciones para gestionar la carga y transcripcion de audios.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-12
+ */
 export function useAudioUploadFlow({ showToast } = {}) {
     const audiosCargadosPendientes = ref([]);
     const audioSeleccionados = ref([]);

@@ -1,7 +1,6 @@
 /**
  * Audio recorder helper (sin librerías externas).
  * Reutilizable en cualquier componente Vue.
- *
  * Uso:
  *   const session = await createAudioRecorderSession();
  *   session.start();
@@ -11,6 +10,17 @@
 
 import { createAudioRecorderWorkerSession, isWorkerSupported } from "./audioRecorderWorkerSession";
 
+/**
+ * Crea una sesion de grabacion de audio usando un Web Worker si es soportado, con fallback al hilo principal.
+ *
+ * @param object $opts Opciones de la grabacion (constraints, mimeType, audioBitsPerSecond).
+ *
+ * @returns {Promise<object>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 export async function createAudioRecorderSessionSmart(opts = {}) {
     if (isWorkerSupported()) {
         try {
@@ -22,6 +32,15 @@ export async function createAudioRecorderSessionSmart(opts = {}) {
     return createAudioRecorderSession(opts);
 }
 
+/**
+ * Devuelve las restricciones de audio recomendadas (cancelacion de eco, supresion de ruido y auto-gain).
+ *
+ * @returns {object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 export function getVoiceAudioConstraints() {
     return {
         audio: {
@@ -32,6 +51,15 @@ export function getVoiceAudioConstraints() {
     };
 }
 
+/**
+ * Indica si el navegador soporta navigator.mediaDevices.getUserMedia.
+ *
+ * @returns {boolean}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 export function isGetUserMediaSupported() {
     return !!(
         navigator &&
@@ -40,6 +68,17 @@ export function isGetUserMediaSupported() {
     );
 }
 
+/**
+ * Crea una sesion de grabacion de audio en el hilo principal con controles de inicio, pausa, reanudacion, detencion y limpieza.
+ *
+ * @param object $opts Opciones (constraints, mimeType, audioBitsPerSecond).
+ *
+ * @returns {object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 export async function createAudioRecorderSession({
     constraints = getVoiceAudioConstraints(),
     mimeType = "audio/wav",

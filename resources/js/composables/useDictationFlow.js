@@ -7,6 +7,15 @@ import {
 } from "@/helpers/voice/audioRecorder";
 import { isSpeechRecognitionSupported } from "@/helpers/voice/speechDictation";
 
+/**
+ * Gestiona el flujo de dictado por voz: grabacion de audio, reconocimiento de voz, comandos de formato y puntuacion, y envio del audio al servidor.
+ *
+ * @returns {Object} Conjunto de referencias reactivas (Ref) y funciones para controlar el dictado por voz.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-12
+ */
 export function useDictationFlow() {
     const recognizing = ref(false);
     const recognitionActive = ref(false);

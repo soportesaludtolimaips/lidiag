@@ -7,6 +7,15 @@ import { safeRemoveDataTableRow } from "@/helpers/datatables";
 
 dayjs.extend(utc);
 
+/**
+ * Proporciona funciones auxiliares para la gestion de estudios: descarga de soportes, listado de audios, impresion de reportes, anulacion de asignaciones y visualizacion de imagenes.
+ *
+ * @returns {Object} Referencias reactivas (Ref) y funciones auxiliares para la gestion de estudios.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-07-28
+ */
 export function useEstudioHelpers() {
     const loadingDescarga = ref(null);
     const loadingAudios = ref(false);

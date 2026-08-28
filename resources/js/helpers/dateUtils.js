@@ -1,3 +1,14 @@
+/**
+ * Normaliza distintos formatos de fecha a YYYY-MM-DD, o null si no es valida.
+ *
+ * @param mixed $val Valor de fecha a normalizar.
+ *
+ * @returns {string|null}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-01
+ */
 export function normalizarFecha(val) {
     if (!val) return null;
     const str = String(val).trim();
@@ -23,6 +34,17 @@ export function normalizarFecha(val) {
     return null;
 }
 
+/**
+ * Calcula la edad en anos a partir de una fecha de nacimiento.
+ *
+ * @param string $fechaNacimiento Fecha de nacimiento en cualquier formato reconocido.
+ *
+ * @returns {number|null}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-01
+ */
 export function calcularEdad(fechaNacimiento) {
     if (!fechaNacimiento) return null;
     const normalizada = normalizarFecha(fechaNacimiento);
@@ -38,6 +60,17 @@ export function calcularEdad(fechaNacimiento) {
     return edad;
 }
 
+/**
+ * Formatea una fecha y hora en la zona horaria America/Bogota como YYYY-MM-DD HH:mm.
+ *
+ * @param mixed $dt Fecha u objeto a formatear.
+ *
+ * @returns {string}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-01
+ */
 export function formatDateTime(dt) {
     if (!dt) return "";
     try {

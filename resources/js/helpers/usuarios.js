@@ -1,5 +1,16 @@
 import axios from "axios";
 
+/**
+ * Infiere el id del modulo actual a partir de la ruta (ecografias=2, estudios=1).
+ *
+ * @param string $pathname Ruta de la URL actual.
+ *
+ * @returns {string}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-05-14
+ */
 function inferModuloIdFromPath(pathname = "") {
     const p = String(pathname || "").toLowerCase();
     // Heurística actual del proyecto:
@@ -11,6 +22,15 @@ function inferModuloIdFromPath(pathname = "") {
     return "1";
 }
 
+/**
+ * Obtiene el id del modulo actual desde sessionStorage o lo infiere de la ruta.
+ *
+ * @returns {string}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-05-14
+ */
 export function getModuloIdActual() {
     try {
         const stored = sessionStorage.getItem("ST-modulo");
@@ -23,6 +43,18 @@ export function getModuloIdActual() {
     }
 }
 
+/**
+ * Lista los usuarios transcritores y medicos del modulo actual y los asigna al contexto.
+ *
+ * @param object $context Contexto donde se asignan quienes_asignaron y medicos.
+ * @param object $options Opciones (moduloId opcional).
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-05-14
+ */
 export async function listarUsuariosYSedes(context, options = {}) {
     const moduloId = String(options.moduloId ?? getModuloIdActual() ?? "1");
 

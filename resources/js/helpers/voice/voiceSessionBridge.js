@@ -1,12 +1,22 @@
 /**
  * Voice Session Bridge - Mantiene la sesión de voz activa entre pestañas
- *
  * Usa BroadcastChannel API para comunicar el reconocimiento de voz
  * entre la pestaña del formulario y otras pestañas (como el visor DICOM)
  */
 
 const VOICE_CHANNEL_NAME = "lidiag-voice-session";
 
+/**
+ * Crea un puente de sesion de voz usando BroadcastChannel para compartir transcripciones y estado entre pestanas.
+ *
+ * @param object $options Callbacks onTranscript y onStateChange.
+ *
+ * @returns {object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-06
+ */
 export function createVoiceSessionBridge({
     onTranscript = () => {},
     onStateChange = () => {},
@@ -92,6 +102,15 @@ export function createVoiceSessionBridge({
  */
 import { ref, onMounted, onUnmounted } from "vue";
 
+/**
+ * Hook de Vue que conecta el puente de sesion de voz y expone el estado remoto reactivo.
+ *
+ * @returns {object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-06
+ */
 export function useVoiceSessionBridge() {
     const isRemoteActive = ref(false);
     const remoteTranscript = ref("");

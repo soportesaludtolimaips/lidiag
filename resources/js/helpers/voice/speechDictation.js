@@ -1,10 +1,18 @@
 /**
  * Speech dictation helper (sin librerías externas).
  * Envuelve SpeechRecognition con reinicio seguro y backoff por no-speech.
- *
  * Nota: depende de API nativa del navegador (Chrome/Edge).
  */
 
+/**
+ * Obtiene el constructor de SpeechRecognition disponible en el navegador o null si no existe.
+ *
+ * @returns {function|null}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 function getSpeechRecognitionCtor() {
     return (
         window.SpeechRecognition ||
@@ -14,10 +22,30 @@ function getSpeechRecognitionCtor() {
     );
 }
 
+/**
+ * Indica si el navegador soporta la API de SpeechRecognition (Chrome/Edge).
+ *
+ * @returns {boolean}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 export function isSpeechRecognitionSupported() {
     return !!getSpeechRecognitionCtor();
 }
 
+/**
+ * Crea una instancia de dictado por voz con reinicio seguro y backoff ante silencio, envuelta sobre SpeechRecognition.
+ *
+ * @param object $options Opciones (lang, continuous, interimResults, callbacks, etc.).
+ *
+ * @returns {object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 export function createSpeechDictation({
     lang = "es-ES",
     continuous = true,
@@ -65,6 +93,15 @@ export function createSpeechDictation({
     let noSpeechCount = 0;
     let lastError = null;
 
+    /**
+     * Cancela el temporizador de reinicio pendiente del reconocimiento de voz.
+     *
+     * @returns {void}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     const clearRestart = () => {
         if (restartTimer) {
             try {
@@ -74,6 +111,15 @@ export function createSpeechDictation({
         }
     };
 
+    /**
+     * Intenta iniciar el reconocimiento de voz de forma segura, ignorando errores si ya esta activo.
+     *
+     * @returns {boolean}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     const safeStart = () => {
         if (!recognition) return false;
         if (active) return false;
@@ -85,6 +131,15 @@ export function createSpeechDictation({
         }
     };
 
+    /**
+     * Programa un reinicio del reconocimiento de voz usando backoff si sigue activo.
+     *
+     * @returns {void}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     const scheduleRestart = () => {
         clearRestart();
         if (!recognizing) return;

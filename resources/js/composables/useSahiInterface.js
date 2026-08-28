@@ -1,6 +1,15 @@
 import { ref, onBeforeUnmount } from "vue";
 import axios from "axios";
 
+/**
+ * Gestiona la integracion con la interfaz SAHI para ecografias: envio de ecografias, consulta de estado y sondeo periodico.
+ *
+ * @returns {Object} Referencias reactivas (Ref) y funciones para enviar, consultar y sondear el estado de envios SAHI.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-25
+ */
 export function useSahiInterface() {
     const isEnviando = ref(false);
     const isConsultando = ref(false);

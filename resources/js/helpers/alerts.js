@@ -3,11 +3,29 @@
  * La plantilla carga `swal` globalmente; en caso contrario usamos alert/confirm.
  */
 
+/**
+ * Obtiene la funcion SweetAlert global (swal o Swal) o null si no esta disponible.
+ *
+ * @returns {function|null}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-03
+ */
 function getSwal() {
     if (typeof window === "undefined") return null;
     return window.swal || window.Swal || null;
 }
 
+/**
+ * Obtiene la funcion $.toast global si esta disponible, o null en caso contrario.
+ *
+ * @returns {function|null}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-03
+ */
 function getToast() {
     if (typeof window === "undefined") return null;
     const $ = window.$ || window.jQuery;
@@ -15,18 +33,57 @@ function getToast() {
     return $.toast;
 }
 
+/**
+ * Muestra una alerta de exito utilizando SweetAlert si esta disponible; de lo contrario usa alert().
+ *
+ * @param string $title Titulo de la alerta.
+ * @param string $text Texto descriptivo de la alerta.
+ * @param string $icon Tipo de icono a mostrar (por defecto success).
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-03
+ */
 export function alertSuccess(title = "Ok", text = "", icon = "success") {
     const swal = getSwal();
     if (swal) return swal(title, text, icon);
     window.alert([title, text].filter(Boolean).join("\n"));
 }
 
+/**
+ * Muestra una alerta de error utilizando SweetAlert si esta disponible; de lo contrario usa alert().
+ *
+ * @param string $title Titulo de la alerta.
+ * @param string $text Texto descriptivo de la alerta.
+ * @param string $icon Tipo de icono a mostrar (por defecto error).
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-03
+ */
 export function alertError(title = "Error", text = "", icon = "error") {
     const swal = getSwal();
     if (swal) return swal(title, text, icon);
     window.alert([title, text].filter(Boolean).join("\n"));
 }
 
+/**
+ * Muestra una alerta informativa utilizando SweetAlert si esta disponible; de lo contrario usa alert().
+ *
+ * @param string $title Titulo de la alerta.
+ * @param string $text Texto descriptivo de la alerta.
+ * @param string $icon Tipo de icono a mostrar (por defecto info).
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-03
+ */
 export function alertInfo(title = "Info", text = "", icon = "info") {
     const swal = getSwal();
     if (swal) return swal(title, text, icon);
@@ -34,8 +91,15 @@ export function alertInfo(title = "Info", text = "", icon = "info") {
 }
 
 /**
- * Confirmación clásica; devuelve Promise<boolean>.
- * Con swal: resuelve true/false según confirmación.
+ * Solicita confirmacion al usuario y devuelve una promesa que resuelve true o false segun la decision.
+ *
+ * @param object $options Opciones de la confirmacion (title, text, icon).
+ *
+ * @returns {Promise<boolean>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-03
  */
 export function confirmAction(options) {
     const swal = getSwal();
@@ -63,7 +127,15 @@ export function confirmAction(options) {
 }
 
 /**
- * Toast uniforme (si la plantilla carga $.toast).
+ * Muestra una notificacion tipo toast si la plantilla carga $.toast; de lo contrario no hace nada.
+ *
+ * @param object $options Opciones del toast (heading, text, icon, position, hideAfter).
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-03
  */
 export function toastMessage({
     heading = "Info",
@@ -94,6 +166,17 @@ const PATRONES_PII = [
     /SQLSTATE|syntax error|unexpected|stack trace/i,
 ];
 
+/**
+ * Sanea un mensaje de servidor eliminando texto que pueda contener informacion sensible (PII).
+ *
+ * @param string $message Mensaje recibido del servidor.
+ *
+ * @returns {string|null}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-03
+ */
 function sanitizeServerMessage(message) {
     if (typeof message !== "string" || message.trim().length === 0) {
         return null;
@@ -107,11 +190,35 @@ function sanitizeServerMessage(message) {
     return message.trim();
 }
 
+/**
+ * Devuelve un mensaje de error seguro para el usuario, filtrando informacion sensible del servidor.
+ *
+ * @param object $error Objeto de error (tipicamente de Axios).
+ * @param string $fallback Mensaje por defecto si no se puede extraer uno seguro.
+ *
+ * @returns {string}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-03
+ */
 export function getUserSafeError(error, fallback = "Ocurrió un error.") {
     const message = error?.response?.data?.message || error?.message || "";
     return sanitizeServerMessage(message) || fallback;
 }
 
+/**
+ * (Obsoleto) Registra una advertencia de deprecacion para errores de Axios; el interceptor de bootstrap.js ya maneja el toast automaticamente.
+ *
+ * @param object $error Objeto de error de Axios.
+ * @param string $fallbackMessage Mensaje de respaldo (no utilizado).
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-03
+ */
 export function handleAxiosErrorToast(error, fallbackMessage = "Ocurrió un error.") {
     // Deprecated — the Axios interceptor in bootstrap.js now handles toast automatically.
     // Kept for compatibility with existing callers.
