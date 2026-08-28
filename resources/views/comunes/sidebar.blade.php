@@ -270,7 +270,7 @@
                         <li class="nav-small-cap">--- CONTRATACIÓN</li>
                         <li>
                             <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
-                                <i class="icon-Contract"></i>
+                                <i class="icon-Contrast"></i>
                                 <span class="hide-menu">Contratación</span>
                             </a>
                             <ul aria-expanded="false" class="collapse">

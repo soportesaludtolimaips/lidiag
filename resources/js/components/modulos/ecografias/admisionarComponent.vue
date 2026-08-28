@@ -922,7 +922,7 @@ const tituloModal = ref("Nueva admisión");
 const busqueda = ref({
     sede_id: sedeActual,
     medico_id: null,
-    bus_nom_num_docu: "",
+    bus_nom_num_docu: "6934193",
     bus_fech_ini: "",
     bus_fecha_fin: "",
 });
@@ -1249,7 +1249,7 @@ async function listarMedicos() {
         const pathname = String(window?.location?.pathname || "").toLowerCase();
         const moduloId =
             sessionStorage.getItem("ST-modulo") || (pathname.includes("ecografia") ? "2" : "1");
-        const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
+        const res = await axios.get(`/api/user.listarUsuarios/Medico/2`);
         medicos.value = res.data.data;
     } catch (error) {
         medicos.value = [];

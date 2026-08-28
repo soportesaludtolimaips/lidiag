@@ -281,7 +281,7 @@ async function listarSedes() {
 async function listarMedicos() {
     try {
         const moduloId = sessionStorage.getItem("ST-modulo") || establecerModuloActual();
-        const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
+        const res = await axios.get(`/api/user.listarUsuarios/Medico/2`);
         medicos.value = res.data.data;
         if (medicos.value.length === 1 && !medicoSeleccionado.value) {
             medicoSeleccionado.value = medicos.value[0].id;
