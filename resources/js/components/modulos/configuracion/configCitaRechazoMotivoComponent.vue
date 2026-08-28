@@ -223,6 +223,15 @@ const errorMotivos = ref("");
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 
+/**
+ * Obtiene la lista de motivos de rechazo de citas desde el servidor y la carga en la tabla.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function listarMotivos() {
     if (loadingListar.value) return;
     loadingListar.value = true;
@@ -245,6 +254,15 @@ async function listarMotivos() {
         loadingListar.value = false;
     }
 }
+/**
+ * Crea o actualiza un motivo de rechazo de citas según el estado de edición del formulario.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     errores.value = {};
@@ -297,6 +315,17 @@ async function guardarRegistro() {
         loadingGuardar.value = false;
     }
 }
+/**
+ * Elimina un motivo de rechazo de citas previa confirmación del usuario.
+ *
+ * @param {number} id Identificador del motivo de rechazo a eliminar.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function eliminarRegistro(id) {
     const ok = await confirmAction({
         title: "¿Estas seguro?",
@@ -316,6 +345,17 @@ async function eliminarRegistro(id) {
         loadingEliminarId.value = null;
     }
 }
+/**
+ * Prepara el formulario lateral para crear o editar un motivo de rechazo de citas.
+ *
+ * @param {Object} data Datos del motivo de rechazo a editar (vacío para un nuevo registro).
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function mostrarRegistro(data = {}) {
     if (actualizar.value) {
         tituloModal.value = "Actualizar motivo: " + data.motivo;
@@ -330,6 +370,15 @@ function mostrarRegistro(data = {}) {
     }
     btnCerrarModalForm();
 }
+/**
+ * Reinicia los valores del formulario y el estado de edición a los valores iniciales.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function limpiar() {
     actualizar.value = false;
     tituloModal.value = "Nuevo motivo de rechazo";
@@ -337,19 +386,55 @@ function limpiar() {
     registro.value.motivo = "";
     registro.value.activo = 1;
 }
+/**
+ * Muestra el panel lateral del formulario agregando la clase correspondiente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function btnCerrarModalForm() {
     $(".right-sidebar").slideDown(50);
     $(".right-sidebar").addClass("shw-rside");
 }
+/**
+ * Oculta el panel lateral del formulario removiendo la clase correspondiente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function cerrarFormSidebar() {
     $(".right-sidebar").slideUp(50);
     $(".right-sidebar").removeClass("shw-rside");
 }
 
+/**
+ * Hook de ciclo de vida que carga los motivos al montar el componente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 onMounted(() => {
     listarMotivos();
 });
 
+/**
+ * Hook de ciclo de vida que destruye la tabla de datos al desmontar el componente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#tblRechazoMotivos");
 });

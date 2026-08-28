@@ -263,6 +263,15 @@ const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 
+/**
+ * Genera las opciones para el selector de productos usado en el formulario.
+ *
+ * @returns {Array<Object>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 const productoOptions = computed(() => {
     // Opciones para el Select2 local de productos.
     return (productos.value || []).map((p) => ({
@@ -272,6 +281,15 @@ const productoOptions = computed(() => {
     }));
 });
 
+/**
+ * Obtiene la lista de consentimientos informados desde el servidor y la carga en la tabla.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function ListarDatos() {
     if (loadingListar.value) return;
     loadingListar.value = true;
@@ -291,6 +309,15 @@ async function ListarDatos() {
         loadingListar.value = false;
     }
 }
+/**
+ * Crea o actualiza un consentimiento informado enviando los datos y el archivo al servidor.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
@@ -335,6 +362,18 @@ async function guardarRegistro() {
         loadingGuardar.value = false;
     }
 }
+/**
+ * Elimina un consentimiento informado previa confirmación del usuario.
+ *
+ * @param {number} id Identificador del consentimiento informado a eliminar.
+ * @param {string} nom Nombre del consentimiento informado para el mensaje de confirmación.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function elimnarRegistro(id, nom) {
     const ok = await confirmAction({
         title: `Estas seguro de eliminar el consentimiento informado ${nom}?`,
@@ -355,15 +394,46 @@ async function elimnarRegistro(id, nom) {
         loadingEliminarId.value = null;
     }
 }
+/**
+ * Obtiene la lista de productos disponibles para vincularlos al consentimiento informado.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
         productos.value = res.data.data;
     } catch (error) {}
 }
+/**
+ * Captura el archivo seleccionado en el input de tipo file del formulario.
+ *
+ * @param {Event} e Evento de cambio del input de archivo.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function obtenerArchivo(e) {
     archivoFile.value = e.target.files?.[0] || null;
 }
+/**
+ * Actualiza el producto seleccionado a partir del valor retornado por el selector.
+ *
+ * @param {*} value Valor seleccionado en el componente Select2.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function onProductoSelect(value) {
     let selectedId = null;
     if (Array.isArray(value) && value.length > 0) {
@@ -377,10 +447,32 @@ function onProductoSelect(value) {
     registro.value.producto_id = selectedId ? Number(selectedId) : null;
     productoSelecciondo.value = selectedId;
 }
+/**
+ * Devuelve la ruta pública del archivo PDF de un consentimiento informado.
+ *
+ * @param {Object} item Registro del consentimiento informado que contiene el archivo.
+ *
+ * @returns {string|null}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function archivoUrl(item) {
     if (!item?.archivo) return null;
     return `/storage/${item.archivo}`;
 }
+/**
+ * Prepara el formulario lateral para crear o editar un consentimiento informado.
+ *
+ * @param {Object} data Datos del consentimiento informado a editar (vacío para un nuevo registro).
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function mostrarRegistro(data = {}) {
     if (actualizar.value == true) {
         tituloModal.value = "Actualizar el registro: " + (data.nombre || "");
@@ -400,6 +492,15 @@ function mostrarRegistro(data = {}) {
 
     btnCerralModalForm();
 }
+/**
+ * Reinicia los valores del formulario y el estado de edición a los valores iniciales.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function limpiarFormulario() {
     actualizar.value = false;
     tituloModal.value = "Nuevo registro";
@@ -412,16 +513,43 @@ function limpiarFormulario() {
     productoSelecciondo.value = null;
     archivoFile.value = null;
 }
+/**
+ * Muestra u oculta el panel lateral del formulario mediante la clase correspondiente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function btnCerralModalForm() {
     $(".right-sidebar").slideDown(50);
     $(".right-sidebar").toggleClass("shw-rside");
 }
 
+/**
+ * Hook de ciclo de vida que carga los consentimientos y los productos al montar el componente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 onMounted(() => {
     ListarDatos();
     listarProductos();
 });
 
+/**
+ * Hook de ciclo de vida que destruye la tabla de datos al desmontar el componente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#example23");
 });

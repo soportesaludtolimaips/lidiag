@@ -225,12 +225,30 @@ const errores = ref({});
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 
+/**
+ * Obtiene la lista de sedes disponibles para el filtro del listado de servicios.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function cargarSedes() {
     try {
         const res = await axios.get("/api/config-sedes");
         sedes.value = res.data.data;
     } catch (e) {}
 }
+/**
+ * Obtiene la lista de servicios de citas, aplicando el filtro de sede, y la carga en la tabla.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function ListarDatos() {
     try {
         const params = {};
@@ -248,6 +266,15 @@ async function ListarDatos() {
         registros.value = [];
     }
 }
+/**
+ * Inicializa el formulario lateral para registrar un nuevo servicio de cita.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function abrirFormularioNuevo() {
     editando.value = false;
     tituloModal.value = "Nuevo registro";
@@ -255,6 +282,17 @@ function abrirFormularioNuevo() {
     errores.value = {};
     $("#btnCerrarModal").click();
 }
+/**
+ * Carga los datos de un servicio de cita en el formulario lateral para editarlo.
+ *
+ * @param {Object} item Datos del servicio de cita a editar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function abrirFormularioEditar(item) {
     editando.value = true;
     tituloModal.value = "Actualizar: " + item.nombre;
@@ -267,6 +305,15 @@ function abrirFormularioEditar(item) {
     errores.value = {};
     $("#btnCerrarModal").click();
 }
+/**
+ * Crea o actualiza un servicio de cita según el estado de edición del formulario.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
@@ -286,6 +333,17 @@ async function guardarRegistro() {
         loadingGuardar.value = false;
     }
 }
+/**
+ * Elimina un servicio de cita previa confirmación del usuario.
+ *
+ * @param {number} id Identificador del servicio de cita a eliminar.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function eliminarRegistro(id) {
     const ok = await confirmAction({
         title: "¿Estas seguro?",
@@ -303,16 +361,43 @@ async function eliminarRegistro(id) {
         loadingEliminarId.value = null;
     }
 }
+/**
+ * Oculta el panel lateral del formulario removiendo la clase correspondiente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function cerrarModal() {
     $(".right-sidebar").slideDown(50);
     $(".right-sidebar").toggleClass("shw-rside");
 }
 
+/**
+ * Hook de ciclo de vida que carga las sedes y los servicios al montar el componente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 onMounted(() => {
     cargarSedes();
     ListarDatos();
 });
 
+/**
+ * Hook de ciclo de vida que destruye la tabla de datos al desmontar el componente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#tablaServicios");
 });

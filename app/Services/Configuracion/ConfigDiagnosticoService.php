@@ -8,11 +8,31 @@ use App\Services\BaseService;
 
 class ConfigDiagnosticoService extends BaseService
 {
+    /**
+     * Obtiene todos los diagnósticos registrados ordenados por nombre.
+     *
+     * @returns array Arreglo con la lista de diagnósticos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function all(): array
     {
         return $this->success(ConfigDiagnostico::orderBy('nom_diagnos')->get());
     }
 
+    /**
+     * Crea un nuevo diagnóstico y registra la auditoría correspondiente.
+     *
+     * @param  array  $data  Datos del diagnóstico a crear.
+     *
+     * @returns array Arreglo con el diagnóstico creado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function create(array $data): array
     {
         $item = ConfigDiagnostico::create($data);
@@ -21,6 +41,18 @@ class ConfigDiagnosticoService extends BaseService
         return $this->created($item);
     }
 
+    /**
+     * Actualiza un diagnóstico existente y registra la auditoría correspondiente.
+     *
+     * @param  int  $id  Identificador del diagnóstico a actualizar.
+     * @param  array  $data  Datos del diagnóstico a actualizar.
+     *
+     * @returns array Arreglo con el diagnóstico actualizado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function update(int $id, array $data): array
     {
         $item = ConfigDiagnostico::findOrFail($id);
@@ -30,6 +62,17 @@ class ConfigDiagnosticoService extends BaseService
         return $this->updated($item);
     }
 
+    /**
+     * Elimina un diagnóstico existente y registra la auditoría correspondiente.
+     *
+     * @param  int  $id  Identificador del diagnóstico a eliminar.
+     *
+     * @returns array Arreglo con el resultado de la eliminación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function delete(int $id): array
     {
         $item = ConfigDiagnostico::findOrFail($id);

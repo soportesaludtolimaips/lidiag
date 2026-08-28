@@ -19,6 +19,15 @@ class ConfigAdminSaludController extends Controller
         $this->middleware('permission:config.admin.salud.destroy')->only(['destroy']);
     }
 
+    /**
+     * Lista todos los administradores de salud registrados en el sistema.
+     *
+     * @returns JsonResponse Respuesta JSON con la lista de administradores de salud.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function index(): JsonResponse
     {
         $result = $this->configAdminSaludService->all();
@@ -26,6 +35,17 @@ class ConfigAdminSaludController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Crea un nuevo administrador de salud con los datos validados recibidos.
+     *
+     * @param  ConfigAdminSaludRequest  $request  Datos validados del administrador de salud a crear.
+     *
+     * @returns JsonResponse Respuesta JSON con el administrador de salud creado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function store(ConfigAdminSaludRequest $request): JsonResponse
     {
         $result = $this->configAdminSaludService->create($request->validated());
@@ -33,6 +53,18 @@ class ConfigAdminSaludController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Actualiza un administrador de salud existente identificado por su id.
+     *
+     * @param  ConfigAdminSaludRequest  $request  Datos validados del administrador de salud a actualizar.
+     * @param  int  $id  Identificador del administrador de salud a actualizar.
+     *
+     * @returns JsonResponse Respuesta JSON con el administrador de salud actualizado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function update(ConfigAdminSaludRequest $request, int $id): JsonResponse
     {
         $result = $this->configAdminSaludService->update($id, $request->validated());
@@ -40,6 +72,17 @@ class ConfigAdminSaludController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Elimina un administrador de salud existente identificado por su id.
+     *
+     * @param  int  $id  Identificador del administrador de salud a eliminar.
+     *
+     * @returns JsonResponse Respuesta JSON con el resultado de la eliminación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function destroy(int $id): JsonResponse
     {
         $result = $this->configAdminSaludService->delete($id);

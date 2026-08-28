@@ -10,6 +10,17 @@ use Illuminate\Http\JsonResponse;
 
 class ConsentimientoInformadoController extends Controller
 {
+    /**
+     * Constructor del controlador que inicializa el servicio y configura los permisos por acción.
+     *
+     * @param  ConsentimientoInformadoService  $consentimientoInformadoService  Servicio encargado de la lógica de consentimientos informados.
+     *
+     * @returns void
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-01-16
+     */
     public function __construct(
         private readonly ConsentimientoInformadoService $consentimientoInformadoService,
     ) {
@@ -20,6 +31,15 @@ class ConsentimientoInformadoController extends Controller
         $this->middleware('permission:config.consentimiento_informado.destroy')->only(['destroy']);
     }
 
+    /**
+     * Obtiene la lista de consentimientos informados registrados.
+     *
+     * @returns JsonResponse Respuesta JSON con la lista de consentimientos y su estado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-01-16
+     */
     public function index(): JsonResponse
     {
         $result = $this->consentimientoInformadoService->all();
@@ -27,6 +47,17 @@ class ConsentimientoInformadoController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Muestra el consentimiento informado correspondiente al identificador indicado.
+     *
+     * @param  int  $id  Identificador del consentimiento informado.
+     *
+     * @returns JsonResponse Respuesta JSON con el consentimiento encontrado y su estado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-01-16
+     */
     public function show(int $id): JsonResponse
     {
         $result = $this->consentimientoInformadoService->find($id);
@@ -34,6 +65,15 @@ class ConsentimientoInformadoController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Lista los consentimientos informados que se encuentran activos.
+     *
+     * @returns JsonResponse Respuesta JSON con los consentimientos activos y su estado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-01-16
+     */
     public function listarActivos(): JsonResponse
     {
         $result = $this->consentimientoInformadoService->listarActivos();
@@ -41,6 +81,17 @@ class ConsentimientoInformadoController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Crea un nuevo consentimiento informado con los datos validados y el archivo adjunto.
+     *
+     * @param  StoreConsentimientoInformadoRequest  $request  Solicitud HTTP validada con los datos y el archivo.
+     *
+     * @returns JsonResponse Respuesta JSON con el consentimiento creado y su estado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-01-16
+     */
     public function store(StoreConsentimientoInformadoRequest $request): JsonResponse
     {
         $result = $this->consentimientoInformadoService->create(
@@ -51,6 +102,18 @@ class ConsentimientoInformadoController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Actualiza el consentimiento informado identificado por el id con los datos validados.
+     *
+     * @param  UpdateConsentimientoInformadoRequest  $request  Solicitud HTTP validada con los datos a actualizar.
+     * @param  int  $id  Identificador del consentimiento informado a actualizar.
+     *
+     * @returns JsonResponse Respuesta JSON con el consentimiento actualizado y su estado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-01-16
+     */
     public function update(UpdateConsentimientoInformadoRequest $request, int $id): JsonResponse
     {
         $result = $this->consentimientoInformadoService->update(
@@ -62,6 +125,17 @@ class ConsentimientoInformadoController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Elimina el consentimiento informado correspondiente al identificador indicado.
+     *
+     * @param  int  $id  Identificador del consentimiento informado a eliminar.
+     *
+     * @returns JsonResponse Respuesta JSON con el resultado de la eliminación y su estado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-01-16
+     */
     public function destroy(int $id): JsonResponse
     {
         $result = $this->consentimientoInformadoService->delete($id);

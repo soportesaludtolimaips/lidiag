@@ -272,6 +272,15 @@ const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 
+/**
+ * Obtiene la lista de plantillas desde el servidor e inicializa la tabla con sus columnas.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function ListarDatos() {
     if (loadingListar.value) return;
     loadingListar.value = true;
@@ -322,6 +331,15 @@ async function ListarDatos() {
         loadingListar.value = false;
     }
 }
+/**
+ * Crea o actualiza una plantilla según el estado de edición del formulario.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
@@ -368,6 +386,18 @@ async function guardarRegistro() {
         loadingGuardar.value = false;
     }
 }
+/**
+ * Elimina una plantilla previa confirmación del usuario.
+ *
+ * @param {number} id Identificador de la plantilla a eliminar.
+ * @param {string} nom Nombre de la plantilla para el mensaje de confirmación.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function elimnarRegistro(id, nom) {
     const ok = await confirmAction({
         title: `Estas seguro de eliminar el tipo de plantillas ${nom}?`,
@@ -388,6 +418,15 @@ async function elimnarRegistro(id, nom) {
         loadingEliminarId.value = null;
     }
 }
+/**
+ * Obtiene la lista de médicos según el módulo activo para vincularlos a la plantilla.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function listarMedicos() {
     try {
         const pathname = String(window?.location?.pathname || "").toLowerCase();
@@ -397,12 +436,32 @@ async function listarMedicos() {
         medicos.value = res.data.data;
     } catch (error) {}
 }
+/**
+ * Obtiene la lista de tipos de plantillas activos para el selector del formulario.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function listarTiposPlantillas() {
     try {
         const res = await axios.get("/api/config-tipos-plantillas/listar/activos");
         tiposPlantillas.value = res.data.data;
     } catch (error) {}
 }
+/**
+ * Prepara el formulario lateral para crear o editar una plantilla.
+ *
+ * @param {Object} data Datos de la plantilla a editar (vacío para un nuevo registro).
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function mostrarRegistro(data = {}) {
     if (actualizar.value == true) {
         tituloModal.value = "Actualizar el registro: " + data.nom_plantilla;
@@ -427,10 +486,28 @@ function mostrarRegistro(data = {}) {
 
     btnCerralModalForm();
 }
+/**
+ * Muestra u oculta el panel lateral del formulario mediante la clase correspondiente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function btnCerralModalForm() {
     $(".right-sidebar").slideDown(50);
     $(".right-sidebar").toggleClass("shw-rside");
 }
+/**
+ * Reinicia los valores del formulario y el estado de edición a los valores iniciales.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function limpiarFormulario() {
     errores.value = {};
     registro.value.plantilla_tipo_id = "";
@@ -441,6 +518,15 @@ function limpiarFormulario() {
     registro.value.estado = 1;
 }
 
+/**
+ * Hook de ciclo de vida que registra los eventos de la tabla y carga los datos al montar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 onMounted(() => {
     $(document).on("click", "#example23 .dt-edit", function () {
         const rowId = $(this).data("id");
@@ -461,6 +547,15 @@ onMounted(() => {
     (listarMedicos(), listarTiposPlantillas());
 });
 
+/**
+ * Hook de ciclo de vida que remueve los eventos de la tabla y la destruye al desmontar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 onBeforeUnmount(() => {
     $(document).off("click", "#example23 .dt-edit");
     $(document).off("click", "#example23 .dt-delete");

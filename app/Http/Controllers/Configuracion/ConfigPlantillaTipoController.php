@@ -19,6 +19,15 @@ class ConfigPlantillaTipoController extends Controller
         $this->middleware('permission:config.plantillas.tipos.destroy')->only(['destroy']);
     }
 
+    /**
+     * Lista todos los tipos de plantilla registrados en el sistema.
+     *
+     * @returns JsonResponse Respuesta JSON con la lista de tipos de plantilla.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2025-03-27
+     */
     public function index(): JsonResponse
     {
         $result = $this->configPlantillaTipoService->all();
@@ -26,6 +35,17 @@ class ConfigPlantillaTipoController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Muestra el detalle de un tipo de plantilla identificado por su id.
+     *
+     * @param  int  $id  Identificador del tipo de plantilla a consultar.
+     *
+     * @returns JsonResponse Respuesta JSON con los datos del tipo de plantilla.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2025-03-27
+     */
     public function show(int $id): JsonResponse
     {
         $result = $this->configPlantillaTipoService->find($id);
@@ -33,6 +53,15 @@ class ConfigPlantillaTipoController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Lista los tipos de plantilla activos registrados en el sistema.
+     *
+     * @returns JsonResponse Respuesta JSON con la lista de tipos de plantilla activos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2025-03-27
+     */
     public function listarActivos(): JsonResponse
     {
         $result = $this->configPlantillaTipoService->listarActivos();
@@ -40,6 +69,17 @@ class ConfigPlantillaTipoController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Crea un nuevo tipo de plantilla con los datos validados recibidos.
+     *
+     * @param  StoreConfigPlantillaTipoRequest  $request  Datos validados del tipo de plantilla a crear.
+     *
+     * @returns JsonResponse Respuesta JSON con el tipo de plantilla creado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2025-03-27
+     */
     public function store(StoreConfigPlantillaTipoRequest $request): JsonResponse
     {
         $result = $this->configPlantillaTipoService->create($request->validated());
@@ -47,6 +87,18 @@ class ConfigPlantillaTipoController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Actualiza un tipo de plantilla existente identificado por su id.
+     *
+     * @param  UpdateConfigPlantillaTipoRequest  $request  Datos validados del tipo de plantilla a actualizar.
+     * @param  int  $id  Identificador del tipo de plantilla a actualizar.
+     *
+     * @returns JsonResponse Respuesta JSON con el tipo de plantilla actualizado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2025-03-27
+     */
     public function update(UpdateConfigPlantillaTipoRequest $request, int $id): JsonResponse
     {
         $result = $this->configPlantillaTipoService->update($id, $request->validated());
@@ -54,6 +106,17 @@ class ConfigPlantillaTipoController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Elimina un tipo de plantilla existente identificado por su id.
+     *
+     * @param  int  $id  Identificador del tipo de plantilla a eliminar.
+     *
+     * @returns JsonResponse Respuesta JSON con el resultado de la eliminación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2025-03-27
+     */
     public function destroy(int $id): JsonResponse
     {
         $result = $this->configPlantillaTipoService->delete($id);

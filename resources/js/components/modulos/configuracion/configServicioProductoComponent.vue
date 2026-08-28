@@ -219,10 +219,28 @@ const recomendacion = ref("");
 const loadingGuardar = ref(false);
 const loadingListar = ref(false);
 
+/**
+ * Obtiene el identificador de servicio indicado en la URL para precargar la selección.
+ *
+ * @returns {string|null}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 const servicioIdDesdeUrl = computed(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get("servicio_id");
 });
+/**
+ * Genera las opciones para el selector de productos disponibles.
+ *
+ * @returns {Array<Object>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 const productosDisponiblesOptions = computed(() => {
     return (productosDisponibles.value || []).map(function (p) {
         return {
@@ -233,6 +251,15 @@ const productosDisponiblesOptions = computed(() => {
     });
 });
 
+/**
+ * Obtiene los servicios de cita del usuario y selecciona el primero o el indicado en la URL.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function cargarServicios() {
     var thisVue = proxy;
 
@@ -260,11 +287,31 @@ function cargarServicios() {
             console.error("Error:", error);
         });
 }
+/**
+ * Define el servicio seleccionado y carga sus productos vinculados.
+ *
+ * @param {Object} servicio Servicio de cita seleccionado por el usuario.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function seleccionarServicio(servicio) {
     servicioSeleccionado.value = servicio.id;
     servicioActual.value = servicio;
     cargarProductosVinculados();
 }
+/**
+ * Obtiene los productos vinculados al servicio de cita seleccionado.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function cargarProductosVinculados() {
     var thisVue = proxy;
 
@@ -283,6 +330,15 @@ function cargarProductosVinculados() {
             console.error("Error:", error);
         });
 }
+/**
+ * Carga los productos no vinculados y abre el panel lateral para agregar un producto.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function mostrarModalAgregar() {
     var thisVue = proxy;
 
@@ -302,6 +358,17 @@ function mostrarModalAgregar() {
             console.error("Error:", error);
         });
 }
+/**
+ * Actualiza el producto seleccionado y precarga su recomendación si existe.
+ *
+ * @param {*} value Valor seleccionado en el componente Select2.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function onProductoSelect(value) {
     productoSeleccionado.value = value || "";
 
@@ -314,12 +381,39 @@ function onProductoSelect(value) {
             encontrado.recomendacion_producto.recomendacion) ||
         "";
 }
+/**
+ * Muestra el panel lateral del formulario agregando la clase correspondiente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function abrirModal() {
     $(".right-sidebar").addClass("shw-rside");
 }
+/**
+ * Oculta el panel lateral del formulario removiendo la clase correspondiente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function cerrarModal() {
     $(".right-sidebar").removeClass("shw-rside");
 }
+/**
+ * Vincula el producto seleccionado al servicio y guarda su recomendación si se indicó.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function agregarProducto() {
     var thisVue = proxy;
 
@@ -355,6 +449,17 @@ function agregarProducto() {
             thisVue.loadingGuardar = false;
         });
 }
+/**
+ * Desvincula un producto del servicio previa confirmación del usuario.
+ *
+ * @param {number} id Identificador del vínculo producto-servicio a eliminar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function eliminarVinculo(id) {
     var thisVue = proxy;
 
@@ -377,14 +482,45 @@ function eliminarVinculo(id) {
         }
     });
 }
+/**
+ * Muestra una alerta de error con el mensaje obtenido de la respuesta o la excepción.
+ *
+ * @param {Error|Object} error Error capturado al ejecutar una petición.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function mostrarError(error) {
     var mensaje = error.response?.data?.message || error.message || "Error desconocido";
     alertError("Error", mensaje);
 }
+/**
+ * Muestra una alerta de éxito con el mensaje indicado.
+ *
+ * @param {string} mensaje Texto de confirmación a mostrar al usuario.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function mostrarExito(mensaje) {
     alertSuccess("Éxito", mensaje);
 }
 
+/**
+ * Hook de ciclo de vida que carga los servicios al montar el componente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 onMounted(() => {
     cargarServicios();
 });

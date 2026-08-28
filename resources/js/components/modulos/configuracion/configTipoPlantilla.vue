@@ -229,6 +229,15 @@ const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 
+/**
+ * Obtiene la lista de tipos de plantillas desde el servidor y la carga en la tabla.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function ListarDatos() {
     if (loadingListar.value) return;
     loadingListar.value = true;
@@ -248,6 +257,15 @@ async function ListarDatos() {
         loadingListar.value = false;
     }
 }
+/**
+ * Crea o actualiza un tipo de plantilla según el estado de edición del formulario.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
@@ -290,6 +308,18 @@ async function guardarRegistro() {
         loadingGuardar.value = false;
     }
 }
+/**
+ * Elimina un tipo de plantilla previa confirmación del usuario.
+ *
+ * @param {number} id Identificador del tipo de plantilla a eliminar.
+ * @param {string} nom Nombre del tipo de plantilla para el mensaje de confirmación.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function elimnarRegistro(id, nom) {
     const ok = await confirmAction({
         title: `Estas seguro de eliminar el tipo de plantillas ${nom}?`,
@@ -310,6 +340,17 @@ async function elimnarRegistro(id, nom) {
         loadingEliminarId.value = null;
     }
 }
+/**
+ * Prepara el formulario lateral para crear o editar un tipo de plantilla.
+ *
+ * @param {Object} data Datos del tipo de plantilla a editar (vacío para un nuevo registro).
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function mostrarRegistro(data = {}) {
     if (actualizar.value) {
         tituloModal.value = "Actualizar el registro: " + data.nom_tipo;
@@ -326,16 +367,43 @@ function mostrarRegistro(data = {}) {
 
     btnCerralModalForm();
 }
+/**
+ * Muestra u oculta el panel lateral del formulario mediante la clase correspondiente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function btnCerralModalForm() {
     $(".right-sidebar").slideDown(50);
     $(".right-sidebar").toggleClass("shw-rside");
 }
 
+/**
+ * Hook de ciclo de vida que carga los datos al montar el componente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 onMounted(() => {
     ListarDatos();
     //listarProductos();
 });
 
+/**
+ * Hook de ciclo de vida que destruye la tabla de datos al desmontar el componente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#example23");
 });
