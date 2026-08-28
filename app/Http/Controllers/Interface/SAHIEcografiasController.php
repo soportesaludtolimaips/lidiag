@@ -22,7 +22,7 @@ class SAHIEcografiasController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2024-04-04
      */
     public function listarProductosAtencion(Request $request): JsonResponse
     {

@@ -18,7 +18,7 @@ class EcografiaProductoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-05-14
      */
     public function __construct(
         private readonly EcografiaProductoService $productoService,
@@ -31,7 +31,7 @@ class EcografiaProductoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-05-14
      */
     public function index(): JsonResponse
     {
@@ -49,7 +49,7 @@ class EcografiaProductoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-05-14
      */
     public function store(EcografiaProductoRequest $request): JsonResponse
     {
@@ -67,7 +67,7 @@ class EcografiaProductoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-05-14
      */
     public function show(int $id): JsonResponse
     {
@@ -86,7 +86,7 @@ class EcografiaProductoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-05-14
      */
     public function update(EcografiaProductoRequest $request, int $id): JsonResponse
     {
@@ -104,7 +104,7 @@ class EcografiaProductoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-05-14
      */
     public function destroy(int $id): JsonResponse
     {

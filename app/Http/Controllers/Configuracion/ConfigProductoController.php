@@ -26,7 +26,7 @@ class ConfigProductoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2024-04-04
      */
     public function index(): JsonResponse
     {
@@ -44,7 +44,7 @@ class ConfigProductoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2024-04-04
      */
     public function show(int $id): JsonResponse
     {
@@ -62,7 +62,7 @@ class ConfigProductoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2024-04-04
      */
     public function store(ConfigProductoRequest $request): JsonResponse
     {
@@ -81,7 +81,7 @@ class ConfigProductoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2024-04-04
      */
     public function update(ConfigProductoRequest $request, int $id): JsonResponse
     {
@@ -99,7 +99,7 @@ class ConfigProductoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2024-04-04
      */
     public function destroy(int $id): JsonResponse
     {

@@ -347,7 +347,7 @@ const productoVersionsId = ref(null);
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 async function listarProductos() {
     try {
@@ -362,7 +362,7 @@ async function listarProductos() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 async function listarModulos() {
     try {
@@ -382,7 +382,7 @@ async function listarModulos() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 async function listar() {
     if (!filtros.value.config_modulo_id) {
@@ -411,7 +411,7 @@ async function listar() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 function nuevo() {
     form.value = { id: null, producto_id: "", nombre: "", html: "" };
@@ -425,7 +425,7 @@ function nuevo() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 function editar(p) {
     form.value = { id: p.id, producto_id: p.producto_id, nombre: p.nombre, html: p.html };
@@ -437,7 +437,7 @@ function editar(p) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 async function guardar() {
     if (!form.value.producto_id) return;
@@ -471,7 +471,7 @@ async function guardar() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 async function previewPdf(p) {
     try {
@@ -494,7 +494,7 @@ async function previewPdf(p) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 async function verVersiones(p) {
     if (!filtros.value.config_modulo_id) return;
@@ -524,7 +524,7 @@ async function verVersiones(p) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 async function activarVersion(v) {
     try {
@@ -551,7 +551,7 @@ async function activarVersion(v) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 async function desactivar(p) {
     const ok = await confirmAction({
@@ -573,7 +573,7 @@ async function desactivar(p) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 onMounted(() => {
     listarProductos();

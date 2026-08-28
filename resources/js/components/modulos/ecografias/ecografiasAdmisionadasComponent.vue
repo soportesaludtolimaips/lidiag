@@ -416,7 +416,7 @@ const isEnviandoSahi = ref({});
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 function buscarStudy() {
     // Soporte para Enter en el input de búsqueda
@@ -429,7 +429,7 @@ function buscarStudy() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 function btnLimpiar() {
     // Limpia criterios de búsqueda (mantiene sede/medico del contexto)
@@ -448,7 +448,7 @@ function btnLimpiar() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 async function initSede() {
     const sede = sessionStorage.getItem("ST-sede");
@@ -466,7 +466,7 @@ async function initSede() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 function safeDestroyDataTable(selector = "#example23") {
     if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
@@ -486,7 +486,7 @@ function safeDestroyDataTable(selector = "#example23") {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 function safeInitDataTable(selector = "#example23") {
     if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
@@ -512,7 +512,7 @@ function safeInitDataTable(selector = "#example23") {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 async function listarAtenciones() {
     if (
@@ -555,7 +555,7 @@ async function listarAtenciones() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 async function imprimirReporte(id) {
     try {
@@ -585,7 +585,7 @@ async function imprimirReporte(id) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 function registroParaAnular(data) {
     registroAnular.value.ecografia_id = data.id;
@@ -598,7 +598,7 @@ function registroParaAnular(data) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 function anularEcografia() {
     if (registroAnular.value.motivo_anula === "") {
@@ -643,7 +643,7 @@ function anularEcografia() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 async function consultarEstadoSahi(item) {
     if (!sedeInterface) return;
@@ -681,7 +681,7 @@ async function consultarEstadoSahi(item) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 async function reenviarASahi(item) {
     if (!sedeInterface) return;
@@ -720,7 +720,7 @@ async function reenviarASahi(item) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 onMounted(() => {
     initSede();

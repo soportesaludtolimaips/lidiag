@@ -22,7 +22,7 @@ class SAHIEcografiasEnviarController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-01-29
      */
     public function estadoPorEcografiaProducto(int $ecografia_producto_id): JsonResponse
     {
@@ -40,7 +40,7 @@ class SAHIEcografiasEnviarController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-01-29
      */
     public function enviarPorEcografiaProducto(EnviarEcografiaRequest $request): JsonResponse
     {

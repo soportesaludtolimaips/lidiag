@@ -18,7 +18,7 @@ class ecografiaLecturaController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-11-18
      */
     public function __construct(
         private readonly EcografiaLecturaService $lecturaService,
@@ -37,7 +37,7 @@ class ecografiaLecturaController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-11-18
      */
     public function leer(EcografiaLeerRequest $request, int $id): JsonResponse
     {
@@ -57,7 +57,7 @@ class ecografiaLecturaController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-11-18
      */
     public function listarPendientesPorLectura(int $idMedico): JsonResponse
     {

@@ -795,7 +795,7 @@ function stripDiacritics(text) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 function escapeRegExp(text) {
     return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -809,7 +809,7 @@ function escapeRegExp(text) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 function normalizeWord(text) {
     return stripDiacritics(String(text))
@@ -962,7 +962,7 @@ function applyMedicalCorrections(text) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 function applyCommandMap(text, commandMap, { onEachMatch } = {}) {
     if (!commandMap) return text;
@@ -992,7 +992,7 @@ function applyCommandMap(text, commandMap, { onEachMatch } = {}) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 function getUppercaseCommands() {
     return {
@@ -1085,7 +1085,7 @@ function getUppercaseCommands() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 function getLineBreakCommands() {
     return {
@@ -1104,7 +1104,7 @@ function getLineBreakCommands() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 function getPunctuationCommands() {
     return {
@@ -1143,7 +1143,7 @@ function getPunctuationCommands() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 function getAllVoiceCommands() {
     // Agrega claves sin tildes para tolerar dictado sin acentos
@@ -1174,7 +1174,7 @@ function getAllVoiceCommands() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 function processCommands(text) {
     const { uppercaseCommands, lineBreakCommands, punctuationCommands } = getAllVoiceCommands();
@@ -1202,7 +1202,7 @@ function processCommands(text) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 function ensureVoiceSession() {
     if (voiceSession.value) return voiceSession.value;
@@ -1262,7 +1262,7 @@ function ensureVoiceSession() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 async function toggleSpeechRecognition() {
     // Mantener el ícono/animación actual, sin tocar template.
@@ -1300,7 +1300,7 @@ async function toggleSpeechRecognition() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 function stopVoice() {
     if (voiceSession.value) {
@@ -1321,7 +1321,7 @@ function stopVoice() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 function startSahiPolling() {
     if (!sedeInterface) return;
@@ -1353,7 +1353,7 @@ function startSahiPolling() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 function stopSahiPolling() {
     stopPolling();
@@ -1452,7 +1452,7 @@ function safeInitDataTable(selector = "#example23") {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 async function listarPendiestePorLectura() {
     // Evita llamar al backend con "null"/vacío (causa 404 "El medico no se encontro")
@@ -1487,7 +1487,7 @@ async function listarPendiestePorLectura() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 function evaluarPendientesConsentimientosDiaAnterior() {
     const todayStart = new Date();
@@ -1521,7 +1521,7 @@ function evaluarPendientesConsentimientosDiaAnterior() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 async function firmarConsentimientoMedico(item) {
     const id = item?.consentimiento_id;
@@ -1552,7 +1552,7 @@ async function firmarConsentimientoMedico(item) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 async function generarLectura() {
     try {
@@ -1592,7 +1592,7 @@ async function generarLectura() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 async function enviarASahiEcografiaProducto() {
     if (!sedeInterface) return true;
@@ -1877,7 +1877,7 @@ function onPlantillaSelect(value) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 function btnCerralModalForm() {
     $(".right-sidebar").slideDown(50);
@@ -1894,7 +1894,7 @@ function btnCerralModalForm() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 function mostrarRegistro(data = {}) {
     tituloAtencion.value = `Atención N°: ${data.atencion_id}`;
@@ -1969,7 +1969,7 @@ function mostrarRegistro(data = {}) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 function limpiarFormulario() {
     tituloModal.value = "";
@@ -2003,7 +2003,7 @@ function limpiarFormulario() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2025-11-18
  */
 onMounted(() => {
     initSede();

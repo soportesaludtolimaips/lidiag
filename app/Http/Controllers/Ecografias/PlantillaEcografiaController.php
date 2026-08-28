@@ -20,7 +20,7 @@ class PlantillaEcografiaController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2024-05-18
      */
     public function __construct(
         private readonly PlantillaEcografiaService $plantillaService,
@@ -40,7 +40,7 @@ class PlantillaEcografiaController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2024-05-18
      */
     public function editWord(PlantillaEcografiaEditWordRequest $request): JsonResponse
     {

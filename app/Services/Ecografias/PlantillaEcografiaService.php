@@ -29,7 +29,7 @@ class PlantillaEcografiaService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function editWord(array $data): array
     {
@@ -279,7 +279,7 @@ class PlantillaEcografiaService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function convertDocxToPdf(string $nomPlantilla): bool
     {

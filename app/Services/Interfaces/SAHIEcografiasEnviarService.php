@@ -28,7 +28,7 @@ class SAHIEcografiasEnviarService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-01-29
      */
     public function estadoPorEcografiaProducto(int $ecografiaProductoId): array
     {
@@ -64,7 +64,7 @@ class SAHIEcografiasEnviarService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-01-29
      */
     public function enviarPorEcografiaProducto(int $ecografiaProductoId): array
     {

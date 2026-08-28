@@ -26,7 +26,7 @@ class ConfigTipoDocumentoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-11-24
      */
     public function index(): JsonResponse
     {
@@ -44,7 +44,7 @@ class ConfigTipoDocumentoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-11-24
      */
     public function show(int $id): JsonResponse
     {
@@ -60,7 +60,7 @@ class ConfigTipoDocumentoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-11-24
      */
     public function listarActivos(): JsonResponse
     {
@@ -78,7 +78,7 @@ class ConfigTipoDocumentoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-11-24
      */
     public function store(StoreConfigTipoDocumentoRequest $request): JsonResponse
     {
@@ -97,7 +97,7 @@ class ConfigTipoDocumentoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-11-24
      */
     public function update(UpdateConfigTipoDocumentoRequest $request, int $id): JsonResponse
     {
@@ -115,7 +115,7 @@ class ConfigTipoDocumentoController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-11-24
      */
     public function destroy(int $id): JsonResponse
     {

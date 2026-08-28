@@ -92,7 +92,7 @@ const nowTs = ref(Date.now());
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 const pacienteLabel = computed(() => {
     const p = info.value?.paciente;
@@ -109,7 +109,7 @@ const pacienteLabel = computed(() => {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 const tiempoRestanteLabel = computed(() => {
     const exp = info.value?.expires_at;
@@ -130,7 +130,7 @@ const tiempoRestanteLabel = computed(() => {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 async function fetchInfo() {
     loading.value = true;
@@ -152,7 +152,7 @@ async function fetchInfo() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 function initCanvas() {
     nextTick(() => {
@@ -178,7 +178,7 @@ function initCanvas() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 function resizeCanvas() {
     const c = canvas.value;
@@ -205,7 +205,7 @@ function resizeCanvas() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 function relPos(e) {
     const c = canvas.value;
@@ -223,7 +223,7 @@ function relPos(e) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 function onDown(e) {
     if (saving.value) return;
@@ -240,7 +240,7 @@ function onDown(e) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 function onMove(e) {
     if (!drawing.value || saving.value) return;
@@ -264,7 +264,7 @@ function onMove(e) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 function onUp(e) {
     drawing.value = false;
@@ -278,7 +278,7 @@ function onUp(e) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 function clear() {
     const c = canvas.value;
@@ -294,7 +294,7 @@ function clear() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 async function submit() {
     if (!hasInk.value || saving.value) return;
@@ -322,7 +322,7 @@ async function submit() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 onMounted(() => {
     fetchInfo();

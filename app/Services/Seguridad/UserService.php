@@ -25,7 +25,7 @@ class UserService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function all(): array
     {
@@ -44,7 +44,7 @@ class UserService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function listByRoleAndModule(string $roleName, int $moduleId): array
     {
@@ -66,7 +66,7 @@ class UserService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function findByModule(int $moduleId): array
     {
@@ -88,7 +88,7 @@ class UserService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function find(int $id): array
     {
@@ -125,7 +125,7 @@ class UserService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function create(array $data, ?UploadedFile $firma = null, ?UploadedFile $avatar = null): array
     {
@@ -165,7 +165,7 @@ class UserService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function update(int $id, array $data, ?UploadedFile $firma = null, ?UploadedFile $avatar = null): array
     {
@@ -205,7 +205,7 @@ class UserService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function toggleStatus(int $id, bool $estado): array
     {
@@ -225,7 +225,7 @@ class UserService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function delete(int $id): array
     {
@@ -258,7 +258,7 @@ class UserService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function updateProfile(int $id, array $data, ?UploadedFile $avatar = null, ?UploadedFile $firma = null): array
     {
@@ -300,7 +300,7 @@ class UserService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function listPermissions(int $id): array
     {

@@ -28,7 +28,7 @@ class UserController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2024-04-04
      */
     public function index(): JsonResponse
     {
@@ -46,7 +46,7 @@ class UserController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2024-04-04
      */
     public function show(int $id): JsonResponse
     {
@@ -64,7 +64,7 @@ class UserController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2024-04-04
      */
     public function store(StoreUserRequest $request): JsonResponse
     {
@@ -86,7 +86,7 @@ class UserController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2024-04-04
      */
     public function update(UpdateUserRequest $request): JsonResponse
     {
@@ -109,7 +109,7 @@ class UserController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2024-04-04
      */
     public function destroy(int $id): JsonResponse
     {
@@ -127,7 +127,7 @@ class UserController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2024-04-04
      */
     public function estadoUsuario(Request $request): JsonResponse
     {
@@ -149,7 +149,7 @@ class UserController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2024-04-04
      */
     public function actualizarPerfil(Request $request, int $id): JsonResponse
     {
@@ -181,7 +181,7 @@ class UserController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2024-04-04
      */
     public function listarPermisosUsuario(int $id): JsonResponse
     {
@@ -200,7 +200,7 @@ class UserController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2024-04-04
      */
     public function listarUsuarios(string $tipoUser, int $modulo): JsonResponse
     {
@@ -218,7 +218,7 @@ class UserController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2024-04-04
      */
     public function usuariosPorModulo(int $moduloId): JsonResponse
     {

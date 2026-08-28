@@ -983,7 +983,7 @@ const consentimientoUrl = ref("");
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 const medicoOptions = computed(() => {
     // Opciones para el Select2 local de medicos.
@@ -996,7 +996,7 @@ const medicoOptions = computed(() => {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 const tipoDocumentoOptions = computed(() => {
     // Opciones para el Select2 local de medicos.
@@ -1013,7 +1013,7 @@ const tipoDocumentoOptions = computed(() => {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 const productoOptions = computed(() => {
     // Opciones para el Select2 local de productos.
@@ -1031,7 +1031,7 @@ const productoOptions = computed(() => {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 function buscarStudy() {
     // Soporte para Enter en el input de búsqueda
@@ -1044,7 +1044,7 @@ function buscarStudy() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 function btnLimpiar() {
     // Limpia criterios de búsqueda (mantiene sede/medico del contexto)
@@ -1066,7 +1066,7 @@ function btnLimpiar() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 function safeDestroyDataTable(selector = "#example23") {
     if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
@@ -1086,7 +1086,7 @@ function safeDestroyDataTable(selector = "#example23") {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 function safeInitDataTable(selector = "#example23") {
     if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
@@ -1112,7 +1112,7 @@ function safeInitDataTable(selector = "#example23") {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 async function listarAtenciones() {
     try {
@@ -1145,7 +1145,7 @@ async function listarAtenciones() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 function abrirModalConsentimiento(item) {
     consentimientoItem.value = item;
@@ -1160,7 +1160,7 @@ function abrirModalConsentimiento(item) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 async function generarLinkFirma() {
     if (!consentimientoItem.value?.ecografia_producto_id) return;
@@ -1190,7 +1190,7 @@ async function generarLinkFirma() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 function abrirLinkFirma() {
     if (!consentimientoUrl.value) return;
@@ -1203,7 +1203,7 @@ function abrirLinkFirma() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 async function refrescarConsentimientoItem() {
     if (!consentimientoItem.value?.ecografia_producto_id) return;
@@ -1228,7 +1228,7 @@ async function refrescarConsentimientoItem() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 async function guardarRegistro() {
     try {
@@ -1273,7 +1273,7 @@ async function guardarRegistro() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 function registroParaAnular(data) {
     registroAnular.value.ecografia_id = data.id;
@@ -1286,7 +1286,7 @@ function registroParaAnular(data) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 function anularEcografia() {
     if (registroAnular.value.motivo_anula === "") {
@@ -1329,7 +1329,7 @@ function anularEcografia() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 async function initSede() {
     registro.value.sede_id = sessionStorage.getItem("ST-sede");
@@ -1344,7 +1344,7 @@ async function initSede() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 async function establecerMedico() {
     registro.value.sede_id = sessionStorage.getItem("ST-sede");
@@ -1364,7 +1364,7 @@ async function establecerMedico() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 async function consultarEstadoSahi(item) {
     if (!sedeInterface.value) return;
@@ -1399,7 +1399,7 @@ async function consultarEstadoSahi(item) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 async function reenviarASahi(item) {
     if (!sedeInterface.value) return;
@@ -1434,7 +1434,7 @@ async function reenviarASahi(item) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 async function listarMedicos() {
     try {
@@ -1454,7 +1454,7 @@ async function listarMedicos() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 async function listarTipoDocumentos() {
     try {
@@ -1471,7 +1471,7 @@ async function listarTipoDocumentos() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 async function listarProductos() {
     try {
@@ -1490,7 +1490,7 @@ async function listarProductos() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 function onMedicoSelect(value) {
     let selectedId = null;
@@ -1513,7 +1513,7 @@ function onMedicoSelect(value) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 function onTipoDocumentoSelect(value) {
     let selectedId = null;
@@ -1536,7 +1536,7 @@ function onTipoDocumentoSelect(value) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 function onProductoSelect(value) {
     let selectedId = value || null;
@@ -1568,7 +1568,7 @@ function onProductoSelect(value) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 function btnCerralModalForm() {
     $(".right-sidebar").slideDown(50);
@@ -1583,7 +1583,7 @@ function btnCerralModalForm() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 function mostrarRegistro(data = {}) {
     tituloModal.value = `Admisionar al paciente: ${data.PrimerNombre} ${data.SegundoNombre}`;
@@ -1623,7 +1623,7 @@ function mostrarRegistro(data = {}) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 function limpiarFormulario() {
     tituloModal.value = "";
@@ -1656,7 +1656,7 @@ function limpiarFormulario() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 function quitarProductoAgenda(codProduc) {
     registro.value.productosAgenda = registro.value.productosAgenda.filter(
@@ -1671,7 +1671,7 @@ function quitarProductoAgenda(codProduc) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2024-04-04
  */
 onMounted(() => {
     if (sessionStorage.getItem("ST-sede") == null) {

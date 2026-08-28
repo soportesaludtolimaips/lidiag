@@ -192,7 +192,7 @@ const selectedMap = ref({});
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 const selectedIds = computed(() => {
     return Object.keys(selectedMap.value)
@@ -206,7 +206,7 @@ const selectedIds = computed(() => {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 const selectedConsentimiento = computed(() => {
     if (selectedIds.value.length !== 1) return null;
@@ -220,7 +220,7 @@ const selectedConsentimiento = computed(() => {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 const allSelectableSelected = computed(() => {
     const selectable = registros.value.filter(esSeleccionable);
@@ -237,7 +237,7 @@ const allSelectableSelected = computed(() => {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 function pacienteNombre(c) {
     const p = c?.ecografia_producto?.ecografia?.paciente;
@@ -253,7 +253,7 @@ function pacienteNombre(c) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 function esSeleccionable(c) {
     return c?.estado === "COMPLETO";
@@ -267,7 +267,7 @@ function esSeleccionable(c) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 function toggleSelect(c) {
     const id = Number(c.id);
@@ -283,7 +283,7 @@ function toggleSelect(c) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 function toggleSelectAll(e) {
     const checked = !!e.target.checked;
@@ -301,7 +301,7 @@ function toggleSelectAll(e) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 async function buscar() {
     loading.value = true;
@@ -324,7 +324,7 @@ async function buscar() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 async function generarPdfSeleccionado() {
     if (selectedIds.value.length !== 1) return;
@@ -345,7 +345,7 @@ async function generarPdfSeleccionado() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 function descargarPdfSeleccionado() {
     const c = selectedConsentimiento.value;
@@ -363,7 +363,7 @@ function descargarPdfSeleccionado() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 async function generarZip() {
     if (selectedIds.value.length < 2) return;
@@ -395,7 +395,7 @@ async function generarZip() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 async function anularSeleccionado() {
     if (selectedIds.value.length !== 1) return;
@@ -438,7 +438,7 @@ async function anularSeleccionado() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 async function _ejecutarAnulacion(id, obs) {
     loading.value = true;
@@ -460,7 +460,7 @@ async function _ejecutarAnulacion(id, obs) {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-08-28
+ * @date 2026-02-13
  */
 onMounted(() => {
     buscar();

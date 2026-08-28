@@ -38,7 +38,7 @@ class EcografiaConsentimientosController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-02-13
      */
     public function index(Request $request): JsonResponse
     {
@@ -62,7 +62,7 @@ class EcografiaConsentimientosController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-02-13
      */
     public function infoPorToken(Request $request, string $token): JsonResponse
     {
@@ -80,7 +80,7 @@ class EcografiaConsentimientosController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-02-13
      */
     public function crearToken(EcografiaConsentimientoCrearTokenRequest $request): JsonResponse
     {
@@ -103,7 +103,7 @@ class EcografiaConsentimientosController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-02-13
      */
     public function firmarPacientePorToken(Request $request, string $token): JsonResponse
     {
@@ -132,7 +132,7 @@ class EcografiaConsentimientosController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-02-13
      */
     public function firmarMedico(EcografiaConsentimientoFirmarMedicoRequest $request): JsonResponse
     {
@@ -155,7 +155,7 @@ class EcografiaConsentimientosController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-02-13
      */
     public function anular(EcografiaConsentimientoAnularRequest $request, int $id): JsonResponse
     {
@@ -178,7 +178,7 @@ class EcografiaConsentimientosController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-02-13
      */
     public function vigentePorEcografiaProducto(Request $request, int $ecografia_producto_id): JsonResponse
     {
@@ -197,7 +197,7 @@ class EcografiaConsentimientosController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-02-13
      */
     public function generarPdf(Request $request, int $id): JsonResponse
     {
@@ -216,7 +216,7 @@ class EcografiaConsentimientosController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-02-13
      */
     public function descargarPdf(Request $request, int $id)
     {
@@ -241,7 +241,7 @@ class EcografiaConsentimientosController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-02-13
      */
     public function generarZip(EcografiaConsentimientoGenerarZipRequest $request)
     {

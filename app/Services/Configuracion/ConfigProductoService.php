@@ -15,7 +15,7 @@ class ConfigProductoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function all(): array
     {
@@ -31,7 +31,7 @@ class ConfigProductoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function find(int $id): array
     {
@@ -53,7 +53,7 @@ class ConfigProductoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function create(array $data): array
     {
@@ -73,7 +73,7 @@ class ConfigProductoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function update(int $id, array $data): array
     {
@@ -93,7 +93,7 @@ class ConfigProductoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function delete(int $id): array
     {

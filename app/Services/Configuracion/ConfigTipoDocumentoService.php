@@ -15,7 +15,7 @@ class ConfigTipoDocumentoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function all(): array
     {
@@ -31,7 +31,7 @@ class ConfigTipoDocumentoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function find(int $id): array
     {
@@ -51,7 +51,7 @@ class ConfigTipoDocumentoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function listarActivos(): array
     {
@@ -67,7 +67,7 @@ class ConfigTipoDocumentoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function create(array $data): array
     {
@@ -87,7 +87,7 @@ class ConfigTipoDocumentoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function update(int $id, array $data): array
     {
@@ -107,7 +107,7 @@ class ConfigTipoDocumentoService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function delete(int $id): array
     {

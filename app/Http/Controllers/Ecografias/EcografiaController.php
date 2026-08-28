@@ -34,7 +34,7 @@ class EcografiaController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-05-14
      */
     public function index(Request $request): JsonResponse
     {
@@ -56,7 +56,7 @@ class EcografiaController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-05-14
      */
     public function filtarEcografias(Request $request): JsonResponse
     {
@@ -78,7 +78,7 @@ class EcografiaController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-05-14
      */
     public function store(EcografiaStoreRequest $request): JsonResponse
     {
@@ -96,7 +96,7 @@ class EcografiaController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-05-14
      */
     public function show(int $id): JsonResponse
     {
@@ -115,7 +115,7 @@ class EcografiaController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-05-14
      */
     public function update(EcografiaUpdateRequest $request, int $id): JsonResponse
     {
@@ -133,7 +133,7 @@ class EcografiaController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-05-14
      */
     public function destroy(int $id): JsonResponse
     {
@@ -152,7 +152,7 @@ class EcografiaController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-05-14
      */
     public function anularEcografia(EcografiaAnularRequest $request, int $id): JsonResponse
     {
@@ -171,7 +171,7 @@ class EcografiaController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2025-05-14
      */
     public function generarReporte(EcografiaGenerarReporteRequest $request, int $ecografia_id): JsonResponse
     {

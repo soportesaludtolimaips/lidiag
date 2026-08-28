@@ -25,7 +25,7 @@ class EcografiaConsentimientosService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-02-13
      */
     public function index(array $filters = []): array
     {
@@ -67,7 +67,7 @@ class EcografiaConsentimientosService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-02-13
      */
     public function infoPorToken(string $token): array
     {
@@ -134,7 +134,7 @@ class EcografiaConsentimientosService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-02-13
      */
     public function crearToken(array $data, $user, ?string $ip): array
     {
@@ -233,7 +233,7 @@ class EcografiaConsentimientosService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-02-13
      */
     public function firmarPacientePorToken(string $token, array $data, ?string $ip): array
     {
@@ -309,7 +309,7 @@ class EcografiaConsentimientosService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-02-13
      */
     public function firmarMedico(array $data, $user, ?string $ip): array
     {
@@ -353,7 +353,7 @@ class EcografiaConsentimientosService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-02-13
      */
     public function anular(int $id, array $data, $user): array
     {
@@ -383,7 +383,7 @@ class EcografiaConsentimientosService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-02-13
      */
     public function vigentePorEcografiaProducto(int $ecografiaProductoId): array
     {
@@ -404,7 +404,7 @@ class EcografiaConsentimientosService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-02-13
      */
     public function generarPdf(int $id): array
     {
@@ -457,7 +457,7 @@ class EcografiaConsentimientosService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-02-13
      */
     public function descargarPdf(int $id): array
     {
@@ -489,7 +489,7 @@ class EcografiaConsentimientosService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-02-13
      */
     public function generarZip(array $data): array
     {

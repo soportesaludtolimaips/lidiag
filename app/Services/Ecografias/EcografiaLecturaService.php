@@ -20,7 +20,7 @@ class EcografiaLecturaService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function leer(array $data, int $id): array
     {
@@ -73,7 +73,7 @@ class EcografiaLecturaService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-28
+     * @date 2026-07-14
      */
     public function listarPendientesPorLectura(int $idMedico): array
     {
