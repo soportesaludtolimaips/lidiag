@@ -18,6 +18,15 @@ class UserService extends BaseService
         private readonly FileServiceInterface $fileService,
     ) {}
 
+    /**
+     * Lista todos los usuarios con sus relaciones (módulos, roles, sedes, servicios).
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function all(): array
     {
         $users = User::with(['modulos', 'roles', 'sedes', 'serviciosCita'])->get();
@@ -25,6 +34,18 @@ class UserService extends BaseService
         return $this->success($users);
     }
 
+    /**
+     * Lista usuarios por nombre de rol y módulo.
+     *
+     * @param  string  $roleName  Nombre del rol.
+     * @param  int  $moduleId  Identificador del módulo.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function listByRoleAndModule(string $roleName, int $moduleId): array
     {
         $users = User::select('users.id', 'users.name')
@@ -36,6 +57,17 @@ class UserService extends BaseService
         return $this->success($users);
     }
 
+    /**
+     * Retorna los usuarios asociados a un módulo.
+     *
+     * @param  int  $moduleId  Identificador del módulo.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function findByModule(int $moduleId): array
     {
         $modulo = ConfigModulo::with('usuarios')->find($moduleId);
@@ -47,6 +79,17 @@ class UserService extends BaseService
         return $this->success($modulo->usuarios);
     }
 
+    /**
+     * Busca un usuario por su identificador con sus relaciones.
+     *
+     * @param  int  $id  Identificador del usuario.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function find(int $id): array
     {
         $user = User::find($id);
@@ -71,6 +114,19 @@ class UserService extends BaseService
         ]);
     }
 
+    /**
+     * Crea un usuario, gestionando firma, avatar y relaciones.
+     *
+     * @param  array  $data  Datos del usuario.
+     * @param  UploadedFile|null  $firma  Archivo de firma.
+     * @param  UploadedFile|null  $avatar  Archivo de avatar.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function create(array $data, ?UploadedFile $firma = null, ?UploadedFile $avatar = null): array
     {
         $user = new User;
@@ -97,6 +153,20 @@ class UserService extends BaseService
         return $this->created($user->load(['modulos', 'roles', 'sedes', 'serviciosCita']));
     }
 
+    /**
+     * Actualiza un usuario, gestionando firma, avatar y relaciones.
+     *
+     * @param  int  $id  Identificador del usuario.
+     * @param  array  $data  Datos a actualizar.
+     * @param  UploadedFile|null  $firma  Archivo de firma.
+     * @param  UploadedFile|null  $avatar  Archivo de avatar.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function update(int $id, array $data, ?UploadedFile $firma = null, ?UploadedFile $avatar = null): array
     {
         $user = User::findOrFail($id);
@@ -125,6 +195,18 @@ class UserService extends BaseService
         return $this->updated($user->load(['modulos', 'roles', 'sedes', 'serviciosCita']));
     }
 
+    /**
+     * Activa o inactiva el estado de un usuario.
+     *
+     * @param  int  $id  Identificador del usuario.
+     * @param  bool  $estado  Nuevo estado (true=activo).
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function toggleStatus(int $id, bool $estado): array
     {
         $user = User::findOrFail($id);
@@ -134,6 +216,17 @@ class UserService extends BaseService
         return $this->updated(null, 'Estado actualizado correctamente.');
     }
 
+    /**
+     * Elimina un usuario y limpia sus archivos y relaciones.
+     *
+     * @param  int  $id  Identificador del usuario.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function delete(int $id): array
     {
         $user = User::findOrFail($id);
@@ -153,6 +246,20 @@ class UserService extends BaseService
         return $this->deleted();
     }
 
+    /**
+     * Actualiza el perfil propio del usuario autenticado.
+     *
+     * @param  int  $id  Identificador del usuario.
+     * @param  array  $data  Datos del perfil.
+     * @param  UploadedFile|null  $avatar  Archivo de avatar.
+     * @param  UploadedFile|null  $firma  Archivo de firma.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function updateProfile(int $id, array $data, ?UploadedFile $avatar = null, ?UploadedFile $firma = null): array
     {
         $authCheck = $this->checkSelfOrPermission($id, 'seguridad.usuarios.edit');
@@ -184,6 +291,17 @@ class UserService extends BaseService
         return $this->updated(null, 'Perfil actualizado correctamente.');
     }
 
+    /**
+     * Lista los roles y permisos de un usuario.
+     *
+     * @param  int  $id  Identificador del usuario.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function listPermissions(int $id): array
     {
         $user = User::findOrFail($id);

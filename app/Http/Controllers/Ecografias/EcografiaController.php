@@ -11,7 +11,6 @@ use App\Services\Ecografias\EcografiaService;
 use App\Services\Ecografias\PlantillaEcografiaService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 
 class EcografiaController extends Controller
 {
@@ -26,6 +25,17 @@ class EcografiaController extends Controller
         $this->middleware('permission:ecografias.reporte,web')->only(['generarReporte']);
     }
 
+    /**
+     * Lista todas las ecografías aplicando los filtros de búsqueda recibidos.
+     *
+     * @param  Request  $request  Solicitud HTTP con los filtros de búsqueda.
+     *
+     * @returns {JsonResponse}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function index(Request $request): JsonResponse
     {
         $result = $this->ecografiaService->all([
@@ -38,14 +48,15 @@ class EcografiaController extends Controller
     }
 
     /**
-     * Filtra las ecografías según los criterios proporcionados en la solicitud.
+     * Filtra las ecografías según los criterios de búsqueda recibidos.
      *
-     * @param  Request  $request  - La solicitud HTTP que contiene los criterios de filtrado.
-     * @return JsonResponse - Una respuesta JSON que contiene el resultado de la operación, incluyendo el estado y cualquier mensaje relevante.
+     * @param  Request  $request  Solicitud HTTP con los filtros de búsqueda.
+     *
+     * @returns {JsonResponse}
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2024-06-10
+     * @date 2026-08-28
      */
     public function filtarEcografias(Request $request): JsonResponse
     {
@@ -59,16 +70,15 @@ class EcografiaController extends Controller
     }
 
     /**
-     * Almacena una nueva ecografía en la base de datos.
+     * Almacena una nueva ecografía validando los datos de entrada.
      *
-     * @param  EcografiaStoreRequest  $request  - La solicitud HTTP que contiene los datos para crear la ecografía.
-     * @return JsonResponse - Una respuesta JSON que contiene el resultado de la operación, incluyendo el estado y cualquier mensaje relevante.
+     * @param  EcografiaStoreRequest  $request  Solicitud validada con los datos de la ecografía.
      *
-     * @throws ValidationException - Si los datos proporcionados en la solicitud no cumplen con las reglas de validación definidas.
+     * @returns {JsonResponse}
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2024-06-10
+     * @date 2026-08-28
      */
     public function store(EcografiaStoreRequest $request): JsonResponse
     {
@@ -80,12 +90,13 @@ class EcografiaController extends Controller
     /**
      * Muestra los detalles de una ecografía específica.
      *
-     * @param  int  $id  - El ID de la ecografía a mostrar.
-     * @return JsonResponse - Una respuesta JSON que contiene el resultado de la operación, incluyendo el estado y cualquier mensaje relevante.
+     * @param  int  $id  Identificador de la ecografía.
+     *
+     * @returns {JsonResponse}
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2024-06-10
+     * @date 2026-08-28
      */
     public function show(int $id): JsonResponse
     {
@@ -97,13 +108,14 @@ class EcografiaController extends Controller
     /**
      * Actualiza los datos de una ecografía específica.
      *
-     * @param  Request  $request  - La solicitud HTTP que contiene los datos para actualizar la ecografía.
-     * @param  int  $id  - El ID de la ecografía a actualizar.
-     * @return JsonResponse - Una respuesta JSON que contiene el resultado de la operación, incluyendo el estado y cualquier mensaje relevante.
+     * @param  EcografiaUpdateRequest  $request  Solicitud validada con los datos a actualizar.
+     * @param  int  $id  Identificador de la ecografía.
+     *
+     * @returns {JsonResponse}
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2024-06-10
+     * @date 2026-08-28
      */
     public function update(EcografiaUpdateRequest $request, int $id): JsonResponse
     {
@@ -115,12 +127,13 @@ class EcografiaController extends Controller
     /**
      * Elimina una ecografía específica.
      *
-     * @param  int  $id  - El ID de la ecografía a eliminar.
-     * @return JsonResponse - Una respuesta JSON que contiene el resultado de la operación, incluyendo el estado y cualquier mensaje relevante.
+     * @param  int  $id  Identificador de la ecografía a eliminar.
+     *
+     * @returns {JsonResponse}
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2024-06-10
+     * @date 2026-08-28
      */
     public function destroy(int $id): JsonResponse
     {
@@ -130,14 +143,16 @@ class EcografiaController extends Controller
     }
 
     /**
-     * Anula una ecografía específica.
+     * Anula una ecografía registrando el motivo de anulación.
      *
-     * @param  int  $id  - El ID de la ecografía a anular.
-     * @return JsonResponse - Una respuesta JSON que contiene el resultado de la operación, incluyendo el estado y cualquier mensaje relevante.
+     * @param  EcografiaAnularRequest  $request  Solicitud validada con el motivo de anulación.
+     * @param  int  $id  Identificador de la ecografía a anular.
+     *
+     * @returns {JsonResponse}
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2024-06-10
+     * @date 2026-08-28
      */
     public function anularEcografia(EcografiaAnularRequest $request, int $id): JsonResponse
     {
@@ -147,17 +162,16 @@ class EcografiaController extends Controller
     }
 
     /**
-     * Genera un reporte de ecografía en formato Word utilizando los datos proporcionados en la solicitud.
+     * Genera el reporte Word de una ecografía.
      *
-     * @param  Request  $request  - La solicitud HTTP que contiene los datos necesarios para generar el reporte.
-     * @param  int  $ecografia_id  - El ID de la ecografía para la cual se generará el reporte.
-     * @return JsonResponse - Una respuesta JSON que contiene el resultado de la operación, incluyendo el estado y cualquier mensaje relevante.
+     * @param  EcografiaGenerarReporteRequest  $request  Solicitud validada con los parámetros del reporte.
+     * @param  int  $ecografia_id  Identificador de la ecografía.
      *
-     * @throws ValidationException - Si los datos proporcionados en la solicitud no cumplen con las reglas de validación definidas.
+     * @returns {JsonResponse}
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2024-06-10
+     * @date 2026-08-28
      */
     public function generarReporte(EcografiaGenerarReporteRequest $request, int $ecografia_id): JsonResponse
     {

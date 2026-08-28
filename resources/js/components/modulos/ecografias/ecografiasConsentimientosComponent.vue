@@ -185,35 +185,106 @@ const registros = ref([]);
 const loading = ref(false);
 const selectedMap = ref({});
 
+/**
+ * Obtiene la lista de identificadores de consentimientos actualmente seleccionados.
+ *
+ * @returns {Array<number>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 const selectedIds = computed(() => {
     return Object.keys(selectedMap.value)
         .filter((k) => selectedMap.value[k])
         .map((k) => Number(k));
 });
+/**
+ * Devuelve el consentimiento seleccionado cuando exactamente uno está marcado, o null en caso contrario.
+ *
+ * @returns {Object|null}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 const selectedConsentimiento = computed(() => {
     if (selectedIds.value.length !== 1) return null;
     const id = selectedIds.value[0];
     return registros.value.find((r) => Number(r.id) === Number(id)) || null;
 });
+/**
+ * Indica si todos los consentimientos seleccionables (estado COMPLETO) se encuentran marcados.
+ *
+ * @returns {boolean}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 const allSelectableSelected = computed(() => {
     const selectable = registros.value.filter(esSeleccionable);
     if (selectable.length === 0) return false;
     return selectable.every((r) => selectedMap.value[r.id] === true);
 });
 
+/**
+ * Extrae y retorna el nombre del paciente asociado a un consentimiento.
+ *
+ * @param {Object} c Registro de consentimiento del cual se obtiene el paciente.
+ *
+ * @returns {string}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function pacienteNombre(c) {
     const p = c?.ecografia_producto?.ecografia?.paciente;
     if (!p) return "—";
     return String(p.nombres || "").trim();
 }
+/**
+ * Determina si un consentimiento puede ser seleccionado (solo aquellos en estado COMPLETO).
+ *
+ * @param {Object} c Registro de consentimiento a evaluar.
+ *
+ * @returns {boolean}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function esSeleccionable(c) {
     return c?.estado === "COMPLETO";
 }
+/**
+ * Alterna la selección de un consentimiento individual si este es seleccionable.
+ *
+ * @param {Object} c Registro de consentimiento a seleccionar o deseleccionar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function toggleSelect(c) {
     const id = Number(c.id);
     if (!esSeleccionable(c)) return;
     selectedMap.value[id] = !selectedMap.value[id];
 }
+/**
+ * Marca o desmarca todos los consentimientos seleccionables según el estado del checkbox de cabecera.
+ *
+ * @param {Event} e Evento de cambio del checkbox de selección total.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function toggleSelectAll(e) {
     const checked = !!e.target.checked;
     const next = { ...selectedMap.value };
@@ -223,6 +294,15 @@ function toggleSelectAll(e) {
     });
     selectedMap.value = next;
 }
+/**
+ * Consulta al backend el listado de consentimientos aplicando los filtros de búsqueda.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function buscar() {
     loading.value = true;
     selectedMap.value = {};
@@ -237,6 +317,15 @@ async function buscar() {
         loading.value = false;
     }
 }
+/**
+ * Genera el PDF del consentimiento seleccionado (cuando hay exactamente uno) y refresca la lista.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function generarPdfSeleccionado() {
     if (selectedIds.value.length !== 1) return;
     const id = selectedIds.value[0];
@@ -249,6 +338,15 @@ async function generarPdfSeleccionado() {
         loading.value = false;
     }
 }
+/**
+ * Abre en una nueva pestaña la descarga del PDF del consentimiento seleccionado.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function descargarPdfSeleccionado() {
     const c = selectedConsentimiento.value;
     if (!c?.id || !c?.pdf_path) return;
@@ -258,6 +356,15 @@ function descargarPdfSeleccionado() {
         "noopener,noreferrer"
     );
 }
+/**
+ * Genera y descarga un archivo ZIP con los PDF de los consentimientos seleccionados (mínimo dos).
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function generarZip() {
     if (selectedIds.value.length < 2) return;
     loading.value = true;
@@ -281,6 +388,15 @@ async function generarZip() {
         loading.value = false;
     }
 }
+/**
+ * Solicita la observación de anulación (vía SweetAlert o prompt) y anula el consentimiento seleccionado.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function anularSeleccionado() {
     if (selectedIds.value.length !== 1) return;
     const id = selectedIds.value[0];
@@ -312,6 +428,18 @@ async function anularSeleccionado() {
         await _ejecutarAnulacion(id, result.value);
     }
 }
+/**
+ * Envía la petición de anulación de un consentimiento con su observación y refresca la lista.
+ *
+ * @param {number} id Identificador del consentimiento a anular.
+ * @param {string} obs Observación obligatoria de la anulación.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function _ejecutarAnulacion(id, obs) {
     loading.value = true;
     try {
@@ -325,6 +453,15 @@ async function _ejecutarAnulacion(id, obs) {
     }
 }
 
+/**
+ * Hook de ciclo de vida que ejecuta la búsqueda inicial de consentimientos al montar el componente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 onMounted(() => {
     buscar();
 });

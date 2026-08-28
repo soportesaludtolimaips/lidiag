@@ -20,16 +20,16 @@ class PlantillaEcografiaService extends BaseService
     private const TEMPLATE_PATH = 'app/plantillas/reporte_ecografia.docx';
 
     /**
-     * Genera un reporte de ecografía en formato Word utilizando los datos proporcionados.
+     * Genera un reporte de ecografía en formato Word/PDF utilizando los datos proporcionados,
+     * construyendo el documento a partir de una plantilla o desde cero, y convirtiéndolo a PDF.
      *
-     * @param  array  $data  - Los datos necesarios para generar el reporte de ecografía.
-     * @return array - Un arreglo que contiene el resultado de la operación, incluyendo el estado y cualquier mensaje relevante.
+     * @param  array  $data  Datos necesarios para generar el reporte de ecografía, incluyendo información del médico, paciente y estudio.
      *
-     * @throws \Exception - Si ocurre algún error durante la generación del reporte.
+     * @returns array Arreglo con el resultado de la operación, incluyendo el estado, mensaje y la URL del archivo generado.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2024-06-10
+     * @date 2026-08-28
      */
     public function editWord(array $data): array
     {
@@ -270,14 +270,16 @@ class PlantillaEcografiaService extends BaseService
     }
 
     /**
-     * Convierte un archivo DOCX a PDF utilizando la ruta del archivo generado.
+     * Convierte un archivo DOCX previamente generado a formato PDF utilizando el helper
+     * de conversión, verificando la existencia del origen y eliminando el DOCX temporal.
      *
-     * @param  string  $nomPlantilla  - El nombre del archivo DOCX (sin extensión) que se desea convertir a PDF.
-     * @return bool - Retorna true si la conversión fue exitosa, false en caso contrario.
+     * @param  string  $nomPlantilla  Nombre del archivo DOCX (sin extensión) que se desea convertir a PDF.
+     *
+     * @returns bool Retorna true si la conversión fue exitosa, false en caso contrario.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2024-06-10
+     * @date 2026-08-28
      */
     public function convertDocxToPdf(string $nomPlantilla): bool
     {

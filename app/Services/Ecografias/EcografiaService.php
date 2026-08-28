@@ -12,6 +12,17 @@ use Illuminate\Support\Facades\DB;
 
 class EcografiaService extends BaseService
 {
+    /**
+     * Lista las ecografías aplicando filtros de búsqueda y enmascarando datos sensibles.
+     *
+     * @param  array  $filters  Filtros de búsqueda (bus_nom_num_docu, bus_fech_ini, bus_fecha_fin).
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function all(array $filters = []): array
     {
         $query = Ecografia::with(['paciente', 'usuarioRegistrador', 'adminSalud', 'medico']);
@@ -47,6 +58,17 @@ class EcografiaService extends BaseService
         return $this->success($ecografias);
     }
 
+    /**
+     * Filtra las ecografías con sus productos según criterios de búsqueda.
+     *
+     * @param  array  $filters  Filtros de búsqueda (bus_nom_num_docu, bus_fech_ini, bus_fecha_fin).
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function filtarEcografias(array $filters = []): array
     {
         $query = Ecografia::select(
@@ -88,6 +110,17 @@ class EcografiaService extends BaseService
         return $this->success($query->get());
     }
 
+    /**
+     * Busca una ecografía por su identificador.
+     *
+     * @param  int  $id  Identificador de la ecografía.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function find(int $id): array
     {
         $ecografia = Ecografia::with(['paciente', 'usuarioRegistrador', 'adminSalud'])->find($id);
@@ -99,6 +132,17 @@ class EcografiaService extends BaseService
         return $this->success($ecografia);
     }
 
+    /**
+     * Crea una ecografía, su paciente, administradora y productos asociados.
+     *
+     * @param  array  $data  Datos de la ecografía y productos de la agenda.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function create(array $data): array
     {
         return DB::transaction(function () use ($data) {
@@ -163,6 +207,18 @@ class EcografiaService extends BaseService
         });
     }
 
+    /**
+     * Actualiza los datos de una ecografía existente.
+     *
+     * @param  int  $id  Identificador de la ecografía.
+     * @param  array  $data  Datos a actualizar.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function update(int $id, array $data): array
     {
         $ecografia = Ecografia::find($id);
@@ -176,6 +232,17 @@ class EcografiaService extends BaseService
         return $this->updated($ecografia);
     }
 
+    /**
+     * Elimina una ecografía existente.
+     *
+     * @param  int  $id  Identificador de la ecografía.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function delete(int $id): array
     {
         $ecografia = Ecografia::find($id);
@@ -189,6 +256,18 @@ class EcografiaService extends BaseService
         return $this->deleted('Ecografía eliminada correctamente');
     }
 
+    /**
+     * Anula una ecografía registrando el motivo y el usuario que anula.
+     *
+     * @param  int  $id  Identificador de la ecografía.
+     * @param  string  $motivo  Motivo de la anulación.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function anular(int $id, string $motivo): array
     {
         $ecografia = Ecografia::find($id);

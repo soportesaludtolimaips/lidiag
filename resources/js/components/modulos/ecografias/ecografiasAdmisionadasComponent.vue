@@ -409,10 +409,28 @@ const isAnulandoAdmisionada = ref(false);
 const isConsultandoSahi = ref({});
 const isEnviandoSahi = ref({});
 
+/**
+ * Permite disparar la búsqueda de atenciones al presionar Enter en el campo de texto, delegando en listarAtenciones.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function buscarStudy() {
     // Soporte para Enter en el input de búsqueda
     return listarAtenciones();
 }
+/**
+ * Restablece los criterios de búsqueda (manteniendo sede y médico del contexto) y vacía el listado de registros.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function btnLimpiar() {
     // Limpia criterios de búsqueda (mantiene sede/medico del contexto)
     busqueda.value.bus_nom_num_docu = "";
@@ -423,6 +441,15 @@ function btnLimpiar() {
     safeDestroyDataTable(dt.value || "#example23");
     registros.value = [];
 }
+/**
+ * Inicializa la sede actual a partir de la sesión y la establece en el composable correspondiente.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function initSede() {
     const sede = sessionStorage.getItem("ST-sede");
     if (sede != null) {
@@ -430,6 +457,17 @@ async function initSede() {
     }
     await establecerSedeComposable();
 }
+/**
+ * Destruye de forma segura un DataTable previamente inicializado en el selector indicado.
+ *
+ * @param {string} selector Selector jQuery del DataTable a destruir.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function safeDestroyDataTable(selector = "#example23") {
     if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
         return;
@@ -439,6 +477,17 @@ function safeDestroyDataTable(selector = "#example23") {
         $t.DataTable().clear().destroy();
     }
 }
+/**
+ * Inicializa de forma segura un DataTable con botones de exportación en el selector indicado.
+ *
+ * @param {string} selector Selector jQuery del DataTable a inicializar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function safeInitDataTable(selector = "#example23") {
     if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
         return;
@@ -456,6 +505,15 @@ function safeInitDataTable(selector = "#example23") {
         });
     });
 }
+/**
+ * Consulta al backend las ecografías admisionadas según los filtros y puebla la tabla de resultados.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function listarAtenciones() {
     if (
         busqueda.value.bus_nom_num_docu == "" &&
@@ -488,6 +546,17 @@ async function listarAtenciones() {
         isBuscandoAdmisionadas.value = false;
     }
 }
+/**
+ * Genera el reporte PDF de la ecografía indicada y lo abre en una nueva pestaña del navegador.
+ *
+ * @param {number} id Identificador de la ecografía de la cual se genera el reporte.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function imprimirReporte(id) {
     try {
         isImprimiendoReporte.value = true;
@@ -507,10 +576,30 @@ async function imprimirReporte(id) {
         isImprimiendoReporte.value = false;
     }
 }
+/**
+ * Prepara el registro seleccionado para ser anulado, guardando su id de ecografía y de atención.
+ *
+ * @param {Object} data Objeto de la fila seleccionada con la información de la ecografía.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function registroParaAnular(data) {
     registroAnular.value.ecografia_id = data.id;
     registroAnular.value.atencion_id = data?.atencion_id ?? data?.IdAtencion ?? "";
 }
+/**
+ * Valida el motivo de anulación, solicita confirmación y envía la petición para anular la ecografía seleccionada.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function anularEcografia() {
     if (registroAnular.value.motivo_anula === "") {
         toastMessage({
@@ -545,6 +634,17 @@ function anularEcografia() {
         }
     });
 }
+/**
+ * Consulta el estado de envío a SAHI de una ecografía producto y actualiza la información en la fila correspondiente.
+ *
+ * @param {Object} item Registro de la ecografía producto sobre el cual se consulta el estado SAHI.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function consultarEstadoSahi(item) {
     if (!sedeInterface) return;
     if (!item?.ecografia_producto_id) return;
@@ -572,6 +672,17 @@ async function consultarEstadoSahi(item) {
         setMapValue(proxy, "isConsultandoSahi", id, false);
     }
 }
+/**
+ * Reintenta el envío a SAHI de una ecografía producto que previamente falló o está pendiente.
+ *
+ * @param {Object} item Registro de la ecografía producto que se desea reenviar a SAHI.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function reenviarASahi(item) {
     if (!sedeInterface) return;
     if (!item?.ecografia_producto_id) return;
@@ -602,6 +713,15 @@ async function reenviarASahi(item) {
     }
 }
 
+/**
+ * Hook de ciclo de vida que inicializa la sede al montar el componente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 onMounted(() => {
     initSede();
 });

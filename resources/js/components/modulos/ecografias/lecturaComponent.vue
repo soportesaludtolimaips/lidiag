@@ -786,9 +786,31 @@ function stripDiacritics(text) {
         return String(text);
     }
 }
+/**
+ * Escapa los caracteres especiales de una cadena para que pueda usarse de forma segura dentro de una expresión regular.
+ *
+ * @param {string} text Texto del cual se escaparán los caracteres especiales.
+ *
+ * @returns {string}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function escapeRegExp(text) {
     return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
+/**
+ * Normaliza una palabra eliminando diacríticos, pasándola a minúsculas y removiendo caracteres no alfanuméricos.
+ *
+ * @param {string} text Texto de la palabra a normalizar.
+ *
+ * @returns {string}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function normalizeWord(text) {
     return stripDiacritics(String(text))
         .toLowerCase()
@@ -929,6 +951,19 @@ function applyMedicalCorrections(text) {
 
     return out;
 }
+/**
+ * Reemplaza en el texto los comandos de voz reconocidos por su resultado, invocando una función por cada coincidencia.
+ *
+ * @param {string} text Texto original sobre el cual se aplican los comandos.
+ * @param {Object} commandMap Mapa de comandos con su función o valor de reemplazo.
+ * @param {Object} options Opciones con la función onEachMatch que se ejecuta por cada coincidencia.
+ *
+ * @returns {string}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function applyCommandMap(text, commandMap, { onEachMatch } = {}) {
     if (!commandMap) return text;
     const keys = Object.keys(commandMap).sort((a, b) => b.length - a.length);
@@ -950,6 +985,15 @@ function applyCommandMap(text, commandMap, { onEachMatch } = {}) {
     });
     return text;
 }
+/**
+ * Retorna el mapa de comandos de voz que activan o desactivan el modo de mayúsculas sostenidas.
+ *
+ * @returns {Object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function getUppercaseCommands() {
     return {
         "iniciar mayúscula sostenida": () => {
@@ -1034,6 +1078,15 @@ function getUppercaseCommands() {
         },
     };
 }
+/**
+ * Retorna el mapa de comandos de voz que insertan saltos de línea en el texto dictado.
+ *
+ * @returns {Object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function getLineBreakCommands() {
     return {
         "punto aparte": () => ".\nn",
@@ -1044,6 +1097,15 @@ function getLineBreakCommands() {
         "línea en blanco": () => "\nn",
     };
 }
+/**
+ * Retorna el mapa de comandos de voz que insertan puntuación, espacios y símbolos en el texto dictado.
+ *
+ * @returns {Object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function getPunctuationCommands() {
     return {
         punto: () => {
@@ -1074,6 +1136,15 @@ function getPunctuationCommands() {
         "nueva oración": () => ". ",
     };
 }
+/**
+ * Construye y retorna el conjunto completo de comandos de voz (mayúsculas, saltos y puntuación) incluyendo variantes sin tildes.
+ *
+ * @returns {Object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function getAllVoiceCommands() {
     // Agrega claves sin tildes para tolerar dictado sin acentos
     const uppercaseCommands = getUppercaseCommands();
@@ -1094,6 +1165,17 @@ function getAllVoiceCommands() {
     addNormalizedKeys(punctuationCommands);
     return { uppercaseCommands, lineBreakCommands, punctuationCommands };
 }
+/**
+ * Procesa el texto dictado aplicando los comandos de voz, mayúsculas sostenidas y capitalización de nuevas oraciones.
+ *
+ * @param {string} text Texto reconocido por voz a procesar.
+ *
+ * @returns {string}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function processCommands(text) {
     const { uppercaseCommands, lineBreakCommands, punctuationCommands } = getAllVoiceCommands();
     let out = String(text ?? "");
@@ -1113,6 +1195,15 @@ function processCommands(text) {
     }
     return out;
 }
+/**
+ * Crea y retorna la sesión de reconocimiento de voz configurada para dictado, gramática de comandos y manejo de errores.
+ *
+ * @returns {Object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function ensureVoiceSession() {
     if (voiceSession.value) return voiceSession.value;
     const { uppercaseCommands, lineBreakCommands, punctuationCommands } = getAllVoiceCommands();
@@ -1164,6 +1255,15 @@ function ensureVoiceSession() {
     });
     return voiceSession.value;
 }
+/**
+ * Alterna el estado del reconocimiento de voz (iniciar, pausar o reanudar) y actualiza el icono del micrófono.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function toggleSpeechRecognition() {
     // Mantener el ícono/animación actual, sin tocar template.
     try {
@@ -1193,6 +1293,15 @@ async function toggleSpeechRecognition() {
         });
     }
 }
+/**
+ * Destruye la sesión de reconocimiento de voz activa y restablece el estado e icono del micrófono.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function stopVoice() {
     if (voiceSession.value) {
         try {
@@ -1205,6 +1314,15 @@ function stopVoice() {
     voiceState.value = "inactive";
     microfono.value = "admin-wrap/assets/images/mic.gif";
 }
+/**
+ * Inicia el sondeo periódico del estado de envío a SAHI para la ecografía producto actual.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function startSahiPolling() {
     if (!sedeInterface) return;
     if (!registro.value?.ecografia_producto_id) return;
@@ -1228,6 +1346,15 @@ function startSahiPolling() {
     };
     startPolling(id, onUpdate, onError);
 }
+/**
+ * Detiene el sondeo periódico del estado de envío a SAHI.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function stopSahiPolling() {
     stopPolling();
 }
@@ -1318,6 +1445,15 @@ function safeInitDataTable(selector = "#example23") {
         });
     });
 }
+/**
+ * Lista las ecografías pendientes de lectura para el médico actual y evalúa consentimientos pendientes del día anterior.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function listarPendiestePorLectura() {
     // Evita llamar al backend con "null"/vacío (causa 404 "El medico no se encontro")
     const medicoId = String(busqueda.value?.medico_id ?? "").trim();
@@ -1344,6 +1480,15 @@ async function listarPendiestePorLectura() {
         isBuscandoPendientes.value = false;
     }
 }
+/**
+ * Determina los consentimientos firmados por el paciente el día anterior pendientes de firma del médico y bloquea la lectura si existen.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function evaluarPendientesConsentimientosDiaAnterior() {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
@@ -1367,6 +1512,17 @@ function evaluarPendientesConsentimientosDiaAnterior() {
         window.$("#modal-pendientes-consentimientos").modal("hide");
     }
 }
+/**
+ * Envía la firma del médico sobre un consentimiento pendiente y actualiza su estado a COMPLETO.
+ *
+ * @param {Object} item Registro del consentimiento que el médico firma.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function firmarConsentimientoMedico(item) {
     const id = item?.consentimiento_id;
     if (!id) return;
@@ -1389,6 +1545,15 @@ async function firmarConsentimientoMedico(item) {
         setMapValue(proxy, "isFirmandoConsentimiento", id, false);
     }
 }
+/**
+ * Envía al backend el guardado de la lectura de la ecografía actual y retorna si la operación fue exitosa.
+ *
+ * @returns {Promise<boolean>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function generarLectura() {
     try {
         // Enviar solicitud para guardar la ecografía
@@ -1420,6 +1585,15 @@ async function generarLectura() {
         return false;
     }
 }
+/**
+ * Envía la ecografía producto a SAHI, gestiona el estado de envío y, de ser necesario, inicia el sondeo de estado.
+ *
+ * @returns {Promise<boolean>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function enviarASahiEcografiaProducto() {
     if (!sedeInterface) return true;
 
@@ -1696,12 +1870,32 @@ function onPlantillaSelect(value) {
     registro.value.lectura = (plantilla && plantilla.plantilla) || null;
     registro.value.opinion = (plantilla && plantilla.opinion) || null;
 }
+/**
+ * Cierra/despliega el panel lateral del formulario de lectura y detiene el sondeo SAHI.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function btnCerralModalForm() {
     $(".right-sidebar").slideDown(50);
     $(".right-sidebar").toggleClass("shw-rside");
     // al cerrar, detenemos polling para evitar fugas
     stopSahiPolling();
 }
+/**
+ * Carga los datos de la ecografía seleccionada en el formulario de lectura y prepara el panel lateral.
+ *
+ * @param {Object} data Datos de la atención/ecografía seleccionada a mostrar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function mostrarRegistro(data = {}) {
     tituloAtencion.value = `Atención N°: ${data.atencion_id}`;
     tituloModal.value = `Paciente: ${data.paciente.num_docu} - Nombres: ${data.paciente.nombres} ${data.paciente.seg_nom} ${data.paciente.pri_ape} ${data.paciente.seg_ape} `;
@@ -1768,6 +1962,15 @@ function mostrarRegistro(data = {}) {
 
     btnCerralModalForm();
 }
+/**
+ * Reinicia los campos del formulario de lectura y detiene el sondeo SAHI.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function limpiarFormulario() {
     tituloModal.value = "";
     stopSahiPolling();
@@ -1793,6 +1996,15 @@ function limpiarFormulario() {
     errores.value = {};
 }
 
+/**
+ * Hook de ciclo de vida que inicializa sede, tipos de plantillas, médico, vocabulario médico y suscripciones a eventos del emitter.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 onMounted(() => {
     initSede();
     listarTiposPlantillas();

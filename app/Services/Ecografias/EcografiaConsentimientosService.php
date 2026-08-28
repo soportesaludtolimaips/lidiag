@@ -16,6 +16,17 @@ use Illuminate\Support\Str;
 
 class EcografiaConsentimientosService extends BaseService
 {
+    /**
+     * Lista los consentimientos vigentes aplicando filtros de búsqueda.
+     *
+     * @param  array  $filters  Filtros (q, desde, hasta, sede_id).
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function index(array $filters = []): array
     {
         $query = EcografiaConsentimiento::query()
@@ -47,6 +58,17 @@ class EcografiaConsentimientosService extends BaseService
         return $this->success($query->orderByDesc('id')->get());
     }
 
+    /**
+     * Retorna la información renderizada de un consentimiento a partir de su token.
+     *
+     * @param  string  $token  Token del consentimiento.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function infoPorToken(string $token): array
     {
         $tokenHash = hash('sha256', $token);
@@ -101,6 +123,19 @@ class EcografiaConsentimientosService extends BaseService
         ]);
     }
 
+    /**
+     * Crea un consentimiento y genera su token de firma temporal.
+     *
+     * @param  array  $data  Datos del consentimiento y firmante.
+     * @param  mixed  $user  Usuario autenticado que transcribe.
+     * @param  string|null  $ip  Dirección IP del solicitante.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function crearToken(array $data, $user, ?string $ip): array
     {
         $moduloEcografiasId = 2;
@@ -187,6 +222,19 @@ class EcografiaConsentimientosService extends BaseService
         ]);
     }
 
+    /**
+     * Registra la firma del paciente/acompañante validando el token y la imagen.
+     *
+     * @param  string  $token  Token del consentimiento.
+     * @param  array  $data  Datos con la firma en PNG.
+     * @param  string|null  $ip  Dirección IP del firmante.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function firmarPacientePorToken(string $token, array $data, ?string $ip): array
     {
         $tokenHash = hash('sha256', $token);
@@ -250,6 +298,19 @@ class EcografiaConsentimientosService extends BaseService
         return $this->success(['ok' => true, 'message' => 'Firma registrada correctamente']);
     }
 
+    /**
+     * Registra la firma del médico y completa el consentimiento.
+     *
+     * @param  array  $data  Datos con el id del consentimiento.
+     * @param  mixed  $user  Usuario médico autenticado.
+     * @param  string|null  $ip  Dirección IP del firmante.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function firmarMedico(array $data, $user, ?string $ip): array
     {
         if (! $user->firma) {
@@ -281,6 +342,19 @@ class EcografiaConsentimientosService extends BaseService
         return $this->success(['ok' => true]);
     }
 
+    /**
+     * Anula un consentimiento vigente registrando la observación.
+     *
+     * @param  int  $id  Identificador del consentimiento.
+     * @param  array  $data  Datos con la observación de anulación.
+     * @param  mixed  $user  Usuario autenticado que anula.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function anular(int $id, array $data, $user): array
     {
         $c = EcografiaConsentimiento::query()->where('id', $id)->where('vigente', true)->firstOrFail();
@@ -300,6 +374,17 @@ class EcografiaConsentimientosService extends BaseService
         return $this->success(['ok' => true]);
     }
 
+    /**
+     * Retorna el consentimiento vigente de un producto de ecografía.
+     *
+     * @param  int  $ecografiaProductoId  Identificador del producto de ecografía.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function vigentePorEcografiaProducto(int $ecografiaProductoId): array
     {
         $c = EcografiaConsentimiento::query()
@@ -310,6 +395,17 @@ class EcografiaConsentimientosService extends BaseService
         return $this->success($c);
     }
 
+    /**
+     * Genera y almacena el PDF cifrado del consentimiento completo.
+     *
+     * @param  int  $id  Identificador del consentimiento.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function generarPdf(int $id): array
     {
         $consent = EcografiaConsentimiento::query()
@@ -352,6 +448,17 @@ class EcografiaConsentimientosService extends BaseService
         return $this->success(['ok' => true, 'pdf_path' => $consent->pdf_path]);
     }
 
+    /**
+     * Prepara los datos para la descarga del PDF de un consentimiento.
+     *
+     * @param  int  $id  Identificador del consentimiento.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function descargarPdf(int $id): array
     {
         $consent = EcografiaConsentimiento::query()->where('id', $id)->where('vigente', true)->firstOrFail();
@@ -373,6 +480,17 @@ class EcografiaConsentimientosService extends BaseService
         return $this->success(['path' => $rel, 'disk' => 'files_consentimientos']);
     }
 
+    /**
+     * Genera un archivo ZIP con los PDF de los consentimientos indicados.
+     *
+     * @param  array  $data  Datos con la lista de ids de consentimientos.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function generarZip(array $data): array
     {
         $ids = array_values(array_unique(array_map('intval', (array) $data['ids'])));

@@ -8,11 +8,31 @@ use App\Services\BaseService;
 
 class ConfigTipoDocumentoService extends BaseService
 {
+    /**
+     * Retorna todos los tipos de documento.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function all(): array
     {
         return $this->success(ConfigTipoDocumento::all());
     }
 
+    /**
+     * Busca un tipo de documento por su identificador.
+     *
+     * @param  int  $id  Identificador del tipo de documento.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function find(int $id): array
     {
         $item = ConfigTipoDocumento::find($id);
@@ -24,11 +44,31 @@ class ConfigTipoDocumentoService extends BaseService
         return $this->success($item);
     }
 
+    /**
+     * Retorna los tipos de documento activos.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function listarActivos(): array
     {
         return $this->success(ConfigTipoDocumento::where('estado', true)->get());
     }
 
+    /**
+     * Crea un nuevo tipo de documento.
+     *
+     * @param  array  $data  Datos del tipo de documento.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function create(array $data): array
     {
         $item = ConfigTipoDocumento::create($data);
@@ -37,6 +77,18 @@ class ConfigTipoDocumentoService extends BaseService
         return $this->created($item);
     }
 
+    /**
+     * Actualiza un tipo de documento existente.
+     *
+     * @param  int  $id  Identificador del tipo de documento.
+     * @param  array  $data  Datos a actualizar.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function update(int $id, array $data): array
     {
         $item = ConfigTipoDocumento::findOrFail($id);
@@ -46,6 +98,17 @@ class ConfigTipoDocumentoService extends BaseService
         return $this->updated($item);
     }
 
+    /**
+     * Elimina un tipo de documento existente.
+     *
+     * @param  int  $id  Identificador del tipo de documento.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function delete(int $id): array
     {
         $item = ConfigTipoDocumento::findOrFail($id);

@@ -340,12 +340,30 @@ const form = ref({ id: null, producto_id: "", nombre: "", html: "" });
 const versions = ref([]);
 const loadingVersions = ref(false);
 const productoVersionsId = ref(null);
+/**
+ * Carga la lista de productos de configuración disponibles para asociar a las plantillas.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
         productos.value = Array.isArray(res.data?.data) ? res.data.data : [];
     } catch (error) {}
 }
+/**
+ * Carga la lista de módulos de configuración y selecciona por defecto el módulo de Ecografías si existe.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function listarModulos() {
     try {
         const res = await axios.get("/api/config-modulos-listar");
@@ -357,6 +375,15 @@ async function listarModulos() {
         }
     } catch (error) {}
 }
+/**
+ * Consulta las plantillas de consentimiento vigentes según módulo y texto de búsqueda.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function listar() {
     if (!filtros.value.config_modulo_id) {
         return;
@@ -377,12 +404,41 @@ async function listar() {
         loading.value = false;
     }
 }
+/**
+ * Reinicia el formulario para registrar una nueva plantilla de consentimiento.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function nuevo() {
     form.value = { id: null, producto_id: "", nombre: "", html: "" };
 }
+/**
+ * Carga los datos de una plantilla existente en el formulario para editarla (nueva versión).
+ *
+ * @param {Object} p Registro de la plantilla que se desea editar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function editar(p) {
     form.value = { id: p.id, producto_id: p.producto_id, nombre: p.nombre, html: p.html };
 }
+/**
+ * Crea o actualiza una plantilla de consentimiento y cierra el modal tras guardar.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function guardar() {
     if (!form.value.producto_id) return;
     if (!filtros.value.config_modulo_id) return;
@@ -406,6 +462,17 @@ async function guardar() {
         loadingGuardar.value = false;
     }
 }
+/**
+ * Abre en una nueva pestaña la vista previa en PDF de la plantilla de consentimiento indicada.
+ *
+ * @param {Object} p Registro de la plantilla cuya vista previa se desea mostrar.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function previewPdf(p) {
     try {
         loadingPreviewId.value = p.id;
@@ -418,6 +485,17 @@ async function previewPdf(p) {
         loadingPreviewId.value = null;
     }
 }
+/**
+ * Carga el histórico de versiones de una plantilla y muestra el modal correspondiente.
+ *
+ * @param {Object} p Registro de la plantilla de la cual se consultan las versiones.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function verVersiones(p) {
     if (!filtros.value.config_modulo_id) return;
     loadingVersions.value = true;
@@ -437,6 +515,17 @@ async function verVersiones(p) {
         loadingVersions.value = false;
     }
 }
+/**
+ * Marca una versión específica de plantilla como vigente y actualiza el listado e histórico.
+ *
+ * @param {Object} v Registro de la versión de plantilla que se desea activar.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function activarVersion(v) {
     try {
         await axios.post(`/api/consentimientos-plantillas/${v.id}/vigente`);
@@ -453,6 +542,17 @@ async function activarVersion(v) {
         await listar();
     } catch (error) {}
 }
+/**
+ * Solicita confirmación y elimina (desactiva) la plantilla de consentimiento indicada.
+ *
+ * @param {Object} p Registro de la plantilla que se desea desactivar.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function desactivar(p) {
     const ok = await confirmAction({
         title: "¿Desactivar plantilla?",
@@ -466,6 +566,15 @@ async function desactivar(p) {
     } catch (error) {}
 }
 
+/**
+ * Hook de ciclo de vida que carga productos, módulos y la lista inicial de plantillas al montar el componente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 onMounted(() => {
     listarProductos();
     listarModulos();

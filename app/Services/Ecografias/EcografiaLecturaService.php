@@ -10,6 +10,18 @@ use Illuminate\Support\Facades\DB;
 
 class EcografiaLecturaService extends BaseService
 {
+    /**
+     * Procesa la acción de lectura de una ecografía (imprimir lectura o terminar lectura), actualizando la lectura, opinión y estado del producto y de la ecografía dentro de una transacción.
+     *
+     * @param  array  $data  Datos validados de la solicitud que incluyen la acción a realizar y el registro de lectura y opinión.
+     * @param  int  $id  Identificador de la ecografía sobre la cual se ejecuta la acción de lectura.
+     *
+     * @returns array Resultado de la operación con el estado, mensajes y datos relacionados a la lectura de la ecografía.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function leer(array $data, int $id): array
     {
         $accion = (string) ($data['accion'] ?? '');
@@ -52,6 +64,17 @@ class EcografiaLecturaService extends BaseService
         });
     }
 
+    /**
+     * Lista las ecografías en estado "EN PROCESO" asociadas a un médico, incluyendo la información del producto, consentimientos y datos enmascarados del paciente.
+     *
+     * @param  int  $idMedico  Identificador del médico cuyas ecografías pendientes de lectura se desean consultar.
+     *
+     * @returns array Resultado con la lista de ecografías pendientes de lectura y el estado de la operación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function listarPendientesPorLectura(int $idMedico): array
     {
         $medico = User::find($idMedico);

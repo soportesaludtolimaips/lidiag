@@ -29,6 +29,17 @@ class EcografiaConsentimientosController extends Controller
         $this->middleware('permission:ecografias.consentimientos.zip.generar,web')->only(['generarZip']);
     }
 
+    /**
+     * Lista los consentimientos vigentes aplicando los filtros recibidos.
+     *
+     * @param  Request  $request  Solicitud HTTP con los filtros de búsqueda.
+     *
+     * @returns {JsonResponse}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function index(Request $request): JsonResponse
     {
         $result = $this->consentimientosService->index([
@@ -41,6 +52,18 @@ class EcografiaConsentimientosController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Retorna la información de un consentimiento a partir de su token público.
+     *
+     * @param  Request  $request  Solicitud HTTP.
+     * @param  string  $token  Token del consentimiento.
+     *
+     * @returns {JsonResponse}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function infoPorToken(Request $request, string $token): JsonResponse
     {
         $result = $this->consentimientosService->infoPorToken($token);
@@ -48,6 +71,17 @@ class EcografiaConsentimientosController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Crea un token de firma de consentimiento válido por 10 minutos.
+     *
+     * @param  EcografiaConsentimientoCrearTokenRequest  $request  Solicitud validada con los datos del token.
+     *
+     * @returns {JsonResponse}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function crearToken(EcografiaConsentimientoCrearTokenRequest $request): JsonResponse
     {
         $result = $this->consentimientosService->crearToken(
@@ -59,6 +93,18 @@ class EcografiaConsentimientosController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Registra la firma del paciente/acompañante a partir de un token.
+     *
+     * @param  Request  $request  Solicitud HTTP con la firma en PNG.
+     * @param  string  $token  Token del consentimiento.
+     *
+     * @returns {JsonResponse}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function firmarPacientePorToken(Request $request, string $token): JsonResponse
     {
         $validator = \Validator::make($request->all(), [
@@ -77,6 +123,17 @@ class EcografiaConsentimientosController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Registra la firma del médico sobre un consentimiento.
+     *
+     * @param  EcografiaConsentimientoFirmarMedicoRequest  $request  Solicitud validada con los datos de firma.
+     *
+     * @returns {JsonResponse}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function firmarMedico(EcografiaConsentimientoFirmarMedicoRequest $request): JsonResponse
     {
         $result = $this->consentimientosService->firmarMedico(
@@ -88,6 +145,18 @@ class EcografiaConsentimientosController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Anula un consentimiento de ecografía registrando la observación.
+     *
+     * @param  EcografiaConsentimientoAnularRequest  $request  Solicitud validada con la observación.
+     * @param  int  $id  Identificador del consentimiento.
+     *
+     * @returns {JsonResponse}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function anular(EcografiaConsentimientoAnularRequest $request, int $id): JsonResponse
     {
         $result = $this->consentimientosService->anular(
@@ -99,6 +168,18 @@ class EcografiaConsentimientosController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Retorna el consentimiento vigente asociado a un producto de ecografía.
+     *
+     * @param  Request  $request  Solicitud HTTP.
+     * @param  int  $ecografia_producto_id  Identificador del producto de ecografía.
+     *
+     * @returns {JsonResponse}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function vigentePorEcografiaProducto(Request $request, int $ecografia_producto_id): JsonResponse
     {
         $result = $this->consentimientosService->vigentePorEcografiaProducto($ecografia_producto_id);
@@ -106,6 +187,18 @@ class EcografiaConsentimientosController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Genera el PDF cifrado del consentimiento de ecografía.
+     *
+     * @param  Request  $request  Solicitud HTTP.
+     * @param  int  $id  Identificador del consentimiento.
+     *
+     * @returns {JsonResponse}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function generarPdf(Request $request, int $id): JsonResponse
     {
         $result = $this->consentimientosService->generarPdf($id);
@@ -113,6 +206,18 @@ class EcografiaConsentimientosController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Descarga el PDF previamente generado de un consentimiento.
+     *
+     * @param  Request  $request  Solicitud HTTP.
+     * @param  int  $id  Identificador del consentimiento.
+     *
+     * @returns {JsonResponse|BinaryFileResponse}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function descargarPdf(Request $request, int $id)
     {
         $result = $this->consentimientosService->descargarPdf($id);
@@ -127,6 +232,17 @@ class EcografiaConsentimientosController extends Controller
         return $disk->download($result['data']['path']);
     }
 
+    /**
+     * Genera un archivo ZIP con los PDF de los consentimientos seleccionados.
+     *
+     * @param  EcografiaConsentimientoGenerarZipRequest  $request  Solicitud validada con los ids.
+     *
+     * @returns {JsonResponse|BinaryFileResponse}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function generarZip(EcografiaConsentimientoGenerarZipRequest $request)
     {
         $result = $this->consentimientosService->generarZip($request->validated());

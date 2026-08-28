@@ -13,6 +13,17 @@ class SAHIEcografiasController extends Controller
         private readonly SAHIEcografiasService $sahiEcografiasService,
     ) {}
 
+    /**
+     * Lista los productos de atención desde SAHI para la admisión de ecografías.
+     *
+     * @param  Request  $request  Solicitud HTTP con el criterio de búsqueda.
+     *
+     * @returns {JsonResponse}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function listarProductosAtencion(Request $request): JsonResponse
     {
         $result = $this->sahiEcografiasService->listarProductosAtencion($request->bus_nom_num_docu);

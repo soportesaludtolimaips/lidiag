@@ -976,10 +976,28 @@ const acompanante = ref({ cedula: "", nombres: "", email: "", direccion: "", tel
 const isGenerandoLinkFirma = ref(false);
 const consentimientoUrl = ref("");
 
+/**
+ * Opciones derivadas de médicos para el componente Select2 local.
+ *
+ * @returns {Array}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 const medicoOptions = computed(() => {
     // Opciones para el Select2 local de medicos.
     return (medicos.value || []).map((p) => ({ id: String(p.id), name: p.name }));
 });
+/**
+ * Opciones derivadas de tipos de documento para el componente Select2 local.
+ *
+ * @returns {Array}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 const tipoDocumentoOptions = computed(() => {
     // Opciones para el Select2 local de medicos.
     return (tipoDocumentos.value || []).map((p) => ({
@@ -988,6 +1006,15 @@ const tipoDocumentoOptions = computed(() => {
         tipo_documento: p.tipo_documento,
     }));
 });
+/**
+ * Opciones derivadas de productos para el componente Select2 local.
+ *
+ * @returns {Array}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 const productoOptions = computed(() => {
     // Opciones para el Select2 local de productos.
     return (productos.value || []).map((p) => ({
@@ -997,10 +1024,28 @@ const productoOptions = computed(() => {
     }));
 });
 
+/**
+ * Ejecuta la búsqueda de atenciones disparada desde el input (tecla Enter).
+ *
+ * @returns {any}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function buscarStudy() {
     // Soporte para Enter en el input de búsqueda
     return listarAtenciones();
 }
+/**
+ * Limpia los criterios de búsqueda y el formulario de admisión.
+ *
+ * @returns {any}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function btnLimpiar() {
     // Limpia criterios de búsqueda (mantiene sede/medico del contexto)
     busqueda.value.bus_nom_num_docu = "";
@@ -1012,6 +1057,17 @@ function btnLimpiar() {
     registros.value = [];
     limpiarFormulario();
 }
+/**
+ * Destruye de forma segura la instancia de DataTable si existe.
+ *
+ * @param {string} selector Selector jQuery de la tabla a destruir.
+ *
+ * @returns {any}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function safeDestroyDataTable(selector = "#example23") {
     if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
         return;
@@ -1021,6 +1077,17 @@ function safeDestroyDataTable(selector = "#example23") {
         $t.DataTable().clear().destroy();
     }
 }
+/**
+ * Inicializa de forma segura la instancia de DataTable con botones de exportación.
+ *
+ * @param {string} selector Selector jQuery de la tabla a inicializar.
+ *
+ * @returns {any}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function safeInitDataTable(selector = "#example23") {
     if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
         return;
@@ -1038,6 +1105,15 @@ function safeInitDataTable(selector = "#example23") {
         });
     });
 }
+/**
+ * Consulta y lista las atenciones disponibles según los filtros de búsqueda.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function listarAtenciones() {
     try {
         isBuscandoAtenciones.value = true;
@@ -1060,12 +1136,32 @@ async function listarAtenciones() {
         isBuscandoAtenciones.value = false;
     }
 }
+/**
+ * Prepara y abre el modal de captura de firma de consentimiento para un registro.
+ *
+ * @param {Object} item Registro de atención seleccionado.
+ *
+ * @returns {any}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function abrirModalConsentimiento(item) {
     consentimientoItem.value = item;
     consentimientoFirmanteTipo.value = "PACIENTE";
     acompanante.value = { cedula: "", nombres: "", email: "", direccion: "", telefono: "" };
     consentimientoUrl.value = "";
 }
+/**
+ * Genera un enlace temporal (10 min) para la firma del consentimiento y refresca su estado.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function generarLinkFirma() {
     if (!consentimientoItem.value?.ecografia_producto_id) return;
     try {
@@ -1087,10 +1183,28 @@ async function generarLinkFirma() {
         isGenerandoLinkFirma.value = false;
     }
 }
+/**
+ * Abre en una nueva pestaña el enlace de firma del consentimiento generado.
+ *
+ * @returns {any}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function abrirLinkFirma() {
     if (!consentimientoUrl.value) return;
     window.open(consentimientoUrl.value, "_blank", "noopener,noreferrer");
 }
+/**
+ * Consulta el consentimiento vigente y actualiza el estado en el registro local.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function refrescarConsentimientoItem() {
     if (!consentimientoItem.value?.ecografia_producto_id) return;
     try {
@@ -1107,6 +1221,15 @@ async function refrescarConsentimientoItem() {
         // best-effort
     }
 }
+/**
+ * Guarda la admisión de la ecografía y sus productos vía API.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function guardarRegistro() {
     try {
         isGuardandoEcografia.value = true;
@@ -1141,10 +1264,30 @@ async function guardarRegistro() {
         isGuardandoEcografia.value = false;
     }
 }
+/**
+ * Carga los datos del registro que se va a anular en el modal correspondiente.
+ *
+ * @param {Object} data Datos de la atención a anular.
+ *
+ * @returns {any}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function registroParaAnular(data) {
     registroAnular.value.ecografia_id = data.id;
     registroAnular.value.atencion_id = data?.atencion_id ?? data?.IdAtencion ?? "";
 }
+/**
+ * Anula la ecografía previa confirmación, enviando el motivo al backend.
+ *
+ * @returns {any}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function anularEcografia() {
     if (registroAnular.value.motivo_anula === "") {
         toastMessage({
@@ -1179,12 +1322,30 @@ function anularEcografia() {
         }
     });
 }
+/**
+ * Inicializa la sede actual desde sesión y limpia la lista de registros.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function initSede() {
     registro.value.sede_id = sessionStorage.getItem("ST-sede");
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
     await establecerSedeComposable();
     registros.value = [];
 }
+/**
+ * Establece el médico y sede actuales desde almacenamiento y limpia registros.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function establecerMedico() {
     registro.value.sede_id = sessionStorage.getItem("ST-sede");
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
@@ -1194,6 +1355,17 @@ async function establecerMedico() {
     await establecerSedeComposable();
     registros.value = [];
 }
+/**
+ * Consulta el estado de envío a SAHI de un producto de ecografía.
+ *
+ * @param {Object} item Registro de atención con el producto de ecografía.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function consultarEstadoSahi(item) {
     if (!sedeInterface.value) return;
     if (!item?.ecografia_producto_id) return;
@@ -1218,6 +1390,17 @@ async function consultarEstadoSahi(item) {
         setMapValue(proxy, "isConsultandoSahi", id, false);
     }
 }
+/**
+ * Reenvía un producto de ecografía a SAHI marcándolo como en proceso de envío.
+ *
+ * @param {Object} item Registro de atención con el producto de ecografía.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function reenviarASahi(item) {
     if (!sedeInterface.value) return;
     if (!item?.ecografia_producto_id) return;
@@ -1244,6 +1427,15 @@ async function reenviarASahi(item) {
         setMapValue(proxy, "isEnviandoSahi", id, false);
     }
 }
+/**
+ * Lista los usuarios con rol de médico para el módulo de ecografías.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function listarMedicos() {
     try {
         const pathname = String(window?.location?.pathname || "").toLowerCase();
@@ -1255,6 +1447,15 @@ async function listarMedicos() {
         medicos.value = [];
     }
 }
+/**
+ * Lista los tipos de documento activos para el formulario de paciente.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function listarTipoDocumentos() {
     try {
         const res = await axios.get("/api/config-tipos-documentos/listar/activos");
@@ -1263,6 +1464,15 @@ async function listarTipoDocumentos() {
         tipoDocumentos.value = [];
     }
 }
+/**
+ * Lista los productos de configuración disponibles para la agenda.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
@@ -1271,6 +1481,17 @@ async function listarProductos() {
         productos.value = [];
     }
 }
+/**
+ * Asigna el médico seleccionado al registro desde el componente Select2.
+ *
+ * @param {any} value Valor seleccionado en el Select2 (objeto o arreglo).
+ *
+ * @returns {any}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function onMedicoSelect(value) {
     let selectedId = null;
     if (Array.isArray(value) && value.length > 0) {
@@ -1283,6 +1504,17 @@ function onMedicoSelect(value) {
     }
     registro.value.medico_id = selectedId || "";
 }
+/**
+ * Asigna el tipo de documento seleccionado al registro desde el Select2.
+ *
+ * @param {any} value Valor seleccionado en el Select2 (objeto o arreglo).
+ *
+ * @returns {any}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function onTipoDocumentoSelect(value) {
     let selectedId = null;
     if (Array.isArray(value) && value.length > 0) {
@@ -1295,6 +1527,17 @@ function onTipoDocumentoSelect(value) {
     }
     registro.value.tipo_documento_id = selectedId || "";
 }
+/**
+ * Agrega el producto seleccionado a la agenda de la ecografía y limpia la selección.
+ *
+ * @param {any} value Identificador del producto seleccionado.
+ *
+ * @returns {any}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function onProductoSelect(value) {
     let selectedId = value || null;
     if (selectedId != null) {
@@ -1318,10 +1561,30 @@ function onProductoSelect(value) {
         }
     }
 }
+/**
+ * Cierra o alterna la visualización de la barra lateral del formulario.
+ *
+ * @returns {any}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function btnCerralModalForm() {
     $(".right-sidebar").slideDown(50);
     $(".right-sidebar").toggleClass("shw-rside");
 }
+/**
+ * Carga los datos de la atención seleccionada en el formulario de admisión.
+ *
+ * @param {Object} data Datos de la atención a mostrar en el formulario.
+ *
+ * @returns {any}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function mostrarRegistro(data = {}) {
     tituloModal.value = `Admisionar al paciente: ${data.PrimerNombre} ${data.SegundoNombre}`;
 
@@ -1353,6 +1616,15 @@ function mostrarRegistro(data = {}) {
 
     btnCerralModalForm();
 }
+/**
+ * Reinicia los campos del formulario de admisión de la ecografía.
+ *
+ * @returns {any}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function limpiarFormulario() {
     tituloModal.value = "";
 
@@ -1375,12 +1647,32 @@ function limpiarFormulario() {
 
     registro.value.productosAgenda = [];
 }
+/**
+ * Elimina un producto de la agenda de la ecografía por su código legal.
+ *
+ * @param {string} codProduc Código legal del producto a quitar.
+ *
+ * @returns {any}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function quitarProductoAgenda(codProduc) {
     registro.value.productosAgenda = registro.value.productosAgenda.filter(
         (x) => x.CodLegal !== codProduc
     );
 }
 
+/**
+ * Hook de montaje: valida sede, carga catálogos y escucha cambios de sede.
+ *
+ * @returns {any}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 onMounted(() => {
     if (sessionStorage.getItem("ST-sede") == null) {
         $.toast({

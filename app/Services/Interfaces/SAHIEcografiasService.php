@@ -12,6 +12,17 @@ use Illuminate\Support\Facades\DB;
 
 class SAHIEcografiasService extends BaseService
 {
+    /**
+     * Lista y enriquece los productos de una atención de SAHI para admisión de ecografías.
+     *
+     * @param  int  $atencionId  Identificador de la atención en SAHI.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function listarProductosAtencion(int $atencionId): array
     {
         $gruposPermitidos = [44, 195, 156, 190, 204, 191];

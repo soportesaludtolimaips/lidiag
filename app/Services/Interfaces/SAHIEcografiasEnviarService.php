@@ -19,6 +19,17 @@ use Illuminate\Support\Facades\Log;
 
 class SAHIEcografiasEnviarService extends BaseService
 {
+    /**
+     * Retorna el estado de envío a SAHI de un producto de ecografía.
+     *
+     * @param  int  $ecografiaProductoId  Identificador del producto de ecografía.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function estadoPorEcografiaProducto(int $ecografiaProductoId): array
     {
         $ecoProd = EcografiaProducto::select([
@@ -44,6 +55,17 @@ class SAHIEcografiasEnviarService extends BaseService
         ], 'Estado SAHI consultado.');
     }
 
+    /**
+     * Envía (o reenvía) un producto de ecografía al sistema SAHI.
+     *
+     * @param  int  $ecografiaProductoId  Identificador del producto de ecografía.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-28
+     */
     public function enviarPorEcografiaProducto(int $ecografiaProductoId): array
     {
         $ecoProd = EcografiaProducto::where('id', $ecografiaProductoId)->first();

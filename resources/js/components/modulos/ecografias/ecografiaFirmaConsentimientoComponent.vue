@@ -85,6 +85,15 @@ const hasInk = ref(false);
 const timer = ref(null);
 const nowTs = ref(Date.now());
 
+/**
+ * Construye la etiqueta descriptiva del paciente combinando nombres, número de documento y nombre del producto/examen.
+ *
+ * @returns {string}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 const pacienteLabel = computed(() => {
     const p = info.value?.paciente;
     const prod = info.value?.producto;
@@ -93,6 +102,15 @@ const pacienteLabel = computed(() => {
     const ex = prod?.nombre ? ` · ${prod.nombre}` : "";
     return `${nom}${doc}${ex}`;
 });
+/**
+ * Calcula el tiempo restante antes de que expire el enlace del consentimiento y lo formatea como mm:ss.
+ *
+ * @returns {string}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 const tiempoRestanteLabel = computed(() => {
     const exp = info.value?.expires_at;
     if (!exp) return "";
@@ -105,6 +123,15 @@ const tiempoRestanteLabel = computed(() => {
     return `Tiempo restante: ${mm}:${ss}`;
 });
 
+/**
+ * Obtiene desde el backend la información y el HTML del consentimiento de ecografía asociado al token.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function fetchInfo() {
     loading.value = true;
     error.value = null;
@@ -118,6 +145,15 @@ async function fetchInfo() {
         loading.value = false;
     }
 }
+/**
+ * Inicializa el contexto del canvas, configura el trazo y registra los eventos de puntero para la firma.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function initCanvas() {
     nextTick(() => {
         const c = canvas.value;
@@ -135,6 +171,15 @@ function initCanvas() {
         resizeCanvas();
     });
 }
+/**
+ * Ajusta el ancho del canvas al contenedor padre (duplicando la resolución) y reinicia el trazo.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function resizeCanvas() {
     const c = canvas.value;
     if (!c) return;
@@ -151,6 +196,17 @@ function resizeCanvas() {
     hasInk.value = false;
     ctx.clearRect(0, 0, c.width, c.height);
 }
+/**
+ * Calcula la posición relativa del puntero dentro del canvas escalando las coordenadas al tamaño real del lienzo.
+ *
+ * @param {PointerEvent} e Evento de puntero del que se obtienen las coordenadas del cliente.
+ *
+ * @returns {Object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function relPos(e) {
     const c = canvas.value;
     const rect = c.getBoundingClientRect();
@@ -158,12 +214,34 @@ function relPos(e) {
     const y = (e.clientY - rect.top) * (c.height / rect.height);
     return { x, y };
 }
+/**
+ * Maneja el inicio del trazo de firma al presionar el puntero sobre el canvas.
+ *
+ * @param {PointerEvent} e Evento de puntero que dispara el inicio del dibujo.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function onDown(e) {
     if (saving.value) return;
     drawing.value = true;
     last.value = relPos(e);
     e.preventDefault();
 }
+/**
+ * Dibuja el trazo de la firma mientras el puntero se desplaza sobre el canvas.
+ *
+ * @param {PointerEvent} e Evento de puntero que indica la posición actual del movimiento.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function onMove(e) {
     if (!drawing.value || saving.value) return;
     const c = canvas.value;
@@ -177,11 +255,31 @@ function onMove(e) {
     hasInk.value = true;
     e.preventDefault();
 }
+/**
+ * Finaliza el trazo de firma al soltar o cancelar el puntero sobre el canvas.
+ *
+ * @param {PointerEvent} e Evento de puntero que indica el fin del dibujo.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function onUp(e) {
     drawing.value = false;
     last.value = null;
     e.preventDefault();
 }
+/**
+ * Limpia el contenido del canvas y reinicia el indicador de presencia de tinta.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 function clear() {
     const c = canvas.value;
     if (!c) return;
@@ -189,6 +287,15 @@ function clear() {
     ctx.clearRect(0, 0, c.width, c.height);
     hasInk.value = false;
 }
+/**
+ * Envía la firma capturada en el canvas (como imagen PNG) al backend para su registro.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 async function submit() {
     if (!hasInk.value || saving.value) return;
     saving.value = true;
@@ -208,6 +315,15 @@ async function submit() {
     }
 }
 
+/**
+ * Hook de ciclo de vida que carga la información, inicializa el canvas y arranca el temporizador de expiración y el listener de redimensionamiento.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-28
+ */
 onMounted(() => {
     fetchInfo();
     initCanvas();
