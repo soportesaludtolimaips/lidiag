@@ -364,7 +364,7 @@ class ConsentimientoDocumentoService extends BaseService
     public function generarPdf(int $id): array
     {
         $doc = ConsentimientoDocumento::query()
-            ->with(['producto', 'medico', 'sede'])
+            ->with(['producto', 'medico', 'sede', 'plantilla'])
             ->where('id', $id)
             ->where('vigente', true)
             ->firstOrFail();
@@ -547,16 +547,33 @@ class ConsentimientoDocumentoService extends BaseService
         ]);
     }
 
+    /**
+     * Reemplaza los placeholders de la plantilla con los datos reales del
+     * consentimiento (paciente, producto, médico, fecha). Cualquier placeholder
+     * ${...} sin dato se sustituye por una línea en blanco para que no quede
+     * el texto literal en el documento.
+     *
+     * @param  ConsentimientoDocumento  $doc  Documento con su snapshot de plantilla.
+     * @return string HTML con los placeholders resueltos.
+     *
+     * @author Davide
+     *
+     * @date 2026-08-28
+     */
     private function renderHtml(ConsentimientoDocumento $doc): string
     {
         $html = (string) $doc->plantilla_html;
         $producto = $doc->producto ?? ConfigProducto::find($doc->producto_id);
         $medico = $doc->medico;
+        $sede = $doc->sede;
 
         $repl = [
             '${num_docu}' => (string) $doc->num_docu,
             '${nombres}' => (string) $doc->nombres,
             '${apellidos}' => (string) $doc->apellidos,
+            '${nombre_paciente}' => trim((string) $doc->nombres.' '.(string) $doc->apellidos),
+            '${ciudad}' => (string) ($sede?->ciudad ?: '__________'),
+            '${sede}' => (string) ($sede?->nom_sede ?? ''),
             '${servicio}' => (string) ($producto?->nom_produc ?? ''),
             '${producto}' => (string) ($producto?->nom_produc ?? ''),
             '${cod_producto}' => (string) ($producto?->cod_cups ?? ''),
@@ -566,7 +583,11 @@ class ConsentimientoDocumentoService extends BaseService
             '${observaciones}' => '',
         ];
 
-        return str_replace(array_keys($repl), array_values($repl), $html);
+        $html = str_replace(array_keys($repl), array_values($repl), $html);
+
+        // Red de seguridad: placeholders sin dato -> línea en blanco (no literal).
+        // Se excluyen los de firma (${firma_*}), que se incrustan luego como imagen.
+        return preg_replace('/\$\{(?!firma)[a-z_]+\}/i', '__________', $html);
     }
 
     /**
@@ -608,7 +629,7 @@ class ConsentimientoDocumentoService extends BaseService
         }
 
         $sede = $doc->sede;
-        $encabezado = $this->encabezadoSedeHtml($sede);
+        $encabezado = $this->encabezadoSedeHtml($sede, $doc->plantilla);
         $pie = $sede && $sede->pie_pagina
             ? '<div style="margin-top:10px; text-align:center; color:#555; font-size:10px;">'.nl2br(e((string) $sede->pie_pagina)).'</div>'
             : '';
@@ -626,28 +647,51 @@ class ConsentimientoDocumentoService extends BaseService
     }
 
     /**
-     * Encabezado del PDF con el logo (public/logos/logo_1) e información de la
-     * sede (texto libre `encabezado`). Convención existente del proyecto.
+     * Encabezado institucional del PDF, al estilo de los formatos físicos de
+     * cada sede: tabla con logo, nombre de la institución, proceso (texto de
+     * `encabezado` de la sede), nombre del formato (plantilla) y el bloque de
+     * Código / Versión / Año a la derecha.
+     *
+     * @param  ConfigSede|null  $sede  Sede del consentimiento (logo, institución, proceso).
+     * @param  ConsentimientoPlantilla|null  $plantilla  Plantilla (nombre, código, versión, año).
+     * @return string HTML de la tabla de encabezado (o cadena vacía si no hay sede).
+     *
+     * @author Davide
+     *
+     * @date 2026-08-28
      */
-    private function encabezadoSedeHtml(?ConfigSede $sede): string
+    private function encabezadoSedeHtml(?ConfigSede $sede, ?ConsentimientoPlantilla $plantilla = null): string
     {
         if (! $sede) {
             return '';
         }
 
         $logo = $this->dataUriLogoSede($sede->logo_1);
-        $logoCol = $logo
-            ? '<td style="width:120px; vertical-align:middle;"><img style="max-height:70px; max-width:110px;" src="'.$logo.'"></td>'
+        $logoCell = '<td style="width:90px; border:1px solid #000; text-align:center; vertical-align:middle; padding:4px;">'
+            .($logo ? '<img style="max-height:60px; max-width:80px;" src="'.$logo.'">' : '&nbsp;')
+            .'</td>';
+
+        $institucion = '<strong style="font-size:12px;">'.e((string) $sede->nom_sede).'</strong>';
+        $proceso = $sede->encabezado ? '<div style="font-size:10px;">'.nl2br(e((string) $sede->encabezado)).'</div>' : '';
+        $formato = $plantilla?->nombre
+            ? '<div style="font-size:11px; margin-top:2px;"><strong>'.e((string) $plantilla->nombre).'</strong></div>'
             : '';
 
-        $info = array_filter([
-            '<strong style="font-size:14px;">'.e((string) $sede->nom_sede).'</strong>',
-            $sede->encabezado ? nl2br(e((string) $sede->encabezado)) : null,
-        ]);
+        $centro = '<td style="border:1px solid #000; text-align:center; vertical-align:middle; padding:4px;">'
+            .$institucion.$proceso.$formato
+            .'</td>';
 
-        return '<table style="width:100%; border-bottom:2px solid #0d6efd; padding-bottom:6px;"><tr>'
-            .$logoCol
-            .'<td style="vertical-align:middle; line-height:1.4;">'.implode('<br>', $info).'</td>'
+        $codigo = e((string) ($plantilla?->codigo ?? '—'));
+        $version = e((string) ($plantilla?->version_formato ?? '—'));
+        $anio = e((string) ($plantilla?->anio_formato ?: date('Y')));
+        $meta = '<td style="width:130px; border:1px solid #000; vertical-align:middle; padding:4px; font-size:9px;">'
+            .'<div><strong>Código:</strong> '.$codigo.'</div>'
+            .'<div><strong>Versión:</strong> '.$version.'</div>'
+            .'<div><strong>Año:</strong> '.$anio.'</div>'
+            .'</td>';
+
+        return '<table style="width:100%; border-collapse:collapse; margin-bottom:8px;"><tr>'
+            .$logoCell.$centro.$meta
             .'</tr></table>';
     }
 
