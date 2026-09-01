@@ -5,7 +5,7 @@
 
         <div class="mb-2 d-flex align-items-center gap-2">
             <label class="form-label mb-0">Tipo de marca:</label>
-            <select v-model="tipo" class="form-select form-select-sm" style="width:auto">
+            <select v-model="tipo" class="form-select form-select-sm" style="width: auto">
                 <option value="punto">Punto</option>
                 <option value="circulo">Círculo</option>
                 <option value="flecha">Flecha</option>
@@ -16,7 +16,11 @@
         <div v-for="img in imagenes" :key="img.id" class="mb-3">
             <div class="fw-bold small mb-1">{{ img.nombre }}</div>
             <div class="position-relative d-inline-block border" @click="marcar(img.id, $event)">
-                <img :src="verImagenUrl(img.id)" :alt="img.nombre" style="max-width:100%;display:block" />
+                <img
+                    :src="verImagenUrl(img.id)"
+                    :alt="img.nombre"
+                    style="max-width: 100%; display: block"
+                />
                 <span
                     v-for="m in marcasDe(img.id)"
                     :key="m.id"
@@ -25,7 +29,8 @@
                     :style="{ left: m.posicion_x + '%', top: m.posicion_y + '%' }"
                     :title="m.tipo_marca"
                     @click.stop="eliminar(m.id)"
-                >{{ simbolo(m.tipo_marca) }}</span>
+                    >{{ simbolo(m.tipo_marca) }}</span
+                >
             </div>
         </div>
 

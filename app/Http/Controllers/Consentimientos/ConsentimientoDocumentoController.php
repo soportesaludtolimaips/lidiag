@@ -27,6 +27,7 @@ class ConsentimientoDocumentoController extends Controller
         $this->middleware('permission:consentimientos.firmar_paciente,web')->only(['crearToken']);
         $this->middleware('permission:consentimientos.firmar_medico,web')->only(['firmarMedico']);
         $this->middleware('permission:consentimientos.anular,web')->only(['anular']);
+        $this->middleware('permission:consentimientos.restaurar,web')->only(['restaurar']);
         $this->middleware('permission:consentimientos.pdf.generar,web')->only(['generarPdf']);
         $this->middleware('permission:consentimientos.pdf.descargar,web')->only(['descargarPdf']);
     }
@@ -115,6 +116,23 @@ class ConsentimientoDocumentoController extends Controller
     public function anular(ConsentimientoAnularRequest $request, int $id): JsonResponse
     {
         $result = $this->service->anular($id, $request->validated(), $request->user(), $request->ip());
+
+        return response()->json($result, $result['status']);
+    }
+
+    /**
+     * Restaura un consentimiento expirado (permiso consentimientos.restaurar).
+     *
+     * @param  Request  $request  Petición HTTP.
+     * @param  int  $id  ID del consentimiento.
+     *
+     * @author Davide Rivera (Luis Castaño)
+     *
+     * @date 2026-08-29
+     */
+    public function restaurar(Request $request, int $id): JsonResponse
+    {
+        $result = $this->service->restaurar($id, $request->user(), $request->ip());
 
         return response()->json($result, $result['status']);
     }

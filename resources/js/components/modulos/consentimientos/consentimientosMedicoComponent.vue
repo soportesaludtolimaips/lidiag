@@ -1,7 +1,10 @@
 <template>
     <div>
         <!-- Banner de bloqueo -->
-        <div v-if="estado.bloqueado" class="alert alert-danger d-flex justify-content-between align-items-center">
+        <div
+            v-if="estado.bloqueado"
+            class="alert alert-danger d-flex justify-content-between align-items-center"
+        >
             <span>
                 <strong>Lecturas bloqueadas.</strong>
                 Tiene {{ estado.pendientes }} consentimiento(s) pendiente(s) de su firma.
@@ -22,7 +25,11 @@
                     <button
                         class="btn btn-success"
                         type="button"
-                        :disabled="firmandoTodos || !documentos.length || !can('consentimientos.firmar_medico')"
+                        :disabled="
+                            firmandoTodos ||
+                            !documentos.length ||
+                            !can('consentimientos.firmar_medico')
+                        "
                         @click="firmarTodos"
                     >
                         <span v-if="firmandoTodos">Firmando…</span>
@@ -52,7 +59,9 @@
                                 <button
                                     class="btn btn-sm btn-primary"
                                     type="button"
-                                    :disabled="firmandoId === d.id || !can('consentimientos.firmar_medico')"
+                                    :disabled="
+                                        firmandoId === d.id || !can('consentimientos.firmar_medico')
+                                    "
                                     @click="firmar(d.id)"
                                 >
                                     <span v-if="firmandoId === d.id">Firmando…</span>
@@ -74,7 +83,11 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
                         <h5 class="card-title text-danger">⚠️ Consentimientos pendientes</h5>
-                        <button class="btn-close" type="button" @click="mostrarModal = false"></button>
+                        <button
+                            class="btn-close"
+                            type="button"
+                            @click="mostrarModal = false"
+                        ></button>
                     </div>
                     <p class="text-muted">
                         No puede realizar lecturas hasta firmar los siguientes consentimientos:

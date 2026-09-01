@@ -50,8 +50,6 @@ import configProductoComponent from "./components/modulos/configuracion/configPr
 app.component("ConfigProductoComponent", configProductoComponent);
 import configSedeComponent from "./components/modulos/configuracion/configSedeComponent.vue";
 app.component("ConfigSedeComponent", configSedeComponent);
-import configSedeLogoComponent from "./components/modulos/configuracion/configSedeLogoComponent.vue";
-app.component("ConfigSedeLogoComponent", configSedeLogoComponent);
 import configWhatsappComponent from "./components/modulos/configuracion/configWhatsappComponent.vue";
 app.component("ConfigWhatsappComponent", configWhatsappComponent);
 import configCitaRechazoMotivoComponent from "./components/modulos/configuracion/configCitaRechazoMotivoComponent.vue";
@@ -104,18 +102,6 @@ import ecografiasAdmisionadasComponent from "./components/modulos/ecografias/eco
 app.component("EcografiasAdmisionadasComponent", ecografiasAdmisionadasComponent);
 import ecografiaFirmaConsentimientoComponent from "./components/modulos/ecografias/ecografiaFirmaConsentimientoComponent.vue";
 app.component("EcografiaFirmaConsentimientoComponent", ecografiaFirmaConsentimientoComponent);
-import consentimientoFirmaComponent from "./components/modulos/consentimientos/consentimientoFirmaComponent.vue";
-app.component("ConsentimientoFirmaComponent", consentimientoFirmaComponent);
-import consentimientosGenerarComponent from "./components/modulos/consentimientos/consentimientosGenerarComponent.vue";
-app.component("ConsentimientosGenerarComponent", consentimientosGenerarComponent);
-import consentimientoMarcasCanvas from "./components/modulos/consentimientos/consentimientoMarcasCanvas.vue";
-app.component("ConsentimientoMarcasCanvas", consentimientoMarcasCanvas);
-import consentimientosMedicoComponent from "./components/modulos/consentimientos/consentimientosMedicoComponent.vue";
-app.component("ConsentimientosMedicoComponent", consentimientosMedicoComponent);
-import consentimientosPlantillasComponent from "./components/modulos/consentimientos/consentimientosPlantillasComponent.vue";
-app.component("ConsentimientosPlantillasComponent", consentimientosPlantillasComponent);
-import consentimientosDashboardComponent from "./components/modulos/consentimientos/consentimientosDashboardComponent.vue";
-app.component("ConsentimientosDashboardComponent", consentimientosDashboardComponent);
 import ecografiasConsentimientosComponent from "./components/modulos/ecografias/ecografiasConsentimientosComponent.vue";
 app.component("EcografiasConsentimientosComponent", ecografiasConsentimientosComponent);
 import ecografiasConsentimientosPlantillasComponent from "./components/modulos/ecografias/ecografiasConsentimientosPlantillasComponent.vue";
@@ -181,6 +167,12 @@ import helpdeskReportesComponent from "./components/modulos/help-desk/helpdeskRe
 app.component("HelpdeskReportesComponent", helpdeskReportesComponent);
 
 /**
+ * Contratación
+ */
+import contratoComponent from "./components/modulos/contratos/contratoComponent.vue";
+app.component("ContratoComponent", contratoComponent);
+
+/**
  * Configuración Helpdesk
  */
 import helpdeskConfigCategoriasComponent from "./components/modulos/configuracion/helpdeskConfigCategoriasComponent.vue";
@@ -226,6 +218,22 @@ app.component("Select2", Select2);
 app.use(route); */
 
 // Importar archivo CSS antes de crear la aplicación Vue
+import configSedeLogoComponent from "./components/modulos/configuracion/configSedeLogoComponent.vue";
+app.component("ConfigSedeLogoComponent", configSedeLogoComponent);
+
+import consentimientoFirmaComponent from "./components/modulos/consentimientos/consentimientoFirmaComponent.vue";
+app.component("ConsentimientoFirmaComponent", consentimientoFirmaComponent);
+import consentimientosGenerarComponent from "./components/modulos/consentimientos/consentimientosGenerarComponent.vue";
+app.component("ConsentimientosGenerarComponent", consentimientosGenerarComponent);
+import consentimientoMarcasCanvas from "./components/modulos/consentimientos/consentimientoMarcasCanvas.vue";
+app.component("ConsentimientoMarcasCanvas", consentimientoMarcasCanvas);
+import consentimientosMedicoComponent from "./components/modulos/consentimientos/consentimientosMedicoComponent.vue";
+app.component("ConsentimientosMedicoComponent", consentimientosMedicoComponent);
+import consentimientosPlantillasComponent from "./components/modulos/consentimientos/consentimientosPlantillasComponent.vue";
+app.component("ConsentimientosPlantillasComponent", consentimientosPlantillasComponent);
+import consentimientosDashboardComponent from "./components/modulos/consentimientos/consentimientosDashboardComponent.vue";
+app.component("ConsentimientosDashboardComponent", consentimientosDashboardComponent);
+
 app.mount("#app");
 /* import "./admin-wrap/assets/node_modules/jquery/jquery.min.js";
 import "./admin-wrap/assets/node_modules/calendar/jquery-ui.min.js";

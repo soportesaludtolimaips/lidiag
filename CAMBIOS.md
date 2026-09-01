@@ -1,5 +1,7 @@
 # LIDiag — Trabajo realizado (respaldo / pruebas)
 
+**Autor:** Davide Rivera (Luis Castaño)
+
 Snapshot del trabajo hecho. Replica la estructura del proyecto
 `C:\xampp\htdocs\lidiag-main`, pero **solo con lo que se trabajó**.
 

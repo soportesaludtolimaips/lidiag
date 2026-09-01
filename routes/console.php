@@ -30,3 +30,7 @@ Schedule::command('notifications:prune --days=90')
 Schedule::command('consentimientos:expirar --limit=500')
     ->everyFiveMinutes()
     ->withoutOverlapping();
+
+Schedule::command('consentimientos:notificar-medicos')
+    ->dailyAt('07:00')
+    ->withoutOverlapping();

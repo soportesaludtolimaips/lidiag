@@ -48,6 +48,10 @@ Route::middleware('auth:sanctum')->group(function () {
         ->whereNumber('id')
         ->name('api.consentimientos.anular');
 
+    Route::post('/consentimientos/{id}/restaurar', [ConsentimientoDocumentoController::class, 'restaurar'])
+        ->whereNumber('id')
+        ->name('api.consentimientos.restaurar');
+
     Route::post('/consentimientos/{id}/pdf', [ConsentimientoDocumentoController::class, 'generarPdf'])
         ->whereNumber('id')
         ->name('api.consentimientos.pdf.generar');
@@ -152,4 +156,6 @@ Route::middleware('auth:sanctum')->group(function () {
         ->name('api.consentimientos.estadisticas.tiempo_promedio');
     Route::get('/consentimientos/estadisticas/productos-populares', [ConsentimientoEstadisticaController::class, 'productosPopulares'])
         ->name('api.consentimientos.estadisticas.productos_populares');
+    Route::get('/consentimientos/estadisticas/exportar', [ConsentimientoEstadisticaController::class, 'exportar'])
+        ->name('api.consentimientos.estadisticas.exportar');
 });

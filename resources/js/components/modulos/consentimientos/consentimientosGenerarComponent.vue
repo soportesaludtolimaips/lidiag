@@ -86,7 +86,9 @@
                     <button
                         class="btn btn-success mt-3"
                         type="button"
-                        :disabled="generando || !form.producto_id || !can('consentimientos.generar')"
+                        :disabled="
+                            generando || !form.producto_id || !can('consentimientos.generar')
+                        "
                         @click="generar"
                     >
                         <span v-if="generando">Generando…</span>
@@ -132,13 +134,25 @@
 
                     <div v-if="firmanteTipo === 'ACOMPANANTE'" class="row g-2 mt-1">
                         <div class="col-md-3">
-                            <input v-model.trim="acompanante.cedula" class="form-control" placeholder="Cédula acompañante" />
+                            <input
+                                v-model.trim="acompanante.cedula"
+                                class="form-control"
+                                placeholder="Cédula acompañante"
+                            />
                         </div>
                         <div class="col-md-3">
-                            <input v-model.trim="acompanante.nombres" class="form-control" placeholder="Nombres acompañante" />
+                            <input
+                                v-model.trim="acompanante.nombres"
+                                class="form-control"
+                                placeholder="Nombres acompañante"
+                            />
                         </div>
                         <div class="col-md-3">
-                            <input v-model.trim="acompanante.telefono" class="form-control" placeholder="Teléfono" />
+                            <input
+                                v-model.trim="acompanante.telefono"
+                                class="form-control"
+                                placeholder="Teléfono"
+                            />
                         </div>
                     </div>
 
@@ -150,7 +164,13 @@
                                 Copiar
                             </button>
                         </div>
-                        <img v-if="qrDataUrl" :src="qrDataUrl" alt="QR firma" width="180" height="180" />
+                        <img
+                            v-if="qrDataUrl"
+                            :src="qrDataUrl"
+                            alt="QR firma"
+                            width="180"
+                            height="180"
+                        />
                     </div>
 
                     <hr />
@@ -162,7 +182,12 @@
                     <h6>Adjuntos</h6>
                     <div class="row g-2 align-items-end">
                         <div class="col-md-3">
-                            <input ref="fileInput" type="file" class="form-control" @change="onFile" />
+                            <input
+                                ref="fileInput"
+                                type="file"
+                                class="form-control"
+                                @change="onFile"
+                            />
                         </div>
                         <div class="col-md-3">
                             <select v-model="categoria" class="form-select">
@@ -193,17 +218,29 @@
                             :key="a.id"
                             class="list-group-item d-flex justify-content-between align-items-center"
                         >
-                            <span>{{ a.nombre_original }} <small class="text-muted">({{ a.categoria }})</small></span>
+                            <span
+                                >{{ a.nombre_original }}
+                                <small class="text-muted">({{ a.categoria }})</small></span
+                            >
                             <span class="d-flex gap-2">
-                                <a class="btn btn-sm btn-outline-secondary" :href="descargarAdjuntoUrl(a.id)">
+                                <a
+                                    class="btn btn-sm btn-outline-secondary"
+                                    :href="descargarAdjuntoUrl(a.id)"
+                                >
                                     Descargar
                                 </a>
-                                <button class="btn btn-sm btn-outline-danger" type="button" @click="eliminarAdjunto(a.id)">
+                                <button
+                                    class="btn btn-sm btn-outline-danger"
+                                    type="button"
+                                    @click="eliminarAdjunto(a.id)"
+                                >
                                     Eliminar
                                 </button>
                             </span>
                         </li>
-                        <li v-if="!adjuntos.length" class="list-group-item text-muted">Sin adjuntos</li>
+                        <li v-if="!adjuntos.length" class="list-group-item text-muted">
+                            Sin adjuntos
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -212,7 +249,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from "vue";
+import { onBeforeUnmount, onMounted, reactive, ref } from "vue";
 
 import QRCode from "qrcode";
 
@@ -238,7 +275,13 @@ const paciente = ref(null);
 const productos = ref([]);
 const sedes = ref([]);
 const medicos = ref([]);
-const form = reactive({ nombres: "", apellidos: "", producto_id: null, sede_id: null, medico_id: null });
+const form = reactive({
+    nombres: "",
+    apellidos: "",
+    producto_id: null,
+    sede_id: null,
+    medico_id: null,
+});
 const generando = ref(false);
 
 const documento = ref(null);
@@ -248,6 +291,7 @@ const acompanante = reactive({ cedula: "", nombres: "", telefono: "" });
 const creandoToken = ref(false);
 const tokenUrl = ref("");
 const qrDataUrl = ref("");
+const pollEstado = ref(null);
 
 const fileInput = ref(null);
 const archivo = ref(null);
@@ -263,7 +307,11 @@ function formatFecha(f) {
 
 async function cargarCombos() {
     try {
-        const [rp, rs, rm] = await Promise.all([api.productos(), api.sedesActivas(), api.medicos()]);
+        const [rp, rs, rm] = await Promise.all([
+            api.productos(),
+            api.sedesActivas(),
+            api.medicos(),
+        ]);
         productos.value = rp.data?.data ?? rp.data ?? [];
         sedes.value = rs.data?.data ?? rs.data ?? [];
         medicos.value = rm.data?.data ?? rm.data ?? [];
@@ -336,10 +384,38 @@ async function crearToken() {
         qrDataUrl.value = await QRCode.toDataURL(tokenUrl.value, { width: 180 });
         documento.value.estado = "PENDIENTE_PACIENTE";
         alertSuccess("Enlace de firma generado");
+        iniciarPolling();
     } catch (e) {
         handleAxiosErrorToast(e);
     } finally {
         creandoToken.value = false;
+    }
+}
+
+// Polling: consulta el estado del documento cada 15s para detectar cuando el
+// paciente firma en la tablet, y actualiza la vista en tiempo real.
+function iniciarPolling() {
+    detenerPolling();
+    pollEstado.value = setInterval(async () => {
+        if (!documento.value?.consentimiento_id) return;
+        try {
+            const r = await api.ver(documento.value.consentimiento_id);
+            const estado = r.data?.data?.estado;
+            if (estado && estado !== "PENDIENTE_PACIENTE") {
+                documento.value.estado = estado;
+                detenerPolling();
+                alertSuccess("El paciente firmó. Estado: " + estado);
+            }
+        } catch {
+            // silencioso: se reintenta en el siguiente ciclo
+        }
+    }, 15000);
+}
+
+function detenerPolling() {
+    if (pollEstado.value) {
+        clearInterval(pollEstado.value);
+        pollEstado.value = null;
     }
 }
 
@@ -397,4 +473,5 @@ async function eliminarAdjunto(id) {
 }
 
 onMounted(cargarCombos);
+onBeforeUnmount(detenerPolling);
 </script>

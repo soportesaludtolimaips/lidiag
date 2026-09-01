@@ -11,10 +11,32 @@ use Illuminate\Support\Str;
 
 class ConfigSedeService extends BaseService
 {
+    /**
+     * Constructor del servicio de sedes.
+     *
+     * Inicializa el servicio de archivos para la gestión de plantillas.
+     *
+     * @param  FileServiceInterface  $fileService  Servicio de archivos inyectado.
+     *
+     * @returns void
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function __construct(
         private readonly FileServiceInterface $fileService,
     ) {}
 
+    /**
+     * Obtiene todas las sedes con sus servicios y números de WhatsApp asociados.
+     *
+     * @returns array Respuesta con la lista de sedes y el estado de la operación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function all(): array
     {
         return $this->success(
@@ -23,53 +45,15 @@ class ConfigSedeService extends BaseService
     }
 
     /**
-     * Actualiza el branding de la sede (logo, encabezado y pie de página)
-     * usado en los encabezados de los PDF. El logo se guarda en public/logos/.
-     */
-    public function actualizarBranding(int $id, array $data, ?UploadedFile $logo = null): array
-    {
-        $sede = ConfigSede::find($id);
-        if (! $sede) {
-            return $this->notFound('Sede no encontrada');
-        }
-
-        if ($logo) {
-            $dir = public_path('logos');
-            if (! is_dir($dir)) {
-                @mkdir($dir, 0755, true);
-            }
-            $ext = strtolower($logo->getClientOriginalExtension() ?: 'png');
-            $filename = 'sede_'.$sede->id.'_'.Str::random(10).'.'.$ext;
-            $logo->move($dir, $filename);
-
-            // Borra el logo anterior si existía y era propio de esta sede
-            if ($sede->logo_1 && str_starts_with((string) $sede->logo_1, 'sede_'.$sede->id.'_') && is_file($dir.'/'.$sede->logo_1)) {
-                @unlink($dir.'/'.$sede->logo_1);
-            }
-            $sede->logo_1 = $filename;
-        }
-
-        if (array_key_exists('encabezado', $data)) {
-            $sede->encabezado = $data['encabezado'];
-        }
-        if (array_key_exists('pie_pagina', $data)) {
-            $sede->pie_pagina = $data['pie_pagina'];
-        }
-
-        $sede->save();
-
-        return $this->updated([
-            'id' => $sede->id,
-            'logo_1' => $sede->logo_1,
-            'encabezado' => $sede->encabezado,
-            'pie_pagina' => $sede->pie_pagina,
-        ], 'Branding de la sede actualizado');
-    }
-
-    /**
-     * Buscar sede por ID
+     * Busca una sede por su identificador validando el ID y capturando errores.
      *
-     * @Author: Jhon Javer Lozano Arce
+     * @param  int  $id  Identificador único de la sede.
+     *
+     * @returns array Respuesta con los datos de la sede o un error si no existe o el ID es inválido.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
      */
     public function buscarPorId(int $id): array
     {
@@ -118,7 +102,13 @@ class ConfigSedeService extends BaseService
     }
 
     /**
-     * Listar sedes activas
+     * Lista únicamente las sedes que se encuentran activas.
+     *
+     * @returns array Respuesta con la lista de sedes activas y el estado de la operación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
      */
     public function listarActivas(): array
     {
@@ -126,9 +116,17 @@ class ConfigSedeService extends BaseService
     }
 
     /**
-     * Crear una nueva sede
+     * Crea una nueva sede validando los datos y almacenando las plantillas de Rx si se envían.
      *
-     * @Author: Jhon Javer Lozano Arce
+     * @param  array  $data  Datos validados de la sede.
+     * @param  Illuminate\Http\UploadedFile|null  $plantillaRx  Archivo de plantilla Rx (opcional).
+     * @param  Illuminate\Http\UploadedFile|null  $plantillaEcografia  Archivo de plantilla de ecografía (opcional).
+     *
+     * @returns array Respuesta con la sede creada y el estado de la operación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
      */
     public function create(array $data, ?UploadedFile $plantillaRx = null, ?UploadedFile $plantillaEcografia = null): array
     {
@@ -182,6 +180,19 @@ class ConfigSedeService extends BaseService
         return $this->created($item);
     }
 
+    /**
+     * Actualiza una sede existente, reemplazando las plantillas si se envían nuevos archivos.
+     *
+     * @param  array  $data  Datos validados de la sede (debe incluir el id).
+     * @param  Illuminate\Http\UploadedFile|null  $plantillaRx  Archivo de plantilla Rx (opcional).
+     * @param  Illuminate\Http\UploadedFile|null  $plantillaEcografia  Archivo de plantilla de ecografía (opcional).
+     *
+     * @returns array Respuesta con la sede actualizada y el estado de la operación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function update(array $data, ?UploadedFile $plantillaRx = null, ?UploadedFile $plantillaEcografia = null): array
     {
         $id = $data['id'] ?? null;
@@ -239,6 +250,17 @@ class ConfigSedeService extends BaseService
         return $this->updated($item);
     }
 
+    /**
+     * Elimina una sede existente y sus archivos de plantillas asociados.
+     *
+     * @param  int  $id  Identificador único de la sede a eliminar.
+     *
+     * @returns array Respuesta con el estado de la operación de eliminación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function delete(int $id): array
     {
         $item = ConfigSede::findOrFail($id);
@@ -254,6 +276,60 @@ class ConfigSedeService extends BaseService
         $item->delete();
 
         return $this->deleted();
+    }
+
+    /**
+     * Actualiza la marca institucional de la sede (logo, encabezado y pie de página)
+     * usada en los encabezados de los PDF. El logo se guarda en public/logos/.
+     *
+     * @param  int  $id  Identificador de la sede.
+     * @param  array  $data  Datos con encabezado y/o pie_pagina.
+     * @param  UploadedFile|null  $logo  Archivo de logo opcional.
+     *
+     * @returns array Envelope BaseService con la sede actualizada.
+     *
+     * @author Davide Rivera (Luis Castaño)
+     *
+     * @date 2026-08-29
+     */
+    public function actualizarBranding(int $id, array $data, ?UploadedFile $logo = null): array
+    {
+        $sede = ConfigSede::find($id);
+        if (! $sede) {
+            return $this->notFound('Sede no encontrada');
+        }
+
+        if ($logo) {
+            $dir = public_path('logos');
+            if (! is_dir($dir)) {
+                @mkdir($dir, 0755, true);
+            }
+            $ext = strtolower($logo->getClientOriginalExtension() ?: 'png');
+            $filename = 'sede_'.$sede->id.'_'.Str::random(10).'.'.$ext;
+            $logo->move($dir, $filename);
+
+            // Borra el logo anterior si existía y era propio de esta sede
+            if ($sede->logo_1 && str_starts_with((string) $sede->logo_1, 'sede_'.$sede->id.'_') && is_file($dir.'/'.$sede->logo_1)) {
+                @unlink($dir.'/'.$sede->logo_1);
+            }
+            $sede->logo_1 = $filename;
+        }
+
+        if (array_key_exists('encabezado', $data)) {
+            $sede->encabezado = $data['encabezado'];
+        }
+        if (array_key_exists('pie_pagina', $data)) {
+            $sede->pie_pagina = $data['pie_pagina'];
+        }
+
+        $sede->save();
+
+        return $this->updated([
+            'id' => $sede->id,
+            'logo_1' => $sede->logo_1,
+            'encabezado' => $sede->encabezado,
+            'pie_pagina' => $sede->pie_pagina,
+        ], 'Branding de la sede actualizado');
     }
 
     private function fillSedeData(ConfigSede $item, array $data): void

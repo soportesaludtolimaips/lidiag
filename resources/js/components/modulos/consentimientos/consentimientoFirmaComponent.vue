@@ -98,7 +98,7 @@ const pacienteLabel = computed(() => {
 });
 
 const firmanteLabel = computed(() =>
-    info.value?.firmante_tipo === "ACOMPANANTE" ? "Acompañante/Acudiente" : "Paciente",
+    info.value?.firmante_tipo === "ACOMPANANTE" ? "Acompañante/Acudiente" : "Paciente"
 );
 
 const tiempoRestanteLabel = computed(() => {

@@ -361,6 +361,36 @@ class ConsentimientoDocumentoService extends BaseService
         return $this->success(['ok' => true]);
     }
 
+    /**
+     * Restaura un consentimiento EXPIRADO, devolviéndolo al estado GENERADO con
+     * un nuevo reloj de expiración de 24 horas para que pueda volver a firmarse.
+     *
+     * @param  int  $id  ID del consentimiento.
+     * @param  User  $user  Usuario que restaura.
+     * @param  string|null  $ip  IP de la petición (auditoría).
+     * @return array{success: bool, data: mixed, message: string, status: int}
+     *
+     * @author Davide Rivera (Luis Castaño)
+     *
+     * @date 2026-08-29
+     */
+    public function restaurar(int $id, User $user, ?string $ip): array
+    {
+        $doc = ConsentimientoDocumento::query()->where('id', $id)->where('vigente', true)->firstOrFail();
+
+        if ($doc->estado !== 'EXPIRADO') {
+            return $this->validationError(null, 'Solo se pueden restaurar consentimientos expirados');
+        }
+
+        $doc->estado = 'GENERADO';
+        $doc->fecha_expiracion = now()->addMinutes(self::DOCUMENTO_TTL_MINUTOS);
+        $doc->save();
+
+        $this->auditar($doc->id, 'restaurar', 'Consentimiento restaurado desde EXPIRADO', $user->id, $ip);
+
+        return $this->success(['ok' => true, 'estado' => $doc->estado, 'fecha_expiracion' => $doc->fecha_expiracion]);
+    }
+
     public function generarPdf(int $id): array
     {
         $doc = ConsentimientoDocumento::query()
@@ -556,7 +586,7 @@ class ConsentimientoDocumentoService extends BaseService
      * @param  ConsentimientoDocumento  $doc  Documento con su snapshot de plantilla.
      * @return string HTML con los placeholders resueltos.
      *
-     * @author Davide
+     * @author Davide Rivera (Luis Castaño)
      *
      * @date 2026-08-28
      */
@@ -656,7 +686,7 @@ class ConsentimientoDocumentoService extends BaseService
      * @param  ConsentimientoPlantilla|null  $plantilla  Plantilla (nombre, código, versión, año).
      * @return string HTML de la tabla de encabezado (o cadena vacía si no hay sede).
      *
-     * @author Davide
+     * @author Davide Rivera (Luis Castaño)
      *
      * @date 2026-08-28
      */

@@ -106,13 +106,13 @@ Route::get('/descarga-soportes-hc/{nomArchivoEncriptadote}', [EstudioSoporteHCCo
     ->middleware(['auth', 'permission:estudio.asignar|estudio.transcribir|estudio.leerestudio|estudio.leerEstudio']);
 Route::get('/descargar.pdf.lectura/{nomArchivo}', [EstudioController::class, 'descargarPdfLectura'])
     ->name('descargar.pdf.lectura')
-    ->middleware('auth:sanctum');
+    ->middleware('auth');
 
 // Audios (fallback sin depender de symlink `public/audios`)
 Route::get('/audios/{filename}', [EstudioAudioController::class, 'stream'])
     ->name('audios.stream')
     ->middleware(['auth', 'permission:estudio.transcribir|estudio.leerestudio|estudio.leerEstudio'])
-    ->where('filename', 'audio_[A-Z0-9]{10,}\.mp3');
+    ->where('filename', '(audio|cargado)_[A-Z0-9]{10,}\.mp3');
 
 Route::view('/estudios.leer.estudio.listar', 'modulos.estudios.leer-estudio')
     ->name('estudios.leer.estudio.listar')
@@ -225,6 +225,13 @@ Route::get('descarga-reportes-produccion', [ReporteProduccion::class, 'reportePr
     ->name('descarga.reportes.produccion')
     ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores']);
 
+Route::view('reportes-estudios-pac', 'modulos.reportes.reportes-estudios-pac')
+    ->name('reportes.estudios.pac')
+    ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores']);
+Route::get('descarga-reportes-estudios-pac', [ReporteProduccion::class, 'reporteEstudiosPAC'])
+    ->name('descarga.reportes.estudios.pac')
+    ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores']);
+
 /**
  * Configuración
  */
@@ -248,12 +255,12 @@ Route::view('/config-sedes-listar', 'modulos.configuracion.config-sedes')
     ->name('config.sedes.listar')
     ->middleware(['auth', 'permission:config.sedes.index']);
 
-Route::view('/config-sede-logo', 'modulos.configuracion.config-sede-logo')
-    ->name('config.sedes.logo')
-    ->middleware(['auth', 'permission:config.sedes.edit']);
-
 Route::post('/config/sedes/updateWitchPlantillas', [ConfigSedeController::class, 'update'])
     ->name('config.sedes.update')
+    ->middleware(['auth', 'permission:config.sedes.edit']);
+
+Route::view('/config-sede-logo', 'modulos.configuracion.config-sede-logo')
+    ->name('config.sedes.logo')
     ->middleware(['auth', 'permission:config.sedes.edit']);
 
 Route::view('/config-plantillas-listar', 'modulos.configuracion.config-plantillas')
@@ -363,6 +370,13 @@ Route::view('/citas/recomendaciones', 'modulos.citas.recomendaciones')
 Route::get('/citas/media/{filename}', [AgendaCitaController::class, 'descargarMedia'])
     ->name('citas.media')
     ->middleware(['auth', 'permission:citas.index']);
+
+/**
+ * Contratación
+ */
+Route::view('/contratos', 'modulos.contratos.contratos')
+    ->name('contratos.listar')
+    ->middleware(['auth', 'permission:contratos.index']);
 
 require __DIR__.'/files.php';
 

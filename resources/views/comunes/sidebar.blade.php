@@ -88,26 +88,6 @@
                         </li>
                     @endif
 
-                    {{-- @if (auth()->user()->hasAnyPermission(['otrasPlataformas.index', 'otrasPlataformas.enviar', 'otrasPlataformas.trasbcribir']))
-                        <li class="nav-small-cap">--- Otras Plataformas</li>
-                        <li>
-                            <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
-                                <i class="fa fa-exchange"></i>
-                                <span class="hide-menu">Otras Plataformas</span>
-                            </a>
-                            <ul aria-expanded="false" class="collapse">
-                                @can('otrasPlataformas.index')
-                                    <li>
-                                        <a href="{{ route('otras.plataformas.listar.estudio.enviar') }}">
-                                            <i class="fa fa-upload text-info"></i> Enviar Estudios
-                                        </a>
-                                    </li>
-                                @endcan
-
-                            </ul>
-                        </li>
-                    @endif --}}
-
                     @if (auth()->user()->hasAnyPermission(['tele.ragiologia.index', 'tele.ragiologia.enviar', 'tele.ragiologia.transcribir']))
                         <li class="nav-small-cap">--- Tele Radiología</li>
                         <li>
@@ -241,9 +221,8 @@
                         <li>
                             <a href="{{ route('reportes.produccion') }}" class="waves-effect waves-dark" aria-expanded="false">
                                 <i class="icon-Book"></i>
-                                <span class="hide-menu">Reportes</span>
+                                <span class="hide-menu">Producción</span>
                             </a>
-
                         </li>
                     @endif
 
@@ -280,6 +259,25 @@
                                     <li>
                                         <a href="{{ route('helpdesk.notificaciones') }}">
                                             <i class="fa fa-bell text-info"></i> Notificaciones
+                                        </a>
+                                    </li>
+                                @endcan
+                            </ul>
+                        </li>
+                    @endif
+
+                    @if (auth()->user()->hasAnyPermission(['contratos.index', 'contratos.create']))
+                        <li class="nav-small-cap">--- CONTRATACIÓN</li>
+                        <li>
+                            <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
+                                <i class="icon-Contrast"></i>
+                                <span class="hide-menu">Contratación</span>
+                            </a>
+                            <ul aria-expanded="false" class="collapse">
+                                @can('contratos.index')
+                                    <li>
+                                        <a href="{{ route('contratos.listar') }}">
+                                            <i class="fa fa-file-text-o text-info"></i> Contratos
                                         </a>
                                     </li>
                                 @endcan

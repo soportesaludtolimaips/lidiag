@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Schema;
  * consentimiento_plantilla_productos. No afecta el flujo de ecografías, que
  * conserva su producto_id.
  *
- * @author Davide
+ * @author Davide Rivera (Luis Castaño)
  *
  * @date 2026-08-28
  */
@@ -21,8 +21,6 @@ return new class extends Migration
 {
     /**
      * Aplica la migración: producto_id pasa a ser nullable.
-     *
-     * @return void
      */
     public function up(): void
     {
@@ -33,8 +31,6 @@ return new class extends Migration
 
     /**
      * Revierte la migración: producto_id vuelve a ser obligatorio.
-     *
-     * @return void
      */
     public function down(): void
     {

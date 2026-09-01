@@ -11,16 +11,38 @@ use Illuminate\Http\JsonResponse;
 
 class ConfigSedeController extends Controller
 {
+    /**
+     * Constructor del controlador de sedes.
+     *
+     * Inicializa el servicio y configura los middlewares de autenticación y permisos.
+     *
+     * @param  ConfigSedeService  $configSedeService  Servicio de gestión de sedes inyectado.
+     *
+     * @returns void
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function __construct(
         private readonly ConfigSedeService $configSedeService,
     ) {
         $this->middleware('auth:sanctum')->except(['index']);
-        $this->middleware('permission:config.sedes.index')->only(['index', 'buscarPorId']);
+        $this->middleware('permission:config.sedes.index')->only(['index']);
         $this->middleware('permission:config.sedes.create')->only(['store']);
         $this->middleware('permission:config.sedes.edit')->only(['update', 'actualizarBranding']);
         $this->middleware('permission:config.sedes.destroy')->only(['destroy']);
     }
 
+    /**
+     * Lista todas las sedes registradas con sus servicios y números de WhatsApp.
+     *
+     * @returns Illuminate\Http\JsonResponse Respuesta JSON con la lista de sedes.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function index(): JsonResponse
     {
         $result = $this->configSedeService->all();
@@ -28,6 +50,17 @@ class ConfigSedeController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Busca una sede específica por su identificador.
+     *
+     * @param  mixed  $id  Identificador de la sede a buscar.
+     *
+     * @returns Illuminate\Http\JsonResponse Respuesta JSON con los datos de la sede.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function buscarPorId($id): JsonResponse
     {
         $result = $this->configSedeService->buscarPorId((int) $id);
@@ -35,6 +68,15 @@ class ConfigSedeController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Lista únicamente las sedes que se encuentran activas.
+     *
+     * @returns Illuminate\Http\JsonResponse Respuesta JSON con la lista de sedes activas.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function listarSedesActivas(): JsonResponse
     {
         $result = $this->configSedeService->listarActivas();
@@ -42,6 +84,17 @@ class ConfigSedeController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Crea una nueva sede con los datos y plantillas validados de la solicitud.
+     *
+     * @param  StoreConfigSedeRequest  $request  Solicitud con los datos y archivos validados de la sede.
+     *
+     * @returns Illuminate\Http\JsonResponse Respuesta JSON con la sede creada.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function store(StoreConfigSedeRequest $request): JsonResponse
     {
         $result = $this->configSedeService->create(
@@ -53,6 +106,17 @@ class ConfigSedeController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Actualiza una sede existente con los datos y plantillas validados de la solicitud.
+     *
+     * @param  UpdateConfigSedeRequest  $request  Solicitud con los datos y archivos validados de la sede.
+     *
+     * @returns Illuminate\Http\JsonResponse Respuesta JSON con la sede actualizada.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function update(UpdateConfigSedeRequest $request): JsonResponse
     {
         $result = $this->configSedeService->update(
@@ -64,6 +128,29 @@ class ConfigSedeController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Elimina una sede existente según su identificador.
+     *
+     * @param  int  $id  Identificador único de la sede a eliminar.
+     *
+     * @returns Illuminate\Http\JsonResponse Respuesta JSON con el resultado de la eliminación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
+    /**
+     * Actualiza la marca institucional (encabezado, pie de página y logo) de una sede.
+     *
+     * @param  ConfigSedeBrandingRequest  $request  Solicitud con encabezado, pie_pagina y logo validados.
+     * @param  int  $id  Identificador de la sede.
+     *
+     * @returns Illuminate\Http\JsonResponse Respuesta JSON con la sede actualizada.
+     *
+     * @author Davide Rivera (Luis Castaño)
+     *
+     * @date 2026-08-29
+     */
     public function actualizarBranding(ConfigSedeBrandingRequest $request, int $id): JsonResponse
     {
         $result = $this->configSedeService->actualizarBranding(

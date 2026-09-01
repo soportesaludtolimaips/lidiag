@@ -18,7 +18,7 @@ class ConsentimientoPlantillasController extends Controller
         $this->middleware('auth:sanctum');
         $this->middleware('permission:ecografias.consentimientos.plantillas.index,web')->only(['index', 'show', 'versions', 'comparar']);
         $this->middleware('permission:ecografias.consentimientos.plantillas.create,web')->only(['store']);
-        $this->middleware('permission:ecografias.consentimientos.plantillas.edit,web')->only(['update', 'setVigente']);
+        $this->middleware('permission:ecografias.consentimientos.plantillas.edit,web')->only(['update', 'setVigente', 'actualizarFormato']);
         $this->middleware('permission:ecografias.consentimientos.plantillas.destroy,web')->only(['destroy']);
         $this->middleware('permission:ecografias.consentimientos.plantillas.preview_pdf,web')->only(['previewPdf']);
     }
@@ -75,6 +75,28 @@ class ConsentimientoPlantillasController extends Controller
         }
 
         $result = $this->service->comparar($v1, $v2);
+
+        return response()->json($result, $result['status']);
+    }
+
+    /**
+     * Actualiza código/versión/año del formato de una plantilla.
+     *
+     * @param  Request  $request  Petición con codigo, version_formato, anio_formato.
+     * @param  int  $id  ID de la plantilla.
+     *
+     * @author Davide Rivera (Luis Castaño)
+     *
+     * @date 2026-08-29
+     */
+    public function actualizarFormato(Request $request, int $id): JsonResponse
+    {
+        $data = $request->validate([
+            'codigo' => 'nullable|string|max:60',
+            'version_formato' => 'nullable|string|max:20',
+            'anio_formato' => 'nullable|string|max:10',
+        ]);
+        $result = $this->service->actualizarFormato($id, $data);
 
         return response()->json($result, $result['status']);
     }

@@ -32,6 +32,36 @@ class ConsentimientoPlantillaService extends BaseService
         return $this->success($query->orderByDesc('id')->get());
     }
 
+    /**
+     * Actualiza los metadatos de formato institucional de una plantilla
+     * (código, versión y año) usados en el encabezado del PDF.
+     *
+     * @param  int  $id  ID de la plantilla.
+     * @param  array<string,mixed>  $data  Campos codigo, version_formato, anio_formato.
+     * @return array{success: bool, data: mixed, message: string, status: int}
+     *
+     * @author Davide Rivera (Luis Castaño)
+     *
+     * @date 2026-08-29
+     */
+    public function actualizarFormato(int $id, array $data): array
+    {
+        $plantilla = ConsentimientoPlantilla::query()->findOrFail($id);
+        $plantilla->fill([
+            'codigo' => $data['codigo'] ?? $plantilla->codigo,
+            'version_formato' => $data['version_formato'] ?? $plantilla->version_formato,
+            'anio_formato' => $data['anio_formato'] ?? $plantilla->anio_formato,
+        ]);
+        $plantilla->save();
+
+        return $this->updated([
+            'id' => $plantilla->id,
+            'codigo' => $plantilla->codigo,
+            'version_formato' => $plantilla->version_formato,
+            'anio_formato' => $plantilla->anio_formato,
+        ]);
+    }
+
     public function find(int $id): array
     {
         $plantilla = ConsentimientoPlantilla::query()

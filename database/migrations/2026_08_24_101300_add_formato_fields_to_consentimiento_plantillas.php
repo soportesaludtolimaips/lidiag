@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Schema;
  * (código, versión y año), para reproducir el encabezado de los documentos
  * físicos de cada sede en el PDF generado.
  *
- * @author Davide
+ * @author Davide Rivera (Luis Castaño)
  *
  * @date 2026-08-28
  */
@@ -17,8 +17,6 @@ return new class extends Migration
 {
     /**
      * Aplica la migración: agrega codigo, version_formato y anio_formato.
-     *
-     * @return void
      */
     public function up(): void
     {
@@ -37,8 +35,6 @@ return new class extends Migration
 
     /**
      * Revierte la migración: elimina los campos de formato.
-     *
-     * @return void
      */
     public function down(): void
     {

@@ -63,5 +63,8 @@ class DatabaseSeeder extends Seeder
         $this->call(PermisoAuditoriaSeeder::class);
         $this->call(ConfigWhatsappSeeder::class);
         $this->call(ConfigRecomendacionProductoSeeder::class);
+
+        // Contratación
+        $this->call(PermisionContratacionSeeder::class);
     }
 }

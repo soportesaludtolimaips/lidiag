@@ -9,8 +9,10 @@ use App\Http\Controllers\Configuracion\ConfigPrioridadController;
 use App\Http\Controllers\Configuracion\ConfigProductoController;
 use App\Http\Controllers\Configuracion\ConfigRecomendacionProductoController;
 use App\Http\Controllers\Configuracion\ConfigSedeController;
+use App\Http\Controllers\Configuracion\ConfigSedeWhatsappNumberController;
 use App\Http\Controllers\Configuracion\ConfigServicioCitasController;
 use App\Http\Controllers\Configuracion\ConfigTipoDocumentoController;
+use App\Http\Controllers\Configuracion\ConfigWhatsappController;
 use App\Http\Controllers\Configuracion\ConsentimientoInformadoController;
 use App\Http\Controllers\Configuracion\ServicioProductoController;
 use App\Http\Controllers\Consentimientos\ConsentimientoPlantillasController;
@@ -26,13 +28,13 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Rutas Públicas (Accesibles sin sesión, ej. para selección de sede en Login)
-Route::get('/config-sedes/{configsede}/buscarPorId', [ConfigSedeController::class, 'buscarPorId'])
-    ->name('api.config.sedes.buscarPorId');
-
 // Rutas protegidas (requieren autenticación)
 // Nota: en API usamos Sanctum (stateful) para que funcione con sesión/cookies.
 Route::middleware(['auth'])->group(function () {
+
+    // Sedes - buscarPorId (requiere permiso config.sedes.index)
+    Route::get('/config-sedes/{configsede}/buscarPorId', [ConfigSedeController::class, 'buscarPorId'])
+        ->name('api.config.sedes.buscarPorId');
 
     // Diagnosticos
     Route::resource('/config-diagnosticos', ConfigDiagnosticoController::class)
@@ -55,7 +57,7 @@ Route::middleware(['auth'])->group(function () {
         ->except(['create']);
 
     // Modulos
-    Route::get('/config-modulos-listar', [ConfigModulosController::class, 'index'])
+    Route::get('/config-modulos-listar', [ConfigModulosController::class, 'listarModulos'])
         ->name('api.config.modulos.listar');
 
     // Tipos de Documentos
@@ -90,6 +92,9 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('/config-plantillas', ConfigPlantillaController::class)
         ->names('api.config.plantillas')
         ->except(['create', 'edit']);
+
+    Route::get('/config-plantillas/listar/activos/{tipoId}/{medicoId}', [ConfigPlantillaController::class, 'listarActivosPorTipo'])
+        ->name('api.config.plantillas.listar.activos.por.tipo');
 
     Route::get('/config-tipos-plantillas/listar/activos', [ConfigPlantillaTipoController::class, 'listarActivos'])
         ->name('api.config.tipos.plantillas.listar.activos');
@@ -126,6 +131,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/consentimientos-plantillas/comparar', [ConsentimientoPlantillasController::class, 'comparar'])
         ->name('api.consentimientos.plantillas.comparar');
 
+    Route::put('/consentimientos-plantillas/{id}/formato', [ConsentimientoPlantillasController::class, 'actualizarFormato'])
+        ->whereNumber('id')
+        ->name('api.consentimientos.plantillas.formato');
+
     // Servicio de Citas
     Route::get('/config-servicio-citas/mis-servicios', [ConfigServicioCitasController::class, 'misServicios'])
         ->name('api.config.servicio.citas.mis_servicios');
@@ -135,16 +144,16 @@ Route::middleware(['auth'])->group(function () {
         ->except(['create', 'edit']);
 
     // Números WhatsApp por sede
-    Route::get('/config-sede-whatsapp-numbers', [\App\Http\Controllers\Configuracion\ConfigSedeWhatsappNumberController::class, 'index'])
+    Route::get('/config-sede-whatsapp-numbers', [ConfigSedeWhatsappNumberController::class, 'index'])
         ->name('api.config.sede.whatsapp.numbers.index');
 
-    Route::post('/config-sede-whatsapp-numbers', [\App\Http\Controllers\Configuracion\ConfigSedeWhatsappNumberController::class, 'store'])
+    Route::post('/config-sede-whatsapp-numbers', [ConfigSedeWhatsappNumberController::class, 'store'])
         ->name('api.config.sede.whatsapp.numbers.store');
 
-    Route::put('/config-sede-whatsapp-numbers/{id}', [\App\Http\Controllers\Configuracion\ConfigSedeWhatsappNumberController::class, 'update'])
+    Route::put('/config-sede-whatsapp-numbers/{id}', [ConfigSedeWhatsappNumberController::class, 'update'])
         ->name('api.config.sede.whatsapp.numbers.update');
 
-    Route::delete('/config-sede-whatsapp-numbers/{id}', [\App\Http\Controllers\Configuracion\ConfigSedeWhatsappNumberController::class, 'destroy'])
+    Route::delete('/config-sede-whatsapp-numbers/{id}', [ConfigSedeWhatsappNumberController::class, 'destroy'])
         ->name('api.config.sede.whatsapp.numbers.destroy');
 
     // Servicio Citas <-> Productos
@@ -161,28 +170,28 @@ Route::middleware(['auth'])->group(function () {
         ->name('api.config.servicio.producto.no_vinculados');
 
     // Configuración WhatsApp Bot (saludos por sede/servicio)
-    Route::get('/config-whatsapp/buscar', [\App\Http\Controllers\Configuracion\ConfigWhatsappController::class, 'buscar'])
+    Route::get('/config-whatsapp/buscar', [ConfigWhatsappController::class, 'buscar'])
         ->name('api.config.whatsapp.buscar');
 
     // Protegemos store/update/destroy con permisos
-    Route::post('/config-whatsapp', [\App\Http\Controllers\Configuracion\ConfigWhatsappController::class, 'store'])
+    Route::post('/config-whatsapp', [ConfigWhatsappController::class, 'store'])
         ->name('api.config.whatsapp.store')
-        ->middleware('permission:config.whatsapp.saludo.create,web');
+        ->middleware('permission:config.whatsapp.saludo.create');
 
-    Route::put('/config-whatsapp/{id}', [\App\Http\Controllers\Configuracion\ConfigWhatsappController::class, 'update'])
+    Route::put('/config-whatsapp/{id}', [ConfigWhatsappController::class, 'update'])
         ->name('api.config.whatsapp.update')
-        ->middleware('permission:config.whatsapp.saludo.edit,web');
+        ->middleware('permission:config.whatsapp.saludo.edit');
 
-    Route::delete('/config-whatsapp/{id}', [\App\Http\Controllers\Configuracion\ConfigWhatsappController::class, 'destroy'])
+    Route::delete('/config-whatsapp/{id}', [ConfigWhatsappController::class, 'destroy'])
         ->name('api.config.whatsapp.destroy')
-        ->middleware('permission:config.whatsapp.saludo.destroy,web');
+        ->middleware('permission:config.whatsapp.saludo.destroy');
 
     // Index y show son de lectura (permiso index)
-    Route::get('/config-whatsapp', [\App\Http\Controllers\Configuracion\ConfigWhatsappController::class, 'index'])
+    Route::get('/config-whatsapp', [ConfigWhatsappController::class, 'index'])
         ->name('api.config.whatsapp.index')
-        ->middleware('permission:config.whatsapp.saludo.index,web');
+        ->middleware('permission:config.whatsapp.saludo.index');
 
-    Route::get('/config-whatsapp/{id}', [\App\Http\Controllers\Configuracion\ConfigWhatsappController::class, 'show'])
+    Route::get('/config-whatsapp/{id}', [ConfigWhatsappController::class, 'show'])
         ->name('api.config.whatsapp.show')
-        ->middleware('permission:config.whatsapp.saludo.index,web');
+        ->middleware('permission:config.whatsapp.saludo.index');
 });

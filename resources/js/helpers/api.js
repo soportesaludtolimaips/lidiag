@@ -48,6 +48,7 @@ export const consentimientos = {
     crearToken: (data) => axios.post(`${BASE}/consentimientos/token`, data),
     firmarMedico: (data) => axios.post(`${BASE}/consentimientos/firmar-medico`, data),
     anular: (id, data) => axios.post(`${BASE}/consentimientos/${id}/anular`, data),
+    restaurar: (id) => axios.post(`${BASE}/consentimientos/${id}/restaurar`),
     generarPdf: (id) => axios.post(`${BASE}/consentimientos/${id}/pdf`),
     descargarPdfUrl: (id) => `${BASE}/consentimientos/${id}/pdf/download`,
 
@@ -73,6 +74,8 @@ export const consentimientos = {
         axios.get(`${BASE}/consentimientos-plantillas/producto/${productoId}/versions`, { params }),
     plantillaComparar: (v1, v2) =>
         axios.get(`${BASE}/consentimientos-plantillas/comparar`, { params: { v1, v2 } }),
+    actualizarFormato: (id, data) =>
+        axios.put(`${BASE}/consentimientos-plantillas/${id}/formato`, data),
 
     // Asignación plantilla ↔ productos/sedes (M:N)
     asignaciones: (plantillaId) =>
@@ -104,4 +107,8 @@ export const consentimientos = {
         axios.get(`${BASE}/consentimientos/estadisticas/tiempo-promedio`, { params }),
     estadPopulares: (params) =>
         axios.get(`${BASE}/consentimientos/estadisticas/productos-populares`, { params }),
+    estadExportarUrl: (params) => {
+        const qs = new URLSearchParams(params ?? {}).toString();
+        return `${BASE}/consentimientos/estadisticas/exportar${qs ? "?" + qs : ""}`;
+    },
 };
