@@ -752,6 +752,15 @@ const medicoOptions = computed(() => {
     return (medicos || []).map((p) => ({ id: String(p.id), name: p.name }));
 });
 
+/**
+ * Inicializa el DataTable de jQuery con botones de exportación.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function initDataTable() {
     safeInitDataTable(dt.value || "#example23", {
         dom: "Bfrtip",
@@ -759,9 +768,27 @@ function initDataTable() {
         retrieve: true,
     });
 }
+/**
+ * Destruye la instancia del DataTable para evitar errores al recargar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#example23");
 }
+/**
+ * Busca estudios de tele-radiología según los filtros del formulario.
+ *
+ * @returns {Promise<void>} Promesa que se resuelve al finalizar la búsqueda.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function buscarStudy() {
     if (loadingBuscar.value) return;
     loadingBuscar.value = true;
@@ -832,6 +859,15 @@ async function buscarStudy() {
         loadingBuscar.value = false;
     }
 }
+/**
+ * Guarda la orden de tele-radiología y el registro del estudio con sus adjuntos.
+ *
+ * @returns {Promise<void>} Promesa que se resuelve al completar el guardado.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
@@ -928,6 +964,16 @@ async function guardarRegistro() {
         loadingGuardar.value = false;
     }
 }
+/**
+ * Convierte un archivo a formato Base64.
+ *
+ * @param {File} file Archivo a convertir.
+ * @returns {Promise<string>} Cadena en formato Base64 del archivo.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function toBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -936,6 +982,16 @@ function toBase64(file) {
         reader.onerror = (error) => reject(error);
     });
 }
+/**
+ * Extrae la extensión del archivo a partir de su representación Base64.
+ *
+ * @param {string} base64 Cadena en formato Base64 con prefijo MIME.
+ * @returns {string|null} Extensión del archivo o null si no se reconoce el tipo MIME.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function extensionDesdeBase64(base64) {
     const mime = base64.substring(base64.indexOf(":") + 1, base64.indexOf(";"));
 
@@ -949,6 +1005,16 @@ function extensionDesdeBase64(base64) {
 
     return mapa[mime] ?? null;
 }
+/**
+ * Maneja la selección del primer archivo adjunto, lo convierte a Base64 y lo agrega a la orden.
+ *
+ * @param {Event} e Evento change del input de archivo.
+ * @returns {Promise<void>} Promesa que se resuelve al procesar el archivo.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function obtenerArchivo1(e) {
     const file = e.target.files[0];
     const fileBase64 = await toBase64(file);
@@ -956,6 +1022,16 @@ async function obtenerArchivo1(e) {
     agregarArchivoOrden(fileBase64, extension);
     soportesHC.value.archivo1 = e.target.files[0];
 }
+/**
+ * Maneja la selección del segundo archivo adjunto, lo convierte a Base64 y lo agrega a la orden.
+ *
+ * @param {Event} e Evento change del input de archivo.
+ * @returns {Promise<void>} Promesa que se resuelve al procesar el archivo.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function obtenerArchivo2(e) {
     const file = e.target.files[0];
     const fileBase64 = await toBase64(file);
@@ -963,6 +1039,16 @@ async function obtenerArchivo2(e) {
     agregarArchivoOrden(fileBase64, extension);
     soportesHC.value.archivo2 = e.target.files[0];
 }
+/**
+ * Maneja la selección del tercer archivo adjunto, lo convierte a Base64 y lo agrega a la orden.
+ *
+ * @param {Event} e Evento change del input de archivo.
+ * @returns {Promise<void>} Promesa que se resuelve al procesar el archivo.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function obtenerArchivo3(e) {
     const file = e.target.files[0];
     const fileBase64 = await toBase64(file);
@@ -970,12 +1056,34 @@ async function obtenerArchivo3(e) {
     agregarArchivoOrden(fileBase64, extension);
     soportesHC.value.archivo3 = e.target.files[0];
 }
+/**
+ * Agrega un archivo adjunto al arreglo de adjuntos de la orden.
+ *
+ * @param {string} file Archivo en formato Base64.
+ * @param {string} file_exten Extensión del archivo.
+ * @returns {Promise<void>} Promesa que se resuelve al agregar el archivo.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function agregarArchivoOrden(file, file_exten) {
     orden.value.adjuntos.push({
         file: file,
         file_exten: file_exten,
     });
 }
+/**
+ * Abre el modal lateral cargando los datos del estudio y paciente seleccionado.
+ *
+ * @param {Object} data Objeto con los datos del estudio.
+ * @param {number} index Índice del registro en la tabla.
+ * @returns {Promise<void>} Promesa que se resuelve al cargar los datos.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function mostrarRegistro(data = {}, index) {
     limpiar();
     tituloModal.value = "Generar orden: " + data.pat_name;
@@ -1018,6 +1126,15 @@ async function mostrarRegistro(data = {}, index) {
         interfaceAtenciones.value = resAtenciones.data.data;
     }
 }
+/**
+ * Lista los productos y diagnósticos de la interfaz SAHI para la atención seleccionada.
+ *
+ * @returns {Promise<void>} Promesa que se resuelve al cargar los productos y diagnósticos.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function interfaceListarProductosDiagnosticos() {
     const resProuctos = await axios.get(
         "/api/interface-sahi-listar-listarProductosDiagnosticos/" +
@@ -1054,6 +1171,16 @@ async function interfaceListarProductosDiagnosticos() {
 
     registro.value.atencion_id = interfaceAtencionSeleccionada.value;
 }
+/**
+ * Establece la prioridad seleccionada en la orden y el registro.
+ *
+ * @param {Event} e Evento change del select de prioridad.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function establecerPrioridad(e) {
     const seleccion = prioridades.value.find((p) => p.id === orden.value.priori.id);
 
@@ -1061,6 +1188,15 @@ function establecerPrioridad(e) {
     registro.value.prioridad_id = seleccion.id;
     orden.value.priori.nom_priori = seleccion.nom_priori;
 }
+/**
+ * Establece la sede actual en los objetos de búsqueda, orden y registro desde sessionStorage.
+ *
+ * @returns {Promise<void>} Promesa que se resuelve al configurar la sede.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function establecerSede() {
     orden.value.sede.id = sessionStorage.getItem("ST-sede");
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
@@ -1070,16 +1206,52 @@ async function establecerSede() {
     await establecerSede();
     registros.value = [];
 }
+/**
+ * Cierra el formulario del modal lateral deslizante.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function btnCerralModalForm() {
     $(".right-sidebar").slideDown(50);
     $(".right-sidebar").toggleClass("shw-rside");
 }
+/**
+ * Abre el modal lateral deslizante mostrando el formulario.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function abrirModal() {
     $(".right-sidebar").addClass("shw-rside");
 }
+/**
+ * Cierra el modal lateral deslizante ocultando el panel.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function cerrarModal() {
     $(".right-sidebar").removeClass("shw-rside");
 }
+/**
+ * Limpia todos los campos del formulario de búsqueda, orden y registro, y cierra el modal.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function btnLimpiar() {
     busqueda.value.bus_nom_num_docu = "";
     busqueda.value.bus_fech_ini = "";
@@ -1121,6 +1293,15 @@ function btnLimpiar() {
 
     cerrarModal();
 }
+/**
+ * Obtiene el listado de prioridades disponibles desde la API.
+ *
+ * @returns {Promise<void>} Promesa que se resuelve al cargar las prioridades.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function listarPrioridades() {
     try {
         const res = await axios.get("/api/config-prioridades");
@@ -1129,6 +1310,15 @@ async function listarPrioridades() {
         prioridades.value = [];
     }
 }
+/**
+ * Obtiene el listado de productos (CUPS) disponibles desde la API.
+ *
+ * @returns {Promise<void>} Promesa que se resuelve al cargar los productos.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
@@ -1137,6 +1327,16 @@ async function listarProductos() {
         productos.value = [];
     }
 }
+/**
+ * Maneja la selección de un médico desde el componente Select2.
+ *
+ * @param {*} value Valor seleccionado del componente Select2.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function onMedicoSelect(value) {
     let selectedId = null;
     if (Array.isArray(value) && value.length > 0) {
@@ -1149,6 +1349,16 @@ function onMedicoSelect(value) {
     }
     orden.value.medico.id = selectedId || "";
 }
+/**
+ * Maneja la selección de un producto desde el componente Select2 y lo agrega a la orden.
+ *
+ * @param {*} value Valor seleccionado del componente Select2.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function onProductoSelect(value) {
     let selectedId = null;
     if (Array.isArray(value) && value.length > 0) {
@@ -1167,6 +1377,16 @@ function onProductoSelect(value) {
         }
     }
 }
+/**
+ * Maneja la selección de un diagnóstico desde el componente Select2.
+ *
+ * @param {*} value Valor seleccionado del componente Select2.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function onDiagnosticoSelect(value) {
     let selectedId = null;
     if (Array.isArray(value) && value.length > 0) {
@@ -1182,6 +1402,18 @@ function onDiagnosticoSelect(value) {
         guardarDiagnosticosEstudio();
     }
 }
+/**
+ * Agrega o quita un producto del estudio. Si ya existe lo elimina, si no lo agrega.
+ *
+ * @param {number} id Identificador del producto.
+ * @param {string} cod_cups Código CUPS del producto.
+ * @param {string} nom_produc Nombre del producto.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function guardarProductosEstudio(id, cod_cups, nom_produc) {
     const productoEstudioId = id;
     const productoEstudioCod_Cubs = cod_cups;
@@ -1217,12 +1449,34 @@ function guardarProductosEstudio(id, cod_cups, nom_produc) {
 
     productoSelecciondo.value = "";
 }
+/**
+ * Elimina un producto del estudio por su código CUPS.
+ *
+ * @param {string} codCups Código CUPS del producto a eliminar.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function quitarProductoEstudio(codCups) {
     const idxOrden = orden.value.producto.findIndex((p) => p.cod_cups === codCups);
     if (idxOrden !== -1) orden.value.producto.splice(idxOrden, 1);
     const idxRegistro = registro.value.productosEstudio.findIndex((p) => p.cod_cups === codCups);
     if (idxRegistro !== -1) registro.value.productosEstudio.splice(idxRegistro, 1);
 }
+/**
+ * Abre en una nueva pestaña el visor de imágenes DICOM (Oviyam) con los parámetros del estudio.
+ *
+ * @param {string} pat_id Identificador del paciente.
+ * @param {string} study_iuid UID del estudio DICOM.
+ * @param {number|null} index Índice del registro en la tabla para control de loading.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function verImagen(pat_id, study_iuid, index = null) {
     if (index !== null) {
         if (loadingImagenIndex.value !== null) return;

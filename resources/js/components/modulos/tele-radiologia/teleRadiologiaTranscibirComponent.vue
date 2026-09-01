@@ -648,6 +648,15 @@ const medicoOptions = computed(() => {
     return (medicos.value || []).map((p) => ({ id: p.id, name: p.name }));
 });
 
+/**
+ * Inicializa el DataTable de jQuery con botones de exportación.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function initDataTable() {
     safeInitDataTable(dt.value || "#example23", {
         dom: "Bfrtip",
@@ -655,9 +664,27 @@ function initDataTable() {
         retrieve: true,
     });
 }
+/**
+ * Destruye la instancia del DataTable para evitar errores al recargar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#example23");
 }
+/**
+ * Limpia los campos de búsqueda, errores y el listado de registros.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function btnLimpiar() {
     busqueda.value.quien_asigno_id = "";
     busqueda.value.medico_id = "";
@@ -669,6 +696,15 @@ function btnLimpiar() {
     registros.value = [];
     limpiar();
 }
+/**
+ * Lista los estudios pendientes por transcribir según los filtros de búsqueda.
+ *
+ * @returns {Promise<void>} Promesa que se resuelve al cargar los pendientes.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function listarPendientesTrascribir() {
     if (loadingBuscar.value) return;
     loadingBuscar.value = true;
@@ -699,6 +735,15 @@ async function listarPendientesTrascribir() {
         loadingBuscar.value = false;
     }
 }
+/**
+ * Guarda la transcripción/lectura del estudio y elimina el registro de la tabla de pendientes.
+ *
+ * @returns {Promise<void>} Promesa que se resuelve al completar el guardado.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
@@ -782,6 +827,17 @@ async function guardarRegistro() {
         loadingGuardar.value = false;
     }
 }
+/**
+ * Descarga un archivo soporte de la historia clínica desde la API.
+ *
+ * @param {string} nomArchivoOriginal Nombre original del archivo.
+ * @param {string} nomArchivoEncriptado Nombre encriptado del archivo en el servidor.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function descargaSoportte(nomArchivoOriginal, nomArchivoEncriptado) {
     if (loadingDescargaSoporte.value) return;
     loadingDescargaSoporte.value = nomArchivoEncriptado;
@@ -804,6 +860,18 @@ function descargaSoportte(nomArchivoOriginal, nomArchivoEncriptado) {
             loadingDescargaSoporte.value = null;
         });
 }
+/**
+ * Anula la asignación de un estudio-producto tras confirmación del usuario.
+ *
+ * @param {number} idProductoEstudio Identificador del estudio-producto a anular.
+ * @param {string} paciente Nombre del paciente para la confirmación.
+ * @param {string} producto Nombre del producto para la confirmación.
+ * @returns {Promise<void>} Promesa que se resuelve al completar la anulación.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function anularAsignacion(idProductoEstudio, paciente, producto) {
     const ok = await confirmAction({
         title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
@@ -838,6 +906,15 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
         loadingAnularId.value = null;
     }
 }
+/**
+ * Abre en una nueva pestaña el visor de imágenes DICOM (Oviyam) del estudio actual.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function verImagen() {
     if (loadingVerImagen.value) return;
     loadingVerImagen.value = true;
@@ -855,6 +932,15 @@ function verImagen() {
         }, 500);
     }
 }
+/**
+ * Obtiene los audios asociados al estudio actual desde la API.
+ *
+ * @returns {Promise<void>} Promesa que se resuelve al cargar los audios.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function listarAudios() {
     loadingAudios.value = true;
     try {
@@ -866,6 +952,15 @@ async function listarAudios() {
         loadingAudios.value = false;
     }
 }
+/**
+ * Obtiene el listado de médicos disponibles según el módulo actual.
+ *
+ * @returns {Promise<void>} Promesa que se resuelve al cargar los médicos.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function listarMedicos() {
     try {
         const pathname = String(window?.location?.pathname || "").toLowerCase();
@@ -877,17 +972,56 @@ async function listarMedicos() {
         medicos.value = [];
     }
 }
+/**
+ * Maneja la selección de un médico desde el componente Select2.
+ *
+ * @param {string|null} value Identificador del médico seleccionado.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function onMedicoSelect(value) {
     registro.value.medico_id = value ? String(value) : null;
 }
+/**
+ * Establece la sede actual en el objeto de búsqueda desde sessionStorage y limpia los registros.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function establecerSede() {
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
     registros.value = [];
 }
+/**
+ * Formatea un timestamp UTC a la zona horaria local con formato YYYY-MM-DD HH:mm:ss.
+ *
+ * @param {string} timestamp Timestamp en formato UTC.
+ * @returns {string} Fecha formateada en la zona horaria local.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function formatDate(timestamp) {
     // Convertir el timestamp UTC a la zona horaria local y formatear
     return dayjs.utc(timestamp).local().format("YYYY-MM-DD HH:mm:ss");
 }
+/**
+ * Abre el modal lateral cargando los datos completos del estudio para transcribir la lectura.
+ *
+ * @param {Object} data Objeto con los datos del estudio y paciente.
+ * @returns {Promise<void>} Promesa que se resuelve al cargar todos los datos del registro.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 async function mostrarRegistro(data = {}) {
     if (loadingAbrirId.value !== null) return;
     loadingAbrirId.value = data.estudio_producto_id;
@@ -956,6 +1090,15 @@ async function mostrarRegistro(data = {}) {
     errores.value = {};
     loadingAbrirId.value = null;
 }
+/**
+ * Limpia los campos del formulario de transcripción y cierra el modal.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function limpiar() {
     actualizar.value = false;
     tituloModal.value = "Nuevo registro";
@@ -965,6 +1108,15 @@ function limpiar() {
     $("#btnCerralModalForm").click();
     errores.value = {};
 }
+/**
+ * Cierra el formulario del modal lateral deslizante y limpia los audios cargados.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 function btnCerralModalForm() {
     $(".right-sidebar").slideDown(50);
     $(".right-sidebar").toggleClass("shw-rside");
