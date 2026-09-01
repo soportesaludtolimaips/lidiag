@@ -9,6 +9,15 @@ window.axios = axios;
 window.axios.defaults.headers.common["X-Requested-With"] = "XMLHttpRequest";
 window.axios.defaults.withCredentials = true;
 
+/**
+ * Actualiza el token XSRF-TOKEN desde la cookie del navegador.
+ * Se ejecuta al recibir cada respuesta exitosa y al iniciar la app.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 function refreshCsrfToken() {
     const name = "XSRF-TOKEN";
     const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
@@ -27,6 +36,15 @@ refreshCsrfToken();
 let _redirectingToLogin = false;
 let _verifyingSession = false;
 
+/**
+ * Verifica si la sesión del usuario ha expirado.
+ * Consulta el endpoint /api/debug-session para confirmar autenticación.
+ *
+ * @returns {Promise<boolean>} true si la sesión expiró, false si es válida
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 async function confirmSessionExpired() {
     if (_verifyingSession) return false;
     _verifyingSession = true;
@@ -42,6 +60,15 @@ async function confirmSessionExpired() {
     }
 }
 
+/**
+ * Redirige al usuario a la página de login tras expiración de sesión.
+ * Muestra un toast informativo antes de redirigir.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 function redirectToLogin() {
     if (_redirectingToLogin) return;
     _redirectingToLogin = true;

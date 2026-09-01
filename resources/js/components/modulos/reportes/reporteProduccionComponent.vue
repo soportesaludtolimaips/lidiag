@@ -334,6 +334,15 @@ const medicos = ref([]);
 const tipoReporte = ref("Rx");
 const loadingDescargar = ref(false);
 
+/**
+ * Carga las sedes activas y los catálogos de usuarios (quienes asignaron, médicos).
+ * Se ejecuta una sola vez al montar el componente.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 async function listarSedes() {
     try {
         await listarUsuariosYSedes({
@@ -349,6 +358,15 @@ async function listarSedes() {
         sedes.value = res.data.data;
     } catch (error) {}
 }
+/**
+ * Descarga el reporte de producción (RX, Ecografía) como archivo externo.
+ * Valida fechas obligatorias y genera la URL con los parámetros del filtro.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 async function descargarReporte() {
     if (loadingDescargar.value) return;
     loadingDescargar.value = true;
@@ -400,6 +418,15 @@ async function descargarReporte() {
     }
 }
 
+/**
+ * Descarga el reporte de estudios tomados en PAC como archivo externo.
+ * Valida sede y fechas obligatorias antes de abrir la URL de descarga.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 async function descargarReporteEstudiosPAC() {
     if (loadingDescargar.value) return;
     loadingDescargar.value = true;

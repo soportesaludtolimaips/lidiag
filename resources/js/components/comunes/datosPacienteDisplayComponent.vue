@@ -68,11 +68,27 @@ const props = defineProps({
     },
 });
 
+/**
+ * Formatea la fecha de nacimiento del paciente usando normalizarFecha.
+ *
+ * @returns {string} Fecha formateada o cadena vacía si no hay valor.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-06-01
+ */
 const fechaFormateada = computed(() => {
     const val = props.registro.fec_naci;
     if (!val) return "";
     return normalizarFecha(val) || val;
 });
+/**
+ * Calcula la edad del paciente a partir de su fecha de nacimiento.
+ *
+ * @returns {number|string} Edad calculada o cadena vacía si no hay valor.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-06-01
+ */
 const edadCalculada = computed(() => {
     const val = props.registro.fec_naci;
     if (!val) return "";

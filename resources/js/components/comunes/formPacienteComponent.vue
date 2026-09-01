@@ -144,8 +144,23 @@ const props = defineProps({
     },
 });
 
+/**
+ * Calcula la edad del paciente a partir de la fecha de nacimiento del registro.
+ *
+ * @returns {number|null} Edad calculada o null si no hay fecha válida.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-06-01
+ */
 const edad = computed(() => calcularEdad(props.registro.fec_naci));
 
+/**
+ * Observa cambios en el objeto registro para normalizar pat_birthdate
+ * y asignarlo a fec_naci cuando esté disponible.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-06-01
+ */
 watch(
     () => props.registro,
     (val) => {

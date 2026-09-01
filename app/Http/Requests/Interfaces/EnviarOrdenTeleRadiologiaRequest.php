@@ -6,11 +6,29 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class EnviarOrdenTeleRadiologiaRequest extends FormRequest
 {
+    /**
+     * Determina si el usuario puede autorizar la solicitud.
+     *
+     * @returns bool Siempre retorna true.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function authorize()
     {
         return true;
     }
 
+    /**
+     * Define las reglas de validación para enviar orden de tele-radiología.
+     *
+     * @returns array<string, array> Reglas de validación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function rules()
     {
         return [
@@ -18,6 +36,15 @@ class EnviarOrdenTeleRadiologiaRequest extends FormRequest
         ];
     }
 
+    /**
+     * Define los mensajes de error personalizados para las reglas de validación.
+     *
+     * @returns array<string, string> Mensajes de error en español.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function messages()
     {
         return [

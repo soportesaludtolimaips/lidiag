@@ -33,6 +33,15 @@ const sucursalActual = ref(1);
 const nomSucursal = ref("");
 const registros = ref([]);
 
+/**
+ * Carga el listado de sedes desde la API y establece la primera como predeterminada.
+ * Emite el evento sedeSeleccionada al componente padre.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 async function listarSucursales() {
     try {
         const res = await axios.get("/api/config-sedes");
@@ -46,6 +55,16 @@ async function listarSucursales() {
         registros.value = [];
     }
 }
+/**
+ * Establece la sede seleccionada como actual.
+ * Actualiza sessionStorage y emite el evento sedeSeleccionada.
+ *
+ * @param {Object} data - Objeto con id y sucursal de la sede seleccionada
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 function establecerSucursal(data = {}) {
     nomSucursal.value = data.sucursal;
     sucursalActual.value = data.id;

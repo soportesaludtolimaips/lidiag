@@ -362,12 +362,30 @@ const formProductoOptions = computed(() => {
     }));
 });
 
+/**
+ * Carga la lista de sedes activas desde la API.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
 async function cargarSedes() {
     try {
         const res = await axios.get("/api/config-sedes/listar/sedes/activas");
         sedes.value = res.data?.data || [];
     } catch (error) {}
 }
+/**
+ * Carga la lista de servicios de citas disponibles y aplica el filtro inicial.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
 async function cargarServicios() {
     try {
         const res = await axios.get("/api/citas/servicios");
@@ -375,6 +393,15 @@ async function cargarServicios() {
         filtrarServicios();
     } catch (error) {}
 }
+/**
+ * Filtra la lista de servicios según la sede seleccionada en el filtro.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
 function filtrarServicios() {
     if (filtro.value.sede_id) {
         serviciosFiltrados.value = servicios.value.filter((s) => s.sede_id == filtro.value.sede_id);
@@ -382,6 +409,15 @@ function filtrarServicios() {
         serviciosFiltrados.value = servicios.value;
     }
 }
+/**
+ * Carga los productos asociados al servicio y sede seleccionados en el filtro.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
 async function cargarProductos() {
     try {
         const servicioId = filtro.value.servicio_cita_id;
@@ -401,13 +437,44 @@ async function cargarProductos() {
         productos.value = [];
     }
 }
+/**
+ * Maneja la selección de producto en el filtro y ejecuta la búsqueda.
+ *
+ * @param {string|null} value - Identificador del producto seleccionado.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
 function onFilterProductoSelect(value) {
     filtro.value.producto_id = value || "";
     buscar();
 }
+/**
+ * Maneja la selección de producto en el formulario de registro/edición.
+ *
+ * @param {string|null} value - Identificador del producto seleccionado.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
 function onFormProductoSelect(value) {
     form.value.producto_id = value || "";
 }
+/**
+ * Consulta las recomendaciones de producto aplicando los filtros y reinicializa el DataTable.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
 async function buscar() {
     if (loadingBuscar.value) return;
     loadingBuscar.value = true;
@@ -429,6 +496,15 @@ async function buscar() {
         loadingBuscar.value = false;
     }
 }
+/**
+ * Registra o actualiza una recomendación de producto según el modo del formulario.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
 async function guardar() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
@@ -460,6 +536,17 @@ async function guardar() {
         loadingGuardar.value = false;
     }
 }
+/**
+ * Elimina una recomendación de producto después de confirmación del usuario.
+ *
+ * @param {number} id - Identificador de la recomendación a eliminar.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
 async function eliminarRegistro(id) {
     const ok = await confirmAction({
         title: "¿Está seguro?",
@@ -478,6 +565,17 @@ async function eliminarRegistro(id) {
         loadingEliminarId.value = null;
     }
 }
+/**
+ * Prepara y abre el panel lateral con el formulario para crear o editar una recomendación.
+ *
+ * @param {Object|null} item - Registro a editar o null para crear uno nuevo.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
 function mostrarRegistro(item) {
     errores.value = {};
     if (item) {
@@ -499,12 +597,39 @@ function mostrarRegistro(item) {
     }
     abrirModal();
 }
+/**
+ * Muestra el panel lateral derecho deslizándolo hacia la vista.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
 function abrirModal() {
     $(".right-sidebar").addClass("shw-rside");
 }
+/**
+ * Oculta el panel lateral derecho y resetea el estado del formulario.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
 function cerrarModal() {
     $(".right-sidebar").removeClass("shw-rside");
 }
+/**
+ * Limpia todos los filtros de búsqueda, recarga los servicios y productos, y ejecuta la búsqueda.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
 function btnLimpiar() {
     filtro.value = { sede_id: "", servicio_cita_id: "", producto_id: "" };
     serviciosFiltrados.value = servicios.value;

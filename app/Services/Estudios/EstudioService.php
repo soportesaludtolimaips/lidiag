@@ -22,17 +22,51 @@ use Illuminate\Support\Str;
 
 class EstudioService extends BaseService
 {
+    /**
+     * Constructor del servicio principal de estudios
+     *
+     * @param  FileServiceInterface  $fileService  Servicio de gestión de archivos
+     * @param  PlantillaEstudioService  $plantillaEstudioService  Servicio de plantillas Word/PDF
+     * @param  EstudioNotificacionService  $estudioNotificacionService  Servicio de notificaciones
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function __construct(
         private readonly FileServiceInterface $fileService,
         private readonly PlantillaEstudioService $plantillaEstudioService,
         private readonly EstudioNotificacionService $estudioNotificacionService,
     ) {}
 
+    /**
+     * Obtiene todos los estudios registrados en el sistema
+     *
+     * @returns array Respuesta con la colección completa de estudios
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function all(): array
     {
         return $this->success(Estudio::all());
     }
 
+    /**
+     * Crea un nuevo estudio con paciente, productos, diagnósticos y soportes
+     *
+     * @param  array  $registro  Datos del estudio incluyendo paciente, sede, médico, productos
+     * @param  ?UploadedFile  $archivo1  Primer archivo soporte opcional
+     * @param  ?UploadedFile  $archivo2  Segundo archivo soporte opcional
+     * @param  ?UploadedFile  $archivo3  Tercer archivo soporte opcional
+     *
+     * @returns array Respuesta con el estudio creado dentro de transacción
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function create(array $registro, ?UploadedFile $archivo1 = null, ?UploadedFile $archivo2 = null, ?UploadedFile $archivo3 = null): array
     {
         $validated = $this->validateCreateData($registro);
@@ -96,6 +130,18 @@ class EstudioService extends BaseService
         }
     }
 
+    /**
+     * Lista estudios pendientes de lectura para un médico en una sede específica
+     *
+     * @param  int  $medicoId  ID del médico
+     * @param  int  $sedeId  ID de la sede
+     *
+     * @returns array Respuesta con la lista de estudios pendientes priorizados
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function listarPendientesMedico(int $medicoId, int $sedeId): array
     {
         $results = Estudio::select(
@@ -159,6 +205,18 @@ class EstudioService extends BaseService
         return $this->success($results);
     }
 
+    /**
+     * Registra la lectura de un estudio producto y marca fecha/hora
+     *
+     * @param  int  $estudioProductoId  ID del producto de estudio
+     * @param  string  $lectura  Texto de la lectura realizada
+     *
+     * @returns array Respuesta de confirmación de la lectura
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function leerEstudio(int $estudioProductoId, string $lectura): array
     {
         $item = EstudioProducto::findOrFail($estudioProductoId);
@@ -169,6 +227,17 @@ class EstudioService extends BaseService
         return $this->updated(null, 'La lectura se realizó correctamente.');
     }
 
+    /**
+     * Marca un producto de estudio como visto por el médico
+     *
+     * @param  int  $id  ID del producto de estudio
+     *
+     * @returns array Respuesta de confirmación del marcado
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function marcarVisto(int $id): array
     {
         $item = EstudioProducto::findOrFail($id);
@@ -178,6 +247,17 @@ class EstudioService extends BaseService
         return $this->updated(null, 'El estudio se marcó como visto correctamente.');
     }
 
+    /**
+     * Lista los diagnósticos asociados a un estudio específico
+     *
+     * @param  int  $estudioId  ID del estudio
+     *
+     * @returns array Respuesta con la lista de diagnósticos del estudio
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function listarDiagnosticosPorEstudio(int $estudioId): array
     {
         return $this->success(
@@ -185,6 +265,17 @@ class EstudioService extends BaseService
         );
     }
 
+    /**
+     * Lista estudios pendientes de transcripción con filtros aplicados
+     *
+     * @param  array  $filters  Filtros: sede_id, destino_estudio, fechas, nombre/doc, médico
+     *
+     * @returns array Respuesta con la lista de estudios pendientes de transcribir
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function listarPendientesTranscribir(array $filters): array
     {
         $query = Estudio::select(
@@ -248,6 +339,17 @@ class EstudioService extends BaseService
         return $this->success($results);
     }
 
+    /**
+     * Lista estudios asignados a médicos con filtros de búsqueda
+     *
+     * @param  array  $filters  Filtros: sede_id, fechas, nombre/doc, quién asignó, médico
+     *
+     * @returns array Respuesta con la lista de estudios asignados ordenados por fecha
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function listarEstudiosAsignados(array $filters): array
     {
         $query = Estudio::select(
@@ -376,6 +478,15 @@ class EstudioService extends BaseService
         }
     }
 
+    /**
+     * Lista estudios pendientes por leer y transcribir sin filtros
+     *
+     * @returns array Respuesta con la lista de estudios pendientes priorizados
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function pendientesPorLeerTranscribir(): array
     {
         $results = Estudio::select(
@@ -413,6 +524,17 @@ class EstudioService extends BaseService
         return $this->success($results);
     }
 
+    /**
+     * Verifica si un paciente tiene estudios registrados por número de documento
+     *
+     * @param  string  $numDocu  Número de documento del paciente
+     *
+     * @returns array Respuesta con indicador booleano si tiene estudios
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function buscarPorNumDocu(string $numDocu): array
     {
         $count = Estudio::select('pacientes.num_docu')
@@ -423,6 +545,17 @@ class EstudioService extends BaseService
         return $this->success(['tiene_estudios' => $count > 0]);
     }
 
+    /**
+     * Anula la asignación de un producto de estudio (lo desactiva)
+     *
+     * @param  int  $id  ID del producto de estudio a anular
+     *
+     * @returns array Respuesta de confirmación de anulación
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function anularAsignacion(int $id): array
     {
         $producto = EstudioProducto::findOrFail($id);
@@ -432,6 +565,17 @@ class EstudioService extends BaseService
         return $this->updated(null, 'El producto se anuló correctamente.');
     }
 
+    /**
+     * Obtiene la ruta de un archivo PDF de lectura para descarga
+     *
+     * @param  string  $filename  Nombre del archivo PDF
+     *
+     * @returns array Respuesta con la ruta y nombre del archivo o error 404
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function descargarPdfLectura(string $filename): array
     {
         $path = storage_path('app/reporte_lecturas/'.$filename);

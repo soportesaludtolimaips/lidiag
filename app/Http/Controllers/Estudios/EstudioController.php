@@ -15,6 +15,15 @@ class EstudioController extends Controller
         private readonly EstudioService $estudioService,
     ) {}
 
+    /**
+     * Lista todos los estudios registrados en el sistema
+     *
+     * @returns JsonResponse Respuesta con la lista completa de estudios
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function index(): JsonResponse
     {
         $result = $this->estudioService->all();
@@ -117,6 +126,17 @@ class EstudioController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Lista los diagnósticos asociados a un estudio específico
+     *
+     * @param  Request  $request  Solicitud con el ID del estudio
+     *
+     * @returns JsonResponse Respuesta con la lista de diagnósticos del estudio
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function listarDiagnosticoPorEstudio(Request $request): JsonResponse
     {
         $result = $this->estudioService->listarDiagnosticosPorEstudio(
@@ -126,6 +146,17 @@ class EstudioController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Lista los estudios pendientes de transcripción con filtros opcionales
+     *
+     * @param  Request  $request  Solicitud con filtros: sede_id, fechas, nombre/doc, quién asignó, médico
+     *
+     * @returns JsonResponse Respuesta con la lista de estudios pendientes de transcribir
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function listarPendientesTrascribir(Request $request): JsonResponse
     {
         $data = $request->validate([
@@ -145,6 +176,17 @@ class EstudioController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Lista los estudios asignados a médicos con filtros opcionales
+     *
+     * @param  Request  $request  Solicitud con filtros: sede_id, fechas, nombre/doc, quién asignó, médico
+     *
+     * @returns JsonResponse Respuesta con la lista de estudios asignados
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function listarEstudiosAsignados(Request $request): JsonResponse
     {
         $data = $request->validate([
@@ -164,6 +206,17 @@ class EstudioController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Guarda la transcripción de un estudio, actualiza paciente y genera reporte PDF
+     *
+     * @param  Request  $request  Solicitud con datos completos: estudio_producto_id, lectura, datos paciente, sede, producto
+     *
+     * @returns JsonResponse Respuesta de confirmación de guardado
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function guardarTranscripcion(Request $request): JsonResponse
     {
         $data = $request->validate([
@@ -194,6 +247,15 @@ class EstudioController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Lista los estudios pendientes por leer y transcribir sin filtros
+     *
+     * @returns JsonResponse Respuesta con la lista de estudios pendientes
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function penditesPorLeerTranscribir(Request $request): JsonResponse
     {
         $result = $this->estudioService->pendientesPorLeerTranscribir();
@@ -201,6 +263,17 @@ class EstudioController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Busca si un paciente tiene estudios registrados por número de documento
+     *
+     * @param  Request  $request  Solicitud con el número de documento a buscar
+     *
+     * @returns JsonResponse Respuesta con indicador si tiene estudios
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function buscarEstudioPorNumDocu(Request $request): JsonResponse
     {
         $result = $this->estudioService->buscarPorNumDocu($request->input('numDocu'));
@@ -208,6 +281,17 @@ class EstudioController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Anula la asignación de un producto de estudio (lo desactiva)
+     *
+     * @param  Request  $request  Solicitud con el ID del estudio producto a anular
+     *
+     * @returns JsonResponse Respuesta de confirmación de anulación
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function anularAsignacion(Request $request): JsonResponse
     {
         $result = $this->estudioService->anularAsignacion($request->integer('id'));
@@ -215,6 +299,17 @@ class EstudioController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Descarga un archivo PDF de lectura de estudio
+     *
+     * @param  string  $nomArchivo  Nombre del archivo PDF a descargar
+     *
+     * @returns mixed Respuesta con el archivo o error si no existe
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function descargarPdfLectura(string $nomArchivo)
     {
         $result = $this->estudioService->descargarPdfLectura($nomArchivo);
@@ -226,6 +321,17 @@ class EstudioController extends Controller
         return response()->file($result['data']['path']);
     }
 
+    /**
+     * Envía notificación por email con los resultados del estudio
+     *
+     * @param  Request  $request  Solicitud con datos del estudio, paciente, sede y producto
+     *
+     * @returns JsonResponse Respuesta de confirmación del envío
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function notificarEmail(Request $request): JsonResponse
     {
         $data = $request->validate([

@@ -24,13 +24,32 @@ const nomSede = ref(sessionStorage.getItem("ST-nomsede"));
 const nomMedicoEcografia = ref(localStorage.getItem("ST-ecografia-nomMedico"));
 const mostrarMedico = ref(false);
 
+/**
+ * Actualiza el nombre de la sede desde sessionStorage.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 function establecerSede() {
     nomSede.value = sessionStorage.getItem("ST-nomsede");
 }
+/**
+ * Actualiza el nombre del médico de ecografía desde localStorage.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 function establecerMedico() {
     nomMedicoEcografia.value = localStorage.getItem("ST-ecografia-nomMedico");
 }
 
+/**
+ * Lifecycle hook que inicializa sede y médico, y escucha eventos del emitter
+ * para actualizar la interfaz cuando se selecciona una sede o médico.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 onMounted(() => {
     establecerSede();
     establecerMedico();

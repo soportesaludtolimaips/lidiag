@@ -4,13 +4,38 @@ namespace App\Http\Requests\Agenda;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Form Request para validar los datos de consulta de disponibilidad de horarios.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-07-14
+ */
 class AgendaCitaDisponibilidadRequest extends FormRequest
 {
+    /**
+     * Determina si el usuario tiene permiso para realizar esta petición.
+     *
+     * @returns bool siempre retorna true.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function authorize(): bool
     {
         return true;
     }
 
+    /**
+     * Define las reglas de validación para la consulta de disponibilidad.
+     *
+     * @returns array reglas de validación: sede_id, servicio_cita_id, fecha, producto_id.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function rules(): array
     {
         return [
@@ -21,6 +46,15 @@ class AgendaCitaDisponibilidadRequest extends FormRequest
         ];
     }
 
+    /**
+     * Define los mensajes de error personalizados para las reglas de validación.
+     *
+     * @returns array mensajes de error en español.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function messages(): array
     {
         return [

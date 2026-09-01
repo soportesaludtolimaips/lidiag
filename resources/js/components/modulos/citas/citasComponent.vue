@@ -497,10 +497,28 @@ const productoOptions = computed(() => {
     }));
 });
 
+/**
+ * Inicializa el componente cargando registros y listas de apoyo.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function inicializar() {
     listarRegistros();
     cargarListas();
 }
+/**
+ * Obtiene el listado de citas desde la API aplicando los filtros de búsqueda activos.
+ *
+ * @param {number|string} page - Número de página para la paginación.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function listarRegistros(page) {
     var thisVue = proxy;
     thisVue.loadingBuscar = true;
@@ -527,6 +545,15 @@ function listarRegistros(page) {
             thisVue.loadingBuscar = false;
         });
 }
+/**
+ * Carga las listas de servicios y sedes disponibles para los filtros y formularios.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function cargarListas() {
     var thisVue = proxy;
 
@@ -543,6 +570,15 @@ function cargarListas() {
             console.error("Error sedes:", e);
         });
 }
+/**
+ * Carga los productos asociados al servicio y sede seleccionados, reiniciando selecciones dependientes.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function cargarProductosPorServicio() {
     var thisVue = proxy;
     var servicioId = thisVue.citaSeleccionada.servicio_cita_id;
@@ -563,10 +599,30 @@ function cargarProductosPorServicio() {
         thisVue.productosFiltrados = response.data;
     });
 }
+/**
+ * Maneja la selección de un producto en el componente Select2 y recarga la disponibilidad.
+ *
+ * @param {string|null} value - Identificador del producto seleccionado.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function onProductoSelect(value) {
     citaSeleccionada.value.producto_id = value || "";
     cargarDisponibilidad();
 }
+/**
+ * Consulta la disponibilidad de horarios según sede, servicio, producto y fecha seleccionados.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function cargarDisponibilidad() {
     var thisVue = proxy;
 
@@ -597,6 +653,17 @@ function cargarDisponibilidad() {
             thisVue.detalles = [];
         });
 }
+/**
+ * Abre el modal de asignación de cita con los datos prellenados de la cita seleccionada.
+ *
+ * @param {Object} cita - Objeto de la cita a asignar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function mostrarModalAsignar(cita) {
     citaSeleccionada.value = {
         id: cita.id,
@@ -619,6 +686,15 @@ function mostrarModalAsignar(cita) {
 
     jQuery("#modalAsignar").modal("show");
 }
+/**
+ * Envía la asignación de la cita con producto, sede, horario y duración al servidor.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function asignarCita() {
     var thisVue = proxy;
 
@@ -662,6 +738,17 @@ function asignarCita() {
             thisVue.loadingGuardar = false;
         });
 }
+/**
+ * Confirma una cita previamente asignada mostrando diálogo de confirmación.
+ *
+ * @param {Object} cita - Objeto de la cita a confirmar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function confirmarCita(cita) {
     var thisVue = proxy;
 
@@ -688,6 +775,17 @@ function confirmarCita(cita) {
             }
         });
 }
+/**
+ * Cancela una cita con opción de ingresar motivo de cancelación.
+ *
+ * @param {Object} cita - Objeto de la cita a cancelar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function cancelarCita(cita) {
     var thisVue = proxy;
 
@@ -718,6 +816,17 @@ function cancelarCita(cita) {
             }
         });
 }
+/**
+ * Marca una cita confirmada como cumplida después de confirmación del usuario.
+ *
+ * @param {Object} cita - Objeto de la cita a marcar como cumplida.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function cumplirCita(cita) {
     var thisVue = proxy;
 
@@ -744,6 +853,17 @@ function cumplirCita(cita) {
             }
         });
 }
+/**
+ * Registra la inasistencia del paciente a una cita confirmada.
+ *
+ * @param {Object} cita - Objeto de la cita a marcar como no asistió.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function noAsistioCita(cita) {
     var thisVue = proxy;
 
@@ -770,6 +890,17 @@ function noAsistioCita(cita) {
             }
         });
 }
+/**
+ * Muestra el historial de conversación de WhatsApp asociado a la cita del paciente.
+ *
+ * @param {Object} cita - Objeto de la cita cuya conversación se desea ver.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function verConversacion(cita) {
     var thisVue = proxy;
     thisVue.conversacion = null;
@@ -788,6 +919,15 @@ function verConversacion(cita) {
             thisVue.loadingConversacion = false;
         });
 }
+/**
+ * Restablece todos los campos de búsqueda a su valor por defecto y recarga el listado.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function limpiarFiltros() {
     busqueda.value = {
         estado: "",
@@ -798,13 +938,46 @@ function limpiarFiltros() {
     };
     listarRegistros();
 }
+/**
+ * Extrae y muestra el mensaje de error proveniente de una respuesta HTTP o excepción.
+ *
+ * @param {Error|Object} error - Objeto de error capturado.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function mostrarError(error) {
     var mensaje = error.response?.data?.error || error.message || "Error desconocido";
     mostrarAdvertencia(mensaje);
 }
+/**
+ * Muestra un diálogo de advertencia con SweetAlert.
+ *
+ * @param {string} mensaje - Texto de la advertencia a mostrar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function mostrarAdvertencia(mensaje) {
     $swal("Advertencia", mensaje, "warning");
 }
+/**
+ * Muestra un diálogo de éxito con SweetAlert.
+ *
+ * @param {string} mensaje - Texto del mensaje de éxito.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function mostrarExito(mensaje) {
     $swal("Éxito", mensaje, "success");
 }

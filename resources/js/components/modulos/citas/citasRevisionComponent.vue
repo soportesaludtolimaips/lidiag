@@ -559,9 +559,27 @@ const productoOptions = computed(() => {
     }));
 });
 
+/**
+ * Destruye la instancia de DataTable para permitir reconstrucción segura.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-01
+ */
 function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#example23");
 }
+/**
+ * Carga las listas de servicios, sedes, motivos de rechazo y recomendaciones desde la API.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-01
+ */
 function cargarListas() {
     const self = proxy;
 
@@ -603,6 +621,15 @@ function cargarListas() {
             console.error("Error recomendaciones:", e);
         });
 }
+/**
+ * Consulta las solicitudes de citas pendientes aplicando filtros y reinicializa el DataTable.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-01
+ */
 async function listarRegistros() {
     destroyDataTable();
 
@@ -636,6 +663,17 @@ async function listarRegistros() {
         loadingBuscar.value = false;
     }
 }
+/**
+ * Abre el modal de aprobación precargando datos de la cita y servicios disponibles.
+ *
+ * @param {Object} cita - Objeto de la cita a aprobar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-01
+ */
 function abrirAprobar(cita) {
     citaSeleccionada.value = {
         ...cita,
@@ -653,6 +691,15 @@ function abrirAprobar(cita) {
     jQuery("#modalAprobar").modal("show");
     cargarProductosPorServicio();
 }
+/**
+ * Carga los productos asociados al servicio de la cita y la sede seleccionada en el formulario de aprobación.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-01
+ */
 function cargarProductosPorServicio() {
     const servicioId = citaSeleccionada.value.servicio_cita_id;
     const sedeId = formAprobar.value.sede_id;
@@ -671,10 +718,30 @@ function cargarProductosPorServicio() {
         productos.value = r.data;
     });
 }
+/**
+ * Maneja el evento de selección de producto en el Select2 del formulario de aprobación.
+ *
+ * @param {string|null} value - Identificador del producto seleccionado.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-01
+ */
 function onProductoSelect(value) {
     formAprobar.value.producto_id = value || "";
     cargarDetallesDisponibles();
 }
+/**
+ * Consulta los detalles de disponibilidad de agenda para la fecha y sede seleccionadas.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-01
+ */
 async function cargarDetallesDisponibles() {
     if (
         !formAprobar.value.sede_id ||
@@ -702,11 +769,31 @@ async function cargarDetallesDisponibles() {
         loadingDetalles.value = false;
     }
 }
+/**
+ * Extrae y formatea la hora de un string de fecha-hora completo.
+ *
+ * @param {string} inicio - Cadena con fecha y hora en formato 'YYYY-MM-DD HH:MM:SS'.
+ *
+ * @returns {string} Hora extraída en formato 'HH:MM' o la cadena original si no se puede parsear.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-01
+ */
 function formatearHoraDetalle(inicio) {
     if (!inicio) return "";
     const parts = inicio.split(" ");
     return parts[1] ? parts[1].substring(0, 5) : inicio;
 }
+/**
+ * Aprueba y asigna la cita seleccionada con producto, sede, horario y observaciones.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-01
+ */
 async function aprobarCita() {
     if (loadingGuardar.value) return;
 
@@ -746,6 +833,17 @@ async function aprobarCita() {
         loadingGuardar.value = false;
     }
 }
+/**
+ * Abre el modal de rechazo precargando los datos de la cita seleccionada.
+ *
+ * @param {Object} cita - Objeto de la cita a rechazar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-01
+ */
 function abrirRechazar(cita) {
     citaSeleccionada.value = cita;
     formRechazar.value = {
@@ -754,6 +852,15 @@ function abrirRechazar(cita) {
     };
     jQuery("#modalRechazar").modal("show");
 }
+/**
+ * Rechaza la cita seleccionada con el motivo y observación indicados.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-01
+ */
 async function rechazarCita() {
     if (loadingGuardar.value) return;
 
@@ -781,20 +888,62 @@ async function rechazarCita() {
         loadingGuardar.value = false;
     }
 }
+/**
+ * Abre una nueva pestaña del navegador con el archivo indicado por la ruta.
+ *
+ * @param {string} ruta - Ruta relativa del archivo a visualizar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-01
+ */
 function verArchivo(ruta) {
     if (!ruta) return;
     window.open(getArchivoUrl(ruta), "_blank", "noopener,noreferrer");
 }
+/**
+ * Convierte una ruta de archivo de soportes en una URL accesible vía HTTP.
+ *
+ * @param {string} ruta - Ruta relativa del archivo en storage.
+ *
+ * @returns {string} URL completa para acceder al archivo.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-01
+ */
 function getArchivoUrl(ruta) {
     if (!ruta) return "";
     const filename = ruta.replace("citas_soportes/", "");
     return "/citas/media/" + filename;
 }
+/**
+ * Determina si un archivo es una imagen según su extensión.
+ *
+ * @param {string} ruta - Ruta o nombre del archivo.
+ *
+ * @returns {boolean} true si la extensión corresponde a un formato de imagen soportado.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-01
+ */
 function esImagen(ruta) {
     if (!ruta) return false;
     const ext = ruta.split(".").pop().toLowerCase();
     return ["jpg", "jpeg", "png", "gif", "webp"].includes(ext);
 }
+/**
+ * Restablece los filtros de búsqueda a sus valores por defecto y recarga el listado.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-01
+ */
 function limpiarFiltros() {
     filtro.value = { servicio_cita_id: "", sede_id: "", busqueda: "" };
     listarRegistros();

@@ -11,10 +11,30 @@ use Illuminate\Support\Facades\Validator;
 
 class TeleRadiologiaController extends Controller
 {
+    /**
+     * Constructor del controlador de tele-radiología.
+     *
+     * @param  TeleRadiologiaService  $teleRadiologiaService  Servicio de tele-radiología.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2025-11-24
+     */
     public function __construct(
         private readonly TeleRadiologiaService $teleRadiologiaService,
     ) {}
 
+    /**
+     * Lista los estudios de tele-radiología disponibles.
+     *
+     * @param  Request  $request  Solicitud HTTP con parámetros de filtrado.
+     *
+     * @returns JsonResponse Respuesta JSON con la lista de estudios.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2025-11-24
+     */
     public function listarEstudios(Request $request): JsonResponse
     {
         $result = $this->teleRadiologiaService->listarEstudios($request);
@@ -22,6 +42,17 @@ class TeleRadiologiaController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Envía un estudio de tele-radiología (endpoint no implementado).
+     *
+     * @param  Request  $request  Solicitud HTTP.
+     *
+     * @returns JsonResponse Respuesta JSON con error 501.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2025-11-24
+     */
     public function enviarEstudio(Request $request): JsonResponse
     {
         $result = $this->teleRadiologiaService->enviarEstudio();
@@ -29,6 +60,17 @@ class TeleRadiologiaController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Envía una orden de tele-radiología a la API externa.
+     *
+     * @param  EnviarOrdenTeleRadiologiaRequest  $request  Solicitud con datos de la orden.
+     *
+     * @returns JsonResponse Respuesta JSON con confirmación o error.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2025-11-24
+     */
     public function enviarOrdenTeleRadiologia(EnviarOrdenTeleRadiologiaRequest $request): JsonResponse
     {
         $result = $this->teleRadiologiaService->enviarOrdenTeleRadiologia($request->input('orden'));
@@ -36,6 +78,17 @@ class TeleRadiologiaController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Recibe la lectura de tele-radiología desde la API externa y la persiste.
+     *
+     * @param  Request  $request  Solicitud HTTP con payload JSON de la lectura.
+     *
+     * @returns JsonResponse Respuesta JSON con resultado de la operación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2025-11-24
+     */
     public function recibirLectura(Request $request): JsonResponse
     {
         $rawContent = $request->getContent();

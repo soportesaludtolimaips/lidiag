@@ -11,6 +11,17 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ReporteProduccionService extends BaseService
 {
+    /**
+     * Genera el reporte detallado de producción en formato Excel.
+     *
+     * @param  array  $data  Datos filtrados: fechaIni, fechaFin, sedeId, quien_asigno, medico, tipo.
+     *
+     * @returns BinaryFileResponse|array Archivo Excel o array con mensaje de error.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function generateReporteDetallado(array $data): BinaryFileResponse|array
     {
         $fechaInicio = $data['fechaIni'];
@@ -37,6 +48,17 @@ class ReporteProduccionService extends BaseService
         return $this->error('Tipo de reporte inválido.', 422);
     }
 
+    /**
+     * Normaliza un valor nullable convirtiendo cadenas vacías, '0' o 'null' a null.
+     *
+     * @param  mixed  $value  Valor a normalizar.
+     *
+     * @returns mixed|null Valor normalizado o null.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function normalizeNullable($value)
     {
         if ($value === null) {
@@ -50,6 +72,17 @@ class ReporteProduccionService extends BaseService
         return $v;
     }
 
+    /**
+     * Genera el reporte de estudios tomados en PAC en formato Excel.
+     *
+     * @param  array  $data  Datos filtrados: sedeId, fechaIni, fechaFin.
+     *
+     * @returns BinaryFileResponse|array Archivo Excel o array con mensaje de error.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function generateReporteEstudiosPAC(array $data): BinaryFileResponse|array
     {
         $sedeId = $this->normalizeNullable($data['sedeId'] ?? null);

@@ -19,6 +19,15 @@ import axios from "axios";
 const count = ref(0);
 const interval = ref(null);
 
+/**
+ * Obtiene el conteo de notificaciones no leídas de citas desde la API.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-07-08
+ */
 async function obtenerConteo() {
     try {
         const resp = await axios.get("/api/citas/notificaciones/no-leidas");

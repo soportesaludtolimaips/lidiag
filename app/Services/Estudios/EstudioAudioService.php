@@ -16,10 +16,32 @@ use Illuminate\Support\Str;
 
 class EstudioAudioService extends BaseService
 {
+    /**
+     * Constructor del servicio de audios de estudio
+     *
+     * @param  TranscripcionService  $transcripcionService  Servicio de transcripción con Whisper
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function __construct(
         private readonly TranscripcionService $transcripcionService,
     ) {}
 
+    /**
+     * Sube un archivo de audio, lo convierte a MP3 con FFmpeg y transcribe con Whisper
+     *
+     * @param  UploadedFile  $file  Archivo de audio a subir
+     * @param  int  $estudioId  ID del estudio al que pertenece
+     * @param  int  $estudioProductoId  ID del producto de estudio
+     *
+     * @returns array Respuesta con audio_id, audio_file, transcripción y duración
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function uploadAudio(UploadedFile $file, int $estudioId, int $estudioProductoId): array
     {
         $baseName = 'audio_'.Str::ulid()->toBase32();
@@ -101,6 +123,17 @@ class EstudioAudioService extends BaseService
         }
     }
 
+    /**
+     * Lista todos los audios asociados a un producto de estudio
+     *
+     * @param  int  $estudioProductoId  ID del producto de estudio
+     *
+     * @returns array Respuesta con la colección de audios encontrados
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function listarPorProducto(int $estudioProductoId): array
     {
         return $this->success(
@@ -108,6 +141,17 @@ class EstudioAudioService extends BaseService
         );
     }
 
+    /**
+     * Envía un archivo de audio en streaming con soporte para rangos HTTP (206)
+     *
+     * @param  string  $filename  Nombre del archivo de audio a reproducir
+     *
+     * @returns mixed Respuesta de streaming con headers de audio/mpeg o error 404/416
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function stream(string $filename)
     {
         $disk = Storage::disk('audios');
@@ -188,6 +232,19 @@ class EstudioAudioService extends BaseService
         ]);
     }
 
+    /**
+     * Carga un archivo de audio preexistente, lo convierte a MP3 y transcribe
+     *
+     * @param  UploadedFile  $file  Archivo de audio a cargar (mp3, wav, m4a, webm, ogg, flac)
+     * @param  int  $estudioId  ID del estudio al que pertenece
+     * @param  int  $estudioProductoId  ID del producto de estudio
+     *
+     * @returns array Respuesta con audio_id, audio_file, transcripción y duración
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function cargarYTranscribir(UploadedFile $file, int $estudioId, int $estudioProductoId): array
     {
         $originalName = $file->getClientOriginalName();
@@ -298,6 +355,17 @@ class EstudioAudioService extends BaseService
         }
     }
 
+    /**
+     * Elimina un audio que fue cargado (no grabado) del sistema y storage
+     *
+     * @param  int  $id  ID del audio a eliminar
+     *
+     * @returns array Respuesta de confirmación de eliminación
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function eliminarCargado(int $id): array
     {
         try {

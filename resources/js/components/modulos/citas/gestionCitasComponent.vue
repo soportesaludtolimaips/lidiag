@@ -162,10 +162,28 @@ const statsPorEstado = ref({});
 const proximas = ref([]);
 const loading = ref(false);
 
+/**
+ * Carga todos los datos del tablero: estadísticas y citas próximas.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function cargarDashboard() {
     cargarStats();
     cargarProximas();
 }
+/**
+ * Obtiene el total de citas y el conteo por cada estado desde la API.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function cargarStats() {
     var thisVue = proxy;
 
@@ -190,6 +208,15 @@ function cargarStats() {
         });
     });
 }
+/**
+ * Carga las citas programadas para hoy y mañana desde la API.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 function cargarProximas() {
     var thisVue = proxy;
     thisVue.loading = true;

@@ -9,9 +9,17 @@ use App\Models\Configuracion\ConfigSede;
 use App\Models\Configuracion\ConfigServicioCita;
 use App\Models\General\Paciente;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Modelo Eloquent que representa una cita de agenda médica.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 class AgendaCita extends Model
 {
     use HasFactory;
@@ -66,51 +74,141 @@ class AgendaCita extends Model
         'whatsapp_token',
     ];
 
+    /**
+     * Relación con el paciente asociado a la cita.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo relación con Paciente.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function paciente()
     {
         return $this->belongsTo(Paciente::class, 'paciente_id');
     }
 
+    /**
+     * Relación con la sede donde se realiza la cita.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo relación con ConfigSede.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function sede()
     {
         return $this->belongsTo(ConfigSede::class, 'sede_id');
     }
 
+    /**
+     * Relación con el servicio de cita asociado.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo relación con ConfigServicioCita.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function servicio()
     {
         return $this->belongsTo(ConfigServicioCita::class, 'servicio_cita_id');
     }
 
+    /**
+     * Relación alternativa con el servicio de cita.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo relación con ConfigServicioCita.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function servicioCita()
     {
         return $this->belongsTo(ConfigServicioCita::class, 'servicio_cita_id');
     }
 
+    /**
+     * Relación con el producto médico asociado a la cita.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo relación con ConfigProducto.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function producto()
     {
         return $this->belongsTo(ConfigProducto::class, 'producto_id');
     }
 
+    /**
+     * Relación con el usuario que registró la cita.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo relación con User.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function quienRegistra()
     {
         return $this->belongsTo(User::class, 'quien_registro_id');
     }
 
+    /**
+     * Relación con el usuario que confirmó la cita.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo relación con User.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function quienConfirma()
     {
         return $this->belongsTo(User::class, 'quien_confirma_id');
     }
 
+    /**
+     * Relación con el detalle de disponibilidad al que está asignada la cita.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo relación con AgendaDisponibilidaDetalle.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function agendaDisponibilidadDetalle()
     {
         return $this->belongsTo(AgendaDisponibilidaDetalle::class, 'agenda_disponibilidad_detalle_id');
     }
 
+    /**
+     * Relación con el motivo de rechazo asignado a la cita.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo relación con ConfigCitaRechazoMotivo.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function rechazoMotivo()
     {
         return $this->belongsTo(ConfigCitaRechazoMotivo::class, 'rechazo_motivo_id');
     }
 
+    /**
+     * Obtiene las recomendaciones activas asociadas al producto de la cita.
+     *
+     * @returns \Illuminate\Support\Collection colección de recomendaciones o colección vacía.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function recomendaciones()
     {
         if (! $this->producto_id) {
@@ -122,21 +220,65 @@ class AgendaCita extends Model
             ->get();
     }
 
+    /**
+     * Scope que filtra las citas con estado solicitada.
+     *
+     * @param  Builder  $query  builder de consulta.
+     *
+     * @returns \Illuminate\Database\Eloquent\Builder builder con el filtro aplicado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function scopeSolicitadas($query)
     {
         return $query->where('estado', 'solicitada');
     }
 
+    /**
+     * Scope que filtra las citas con estado asignada.
+     *
+     * @param  Builder  $query  builder de consulta.
+     *
+     * @returns \Illuminate\Database\Eloquent\Builder builder con el filtro aplicado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function scopeAsignadas($query)
     {
         return $query->where('estado', 'asignada');
     }
 
+    /**
+     * Scope que filtra las citas con estado confirmada.
+     *
+     * @param  Builder  $query  builder de consulta.
+     *
+     * @returns \Illuminate\Database\Eloquent\Builder builder con el filtro aplicado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function scopeConfirmadas($query)
     {
         return $query->where('estado', 'confirmada');
     }
 
+    /**
+     * Scope que filtra citas asignadas o confirmadas cuya fecha de inicio es mañana (para recordatorios).
+     *
+     * @param  Builder  $query  builder de consulta.
+     *
+     * @returns \Illuminate\Database\Eloquent\Builder builder con el filtro aplicado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function scopePendientesNotificar($query)
     {
         return $query->whereIn('estado', ['asignada', 'confirmada'])

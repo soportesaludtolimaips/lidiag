@@ -10,6 +10,17 @@ use Illuminate\Support\Facades\DB;
 
 class AgendaDisponibilidaService extends BaseService
 {
+    /**
+     * Lista las disponibilidades de agenda con filtros por sede, servicio y rango de fechas.
+     *
+     * @param  array  $filters  filtros: sede_id, servicio_cita_id, bus_fech_ini, bus_fecha_fin.
+     *
+     * @returns array resultado con las disponibilidades encontradas (máx. 1000 registros).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function list(array $filters): array
     {
         $user = auth()->user();
@@ -38,6 +49,17 @@ class AgendaDisponibilidaService extends BaseService
         return $this->success($query->limit(1000)->get());
     }
 
+    /**
+     * Crea una nueva disponibilidad de agenda y genera sus slots de detalle automáticamente.
+     *
+     * @param  array  $data  datos de la disponibilidad: sede_id, servicio_cita_id, fecha_hora_ini, total_citas, dura_cita.
+     *
+     * @returns array resultado con la disponibilidad creada y sus detalles.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function create(array $data): array
     {
         $user = auth()->user();
@@ -93,6 +115,17 @@ class AgendaDisponibilidaService extends BaseService
         ]);
     }
 
+    /**
+     * Busca una disponibilidad por su identificador con relaciones cargadas.
+     *
+     * @param  int  $id  identificador de la disponibilidad.
+     *
+     * @returns array resultado con la disponibilidad o error si no existe.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function find(int $id): array
     {
         $disponibilidad = AgendaDisponibilida::with(['sede', 'servicioCita'])->find($id);
@@ -104,6 +137,18 @@ class AgendaDisponibilidaService extends BaseService
         return $this->success($disponibilidad);
     }
 
+    /**
+     * Actualiza una disponibilidad existente, eliminando y regenerando sus slots de detalle.
+     *
+     * @param  int  $id  identificador de la disponibilidad a actualizar.
+     * @param  array  $data  datos actualizados.
+     *
+     * @returns array resultado con la disponibilidad actualizada.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function update(int $id, array $data): array
     {
         $disponibilidad = AgendaDisponibilida::find($id);
@@ -148,6 +193,17 @@ class AgendaDisponibilidaService extends BaseService
         ]);
     }
 
+    /**
+     * Elimina una disponibilidad y sus detalles asociados, validando que no tenga slots reservados.
+     *
+     * @param  int  $id  identificador de la disponibilidad a eliminar.
+     *
+     * @returns array resultado de la eliminación o error si tiene slots reservados.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function delete(int $id): array
     {
         $disponibilidad = AgendaDisponibilida::find($id);

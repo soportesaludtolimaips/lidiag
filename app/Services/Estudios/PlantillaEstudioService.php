@@ -11,6 +11,17 @@ use PhpOffice\PhpWord\TemplateProcessor;
 
 class PlantillaEstudioService extends BaseService
 {
+    /**
+     * Genera un reporte Word/PDF a partir de la plantilla configurada para la sede
+     *
+     * @param  array  $data  Datos completos: sede_id, paciente, lectura, médico, producto, fechas
+     *
+     * @returns array Respuesta con el nombre del archivo PDF generado
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function editWord(array $data): array
     {
         $sede = ConfigSede::find($data['sede_id'] ?? null);
@@ -102,6 +113,17 @@ class PlantillaEstudioService extends BaseService
         ], 'Plantilla creada correctamente');
     }
 
+    /**
+     * Convierte un archivo DOCX a PDF utilizando el helper de conversión
+     *
+     * @param  string  $nomPlantilla  Nombre base del archivo (sin extensión)
+     *
+     * @returns bool true si la conversión fue exitosa, false en caso contrario
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function convertDocxToPdf(string $nomPlantilla): bool
     {
         $sourceFile = storage_path('app/reporte_lecturas/'.$nomPlantilla.'.docx');
@@ -110,6 +132,17 @@ class PlantillaEstudioService extends BaseService
         return PdfConverterHelper::convert($sourceFile, $destinationFile);
     }
 
+    /**
+     * Elimina los archivos de reporte PDF y DOCX generados
+     *
+     * @param  string  $reportePath  Nombre del archivo de reporte (con extensión PDF)
+     *
+     * @returns void
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function eliminarReporte(string $reportePath): void
     {
         $paths = [

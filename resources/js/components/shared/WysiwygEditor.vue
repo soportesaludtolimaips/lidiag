@@ -52,6 +52,13 @@ function htmlToPlain(html) {
         .trim();
 }
 
+/**
+ * Inicializa el editor Wysiwyg (wysihtml5) en el textarea,
+ * configurando el valor inicial, evento blur y observer de mutaciones.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-18
+ */
 function initEditor() {
     const el = textareaRef.value;
     if (!el || !window.$ || !$.fn || !$.fn.wysihtml5) return;
@@ -79,6 +86,13 @@ function initEditor() {
     }
 }
 
+/**
+ * Destruye el editor Wysiwyg: desconecta el observer, elimina la barra
+ * de herramientas, el sandbox y los elementos auxiliares del DOM.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-18
+ */
 function destroyEditor() {
     const el = textareaRef.value;
     if (!el) return;
@@ -103,6 +117,15 @@ function destroyEditor() {
     $el.removeData("wysihtml5");
 }
 
+/**
+ * Adjunta un MutationObserver al body del iframe del editor para detectar
+ * cambios en el contenido y sincronizarlos con el modelo v-model.
+ *
+ * @param {Object} editor - Instancia del editor wysihtml5.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-18
+ */
 function attachObserver(editor) {
     disconnectObserver();
     try {
@@ -129,6 +152,12 @@ function attachObserver(editor) {
     }
 }
 
+/**
+ * Desconecta y elimina el MutationObserver activo para evitar fugas de memoria.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-18
+ */
 function disconnectObserver() {
     if (observer) {
         observer.disconnect();
@@ -136,6 +165,13 @@ function disconnectObserver() {
     }
 }
 
+/**
+ * Watcher que sincroniza cambios externos de modelValue hacia el editor Wysiwyg,
+ * evitando ciclos infinitos comparando el contenido actual con el nuevo valor.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-18
+ */
 watch(
     () => props.modelValue,
     (newVal) => {
@@ -152,6 +188,18 @@ watch(
     }
 );
 
+/**
+ * Lifecycle hook que inicializa el editor Wysiwyg después del nextTick.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-18
+ */
 onMounted(() => nextTick(initEditor));
+/**
+ * Lifecycle hook que destruye el editor Wysiwyg al desmontar el componente.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-08-18
+ */
 onBeforeUnmount(destroyEditor);
 </script>

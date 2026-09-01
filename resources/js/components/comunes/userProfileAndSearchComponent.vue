@@ -224,6 +224,15 @@ const medicoOptions = computed(() => {
     return (medicos.value || []).map((p) => ({ id: String(p.id), name: p.name }));
 });
 
+/**
+ * Determina y almacena en sessionStorage el ID del módulo actual
+ * basándose en la URL del navegador (ecografías=2, estudios=1).
+ *
+ * @returns {string} ID del módulo detectado.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 function establecerModuloActual() {
     try {
         const pathname = String(window?.location?.pathname || "").toLowerCase();
@@ -270,6 +279,14 @@ async function Logout() {
         window.location.href = "/";
     }
 }
+/**
+ * Obtiene la lista de sedes activas desde la API y las almacena en el reactive ref sedes.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 async function listarSedes() {
     try {
         const res = await axios.get("/api/config-sedes/listar/sedes/activas");
@@ -278,6 +295,15 @@ async function listarSedes() {
         console.log(error);
     }
 }
+/**
+ * Obtiene la lista de médicos disponibles desde la API y los almacena en medicos.
+ * Si solo hay un médico, lo selecciona automáticamente.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 async function listarMedicos() {
     try {
         const moduloId = sessionStorage.getItem("ST-modulo") || establecerModuloActual();
@@ -291,6 +317,15 @@ async function listarMedicos() {
         console.log(error);
     }
 }
+/**
+ * Establece la sede seleccionada: guarda datos en sessionStorage,
+ * obtiene detalles de la sede desde la API y emite el evento sedeSeleccionada.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 async function estableserSede() {
     if (!sedeSeleccionada.value) return;
     const res = await axios.get("/api/config-sedes/" + sedeSeleccionada.value + "/buscarPorId");
@@ -311,6 +346,15 @@ async function estableserSede() {
         email_repor: res.data.email_repor,
     });
 }
+/**
+ * Establece el médico seleccionado: guarda datos en sessionStorage y localStorage,
+ * y emite el evento medicoSeleccionado para notificar a otros componentes.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 async function estableserMedico() {
     nomMedicoSeleccionado.value = $('select[name="medicos"] option:selected').text();
 
@@ -325,10 +369,26 @@ async function estableserMedico() {
         nomMedico: nomMedicoSeleccionado.value,
     });
 }
+/**
+ * Maneja la apertura del dropdown de notificaciones del helpdesk,
+ * recargando las notificaciones de forma silenciosa.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 function onOpenHdDropdown() {
     // Recarga rápida al abrir
     cargarHdNotificaciones(true);
 }
+/**
+ * Formatea una fecha/hora de notificación del helpdesk a zona horaria de Bogotá.
+ *
+ * @param {string} dt - Fecha en formato ISO.
+ * @returns {string} Fecha formateada como 'YYYY-MM-DD HH:mm' o el valor original si falla.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 function formatHdTime(dt) {
     if (!dt) return "";
     try {
@@ -337,6 +397,16 @@ function formatHdTime(dt) {
         return String(dt);
     }
 }
+/**
+ * Carga las notificaciones del helpdesk desde la API.
+ * Si el endpoint retorna 403 o 404, oculta el ícono de notificaciones.
+ *
+ * @param {boolean} silent - Si es true, no muestra errores en consola.
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 async function cargarHdNotificaciones(silent = false) {
     if (!hdDisponible.value) return;
     if (hdLoading.value) return;
@@ -357,26 +427,69 @@ async function cargarHdNotificaciones(silent = false) {
         hdLoading.value = false;
     }
 }
+/**
+ * Marca una notificación individual del helpdesk como leída
+ * llamando al endpoint correspondiente de la API.
+ *
+ * @param {Object} n - Objeto notificación con propiedad id.
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 async function marcarHdLeida(n) {
     try {
         await axios.post(`/api/helpdesk-notificaciones/${n.id}/read`);
         n.read_at = new Date().toISOString();
     } catch (error) {}
 }
+/**
+ * Marca todas las notificaciones del helpdesk como leídas
+ * y recarga la lista de notificaciones.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 async function marcarHdTodas() {
     try {
         await axios.post("/api/helpdesk-notificaciones/read-all");
         await cargarHdNotificaciones(true);
     } catch (error) {}
 }
+/**
+ * Abre una notificación del helpdesk: la marca como leída si no lo estaba
+ * y redirige a la página del ticket correspondiente.
+ *
+ * @param {Object} n - Objeto notificación con propiedades id, read_at y data.ticket_id.
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 async function abrirHdNotificacion(n) {
     if (!n.read_at) await marcarHdLeida(n);
     if (n.data?.ticket_id) window.location.href = `/helpdesk-tickets/${n.data.ticket_id}`;
 }
+/**
+ * Redirige al usuario a la página de notificaciones del helpdesk.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 function goHdNotificaciones() {
     window.location.href = "/helpdesk-notificaciones";
 }
 
+/**
+ * Lifecycle hook que inicializa el módulo, lista sedes y médicos,
+ * carga notificaciones del helpdesk y configura polling inteligente
+ * con backoff progresivo basado en visibilidad de la pestaña.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 onMounted(() => {
     establecerModuloActual();
     listarSedes();
@@ -414,6 +527,13 @@ onMounted(() => {
     mostrarMedico.value = rutasEcografias.includes(url);
 });
 
+/**
+ * Lifecycle hook que limpia el intervalo de polling y remueve
+ * el listener de visibilidad al desmontar el componente.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 onBeforeUnmount(() => {
     try {
         if (hdIntervalId.value) clearTimeout(hdIntervalId.value);

@@ -13,6 +13,17 @@ use Illuminate\Support\Facades\Mail;
 
 class EstudioNotificacionService extends BaseService
 {
+    /**
+     * Lista estudios para notificación con información completa de paciente, médico y sede
+     *
+     * @param  array  $filters  Filtros de búsqueda: num_docu, nombre, fechas
+     *
+     * @returns array Respuesta con la lista de estudios para notificar (máx 1000)
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function listarEstudios(array $filters): array
     {
         $query = Estudio::query()->select(
@@ -57,6 +68,18 @@ class EstudioNotificacionService extends BaseService
         return $this->success($registros);
     }
 
+    /**
+     * Envía notificación por email con el reporte PDF del estudio y descarga imágenes DICOM
+     *
+     * @param  object  $estudio  Objeto con datos del estudio incluyendo email
+     * @param  string  $archivoReporte  Nombre del archivo PDF de reporte
+     *
+     * @returns array Respuesta de confirmación del envío
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function notificarEmail($estudio, string $archivoReporte): array
     {
         $reportePath = storage_path('app/reporte_lecturas/'.$archivoReporte);
@@ -82,6 +105,17 @@ class EstudioNotificacionService extends BaseService
         return $this->success(null, 'La notificación se generó correctamente.');
     }
 
+    /**
+     * Envía el reporte del estudio al portal de pacientes vía API con firma HMAC
+     *
+     * @param  object  $estudio  Objeto con datos del estudio, paciente y sede
+     *
+     * @returns array Respuesta de confirmación del envío al portal
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function enviarPortalPacientes($estudio): array
     {
         $nombrePaciente = str_replace(['^^^', ' ^', '^'], ['', '', ' '], $estudio->nom_pacien ?? '');
@@ -150,6 +184,18 @@ class EstudioNotificacionService extends BaseService
         }
     }
 
+    /**
+     * Descarga imágenes DICOM de un estudio desde el servidor PACS de la sede
+     *
+     * @param  int  $sedeId  ID de la sede con configuración PACS
+     * @param  string  $study_iuid  UID del estudio DICOM
+     *
+     * @returns array Respuesta con el resultado de la descarga de imágenes
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public static function descargaImagenesDicom($sedeId, $study_iuid): array
     {
         $result = DicomHelper::downloadStudyImages(
@@ -175,6 +221,17 @@ class EstudioNotificacionService extends BaseService
         return (new self)->success(null, 'Todas las imágenes se han descargado y guardado correctamente');
     }
 
+    /**
+     * Elimina un archivo de reporte PDF del sistema
+     *
+     * @param  string  $reportePath  Ruta completa del archivo a eliminar
+     *
+     * @returns void
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function eliminarReporte($reportePath): void
     {
         @unlink($reportePath);

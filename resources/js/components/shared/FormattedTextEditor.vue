@@ -58,9 +58,27 @@ const props = defineProps({
 });
 const emit = defineEmits(["update:modelValue"]);
 
+/**
+ * Maneja el evento input del textarea y emite el valor actualizado al padre.
+ *
+ * @param {Event} e - Evento de input del textarea.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-07-08
+ */
 function onInput(e) {
     emit("update:modelValue", e.target.value);
 }
+/**
+ * Inserta formato de texto (negrita, cursiva, tachado, código) alrededor
+ * de la selección actual en el textarea, o agrega los marcadores si no hay selección.
+ *
+ * @param {string} before - Marcador de apertura (ej: '*', '_', '~', '```').
+ * @param {string} after - Marcador de cierre.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-07-08
+ */
 function insertFormat(before, after) {
     const ta = textarea.value;
     if (!ta) return;
@@ -76,6 +94,15 @@ function insertFormat(before, after) {
         ta.selectionEnd = start + before.length + selected.length;
     });
 }
+/**
+ * Inserta un emoji en la posición actual del cursor del textarea
+ * y reposiciona el cursor después del emoji insertado.
+ *
+ * @param {string} emoji - Emoji a insertar.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-07-08
+ */
 function insertEmoji(emoji) {
     const ta = textarea.value;
     if (!ta) return;

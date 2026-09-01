@@ -6,11 +6,29 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class ReporteEstudiosPACRequest extends FormRequest
 {
+    /**
+     * Determina si el usuario puede autorizar la solicitud.
+     *
+     * @returns bool Siempre retorna true.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function authorize(): bool
     {
         return true;
     }
 
+    /**
+     * Define las reglas de validación para el reporte de estudios PAC.
+     *
+     * @returns array<string, string> Reglas de validación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function rules(): array
     {
         return [
@@ -20,6 +38,15 @@ class ReporteEstudiosPACRequest extends FormRequest
         ];
     }
 
+    /**
+     * Define los mensajes de error personalizados para las reglas de validación.
+     *
+     * @returns array<string, string> Mensajes de error en español.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function messages(): array
     {
         return [

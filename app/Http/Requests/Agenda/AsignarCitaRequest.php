@@ -4,13 +4,38 @@ namespace App\Http\Requests\Agenda;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Form Request para validar los datos de asignación de una cita médica.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-07-14
+ */
 class AsignarCitaRequest extends FormRequest
 {
+    /**
+     * Determina si el usuario tiene permiso para realizar esta petición.
+     *
+     * @returns bool siempre retorna true.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function authorize(): bool
     {
         return true;
     }
 
+    /**
+     * Define las reglas de validación para la asignación de una cita.
+     *
+     * @returns array reglas de validación: producto_id, sede_id, agenda_disponibilidad_detalle_id, fecha_hora_inicio, duracion_minutos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function rules(): array
     {
         return [
@@ -22,6 +47,15 @@ class AsignarCitaRequest extends FormRequest
         ];
     }
 
+    /**
+     * Define los mensajes de error personalizados para las reglas de validación.
+     *
+     * @returns array mensajes de error en español.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function messages(): array
     {
         return [

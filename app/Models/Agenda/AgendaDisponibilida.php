@@ -7,6 +7,13 @@ use App\Models\Configuracion\ConfigServicioCitas;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Modelo Eloquent que representa una disponibilidad de agenda médica.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-01-21
+ */
 class AgendaDisponibilida extends Model
 {
     use HasFactory;
@@ -24,16 +31,43 @@ class AgendaDisponibilida extends Model
         'estado',
     ];
 
+    /**
+     * Relación con los detalles (slots) de esta disponibilidad.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasMany relación con AgendaDisponibilidaDetalle.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-01-21
+     */
     public function agendaDisponibilidaDetalles()
     {
         return $this->hasMany(AgendaDisponibilidaDetalle::class, 'agenda_disponibilidad_id');
     }
 
+    /**
+     * Relación con la sede a la que pertenece la disponibilidad.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo relación con ConfigSede.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-01-21
+     */
     public function sede()
     {
         return $this->belongsTo(ConfigSede::class, 'sede_id');
     }
 
+    /**
+     * Relación con el servicio de cita asociado a la disponibilidad.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo relación con ConfigServicioCitas.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-01-21
+     */
     public function servicioCita()
     {
         return $this->belongsTo(ConfigServicioCitas::class, 'servicio_cita_id');

@@ -28,6 +28,19 @@ class ReportesEstudioPAC implements FromCollection, WithColumnWidths, WithCustom
 
     protected $conexionOriginal;
 
+    /**
+     * Constructor de la clase de exportación de estudios PAC.
+     *
+     * @param  string  $fechaInicio  Fecha de inicio del rango.
+     * @param  string  $fechaFin  Fecha de fin del rango.
+     * @param  int  $sedeId  Identificador de la sede.
+     * @param  string  $sedeNombre  Nombre de la sede.
+     * @param  string  $conexionOriginal  Nombre de la conexión original de base de datos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-27
+     */
     public function __construct($fechaInicio, $fechaFin, $sedeId, $sedeNombre, $conexionOriginal)
     {
         $this->fechaInicio = $fechaInicio;
@@ -37,6 +50,15 @@ class ReportesEstudioPAC implements FromCollection, WithColumnWidths, WithCustom
         $this->conexionOriginal = $conexionOriginal;
     }
 
+    /**
+     * Obtiene la colección de estudios desde la base de datos de la sede configurada.
+     *
+     * @returns \Illuminate\Support\Collection Colección de estudios del PAC.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-27
+     */
     public function collection()
     {
         $sedeActual = ConfigSede::find($this->sedeId);
@@ -80,6 +102,15 @@ class ReportesEstudioPAC implements FromCollection, WithColumnWidths, WithCustom
         }
     }
 
+    /**
+     * Define los encabezados de las columnas del archivo Excel.
+     *
+     * @returns array<string> Nombres de las columnas.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-27
+     */
     public function headings(): array
     {
         return [
@@ -92,6 +123,17 @@ class ReportesEstudioPAC implements FromCollection, WithColumnWidths, WithCustom
         ];
     }
 
+    /**
+     * Mapea cada estudio a un array de valores para las celdas del Excel.
+     *
+     * @param  object  $estudio  Objeto estudio con campos de la tabla study y patient.
+     *
+     * @returns array<string> Valores de las celdas para la fila.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-27
+     */
     public function map($estudio): array
     {
         return [
@@ -104,6 +146,17 @@ class ReportesEstudioPAC implements FromCollection, WithColumnWidths, WithCustom
         ];
     }
 
+    /**
+     * Aplica estilos visuales al archivo Excel (encabezados, bordes, colores).
+     *
+     * @param  Worksheet  $sheet  Hoja de cálculo de PhpSpreadsheet.
+     *
+     * @returns array<int, array<string, mixed>> Estilos adicionales para filas.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-27
+     */
     public function styles(Worksheet $sheet)
     {
         // Agrega el encabezado personalizado
@@ -156,6 +209,15 @@ class ReportesEstudioPAC implements FromCollection, WithColumnWidths, WithCustom
         ];
     }
 
+    /**
+     * Define el ancho de cada columna del archivo Excel.
+     *
+     * @returns array<string, int> Ancho de columna por letra.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-27
+     */
     public function columnWidths(): array
     {
         return [
@@ -168,6 +230,15 @@ class ReportesEstudioPAC implements FromCollection, WithColumnWidths, WithCustom
         ];
     }
 
+    /**
+     * Retorna la celda de inicio para los datos del reporte.
+     *
+     * @returns string Celda de inicio (ejemplo: 'A3').
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-27
+     */
     public function startCell(): string
     {
         return 'A3'; // Los datos comenzarán desde la celda A4

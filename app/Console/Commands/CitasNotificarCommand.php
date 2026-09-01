@@ -6,6 +6,17 @@ use App\Models\Agenda\AgendaCita;
 use App\Services\WhatsAppService;
 use Illuminate\Console\Command;
 
+/**
+ * Comando Artisan que envía recordatorios de citas por WhatsApp para el día siguiente.
+ *
+ * Consulta las citas asignadas o confirmadas programadas para mañana que no hayan
+ * recibido el recordatorio de 24 horas. Utiliza WhatsAppService para enviar el
+ * mensaje y actualiza el estado de la cita según el resultado del envío.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 class CitasNotificarCommand extends Command
 {
     protected $signature = 'citas:notificar';
@@ -14,12 +25,35 @@ class CitasNotificarCommand extends Command
 
     protected $whatsAppService;
 
+    /**
+     * Constructor del comando.
+     *
+     * @param  WhatsAppService  $whatsAppService  Servicio para envío de mensajes por WhatsApp.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function __construct(WhatsAppService $whatsAppService)
     {
         parent::__construct();
         $this->whatsAppService = $whatsAppService;
     }
 
+    /**
+     * Ejecuta el comando para enviar recordatorios de citas del día siguiente.
+     *
+     * Consulta las citas con estado 'asignada' o 'confirmada' cuya fecha de inicio
+     * sea mañana y que no hayan enviado el recordatorio de 24 horas. Para cada cita,
+     * envía el recordatorio vía WhatsApp, actualiza el estado de envío en la base de
+     * datos y lleva un conteo de éxitos y fallos.
+     *
+     * @return int 0 si todas las notificaciones se enviaron correctamente, 1 si hubo fallos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function handle()
     {
         $this->info('Iniciando envío de recordatorios de citas...');
