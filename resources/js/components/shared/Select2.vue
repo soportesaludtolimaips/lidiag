@@ -35,6 +35,7 @@ const props = defineProps({
     returnArray: { type: Boolean, default: false },
     returnObject: { type: Boolean, default: false },
     placeholder: { type: String, default: "" },
+    autoInit: { type: Boolean, default: true },
 });
 
 const emit = defineEmits(["input", "select", "update:modelValue"]);
@@ -188,7 +189,6 @@ function destroySelect2() {
  * @date 2025-11-04
  */
 function rebuild() {
-    // Re-init to refresh options while preserving current value
     const current = props.modelValue ?? props.value;
     initSelect2();
     const $el = $select();
@@ -234,6 +234,7 @@ watch(
             "options:",
             newOpts
         );
+        if (!props.autoInit) return;
         nextTick(() => initSelect2());
     }
 );

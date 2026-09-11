@@ -721,6 +721,7 @@
                                                 :options="productosDisponiblesOptions"
                                                 width="100%"
                                                 :allow-clear="false"
+                                                :auto-init="false"
                                                 @input="onProductoSelect"
                                             />
                                         </div>
