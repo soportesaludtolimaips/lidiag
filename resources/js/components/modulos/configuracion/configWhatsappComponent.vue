@@ -710,20 +710,24 @@
                             <template v-if="tabActivo === 'productos'">
                                 <div class="row p-t-20">
                                     <div class="col-md-12">
-                                        <div class="form-group" id="producto-parent">
+                                        <div class="form-group">
                                             <label class="control-label"
                                                 >Producto<span class="text-danger">*</span></label
                                             >
-                                            <Select2
-                                                ref="select2Productos"
-                                                select-id="select-producto-whatsapp"
-                                                :value="productoSeleccionado"
-                                                :options="productosDisponiblesOptions"
-                                                width="100%"
-                                                :allow-clear="false"
-                                                :auto-init="false"
-                                                @input="onProductoSelect"
-                                            />
+                                            <select
+                                                v-model="productoSeleccionado"
+                                                class="form-control"
+                                                @change="onProductoSelect($event.target.value)"
+                                            >
+                                                <option value="">Seleccione un producto</option>
+                                                <option
+                                                    v-for="p in productosDisponiblesOptions"
+                                                    :key="p.id"
+                                                    :value="p.id"
+                                                >
+                                                    {{ p.cod_cups }} - {{ p.nom_produc }}
+                                                </option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
@@ -969,7 +973,6 @@ const productosVinculados = ref([]);
 const productosDisponibles = ref([]);
 const productoSeleccionado = ref("");
 const recomendacion = ref("");
-const select2Productos = ref(null);
 const mensajeTextarea = ref(null);
 const loadingAgregarProducto = ref(false);
 const previewMensaje = ref("");
@@ -1442,10 +1445,6 @@ async function mostrarModalAgregar() {
         $(".right-sidebar").slideDown(50, resolve);
         $(".right-sidebar").addClass("shw-rside");
     });
-    await nextTick();
-    if (select2Productos.value) {
-        select2Productos.value.rebuild();
-    }
 }
 /**
  * Actualiza el producto seleccionado y precarga su recomendación si existe.
