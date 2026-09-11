@@ -1,6 +1,7 @@
 <template>
     <select
         ref="el"
+        :id="selectId"
         class="select2 form-control custom-select"
         :style="{ width, height: height + 'px' }"
         :multiple="multiple"
@@ -18,6 +19,7 @@ const el = ref(null);
 
 // backward-compat: acepta tanto value (legacy) como modelValue (v-model)
 const props = defineProps({
+    selectId: { type: String, default: "" },
     modelValue: { type: [String, Number, Array, null], default: undefined },
     value: { type: [String, Number, Array, null], default: undefined },
     options: { type: Array, default: () => [] },
@@ -91,6 +93,9 @@ function normalizeText(term) {
 function initSelect2() {
     const $el = $select();
     if (!$el) return;
+    if ($el.is(":hidden")) return;
+    const $parent = $el.closest(".right-sidebar");
+    if ($parent.length && $parent.is(":hidden")) return;
     if ($el.data("select2")) {
         $el.off("select2:select");
         $el.off("select2:unselect");
@@ -232,6 +237,8 @@ watch(
         nextTick(() => initSelect2());
     }
 );
+
+defineExpose({ rebuild });
 </script>
 <style>
 .select2-results__option {

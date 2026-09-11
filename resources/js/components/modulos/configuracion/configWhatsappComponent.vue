@@ -567,8 +567,8 @@
                                         <div class="form-group">
                                             <label class="control-label"
                                                 >Sede
-                                                <small class="text-muted">(opcional)</small></label
-                                            >
+                                                <small class="text-muted">(opcional)</small>
+                                            </label>
                                             <select
                                                 v-model="form.sede_id"
                                                 class="form-control"
@@ -592,8 +592,8 @@
                                         <div class="form-group">
                                             <label class="control-label"
                                                 >Servicio
-                                                <small class="text-muted">(opcional)</small></label
-                                            >
+                                                <small class="text-muted">(opcional)</small>
+                                            </label>
                                             <select
                                                 v-model="form.servicio_cita_id"
                                                 class="form-control"
@@ -712,9 +712,11 @@
                                     <div class="col-md-12">
                                         <div class="form-group" id="producto-parent">
                                             <label class="control-label"
-                                                >Producto <span class="text-danger">*</span></label
+                                                >Producto<span class="text-danger">*</span></label
                                             >
                                             <Select2
+                                                ref="select2Productos"
+                                                select-id="select-producto-whatsapp"
                                                 :value="productoSeleccionado"
                                                 :options="productosDisponiblesOptions"
                                                 width="100%"
@@ -966,6 +968,7 @@ const productosVinculados = ref([]);
 const productosDisponibles = ref([]);
 const productoSeleccionado = ref("");
 const recomendacion = ref("");
+const select2Productos = ref(null);
 const mensajeTextarea = ref(null);
 const loadingAgregarProducto = ref(false);
 const previewMensaje = ref("");
@@ -1421,18 +1424,26 @@ async function cargarProductosVinculados() {
  * @date 2026-06-11
  */
 async function mostrarModalAgregar() {
-    tituloModal.value = "Agregar producto a: " + (servicioActual.value?.nombre || "");
-    productoSeleccionado.value = "";
-    recomendacion.value = "";
-    loadingAgregarProducto.value = false;
     try {
         const res = await axios.get("/api/servicio-producto/productos-no-vinculados", {
             params: { servicio_cita_id: servicioSeleccionado.value },
         });
         productosDisponibles.value = res.data.data;
-        abrirModal();
     } catch (error) {
         console.error("Error al cargar productos disponibles:", error);
+        return;
+    }
+    tituloModal.value = "Agregar producto a: " + (servicioActual.value?.nombre || "");
+    productoSeleccionado.value = "";
+    recomendacion.value = "";
+    loadingAgregarProducto.value = false;
+    await new Promise((resolve) => {
+        $(".right-sidebar").slideDown(50, resolve);
+        $(".right-sidebar").addClass("shw-rside");
+    });
+    await nextTick();
+    if (select2Productos.value) {
+        select2Productos.value.rebuild();
     }
 }
 /**
