@@ -17,6 +17,7 @@
                 <button
                     type="button"
                     class="btn btn-info btnDesplegarRigthSidebar"
+                    v-if="tabActivo !== 'productos'"
                     @click="
                         actualizar = false;
                         mostrarRegistro();
@@ -50,6 +51,16 @@
                                     @click.prevent="cambiarTab('saludos')"
                                 >
                                     <i class="fa fa-comment"></i> Saludos del Bot
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a
+                                    class="nav-link"
+                                    :class="{ active: tabActivo === 'productos' }"
+                                    href="#"
+                                    @click.prevent="cambiarTab('productos')"
+                                >
+                                    <i class="fa fa-cubes"></i> Productos por Servicio
                                 </a>
                             </li>
                         </ul>
@@ -265,6 +276,180 @@
                                         </tr>
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+
+                        <div v-if="tabActivo === 'productos'" class="m-t-20">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h4 class="card-title">Servicios</h4>
+                                            <h6 class="card-subtitle text-info">
+                                                Seleccione un servicio para administrar sus
+                                                productos.
+                                            </h6>
+
+                                            <div
+                                                v-if="loadingServiciosProductos"
+                                                class="text-center m-t-20"
+                                            >
+                                                <i class="fa fa-spinner fa-spin fa-2x"></i>
+                                                <p class="text-muted m-t-10">
+                                                    Cargando servicios...
+                                                </p>
+                                            </div>
+
+                                            <div
+                                                v-else-if="errorServiciosProductos"
+                                                class="alert alert-danger m-t-20"
+                                            >
+                                                <i class="fa fa-exclamation-triangle"></i>
+                                                {{ errorServiciosProductos }}
+                                            </div>
+
+                                            <div
+                                                v-else-if="serviciosProductos.length === 0"
+                                                class="text-center m-t-20"
+                                            >
+                                                <p class="text-muted">
+                                                    No hay servicios disponibles. Contacte al
+                                                    administrador para asignarle servicios.
+                                                </p>
+                                            </div>
+
+                                            <div class="list-group m-t-10" v-else>
+                                                <button
+                                                    v-for="servicio in serviciosProductos"
+                                                    :key="servicio.id"
+                                                    type="button"
+                                                    class="list-group-item list-group-item-action"
+                                                    :class="
+                                                        servicioSeleccionado === servicio.id
+                                                            ? 'active'
+                                                            : ''
+                                                    "
+                                                    @click="seleccionarServicio(servicio)"
+                                                >
+                                                    <div
+                                                        class="d-flex justify-content-between align-items-center w-100"
+                                                    >
+                                                        <div>
+                                                            <div>{{ servicio.nombre }}</div>
+                                                            <small
+                                                                class="d-block"
+                                                                style="
+                                                                    font-size: 11px;
+                                                                    opacity: 0.75;
+                                                                "
+                                                            >
+                                                                <i class="fa fa-map-marker"></i>
+                                                                {{
+                                                                    servicio.sede?.nom_sede ||
+                                                                    "Sin sede"
+                                                                }}
+                                                            </small>
+                                                        </div>
+                                                        <span
+                                                            class="badge badge-danger badge-pill"
+                                                            v-if="servicio.productos_count"
+                                                        >
+                                                            {{ servicio.productos_count }}
+                                                        </span>
+                                                    </div>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-8">
+                                    <div class="card" v-if="servicioSeleccionado">
+                                        <div class="card-body">
+                                            <div
+                                                class="d-flex justify-content-between align-items-center"
+                                            >
+                                                <div>
+                                                    <h4 class="card-title">
+                                                        {{ servicioActual?.nombre }}
+                                                    </h4>
+                                                    <h6 class="card-subtitle text-info">
+                                                        Productos vinculados a este servicio
+                                                    </h6>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-info"
+                                                    @click="mostrarModalAgregar()"
+                                                >
+                                                    <i class="fa fa-plus-circle m-r-5"></i> Agregar
+                                                    Producto
+                                                </button>
+                                            </div>
+                                            <div class="table-responsive m-t-20">
+                                                <table class="table table-bordered table-striped">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Código</th>
+                                                            <th>Producto</th>
+                                                            <th>Estado</th>
+                                                            <th>Acciones</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr
+                                                            v-for="item in productosVinculados"
+                                                            :key="item.id"
+                                                        >
+                                                            <td>{{ item.producto?.cod_cups }}</td>
+                                                            <td>{{ item.producto?.nom_produc }}</td>
+                                                            <td>
+                                                                <span
+                                                                    class="label label-success"
+                                                                    v-if="item.estado"
+                                                                    >Activo</span
+                                                                >
+                                                                <span
+                                                                    class="label label-danger"
+                                                                    v-else
+                                                                    >Inactivo</span
+                                                                >
+                                                            </td>
+                                                            <td class="text-nowrap">
+                                                                <button
+                                                                    type="button"
+                                                                    class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
+                                                                    @click="
+                                                                        eliminarVinculo(item.id)
+                                                                    "
+                                                                >
+                                                                    <i class="fa fa-trash"></i>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                        <tr v-if="productosVinculados.length === 0">
+                                                            <td
+                                                                colspan="4"
+                                                                class="text-center text-muted"
+                                                            >
+                                                                No hay productos vinculados a este
+                                                                servicio.
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card" v-else>
+                                        <div class="card-body text-center">
+                                            <p class="text-muted">
+                                                Seleccione un servicio de la lista para ver sus
+                                                productos.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -522,7 +707,48 @@
                                 </div>
                             </template>
 
-                            <div class="form-actions mt-3">
+                            <template v-if="tabActivo === 'productos'">
+                                <div class="row p-t-20">
+                                    <div class="col-md-12">
+                                        <div class="form-group" id="producto-parent">
+                                            <label class="control-label"
+                                                >Producto<span class="text-danger">*</span></label
+                                            >
+                                            <Select2
+                                                ref="select2Productos"
+                                                select-id="select-producto-whatsapp"
+                                                :value="productoSeleccionado"
+                                                :options="productosDisponiblesOptions"
+                                                width="100%"
+                                                :allow-clear="false"
+                                                :auto-init="false"
+                                                @input="onProductoSelect"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="control-label">Recomendación</label>
+                                            <FormattedTextEditor
+                                                v-model="recomendacion"
+                                                rows="18"
+                                                placeholder="Texto de recomendación para el paciente. Use saltos de línea si es necesario."
+                                            />
+                                            <small class="text-muted">
+                                                Variables disponibles:
+                                                <code>${num_docu_paciente}</code>
+                                                <code>${nom_paciente}</code>
+                                                <code>${cod_cups}</code>
+                                                <code>${nom_produc}</code>
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <div class="form-actions mt-3" v-if="tabActivo !== 'productos'">
                                 <button
                                     type="button"
                                     class="btn btn-success m-r-5"
@@ -557,6 +783,28 @@
                                     @click="cerrarFormSidebar()"
                                 >
                                     Cancel
+                                </button>
+                            </div>
+
+                            <div class="form-actions mt-3" v-if="tabActivo === 'productos'">
+                                <button
+                                    type="button"
+                                    class="btn btn-inverse"
+                                    @click="cerrarModal()"
+                                >
+                                    Cerrar
+                                </button>
+                                <button
+                                    type="button"
+                                    class="btn btn-success m-l-5"
+                                    @click="agregarProducto()"
+                                    :disabled="loadingGuardar || !productoSeleccionado"
+                                >
+                                    <i
+                                        class="fa"
+                                        :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-save'"
+                                    ></i>
+                                    {{ loadingGuardar ? "Guardando..." : "Guardar" }}
                                 </button>
                             </div>
                         </div>
@@ -677,11 +925,12 @@
     </div>
 </template>
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { alertSuccess, alertError, confirmAction } from "@/helpers/alerts.js";
 import EmojiPicker from "@/components/shared/EmojiPicker.vue";
+import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
 import axios from "axios";
 
 const INIT_FORM_NUMEROS = {
@@ -711,11 +960,42 @@ const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 const dtNumeros = ref(null);
 const dtSaludos = ref(null);
+const serviciosProductos = ref([]);
+const loadingServiciosProductos = ref(false);
+const errorServiciosProductos = ref("");
+const servicioSeleccionado = ref(null);
+const servicioActual = ref(null);
+const productosVinculados = ref([]);
+const productosDisponibles = ref([]);
+const productoSeleccionado = ref("");
+const recomendacion = ref("");
+const select2Productos = ref(null);
 const mensajeTextarea = ref(null);
+const loadingAgregarProducto = ref(false);
 const previewMensaje = ref("");
 const testPhoneNumber = ref("");
 const testResultado = ref(null);
 const loadingTestEnvio = ref(false);
+
+/**
+ * Genera las opciones para el selector de productos disponibles por servicio.
+ *
+ * @returns {Array<Object>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
+const productosDisponiblesOptions = computed(() => {
+    return (productosDisponibles.value || []).map(function (p) {
+        return {
+            id: String(p.id),
+            cod_cups: p.cod_cups,
+            nom_produc: p.nom_produc,
+            recomendacion_producto: p.recomendacion_producto,
+        };
+    });
+});
 
 /**
  * Cambia la pestaña activa del componente y reinicializa la tabla correspondiente.
@@ -731,6 +1011,9 @@ const loadingTestEnvio = ref(false);
 function cambiarTab(tab) {
     tabActivo.value = tab;
     errores.value = {};
+    if (tab === "productos") {
+        cargarServiciosProductos();
+    }
     nextTick(() => {
         if (tab === "numeros") {
             safeInitDataTable(dtNumeros.value || "#tblWhatsappNumbers", {
@@ -974,6 +1257,7 @@ async function eliminarRegistro(id) {
  * @date 2026-06-11
  */
 function mostrarRegistro(data = {}) {
+    if (tabActivo.value === "productos") return;
     if (tabActivo.value === "numeros") {
         if (actualizar.value) {
             tituloModal.value = "Actualizar número WhatsApp";
@@ -1068,6 +1352,205 @@ function btnCerrarModalForm() {
 function cerrarFormSidebar() {
     $(".right-sidebar").slideUp(50);
     $(".right-sidebar").removeClass("shw-rside");
+}
+/**
+ * Obtiene los servicios de citas y selecciona el primero para administrar sus productos.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
+async function cargarServiciosProductos() {
+    loadingServiciosProductos.value = true;
+    errorServiciosProductos.value = "";
+    try {
+        const res = await axios.get("/api/config-servicio-citas");
+        serviciosProductos.value = res.data.data;
+        if (serviciosProductos.value.length > 0) {
+            seleccionarServicio(serviciosProductos.value[0]);
+        }
+    } catch (error) {
+        const msg = error?.response?.data?.message || error.message || "Error al cargar servicios";
+        errorServiciosProductos.value = msg;
+        serviciosProductos.value = [];
+    } finally {
+        loadingServiciosProductos.value = false;
+    }
+}
+/**
+ * Define el servicio seleccionado y carga sus productos vinculados.
+ *
+ * @param {Object} servicio Servicio de cita seleccionado por el usuario.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
+function seleccionarServicio(servicio) {
+    servicioSeleccionado.value = servicio.id;
+    servicioActual.value = servicio;
+    cargarProductosVinculados();
+}
+/**
+ * Obtiene los productos vinculados al servicio de cita seleccionado.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
+async function cargarProductosVinculados() {
+    if (!servicioSeleccionado.value) return;
+    try {
+        const res = await axios.get("/api/servicio-producto", {
+            params: { servicio_cita_id: servicioSeleccionado.value },
+        });
+        productosVinculados.value = res.data.data;
+    } catch (error) {
+        console.error("Error al cargar productos vinculados:", error);
+    }
+}
+/**
+ * Carga los productos no vinculados y abre el panel lateral para agregar un producto.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
+async function mostrarModalAgregar() {
+    try {
+        const res = await axios.get("/api/servicio-producto/productos-no-vinculados", {
+            params: { servicio_cita_id: servicioSeleccionado.value },
+        });
+        productosDisponibles.value = res.data.data;
+    } catch (error) {
+        console.error("Error al cargar productos disponibles:", error);
+        return;
+    }
+    tituloModal.value = "Agregar producto a: " + (servicioActual.value?.nombre || "");
+    productoSeleccionado.value = "";
+    recomendacion.value = "";
+    loadingAgregarProducto.value = false;
+    await new Promise((resolve) => {
+        $(".right-sidebar").slideDown(50, resolve);
+        $(".right-sidebar").addClass("shw-rside");
+    });
+    await nextTick();
+    if (select2Productos.value) {
+        select2Productos.value.rebuild();
+    }
+}
+/**
+ * Actualiza el producto seleccionado y precarga su recomendación si existe.
+ *
+ * @param {*} value Valor seleccionado en el componente Select2.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
+function onProductoSelect(value) {
+    productoSeleccionado.value = value || "";
+    const encontrado = productosDisponibles.value.find(function (p) {
+        return String(p.id) === String(value);
+    });
+    recomendacion.value =
+        (encontrado &&
+            encontrado.recomendacion_producto &&
+            encontrado.recomendacion_producto.recomendacion) ||
+        "";
+}
+/**
+ * Muestra el panel lateral del formulario agregando la clase correspondiente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
+function abrirModal() {
+    $(".right-sidebar").slideDown(50);
+    $(".right-sidebar").addClass("shw-rside");
+}
+/**
+ * Oculta el panel lateral del formulario removiendo la clase correspondiente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
+function cerrarModal() {
+    $(".right-sidebar").removeClass("shw-rside");
+}
+/**
+ * Vincula el producto seleccionado al servicio y guarda su recomendación si se indicó.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
+async function agregarProducto() {
+    if (!productoSeleccionado.value) return;
+    loadingGuardar.value = true;
+    try {
+        await axios.post("/api/servicio-producto", {
+            servicio_cita_id: servicioSeleccionado.value,
+            producto_id: productoSeleccionado.value,
+        });
+        if (recomendacion.value && recomendacion.value.trim()) {
+            await axios.post("/api/config-recomendacion-productos", {
+                producto_id: productoSeleccionado.value,
+                recomendacion: recomendacion.value,
+            });
+        }
+        alertSuccess("Éxito", "Producto agregado correctamente");
+        cerrarModal();
+        cargarProductosVinculados();
+        cargarServiciosProductos();
+    } catch (error) {
+    } finally {
+        loadingGuardar.value = false;
+    }
+}
+/**
+ * Desvincula un producto del servicio previa confirmación del usuario.
+ *
+ * @param {number} id Identificador del vínculo producto-servicio a eliminar.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
+async function eliminarVinculo(id) {
+    const ok = await confirmAction({
+        title: "¿Está seguro?",
+        text: "El producto se desvinculará del servicio.",
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar",
+    });
+    if (!ok) return;
+    try {
+        await axios.delete("/api/servicio-producto/" + id);
+        alertSuccess("Éxito", "Producto desvinculado");
+        cargarProductosVinculados();
+        cargarServiciosProductos();
+    } catch (error) {}
 }
 /**
  * Inicializa y muestra el modal para probar el envío de un mensaje de WhatsApp.
@@ -1200,6 +1683,7 @@ onMounted(() => {
     listarSaludos();
     listarSedes();
     listarServicios();
+    cargarServiciosProductos();
 });
 
 /**
