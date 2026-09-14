@@ -9,6 +9,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "barryvdh/laravel-dompdf": "^3.1",
         "dompdf/dompdf": "^3.1",
         "guzzlehttp/guzzle": "^7.2",
         "laravel/framework": "^12.0",
@@ -23,10 +24,12 @@
     "require-dev": {
         "cweagans/composer-patches": "*",
         "fakerphp/faker": "^1.9.1",
+        "larastan/larastan": "^3.10",
         "laravel/pint": "^1.0",
         "laravel/sail": "^1.0.1",
         "mockery/mockery": "^1.4.4",
         "nunomaduro/collision": "^8.0",
+        "phpstan/phpstan": "^2.2",
         "phpunit/phpunit": "^11.0"
     },
     "autoload": {
