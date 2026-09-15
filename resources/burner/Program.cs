@@ -96,8 +96,37 @@ namespace LidiagBurner
 
             Console.WriteLine("  " + recorderWrap.VendorId + " " + recorderWrap.ProductId);
 
-            // 3) Create stream from source
-            Console.WriteLine("[10%] Preparando imagen...");
+            // 3) Detect media type BEFORE creating image
+            Console.WriteLine("[10%] Detectando medio...");
+            MsftDiscFormat2DataClass burnFormatObj = new MsftDiscFormat2DataClass();
+            IDiscFormat2Data burnFormat = (IDiscFormat2Data)burnFormatObj;
+            burnFormat.Recorder = (IDiscRecorder2)recorderWrap;
+            burnFormat.ClientName = "LidiagBurner";
+            burnFormat.ForceMediaToBeClosed = true;
+
+            int mediaType = 0; // 0 = unknown
+            try
+            {
+                object physType = burnFormat.CurrentPhysicalMediaType;
+                try { mediaType = Convert.ToInt32(physType); } catch { }
+            }
+            catch { }
+
+            // IMAPI2 media types:
+            // 1=CDROM, 2=CDR, 3=CDRW  → CD (700 MB)
+            // 4=DVDROM, 5=DVDRAM, 6=DVDPLUSR, 7=DVDPLUSRW, 8=DVDPLUSR_DL,
+            // 9=DVDMINUSR, 10=DVDMINUSRW, 11=DVDMINUSR_DL, 12=DVDRAW,
+            // 13=DVDPLUSRW_DL  → DVD (4.7 GB+)
+            bool isCD = (mediaType >= 1 && mediaType <= 3);
+            bool isDVD = (mediaType >= 4 && mediaType <= 13);
+            string mediaName = mediaType == 0 ? "desconocido" :
+                               isCD ? "CD" :
+                               isDVD ? "DVD" :
+                               "tipo " + mediaType;
+            Console.WriteLine("  Medio detectado: " + mediaName + " (tipo IMAPI2: " + mediaType + ")");
+
+            // 4) Create stream from source
+            Console.WriteLine("[15%] Preparando imagen...");
             IStream imageStream;
 
             if (File.Exists(sourcePath) && sourcePath.EndsWith(".iso", StringComparison.OrdinalIgnoreCase))
@@ -128,12 +157,25 @@ namespace LidiagBurner
                 MsftFileSystemImageClass fsImageObj = new MsftFileSystemImageClass();
                 IFileSystemImage fsImage = (IFileSystemImage)fsImageObj;
 
-                fsImage.ChooseImageDefaultsForMediaType(12); // IMAPI_MEDIA_TYPE_DISK
+                // Use correct media type for image sizing
+                int imageMediaType = isCD ? 2 : 12; // 2=CDR, 12=DVDRAW
+                if (!isCD && !isDVD) imageMediaType = 12; // default to DVD for unknown
+                fsImage.ChooseImageDefaultsForMediaType(imageMediaType);
                 fsImage.FileSystemsToCreate = 4; // FsiFileSystemJoliet
                 fsImage.VolumeName = "DICOM_STUDY";
 
                 IFsiDirectoryItem root = fsImage.Root;
                 root.AddTree(sourcePath, false);
+
+                // Check if image fits on detected media
+                if (isCD)
+                {
+                    long usedBytes = (long)fsImage.UsedBlocks * 2048;
+                    long cdCapacity = 700L * 1024 * 1024; // ~700 MB
+                    Console.WriteLine("  Imagen: " + (usedBytes / 1024 / 1024) + " MB, capacidad CD: ~700 MB");
+                    if (usedBytes > cdCapacity)
+                        throw new Exception("La imagen (" + (usedBytes / 1024 / 1024) + " MB) excede la capacidad de un CD-R (~700 MB). Inserte un disco DVD.");
+                }
 
                 IFileSystemImageResult result = fsImage.CreateResultImage();
                 imageStream = result.ImageStream;
@@ -145,14 +187,6 @@ namespace LidiagBurner
             }
 
             Console.WriteLine("[40%] Stream listo");
-
-            // 4) Configure burn format
-            Console.WriteLine("[50%] Configurando...");
-            MsftDiscFormat2DataClass burnFormatObj = new MsftDiscFormat2DataClass();
-            IDiscFormat2Data burnFormat = (IDiscFormat2Data)burnFormatObj;
-            burnFormat.Recorder = (IDiscRecorder2)recorderWrap;
-            burnFormat.ClientName = "LidiagBurner";
-            burnFormat.ForceMediaToBeClosed = true;
 
             // 5) Check media - retry up to 3 times (USB drives need time)
             Console.WriteLine("[55%] Verificando medio...");
@@ -197,12 +231,12 @@ namespace LidiagBurner
                 try
                 {
                     object physType = burnFormat.CurrentPhysicalMediaType;
-                    int mediaType = 0;
-                    try { mediaType = Convert.ToInt32(physType); } catch { }
-                    Console.WriteLine("  PhysicalMediaType: " + mediaType);
+                    int eraseMediaType = 0;
+                    try { eraseMediaType = Convert.ToInt32(physType); } catch { }
+                    Console.WriteLine("  PhysicalMediaType: " + eraseMediaType);
 
                     // 3=CD-RW, 5=DVD-RAM, 7=DVD+RW, 10=DVD-RW, 13=DVD+RW Dual Layer
-                    isErasable = (mediaType == 3 || mediaType == 5 || mediaType == 7 || mediaType == 10 || mediaType == 13);
+                    isErasable = (eraseMediaType == 3 || eraseMediaType == 5 || eraseMediaType == 7 || eraseMediaType == 10 || eraseMediaType == 13);
                 }
                 catch { }
 
