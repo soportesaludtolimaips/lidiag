@@ -311,7 +311,9 @@ async function cargarEventos() {
     try {
         const res = await axios.get("/api/seguridad-auditoria/eventos");
         eventosDisponibles.value = res.data;
-    } catch (e) {}
+    } catch (e) {
+        console.error("Error al cargar eventos de auditoría:", e);
+    }
 }
 /**
  * Obtiene los registros de auditoría aplicando los filtros y la paginación actuales,
@@ -359,6 +361,7 @@ async function cargarLogs() {
             });
         });
     } catch (error) {
+        console.error("Error al cargar registros de auditoría:", error);
     } finally {
         loading.value = false;
     }

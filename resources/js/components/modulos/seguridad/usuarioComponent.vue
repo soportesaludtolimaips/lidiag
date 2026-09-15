@@ -674,7 +674,7 @@
 </template>
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
-import { confirmAction, alertError, alertSuccess } from "@/helpers/alerts";
+import { confirmAction, alertError, alertSuccess, toastMessage } from "@/helpers/alerts";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import axios from "axios";
 
@@ -691,6 +691,7 @@ const registro = ref({
     name: "",
     email: "",
     password: "",
+    confirmarPassword: "",
     estado: false,
     imagen_perfil: "",
     rolesUsuario: [],
@@ -820,7 +821,7 @@ async function guardarRegistro() {
             });
 
             if (res.status == 200) {
-                $.toast({
+                toastMessage({
                     heading: "Ok!!!",
                     text: res.data.data.message,
                     position: "top-right",
@@ -840,7 +841,7 @@ async function guardarRegistro() {
             });
 
             if (res.status == 200) {
-                $.toast({
+                toastMessage({
                     heading: "Ok!!!",
                     text: res.data.data.message,
                     position: "top-right",
@@ -960,7 +961,9 @@ async function ListarModulos() {
             ...modulo,
             checked: false,
         }));
-    } catch (error) {}
+    } catch (error) {
+        alertError("Error", "No fue posible cargar los módulos.", "error");
+    }
 }
 /**
  * Solicita al backend la lista de sedes disponibles para asignar al usuario.
@@ -979,7 +982,9 @@ async function ListarSedes() {
             ...sede,
             checked: false,
         }));
-    } catch (error) {}
+    } catch (error) {
+        alertError("Error", "No fue posible cargar las sedes.", "error");
+    }
 }
 /**
  * Solicita al backend la lista de servicios de cita disponibles para asignar al usuario.
@@ -997,7 +1002,9 @@ async function ListarServiciosCitas() {
             ...sc,
             checked: false,
         }));
-    } catch (error) {}
+    } catch (error) {
+        alertError("Error", "No fue posible cargar los servicios.", "error");
+    }
 }
 /**
  * Captura el archivo de firma seleccionado por el usuario en el input de carga.
@@ -1055,9 +1062,11 @@ function mostrarRegistro(data = {}) {
         });
 
         // Asigna el valor de `checked` a cada módulo
-        data.modulos.forEach((modulo) => {
+        (data.modulos || []).forEach((modulo) => {
             let moduloActivo = registro.value.modulos.findIndex((x) => x.id == modulo.id);
-            registro.value.modulos[moduloActivo].checked = true;
+            if (moduloActivo !== -1) {
+                registro.value.modulos[moduloActivo].checked = true;
+            }
         });
 
         // Inactivar sedes y marcar las del usuario
@@ -1090,13 +1099,15 @@ function mostrarRegistro(data = {}) {
         axios.get("/api/seguridad-usuarios/" + id.value).then((res) => {
             const RolesDelUsuario = res.data.data.RolesDeUsuario;
 
-            roles.value.forEach(function (rol, index) {
+            (registro.value.rolesUsuario || []).forEach(function (rol, index) {
                 registro.value.rolesUsuario[index].checked = false;
             });
 
-            RolesDelUsuario.forEach(function (rolId) {
+            (RolesDelUsuario || []).forEach(function (rolId) {
                 let rolActivo = roles.value.findIndex((x) => x.id == rolId);
-                registro.value.rolesUsuario[rolActivo].checked = true;
+                if (rolActivo !== -1) {
+                    registro.value.rolesUsuario[rolActivo].checked = true;
+                }
             });
         });
     } else {
@@ -1177,11 +1188,11 @@ function limpiarFormulario() {
     tituloModal.value = "Nuevo registro";
     id.value = 0;
     registro.value.num_docu = "";
-    registro.value.reg_med = 0;
+    registro.value.reg_med = "";
     registro.value.name = "";
     registro.value.email = "";
     registro.value.password = "";
-    registro.value.estado = true;
+    registro.value.estado = false;
 }
 
 /**

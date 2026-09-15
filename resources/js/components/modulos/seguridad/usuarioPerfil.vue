@@ -167,7 +167,6 @@
                                             <input
                                                 type="email"
                                                 id="email"
-                                                email="email"
                                                 v-model="registro.email"
                                                 placeholder="Ingrese aqui el email"
                                                 class="form-control form-control-line"
@@ -227,6 +226,7 @@
 import { onBeforeUnmount, onMounted, ref } from "vue";
 
 import axios from "axios";
+import { toastMessage, alertError } from "@/helpers/alerts";
 
 const props = defineProps({ usuarioactual: Object });
 
@@ -268,6 +268,7 @@ async function obtenerRegistro() {
             registro.value.name = res.data.data.usuario.name;
             registro.value.email = res.data.data.usuario.email;
             registro.value.firma = res.data.data.usuario.firma;
+            registro.value.imagen_perfil = res.data.data.usuario.imagen_perfil || null;
         }
     } catch (error) {
         errores.value = error?.response?.data?.errors || {};
@@ -299,10 +300,11 @@ async function actualizarPerfil() {
             headers: { "Content-Type": "multipart/form-data" },
         });
         if (res.status == 200) {
+            errores.value = {};
             firmaPreview.value = "";
             await obtenerRegistro();
 
-            $.toast({
+            toastMessage({
                 heading: "Ok!!!",
                 text: res.data.data.message,
                 position: "top-right",

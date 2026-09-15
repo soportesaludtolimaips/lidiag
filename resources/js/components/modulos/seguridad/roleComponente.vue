@@ -292,7 +292,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const dt = ref(null);
 
-import { confirmAction } from "@/helpers/alerts";
+import { confirmAction, toastMessage } from "@/helpers/alerts";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import axios from "axios";
 
@@ -486,15 +486,7 @@ async function guardarRegistro() {
             const res = await axios.post("/api/seguridad-roles", registro.value);
 
             if (res.status == 200) {
-                $.toast({
-                    heading: "Ok!!!",
-                    text: res.data.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
+                toastMessage({ heading: res.data.data.message, icon: "success" });
 
                 ListarDatos();
                 limpiarFormulario();
@@ -505,15 +497,7 @@ async function guardarRegistro() {
                 registro: registro.value,
             });
             if (res.status == 200) {
-                $.toast({
-                    heading: "Ok!!!",
-                    text: res.data.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
+                toastMessage({ heading: res.data.data.message, icon: "success" });
 
                 ListarDatos();
                 limpiarFormulario();
@@ -564,7 +548,7 @@ function mostrarRegistro(data = {}) {
         axios
             .get("/api/seguridad-roles/" + id.value)
             .then((res) => {
-                registro.value.permisos = [];
+                registro.value.permisosRol = [];
                 const permisosDelRol = Object.keys(res.data.data.permisosRol);
 
                 permisos.value.forEach(function (permiso, index) {
@@ -587,7 +571,8 @@ function mostrarRegistro(data = {}) {
         tituloModal.value = "Nuevo registro";
         id.value = 0;
         registro.value.name = "";
-        registro.value.permisos = [];
+        registro.value.permisosRol = [];
+        listarPermisosRol();
     }
 
     btnCerralModalForm();
@@ -621,33 +606,20 @@ async function cambiarEstado(estado, data = {}) {
             id: data.id,
             estado: estado == 0 ? 1 : 0,
         });
-        $.toast({
-            heading: "Ok!!!",
-            text:
+        toastMessage({
+            heading:
                 "El rol " +
                 data.name +
                 " se " +
                 (estado == 0 ? "activó" : "desactivó") +
                 " correctamente",
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "success",
-            hideAfter: 3500,
-            stack: 6,
         });
         ListarDatos();
     } catch (error) {
         console.error("Error al cambiar estado:", error);
         const msg = error?.response?.data?.message || "Error al cambiar estado del rol";
-        $.toast({
-            heading: "Error",
-            text: msg,
-            position: "top-right",
-            loaderBg: "#ff6849",
-            icon: "error",
-            hideAfter: 5000,
-            stack: 6,
-        });
+        toastMessage({ heading: msg, icon: "error" });
     }
 }
 /**
@@ -670,27 +642,11 @@ async function eliminarRol(data = {}) {
     if (!ok) return;
     try {
         const res = await axios.delete("/api/seguridad-roles/" + data.id);
-        $.toast({
-            heading: "Ok!!!",
-            text: res.data.data.message,
-            position: "top-right",
-            loaderBg: "#ff6849",
-            icon: "success",
-            hideAfter: 3500,
-            stack: 6,
-        });
+        toastMessage({ heading: res.data.data.message, icon: "success" });
         ListarDatos();
     } catch (error) {
         const msg = error?.response?.data?.message || "Error al eliminar el rol";
-        $.toast({
-            heading: "Error",
-            text: msg,
-            position: "top-right",
-            loaderBg: "#ff6849",
-            icon: "error",
-            hideAfter: 5000,
-            stack: 6,
-        });
+        toastMessage({ heading: msg, icon: "error" });
     }
 }
 /**
