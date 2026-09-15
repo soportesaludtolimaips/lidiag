@@ -209,7 +209,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 const dt = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts.js";
+import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
 import axios from "axios";
 
 const id = ref(0);
@@ -280,14 +280,10 @@ async function guardarRegistro() {
             const res = await axios.post("/api/citas-rechazo-motivos", payload);
             if (res.status == 201 || res.status == 200) {
                 listarMotivos();
-                $.toast({
+                toastMessage({
                     heading: "Ok!!!",
                     text: "Motivo guardado correctamente.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
                 cerrarFormSidebar();
                 limpiar();
@@ -296,14 +292,10 @@ async function guardarRegistro() {
             const res = await axios.put("/api/citas-rechazo-motivos/" + id.value, payload);
             if (res.status == 200) {
                 listarMotivos();
-                $.toast({
+                toastMessage({
                     heading: "Ok!!!",
                     text: "Motivo actualizado correctamente.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
                 cerrarFormSidebar();
                 limpiar();

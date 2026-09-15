@@ -610,9 +610,9 @@
     </div>
 </template>
 <script setup>
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
 import usePermissions from "@/helpers/permissions.js";
 import { toastMessage } from "@/helpers/alerts";
@@ -1541,6 +1541,11 @@ async function firmarConsentimientoMedico(item) {
 
         evaluarPendientesConsentimientosDiaAnterior();
     } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible firmar el consentimiento.",
+            icon: "error",
+        });
     } finally {
         setMapValue(proxy, "isFirmandoConsentimiento", id, false);
     }

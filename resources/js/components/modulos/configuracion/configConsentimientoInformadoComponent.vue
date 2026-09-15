@@ -242,7 +242,8 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 const dt = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { confirmAction, alertSuccess, alertError } from "@/helpers/alerts.js";
+import { confirmAction, alertSuccess, alertError, toastMessage } from "@/helpers/alerts.js";
+import Select2 from "@/components/shared/Select2.vue";
 import axios from "axios";
 
 const id = ref(0);
@@ -343,14 +344,10 @@ async function guardarRegistro() {
         }
 
         if (res.status === 200 || res.status === 201) {
-            $.toast({
+            toastMessage({
                 heading: "Ok!!!",
                 text: res.data.data.message || "Guardado correctamente.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "success",
-                hideAfter: 3500,
-                stack: 6,
             });
             ListarDatos();
             limpiarFormulario();
@@ -407,7 +404,13 @@ async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
         productos.value = res.data.data;
-    } catch (error) {}
+    } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudieron cargar los productos.",
+            icon: "error",
+        });
+    }
 }
 /**
  * Captura el archivo seleccionado en el input de tipo file del formulario.

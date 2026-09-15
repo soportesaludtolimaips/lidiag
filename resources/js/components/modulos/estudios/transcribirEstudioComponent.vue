@@ -706,9 +706,9 @@
     </div>
 </template>
 <script setup>
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
@@ -916,7 +916,9 @@ async function guardarRegistro() {
                 // No destruir/reinicializar: remover solo la fila guardada.
                 try {
                     safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idRow.value);
-                } catch (e) {}
+                } catch (e) {
+                    console.warn(e);
+                }
                 registros.value.splice(estudioEliminar, 1);
             }
 
@@ -993,7 +995,9 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
             if (idx >= 0) {
                 try {
                     safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idProductoEstudio);
-                } catch (e) {}
+                } catch (e) {
+                    console.warn(e);
+                }
                 registros.value.splice(idx, 1);
             }
             alertSuccess("Anulado!", "El producto se anulo correctamente.", "success");

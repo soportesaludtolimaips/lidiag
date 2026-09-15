@@ -249,7 +249,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 const dt = ref(null);
 
 import { safeDestroyDataTable } from "@/helpers/datatables.js";
-import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts.js";
+import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
 import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import axios from "axios";
 
@@ -348,14 +348,10 @@ async function guardarRegistro() {
             const res = await axios.post("/api/config-plantillas", registro.value);
 
             if (res.status >= 200 && res.status < 300) {
-                $.toast({
+                toastMessage({
                     heading: "Ok!!!",
                     text: res.data.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
 
                 ListarDatos();
@@ -365,14 +361,10 @@ async function guardarRegistro() {
         } else {
             const res = await axios.put("/api/config-plantillas/" + id.value, registro.value);
             if (res.status >= 200 && res.status < 300) {
-                $.toast({
+                toastMessage({
                     heading: "Ok!!!",
                     text: res.data.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
 
                 ListarDatos();
@@ -434,7 +426,13 @@ async function listarMedicos() {
             sessionStorage.getItem("ST-modulo") || (pathname.includes("ecografia") ? "2" : "1");
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = res.data.data;
-    } catch (error) {}
+    } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible listar los médicos.",
+            icon: "error",
+        });
+    }
 }
 /**
  * Obtiene la lista de tipos de plantillas activos para el selector del formulario.
@@ -449,7 +447,13 @@ async function listarTiposPlantillas() {
     try {
         const res = await axios.get("/api/config-tipos-plantillas/listar/activos");
         tiposPlantillas.value = res.data.data;
-    } catch (error) {}
+    } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible listar los tipos de plantillas.",
+            icon: "error",
+        });
+    }
 }
 /**
  * Prepara el formulario lateral para crear o editar una plantilla.

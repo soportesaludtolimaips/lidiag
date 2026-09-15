@@ -3,6 +3,7 @@
 namespace App\Models\Citas;
 
 use App\Models\Configuracion\ConfigProducto;
+use App\Models\Configuracion\ConfigServicioCita;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

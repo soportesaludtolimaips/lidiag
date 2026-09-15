@@ -1205,9 +1205,9 @@
     <!-- ============================================================== -->
 </template>
 <script setup>
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import DatosPacienteDisplay from "@/components/comunes/datosPacienteDisplayComponent.vue";
@@ -1340,7 +1340,9 @@ function applyDashboardPrefill() {
             });
             return;
         }
-    } catch (e) {}
+    } catch (e) {
+        console.error(e);
+    }
     listarMisPendientes();
 }
 function normalizeWord(text) {
@@ -1537,7 +1539,9 @@ async function guardarRegistro() {
             if (estudioEliminar >= 0) {
                 try {
                     safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idRow.value);
-                } catch (e) {}
+                } catch (e) {
+                    console.warn("DataTable row removal failed:", e.message);
+                }
                 registros.value.splice(estudioEliminar, 1);
             }
 
@@ -1549,7 +1553,9 @@ async function guardarRegistro() {
                 formData.append("audio", blobToSend, "audio.webm");
                 formData.append("estudio_id", estudioId);
                 formData.append("estudio_producto_id", productoId);
-                axios.post("/api/upload-audio", formData).catch(() => {});
+                axios.post("/api/upload-audio", formData).catch((e) => {
+                    console.error("Audio upload failed:", e);
+                });
             }
         }
     } catch (error) {
@@ -1633,6 +1639,7 @@ async function listar_historial_estudios(num_docu) {
             });
         }
     } catch (error) {
+        console.error(error);
     } finally {
         loadingBuscar.value = false;
     }
@@ -1787,10 +1794,12 @@ onMounted(() => {
 
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
 
-    setupKeyboardShortcut();
+    const cleanupKeyboardShortcut = setupKeyboardShortcut();
 });
 
 onBeforeUnmount(() => {
+    stopAll();
+    cleanupKeyboardShortcut?.();
     emitter.off("sedeSeleccionada", onSedeSeleccionada);
     if (autoRefreshTimer.value) {
         clearInterval(autoRefreshTimer.value);

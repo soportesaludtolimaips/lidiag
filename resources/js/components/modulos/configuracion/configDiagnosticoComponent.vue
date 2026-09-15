@@ -247,7 +247,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 const dt = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts.js";
+import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
 import axios from "axios";
 
 const id = ref(0);
@@ -307,14 +307,10 @@ async function guardarRegistro() {
             if (res.status == 200) {
                 ListarDatos();
 
-                $.toast({
+                toastMessage({
                     heading: "Ok!!!",
                     text: res.data.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
 
                 btnCerralModalForm();
@@ -325,14 +321,10 @@ async function guardarRegistro() {
             if (res.status == 200) {
                 ListarDatos();
 
-                $.toast({
+                toastMessage({
                     heading: "Ok!!!",
                     text: res.data.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
 
                 btnCerralModalForm();

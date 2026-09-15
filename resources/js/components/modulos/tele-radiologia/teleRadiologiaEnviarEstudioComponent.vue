@@ -634,11 +634,12 @@
     </div>
 </template>
 <script setup>
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import { toastMessage } from "@/helpers/alerts";
 import axios from "axios";
 
 const props = defineProps({ usuarioactual: Object });
@@ -795,28 +796,20 @@ async function buscarStudy() {
     destroyDataTable();
     try {
         if (sessionStorage.getItem("ST-sede") == null) {
-            $.toast({
+            toastMessage({
                 heading: "Upsss!!!",
                 text: "Debes seleccionar una sede para realizar la busqueda.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
             });
         } else if (
             busqueda.value.bus_nom_num_docu == "" &&
             busqueda.value.bus_fech_ini == "" &&
             busqueda.value.bus_fecha_fin == ""
         ) {
-            $.toast({
+            toastMessage({
                 heading: "Upsss!!!",
                 text: "Debes establece la fecha de inicio o finalización para la busqueda.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
             });
         } else {
             // En Tele-radiología consultamos estudios vía endpoint del módulo
@@ -829,27 +822,19 @@ async function buscarStudy() {
                     initDataTable();
                 });
             } else if (res.status == 500) {
-                $.toast({
+                toastMessage({
                     heading: "Upsss!!!",
                     text: res.data.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "danger",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
             }
         }
     } catch (error) {
         if (error.response && error.response.status == 500) {
-            $.toast({
+            toastMessage({
                 heading: "Upss!!!",
                 text: error.response.data.message,
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "error",
-                hideAfter: 3500,
-                stack: 6,
             });
         }
         if (error.response && error.response.data && error.response.data.errors) {
@@ -873,28 +858,20 @@ async function guardarRegistro() {
     loadingGuardar.value = true;
     try {
         if (orden.value.producto.length === 0) {
-            $.toast({
+            toastMessage({
                 heading: "Upsss!!!",
                 text: "Debes seleccional al menos un producto",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "warning",
-                hideAfter: 5500,
-                stack: 6,
             });
 
             return;
         }
 
         if (orden.value.priori.id === "") {
-            $.toast({
+            toastMessage({
                 heading: "Upsss!!!",
                 text: "Debes seleccional la prioridad de la orden",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "warning",
-                hideAfter: 5500,
-                stack: 6,
             });
 
             return;
@@ -921,14 +898,10 @@ async function guardarRegistro() {
             //Asigno el id de la orden de tele radiologia al estudio
             registro.value.destino_estudio_id = confirmation;
 
-            $.toast({
+            toastMessage({
                 heading: "Ok!!!",
                 text: resOrdenTele?.data?.details || "Orden enviada correctamente.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "success",
-                hideAfter: 3500,
-                stack: 6,
             });
 
             const formData = new FormData();
@@ -942,14 +915,10 @@ async function guardarRegistro() {
             });
 
             if (resEstudio.status == 200) {
-                $.toast({
+                toastMessage({
                     heading: "Ok!!!",
                     text: resEstudio.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
             }
         }
@@ -960,14 +929,17 @@ async function guardarRegistro() {
         if (error.response) {
             errores.value = error.response.data;
         }
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible enviar la orden.",
+            icon: "error",
+        });
     } finally {
         loadingGuardar.value = false;
     }
 }
 /**
  * Convierte un archivo a formato Base64.
- *
- * @param {File} file Archivo a convertir.
  * @returns {Promise<string>} Cadena en formato Base64 del archivo.
  *
  * @author Jhon Javer Lozano Arce
@@ -1203,7 +1175,6 @@ async function establecerSede() {
     idSedeActual.value = sessionStorage.getItem("ST-sede");
     nomSedeActual.value = sessionStorage.getItem("ST-nomsede");
     registro.value.sede_id = sessionStorage.getItem("ST-sede");
-    await establecerSede();
     registros.value = [];
 }
 /**
@@ -1279,7 +1250,6 @@ function btnLimpiar() {
     orden.value.producto = [];
     orden.value.adjuntos = [];
     productosInterface.value = [];
-    diagnosticosInterface = [];
     interfaceAtenciones.value = [];
     registro.value.diagnosticosEstudio = [];
     registro.value.productosEstudio = [];
@@ -1347,7 +1317,7 @@ function onMedicoSelect(value) {
     } else if (value != null) {
         selectedId = String(value);
     }
-    orden.value.medico.id = selectedId || "";
+    registro.value.medico_id = selectedId || "";
 }
 /**
  * Maneja la selección de un producto desde el componente Select2 y lo agrega a la orden.
@@ -1398,7 +1368,6 @@ function onDiagnosticoSelect(value) {
         selectedId = String(value);
     }
     if (selectedId != null) {
-        diagnosticoSelecciondo = selectedId;
         guardarDiagnosticosEstudio();
     }
 }

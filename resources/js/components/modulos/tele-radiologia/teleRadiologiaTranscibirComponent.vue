@@ -563,9 +563,9 @@
     </div>
 </template>
 <script setup>
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { listarUsuariosYSedes } from "../../../helpers/usuarios";
@@ -573,7 +573,12 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import axios from "axios";
-import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables";
+import {
+    safeDestroyDataTable,
+    safeInitDataTable,
+    safeRemoveDataTableRow,
+} from "@/helpers/datatables";
+import { toastMessage } from "@/helpers/alerts";
 
 const props = defineProps({ usuarioactual: Object });
 
@@ -634,6 +639,7 @@ const audiosDeEstudio = ref([]);
 const quienes_asignaron = ref([]);
 const medicos = ref([]);
 const errores = ref({});
+const id = ref(null);
 const idRow = ref(null);
 const loadingBuscar = ref(false);
 const loadingGuardar = ref(false);
@@ -710,14 +716,10 @@ async function listarPendientesTrascribir() {
     loadingBuscar.value = true;
     try {
         if (sessionStorage.getItem("ST-sede") == null) {
-            $.toast({
+            toastMessage({
                 heading: "Upsss!!!",
                 text: "Debes establece la sede en la cual vas a trabajar.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
             });
         } else {
             destroyDataTable();
@@ -731,6 +733,11 @@ async function listarPendientesTrascribir() {
             });
         }
     } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible listar los pendientes.",
+            icon: "error",
+        });
     } finally {
         loadingBuscar.value = false;
     }
@@ -748,14 +755,10 @@ async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
     try {
-        $.toast({
+        toastMessage({
             heading: "Ok!!!",
             text: "Enviando lectura, por favor espere",
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "info",
-            hideAfter: 3500,
-            stack: 6,
         });
 
         const res = await axios.post("/api/estudio-guardarTranscripcion", registro.value);
@@ -771,28 +774,20 @@ async function guardarRegistro() {
                 registros.value.splice(estudioEliminar, 1);
             }
 
-            $.toast({
+            toastMessage({
                 heading: "Ok!!!",
                 text: res.data.data.message,
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "success",
-                hideAfter: 3500,
-                stack: 6,
             });
             /* btnCerrarForm.value.click();
 
                     btnCerralModalForm();
                     limpiar(); */
         } else {
-            $.toast({
+            toastMessage({
                 heading: "Upss!!!",
                 text: res.data.data.message,
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "danger",
-                hideAfter: 3500,
-                stack: 6,
             });
         }
     } catch (error) {
@@ -801,26 +796,18 @@ async function guardarRegistro() {
             errores.value = error.response.data;
         }
         if (status == 402) {
-            $.toast({
+            toastMessage({
                 heading: "Upss!!!",
                 text:
                     error?.response?.data?.message ||
                     "La plantilla no está configurada para esta sede.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "error",
-                hideAfter: 3500,
-                stack: 6,
             });
         } else {
-            $.toast({
+            toastMessage({
                 heading: "Upss!!!",
                 text: error?.response?.data?.message || "No fue posible guardar la transcripción.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "error",
-                hideAfter: 3500,
-                stack: 6,
             });
         }
     } finally {
@@ -944,7 +931,7 @@ function verImagen() {
 async function listarAudios() {
     loadingAudios.value = true;
     try {
-        const res = await axios.get("/api/listar-audios-estudio/" + id);
+        const res = await axios.get("/api/listar-audios-estudio/" + id.value);
         audiosDeEstudio.value = res.data.data;
     } catch (e) {
         audiosDeEstudio.value = [];
@@ -1040,7 +1027,7 @@ async function mostrarRegistro(data = {}) {
         ("0" + date.getSeconds()).slice(-2);
 
     tituloModal.value = "Transcribir la lectura del paciente: " + data.nom_pacien;
-    id = data.id;
+    id.value = data.id;
     registro.value.id_estudio = data.id;
     idRow.value = data.estudio_producto_id;
     registro.value.estudio_producto_id = data.estudio_producto_id;
@@ -1064,7 +1051,7 @@ async function mostrarRegistro(data = {}) {
     registro.value.reg_medico = data.reg_medico;
     registro.value.nombres_medico = `Médico: ${data.nombres_medico}`;
     registro.value.firma_medico = data.firma_medico;
-    registro.value.lectura = `Atención: ${data.atencion}nFecha y Hora del estudio: ${data.fec_estudio}nFecha y Hora de transcripción: ${fechaActual}nn${data.nom_produc}nn${data.lectura}`;
+    registro.value.lectura = `Atención: ${data.atencion}\nFecha y Hora del estudio: ${data.fec_estudio}\nFecha y Hora de transcripción: ${fechaActual}\n\n${data.nom_produc}\n\n${data.lectura}`;
 
     datosImagen.value.urlOviyam = data.url_oviyam;
     datosImagen.value.patientId = data.num_docu;
@@ -1078,10 +1065,10 @@ async function mostrarRegistro(data = {}) {
     registro.value.study_iuid = data.study_iuid;
     registro.value.tap_oviyam = data.tap_oviyam;
 
-    const res = await axios.get("/api/study-listar-diagnostico-por-estudio?id=" + id);
+    const res = await axios.get("/api/study-listar-diagnostico-por-estudio?id=" + id.value);
     diagnosticosEstudio.value = res.data.data;
 
-    const resSoportesHC = await axios.get("/api/listar-soportes-hc-estudio?id=" + id);
+    const resSoportesHC = await axios.get("/api/listar-soportes-hc-estudio?id=" + id.value);
     soportesHC.value = resSoportesHC.data.data;
 
     audiosDeEstudio.value = [];

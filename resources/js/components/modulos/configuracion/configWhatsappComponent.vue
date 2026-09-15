@@ -715,13 +715,10 @@
                                                 >Producto<span class="text-danger">*</span></label
                                             >
                                             <Select2
-                                                ref="select2Productos"
-                                                select-id="select-producto-whatsapp"
                                                 :value="productoSeleccionado"
                                                 :options="productosDisponiblesOptions"
                                                 width="100%"
                                                 :allow-clear="true"
-                                                :auto-init="false"
                                                 @input="onProductoSelect"
                                             />
                                         </div>
@@ -928,7 +925,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { alertSuccess, alertError, confirmAction } from "@/helpers/alerts.js";
+import { alertSuccess, alertError, confirmAction, toastMessage } from "@/helpers/alerts.js";
 import EmojiPicker from "@/components/shared/EmojiPicker.vue";
 import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
 import axios from "axios";
@@ -969,7 +966,6 @@ const productosVinculados = ref([]);
 const productosDisponibles = ref([]);
 const productoSeleccionado = ref("");
 const recomendacion = ref("");
-const select2Productos = ref(null);
 const mensajeTextarea = ref(null);
 const loadingAgregarProducto = ref(false);
 const previewMensaje = ref("");
@@ -1175,14 +1171,10 @@ async function guardarRegistro() {
             const res = await axios.post(baseUrl, payload);
             if (res.status == 201 || res.status == 200) {
                 recargarTabActivo();
-                $.toast({
+                toastMessage({
                     heading: "Ok!!!",
                     text: "Registro guardado correctamente.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
                 cerrarFormSidebar();
                 limpiar();
@@ -1191,14 +1183,10 @@ async function guardarRegistro() {
             const res = await axios.put(`${baseUrl}/${id.value}`, payload);
             if (res.status == 200) {
                 recargarTabActivo();
-                $.toast({
+                toastMessage({
                     heading: "Ok!!!",
                     text: "Registro actualizado correctamente.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
                 cerrarFormSidebar();
                 limpiar();
@@ -1442,32 +1430,30 @@ async function mostrarModalAgregar() {
         $(".right-sidebar").slideDown(50, resolve);
         $(".right-sidebar").addClass("shw-rside");
     });
-    await nextTick();
-    if (select2Productos.value) {
-        select2Productos.value.rebuild();
-    }
 }
 /**
- * Actualiza el producto seleccionado y precarga su recomendación si existe.
+ * Manejar la selección de un producto en el formulario.
  *
- * @param {*} value Valor seleccionado en el componente Select2.
- *
+ * @param {*} value - El valor seleccionado del producto.
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- *
  * @date 2026-06-11
  */
 function onProductoSelect(value) {
-    productoSeleccionado.value = value || "";
-    const encontrado = productosDisponibles.value.find(function (p) {
-        return String(p.id) === String(value);
-    });
-    recomendacion.value =
-        (encontrado &&
-            encontrado.recomendacion_producto &&
-            encontrado.recomendacion_producto.recomendacion) ||
-        "";
+    let selectedId = null;
+    if (Array.isArray(value) && value.length > 0) {
+        const v = value[0];
+        selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
+    } else if (value && typeof value === "object" && value.id != null) {
+        selectedId = String(value.id);
+    } else if (value != null) {
+        selectedId = String(value);
+    }
+    if (selectedId != null) {
+        productoSeleccionado.value = selectedId;
+        agregarProducto();
+    }
 }
 /**
  * Muestra el panel lateral del formulario agregando la clase correspondiente.
@@ -1522,8 +1508,15 @@ async function agregarProducto() {
         cargarProductosVinculados();
         cargarServiciosProductos();
     } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible agregar el producto.",
+            icon: "error",
+        });
     } finally {
         loadingGuardar.value = false;
+        productoSeleccionado.value = "";
+        recomendacion.value = "";
     }
 }
 /**
@@ -1550,7 +1543,13 @@ async function eliminarVinculo(id) {
         alertSuccess("Éxito", "Producto desvinculado");
         cargarProductosVinculados();
         cargarServiciosProductos();
-    } catch (error) {}
+    } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible desvincular el producto.",
+            icon: "error",
+        });
+    }
 }
 /**
  * Inicializa y muestra el modal para probar el envío de un mensaje de WhatsApp.

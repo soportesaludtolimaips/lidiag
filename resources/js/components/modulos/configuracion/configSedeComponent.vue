@@ -514,7 +514,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 const dt = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts.js";
+import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
 import axios from "axios";
 
 const id = ref(0);
@@ -593,14 +593,10 @@ async function guardarRegistro() {
             const res = await axios.post("/api/config-sedes", formData);
 
             if (res.status == 200) {
-                $.toast({
+                toastMessage({
                     heading: "Ok!!!",
                     text: res.data.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
 
                 ListarDatos();
@@ -613,14 +609,10 @@ async function guardarRegistro() {
             });
 
             if (res.status == 200) {
-                $.toast({
+                toastMessage({
                     heading: "Ok!!!",
                     text: res.data.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
 
                 ListarDatos();
@@ -723,7 +715,7 @@ function mostrarRegistro(data = {}) {
         registro.value.estado = Boolean(data.estado);
 
         $("#btnCerralModalForm").click();
-        errores.value = [];
+        errores.value = {};
     } else {
         actualizar.value = false;
         tituloModal.value = "Nuevo registro";
@@ -743,7 +735,7 @@ function mostrarRegistro(data = {}) {
         registro.value.estado = true;
 
         $("#btnCerralModalForm").click();
-        errores.value = [];
+        errores.value = {};
     }
 }
 /**
@@ -773,7 +765,7 @@ function limpiar() {
     registro.value.estado = true;
 
     $("#btnCerralModalForm").click();
-    errores.value = [];
+    errores.value = {};
 }
 /**
  * Muestra u oculta el panel lateral del formulario mediante la clase correspondiente.

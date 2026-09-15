@@ -56,6 +56,7 @@
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import { toastMessage } from "@/helpers/alerts.js";
 import axios from "axios";
 
 const dt = ref(null);
@@ -85,6 +86,11 @@ async function listar() {
             });
         });
     } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible listar los estados.",
+            icon: "error",
+        });
     } finally {
         loadingListar.value = false;
     }

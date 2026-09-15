@@ -898,9 +898,9 @@
     </div>
 </template>
 <script setup>
+import { computed, nextTick, onMounted, ref, getCurrentInstance } from "vue";
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
-import { computed, nextTick, onMounted, ref, getCurrentInstance } from "vue";
 
 import usePermissions from "@/helpers/permissions.js";
 import { formatoMoneda } from "@/helpers/funciones.js";
@@ -922,7 +922,7 @@ const tituloModal = ref("Nueva admisión");
 const busqueda = ref({
     sede_id: sedeActual,
     medico_id: null,
-    bus_nom_num_docu: "6934193",
+    bus_nom_num_docu: "",
     bus_fech_ini: "",
     bus_fecha_fin: "",
 });
@@ -1179,6 +1179,11 @@ async function generarLinkFirma() {
         // refrescar estado del consentimiento en el listado
         await refrescarConsentimientoItem();
     } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible generar el link de firma.",
+            icon: "error",
+        });
     } finally {
         isGenerandoLinkFirma.value = false;
     }

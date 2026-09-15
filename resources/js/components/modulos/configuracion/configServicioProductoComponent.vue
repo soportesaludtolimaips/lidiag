@@ -202,9 +202,7 @@
     </div>
 </template>
 <script setup>
-import { computed, onMounted, ref, getCurrentInstance } from "vue";
-
-const { proxy } = getCurrentInstance();
+import { computed, onMounted, ref } from "vue";
 import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts.js";
 import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
 import axios from "axios";
@@ -261,26 +259,24 @@ const productosDisponiblesOptions = computed(() => {
  * @date 2026-05-26
  */
 function cargarServicios() {
-    var thisVue = proxy;
-
     axios
         .get("/api/config-servicio-citas/mis-servicios")
         .then(function (response) {
-            thisVue.servicios = response.data;
+            servicios.value = response.data;
 
-            var servicioIdUrl = thisVue.servicioIdDesdeUrl;
+            var servicioIdUrl = servicioIdDesdeUrl.value;
             if (servicioIdUrl) {
-                var encontrado = thisVue.servicios.find(function (s) {
+                var encontrado = servicios.value.find(function (s) {
                     return s.id == servicioIdUrl;
                 });
                 if (encontrado) {
-                    thisVue.seleccionarServicio(encontrado);
+                    seleccionarServicio(encontrado);
                     return;
                 }
             }
 
-            if (thisVue.servicios.length > 0) {
-                thisVue.seleccionarServicio(thisVue.servicios[0]);
+            if (servicios.value.length > 0) {
+                seleccionarServicio(servicios.value[0]);
             }
         })
         .catch(function (error) {
@@ -313,18 +309,16 @@ function seleccionarServicio(servicio) {
  * @date 2026-05-26
  */
 function cargarProductosVinculados() {
-    var thisVue = proxy;
-
-    if (!thisVue.servicioSeleccionado) {
+    if (!servicioSeleccionado.value) {
         return;
     }
 
     axios
         .get("/api/servicio-producto", {
-            params: { servicio_cita_id: thisVue.servicioSeleccionado },
+            params: { servicio_cita_id: servicioSeleccionado.value },
         })
         .then(function (response) {
-            thisVue.productosVinculados = response.data;
+            productosVinculados.value = response.data;
         })
         .catch(function (error) {
             console.error("Error:", error);
@@ -340,19 +334,17 @@ function cargarProductosVinculados() {
  * @date 2026-05-26
  */
 function mostrarModalAgregar() {
-    var thisVue = proxy;
-
-    thisVue.productoSeleccionado = "";
-    thisVue.recomendacion = "";
-    thisVue.loadingGuardar = false;
+    productoSeleccionado.value = "";
+    recomendacion.value = "";
+    loadingGuardar.value = false;
 
     axios
         .get("/api/servicio-producto/productos-no-vinculados", {
-            params: { servicio_cita_id: thisVue.servicioSeleccionado },
+            params: { servicio_cita_id: servicioSeleccionado.value },
         })
         .then(function (response) {
-            thisVue.productosDisponibles = response.data;
-            thisVue.abrirModal();
+            productosDisponibles.value = response.data;
+            abrirModal();
         })
         .catch(function (error) {
             console.error("Error:", error);
@@ -415,38 +407,36 @@ function cerrarModal() {
  * @date 2026-05-26
  */
 function agregarProducto() {
-    var thisVue = proxy;
-
-    if (!thisVue.productoSeleccionado) {
+    if (!productoSeleccionado.value) {
         return;
     }
 
-    thisVue.loadingGuardar = true;
+    loadingGuardar.value = true;
 
     axios
         .post("/api/servicio-producto", {
-            servicio_cita_id: thisVue.servicioSeleccionado,
-            producto_id: thisVue.productoSeleccionado,
+            servicio_cita_id: servicioSeleccionado.value,
+            producto_id: productoSeleccionado.value,
         })
         .then(function (response) {
             // Guardar también la recomendación si se ingresó texto
-            if (thisVue.recomendacion && thisVue.recomendacion.trim()) {
+            if (recomendacion.value && recomendacion.value.trim()) {
                 return axios.post("/api/config-recomendacion-productos", {
-                    producto_id: thisVue.productoSeleccionado,
-                    recomendacion: thisVue.recomendacion,
+                    producto_id: productoSeleccionado.value,
+                    recomendacion: recomendacion.value,
                 });
             }
         })
         .then(function () {
-            thisVue.mostrarExito("Producto agregado correctamente");
-            thisVue.cerrarModal();
-            thisVue.cargarProductosVinculados();
+            mostrarExito("Producto agregado correctamente");
+            cerrarModal();
+            cargarProductosVinculados();
         })
         .catch(function (error) {
-            thisVue.mostrarError(error);
+            mostrarError(error);
         })
         .then(function () {
-            thisVue.loadingGuardar = false;
+            loadingGuardar.value = false;
         });
 }
 /**
@@ -461,8 +451,6 @@ function agregarProducto() {
  * @date 2026-05-26
  */
 function eliminarVinculo(id) {
-    var thisVue = proxy;
-
     confirmAction({
         title: "¿Está seguro?",
         text: "El producto se desvinculará del servicio.",
@@ -473,11 +461,11 @@ function eliminarVinculo(id) {
             axios
                 .delete("/api/servicio-producto/" + id)
                 .then(function () {
-                    thisVue.mostrarExito("Producto desvinculado");
-                    thisVue.cargarProductosVinculados();
+                    mostrarExito("Producto desvinculado");
+                    cargarProductosVinculados();
                 })
                 .catch(function (error) {
-                    thisVue.mostrarError(error);
+                    mostrarError(error);
                 });
         }
     });

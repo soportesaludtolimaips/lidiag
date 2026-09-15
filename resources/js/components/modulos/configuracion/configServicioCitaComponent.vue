@@ -212,7 +212,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 const dt = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts.js";
+import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
 import axios from "axios";
 
 const registros = ref([]);
@@ -238,7 +238,9 @@ async function cargarSedes() {
     try {
         const res = await axios.get("/api/config-sedes");
         sedes.value = res.data.data;
-    } catch (e) {}
+    } catch (e) {
+        toastMessage("error", "Error al cargar las sedes.");
+    }
 }
 /**
  * Obtiene la lista de servicios de citas, aplicando el filtro de sede, y la carga en la tabla.
@@ -357,6 +359,7 @@ async function eliminarRegistro(id) {
         alertSuccess("Ok!", response?.data?.message || "Registro eliminado.");
         ListarDatos();
     } catch (error) {
+        toastMessage("error", "Error al eliminar el registro.");
     } finally {
         loadingEliminarId.value = null;
     }

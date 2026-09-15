@@ -322,11 +322,12 @@
 import { onMounted, ref } from "vue";
 
 import usePermissions from "@/helpers/permissions.js";
-import { confirmAction } from "@/helpers/alerts";
+import { confirmAction, toastMessage } from "@/helpers/alerts";
 import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import axios from "axios";
 
 const props = defineProps({ usuarioactual: Object, permisos: Array });
+const { can } = usePermissions(props.permisos);
 
 const q = ref("");
 const loading = ref(false);
@@ -353,7 +354,13 @@ async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
         productos.value = Array.isArray(res.data?.data) ? res.data.data : [];
-    } catch (error) {}
+    } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible cargar los productos.",
+            icon: "error",
+        });
+    }
 }
 /**
  * Carga la lista de módulos de configuración y selecciona por defecto el módulo de Ecografías si existe.
@@ -373,7 +380,13 @@ async function listarModulos() {
             const eco = modulos.value.find((m) => Number(m.id) === 2);
             if (eco) filtros.value.config_modulo_id = eco.id;
         }
-    } catch (error) {}
+    } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible cargar los módulos.",
+            icon: "error",
+        });
+    }
 }
 /**
  * Consulta las plantillas de consentimiento vigentes según módulo y texto de búsqueda.
@@ -458,6 +471,11 @@ async function guardar() {
         await listar();
         $("#modal-plantilla").modal("hide");
     } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible guardar la plantilla.",
+            icon: "error",
+        });
     } finally {
         loadingGuardar.value = false;
     }
@@ -511,6 +529,11 @@ async function verVersiones(p) {
         versions.value = Array.isArray(res.data?.data) ? res.data.data : [];
         $("#modal-versiones").modal("show");
     } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible cargar las versiones.",
+            icon: "error",
+        });
     } finally {
         loadingVersions.value = false;
     }
@@ -540,7 +563,13 @@ async function activarVersion(v) {
             versions.value = Array.isArray(res.data?.data) ? res.data.data : [];
         }
         await listar();
-    } catch (error) {}
+    } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible activar la versión.",
+            icon: "error",
+        });
+    }
 }
 /**
  * Solicita confirmación y elimina (desactiva) la plantilla de consentimiento indicada.
@@ -563,7 +592,13 @@ async function desactivar(p) {
     try {
         await axios.delete(`/api/consentimientos-plantillas/${p.id}`);
         await listar();
-    } catch (error) {}
+    } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible desactivar la plantilla.",
+            icon: "error",
+        });
+    }
 }
 
 /**

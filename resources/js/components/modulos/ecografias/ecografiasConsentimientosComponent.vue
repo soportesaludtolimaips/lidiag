@@ -171,9 +171,11 @@
 import { computed, onMounted, ref } from "vue";
 
 import usePermissions from "@/helpers/permissions.js";
+import { toastMessage } from "@/helpers/alerts";
 import axios from "axios";
 
 const props = defineProps({ usuarioactual: Object, permisos: Array });
+const { can } = usePermissions(props.permisos);
 
 const filtros = ref({
     q: "",
@@ -334,6 +336,11 @@ async function generarPdfSeleccionado() {
         await axios.post(`/api/ecografias-consentimientos/${id}/pdf`);
         await buscar();
     } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible generar el PDF.",
+            icon: "error",
+        });
     } finally {
         loading.value = false;
     }
@@ -384,6 +391,11 @@ async function generarZip() {
         a.remove();
         window.URL.revokeObjectURL(url);
     } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible descargar el ZIP.",
+            icon: "error",
+        });
     } finally {
         loading.value = false;
     }
@@ -448,6 +460,11 @@ async function _ejecutarAnulacion(id, obs) {
         });
         await buscar();
     } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible anular el consentimiento.",
+            icon: "error",
+        });
     } finally {
         loading.value = false;
     }

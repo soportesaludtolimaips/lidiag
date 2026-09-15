@@ -954,7 +954,9 @@ async function guardarRegistro() {
                 // En guardado NO destruimos/reinicializamos la tabla: removemos solo la fila guardada.
                 try {
                     safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idRow.value);
-                } catch (e) {}
+                } catch (e) {
+                    console.warn(e);
+                }
                 registros.value.splice(idx, 1);
             }
 
@@ -1012,7 +1014,9 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
                 // Al anular, remover solo la fila afectada.
                 try {
                     safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idProductoEstudio);
-                } catch (e) {}
+                } catch (e) {
+                    console.warn(e);
+                }
                 registros.value.splice(idx, 1);
             }
             alertSuccess("Anulado!", "El producto se anulo correctamente.", "success");

@@ -215,7 +215,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 const dt = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts.js";
+import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
 import axios from "axios";
 
 const id = ref(0);
@@ -224,7 +224,7 @@ const registro = ref({ nom_tipo: "", estado: true });
 const tituloModal = ref("Nuevo registro");
 const actualizar = ref(false);
 const errores = ref({});
-const productos = ref([]);
+
 const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
@@ -275,30 +275,22 @@ async function guardarRegistro() {
 
             if (res.status >= 200 && res.status < 300) {
                 ListarDatos();
-                CerrarModal();
-                $.toast({
+                btnCerralModalForm();
+                toastMessage({
                     heading: "Ok!!!",
                     text: res.data.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
             }
         } else {
             const res = await axios.put("/api/config-tipos-plantillas/" + id.value, registro.value);
             if (res.status >= 200 && res.status < 300) {
                 ListarDatos();
-                CerrarModal();
-                $.toast({
+                btnCerralModalForm();
+                toastMessage({
                     heading: "Ok!!!",
                     text: res.data.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
                     icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
             }
         }

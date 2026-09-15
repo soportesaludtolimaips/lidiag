@@ -1091,6 +1091,11 @@ async function guardarRegistro() {
                 hideAfter: 5500,
             });
         } else {
+            toastMessage({
+                heading: "Error",
+                text: error.response?.data?.message || "No fue posible guardar el registro.",
+                icon: "error",
+            });
         }
     } finally {
         loadingGuardar.value = false;
@@ -1204,6 +1209,13 @@ async function mostrarRegistro(data = {}, index) {
             interfaceAtenciones.value = resAtenciones.data.data;
         }
     } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text:
+                error.response?.data?.message ||
+                "No fue posible cargar la configuración de la sede.",
+            icon: "error",
+        });
     } finally {
         loadingAbrirRegistroIndex.value = null;
     }
@@ -1336,7 +1348,9 @@ async function listarMedicos() {
         const moduloId = sessionStorage.getItem("ST-modulo") || "1";
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = res.data.data || [];
-    } catch (error) {}
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 /**
@@ -1348,7 +1362,9 @@ async function listarPrioridades() {
     try {
         const res = await axios.get("/api/config-prioridades");
         prioridades.value = res.data.data || [];
-    } catch (error) {}
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 /**
@@ -1360,7 +1376,9 @@ async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
         productos.value = res.data.data || [];
-    } catch (error) {}
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 /**
@@ -1372,7 +1390,9 @@ async function listarDiagnosticos() {
     try {
         const res = await axios.get("/api/config-diagnosticos");
         diagnosticos.value = res.data.data || [];
-    } catch (error) {}
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 /**

@@ -542,6 +542,11 @@ async function listarAtenciones() {
         }
     } catch (error) {
         erroresBusqueda.value = error?.response?.data?.errors || {};
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible buscar las ecografías.",
+            icon: "error",
+        });
     } finally {
         isBuscandoAdmisionadas.value = false;
     }
@@ -572,6 +577,11 @@ async function imprimirReporte(id) {
             });
         }
     } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible generar el reporte.",
+            icon: "error",
+        });
     } finally {
         isImprimiendoReporte.value = false;
     }

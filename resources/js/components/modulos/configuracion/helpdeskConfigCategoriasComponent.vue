@@ -215,6 +215,11 @@ async function listar() {
             });
         });
     } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible listar las categorías.",
+            icon: "error",
+        });
     } finally {
         loadingListar.value = false;
     }
@@ -290,6 +295,11 @@ async function guardarRegistro() {
         if (error?.response?.status === 422) {
             errores.value = error.response.data.errors || {};
         } else {
+            toastMessage({
+                heading: "Error",
+                text: "No fue posible guardar la categoría.",
+                icon: "error",
+            });
         }
     } finally {
         loadingGuardar.value = false;
@@ -318,6 +328,11 @@ async function desactivarRegistro(item) {
         toastMessage({ heading: "Ok", text: "Categoría desactivada.", icon: "success" });
         await listar();
     } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible desactivar la categoría.",
+            icon: "error",
+        });
     } finally {
         loadingEliminarId.value = null;
     }

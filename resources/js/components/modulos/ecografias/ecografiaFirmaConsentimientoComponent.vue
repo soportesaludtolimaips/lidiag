@@ -334,5 +334,12 @@ onMounted(() => {
 onBeforeUnmount(() => {
     if (timer.value) clearInterval(timer.value);
     window.removeEventListener("resize", resizeCanvas);
+    const c = canvas.value;
+    if (c) {
+        c.removeEventListener("pointerdown", onDown);
+        c.removeEventListener("pointermove", onMove);
+        c.removeEventListener("pointerup", onUp);
+        c.removeEventListener("pointercancel", onUp);
+    }
 });
 </script>
