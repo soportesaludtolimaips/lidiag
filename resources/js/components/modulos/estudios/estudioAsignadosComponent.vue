@@ -59,10 +59,8 @@
                                                     ...::: Todos los usuarios :::...
                                                 </option>
                                                 <option
-                                                    v-for="(
-                                                        ItemUsuario, index
-                                                    ) in quienes_asignaron"
-                                                    :key="index"
+                                                    v-for="ItemUsuario in quienes_asignaron"
+                                                    :key="ItemUsuario.id"
                                                     :value="ItemUsuario.id"
                                                 >
                                                     {{ ItemUsuario.name }}
@@ -83,8 +81,8 @@
                                                     ...::: Todos los medicos :::...
                                                 </option>
                                                 <option
-                                                    v-for="(ItemUsuario, index) in medicos"
-                                                    :key="index"
+                                                    v-for="ItemUsuario in medicos"
+                                                    :key="ItemUsuario.id"
                                                     :value="ItemUsuario.id"
                                                 >
                                                     {{ ItemUsuario.name }}
@@ -158,6 +156,14 @@
                                     >
                                         <i class="fa fa-refresh"></i> Limpiar
                                     </button>
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-primary ml-2"
+                                        @click="listarEstudiosAsignados()"
+                                        :disabled="loadingBuscar"
+                                    >
+                                        <i class="fa fa-sync"></i> Actualizar
+                                    </button>
                                 </div>
                             </div>
                         </form>
@@ -220,6 +226,7 @@
                                                 type="button"
                                                 v-if="item.priori_id == 1"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-danger"
+                                                title="Alta"
                                             >
                                                 A
                                             </button>
@@ -227,6 +234,7 @@
                                                 type="button"
                                                 v-else-if="item.priori_id == 2"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-warning"
+                                                title="Media"
                                             >
                                                 M
                                             </button>
@@ -234,6 +242,7 @@
                                                 type="button"
                                                 v-else-if="item.priori_id == 3"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-info"
+                                                title="Baja"
                                             >
                                                 B
                                             </button>
@@ -241,6 +250,7 @@
                                                 type="button"
                                                 v-else-if="item.priori_id == 4"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm"
+                                                title="Sin prioridad"
                                             >
                                                 S
                                             </button>
@@ -360,14 +370,14 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div class="right-sidebar sidebar-scroll">
+        <div class="right-sidebar sidebar-scroll" :class="{ 'shw-rside': sidebarVisible }">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <button
                         type="button"
                         class="right-side-toggle"
-                        @click="btnCerralModalForm()"
+                        @click="btnCerrarModalForm()"
                         aria-label="Cerrar panel"
                     >
                         <i class="ti-close"></i>
@@ -647,8 +657,8 @@
                                                 >
                                                     <div
                                                         class="col-md-8 col-lg-9"
-                                                        v-for="(itemArchivo, index) in soportesHC"
-                                                        :key="index"
+                                                        v-for="itemArchivo in soportesHC"
+                                                        :key="itemArchivo.archivo_encrip"
                                                     >
                                                         <a
                                                             href="javascript:void(0)"
@@ -683,13 +693,13 @@
                                                     role="tabpanel"
                                                 >
                                                     <template
-                                                        v-for="(item, index) in audiosDeEstudio"
-                                                        :key="index"
+                                                        v-for="item in audiosDeEstudio"
+                                                        :key="item.id || item.audio"
                                                     >
                                                         <audio
                                                             :src="item.url || item.audio"
                                                             controls
-                                                            style="height: 15px; width: 100%"
+                                                            style="height: 30px; width: 100%"
                                                         ></audio>
                                                     </template>
                                                 </div>
@@ -713,7 +723,7 @@
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
+                                    @click="btnCerrarModalForm()"
                                 >
                                     Cancel
                                 </button>
@@ -733,18 +743,8 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { listarUsuariosYSedes } from "@/helpers/usuarios";
-import {
-    safeDestroyDataTable,
-    safeInitDataTable,
-    safeRemoveDataTableRow,
-} from "@/helpers/datatables.js";
-import {
-    confirmAction,
-    alertSuccess,
-    alertError,
-    getUserSafeError,
-    toastMessage,
-} from "@/helpers/alerts";
+import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import { confirmAction, getUserSafeError, toastMessage } from "@/helpers/alerts";
 import axios from "axios";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 
@@ -757,10 +757,9 @@ const dt = ref(null);
 const primerInput = ref(null);
 
 const id = ref(0);
-const diagnosticosEstudio = ref([]);
 const soportesHC = ref([]);
 const registros = ref([]);
-const tituloModal = ref("Transcribir estudio");
+const tituloModal = ref("Estudio asignado");
 const registro = ref({
     id_estudio: 0,
     estudio_producto_id: 0,
@@ -778,7 +777,6 @@ const registro = ref({
     email: "",
     tel: "",
     direccion: "",
-    diagnosticosEstudio: [],
     sede_id: "",
     atencion: null,
     servicio: null,
@@ -810,6 +808,7 @@ const loadingBuscar = ref(false);
 const loadingAnularId = ref(null);
 const loadingAbrirRegistroId = ref(null);
 const loadingGuardar = ref(false);
+const sidebarVisible = ref(false);
 
 const contadorRegistros = computed(() => {
     return registros.value.length;
@@ -837,7 +836,6 @@ function btnLimpiar() {
     // limpiar sidebar (best-effort)
     id.value = 0;
     idRow.value = null;
-    diagnosticosEstudio.value = [];
     soportesHC.value = [];
     audiosDeEstudio.value = [];
     limpiar();
@@ -895,19 +893,16 @@ async function listarEstudiosAsignados() {
 
     loadingBuscar.value = true;
     try {
-        destroyDataTable();
-        registros.value = [];
-
         const res = await axios.post("/api/estudio-listarEstudiosAsignados", busqueda.value);
 
         registros.value = res.data.data;
 
         nextTick(() => {
+            destroyDataTable();
             initDataTable();
         });
     } catch (error) {
         const status = error?.response?.status;
-        const message = error?.response?.data?.message;
         if (status === 400 && error?.response?.data && typeof error.response.data === "object") {
             toastMessage({
                 heading: "Upss!!!",
@@ -936,9 +931,21 @@ async function guardarRegistro() {
     loadingGuardar.value = true;
     try {
         const payload = {
-            ...registro.value,
-            id_estudio: id.value,
             estudio_producto_id: registro.value.estudio_producto_id,
+            id_estudio: id.value,
+            lectura: registro.value.lectura,
+            sede_id: registro.value.sede_id,
+            nom_sede: registro.value.nom_sede,
+            medico_id: registro.value.medico_id,
+            cod_cups: registro.value.cod_cups,
+            nom_produc: registro.value.nom_produc,
+            num_docu: registro.value.num_docu,
+            nom_pacien: registro.value.nom_pacien,
+            email: registro.value.email,
+            fec_naci: registro.value.fec_naci,
+            url_oviyam: registro.value.url_oviyam,
+            study_iuid: registro.value.study_iuid,
+            tap_oviyam: registro.value.tap_oviyam,
         };
         const res = await axios.post("/api/estudio-guardarTranscripcion", payload);
 
@@ -949,16 +956,18 @@ async function guardarRegistro() {
                 icon: "success",
             });
 
-            const idx = registros.value.findIndex((x) => x.estudio_producto_id == idRow.value);
-            if (idx >= 0) {
-                registros.value.splice(idx, 1);
-                nextTick(() => {
-                    destroyDataTable();
-                    initDataTable();
-                });
+            if (idRow.value != null) {
+                const idx = registros.value.findIndex((x) => x.estudio_producto_id == idRow.value);
+                if (idx >= 0) {
+                    registros.value.splice(idx, 1);
+                    nextTick(() => {
+                        destroyDataTable();
+                        initDataTable();
+                    });
+                }
             }
 
-            btnCerralModalForm();
+            btnCerrarModalForm();
             limpiar();
         } else {
             toastMessage({
@@ -1015,12 +1024,24 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
                     initDataTable();
                 });
             }
-            alertSuccess("Anulado!", "El producto se anulo correctamente.", "success");
+            toastMessage({
+                heading: "Anulado!",
+                text: "El producto se anulo correctamente.",
+                icon: "success",
+            });
         } else {
-            alertError("Ups!", "No fue posible anular el producto.", "error");
+            toastMessage({
+                heading: "Ups!",
+                text: "No fue posible anular el producto.",
+                icon: "error",
+            });
         }
-    } catch (err) {
-        alertError("Error", "No fue posible anular el producto.", "error");
+    } catch (_err) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible anular el producto.",
+            icon: "error",
+        });
     } finally {
         loadingAnularId.value = null;
     }
@@ -1038,7 +1059,6 @@ async function mostrarRegistro(data = {}) {
     try {
         // reset panel data
         errores.value = {};
-        diagnosticosEstudio.value = [];
         soportesHC.value = [];
         audiosDeEstudio.value = [];
 
@@ -1078,9 +1098,6 @@ async function mostrarRegistro(data = {}) {
         registro.value.sede_id = data.sede_id;
         registro.value.nom_sede = data.nom_sede;
 
-        const res = await axios.get("/api/study-listar-diagnostico-por-estudio?id=" + id.value);
-        diagnosticosEstudio.value = res.data.data;
-
         const resSoportesHC = await axios.get("/api/listar-soportes-hc-estudio?id=" + id.value);
         soportesHC.value = resSoportesHC.data.data;
 
@@ -1102,7 +1119,7 @@ async function mostrarRegistro(data = {}) {
     }
 }
 function limpiar() {
-    tituloModal.value = "Nuevo registro";
+    tituloModal.value = "Estudio asignado";
     registro.value.email_reportar = "";
     registro.value.email = "";
     registro.value.tel = "";
@@ -1110,20 +1127,16 @@ function limpiar() {
     registro.value.lectura = "";
     registro.value.estudio_producto_id = 0;
     registro.value.id_estudio = 0;
-
-    btnCerralModalForm();
     errores.value = {};
 }
 function abrirModal() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").addClass("shw-rside");
+    sidebarVisible.value = true;
     nextTick(() => {
         primerInput.value?.focus();
     });
 }
-function btnCerralModalForm() {
-    $(".right-sidebar").slideUp(50);
-    $(".right-sidebar").removeClass("shw-rside");
+function btnCerrarModalForm() {
+    sidebarVisible.value = false;
 }
 
 onMounted(async () => {
@@ -1142,7 +1155,7 @@ onBeforeUnmount(() => {
     registros.value = [];
     soportesHC.value = [];
     audiosDeEstudio.value = [];
-    registro.value = { productosEstudio: [], diagnosticosEstudio: [], soportesHC: [] };
+    registro.value = { productosEstudio: [], soportesHC: [] };
 });
 </script>
 <style scoped>
