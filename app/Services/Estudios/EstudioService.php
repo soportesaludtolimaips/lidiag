@@ -219,12 +219,23 @@ class EstudioService extends BaseService
      */
     public function leerEstudio(int $estudioProductoId, string $lectura): array
     {
-        $item = EstudioProducto::findOrFail($estudioProductoId);
-        $item->lectura = $lectura;
-        $item->fechor_lectura = Carbon::now();
-        $item->save();
+        try {
+            return DB::transaction(function () use ($estudioProductoId, $lectura) {
+                $item = EstudioProducto::lockForUpdate()->findOrFail($estudioProductoId);
 
-        return $this->updated(null, 'La lectura se realizó correctamente.');
+                if ($item->fechor_lectura !== null) {
+                    return $this->error('Este estudio ya fue leido por otro medico. Actualice la pagina para ver los cambios.', 409);
+                }
+
+                $item->lectura = $lectura;
+                $item->fechor_lectura = Carbon::now();
+                $item->save();
+
+                return $this->updated(null, 'La lectura se realizo correctamente.');
+            });
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage(), 500);
+        }
     }
 
     /**
@@ -442,7 +453,12 @@ class EstudioService extends BaseService
                     ]
                 );
 
-                $producto = EstudioProducto::findOrFail($data['estudio_producto_id']);
+                $producto = EstudioProducto::lockForUpdate()->findOrFail($data['estudio_producto_id']);
+
+                if ($producto->fechor_trascrito !== null) {
+                    return $this->error('Esta transcripcion ya fue procesada por otro usuario.', 409);
+                }
+
                 $producto->lectura = $data['lectura'];
                 $producto->transcriptor_id = Auth::id();
                 $producto->fechor_trascrito = Carbon::now()->format('Y-m-d H:i:s');

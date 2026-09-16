@@ -906,20 +906,38 @@ async function guardarRegistro() {
             icon: "info",
         });
 
-        const res = await axios.post("/api/estudio-guardarTranscripcion", registro.value);
+        const payload = {
+            estudio_producto_id: registro.value.estudio_producto_id,
+            lectura: registro.value.lectura,
+            url_oviyam: registro.value.url_oviyam,
+            study_iuid: registro.value.study_iuid,
+            tap_oviyam: registro.value.tap_oviyam,
+            nom_sede: registro.value.nom_sede,
+            sede_id: registro.value.sede_id,
+            medico_id: registro.value.medico_id,
+            cod_cups: registro.value.cod_cups,
+            nom_produc: registro.value.nom_produc,
+            num_docu: registro.value.num_docu,
+            nom_pacien: registro.value.nom_pacien,
+            email: registro.value.email,
+            fec_naci: registro.value.fec_naci,
+            id_estudio: registro.value.id_estudio,
+        };
+        const res = await axios.post("/api/estudio-guardarTranscripcion", payload);
 
         if (res.status == 200) {
             const estudioEliminar = registros.value.findIndex(
                 (x) => x.estudio_producto_id == idRow.value
             );
             if (estudioEliminar >= 0) {
-                // No destruir/reinicializar: remover solo la fila guardada.
-                try {
-                    safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idRow.value);
-                } catch (e) {
-                    console.warn(e);
-                }
                 registros.value.splice(estudioEliminar, 1);
+                nextTick(() => {
+                    destroyDataTable();
+                    safeInitDataTable(dt.value || "#example23", {
+                        dom: "Bfrtip",
+                        buttons: ["copy", "csv", "excel", "pdf", "print"],
+                    });
+                });
             }
 
             toastMessage({
@@ -993,12 +1011,14 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
                 (x) => x.estudio_producto_id == idProductoEstudio
             );
             if (idx >= 0) {
-                try {
-                    safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idProductoEstudio);
-                } catch (e) {
-                    console.warn(e);
-                }
                 registros.value.splice(idx, 1);
+                nextTick(() => {
+                    destroyDataTable();
+                    safeInitDataTable(dt.value || "#example23", {
+                        dom: "Bfrtip",
+                        buttons: ["copy", "csv", "excel", "pdf", "print"],
+                    });
+                });
             }
             alertSuccess("Anulado!", "El producto se anulo correctamente.", "success");
         } else {

@@ -768,10 +768,11 @@ async function guardarRegistro() {
                 (x) => x.estudio_producto_id == idRow.value
             );
             if (estudioEliminar >= 0) {
-                try {
-                    safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idRow.value);
-                } catch (e) {}
                 registros.value.splice(estudioEliminar, 1);
+                nextTick(() => {
+                    destroyDataTable();
+                    initDataTable();
+                });
             }
 
             toastMessage({
@@ -878,10 +879,11 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
                 (x) => x.estudio_producto_id == idProductoEstudio
             );
             if (idx >= 0) {
-                try {
-                    safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idProductoEstudio);
-                } catch (e) {}
                 registros.value.splice(idx, 1);
+                nextTick(() => {
+                    destroyDataTable();
+                    initDataTable();
+                });
             }
             alertSuccess("Anulado!", "El producto se anulo correctamente.", "success");
         } else {

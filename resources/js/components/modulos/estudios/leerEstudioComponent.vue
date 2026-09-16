@@ -1520,7 +1520,10 @@ async function guardarRegistro() {
             await stopRecording();
         }
 
-        const res = await axios.post("/api/estudio-leerEstudio", registro.value);
+        const res = await axios.post("/api/estudio-leerEstudio", {
+            estudio_producto_id: registro.value.estudio_producto_id,
+            lectura: registro.value.lectura,
+        });
 
         if (res.status >= 200 && res.status < 300) {
             const blobToSend = audioBlob.value;
@@ -1537,12 +1540,11 @@ async function guardarRegistro() {
                 (x) => x.estudio_producto_id == idRow.value
             );
             if (estudioEliminar >= 0) {
-                try {
-                    safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idRow.value);
-                } catch (e) {
-                    console.warn("DataTable row removal failed:", e.message);
-                }
                 registros.value.splice(estudioEliminar, 1);
+                nextTick(() => {
+                    destroyDataTable();
+                    initDataTable();
+                });
             }
 
             cerrarSidebar();

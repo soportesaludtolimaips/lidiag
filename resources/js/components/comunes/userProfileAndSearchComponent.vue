@@ -147,7 +147,7 @@
                 aria-haspopup="true"
                 aria-expanded="false"
             >
-                <img src="@/admin-wrap/assets/images/users/1.jpg" alt="user" class="" />
+                <img :src="'/images/users/1.jpg'" alt="user" class="" />
                 <span class="hidden-md-down">
                     &nbsp; {{ usuarioactual.name }}
                     <i class="fa fa-angle-down"></i>
@@ -158,7 +158,7 @@
                     <li>
                         <div class="dw-user-box">
                             <div class="u-img">
-                                <img src="@/admin-wrap/assets/images/users/1.jpg" alt="user" />
+                                <img :src="'/images/users/1.jpg'" alt="user" />
                             </div>
                             <div class="u-text">
                                 <h4>{{ usuarioactual.name }}</h4>

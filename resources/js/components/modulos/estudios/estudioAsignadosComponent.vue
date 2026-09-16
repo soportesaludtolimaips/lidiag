@@ -951,13 +951,11 @@ async function guardarRegistro() {
 
             const idx = registros.value.findIndex((x) => x.estudio_producto_id == idRow.value);
             if (idx >= 0) {
-                // En guardado NO destruimos/reinicializamos la tabla: removemos solo la fila guardada.
-                try {
-                    safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idRow.value);
-                } catch (e) {
-                    console.warn(e);
-                }
                 registros.value.splice(idx, 1);
+                nextTick(() => {
+                    destroyDataTable();
+                    initDataTable();
+                });
             }
 
             btnCerralModalForm();
@@ -1011,13 +1009,11 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
                 (x) => x.estudio_producto_id == idProductoEstudio
             );
             if (idx >= 0) {
-                // Al anular, remover solo la fila afectada.
-                try {
-                    safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idProductoEstudio);
-                } catch (e) {
-                    console.warn(e);
-                }
                 registros.value.splice(idx, 1);
+                nextTick(() => {
+                    destroyDataTable();
+                    initDataTable();
+                });
             }
             alertSuccess("Anulado!", "El producto se anulo correctamente.", "success");
         } else {
