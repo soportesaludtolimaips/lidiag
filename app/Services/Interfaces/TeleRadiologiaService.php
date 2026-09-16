@@ -109,7 +109,9 @@ class TeleRadiologiaService extends BaseService
                 $response->json() ?? $response->body()
             );
         } catch (\Throwable $e) {
-            return $this->error('Error interno en el servidor proxy', 500, $e->getMessage());
+            Log::error("Error en enviarOrdenTeleRadiologia: ".$e->getMessage());
+
+            return $this->error('Error interno del servidor proxy', 500, $e->getMessage());
         }
     }
 
@@ -192,8 +194,8 @@ class TeleRadiologiaService extends BaseService
                 'estudio_id' => $estudio->id,
                 'medico' => $medico->name,
             ], 'Lectura procesada correctamente.');
-        } catch (\Exception $e) {
-            Log::error("Error crítico en recibirLectura: ".$e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error("Error en recibirLectura [study_iuid=".($data['study_iuid'] ?? '?')."]: ".$e->getMessage());
 
             return $this->error('Error interno del servidor.', 500, $e->getMessage());
         }
@@ -218,7 +220,7 @@ class TeleRadiologiaService extends BaseService
         $medico->reg_med = $medicoData['reg_medico'] ?? $medico->reg_med;
 
         if (! $medico->exists) {
-            $medico->email = $medicoData['num_docu'].'@teleradiologia.com';
+            $medico->email = ($medicoData['num_docu'] ?? 'unknown').'@teleradiologia.com';
             $medico->password = bcrypt('password');
         }
 

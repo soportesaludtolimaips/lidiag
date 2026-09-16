@@ -37,9 +37,17 @@ class TeleRadiologiaController extends Controller
      */
     public function listarEstudios(Request $request): JsonResponse
     {
-        $result = $this->teleRadiologiaService->listarEstudios($request);
+        try {
+            $result = $this->teleRadiologiaService->listarEstudios($request);
 
-        return response()->json($result, $result['status']);
+            return response()->json($result, $result['status']);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error interno del servidor.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
