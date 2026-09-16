@@ -17,10 +17,9 @@
                 <button
                     type="button"
                     class="btn btn-info btnDesplegarRigthSidebar"
-                    v-if="tabActivo !== 'productos'"
                     @click="
                         actualizar = false;
-                        mostrarRegistro();
+                        tabActivo === 'productos' ? mostrarModalAgregar() : mostrarRegistro();
                     "
                 >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
@@ -457,7 +456,11 @@
             </div>
         </div>
 
-        <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; height: 100%">
+        <div
+            class="right-sidebar"
+            :class="{ 'shw-rside': sidebarVisible }"
+            style="overflow-x: hidden; overflow-y: scroll; height: 100%"
+        >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -816,6 +819,7 @@
             tabindex="-1"
             role="dialog"
             aria-hidden="true"
+            v-if="modalPreviewVisible"
         >
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -853,6 +857,7 @@
             tabindex="-1"
             role="dialog"
             aria-hidden="true"
+            v-if="modalProbarVisible"
         >
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -972,6 +977,9 @@ const previewMensaje = ref("");
 const testPhoneNumber = ref("");
 const testResultado = ref(null);
 const loadingTestEnvio = ref(false);
+const sidebarVisible = ref(false);
+const modalPreviewVisible = ref(false);
+const modalProbarVisible = ref(false);
 
 /**
  * Genera las opciones para el selector de productos disponibles por servicio.
@@ -1007,6 +1015,8 @@ const productosDisponiblesOptions = computed(() => {
 function cambiarTab(tab) {
     tabActivo.value = tab;
     errores.value = {};
+    sidebarVisible.value = false;
+    limpiar();
     if (tab === "productos") {
         cargarServiciosProductos();
     }
@@ -1039,9 +1049,9 @@ async function listarNumeros() {
     errorNumeros.value = "";
     try {
         const res = await axios.get("/api/config-sede-whatsapp-numbers");
-        safeDestroyDataTable(dtNumeros.value || "#tblWhatsappNumbers");
         registrosNumeros.value = res.data.data;
         nextTick(() => {
+            safeDestroyDataTable(dtNumeros.value || "#tblWhatsappNumbers");
             if (tabActivo.value === "numeros") {
                 safeInitDataTable(dtNumeros.value || "#tblWhatsappNumbers", {
                     dom: "Bfrtip",
@@ -1072,9 +1082,9 @@ async function listarSaludos() {
     errorSaludos.value = "";
     try {
         const res = await axios.get("/api/config-whatsapp");
-        safeDestroyDataTable(dtSaludos.value || "#tblWhatsappSaludos");
         registrosSaludos.value = res.data.data;
         nextTick(() => {
+            safeDestroyDataTable(dtSaludos.value || "#tblWhatsappSaludos");
             if (tabActivo.value === "saludos") {
                 safeInitDataTable(dtSaludos.value || "#tblWhatsappSaludos", {
                     dom: "Bfrtip",
@@ -1103,7 +1113,11 @@ async function listarSedes() {
         const res = await axios.get("/api/config-sedes/listar/sedes/activas");
         sedes.value = res.data.data;
     } catch (error) {
-        console.error(error);
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar las sedes.",
+            icon: "error",
+        });
     }
 }
 /**
@@ -1120,7 +1134,11 @@ async function listarServicios() {
         const res = await axios.get("/api/config-servicio-citas");
         servicios.value = res.data.data;
     } catch (error) {
-        console.error(error);
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los servicios.",
+            icon: "error",
+        });
     }
 }
 /**
@@ -1309,10 +1327,14 @@ function limpiar() {
     actualizar.value = false;
     tituloModal.value = "Nuevo registro";
     id.value = 0;
+    errores.value = {};
     if (tabActivo.value === "numeros") {
         form.value = { ...INIT_FORM_NUMEROS };
-    } else {
+    } else if (tabActivo.value === "saludos") {
         form.value = { ...INIT_FORM_SALUDOS };
+    } else {
+        productoSeleccionado.value = "";
+        recomendacion.value = "";
     }
 }
 /**
@@ -1325,8 +1347,7 @@ function limpiar() {
  * @date 2026-06-11
  */
 function btnCerrarModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").addClass("shw-rside");
+    sidebarVisible.value = true;
 }
 /**
  * Oculta el panel lateral del formulario removiendo la clase correspondiente.
@@ -1338,8 +1359,7 @@ function btnCerrarModalForm() {
  * @date 2026-06-11
  */
 function cerrarFormSidebar() {
-    $(".right-sidebar").slideUp(50);
-    $(".right-sidebar").removeClass("shw-rside");
+    sidebarVisible.value = false;
 }
 /**
  * Obtiene los servicios de citas y selecciona el primero para administrar sus productos.
@@ -1400,7 +1420,11 @@ async function cargarProductosVinculados() {
         });
         productosVinculados.value = res.data.data;
     } catch (error) {
-        console.error("Error al cargar productos vinculados:", error);
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los productos vinculados.",
+            icon: "error",
+        });
     }
 }
 /**
@@ -1419,17 +1443,18 @@ async function mostrarModalAgregar() {
         });
         productosDisponibles.value = res.data.data;
     } catch (error) {
-        console.error("Error al cargar productos disponibles:", error);
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los productos disponibles.",
+            icon: "error",
+        });
         return;
     }
     tituloModal.value = "Agregar producto a: " + (servicioActual.value?.nombre || "");
     productoSeleccionado.value = "";
     recomendacion.value = "";
     loadingAgregarProducto.value = false;
-    await new Promise((resolve) => {
-        $(".right-sidebar").slideDown(50, resolve);
-        $(".right-sidebar").addClass("shw-rside");
-    });
+    sidebarVisible.value = true;
 }
 /**
  * Manejar la selección de un producto en el formulario.
@@ -1452,7 +1477,6 @@ function onProductoSelect(value) {
     }
     if (selectedId != null) {
         productoSeleccionado.value = selectedId;
-        agregarProducto();
     }
 }
 /**
@@ -1464,10 +1488,6 @@ function onProductoSelect(value) {
  *
  * @date 2026-06-11
  */
-function abrirModal() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").addClass("shw-rside");
-}
 /**
  * Oculta el panel lateral del formulario removiendo la clase correspondiente.
  *
@@ -1478,7 +1498,7 @@ function abrirModal() {
  * @date 2026-06-11
  */
 function cerrarModal() {
-    $(".right-sidebar").removeClass("shw-rside");
+    sidebarVisible.value = false;
 }
 /**
  * Vincula el producto seleccionado al servicio y guarda su recomendación si se indicó.
@@ -1563,7 +1583,13 @@ async function eliminarVinculo(id) {
 function abrirProbarEnvio() {
     testPhoneNumber.value = "";
     testResultado.value = null;
-    $("#modalProbarEnvio").modal("show");
+    modalProbarVisible.value = true;
+    nextTick(() => {
+        const el = document.getElementById("modalProbarEnvio");
+        if (el) {
+            $(el).modal("show");
+        }
+    });
 }
 /**
  * Reemplaza las variables del mensaje y muestra la vista previa en un modal.
@@ -1581,7 +1607,13 @@ function mostrarPreviewSaludo() {
         .replace(/\$\{nom_paciente\}/g, "Paciente")
         .replace(/\$\{cod_cups\}/g, "CUPS001")
         .replace(/\$\{nom_produc\}/g, "Nombre del producto");
-    $("#modalPreviewSaludo").modal("show");
+    modalPreviewVisible.value = true;
+    nextTick(() => {
+        const el = document.getElementById("modalPreviewSaludo");
+        if (el) {
+            $(el).modal("show");
+        }
+    });
 }
 /**
  * Inserta formato de texto (negrita, cursiva, tachado o código) en la posición seleccionada.
