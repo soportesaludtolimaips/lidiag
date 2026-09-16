@@ -239,7 +239,7 @@ class ContratoController extends Controller
                 'message' => $e->getMessage(),
                 'data' => ['faltantes' => $e->faltantes],
             ], 200);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -346,7 +346,7 @@ class ContratoController extends Controller
                 'message' => $e->getMessage(),
                 'data' => ['faltantes' => $e->faltantes],
             ], 200);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),

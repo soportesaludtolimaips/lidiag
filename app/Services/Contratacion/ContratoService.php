@@ -6,6 +6,7 @@ use App\Models\Contratacion\Contrato;
 use App\Models\Contratacion\ContratoMedico;
 use App\Models\Contratacion\ContratoProducto;
 use App\Services\BaseService;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Service ContratoService: lógica de negocio del módulo de contratación.
@@ -255,13 +256,20 @@ class ContratoService extends BaseService
             $mapaProductos = ContratoProducto::where('contrato_id', $contrato->id)
                 ->pluck('id', 'producto_id');
 
+            Log::info("Sync médicos contrato {$contrato->id}: eliminando ".
+                ContratoMedico::where('contrato_id', $contrato->id)->count().
+                " registros existentes, insertando ".count($items)." nuevos");
+
             ContratoMedico::where('contrato_id', $contrato->id)->delete();
 
             foreach ($items as $item) {
                 $contratoProductoId = $mapaProductos[(int) $item['producto_id']] ?? null;
 
                 if (! $contratoProductoId) {
-                    abort(422, "El producto {$item['producto_id']} no está configurado en este contrato");
+                    return $this->error(
+                        422,
+                        "El producto {$item['producto_id']} no está configurado en este contrato"
+                    );
                 }
 
                 ContratoMedico::create([

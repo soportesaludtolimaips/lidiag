@@ -145,7 +145,7 @@
         </div>
 
         <!-- SIDEBAR: CREAR/EDITAR CONTRATO -->
-        <div class="right-sidebar" style="width: 450px">
+        <div class="right-sidebar" :class="{ 'shw-rside': sidebarVisible }">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -159,7 +159,7 @@
                     </button>
                 </div>
                 <div class="r-panel-body">
-                    <form action="#" @submit.prevent>
+                    <form @submit.prevent>
                         <div class="form-body">
                             <div class="row p-t-20">
                                 <div class="col-md-12">
@@ -259,7 +259,7 @@
         </div>
 
         <!-- SIDEBAR: DETALLE (MÉDICOS + PRODUCTOS) -->
-        <div class="right-sidebar sidebar-scroll" v-show="contratoSeleccionado">
+        <div class="right-sidebar sidebar-scroll" :class="{ 'shw-rside': detalleVisible }">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     Detalle: {{ contratoSeleccionado?.sede?.nom_sede }}
@@ -307,19 +307,10 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(item, index) in detallesLocales" :key="index">
+                                <tr v-for="item in detallesLocales" :key="item.id">
                                     <td>{{ item.medico_name }}</td>
                                     <td>{{ item.cod_cups }}</td>
                                     <td>{{ item.nom_produc }}</td>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            v-model.number="item.valor_consulta"
-                                            class="form-control"
-                                            step="0.01"
-                                            min="0"
-                                        />
-                                    </td>
                                     <td>
                                         <input
                                             type="number"
@@ -619,6 +610,20 @@ const loadingGuardar = ref(false);
  */
 const loadingEliminarId = ref(null);
 
+// ─── VISIBILIDAD DE SIDEBARS ──────────────────────────────────────────────────
+
+/**
+ * Visibilidad del sidebar de crear/editar contrato
+ * @type {import('vue').Ref<boolean>}
+ */
+const sidebarVisible = ref(false);
+
+/**
+ * Visibilidad del sidebar de detalle (médicos-producto)
+ * @type {import('vue').Ref<boolean>}
+ */
+const detalleVisible = ref(false);
+
 // ─── SEDE ACTUAL DESDE SESSION STORAGE ────────────────────────────────────────
 
 /**
@@ -789,6 +794,7 @@ async function listar() {
         });
     } catch (e) {
         console.error(e);
+        toastMessage({ heading: "Error", text: "Error al cargar los contratos", icon: "error" });
     } finally {
         loadingListar.value = false;
     }
@@ -830,8 +836,7 @@ function mostrarRegistro(item = null) {
             estado: 1,
         };
     }
-    $(".right-sidebar:not(.sidebar-scroll)").slideDown(50);
-    $(".right-sidebar:not(.sidebar-scroll)").addClass("shw-rside");
+    sidebarVisible.value = true;
 }
 
 /**
@@ -843,7 +848,7 @@ function mostrarRegistro(item = null) {
  * @date 2026-08-20
  */
 function btnCerralModalForm() {
-    $(".right-sidebar:not(.sidebar-scroll)").removeClass("shw-rside");
+    sidebarVisible.value = false;
 }
 
 /**
@@ -885,6 +890,9 @@ async function guardarRegistro() {
     } catch (e) {
         if (e.response?.status === 422) {
             errores.value = e.response.data.errors || {};
+        } else {
+            const msg = e.response?.data?.message || "Error al guardar el contrato";
+            toastMessage({ heading: "Error", text: msg, icon: "error" });
         }
     } finally {
         loadingGuardar.value = false;
@@ -915,6 +923,8 @@ async function desactivarRegistro(item) {
         await listar();
     } catch (e) {
         console.error(e);
+        const msg = e.response?.data?.message || "Error al eliminar el contrato";
+        toastMessage({ heading: "Error", text: msg, icon: "error" });
     } finally {
         loadingEliminarId.value = null;
     }
@@ -961,7 +971,7 @@ async function abrirDetalle(contrato) {
     contratoSeleccionado.value = contrato;
     detallesLocales.value = mapearMedicosDetalle(contrato.medicos || []);
     await nextTick();
-    $(".right-sidebar.sidebar-scroll").addClass("shw-rside");
+    detalleVisible.value = true;
 }
 
 /**
@@ -998,7 +1008,7 @@ function mapearMedicosDetalle(medicosContrato) {
 function cerrarDetalle() {
     contratoSeleccionado.value = null;
     detallesLocales.value = [];
-    $(".right-sidebar.sidebar-scroll").removeClass("shw-rside");
+    detalleVisible.value = false;
 }
 
 /**
@@ -1214,8 +1224,11 @@ async function procesarImportacion() {
     loadingImportar.value = true;
     try {
         let crearFaltantes = false;
+        let intentos = 0;
+        const MAX_INTENTOS = 2;
 
-        while (true) {
+        while (intentos < MAX_INTENTOS) {
+            intentos++;
             const formData = new FormData();
             formData.append("archivo", file);
             formData.append("medico_id", importarForm.value.medico_id);
@@ -1368,8 +1381,11 @@ async function procesarImportacionProductos() {
     loadingImportarProductos.value = true;
     try {
         let crearFaltantes = false;
+        let intentos = 0;
+        const MAX_INTENTOS = 2;
 
-        while (true) {
+        while (intentos < MAX_INTENTOS) {
+            intentos++;
             const formData = new FormData();
             formData.append("archivo", file);
             if (crearFaltantes) {
