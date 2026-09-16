@@ -171,7 +171,7 @@
 import { computed, onMounted, ref } from "vue";
 
 import usePermissions from "@/helpers/permissions.js";
-import { toastMessage } from "@/helpers/alerts";
+import { alertSuccess, alertError, toastMessage } from "@/helpers/alerts";
 import axios from "axios";
 
 const props = defineProps({ usuarioactual: Object, permisos: Array });
@@ -412,33 +412,9 @@ async function generarZip() {
 async function anularSeleccionado() {
     if (selectedIds.value.length !== 1) return;
     const id = selectedIds.value[0];
-    const Swal = getSwal();
-    if (!Swal) {
-        const obs = window.prompt("Observación de anulación (obligatoria):");
-        if (!obs || !String(obs).trim()) return;
-        await _ejecutarAnulacion(id, obs);
-        return;
-    }
-    const result = await Swal.fire({
-        title: "Anular consentimiento",
-        text: "Indique la observación de anulación (obligatoria)",
-        icon: "warning",
-        input: "textarea",
-        inputPlaceholder: "Motivo de anulación...",
-        showCancelButton: true,
-        confirmButtonText: "Sí, anular",
-        cancelButtonText: "Cancelar",
-        confirmButtonColor: "#DD6B55",
-        preConfirm: (obs) => {
-            if (!obs || !String(obs).trim()) {
-                Swal.showValidationMessage("Debe indicar una observación");
-            }
-            return obs;
-        },
-    });
-    if (result.isConfirmed) {
-        await _ejecutarAnulacion(id, result.value);
-    }
+    const obs = window.prompt("Observación de anulación (obligatoria):");
+    if (!obs || !String(obs).trim()) return;
+    await _ejecutarAnulacion(id, obs);
 }
 /**
  * Envía la petición de anulación de un consentimiento con su observación y refresca la lista.

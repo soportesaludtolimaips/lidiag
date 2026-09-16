@@ -22,7 +22,11 @@ class EcografiaProductoController extends Controller
      */
     public function __construct(
         private readonly EcografiaProductoService $productoService,
-    ) {}
+    ) {
+        $this->middleware('auth');
+        $this->middleware('permission:ecografias.index,web')->only(['index', 'show']);
+        $this->middleware('permission:ecografias.admision,web')->only(['store', 'update', 'destroy']);
+    }
 
     /**
      * Obtiene y retorna la lista completa de productos de ecografía registrados en el sistema.

@@ -27,14 +27,16 @@ class EcografiaLecturaService extends BaseService
         $accion = (string) ($data['accion'] ?? '');
 
         return DB::transaction(function () use ($data, $id, $accion) {
-            $query = EcografiaProducto::where('ecografia_id', $id);
+            $producto = EcografiaProducto::where('ecografia_id', $id)
+                ->where('id', $data['ecografia_producto_id'] ?? 0)
+                ->first();
 
-            if (! $query->exists()) {
+            if (! $producto) {
                 return $this->notFound('El producto de la ecografía no se encontró');
             }
 
             if ($accion === 'IMPRIMIR_LECTURA') {
-                $query->update([
+                $producto->update([
                     'lectura' => $data['registro']['lectura'] ?? null,
                     'opinion' => $data['registro']['opinion'] ?? null,
                     'usua_regis_id' => auth()->id(),
@@ -45,7 +47,7 @@ class EcografiaLecturaService extends BaseService
             }
 
             if ($accion === 'TERMINAR_LECTURA') {
-                $query->update([
+                $producto->update([
                     'lectura' => $data['registro']['lectura'] ?? null,
                     'opinion' => $data['registro']['opinion'] ?? null,
                     'usua_regis_id' => auth()->id(),

@@ -148,7 +148,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(item, index) in registros" :key="index">
+                                    <tr v-for="(item, index) in registros" :key="item.id || index">
                                         <td>{{ item.FecIngreso }}</td>
                                         <td>{{ item.NumDocumento }}</td>
                                         <td>
@@ -367,12 +367,12 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div class="right-sidebar sidebar-scroll">
+        <div class="right-sidebar sidebar-scroll" :class="{ 'shw-rside': sidebarVisible }">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span @click="btnCerralModalForm()">
-                        <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
+                    <span @click="btnCerrarModalForm()">
+                        <i class="ti-close right-side-toggle" id="btnCerrarModalForm"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
@@ -673,7 +673,7 @@
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
+                                    @click="btnCerrarModalForm()"
                                     :disabled="isGuardandoEcografia"
                                 >
                                     Cancel
@@ -898,7 +898,7 @@
     </div>
 </template>
 <script setup>
-import { computed, nextTick, onMounted, ref, getCurrentInstance } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
 
@@ -975,6 +975,7 @@ const consentimientoFirmanteTipo = ref("PACIENTE");
 const acompanante = ref({ cedula: "", nombres: "", email: "", direccion: "", telefono: "" });
 const isGenerandoLinkFirma = ref(false);
 const consentimientoUrl = ref("");
+const sidebarVisible = ref(false);
 
 /**
  * Opciones derivadas de médicos para el componente Select2 local.
@@ -1252,7 +1253,7 @@ async function guardarRegistro() {
             // Actualizar la lista de datos y limpiar el formulario
             listarAtenciones();
             limpiarFormulario();
-            btnCerralModalForm();
+            btnCerrarModalForm();
         } else {
             toastMessage({
                 heading: "Upss!!!",
@@ -1575,9 +1576,8 @@ function onProductoSelect(value) {
  *
  * @date 2024-04-04
  */
-function btnCerralModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").toggleClass("shw-rside");
+function btnCerrarModalForm() {
+    sidebarVisible.value = !sidebarVisible.value;
 }
 /**
  * Carga los datos de la atención seleccionada en el formulario de admisión.
@@ -1619,7 +1619,7 @@ function mostrarRegistro(data = {}) {
         registro.value.tipo_documento_id = tipoHomologado.id;
     }
 
-    btnCerralModalForm();
+    btnCerrarModalForm();
 }
 /**
  * Reinicia los campos del formulario de admisión de la ecografía.
@@ -1680,14 +1680,11 @@ function quitarProductoAgenda(codProduc) {
  */
 onMounted(() => {
     if (sessionStorage.getItem("ST-sede") == null) {
-        $.toast({
+        toastMessage({
             heading: "Upsss!!!",
             text: "Debes seleccionar una sede para realizar la busqueda.",
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "warning",
             hideAfter: 3500,
-            stack: 6,
         });
         return;
     }
@@ -1702,6 +1699,10 @@ onMounted(() => {
         initSede();
         establecerMedico();
     });
+});
+
+onBeforeUnmount(() => {
+    emitter.off("sedeSeleccionada");
 });
 </script>
 <style scoped>

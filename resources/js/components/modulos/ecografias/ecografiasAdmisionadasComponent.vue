@@ -146,7 +146,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(item, index) in registros" :key="index">
+                                    <tr v-for="(item, index) in registros" :key="item.id || index">
                                         <td>{{ item.created_at }}</td>
                                         <td>{{ item.paciente.num_docu }}</td>
                                         <td>
@@ -155,7 +155,7 @@
                                         </td>
                                         <td>{{ item.nom_produc }}</td>
                                         <td>{{ item.ValProduc }}</td>
-                                        <td>{{ item.admin_salud.nom_admin_salud }}</td>
+                                        <td>{{ item.admin_salud?.nom_admin_salud }}</td>
                                         <td>{{ item.contrato }}</td>
                                         <td>{{ item.plan }}</td>
                                         <td>
@@ -656,7 +656,7 @@ function anularEcografia() {
  * @date 2025-11-18
  */
 async function consultarEstadoSahi(item) {
-    if (!sedeInterface) return;
+    if (!sedeInterface.value) return;
     if (!item?.ecografia_producto_id) return;
 
     const id = item.ecografia_producto_id;
@@ -694,7 +694,7 @@ async function consultarEstadoSahi(item) {
  * @date 2025-11-18
  */
 async function reenviarASahi(item) {
-    if (!sedeInterface) return;
+    if (!sedeInterface.value) return;
     if (!item?.ecografia_producto_id) return;
 
     const id = item.ecografia_producto_id;

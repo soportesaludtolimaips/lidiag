@@ -65,10 +65,10 @@ class PlantillaEcografiaService extends BaseService
             } else {
                 $this->buildWordFromData($data, $nombrePaciente, $outputPath);
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Error generando DOCX: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
 
-            return $this->error('Error generando plantilla DOCX: '.$e->getMessage(), 400);
+            return $this->error('Error generando plantilla DOCX.', 400);
         }
 
         Log::debug('DOCX created', [

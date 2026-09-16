@@ -171,7 +171,10 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(item, index) in registros" :key="index">
+                                    <tr
+                                        v-for="(item, index) in registros"
+                                        :key="item.ecografia_producto_id || item.id || index"
+                                    >
                                         <td>{{ item.atencion_id }}</td>
                                         <td>{{ item.paciente.num_docu }}</td>
                                         <td>{{ item.paciente.nombres }}</td>
@@ -274,7 +277,7 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div class="right-sidebar sidebar-scroll">
+        <div class="right-sidebar sidebar-scroll" :class="{ 'shw-rside': sidebarVisible }">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloAtencion }}
@@ -282,11 +285,11 @@
                     {{ tituloModal }}
                     <br />
                     {{ subTituloModal }}
-                    <span @click="btnCerralModalForm()">
+                    <span @click="btnCerrarModalForm()">
                         <i
                             class="ti-close right-side-toggle"
-                            id="btnCerralModalForm"
-                            @click="btnCerralModalForm()"
+                            id="btnCerrarModalForm"
+                            @click="btnCerrarModalForm()"
                         ></i>
                     </span>
                 </div>
@@ -463,7 +466,7 @@
                             <button
                                 type="button"
                                 class="btn btn-inverse"
-                                @click="btnCerralModalForm()"
+                                @click="btnCerrarModalForm()"
                             >
                                 Cancel
                             </button>
@@ -484,7 +487,8 @@
         role="dialog"
         aria-labelledby="myLargeModalLabel-impri-repor"
         aria-hidden="true"
-        style="display: none"
+        v-show="modalReporteVisible"
+        :style="{ display: modalReporteVisible ? 'block' : 'none' }"
     >
         <div class="modal-dialog modal-xl" style="max-width: 70%">
             <div class="modal-content">
@@ -529,7 +533,8 @@
         role="dialog"
         aria-labelledby="modal-pendientes-consentimientos-title"
         aria-hidden="true"
-        style="display: none"
+        v-show="modalPendientesConsentimientosVisible"
+        :style="{ display: modalPendientesConsentimientosVisible ? 'block' : 'none' }"
     >
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -689,6 +694,9 @@ const isGenerandoReporte = ref(false);
 const bloqueoLectura = ref(false);
 const pendientesDiaAnterior = ref([]);
 const isFirmandoConsentimiento = ref({});
+const sidebarVisible = ref(false);
+const modalPendientesConsentimientosVisible = ref(false);
+const modalReporteVisible = ref(false);
 
 /**
  * Compila las opciones de tipos de plantillas para el Select2 local a partir de `tiposPlantillas`.
@@ -718,12 +726,6 @@ const plantillasOptions = computed(() => {
         plantilla: p.plantilla,
         opinion: p.opinion,
     }));
-    console.log(
-        "[DEBUG plantillasOptions] computed recalculated, count:",
-        opts.length,
-        "options:",
-        opts
-    );
     return opts;
 });
 
@@ -1188,7 +1190,7 @@ function processCommands(text) {
     out = applyCommandMap(out, punctuationCommands);
     out = uppercase.value ? out.toUpperCase() : out;
     if (capitalizeNext.value) {
-        out.replace(/(^|\n)(\s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
+        out = out.replace(/(^|\n)(\s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
             capitalizeNext.value = false;
             return `${start}${spaces}${first.toUpperCase()}`;
         });
@@ -1324,7 +1326,7 @@ function stopVoice() {
  * @date 2025-11-18
  */
 function startSahiPolling() {
-    if (!sedeInterface) return;
+    if (!sedeInterface.value) return;
     if (!registro.value?.ecografia_producto_id) return;
 
     const id = registro.value.ecografia_producto_id;
@@ -1367,7 +1369,7 @@ function stopSahiPolling() {
  * @date 2024-06-10
  */
 async function consultarEstadoSahi(silent = false) {
-    if (!sedeInterface) return;
+    if (!sedeInterface.value) return;
     const id = registro.value.ecografia_producto_id;
     if (!id) return;
 
@@ -1504,12 +1506,10 @@ function evaluarPendientesConsentimientosDiaAnterior() {
     pendientesDiaAnterior.value = pendientes;
     bloqueoLectura.value = pendientes.length > 0;
 
-    if (bloqueoLectura.value && window.$) {
-        window
-            .$("#modal-pendientes-consentimientos")
-            .modal({ backdrop: "static", keyboard: false });
-    } else if (!bloqueoLectura.value && window.$) {
-        window.$("#modal-pendientes-consentimientos").modal("hide");
+    if (bloqueoLectura.value) {
+        modalPendientesConsentimientosVisible.value = true;
+    } else if (!bloqueoLectura.value) {
+        modalPendientesConsentimientosVisible.value = false;
     }
 }
 /**
@@ -1600,7 +1600,7 @@ async function generarLectura() {
  * @date 2025-11-18
  */
 async function enviarASahiEcografiaProducto() {
-    if (!sedeInterface) return true;
+    if (!sedeInterface.value) return true;
 
     const id = registro.value.ecografia_producto_id;
     if (!id) {
@@ -1690,13 +1690,13 @@ async function guardarRegistro() {
     if (!guardadoOk) return;
 
     // Enviar a SAHI solo si la sede tiene interface y la acción fue TERMINAR_LECTURA
-    if (sedeInterface && accionActual === "TERMINAR_LECTURA") {
+    if (sedeInterface.value && accionActual === "TERMINAR_LECTURA") {
         await enviarASahiEcografiaProducto();
     }
 
     listarPendiestePorLectura();
     limpiarFormulario();
-    btnCerralModalForm();
+    btnCerrarModalForm();
 }
 
 /**
@@ -1740,7 +1740,7 @@ async function generarReporte() {
             text: error.response?.data?.message || "No fue posible generar el reporte.",
             icon: "error",
         });
-        $(".bs-example-modal-lg-impri-repor").modal("hide");
+        modalReporteVisible.value = false;
     } finally {
         isGenerandoReporte.value = false;
     }
@@ -1802,17 +1802,13 @@ async function listarTiposPlantillas() {
  * @date 2024-06-10
  */
 async function onTipoPlantillaSelect(value) {
-    console.log("[DEBUG onTipoPlantillaSelect] value:", value, "type:", typeof value);
     let selectedId = null;
     if (value != null && value !== "" && value !== "0" && value !== 0) {
         selectedId = String(value);
     }
-    console.log("[DEBUG onTipoPlantillaSelect] selectedId:", selectedId);
-    console.log("[DEBUG onTipoPlantillaSelect] medico_id:", registro.value.medico_id);
     registro.value.tipo_plantilla_id = selectedId || "";
 
     if (!selectedId) {
-        console.log("[DEBUG onTipoPlantillaSelect] sin selectedId, limpiando plantillas");
         plantillas.value = [];
         registro.value.tipo_estudio = "";
         registro.value.plantilla_id = "";
@@ -1821,23 +1817,14 @@ async function onTipoPlantillaSelect(value) {
 
     try {
         const url = `/api/config-plantillas/listar/activos/${selectedId}/${registro.value.medico_id}`;
-        console.log("[DEBUG onTipoPlantillaSelect] llamando API:", url);
         const res = await axios.get(url);
-        console.log("[DEBUG onTipoPlantillaSelect] API response:", res.data);
 
         plantillas.value = res.data.data;
-        console.log(
-            "[DEBUG onTipoPlantillaSelect] plantillas.value:",
-            plantillas.value.length,
-            "items"
-        );
         var tipo = tiposPlantillasOptions.value.find(function (t) {
             return String(t.id) === String(selectedId);
         });
         registro.value.tipo_estudio = (tipo && tipo.nom_tipo) || "";
-        console.log("[DEBUG onTipoPlantillaSelect] tipo_estudio:", registro.value.tipo_estudio);
     } catch (error) {
-        console.error("[DEBUG onTipoPlantillaSelect] ERROR:", error);
         plantillas.value = [];
         toastMessage({
             heading: "Plantillas",
@@ -1884,9 +1871,8 @@ function onPlantillaSelect(value) {
  *
  * @date 2025-11-18
  */
-function btnCerralModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").toggleClass("shw-rside");
+function btnCerrarModalForm() {
+    sidebarVisible.value = !sidebarVisible.value;
     // al cerrar, detenemos polling para evitar fugas
     stopSahiPolling();
 }
@@ -1959,13 +1945,13 @@ function mostrarRegistro(data = {}) {
     registro.value.sahi_esquema_149 = data.sahi_esquema_149 || null;
     registro.value.sahi_esquema_150 = data.sahi_esquema_150 || null;
 
-    if (sedeInterface && registro.value.estado_envio_sahi === "ENVIANDO") {
+    if (sedeInterface.value && registro.value.estado_envio_sahi === "ENVIANDO") {
         startSahiPolling();
     } else {
         stopSahiPolling();
     }
 
-    btnCerralModalForm();
+    btnCerrarModalForm();
 }
 /**
  * Reinicia los campos del formulario de lectura y detiene el sondeo SAHI.
@@ -2030,6 +2016,8 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+    emitter.off("sedeSeleccionada");
+    emitter.off("medicoSeleccionado");
     stopSahiPolling();
     try {
         stopVoice();

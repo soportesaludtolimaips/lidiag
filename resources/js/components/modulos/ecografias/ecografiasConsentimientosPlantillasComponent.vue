@@ -170,7 +170,8 @@
             role="dialog"
             aria-labelledby="modal-plantilla-title"
             aria-hidden="true"
-            style="display: none"
+            v-show="modalPlantillaVisible"
+            :style="{ display: modalPlantillaVisible ? 'block' : 'none' }"
         >
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -242,7 +243,8 @@
             role="dialog"
             aria-labelledby="modal-versiones-title"
             aria-hidden="true"
-            style="display: none"
+            v-show="modalVersionesVisible"
+            :style="{ display: modalVersionesVisible ? 'block' : 'none' }"
         >
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -341,6 +343,8 @@ const form = ref({ id: null, producto_id: "", nombre: "", html: "" });
 const versions = ref([]);
 const loadingVersions = ref(false);
 const productoVersionsId = ref(null);
+const modalPlantillaVisible = ref(false);
+const modalVersionesVisible = ref(false);
 /**
  * Carga la lista de productos de configuración disponibles para asociar a las plantillas.
  *
@@ -469,7 +473,7 @@ async function guardar() {
             await axios.put(`/api/consentimientos-plantillas/${form.value.id}`, payload);
         }
         await listar();
-        $("#modal-plantilla").modal("hide");
+        modalPlantillaVisible.value = false;
     } catch (error) {
         toastMessage({
             heading: "Error",
@@ -527,7 +531,7 @@ async function verVersiones(p) {
             }
         );
         versions.value = Array.isArray(res.data?.data) ? res.data.data : [];
-        $("#modal-versiones").modal("show");
+        modalVersionesVisible.value = true;
     } catch (error) {
         toastMessage({
             heading: "Error",

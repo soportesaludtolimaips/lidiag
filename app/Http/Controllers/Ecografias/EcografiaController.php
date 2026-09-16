@@ -180,6 +180,6 @@ class EcografiaController extends Controller
 
         $result = $this->plantillaEcografiaService->editWord($data);
 
-        return response()->json($result);
+        return response()->json($result, $result['status']);
     }
 }
