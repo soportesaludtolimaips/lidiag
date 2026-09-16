@@ -28,6 +28,11 @@
                     <li class="breadcrumb-item active">Asignar Estudios</li>
                 </ol>
             </div>
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button type="button" class="btn btn-info" @click="nuevoRegistro()">
+                    <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
+                </button>
+            </div>
         </div>
         <!-- ============================================================== -->
         <!-- End Bread crumb and right sidebar toggle -->
@@ -172,12 +177,13 @@
                                 </thead>
                                 <tbody>
                                     <tr v-if="registros.length === 0">
-                                        <td class="text-center text-muted py-3"></td>
-                                        <td class="text-center text-muted py-3"></td>
-                                        <td class="text-center text-muted py-3"></td>
-                                        <td class="text-center text-muted py-3"></td>
-                                        <td class="text-center text-muted py-3"></td>
-                                        <td class="text-center text-muted py-3">Sin resultados</td>
+                                        <td colspan="6" class="text-center text-muted py-4">
+                                            <i class="fa fa-search fa-2x m-b-10"></i>
+                                            <p>
+                                                No se encontraron estudios. Use los filtros de
+                                                búsqueda para comenzar.
+                                            </p>
+                                        </td>
                                     </tr>
                                     <tr
                                         v-for="(item, index) in registros"
@@ -270,7 +276,11 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div class="right-sidebar sidebar-scroll" id="right-sidebar">
+        <div
+            class="right-sidebar sidebar-scroll"
+            id="right-sidebar"
+            :class="{ 'shw-rside': sidebarVisible }"
+        >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -572,6 +582,14 @@
                                                 :allow-clear="true"
                                                 @input="onProductoSelect"
                                             />
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-info m-t-5"
+                                                @click="guardarProductosEstudio()"
+                                                :disabled="!productoSelecciondo"
+                                            >
+                                                <i class="fa fa-plus"></i> Agregar
+                                            </button>
                                         </div>
                                         <div class="col-md-12 table-responsive table-scroll">
                                             <table
@@ -647,6 +665,14 @@
                                                 :label-fields="['nom_diagnos']"
                                                 @input="onDiagnosticoSelect"
                                             />
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-info m-t-5"
+                                                @click="guardarDiagnosticosEstudio()"
+                                                :disabled="!diagnosticoSelecciondo"
+                                            >
+                                                <i class="fa fa-plus"></i> Agregar
+                                            </button>
                                         </div>
                                         <div class="col-md-12 table-responsive table-scroll">
                                             <table
@@ -756,6 +782,7 @@
         <!-- Modal Quemador CD -->
         <!-- ============================================================== -->
         <div
+            v-if="quemadorModalVisible"
             class="modal fade"
             id="quemadorCdModal"
             tabindex="-1"
@@ -795,6 +822,7 @@
         <!-- Modal Descargar ZIP -->
         <!-- ============================================================== -->
         <div
+            v-if="descargaModalVisible"
             class="modal fade"
             id="descargarZipModal"
             tabindex="-1"
@@ -832,6 +860,8 @@
     </div>
 </template>
 <script setup>
+import axios from "axios";
+
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
@@ -842,7 +872,6 @@ import { useSede } from "@/composables/useSede";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 import QuemadorCdComponent from "@/components/modulos/estudios/QuemadorCdComponent.vue";
 import DescargarZipComponent from "@/components/modulos/estudios/DescargarZipComponent.vue";
-import axios from "axios";
 
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
@@ -853,7 +882,6 @@ const props = defineProps({
     usuarioactual: Object,
     permisos: { type: Array, default: () => [] },
 });
-const dataIndex = ref(0);
 const id = ref(0);
 const registros = ref([]);
 const tituloModal = ref("Nuevo registro");
@@ -906,7 +934,6 @@ const productoSelecciondo = ref("");
 const diagnosticoSelecciondo = ref("");
 const productosAtencion = ref([]);
 const idRow = ref(null);
-const selectedRows = ref({});
 const loadingBuscar = ref(false);
 const loadingGuardar = ref(false);
 const loadingAbrirRegistroIndex = ref(null);
@@ -914,6 +941,10 @@ const progresoUpload = ref(null);
 const primerInput = ref(null);
 const estudioParaQuemar = ref(null);
 const estudioParaDescargar = ref(null);
+const quemadorModalVisible = ref(false);
+const descargaModalVisible = ref(false);
+const sidebarVisible = ref(false);
+const actualizar = ref(false);
 
 const contadorRegistros = computed(() => {
     return registros.value.length;
@@ -992,8 +1023,6 @@ async function buscarStudy() {
             const res = await axios.post("/api/study.listarEstudios", busqueda.value);
 
             if (res.status == 200) {
-                destroyDataTable();
-
                 // Asegurar que siempre sea un array (por si llega string JSON)
                 let data = res.data.data;
                 if (typeof data === "string") {
@@ -1005,6 +1034,7 @@ async function buscarStudy() {
                 }
                 registros.value = Array.isArray(data) ? data : [];
                 nextTick(() => {
+                    destroyDataTable();
                     safeInitDataTable(dt.value || "#example23", {
                         dom: "Bfrtip",
                         buttons: ["copy", "csv", "excel", "pdf", "print"],
@@ -1070,12 +1100,12 @@ async function guardarRegistro() {
                 icon: "success",
             });
 
-            // Actualiza el valor de `agendado` para que se refleje el cambio de clase
-            registros.value[idRow.value].agendado = 1; // O el valor que necesites asignar
-            selectedRows.value[idRow.value] = !selectedRows.value[idRow.value];
+            if (idRow.value >= 0 && idRow.value < registros.value.length) {
+                registros.value[idRow.value].agendado = 1;
+            }
         }
 
-        btnCerralModalForm();
+        btnCerrarModalForm();
         btnLimpiar();
     } catch (error) {
         errores.value =
@@ -1285,18 +1315,25 @@ function establecerSede() {
     cargarDatosSede();
     registros.value = [];
 }
-function btnCerralModalForm() {
-    $(".right-sidebar").slideUp(50);
-    $(".right-sidebar").removeClass("shw-rside");
+function btnCerrarModalForm() {
+    sidebarVisible.value = false;
 }
 function abrirModal() {
-    $(".right-sidebar").addClass("shw-rside");
+    sidebarVisible.value = true;
     nextTick(() => {
         primerInput.value?.focus();
     });
 }
+function nuevoRegistro() {
+    actualizar.value = false;
+    limpiarFormulario();
+    tituloModal.value = "Nuevo registro de estudio";
+    abrirModal();
+}
 function cerrarModal() {
-    $(".right-sidebar").removeClass("shw-rside");
+    sidebarVisible.value = false;
+    limpiarFormulario();
+    errores.value = {};
 }
 function limpiarFormulario() {
     registro.value.study_pk = "";
@@ -1348,8 +1385,12 @@ async function listarMedicos() {
         const moduloId = sessionStorage.getItem("ST-modulo") || "1";
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = res.data.data || [];
-    } catch (error) {
-        console.error(error);
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los médicos.",
+            icon: "error",
+        });
     }
 }
 
@@ -1362,8 +1403,12 @@ async function listarPrioridades() {
     try {
         const res = await axios.get("/api/config-prioridades");
         prioridades.value = res.data.data || [];
-    } catch (error) {
-        console.error(error);
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar las prioridades.",
+            icon: "error",
+        });
     }
 }
 
@@ -1376,8 +1421,12 @@ async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
         productos.value = res.data.data || [];
-    } catch (error) {
-        console.error(error);
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los productos.",
+            icon: "error",
+        });
     }
 }
 
@@ -1390,8 +1439,12 @@ async function listarDiagnosticos() {
     try {
         const res = await axios.get("/api/config-diagnosticos");
         diagnosticos.value = res.data.data || [];
-    } catch (error) {
-        console.error(error);
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los diagnósticos.",
+            icon: "error",
+        });
     }
 }
 
@@ -1430,10 +1483,7 @@ function onProductoSelect(value) {
     } else if (value != null) {
         selectedId = String(value);
     }
-    if (selectedId != null) {
-        productoSelecciondo.value = selectedId;
-        guardarProductosEstudio();
-    }
+    productoSelecciondo.value = selectedId || "";
 }
 
 /**
@@ -1452,10 +1502,7 @@ function onDiagnosticoSelect(value) {
     } else if (value != null) {
         selectedId = String(value);
     }
-    if (selectedId != null) {
-        diagnosticoSelecciondo.value = selectedId;
-        guardarDiagnosticosEstudio();
-    }
+    diagnosticoSelecciondo.value = selectedId || "";
 }
 
 /**
@@ -1550,11 +1597,11 @@ async function quitarDiagnosticoEstudio(indexEliminar) {
 
 function abrirQuemador(estudio) {
     estudioParaQuemar.value = estudio;
-    $("#quemadorCdModal").modal("show");
+    quemadorModalVisible.value = true;
 }
 
 function cerrarQuemador() {
-    $("#quemadorCdModal").modal("hide");
+    quemadorModalVisible.value = false;
     estudioParaQuemar.value = null;
 }
 
@@ -1569,11 +1616,11 @@ function onQuemadoCompletado() {
 
 function abrirDescargaZip(estudio) {
     estudioParaDescargar.value = estudio;
-    $("#descargarZipModal").modal("show");
+    descargaModalVisible.value = true;
 }
 
 function cerrarDescargaZip() {
-    $("#descargarZipModal").modal("hide");
+    descargaModalVisible.value = false;
     estudioParaDescargar.value = null;
 }
 
