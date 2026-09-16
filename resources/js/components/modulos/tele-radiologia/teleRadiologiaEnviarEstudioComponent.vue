@@ -1,8 +1,6 @@
 <template>
     <div>
-        <!-- ============================================================== -->
-        <!-- Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
+        <!-- Bread crumb -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Estudios</h3>
@@ -17,13 +15,8 @@
                 </ol>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Start Page Content -->
-        <!-- ============================================================== -->
+        <!-- Filtros -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -89,6 +82,15 @@
 
                                     <button
                                         type="button"
+                                        class="btn btn-outline-primary m-r-5"
+                                        @click="buscarStudy()"
+                                        :disabled="loadingBuscar"
+                                    >
+                                        <i class="fa fa-sync"></i> Actualizar
+                                    </button>
+
+                                    <button
+                                        type="button"
                                         class="btn btn-inverse"
                                         @click="btnLimpiar()"
                                     >
@@ -102,6 +104,7 @@
             </div>
         </div>
 
+        <!-- Tabla estudios -->
         <div class="row">
             <div class="col-12 table-responsive">
                 <div class="card">
@@ -110,7 +113,14 @@
                         <h6 class="card-subtitle text-info">
                             Asigne los estudios a los médicos para su respectiva lectura.
                         </h6>
-                        <div class="table-responsive">
+                        <div
+                            v-if="registros.length === 0 && !loadingBuscar"
+                            class="text-center py-4 text-muted"
+                        >
+                            <i class="fa fa-search fa-3x mb-3"></i>
+                            <p>No hay estudios para mostrar. Use los filtros para buscar.</p>
+                        </div>
+                        <div v-else class="table-responsive">
                             <table
                                 id="example23"
                                 ref="dt"
@@ -120,9 +130,9 @@
                             >
                                 <thead>
                                     <tr>
-                                        <th with="5%">Fecha del Estudio</th>
-                                        <th with="5%"># Documento</th>
-                                        <th with="30%">Paciente</th>
+                                        <th>Fecha del Estudio</th>
+                                        <th># Documento</th>
+                                        <th>Paciente</th>
                                         <th>Accession</th>
                                         <th>Descripción</th>
                                         <th></th>
@@ -130,7 +140,7 @@
                                 </thead>
                                 <tbody>
                                     <tr
-                                        v-for="(item, index) in registros"
+                                        v-for="item in registros"
                                         :key="item.study_pk"
                                         :id="item.study_pk"
                                         :class="{ 'text-info': item.agendado !== 0 }"
@@ -144,12 +154,12 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
-                                                :disabled="loadingAbrirIndex === index"
-                                                @click="mostrarRegistro(item, index)"
+                                                :disabled="loadingAbrirIndex === item.study_pk"
+                                                @click="mostrarRegistro(item)"
                                                 title="Ordenar estudio"
                                             >
                                                 <i
-                                                    v-if="loadingAbrirIndex === index"
+                                                    v-if="loadingAbrirIndex === item.study_pk"
                                                     class="fa fa-spinner fa-spin"
                                                 ></i>
                                                 <i v-else class="fa fa-child"></i>
@@ -157,14 +167,18 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
-                                                :disabled="loadingImagenIndex === index"
+                                                :disabled="loadingImagenIndex === item.study_pk"
                                                 @click="
-                                                    verImagen(item.pat_id, item.study_iuid, index)
+                                                    verImagen(
+                                                        item.pat_id,
+                                                        item.study_iuid,
+                                                        item.study_pk
+                                                    )
                                                 "
                                                 title="Ver imagenes"
                                             >
                                                 <i
-                                                    v-if="loadingImagenIndex === index"
+                                                    v-if="loadingImagenIndex === item.study_pk"
                                                     class="fa fa-spinner fa-spin"
                                                 ></i>
                                                 <i v-else class="fa fa-file-photo-o"></i>
@@ -178,34 +192,21 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Page Content -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
         <!-- Right sidebar -->
-        <!-- ============================================================== -->
-        <!-- .right-sidebar -->
         <div
             class="right-sidebar"
-            id="right-sidebar"
-            style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%"
+            :class="{ 'shw-rside': sidebarVisible }"
+            style="overflow-x: hidden; overflow-y: scroll; height: 100%"
         >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <span>
-                        <i
-                            class="ti-close right-side-toggle"
-                            id="btnCerralModalForm"
-                            @click="cerrarModal()"
-                        ></i>
+                        <i class="ti-close right-side-toggle" @click="btnCerrarModal()"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
-                    <!-- ============================================================== -->
-                    <!-- Aqui va el contenido de los formularios -->
-                    <!-- ============================================================== -->
                     <form action="#">
                         <div class="form-body">
                             <div class="row">
@@ -220,49 +221,38 @@
                                                 <label class="control-label"># Documento</label>
                                                 <input
                                                     type="text"
-                                                    id="num_docu"
-                                                    name="num_docu"
                                                     v-model="orden.paciente.num_docu"
                                                     class="form-control"
                                                     placeholder="# de Documento"
                                                 />
                                             </div>
                                         </div>
-
                                         <div class="col-md-5">
                                             <div class="form-group">
                                                 <label class="control-label">Nombres</label>
                                                 <input
                                                     type="text"
-                                                    id="nombres"
-                                                    name="nombres"
                                                     v-model="orden.paciente.nom_pacien"
                                                     class="form-control"
                                                     placeholder="Nombres"
                                                 />
                                             </div>
                                         </div>
-
                                         <div class="col-md-2">
                                             <div class="form-group">
                                                 <label class="control-label">Sexo</label>
                                                 <input
                                                     type="text"
-                                                    id="sexo"
-                                                    name="sexo"
                                                     v-model="orden.paciente.sexo"
                                                     class="form-control"
                                                 />
                                             </div>
                                         </div>
-
                                         <div class="col-md-2">
                                             <div class="form-group">
-                                                <label class="control-label">Fec. Nacimi</label>
+                                                <label class="control-label">Fec. Nacim.</label>
                                                 <input
                                                     type="date"
-                                                    id="fec_naci"
-                                                    name="fec_naci"
                                                     v-model="orden.paciente.fec_naci"
                                                     class="form-control"
                                                 />
@@ -275,8 +265,6 @@
                                                 <label class="control-label">Dirección</label>
                                                 <input
                                                     type="text"
-                                                    id="direccion"
-                                                    name="direccion"
                                                     v-model="orden.paciente.direccion"
                                                     class="form-control"
                                                 />
@@ -287,8 +275,6 @@
                                                 <label class="control-label">Télefono</label>
                                                 <input
                                                     type="number"
-                                                    id="telefono"
-                                                    name="telefono"
                                                     v-model="orden.paciente.tel"
                                                     class="form-control"
                                                 />
@@ -299,8 +285,6 @@
                                                 <label class="control-label">E - Mail</label>
                                                 <input
                                                     type="email"
-                                                    id="email"
-                                                    name="email"
                                                     v-model="orden.paciente.email"
                                                     class="form-control"
                                                 />
@@ -313,24 +297,9 @@
                                     </h5>
                                     <hr />
 
-                                    <input
-                                        type="hidden"
-                                        id="study_pk"
-                                        name="study_pk"
-                                        v-model="orden.study_pk"
-                                    />
-                                    <input
-                                        type="hidden"
-                                        id="study_iuid"
-                                        name="study_iuid"
-                                        v-model="orden.study_iuid"
-                                    />
-                                    <input
-                                        type="hidden"
-                                        id="study_id"
-                                        name="study_id"
-                                        v-model="orden.study_id"
-                                    />
+                                    <input type="hidden" v-model="orden.study_pk" />
+                                    <input type="hidden" v-model="orden.study_iuid" />
+                                    <input type="hidden" v-model="orden.study_id" />
 
                                     <div class="row">
                                         <div class="col-md-5">
@@ -338,34 +307,26 @@
                                                 <label class="control-label">Descripción</label>
                                                 <input
                                                     type="text"
-                                                    id="study_desc"
-                                                    name="study_desc"
                                                     v-model="orden.study_desc"
                                                     class="form-control"
                                                 />
                                             </div>
                                         </div>
-
                                         <div class="col-md-4">
                                             <div class="form-group">
                                                 <label class="control-label">Detalle</label>
                                                 <input
                                                     type="text"
-                                                    id="accession_no"
-                                                    name="accession_no"
                                                     v-model="orden.accession_no"
                                                     class="form-control"
                                                 />
                                             </div>
                                         </div>
-
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label class="control-label">Fecha</label>
                                                 <input
                                                     type="text"
-                                                    id="study_datetime"
-                                                    name="study_datetime"
                                                     v-model="orden.fec_estudio"
                                                     class="form-control"
                                                 />
@@ -378,51 +339,41 @@
                                                 <label class="control-label">Observaciones</label>
                                                 <input
                                                     type="text"
-                                                    id="observaciones"
-                                                    name="observaciones"
                                                     v-model="orden.observaciones"
                                                     class="form-control"
-                                                    placeholder="Ingrese aqi las observaciones del estudio"
+                                                    placeholder="Ingrese las observaciones del estudio"
                                                 />
                                             </div>
                                         </div>
                                     </div>
 
                                     <h5 class="card-title text-info">
-                                        <i class="fa fa-edit"></i> Adjunto
+                                        <i class="fa fa-edit"></i> Adjuntos
                                     </h5>
                                     <hr />
 
                                     <div class="row">
                                         <div class="col-md-12">
-                                            <div class="form-group">
+                                            <div
+                                                v-for="(adj, adjIdx) in adjuntosFileInputs"
+                                                :key="adjIdx"
+                                                class="form-group"
+                                            >
+                                                <label class="control-label">
+                                                    Archivo adjunto {{ adjIdx + 1 }}
+                                                    <span
+                                                        v-if="adj.nombre"
+                                                        class="text-success ml-2"
+                                                    >
+                                                        <i class="fa fa-check"></i>
+                                                        {{ adj.nombre }}
+                                                    </span>
+                                                </label>
                                                 <input
                                                     type="file"
                                                     class="form-control"
-                                                    id="exampleInputFile1"
-                                                    aria-describedby="fileHelp"
-                                                    @change="obtenerArchivo1"
-                                                    accept=".pdf,.doc,.docx"
-                                                />
-                                            </div>
-                                            <div class="form-group">
-                                                <input
-                                                    type="file"
-                                                    class="form-control"
-                                                    id="exampleInputFile2"
-                                                    aria-describedby="fileHelp"
-                                                    @change="obtenerArchivo2"
-                                                    accept=".pdf,.doc,.docx"
-                                                />
-                                            </div>
-                                            <div class="form-group">
-                                                <input
-                                                    type="file"
-                                                    class="form-control"
-                                                    id="exampleInputFile3"
-                                                    aria-describedby="fileHelp"
-                                                    @change="obtenerArchivo3"
-                                                    accept=".pdf,.doc,.docx"
+                                                    :accept="ADJUNTO_ACCEPT"
+                                                    @change="(e) => obtenerArchivo(e, adjIdx)"
                                                 />
                                             </div>
                                         </div>
@@ -439,22 +390,16 @@
                                                 <label class="control-label">Prioridad</label>
                                                 <select
                                                     v-model="orden.priori.id"
-                                                    name="prioridad_id"
-                                                    id="prioridad_id"
                                                     class="form-control custom-select"
                                                     @change="establecerPrioridad"
                                                 >
                                                     <option
-                                                        v-for="(
-                                                            ItemPrioridad, index
-                                                        ) in prioridades"
-                                                        :key="index"
-                                                        :value="ItemPrioridad.id"
+                                                        v-for="item in prioridades"
+                                                        :key="item.id"
+                                                        :value="item.id"
                                                     >
-                                                        {{ ItemPrioridad.nom_priori }} -
-                                                        {{ ItemPrioridad.tiempo }}
-                                                        {{ ItemPrioridad.tipo_tiempo }}
-                                                        {{ ItemPrioridad.observacion }}
+                                                        {{ item.nom_priori }} - {{ item.tiempo }}
+                                                        {{ item.tipo_tiempo }}
                                                     </option>
                                                 </select>
                                                 <span
@@ -465,26 +410,21 @@
                                                 </span>
                                             </div>
                                         </div>
-
-                                        <div class="col-md-4" v-if="sedeInterface === true">
+                                        <div class="col-md-4" v-if="sedeInterface">
                                             <div class="form-group">
                                                 <label class="control-label">Atención</label>
                                                 <select
                                                     v-model="interfaceAtencionSeleccionada"
-                                                    name="interfaceAtencionSeleccionada"
-                                                    id="interfaceAtencionSeleccionada"
                                                     class="form-control custom-select"
                                                     @change="interfaceListarProductosDiagnosticos()"
                                                 >
                                                     <option
-                                                        v-for="(
-                                                            ItemAtencion, index
-                                                        ) in interfaceAtenciones"
-                                                        :key="index"
-                                                        :value="ItemAtencion.IdAtencion"
+                                                        v-for="item in interfaceAtenciones"
+                                                        :key="item.IdAtencion"
+                                                        :value="item.IdAtencion"
                                                     >
-                                                        {{ ItemAtencion.IdAtencion }} -
-                                                        {{ ItemAtencion.FecIngreso }}
+                                                        {{ item.IdAtencion }} -
+                                                        {{ item.FecIngreso }}
                                                     </option>
                                                 </select>
                                             </div>
@@ -494,20 +434,15 @@
                                     <h5 class="card-title text-info">
                                         <i class="fa fa-user"></i> PRODUCTOS
                                     </h5>
-
                                     <hr />
 
                                     <span class="text-danger" v-if="errores.productosEstudio">
                                         {{ errores.productosEstudio[0] }}
                                     </span>
                                     <div class="row">
-                                        <div
-                                            class="col-md-12"
-                                            v-if="sedeInterface === false"
-                                            id="productos-parent"
-                                        >
+                                        <div class="col-md-12" v-if="!sedeInterface">
                                             <Select2
-                                                :value="productoSelecciondo"
+                                                :value="productoSeleccionado"
                                                 :options="productoOptions"
                                                 width="100%"
                                                 :allow-clear="true"
@@ -518,10 +453,7 @@
                                             class="col-md-12 table-responsive"
                                             style="overflow-y: scroll; height: 250px"
                                         >
-                                            <table
-                                                id="myTable"
-                                                class="table table-bordered table-striped"
-                                            >
+                                            <table class="table table-bordered table-striped">
                                                 <thead>
                                                     <tr>
                                                         <th></th>
@@ -532,15 +464,13 @@
                                                 </thead>
                                                 <tbody>
                                                     <tr
-                                                        v-for="(item, index) in productosInterface"
+                                                        v-for="(item, pIdx) in productosInterface"
                                                         :key="item.id"
                                                     >
                                                         <td>
                                                             <input
                                                                 type="checkbox"
-                                                                class="iCheck-helper"
-                                                                :id="`flat-checkbox-producto-interface-${index}`"
-                                                                data-checkbox="icheckbox_flat-red"
+                                                                :id="`prod-check-${pIdx}`"
                                                                 :checked="
                                                                     orden.producto.some(
                                                                         (p) =>
@@ -557,7 +487,7 @@
                                                                 "
                                                             />
                                                             <label
-                                                                :for="`flat-checkbox-producto-interface-${index}`"
+                                                                :for="`prod-check-${pIdx}`"
                                                             ></label>
                                                         </td>
                                                         <td>{{ item.cod_cups }}</td>
@@ -584,18 +514,15 @@
                                     <h5 class="card-title text-info">
                                         <i class="fa fa-pencil"></i> MOTIVO DEL EXAMEN
                                     </h5>
-
                                     <hr />
 
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <textarea
-                                                    id="motivo_examen"
-                                                    name="motivo_examen"
                                                     v-model="orden.motivo_examen"
                                                     class="form-control"
-                                                    placeholder="Ingrese aqi las observaciones del estudio"
+                                                    placeholder="Ingrese las observaciones del estudio"
                                                     rows="11"
                                                 ></textarea>
                                             </div>
@@ -615,12 +542,8 @@
                                     <i v-else class="fa fa-check"></i> Guardar
                                 </button>
 
-                                <button
-                                    type="button"
-                                    class="btn btn-inverse"
-                                    @click="cerrarModal()"
-                                >
-                                    Cancel
+                                <button type="button" class="btn btn-inverse" @click="btnLimpiar()">
+                                    Cancelar
                                 </button>
                             </div>
                         </div>
@@ -628,59 +551,35 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Right sidebar -->
-        <!-- ============================================================== -->
     </div>
 </template>
+
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
-const { proxy } = getCurrentInstance();
-const emitter = proxy.emitter;
-
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { toastMessage } from "@/helpers/alerts";
+import { getUserSafeError, toastMessage } from "@/helpers/alerts";
 import axios from "axios";
+import usePermissions from "@/helpers/permissions.js";
 
-const props = defineProps({ usuarioactual: Object });
+const DESTINO_TELE_RADIOLOGIA = "Tele Radiologia";
+const ADJUNTO_ACCEPT = ".pdf,.doc,.docx";
+const ADJUNTO_COUNT = 3;
+
+const props = defineProps({
+    usuarioactual: { type: Object, required: true },
+    permisos: { type: Array, default: () => [] },
+});
+
+usePermissions(props.permisos);
 
 const dt = ref(null);
-
-const dataIndex = ref(0);
-const id = ref(0);
+const sidebarVisible = ref(false);
 const registros = ref([]);
 const tituloModal = ref("Nuevo registro");
-const registro = ref({
-    study_pk: "",
-    study_iuid: "",
-    study_datetime: "",
-    study_id: "",
-    accession_no: "",
-    study_desc: "",
-    mods_in_study: "",
-    observaciones: "",
-    medico_id: "",
-    prioridad_id: "",
-    sede_id: sedeActual,
-    quien_registro_id: props.usuarioactual.id,
-    num_docu: "",
-    nombres: "",
-    sexo: "",
-    fec_naci: "",
-    email: "",
-    email_reportar: "",
-    direccion: "",
-    tel: "",
-    productosEstudio: [],
-    diagnosticosEstudio: [],
-    atencion_id: null,
-    destino_estudio: "Tele Radiologia",
-    destino_estudio_id: null,
-    motivo_examen: null,
-});
 const orden = ref({
     study_pk: "",
     study_iuid: "",
+    study_id: "",
     fec_estudio: "",
     accession_no: "",
     study_desc: "",
@@ -702,16 +601,49 @@ const orden = ref({
         nom_priori: "",
     },
     sede: {
-        id: idSedeActual,
-        nom_sede: nomSedeActual,
+        id: "",
+        nom_sede: "",
     },
     producto: [],
     adjuntos: [],
     motivo_examen: null,
 });
-const soportesHC = ref({ archivo1: null, archivo2: null, archivo3: null });
+const registro = ref({
+    study_pk: "",
+    study_iuid: "",
+    study_datetime: "",
+    study_id: "",
+    accession_no: "",
+    study_desc: "",
+    mods_in_study: "",
+    observaciones: "",
+    medico_id: "",
+    prioridad_id: "",
+    sede_id: "",
+    quien_registro_id: props.usuarioactual.id,
+    num_docu: "",
+    nombres: "",
+    sexo: "",
+    fec_naci: "",
+    email: "",
+    email_reportar: "",
+    direccion: "",
+    tel: "",
+    productosEstudio: [],
+    diagnosticosEstudio: [],
+    atencion_id: null,
+    destino_estudio: DESTINO_TELE_RADIOLOGIA,
+    destino_estudio_id: null,
+    motivo_examen: null,
+});
+const adjuntosFileInputs = ref(
+    Array.from({ length: ADJUNTO_COUNT }, () => ({
+        nombre: null,
+        archivo: null,
+    }))
+);
 const busqueda = ref({
-    sede_id: sedeActual,
+    sede_id: "",
     bus_nom_num_docu: "",
     bus_fech_ini: "",
     bus_fecha_fin: "",
@@ -720,28 +652,17 @@ const sedeInterface = ref(false);
 const interfaceAtenciones = ref([]);
 const interfaceAtencionSeleccionada = ref(null);
 const errores = ref({});
-const erroresBusqueda = ref({});
 const prioridades = ref([]);
 const productos = ref([]);
 const productosInterface = ref([]);
-const productoSelecciondo = ref("");
-const productoSelecciondoOrder = ref([]);
+const productoSeleccionado = ref("");
 const idSedeActual = ref("");
 const nomSedeActual = ref("");
-const productosAtencion = ref([]);
-const idRow = ref(null);
-const selectedRows = ref({});
 const loadingBuscar = ref(false);
 const loadingGuardar = ref(false);
 const loadingAbrirIndex = ref(null);
 const loadingImagenIndex = ref(null);
 
-const diagnosticoOptions = computed(() => {
-    return (diagnosticos || []).map((d) => ({
-        id: String(d.id),
-        nom_diagnos: d.nom_diagnos,
-    }));
-});
 const productoOptions = computed(() => {
     return (productos.value || []).map((p) => ({
         id: String(p.id),
@@ -749,19 +670,7 @@ const productoOptions = computed(() => {
         nom_produc: p.nom_produc,
     }));
 });
-const medicoOptions = computed(() => {
-    return (medicos || []).map((p) => ({ id: String(p.id), name: p.name }));
-});
 
-/**
- * Inicializa el DataTable de jQuery con botones de exportación.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 function initDataTable() {
     safeInitDataTable(dt.value || "#example23", {
         dom: "Bfrtip",
@@ -769,31 +678,15 @@ function initDataTable() {
         retrieve: true,
     });
 }
-/**
- * Destruye la instancia del DataTable para evitar errores al recargar.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#example23");
 }
-/**
- * Busca estudios de tele-radiología según los filtros del formulario.
- *
- * @returns {Promise<void>} Promesa que se resuelve al finalizar la búsqueda.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function buscarStudy() {
     if (loadingBuscar.value) return;
     loadingBuscar.value = true;
-    destroyDataTable();
+
     try {
         if (sessionStorage.getItem("ST-sede") == null) {
             toastMessage({
@@ -801,58 +694,42 @@ async function buscarStudy() {
                 text: "Debes seleccionar una sede para realizar la busqueda.",
                 icon: "warning",
             });
-        } else if (
+            return;
+        }
+        if (
             busqueda.value.bus_nom_num_docu == "" &&
             busqueda.value.bus_fech_ini == "" &&
             busqueda.value.bus_fecha_fin == ""
         ) {
             toastMessage({
                 heading: "Upsss!!!",
-                text: "Debes establece la fecha de inicio o finalización para la busqueda.",
+                text: "Debes establecer la fecha de inicio o finalización para la busqueda.",
                 icon: "warning",
             });
-        } else {
-            // En Tele-radiología consultamos estudios vía endpoint del módulo
-            const res = await axios.post("/api/tele-radiologia-listar-estudios", busqueda.value);
-            if (res.status == 200) {
-                destroyDataTable();
-
-                registros.value = res.data.data;
-                nextTick(() => {
-                    initDataTable();
-                });
-            } else if (res.status == 500) {
-                toastMessage({
-                    heading: "Upsss!!!",
-                    text: res.data.data.message,
-                    icon: "danger",
-                });
-            }
+            return;
         }
+
+        const res = await axios.post("/api/tele-radiologia-listar-estudios", busqueda.value);
+
+        destroyDataTable();
+        registros.value = res.data.data || [];
+        nextTick(() => {
+            initDataTable();
+        });
     } catch (error) {
-        if (error.response && error.response.status == 500) {
+        const status = error?.response?.status;
+        if (status == 500) {
             toastMessage({
-                heading: "Upss!!!",
-                text: error.response.data.message,
+                heading: "Upsss!!!",
+                text: getUserSafeError(error, "Error al listar estudios."),
                 icon: "error",
             });
-        }
-        if (error.response && error.response.data && error.response.data.errors) {
-            erroresBusqueda.value = error.response.data.errors;
         }
     } finally {
         loadingBuscar.value = false;
     }
 }
-/**
- * Guarda la orden de tele-radiología y el registro del estudio con sus adjuntos.
- *
- * @returns {Promise<void>} Promesa que se resuelve al completar el guardado.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
@@ -860,32 +737,47 @@ async function guardarRegistro() {
         if (orden.value.producto.length === 0) {
             toastMessage({
                 heading: "Upsss!!!",
-                text: "Debes seleccional al menos un producto",
+                text: "Debes seleccionar al menos un producto",
                 icon: "warning",
             });
-
             return;
         }
 
         if (orden.value.priori.id === "") {
             toastMessage({
                 heading: "Upsss!!!",
-                text: "Debes seleccional la prioridad de la orden",
+                text: "Debes seleccionar la prioridad de la orden",
                 icon: "warning",
             });
-
             return;
         }
 
-        // Mantener compatibilidad con backend externo: duplicar tel/telefono
         orden.value.paciente.telefono = orden.value.paciente.tel;
         registro.value.tel = orden.value.paciente.tel;
         registro.value.direccion = orden.value.paciente.direccion;
         registro.value.email = orden.value.paciente.email;
         registro.value.motivo_examen = orden.value.motivo_examen;
 
+        const payloadOrden = {
+            study_pk: orden.value.study_pk,
+            study_iuid: orden.value.study_iuid,
+            fec_estudio: orden.value.fec_estudio,
+            accession_no: orden.value.accession_no,
+            study_desc: orden.value.study_desc,
+            mods_in_study: orden.value.mods_in_study,
+            observaciones: orden.value.observaciones,
+            paciente: { ...orden.value.paciente },
+            priori: { ...orden.value.priori },
+            sede: { ...orden.value.sede },
+            producto: orden.value.producto.map((p) => ({ ...p })),
+            adjuntos: orden.value.adjuntos.map((a) => ({
+                file_exten: a.file_exten,
+            })),
+            motivo_examen: orden.value.motivo_examen,
+        };
+
         const resOrdenTele = await axios.post("/api/tele-radiologia-enviar-orden", {
-            orden: orden.value,
+            orden: payloadOrden,
         });
 
         const confirmation =
@@ -895,7 +787,6 @@ async function guardarRegistro() {
             null;
 
         if (resOrdenTele.status == 201 || resOrdenTele.status == 200) {
-            //Asigno el id de la orden de tele radiologia al estudio
             registro.value.destino_estudio_id = confirmation;
 
             toastMessage({
@@ -906,9 +797,11 @@ async function guardarRegistro() {
 
             const formData = new FormData();
             formData.append("registro", JSON.stringify(registro.value));
-            if (soportesHC.value.archivo1) formData.append("archivo1", soportesHC.value.archivo1);
-            if (soportesHC.value.archivo2) formData.append("archivo2", soportesHC.value.archivo2);
-            if (soportesHC.value.archivo3) formData.append("archivo3", soportesHC.value.archivo3);
+            adjuntosFileInputs.value.forEach((adj, idx) => {
+                if (adj.archivo) {
+                    formData.append(`archivo${idx + 1}`, adj.archivo);
+                }
+            });
 
             const resEstudio = await axios.post("/api/estudios", formData, {
                 headers: { "Content-Type": "multipart/form-data" },
@@ -923,7 +816,7 @@ async function guardarRegistro() {
             }
         }
 
-        btnCerralModalForm();
+        btnCerrarModal();
         btnLimpiar();
     } catch (error) {
         if (error.response) {
@@ -938,14 +831,7 @@ async function guardarRegistro() {
         loadingGuardar.value = false;
     }
 }
-/**
- * Convierte un archivo a formato Base64.
- * @returns {Promise<string>} Cadena en formato Base64 del archivo.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 function toBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -954,19 +840,9 @@ function toBase64(file) {
         reader.onerror = (error) => reject(error);
     });
 }
-/**
- * Extrae la extensión del archivo a partir de su representación Base64.
- *
- * @param {string} base64 Cadena en formato Base64 con prefijo MIME.
- * @returns {string|null} Extensión del archivo o null si no se reconoce el tipo MIME.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 function extensionDesdeBase64(base64) {
     const mime = base64.substring(base64.indexOf(":") + 1, base64.indexOf(";"));
-
     const mapa = {
         "image/jpeg": "jpg",
         "image/png": "png",
@@ -974,89 +850,23 @@ function extensionDesdeBase64(base64) {
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
         "application/msword": "doc",
     };
-
     return mapa[mime] ?? null;
 }
-/**
- * Maneja la selección del primer archivo adjunto, lo convierte a Base64 y lo agrega a la orden.
- *
- * @param {Event} e Evento change del input de archivo.
- * @returns {Promise<void>} Promesa que se resuelve al procesar el archivo.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-async function obtenerArchivo1(e) {
+
+async function obtenerArchivo(e, index) {
     const file = e.target.files[0];
+    if (!file) return;
     const fileBase64 = await toBase64(file);
     const extension = extensionDesdeBase64(fileBase64);
-    agregarArchivoOrden(fileBase64, extension);
-    soportesHC.value.archivo1 = e.target.files[0];
-}
-/**
- * Maneja la selección del segundo archivo adjunto, lo convierte a Base64 y lo agrega a la orden.
- *
- * @param {Event} e Evento change del input de archivo.
- * @returns {Promise<void>} Promesa que se resuelve al procesar el archivo.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-async function obtenerArchivo2(e) {
-    const file = e.target.files[0];
-    const fileBase64 = await toBase64(file);
-    const extension = extensionDesdeBase64(fileBase64);
-    agregarArchivoOrden(fileBase64, extension);
-    soportesHC.value.archivo2 = e.target.files[0];
-}
-/**
- * Maneja la selección del tercer archivo adjunto, lo convierte a Base64 y lo agrega a la orden.
- *
- * @param {Event} e Evento change del input de archivo.
- * @returns {Promise<void>} Promesa que se resuelve al procesar el archivo.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-async function obtenerArchivo3(e) {
-    const file = e.target.files[0];
-    const fileBase64 = await toBase64(file);
-    const extension = extensionDesdeBase64(fileBase64);
-    agregarArchivoOrden(fileBase64, extension);
-    soportesHC.value.archivo3 = e.target.files[0];
-}
-/**
- * Agrega un archivo adjunto al arreglo de adjuntos de la orden.
- *
- * @param {string} file Archivo en formato Base64.
- * @param {string} file_exten Extensión del archivo.
- * @returns {Promise<void>} Promesa que se resuelve al agregar el archivo.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-async function agregarArchivoOrden(file, file_exten) {
     orden.value.adjuntos.push({
-        file: file,
-        file_exten: file_exten,
+        file: fileBase64,
+        file_exten: extension,
     });
+    adjuntosFileInputs.value[index].nombre = file.name;
+    adjuntosFileInputs.value[index].archivo = file;
 }
-/**
- * Abre el modal lateral cargando los datos del estudio y paciente seleccionado.
- *
- * @param {Object} data Objeto con los datos del estudio.
- * @param {number} index Índice del registro en la tabla.
- * @returns {Promise<void>} Promesa que se resuelve al cargar los datos.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-async function mostrarRegistro(data = {}, index) {
+
+async function mostrarRegistro(data = {}) {
     limpiar();
     tituloModal.value = "Generar orden: " + data.pat_name;
     orden.value.study_pk = data.study_pk;
@@ -1086,89 +896,73 @@ async function mostrarRegistro(data = {}, index) {
 
     abrirModal();
 
-    /**
-     * Verificar si la sede tiene interface, traigo la informacion de las producto y diagnosticos
-     */
-    const res = await axios.get("/api/config-sedes/" + idSedeActual.value + "/buscarPorId");
-    sedeInterface.value = res.data.data.interface_software != null;
-    if (sedeInterface.value) {
-        const resAtenciones = await axios.get(
-            "/api/interface-sahi-listar-atenciones/" + orden.value.paciente.num_docu
-        );
-        interfaceAtenciones.value = resAtenciones.data.data;
+    try {
+        const res = await axios.get("/api/config-sedes/" + idSedeActual.value + "/buscarPorId");
+        sedeInterface.value = res.data.data.interface_software != null;
+        if (sedeInterface.value) {
+            const resAtenciones = await axios.get(
+                "/api/interface-sahi-listar-atenciones/" + orden.value.paciente.num_docu
+            );
+            interfaceAtenciones.value = resAtenciones.data.data;
+        }
+    } catch (_e) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los datos de la sede.",
+            icon: "error",
+        });
     }
 }
-/**
- * Lista los productos y diagnósticos de la interfaz SAHI para la atención seleccionada.
- *
- * @returns {Promise<void>} Promesa que se resuelve al cargar los productos y diagnósticos.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function interfaceListarProductosDiagnosticos() {
-    const resProuctos = await axios.get(
-        "/api/interface-sahi-listar-listarProductosDiagnosticos/" +
-            interfaceAtencionSeleccionada.value
-    );
-    const data = resProuctos.data.data;
-    productosInterface.value = data.productos;
+    try {
+        const resProductos = await axios.get(
+            "/api/interface-sahi-listar-listarProductosDiagnosticos/" +
+                interfaceAtencionSeleccionada.value
+        );
+        const data = resProductos.data.data;
+        productosInterface.value = data.productos;
 
-    let EnfermedadActualDiagnosticos = "";
+        let EnfermedadActualDiagnosticos = "";
 
-    const consultas = data.consultas || [];
-    EnfermedadActualDiagnosticos = "Enfermedad Actual: ";
-    if (consultas.length > 0) {
-        consultas.forEach((c) => {
-            EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos}\n ${c.DesEnfermedadActual} \n`;
+        const consultas = data.consultas || [];
+        EnfermedadActualDiagnosticos = "Enfermedad Actual: ";
+        if (consultas.length > 0) {
+            consultas.forEach((c) => {
+                EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos}\n ${c.DesEnfermedadActual} \n`;
+            });
+        }
+
+        const diagnosticos = data.diagnosticos || [];
+        EnfermedadActualDiagnosticos += `\nDiagnosticos:`;
+        if (diagnosticos.length > 0) {
+            diagnosticos.forEach((d) => {
+                EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos} \n ${d.cod_diagnos} - ${d.nom_diagnos}`;
+            });
+        }
+
+        orden.value.motivo_examen = EnfermedadActualDiagnosticos;
+        registro.value.motivo_examen = EnfermedadActualDiagnosticos;
+
+        registro.value.diagnosticosEstudio = diagnosticos.length > 0 ? diagnosticos : [];
+        registro.value.atencion_id = interfaceAtencionSeleccionada.value;
+    } catch (_e) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar productos/diagnósticos de la atención.",
+            icon: "error",
         });
     }
-
-    const diagnosticos = data.diagnosticos || [];
-    EnfermedadActualDiagnosticos += `\nDiagnosticos:`;
-    if (diagnosticos.length > 0) {
-        diagnosticos.forEach((d) => {
-            EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos} \n ${d.cod_diagnos} - ${d.nom_diagnos}`;
-        });
-    }
-
-    orden.value.motivo_examen = EnfermedadActualDiagnosticos;
-    registro.value.motivo_examen = EnfermedadActualDiagnosticos;
-
-    registro.value.diagnosticosEstudio = [];
-    if (diagnosticos.length > 0) {
-        registro.value.diagnosticosEstudio = diagnosticos;
-    }
-
-    registro.value.atencion_id = interfaceAtencionSeleccionada.value;
 }
-/**
- * Establece la prioridad seleccionada en la orden y el registro.
- *
- * @param {Event} e Evento change del select de prioridad.
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function establecerPrioridad(e) {
+
+function establecerPrioridad() {
     const seleccion = prioridades.value.find((p) => p.id === orden.value.priori.id);
-
-    orden.value.priori.id = seleccion.id;
-    registro.value.prioridad_id = seleccion.id;
-    orden.value.priori.nom_priori = seleccion.nom_priori;
+    if (seleccion) {
+        orden.value.priori.nom_priori = seleccion.nom_priori;
+        registro.value.prioridad_id = seleccion.id;
+    }
 }
-/**
- * Establece la sede actual en los objetos de búsqueda, orden y registro desde sessionStorage.
- *
- * @returns {Promise<void>} Promesa que se resuelve al configurar la sede.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function establecerSede() {
     orden.value.sede.id = sessionStorage.getItem("ST-sede");
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
@@ -1177,60 +971,17 @@ async function establecerSede() {
     registro.value.sede_id = sessionStorage.getItem("ST-sede");
     registros.value = [];
 }
-/**
- * Cierra el formulario del modal lateral deslizante.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function btnCerralModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").toggleClass("shw-rside");
+
+function btnCerrarModal() {
+    sidebarVisible.value = false;
+    errores.value = {};
 }
-/**
- * Abre el modal lateral deslizante mostrando el formulario.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 function abrirModal() {
-    $(".right-sidebar").addClass("shw-rside");
+    sidebarVisible.value = true;
 }
-/**
- * Cierra el modal lateral deslizante ocultando el panel.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function cerrarModal() {
-    $(".right-sidebar").removeClass("shw-rside");
-}
-/**
- * Limpia todos los campos del formulario de búsqueda, orden y registro, y cierra el modal.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function btnLimpiar() {
-    busqueda.value.bus_nom_num_docu = "";
-    busqueda.value.bus_fech_ini = "";
-    busqueda.value.bus_fecha_fin = "";
 
-    registros.value = [];
-    destroyDataTable();
-
+function limpiar() {
     orden.value.study_pk = "";
     orden.value.study_iuid = "";
     orden.value.study_id = "";
@@ -1243,92 +994,75 @@ function btnLimpiar() {
     orden.value.paciente.nom_pacien = "";
     orden.value.paciente.sexo = "";
     orden.value.paciente.fec_naci = "";
+    orden.value.paciente.tel = "";
+    orden.value.paciente.email = "";
+    orden.value.paciente.direccion = "";
     orden.value.priori.id = "";
-
-    productoSelecciondo.value = "";
-
+    orden.value.priori.nom_priori = "";
     orden.value.producto = [];
     orden.value.adjuntos = [];
-    productosInterface.value = [];
-    interfaceAtenciones.value = [];
+    orden.value.motivo_examen = null;
+
     registro.value.diagnosticosEstudio = [];
     registro.value.productosEstudio = [];
     registro.value.atencion_id = null;
     registro.value.destino_estudio_id = null;
-    registro.value.destino_estudio = "Tele Radiologia";
+    registro.value.destino_estudio = DESTINO_TELE_RADIOLOGIA;
 
-    soportesHC.value.archivo1 = null;
-    soportesHC.value.archivo2 = null;
-    soportesHC.value.archivo3 = null;
+    productoSeleccionado.value = "";
+    productosInterface.value = [];
+    interfaceAtenciones.value = [];
+    interfaceAtencionSeleccionada.value = null;
+    sedeInterface.value = false;
 
-    cerrarModal();
+    adjuntosFileInputs.value = Array.from({ length: ADJUNTO_COUNT }, () => ({
+        nombre: null,
+        archivo: null,
+    }));
+
+    errores.value = {};
 }
-/**
- * Obtiene el listado de prioridades disponibles desde la API.
- *
- * @returns {Promise<void>} Promesa que se resuelve al cargar las prioridades.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
+function btnLimpiar() {
+    busqueda.value.bus_nom_num_docu = "";
+    busqueda.value.bus_fech_ini = "";
+    busqueda.value.bus_fecha_fin = "";
+
+    registros.value = [];
+    destroyDataTable();
+
+    limpiar();
+    btnCerrarModal();
+}
+
 async function listarPrioridades() {
     try {
         const res = await axios.get("/api/config-prioridades");
         prioridades.value = res.data.data;
-    } catch (error) {
+    } catch (_e) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar las prioridades.",
+            icon: "error",
+        });
         prioridades.value = [];
     }
 }
-/**
- * Obtiene el listado de productos (CUPS) disponibles desde la API.
- *
- * @returns {Promise<void>} Promesa que se resuelve al cargar los productos.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
         productos.value = res.data.data;
-    } catch (error) {
+    } catch (_e) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los productos.",
+            icon: "error",
+        });
         productos.value = [];
     }
 }
-/**
- * Maneja la selección de un médico desde el componente Select2.
- *
- * @param {*} value Valor seleccionado del componente Select2.
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function onMedicoSelect(value) {
-    let selectedId = null;
-    if (Array.isArray(value) && value.length > 0) {
-        const v = value[0];
-        selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
-    } else if (value && typeof value === "object" && value.id != null) {
-        selectedId = String(value.id);
-    } else if (value != null) {
-        selectedId = String(value);
-    }
-    registro.value.medico_id = selectedId || "";
-}
-/**
- * Maneja la selección de un producto desde el componente Select2 y lo agrega a la orden.
- *
- * @param {*} value Valor seleccionado del componente Select2.
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 function onProductoSelect(value) {
     let selectedId = null;
     if (Array.isArray(value) && value.length > 0) {
@@ -1340,125 +1074,70 @@ function onProductoSelect(value) {
         selectedId = String(value);
     }
     if (selectedId != null) {
-        productoSelecciondo.value = selectedId;
+        productoSeleccionado.value = selectedId;
         const prod = productos.value.find((p) => String(p.id) === selectedId);
         if (prod) {
             guardarProductosEstudio(prod.id, prod.cod_cups, prod.nom_produc);
         }
     }
 }
-/**
- * Maneja la selección de un diagnóstico desde el componente Select2.
- *
- * @param {*} value Valor seleccionado del componente Select2.
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function onDiagnosticoSelect(value) {
-    let selectedId = null;
-    if (Array.isArray(value) && value.length > 0) {
-        const v = value[0];
-        selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
-    } else if (value && typeof value === "object" && value.id != null) {
-        selectedId = String(value.id);
-    } else if (value != null) {
-        selectedId = String(value);
-    }
-    if (selectedId != null) {
-        guardarDiagnosticosEstudio();
-    }
-}
-/**
- * Agrega o quita un producto del estudio. Si ya existe lo elimina, si no lo agrega.
- *
- * @param {number} id Identificador del producto.
- * @param {string} cod_cups Código CUPS del producto.
- * @param {string} nom_produc Nombre del producto.
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function guardarProductosEstudio(id, cod_cups, nom_produc) {
-    const productoEstudioId = id;
-    const productoEstudioCod_Cubs = cod_cups;
-    const productoEstudioNomProduc = nom_produc;
 
-    const yaExisteIndex = orden.value.producto.findIndex(
-        (p) => p.cod_cups == productoEstudioCod_Cubs
-    );
+function guardarProductosEstudio(id, cod_cups, nom_produc) {
+    const yaExisteIndex = orden.value.producto.findIndex((p) => p.cod_cups == cod_cups);
     if (yaExisteIndex !== -1) {
-        // Si ya existe, quitarlo
         orden.value.producto.splice(yaExisteIndex, 1);
-        // También quitarlo de registro.productosEstudio
         const registroIndex = registro.value.productosEstudio.findIndex(
-            (p) => p.cod_cups == productoEstudioCod_Cubs
+            (p) => p.cod_cups == cod_cups
         );
         if (registroIndex !== -1) {
             registro.value.productosEstudio.splice(registroIndex, 1);
         }
     } else {
-        // Si no existe, agregarlo
         orden.value.producto.push({
-            cod_cups: productoEstudioCod_Cubs,
-            nom_produc: productoEstudioNomProduc,
+            cod_cups: cod_cups,
+            nom_produc: nom_produc,
         });
-
         registro.value.productosEstudio.push({
             checked: true,
-            id: productoEstudioId,
-            cod_cups: productoEstudioCod_Cubs,
-            nom_produc: productoEstudioNomProduc,
+            id: id,
+            cod_cups: cod_cups,
+            nom_produc: nom_produc,
         });
     }
-
-    productoSelecciondo.value = "";
+    productoSeleccionado.value = "";
 }
-/**
- * Elimina un producto del estudio por su código CUPS.
- *
- * @param {string} codCups Código CUPS del producto a eliminar.
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 function quitarProductoEstudio(codCups) {
     const idxOrden = orden.value.producto.findIndex((p) => p.cod_cups === codCups);
     if (idxOrden !== -1) orden.value.producto.splice(idxOrden, 1);
     const idxRegistro = registro.value.productosEstudio.findIndex((p) => p.cod_cups === codCups);
     if (idxRegistro !== -1) registro.value.productosEstudio.splice(idxRegistro, 1);
 }
-/**
- * Abre en una nueva pestaña el visor de imágenes DICOM (Oviyam) con los parámetros del estudio.
- *
- * @param {string} pat_id Identificador del paciente.
- * @param {string} study_iuid UID del estudio DICOM.
- * @param {number|null} index Índice del registro en la tabla para control de loading.
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function verImagen(pat_id, study_iuid, index = null) {
-    if (index !== null) {
-        if (loadingImagenIndex.value !== null) return;
-        loadingImagenIndex.value = index;
-    }
+
+function verImagen(pat_id, study_iuid, studyPk) {
+    if (loadingImagenIndex.value !== null) return;
+    loadingImagenIndex.value = studyPk;
+
     const base = sessionStorage.getItem("ST-urlsede") || "";
     const params = new URLSearchParams({
         patientID: String(pat_id ?? ""),
         studyUID: String(study_iuid ?? ""),
         serverName: String(sessionStorage.getItem("ST-servername") ?? ""),
     });
+
     try {
-        window.open(`${base}?${params.toString()}`, "_blank", "noopener,noreferrer");
+        const newWindow = window.open(
+            `${base}?${params.toString()}`,
+            "_blank",
+            "noopener,noreferrer"
+        );
+        if (!newWindow) {
+            toastMessage({
+                heading: "Atención",
+                text: "El navegador bloqueó la apertura de la ventana. Permita pop-ups para este sitio.",
+                icon: "warning",
+            });
+        }
     } finally {
         setTimeout(() => {
             loadingImagenIndex.value = null;
@@ -1470,19 +1149,13 @@ onMounted(() => {
     listarPrioridades();
     listarProductos();
     establecerSede();
-    limpiar();
-
-    emitter.on("sedeSeleccionada", (data) => {
-        orden.value.sede.id = data.idSede;
-        establecerSede();
-        destroyDataTable();
-    });
 });
 
 onBeforeUnmount(() => {
     destroyDataTable();
 });
 </script>
+
 <style scoped>
 .right-sidebar {
     position: fixed;
@@ -1507,8 +1180,14 @@ onBeforeUnmount(() => {
     display: block;
 }
 
-.audio {
-    width: 50px;
-    height: 5px;
+@media (max-width: 768px) {
+    .right-sidebar {
+        width: 100%;
+        right: -100%;
+    }
+    .shw-rside {
+        width: 100%;
+        right: 0;
+    }
 }
 </style>
