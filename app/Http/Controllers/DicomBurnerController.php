@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\DicomHelper;
 use App\Services\DicomBurnerService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -86,29 +87,45 @@ class DicomBurnerController extends Controller
      */
     public function listDrives()
     {
-        $drives = [];
+        $drives = Cache::remember('dicom.drives', 300, function () {
+            $drives = [];
 
-        if (PHP_OS_FAMILY === 'Windows') {
-            $output = [];
-            $exitCode = 0;
-            exec('powershell -Command "Get-CimInstance Win32_CDROMDrive | Select-Object -ExpandProperty Drive" 2>&1', $output, $exitCode);
+            if (PHP_OS_FAMILY === 'Windows') {
+                $cmd = 'powershell -Command "Get-CimInstance Win32_CDROMDrive | Select-Object -ExpandProperty Drive" 2>&1';
+                $descriptors = [
+                    0 => ['pipe', 'r'],
+                    1 => ['pipe', 'w'],
+                    2 => ['pipe', 'w'],
+                ];
+                $process = proc_open($cmd, $descriptors, $pipes);
 
-            if ($exitCode === 0 && ! empty($output)) {
-                foreach ($output as $line) {
-                    $drive = trim(trim($line), ':');
-                    if (! empty($drive)) {
-                        $drives[] = strtoupper($drive);
+                if (is_resource($process)) {
+                    fclose($pipes[0]);
+                    stream_set_timeout($pipes[1], 5);
+                    while (! feof($pipes[1])) {
+                        $line = fgets($pipes[1]);
+                        if ($line !== false) {
+                            $drive = trim(trim($line), ':');
+                            if (! empty($drive)) {
+                                $drives[] = strtoupper($drive);
+                            }
+                        }
+                    }
+                    fclose($pipes[1]);
+                    fclose($pipes[2]);
+                    proc_close($process);
+                }
+            } else {
+                $possibleDevices = ['/dev/cdrom', '/dev/dvd', '/dev/sr0', '/dev/sr1'];
+                foreach ($possibleDevices as $device) {
+                    if (file_exists($device)) {
+                        $drives[] = $device;
                     }
                 }
             }
-        } else {
-            $possibleDevices = ['/dev/cdrom', '/dev/dvd', '/dev/sr0', '/dev/sr1'];
-            foreach ($possibleDevices as $device) {
-                if (file_exists($device)) {
-                    $drives[] = $device;
-                }
-            }
-        }
+
+            return $drives;
+        });
 
         return response()->json([
             'status' => 'success',
@@ -153,6 +170,21 @@ class DicomBurnerController extends Controller
             $this->updateProgress($burnId, 5, 'Preparando visor DICOM...');
             $cdFolder = $this->prepareCdFolder($burnId, $dicomFolder);
 
+            // Validate free disk space on target drive (need at least 700 MB for CD)
+            $driveRoot = strtoupper(substr($deviceLetter, 0, 1)).':\\';
+            $freeSpaceBytes = @disk_free_space($driveRoot);
+            $cdFolderSize = $this->getDirectorySize($cdFolder);
+            $minRequired = 700 * 1024 * 1024; // 700 MB minimum for CD
+
+            if ($freeSpaceBytes !== false && $freeSpaceBytes < $minRequired) {
+                $this->removeDirectory($cdFolder);
+                throw new \RuntimeException(
+                    "Espacio insuficiente en la unidad {$deviceLetter}. ".
+                    "Disponible: ".number_format($freeSpaceBytes / 1024 / 1024, 1)." MB, ".
+                    "mínimo requerido: 700 MB."
+                );
+            }
+
             $this->updateProgress($burnId, 15, 'Preparando unidad de disco...');
             $this->burnDicomFolder($cdFolder, $deviceLetter, $burnId);
 
@@ -179,6 +211,12 @@ class DicomBurnerController extends Controller
                 'error_message' => $msg,
                 'updated_at' => now(),
             ]);
+
+            // Cleanup temp folders on failure
+            $cdFolder = storage_path("app/burns/{$burnId}/cd");
+            if (is_dir($cdFolder)) {
+                $this->removeDirectory($cdFolder);
+            }
 
             return response()->json([
                 'status' => 'error',
@@ -276,6 +314,29 @@ class DicomBurnerController extends Controller
             }
         }
         rmdir($dir);
+    }
+
+    /**
+     * Get total size of a directory in bytes.
+     */
+    private function getDirectorySize(string $dir): int
+    {
+        $size = 0;
+        if (! is_dir($dir)) {
+            return $size;
+        }
+
+        $items = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+
+        foreach ($items as $item) {
+            if ($item->isFile()) {
+                $size += $item->getSize();
+            }
+        }
+
+        return $size;
     }
 
     /**

@@ -56,7 +56,7 @@
                         @click="listarUnidades"
                         :disabled="loadingDrives"
                     >
-                        <i class="fa fa-refresh"></i>
+                        <i :class="loadingDrives ? 'fa fa-spinner fa-spin' : 'fa fa-refresh'"></i>
                     </button>
                 </div>
                 <div v-if="drives.length === 0" class="text-muted text-sm">
@@ -78,6 +78,7 @@
                 </div>
             </div>
 
+            <!-- Progress -->
             <div v-if="burnStatus" class="mt-3">
                 <div class="d-flex justify-content-between align-items-center mb-1">
                     <small class="text-muted">{{ statusLabel }}</small>
@@ -96,9 +97,24 @@
                         {{ statusLabel }}
                     </div>
                 </div>
-                <div v-if="burnStatus.error_message" class="alert alert-danger mt-2 mb-0 py-2">
-                    <small>{{ burnStatus.error_message }}</small>
+                <div
+                    v-if="burnStatusError"
+                    class="alert alert-danger mt-2 mb-0 py-2"
+                    style="max-height: 120px; overflow-y: auto"
+                >
+                    <small>{{ burnStatusError }}</small>
                 </div>
+            </div>
+
+            <!-- Información del paquete tras generate-iso -->
+            <div v-if="packageInfo" class="alert alert-info mt-2 mb-0 py-2">
+                <small>
+                    <i class="fa fa-info-circle"></i>
+                    {{ packageInfo.totalFiles }} archivo(s) descargado(s)
+                    <span v-if="packageInfo.failedDownloads > 0" class="text-warning">
+                        ({{ packageInfo.failedDownloads }} fallido(s))
+                    </span>
+                </small>
             </div>
 
             <div class="form-actions mt-3">
@@ -114,9 +130,19 @@
                 </button>
 
                 <button
+                    v-if="burnStatus && burnStatusStatus === 'failed'"
                     type="button"
-                    class="btn btn-inverse"
-                    @click="$emit('cerrar')"
+                    class="btn btn-warning m-r-5"
+                    @click="iniciarQuemado"
+                    :disabled="!canBurn"
+                >
+                    <i class="fa fa-redo"></i> Reintentar
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    @click="cerrar"
                     :disabled="burning"
                 >
                     Cerrar
@@ -132,107 +158,110 @@ import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { confirmAction, toastMessage } from "@/helpers/alerts.js";
 import axios from "axios";
 
+const DICOM_UID_RE = /^([0-9]+\.)*[0-9]+$/;
+
+const STATUS_LABELS = {
+    pending: "Pendiente",
+    processing: "Descargando archivos DICOM...",
+    burning: "Quemando disco...",
+    completed: "Paquete listo",
+    burned: "Disco quemado exitosamente",
+    failed: "Fallido",
+};
+
+const MAX_POLL_MINUTES = 10;
+
 const props = defineProps({
     estudio: { type: Object, required: true },
     usuarioactual: { type: Object, required: true },
 });
 
-const emit = defineEmits(["cerrar", "completado"]);
+const emit = defineEmits(["cerrar", "completado", "error"]);
 
 const loading = ref(true);
 const loadingDrives = ref(false);
 const burning = ref(false);
 const drives = ref([]);
 const selectedDrive = ref(null);
-const burnStatus = ref(null);
+const burnStatusStatus = ref(null);
+const burnStatusProgress = ref(0);
+const burnStatusError = ref(null);
 const burnId = ref(null);
+const packageInfo = ref(null);
 let pollTimer = null;
+let pollTimeout = null;
 
-/**
- * Porcentaje de progreso del quemado garantizado entre 0 y 100.
- * @returns {number} Progreso numérico seguro para renderizar.
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-05
- */
+const burnStatus = computed(() => {
+    if (!burnStatusStatus.value) return null;
+    return {
+        status: burnStatusStatus.value,
+        progress: burnStatusProgress.value,
+        error_message: burnStatusError.value,
+    };
+});
+
 const progressPct = computed(() => {
-    const p = Number(burnStatus.value?.progress);
+    const p = Number(burnStatusProgress.value);
     if (!Number.isFinite(p)) return 0;
     return Math.min(100, Math.max(0, Math.round(p)));
 });
 
-/**
- * Indica si se puede iniciar el quemado con la unidad seleccionada.
- * @returns {boolean}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-05
- */
 const canBurn = computed(() => {
     return selectedDrive.value && !burning.value;
 });
 
-/**
- * Clase de color de la barra de progreso según el estado del quemado.
- * @returns {string} Clase CSS de Bootstrap.
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-05
- */
 const progressBarClass = computed(() => {
-    if (!burnStatus.value) return "bg-info";
-    const s = burnStatus.value.status;
+    const s = burnStatusStatus.value;
     if (s === "burned") return "bg-success";
     if (s === "failed") return "bg-danger";
     if (s === "burning") return "bg-warning";
     return "bg-info";
 });
 
-/**
- * Etiqueta legible del estado actual del quemado.
- * @returns {string}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-05
- */
 const statusLabel = computed(() => {
-    if (!burnStatus.value) return "";
-    const s = burnStatus.value.status;
+    const s = burnStatusStatus.value;
+    if (!s) return "";
     const p = progressPct.value;
-    const labels = {
-        pending: "Pendiente",
-        processing: p <= 40 ? "Descargando archivos DICOM..." : "Preparando paquete...",
-        burning: p <= 70 ? "Creando imagen de disco..." : "Quemando disco...",
-        completed: "Paquete listo",
-        burned: "Disco quemado exitosamente",
-        failed: "Fallido",
-    };
-    return labels[s] || s;
+    if (s === "processing") {
+        return p <= 40 ? STATUS_LABELS.processing : "Preparando paquete...";
+    }
+    if (s === "burning") {
+        return p <= 70 ? "Creando imagen de disco..." : STATUS_LABELS.burning;
+    }
+    return STATUS_LABELS[s] || s;
 });
 
-/**
- * Inicia el sondeo periódico del estado del quemado en el backend.
- * Termina solo ante estados terminales (burned/failed) y emite
- * `completado` únicamente cuando el disco terminó físicamente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-05
- */
+function normalizeDeviceLetter(drive) {
+    return String(drive).replace(/:$/, "").toUpperCase().trim();
+}
+
+function isValidDicomUid(uid) {
+    return DICOM_UID_RE.test(String(uid));
+}
+
 function startPolling() {
     stopPolling();
+    pollTimeout = setTimeout(
+        () => {
+            stopPolling();
+            burnStatusStatus.value = "failed";
+            burnStatusProgress.value = 0;
+            burnStatusError.value = `La operación de quemado no respondió después de ${MAX_POLL_MINUTES} minutos.`;
+            burning.value = false;
+            emit("error", burnStatusError.value);
+        },
+        MAX_POLL_MINUTES * 60 * 1000
+    );
+
     pollTimer = setInterval(async () => {
         if (!burnId.value) return;
         try {
             const res = await axios.get(`/api/dicom/burn-status/${burnId.value}`);
             if (res.data.status === "success") {
                 const data = res.data.data;
-                burnStatus.value = {
-                    status: data.status,
-                    progress: data.progress || 0,
-                    error_message: data.error_message,
-                };
+                burnStatusStatus.value = data.status;
+                burnStatusProgress.value = data.progress || 0;
+                burnStatusError.value = data.error_message || null;
 
                 if (data.status === "burned" || data.status === "failed") {
                     stopPolling();
@@ -242,35 +271,35 @@ function startPolling() {
                     }
                 }
             }
-        } catch (e) {
-            console.error("Error polling status:", e);
+        } catch (_e) {
+            toastMessage({
+                heading: "Error de conexión",
+                text: "No se pudo consultar el estado del quemado.",
+                icon: "error",
+            });
         }
     }, 2000);
 }
 
-/**
- * Detiene el sondeo de estado del quemado.
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-05
- */
 function stopPolling() {
     if (pollTimer) {
         clearInterval(pollTimer);
         pollTimer = null;
     }
+    if (pollTimeout) {
+        clearTimeout(pollTimeout);
+        pollTimeout = null;
+    }
 }
 
-/**
- * Lista las unidades de CD/DVD disponibles en el servidor de quemado.
- * Si la unidad seleccionada previamente ya no existe, la deselecciona.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-05
- */
+function resetBurnState() {
+    burnStatusStatus.value = null;
+    burnStatusProgress.value = 0;
+    burnStatusError.value = null;
+    burnId.value = null;
+    packageInfo.value = null;
+}
+
 async function listarUnidades() {
     loadingDrives.value = true;
     try {
@@ -283,31 +312,19 @@ async function listarUnidades() {
                 selectedDrive.value = drives.value.length > 0 ? drives.value[0] : null;
             }
         }
-    } catch (e) {
-        console.error("Error listando unidades:", e);
-        drives.value = [];
-        selectedDrive.value = null;
+    } catch (_e) {
         toastMessage({
             heading: "Error",
             text: "No fue posible consultar las unidades de CD/DVD del servidor.",
             icon: "error",
         });
+        drives.value = [];
+        selectedDrive.value = null;
     } finally {
         loadingDrives.value = false;
     }
 }
 
-/**
- * Inicia el flujo de quemado del estudio en CD/DVD.
- * Pide confirmación al usuario, genera el paquete DICOM, envía la orden de
- * quemado y activa el sondeo de estado hasta que el disco termine físicamente.
- * Solo emite `completado` cuando el backend reporta `burned`.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-05
- */
 async function iniciarQuemado() {
     if (!canBurn.value || burning.value) return;
 
@@ -319,7 +336,10 @@ async function iniciarQuemado() {
     if (!ok) return;
 
     burning.value = true;
-    burnStatus.value = { status: "processing", progress: 5 };
+    burnStatusStatus.value = "processing";
+    burnStatusProgress.value = 5;
+    burnStatusError.value = null;
+    packageInfo.value = null;
 
     try {
         const studyUid = props.estudio.study_iuid;
@@ -327,15 +347,31 @@ async function iniciarQuemado() {
             throw new Error("No hay Study Instance UID disponible para este estudio.");
         }
 
+        if (!isValidDicomUid(studyUid)) {
+            throw new Error(
+                `El Study Instance UID no tiene un formato válido: "${studyUid}". Debe ser un OID (ej. 1.2.840...).`
+            );
+        }
+
         const sedeId = sessionStorage.getItem("ST-sede");
         if (!sedeId) {
             throw new Error("No se encontró la sede seleccionada.");
         }
 
+        if (!props.usuarioactual?.id) {
+            toastMessage({
+                heading: "Advertencia",
+                text: "No se identificó el usuario actual. El quemado se registrará sin usuario.",
+                icon: "warning",
+            });
+        }
+
+        const normalizedDrive = normalizeDeviceLetter(selectedDrive.value);
+
         const resGenerate = await axios.post("/api/dicom/generate-iso", {
             study_instance_uids: [String(studyUid)],
             user_id: props.usuarioactual?.id ?? null,
-            device_letter: selectedDrive.value,
+            device_letter: normalizedDrive,
             sede_id: parseInt(sedeId, 10),
         });
 
@@ -343,36 +379,52 @@ async function iniciarQuemado() {
             throw new Error(resGenerate.data.message || "Error al generar paquete DICOM.");
         }
 
-        const { burn_id } = resGenerate.data.data ?? {};
+        const { burn_id, total_files, failed_downloads } = resGenerate.data.data ?? {};
         if (!burn_id) {
             throw new Error("El servidor no devolvió el identificador del quemado.");
         }
+
+        packageInfo.value = {
+            totalFiles: total_files || 0,
+            failedDownloads: failed_downloads || 0,
+        };
+
         burnId.value = burn_id;
-        burnStatus.value = { status: "processing", progress: 45 };
+        burnStatusStatus.value = "processing";
+        burnStatusProgress.value = 45;
 
         const resBurn = await axios.post("/api/dicom/burn", {
             burn_id: burn_id,
-            device_letter: selectedDrive.value,
+            device_letter: normalizedDrive,
         });
 
         if (resBurn.data.status !== "success") {
             throw new Error(resBurn.data.message || "Error al iniciar el quemado del disco.");
         }
 
-        // La orden fue aceptada: el disco aún se está grabando.
-        // Sondear hasta un estado terminal; completado se emite desde startPolling.
-        burnStatus.value = { status: "burning", progress: 70 };
+        burnStatusStatus.value = "burning";
+        burnStatusProgress.value = 70;
         startPolling();
     } catch (e) {
-        console.error("Error en quemado:", e);
-        burnStatus.value = {
-            status: "failed",
-            progress: 0,
-            error_message: e.response?.data?.message || e.message,
-        };
+        const errMsg = e.response?.data?.message || e.message;
+        burnStatusStatus.value = "failed";
+        burnStatusProgress.value = 0;
+        burnStatusError.value = errMsg;
         stopPolling();
         burning.value = false;
+        emit("error", errMsg);
+        toastMessage({
+            heading: "Error en quemado",
+            text: errMsg,
+            icon: "error",
+        });
     }
+}
+
+function cerrar() {
+    stopPolling();
+    resetBurnState();
+    emit("cerrar");
 }
 
 onMounted(async () => {
@@ -380,12 +432,6 @@ onMounted(async () => {
     loading.value = false;
 });
 
-/**
- * Limpieza al desmontar: detiene el sondeo pendiente.
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-05
- */
 onBeforeUnmount(() => {
     stopPolling();
 });
