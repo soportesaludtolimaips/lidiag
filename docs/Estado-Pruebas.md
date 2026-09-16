@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| **Última actualización** | 2026-08-26 |
+| **Última actualización** | 2026-09-02 |
 | **Responsable QA** | Jhon Javer Lozano Arce |
 | **Formato** | Módulo → Sub-Módulo → Funcionalidad |
 | **Código fuente** | `resources/js/components/modulos/` |
@@ -34,11 +34,11 @@
 | Estudios | 37 | 0 | 0 | 0 | 37 | ✅ 28/28 |
 | Configuración | 21 | 0 | 0 | 0 | 21 | — |
 | Contratación | 4 | 0 | 0 | 0 | 4 | ✅ 1/1 |
-| Seguridad | 6 | 4 | 0 | 0 | 2 | ✅ 8/8 |
+| Seguridad | 6 | 0 | 0 | 0 | 6 | ✅ 8/8 |
 | Ecografías | 8 | 8 | 0 | 0 | 0 | — |
 | Reportes | 3 | 0 | 0 | 0 | 3 | — |
 | Tele-radiología | 2 | 2 | 0 | 0 | 0 | — |
-| **TOTAL** | **81** | **12** | **0** | **1** | **68** | **37/37** |
+| **TOTAL** | **81** | **10** | **0** | **1** | **71** | **37/37** |
 
 ---
 
@@ -240,26 +240,26 @@
 | 1 | Login → regenera sesión | ✅ Terminado | ✅ PASS | 2026-08-24 | Ox | SEC-08; `LoginController.php` session regeneration |
 | 2 | Logout → purga ST-* storage + revoca tokens | ✅ Terminado | ✅ PASS | 2026-08-24 | Ox | `userProfileAndSearchComponent.vue` |
 | 3 | Cambio de contraseña invalida otras sesiones | ✅ Terminado | ✅ PASS | 2026-08-24 | Ox | `AuthService.php` |
-| 4 | Forgot password (flujo completo) | ⬜ Sin iniciar | — | — | — | — | ENV-06: pendiente decisión producción |
+| 4 | Forgot password (flujo completo) | ✅ Terminado | ✅ PASS | 2026-09-02 | Jhon Javer | front-end manual | ENV-06 |
 
 ### Sub-Módulo: Usuarios
 
 | # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
 |---|---|---|---|---|---|---|---|
-| 1 | CRUD usuarios (documento, reg. médico, módulos, permisos) | ⬜ Sin iniciar | — | — | — | — | `usuarioComponent.vue` |
-| 2 | Perfil propio (subir foto + firma digital) | ⬜ Sin iniciar | — | — | — | — | `usuarioPerfil.vue` |
+| 1 | CRUD usuarios (documento, reg. médico, módulos, permisos) | ✅ Terminado | ✅ PASS | 2026-09-02 | Jhon Javer | front-end manual | `usuarioComponent.vue` |
+| 2 | Perfil propio (subir foto + firma digital) | ✅ Terminado | ✅ PASS | 2026-09-02 | Jhon Javer | front-end manual | `usuarioPerfil.vue` |
 
 ### Sub-Módulo: Roles
 
 | # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
 |---|---|---|---|---|---|---|---|
-| 1 | CRUD roles | ⬜ Sin iniciar | — | — | — | — | `roleComponente.vue` |
+| 1 | CRUD roles | ✅ Terminado | ✅ PASS | 2026-09-02 | Jhon Javer | front-end manual | `roleComponente.vue` |
 
 ### Sub-Módulo: Auditoría
 
 | # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
 |---|---|---|---|---|---|---|---|
-| 1 | Consulta de auditoría (evento, fechas, búsqueda libre) | ⬜ Sin iniciar | — | — | — | — | `auditLogComponent.vue` |
+| 1 | Consulta de auditoría (evento, fechas, búsqueda libre) | ✅ Terminado | ✅ PASS | 2026-09-02 | Jhon Javer | front-end manual | `auditLogComponent.vue` |
 
 ---
 
@@ -403,3 +403,4 @@
 | 2026-08-24 | MAN-AE-01 re-ejecutado con PACS activo | ✅ PASS | — |
 | 2026-08-24 | MAN-DZ-01 + DZ-02 (túnel estable) | ✅ 2/2 PASS | `qa_dz01_final.mjs` + `qa_dz02.mjs` |
 | 2026-08-25 | MAN-QC-03 quemado real (front-end) | ✅ PASS | — |
+| 2026-09-02 | Seguridad MAN-\* front-end (6 funcionalidades) | ✅ 6/6 PASS | — |
