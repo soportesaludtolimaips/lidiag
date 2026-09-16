@@ -42,7 +42,7 @@ class ProduccionDetalladaEcografiasExport implements FromCollection, WithColumnW
 
         $ecografias = DB::table('view_reporte_ecografias')
             ->when($this->fechaInicio, fn ($q) => $q->whereBetween(DB::raw('DATE(fechor_lectura)'), [$this->fechaInicio, $this->fechaFin]))
-            // ->when($sedeId, fn ($q) => $q->where('sede_id', $sedeId))
+            ->when($this->sedeId, fn ($q) => $q->where('sede_id', $this->sedeId))
             ->when($this->quienAsignoId, fn ($q) => $q->where('usua_regis_id', $this->quienAsignoId))
             ->when($this->medicoId, fn ($q) => $q->where('medico_id', $this->medicoId))
             ->select('id', 'fec_cita_sahi', 'fec_regis_cita_sahi', 'fechor_lectura', 'atencion_id', 'quien_registro', 'medico', 'documento_paciente',

@@ -6,6 +6,7 @@ use App\Exports\ProduccionDetalladaEcografiasExport;
 use App\Exports\ProduccionDetalladaExport;
 use App\Exports\ReportesEstudioPAC;
 use App\Services\BaseService;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -31,21 +32,32 @@ class ReporteProduccionService extends BaseService
         $medicoId = $this->normalizeNullable($data['medico'] ?? null);
         $tipo = $data['tipo'];
 
-        if ($tipo === 'Rx') {
-            return Excel::download(
-                new ProduccionDetalladaExport($fechaInicio, $fechaFin, $sedeId, $quienAsignoId, $medicoId),
-                'produccion lecturas de imagenes diagnosticas.xlsx'
-            );
-        }
+        try {
+            if ($tipo === 'Rx') {
+                return Excel::download(
+                    new ProduccionDetalladaExport($fechaInicio, $fechaFin, $sedeId, $quienAsignoId, $medicoId),
+                    'produccion lecturas de imagenes diagnosticas.xlsx'
+                );
+            }
 
-        if ($tipo === 'Ecografia') {
-            return Excel::download(
-                new ProduccionDetalladaEcografiasExport($fechaInicio, $fechaFin, $sedeId, $quienAsignoId, $medicoId),
-                'produccion lecturas de ecografias.xlsx'
-            );
-        }
+            if ($tipo === 'Ecografia') {
+                return Excel::download(
+                    new ProduccionDetalladaEcografiasExport($fechaInicio, $fechaFin, $sedeId, $quienAsignoId, $medicoId),
+                    'produccion lecturas de ecografias.xlsx'
+                );
+            }
 
-        return $this->error('Tipo de reporte inválido.', 422);
+            return $this->error('Tipo de reporte inválido.', 422);
+        } catch (\Throwable $e) {
+            Log::error('ReporteProduccionService.generateReporteDetallado failed', [
+                'tipo' => $tipo,
+                'fechaInicio' => $fechaInicio,
+                'fechaFin' => $fechaFin,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->error('Error al generar el reporte: '.$e->getMessage(), 500);
+        }
     }
 
     /**
@@ -93,9 +105,20 @@ class ReporteProduccionService extends BaseService
             return ['message' => 'Debes seleccionar una sede.', 'status' => 422];
         }
 
-        return Excel::download(
-            new ReportesEstudioPAC($fechaInicio, $fechaFin, $sedeId, "", ""),
-            'estudios tomados en PAC.xlsx'
-        );
+        try {
+            return Excel::download(
+                new ReportesEstudioPAC($fechaInicio, $fechaFin, $sedeId, "", ""),
+                'estudios tomados en PAC.xlsx'
+            );
+        } catch (\Throwable $e) {
+            Log::error('ReporteProduccionService.generateReporteEstudiosPAC failed', [
+                'sede_id' => $sedeId,
+                'fechaInicio' => $fechaInicio,
+                'fechaFin' => $fechaFin,
+                'error' => $e->getMessage(),
+            ]);
+
+            return ['message' => 'Error al generar el reporte PAC: '.$e->getMessage(), 'status' => 500];
+        }
     }
 }

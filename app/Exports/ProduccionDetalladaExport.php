@@ -49,7 +49,10 @@ class ProduccionDetalladaExport implements FromCollection, WithColumnWidths, Wit
             ->join('users as medico', 'medico.id', '=', 'estudios.medico_id')
             ->join('pacientes', 'estudios.paciente_id', '=', 'pacientes.id')
             ->leftJoin('users as transcrip', 'transcrip.id', '=', 'estudios_productos.transcriptor_id')
-            ->whereBetween(DB::raw('DATE(estudios_productos.fechor_lectura)'), [$this->fechaInicio, $this->fechaFin])
+            ->whereBetween('estudios_productos.fechor_lectura', [
+                $this->fechaInicio.' 00:00:00',
+                $this->fechaFin.' 23:59:59',
+            ])
             ->when($this->sedeId, function ($query) {
                 return $query->where('estudios.sede_id', $this->sedeId);
             })

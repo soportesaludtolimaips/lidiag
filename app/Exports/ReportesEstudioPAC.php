@@ -3,8 +3,8 @@
 namespace App\Exports;
 
 use App\Models\Configuracion\ConfigSede;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithCustomStartCell;
@@ -63,25 +63,28 @@ class ReportesEstudioPAC implements FromCollection, WithColumnWidths, WithCustom
     {
         $sedeActual = ConfigSede::find($this->sedeId);
 
-        config(['database.connections.mysql_sucursal' => [
-            'driver' => 'mysql',
-            'host' => env('DB_SUCURSAL_HOST', $sedeActual->ip_dcm),
-            'port' => env('DB_SUCURSAL_PUERTO', $sedeActual->puerto_dcm),
-            'database' => env('DB_SUCURSAL_DATABASE', $sedeActual->bd_dcm),
-            'username' => env('DB_SUCURSAL_USERNAME', $sedeActual->usuario_dcm),
-            'password' => env('DB_SUCURSAL_PASSWORD', $sedeActual->password_dcm),
-            'charset' => env('DB_SUCURSAL_charset', 'latin1'),
-            'collation' => env('DB_SUCURSAL_collation', 'latin1_swedish_ci'),
-        ]]);
+        if (! $sedeActual) {
+            return collect();
+        }
 
         $this->sedeNombre = $sedeActual->nom_sede;
 
-        $conexionOriginal = config('database.default');
+        config([
+            'database.connections.mysql_sucursal' => [
+                'driver' => 'mysql',
+                'host' => env('DB_SUCURSAL_HOST', $sedeActual->ip_dcm),
+                'port' => env('DB_SUCURSAL_PUERTO', $sedeActual->puerto_dcm),
+                'database' => env('DB_SUCURSAL_DATABASE', $sedeActual->bd_dcm),
+                'username' => env('DB_SUCURSAL_USERNAME', $sedeActual->usuario_dcm),
+                'password' => env('DB_SUCURSAL_PASSWORD', $sedeActual->password_dcm),
+                'charset' => env('DB_SUCURSAL_charset', 'latin1'),
+                'collation' => env('DB_SUCURSAL_collation', 'latin1_swedish_ci'),
+            ],
+        ]);
 
         try {
-
-            Config::set('database.default', 'mysql_sucursal');
-            $estudios = DB::table('study')
+            $estudios = DB::connection('mysql_sucursal')
+                ->table('study')
                 ->select(
                     'patient.pat_id',
                     'patient.pat_name',
@@ -97,8 +100,13 @@ class ReportesEstudioPAC implements FromCollection, WithColumnWidths, WithCustom
                 ->get();
 
             return $estudios;
-        } finally {
-            Config::set('database.default', $conexionOriginal);
+        } catch (\Throwable $e) {
+            Log::error(
+                'ReportesEstudioPAC: Error querying remote PAC DB',
+                ['sede_id' => $this->sedeId, 'error' => $e->getMessage()]
+            );
+
+            return collect();
         }
     }
 

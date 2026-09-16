@@ -1,8 +1,6 @@
 <template>
     <div>
-        <!-- ============================================================== -->
-        <!-- Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
+        <!-- Bread crumb -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Reportes</h3>
@@ -17,13 +15,8 @@
                 </ol>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Start Page Content -->
-        <!-- ============================================================== -->
+        <!-- Page Content -->
         <div class="row">
             <div class="col-4">
                 <div class="card">
@@ -36,9 +29,10 @@
                             <div class="col-12">
                                 <a
                                     href="javascript:void(0)"
-                                    data-toggle="modal"
-                                    data-target="#responsive-modal"
-                                    @click="tipoReporte = 'Rx'"
+                                    @click="
+                                        tipoReporte = 'Rx';
+                                        modalProduccionVisible = true;
+                                    "
                                 >
                                     <i class="fa fa-check text-info"></i>
                                     Producción detallada (RX, Tomografía, Mamografía, Resonancia)
@@ -47,9 +41,10 @@
                             <div class="col-12" v-if="can('ecografias.reporte')">
                                 <a
                                     href="javascript:void(0)"
-                                    data-toggle="modal"
-                                    data-target="#responsive-modal"
-                                    @click="tipoReporte = 'Ecografia'"
+                                    @click="
+                                        tipoReporte = 'Ecografia';
+                                        modalProduccionVisible = true;
+                                    "
                                 >
                                     <i class="fa fa-check text-info"></i>
                                     Producción detallada (Ecografias)
@@ -68,11 +63,7 @@
 
                         <div class="row">
                             <div class="col-12">
-                                <a
-                                    href="javascript:void(0)"
-                                    data-toggle="modal"
-                                    data-target="#responsive-modal-pac"
-                                >
+                                <a href="javascript:void(0)" @click="modalPACVisible = true">
                                     <i class="fa fa-check text-info"></i>
                                     Descargar reporte de estudios tomados
                                 </a>
@@ -83,25 +74,26 @@
             </div>
         </div>
 
-        <!-- ============================================================== -->
-        <!-- End Page Content -->
-        <!-- ============================================================== -->
-
-        <!-- sample modal content -->
+        <!-- Modal Producción Detallada -->
         <div
-            id="responsive-modal"
             class="modal fade"
+            :class="{ show: modalProduccionVisible }"
+            :style="{ display: modalProduccionVisible ? 'block' : 'none' }"
             tabindex="-1"
             role="dialog"
-            aria-labelledby="myModalLabel"
             aria-hidden="true"
-            style="display: none"
+            @click.self="modalProduccionVisible = false"
         >
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h4 class="modal-title">Filtro para el reporte</h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <button
+                            type="button"
+                            class="close"
+                            @click="modalProduccionVisible = false"
+                            aria-hidden="true"
+                        >
                             ×
                         </button>
                     </div>
@@ -112,16 +104,11 @@
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"
                                     v-model="datosReporte.sedeId"
-                                    id="sedes"
-                                    name="sedes"
+                                    id="prod-sede"
                                 >
                                     <option value="0">...::: Todas las sedes :::...</option>
-                                    <option
-                                        v-for="ItemSede in sedes"
-                                        :key="ItemSede"
-                                        :value="ItemSede.id"
-                                    >
-                                        {{ ItemSede.nom_sede }}
+                                    <option v-for="sede in sedes" :key="sede.id" :value="sede.id">
+                                        {{ sede.nom_sede }}
                                     </option>
                                 </select>
                             </div>
@@ -130,16 +117,15 @@
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"
                                     v-model="datosReporte.quien_asigno"
-                                    id="sedes"
-                                    name="sedes"
+                                    id="prod-quien-asigno"
                                 >
                                     <option value="0">...::: Todos quienes agendaron :::...</option>
                                     <option
-                                        v-for="(ItemUsuario, index) in quienes_asignaron"
-                                        :key="index"
-                                        :value="ItemUsuario.id"
+                                        v-for="usuario in quienes_asignaron"
+                                        :key="usuario.id"
+                                        :value="usuario.id"
                                     >
-                                        {{ ItemUsuario.name }}
+                                        {{ usuario.name }}
                                     </option>
                                 </select>
                             </div>
@@ -148,18 +134,17 @@
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"
                                     v-model="datosReporte.medico"
-                                    id="sedes"
-                                    name="sedes"
+                                    id="prod-medico"
                                 >
                                     <option value="" selected>
                                         ...::: Todos los medicos :::...
                                     </option>
                                     <option
-                                        v-for="(ItemUsuario, index) in medicos"
-                                        :key="index"
-                                        :value="ItemUsuario.id"
+                                        v-for="usuario in medicos"
+                                        :key="usuario.id"
+                                        :value="usuario.id"
                                     >
-                                        {{ ItemUsuario.name }}
+                                        {{ usuario.name }}
                                     </option>
                                 </select>
                             </div>
@@ -171,8 +156,7 @@
                                             <input
                                                 class="form-control input-daterange-datepicker"
                                                 type="date"
-                                                id="fechaIni"
-                                                name="fechaIni"
+                                                id="prod-fechaIni"
                                                 v-model="datosReporte.fechaIni"
                                             />
                                         </div>
@@ -185,8 +169,7 @@
                                             <input
                                                 class="form-control input-daterange-datepicker"
                                                 type="date"
-                                                id="fechaFin"
-                                                name="fechaFin"
+                                                id="prod-fechaFin"
                                                 v-model="datosReporte.fechaFin"
                                             />
                                         </div>
@@ -199,17 +182,20 @@
                         <button
                             type="button"
                             class="btn btn-default waves-effect"
-                            data-dismiss="modal"
+                            @click="
+                                resetearFormulario();
+                                modalProduccionVisible = false;
+                            "
                         >
-                            Close
+                            Cerrar
                         </button>
                         <button
                             type="button"
                             class="btn btn-info waves-effect waves-light"
                             @click="descargarReporte()"
-                            :disabled="loadingDescargar"
+                            :disabled="loadingDescargarProduccion"
                         >
-                            <i v-if="loadingDescargar" class="fa fa-spinner fa-spin"></i>
+                            <i v-if="loadingDescargarProduccion" class="fa fa-spinner fa-spin"></i>
                             <i v-else class="fa fa-download"></i>
                             Descargar reportes
                         </button>
@@ -217,25 +203,28 @@
                 </div>
             </div>
         </div>
-        <!-- /.modal -->
+        <div v-if="modalProduccionVisible" class="modal-backdrop fade show"></div>
 
-        <!-- ============================================================== -->
-        <!-- Modal Filtro -->
-        <!-- ============================================================== -->
+        <!-- Modal PAC -->
         <div
-            id="responsive-modal-pac"
             class="modal fade"
+            :class="{ show: modalPACVisible }"
+            :style="{ display: modalPACVisible ? 'block' : 'none' }"
             tabindex="-1"
             role="dialog"
-            aria-labelledby="myModalLabel"
             aria-hidden="true"
-            style="display: none"
+            @click.self="modalPACVisible = false"
         >
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h4 class="modal-title">Filtro para el reporte</h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <button
+                            type="button"
+                            class="close"
+                            @click="modalPACVisible = false"
+                            aria-hidden="true"
+                        >
                             ×
                         </button>
                     </div>
@@ -246,15 +235,12 @@
                                 <select
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"
-                                    v-model="datosReporte.sedeId"
+                                    v-model="datosPAC.sedeId"
+                                    id="pac-sede"
                                 >
                                     <option value="0">...::: Seleccione una sede :::...</option>
-                                    <option
-                                        v-for="ItemSede in sedes"
-                                        :key="ItemSede.id"
-                                        :value="ItemSede.id"
-                                    >
-                                        {{ ItemSede.nom_sede }}
+                                    <option v-for="sede in sedes" :key="sede.id" :value="sede.id">
+                                        {{ sede.nom_sede }}
                                     </option>
                                 </select>
                             </div>
@@ -266,9 +252,8 @@
                                             <input
                                                 class="form-control"
                                                 type="date"
-                                                id="fechaIni"
-                                                name="fechaIni"
-                                                v-model="datosReporte.fechaIni"
+                                                id="pac-fechaIni"
+                                                v-model="datosPAC.fechaIni"
                                             />
                                         </div>
                                     </div>
@@ -280,9 +265,8 @@
                                             <input
                                                 class="form-control"
                                                 type="date"
-                                                id="fechaFin"
-                                                name="fechaFin"
-                                                v-model="datosReporte.fechaFin"
+                                                id="pac-fechaFin"
+                                                v-model="datosPAC.fechaFin"
                                             />
                                         </div>
                                     </div>
@@ -294,17 +278,20 @@
                         <button
                             type="button"
                             class="btn btn-default waves-effect"
-                            data-dismiss="modal"
+                            @click="
+                                resetearFormularioPAC();
+                                modalPACVisible = false;
+                            "
                         >
-                            Close
+                            Cerrar
                         </button>
                         <button
                             type="button"
                             class="btn btn-info waves-effect waves-light"
                             @click="descargarReporteEstudiosPAC()"
-                            :disabled="loadingDescargar"
+                            :disabled="loadingDescargarPAC"
                         >
-                            <i v-if="loadingDescargar" class="fa fa-spinner fa-spin"></i>
+                            <i v-if="loadingDescargarPAC" class="fa fa-spinner fa-spin"></i>
                             <i v-else class="fa fa-download"></i>
                             Descargar reporte
                         </button>
@@ -312,9 +299,10 @@
                 </div>
             </div>
         </div>
-        <!-- /.modal -->
+        <div v-if="modalPACVisible" class="modal-backdrop fade show"></div>
     </div>
 </template>
+
 <script setup>
 import { onMounted, ref } from "vue";
 
@@ -323,25 +311,64 @@ import { toastMessage } from "@/helpers/alerts.js";
 import usePermissions from "@/helpers/permissions.js";
 import axios from "axios";
 
+const MAX_DATE_RANGE_DAYS = 365;
+
 const props = defineProps({ usuarioactual: Object, permisos: Array });
 
 const { can } = usePermissions(props.permisos);
 
 const sedes = ref([]);
 const datosReporte = ref({ sedeId: 0, quien_asigno: "", medico: "", fechaIni: "", fechaFin: "" });
+const datosPAC = ref({ sedeId: 0, fechaIni: "", fechaFin: "" });
 const quienes_asignaron = ref([]);
 const medicos = ref([]);
 const tipoReporte = ref("Rx");
-const loadingDescargar = ref(false);
+const loadingDescargarProduccion = ref(false);
+const loadingDescargarPAC = ref(false);
+const modalProduccionVisible = ref(false);
+const modalPACVisible = ref(false);
+
+function resetearFormulario() {
+    datosReporte.value = { sedeId: 0, quien_asigno: "", medico: "", fechaIni: "", fechaFin: "" };
+}
+
+function resetearFormularioPAC() {
+    datosPAC.value = { sedeId: 0, fechaIni: "", fechaFin: "" };
+}
+
+function validarFechas(fechaIni, fechaFin) {
+    if (!fechaIni || !fechaFin) {
+        toastMessage({
+            heading: "Atención",
+            text: "Debes seleccionar fecha inicio y fecha fin.",
+            icon: "warning",
+        });
+        return false;
+    }
+    if (fechaIni > fechaFin) {
+        toastMessage({
+            heading: "Atención",
+            text: "La fecha inicio no puede ser mayor a la fecha fin.",
+            icon: "warning",
+        });
+        return false;
+    }
+    const ini = new Date(fechaIni);
+    const fin = new Date(fechaFin);
+    const diffDays = Math.ceil((fin - ini) / (1000 * 60 * 60 * 24));
+    if (diffDays > MAX_DATE_RANGE_DAYS) {
+        toastMessage({
+            heading: "Atención",
+            text: `El rango de fechas no puede superar ${MAX_DATE_RANGE_DAYS} días.`,
+            icon: "warning",
+        });
+        return false;
+    }
+    return true;
+}
 
 /**
  * Carga las sedes activas y los catálogos de usuarios (quienes asignaron, médicos).
- * Se ejecuta una sola vez al montar el componente.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2024-04-04
  */
 async function listarSedes() {
     try {
@@ -356,43 +383,23 @@ async function listarSedes() {
 
         const res = await axios.get("/api/config-sedes/listar/sedes/activas");
         sedes.value = res.data.data;
-    } catch (error) {}
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar las sedes o usuarios.",
+            icon: "error",
+        });
+    }
 }
+
 /**
- * Descarga el reporte de producción (RX, Ecografía) como archivo externo.
- * Valida fechas obligatorias y genera la URL con los parámetros del filtro.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2024-04-04
+ * Descarga el reporte de producción (RX, Ecografía) como archivo Excel.
  */
 async function descargarReporte() {
-    if (loadingDescargar.value) return;
-    loadingDescargar.value = true;
+    if (loadingDescargarProduccion.value) return;
+    loadingDescargarProduccion.value = true;
     try {
-        if (!datosReporte.value.fechaIni || !datosReporte.value.fechaFin) {
-            $.toast({
-                heading: "Upsss!!!",
-                text: "Debes seleccionar fecha inicio y fecha fin.",
-                position: "top-right",
-                loaderBg: "#ff6849",
-                icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
-            });
-            return;
-        }
-        if (datosReporte.value.fechaIni > datosReporte.value.fechaFin) {
-            $.toast({
-                heading: "Upsss!!!",
-                text: "La fecha inicio no puede ser mayor a la fecha fin.",
-                position: "top-right",
-                loaderBg: "#ff6849",
-                icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
-            });
+        if (!validarFechas(datosReporte.value.fechaIni, datosReporte.value.fechaFin)) {
             return;
         }
 
@@ -404,34 +411,38 @@ async function descargarReporte() {
             fechaIni: String(datosReporte.value.fechaIni),
             fechaFin: String(datosReporte.value.fechaFin),
         });
-        window.open(
-            `/descarga-reportes-produccion?${params.toString()}`,
-            "_blank",
-            "noopener,noreferrer"
-        );
-    } catch (error) {
+
+        const url = `/descarga-reportes-produccion?${params.toString()}`;
+        const newWindow = window.open(url, "_blank", "noopener,noreferrer");
+
+        if (!newWindow) {
+            toastMessage({
+                heading: "Atención",
+                text: "El navegador bloqueó la apertura de la ventana. Permita pop-ups para este sitio.",
+                icon: "warning",
+            });
+        }
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible generar el reporte de producción.",
+            icon: "error",
+        });
     } finally {
-        // pequeño delay para evitar doble click inmediato
         setTimeout(() => {
-            loadingDescargar.value = false;
+            loadingDescargarProduccion.value = false;
         }, 700);
     }
 }
 
 /**
- * Descarga el reporte de estudios tomados en PAC como archivo externo.
- * Valida sede y fechas obligatorias antes de abrir la URL de descarga.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2024-04-04
+ * Descarga el reporte de estudios tomados en PAC como archivo Excel.
  */
 async function descargarReporteEstudiosPAC() {
-    if (loadingDescargar.value) return;
-    loadingDescargar.value = true;
+    if (loadingDescargarPAC.value) return;
+    loadingDescargarPAC.value = true;
     try {
-        if (!datosReporte.value.sedeId || datosReporte.value.sedeId === 0) {
+        if (!datosPAC.value.sedeId || datosPAC.value.sedeId === 0) {
             toastMessage({
                 heading: "Atención",
                 text: "Debes seleccionar una sede.",
@@ -439,38 +450,35 @@ async function descargarReporteEstudiosPAC() {
             });
             return;
         }
-        if (!datosReporte.value.fechaIni || !datosReporte.value.fechaFin) {
-            toastMessage({
-                heading: "Atención",
-                text: "Debes seleccionar fecha inicio y fecha fin.",
-                icon: "warning",
-            });
-            return;
-        }
-        if (datosReporte.value.fechaIni > datosReporte.value.fechaFin) {
-            toastMessage({
-                heading: "Atención",
-                text: "La fecha inicio no puede ser mayor a la fecha fin.",
-                icon: "warning",
-            });
+        if (!validarFechas(datosPAC.value.fechaIni, datosPAC.value.fechaFin)) {
             return;
         }
 
         const params = new URLSearchParams({
-            sedeId: String(datosReporte.value.sedeId),
-            fechaIni: String(datosReporte.value.fechaIni),
-            fechaFin: String(datosReporte.value.fechaFin),
+            sedeId: String(datosPAC.value.sedeId),
+            fechaIni: String(datosPAC.value.fechaIni),
+            fechaFin: String(datosPAC.value.fechaFin),
         });
-        window.open(
-            `/descarga-reportes-estudios-pac?${params.toString()}`,
-            "_blank",
-            "noopener,noreferrer"
-        );
-    } catch (error) {
-        /* noop */
+
+        const url = `/descarga-reportes-estudios-pac?${params.toString()}`;
+        const newWindow = window.open(url, "_blank", "noopener,noreferrer");
+
+        if (!newWindow) {
+            toastMessage({
+                heading: "Atención",
+                text: "El navegador bloqueó la apertura de la ventana. Permita pop-ups para este sitio.",
+                icon: "warning",
+            });
+        }
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible generar el reporte de estudios PAC.",
+            icon: "error",
+        });
     } finally {
         setTimeout(() => {
-            loadingDescargar.value = false;
+            loadingDescargarPAC.value = false;
         }, 700);
     }
 }
@@ -479,3 +487,9 @@ onMounted(() => {
     listarSedes();
 });
 </script>
+
+<style scoped>
+.modal.show {
+    background: rgba(0, 0, 0, 0.5);
+}
+</style>
