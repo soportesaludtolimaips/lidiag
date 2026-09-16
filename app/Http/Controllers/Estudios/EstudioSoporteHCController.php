@@ -53,7 +53,12 @@ class EstudioSoporteHCController extends Controller
      */
     public function descargarSoporte(string $nomArchivoEncriptadot)
     {
-        $result = $this->estudioSoporteHCService->descargar($nomArchivoEncriptadot);
+        $basename = basename($nomArchivoEncriptadot);
+        if ($basename !== $nomArchivoEncriptadot) {
+            abort(400, 'Nombre de archivo inválido');
+        }
+
+        $result = $this->estudioSoporteHCService->descargar($basename);
 
         if (! $result['success']) {
             return response()->json($result, $result['status']);

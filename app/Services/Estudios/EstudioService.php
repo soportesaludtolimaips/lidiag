@@ -127,8 +127,10 @@ class EstudioService extends BaseService
 
                 return $this->created($estudio, 'La asignación de la lectura se realizó correctamente.');
             });
-        } catch (\Exception $e) {
-            return $this->error('Error al crear el estudio: '.$e->getMessage(), 500);
+        } catch (\Throwable $e) {
+            Log::error('Error al crear estudio: '.$e->getMessage());
+
+            return $this->error('Error al crear el estudio.', 500);
         }
     }
 
@@ -235,8 +237,10 @@ class EstudioService extends BaseService
 
                 return $this->updated(null, 'La lectura se realizo correctamente.');
             });
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 500);
+        } catch (\Throwable $e) {
+            Log::error('Error al leer estudio: '.$e->getMessage());
+
+            return $this->error('Error al procesar la lectura.', 500);
         }
     }
 

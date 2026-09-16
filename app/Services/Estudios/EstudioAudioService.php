@@ -58,10 +58,10 @@ class EstudioAudioService extends BaseService
 
         try {
             $ffmpeg = FFMpeg::create([
-                'ffmpeg.binaries' => env('FFMPEG_BINARIES', 'C:/ffmpeg/bin/ffmpeg.exe'),
-                'ffprobe.binaries' => env('FFPROBE_BINARIES', 'C:/ffmpeg/bin/ffprobe.exe'),
-                'timeout' => (int) env('FFMPEG_TIMEOUT', 3600),
-                'ffmpeg.threads' => (int) env('FFMPEG_THREADS', 12),
+                'ffmpeg.binaries' => config('app.FFMPEG_BINARIES'),
+                'ffprobe.binaries' => config('app.FFPROBE_BINARIES'),
+                'timeout' => (int) config('app.FFMPEG_TIMEOUT'),
+                'ffmpeg.threads' => (int) config('app.FFMPEG_THREADS'),
             ]);
 
             $streams = $ffmpeg->getFFProbe()->streams($tmpFullPath);
@@ -72,7 +72,7 @@ class EstudioAudioService extends BaseService
 
             $format = new Mp3;
             $format->setAudioCodec('libmp3lame');
-            $format->setAudioKiloBitrate((int) env('AUDIO_MP3_KBPS', 64));
+            $format->setAudioKiloBitrate((int) config('app.AUDIO_MP3_KBPS'));
 
             $audio = $ffmpeg->open($tmpFullPath);
             $audio->save($format, $mp3FullPath);
@@ -118,7 +118,8 @@ class EstudioAudioService extends BaseService
         } finally {
             try {
                 $disk->delete($tmpRelativePath);
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
+                Log::warning('No se pudo eliminar archivo temporal de audio: '.$tmpRelativePath);
             }
         }
     }
@@ -272,10 +273,10 @@ class EstudioAudioService extends BaseService
 
         try {
             $ffmpeg = FFMpeg::create([
-                'ffmpeg.binaries' => env('FFMPEG_BINARIES', 'C:/ffmpeg/bin/ffmpeg.exe'),
-                'ffprobe.binaries' => env('FFPROBE_BINARIES', 'C:/ffmpeg/bin/ffprobe.exe'),
-                'timeout' => (int) env('FFMPEG_TIMEOUT', 3600),
-                'ffmpeg.threads' => (int) env('FFMPEG_THREADS', 12),
+                'ffmpeg.binaries' => config('app.FFMPEG_BINARIES'),
+                'ffprobe.binaries' => config('app.FFPROBE_BINARIES'),
+                'timeout' => (int) config('app.FFMPEG_TIMEOUT'),
+                'ffmpeg.threads' => (int) config('app.FFMPEG_THREADS'),
             ]);
 
             $streams = $ffmpeg->getFFProbe()->streams($tmpFullPath);
@@ -289,7 +290,7 @@ class EstudioAudioService extends BaseService
 
             $format = new Mp3;
             $format->setAudioCodec('libmp3lame');
-            $format->setAudioKiloBitrate((int) env('AUDIO_MP3_KBPS', 64));
+            $format->setAudioKiloBitrate((int) config('app.AUDIO_MP3_KBPS'));
 
             $audio = $ffmpeg->open($tmpFullPath);
             $audio->save($format, $mp3FullPath);
@@ -350,7 +351,8 @@ class EstudioAudioService extends BaseService
         } finally {
             try {
                 $disk->delete($tmpRelativePath);
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
+                Log::warning('No se pudo eliminar archivo temporal de audio: '.$tmpRelativePath);
             }
         }
     }
@@ -385,7 +387,7 @@ class EstudioAudioService extends BaseService
             return $this->deleted();
         } catch (ModelNotFoundException $e) {
             return $this->notFound('Audio no encontrado');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Error eliminando audio cargado: '.$e->getMessage());
 
             return $this->error('Error eliminando el audio', 500);

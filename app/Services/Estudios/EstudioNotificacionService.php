@@ -122,7 +122,7 @@ class EstudioNotificacionService extends BaseService
         $nomArchivoReporte = ($estudio->estudio_producto_id ?? '0').'-'.($estudio->num_docu ?? '0').'-'.$nombrePaciente.'.pdf';
 
         $urlApiReportes = rtrim(config('app.URL_API_REPORTES'), '/').'/api/almacenarLectura';
-        $secret = env('API_HMAC_SECRET');
+        $secret = config('app.API_HMAC_SECRET', '');
         $ts = time();
 
         $payload = [
@@ -179,7 +179,8 @@ class EstudioNotificacionService extends BaseService
         } finally {
             try {
                 @unlink($reportePath);
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
+                // Reporte ya eliminado o inaccesible
             }
         }
     }

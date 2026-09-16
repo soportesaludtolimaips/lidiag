@@ -140,6 +140,10 @@ class EstudioController extends Controller
      */
     public function listarDiagnosticoPorEstudio(Request $request): JsonResponse
     {
+        $request->validate([
+            'id' => 'required|integer|exists:estudios,id',
+        ]);
+
         $result = $this->estudioService->listarDiagnosticosPorEstudio(
             $request->integer('id')
         );
@@ -184,7 +188,6 @@ class EstudioController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error interno del servidor.',
-                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -293,6 +296,10 @@ class EstudioController extends Controller
      */
     public function buscarEstudioPorNumDocu(Request $request): JsonResponse
     {
+        $request->validate([
+            'numDocu' => 'required|string|max:50',
+        ]);
+
         $result = $this->estudioService->buscarPorNumDocu($request->input('numDocu'));
 
         return response()->json($result, $result['status']);
@@ -336,7 +343,12 @@ class EstudioController extends Controller
      */
     public function descargarPdfLectura(string $nomArchivo)
     {
-        $result = $this->estudioService->descargarPdfLectura($nomArchivo);
+        $basename = basename($nomArchivo);
+        if ($basename !== $nomArchivo) {
+            abort(400, 'Nombre de archivo inválido');
+        }
+
+        $result = $this->estudioService->descargarPdfLectura($basename);
 
         if (! $result['success']) {
             return response()->json($result, $result['status']);
