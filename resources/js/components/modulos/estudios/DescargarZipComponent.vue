@@ -19,7 +19,9 @@
                 <i class="fa fa-file-archive-o fa-3x text-info"></i>
             </div>
             <h5 class="text-info">Generando archivo ZIP</h5>
-            <p class="text-muted">{{ statusMessage }}</p>
+            <p class="text-muted">
+                {{ statusMessage }}<span v-if="totalFiles > 0"> ({{ totalFiles }} archivos)</span>
+            </p>
 
             <!-- Progress Bar -->
             <div class="progress mb-3" style="height: 25px">
@@ -34,6 +36,17 @@
                     {{ progress }}%
                 </div>
             </div>
+
+            <button
+                class="btn btn-outline-secondary mt-2"
+                @click="
+                    stopPolling();
+                    generating = false;
+                    error = null;
+                "
+            >
+                <i class="fa fa-times"></i> Cancelar
+            </button>
 
             <small class="text-muted">
                 <i class="fa fa-info-circle"></i>
@@ -132,6 +145,12 @@ function startGeneration() {
         return;
     }
 
+    if (!props.estudio.study_iuid) {
+        error.value = "No se encontró el ID del estudio (study_iuid).";
+        generating.value = false;
+        return;
+    }
+
     const payload = {
         study_instance_uid: props.estudio.study_iuid,
         sede_id: parseInt(sedeId, 10),
@@ -146,6 +165,14 @@ function startGeneration() {
                 filename.value = response.data.data.filename;
                 totalFiles.value = response.data.data.total_files;
                 startPolling();
+                setTimeout(() => {
+                    if (generating.value && !downloadReady.value) {
+                        stopPolling();
+                        generating.value = false;
+                        error.value =
+                            "La generación del ZIP está tomando demasiado tiempo. Intente nuevamente.";
+                    }
+                }, 120000);
             } else {
                 error.value = response.data.message || "Error al generar ZIP";
                 generating.value = false;
@@ -225,8 +252,15 @@ function checkStatus() {
                 }
             }
         })
-        .catch(() => {
+        .catch((err) => {
             fallosConsecutivos++;
+            if (err.response && err.response.status === 404) {
+                stopPolling();
+                generating.value = false;
+                error.value =
+                    "El proceso de generación del ZIP ya no está disponible. Intente nuevamente.";
+                return;
+            }
             if (fallosConsecutivos >= 5) {
                 stopPolling();
                 generating.value = false;
@@ -275,6 +309,7 @@ function downloadZip() {
             document.body.removeChild(link);
             setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
             emit("completado");
+            downloadReady.value = false;
         })
         .catch((err) => {
             error.value = err.message || "Error al descargar el ZIP";
@@ -282,18 +317,6 @@ function downloadZip() {
         .finally(() => {
             downloading.value = false;
         });
-}
-
-/**
- * Detiene el sondeo y notifica al padre que se cierra el componente.
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-05
- */
-function cerrar() {
-    stopPolling();
-    emit("cerrar");
 }
 
 onMounted(() => {
