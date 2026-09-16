@@ -39,12 +39,14 @@
 
         <!-- sample modal content -->
         <div
-            class="modal fade bs-example-modal-lg"
+            v-if="modalAyudaVisible"
+            class="modal fade bs-example-modal-lg show"
+            style="display: block; background: rgba(0, 0, 0, 0.5)"
             tabindex="-1"
             role="dialog"
             aria-labelledby="myLargeModalLabel"
             aria-hidden="true"
-            style="display: none"
+            @click.self="cerrarModalAyuda()"
         >
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -172,6 +174,14 @@
                             >
                                 <i class="fa fa-refresh"></i> {{ autoRefreshInterval / 1000 }}s
                             </button>
+                            <button
+                                class="btn btn-sm btn-outline-primary ml-2"
+                                @click="listarMisPendientes()"
+                                :disabled="loadingListar"
+                                title="Actualizar lista"
+                            >
+                                <i class="fa fa-sync"></i> Actualizar
+                            </button>
                         </div>
                     </div>
                     <loading-spinner :visible="!tablaVisible" />
@@ -208,6 +218,7 @@
                                             type="button"
                                             v-if="item.priori_id == 1"
                                             class="btn waves-effect waves-light btn-rounded btn-sm btn-danger"
+                                            title="Alta"
                                         >
                                             A
                                         </button>
@@ -215,6 +226,7 @@
                                             type="button"
                                             v-else-if="item.priori_id == 2"
                                             class="btn waves-effect waves-light btn-rounded btn-sm btn-warning"
+                                            title="Media"
                                         >
                                             M
                                         </button>
@@ -222,6 +234,7 @@
                                             type="button"
                                             v-else-if="item.priori_id == 3"
                                             class="btn waves-effect waves-light btn-rounded btn-sm btn-info"
+                                            title="Baja"
                                         >
                                             B
                                         </button>
@@ -229,6 +242,7 @@
                                             type="button"
                                             v-else-if="item.priori_id == 4"
                                             class="btn waves-effect waves-light btn-rounded btn-sm"
+                                            title="Sin prioridad"
                                         >
                                             S
                                         </button>
@@ -328,7 +342,7 @@
     <!-- Right sidebar -->
     <!-- ============================================================== -->
     <!-- .right-sidebar -->
-    <div class="right-sidebar sidebar-scroll">
+    <div class="right-sidebar sidebar-scroll" :class="{ 'shw-rside': sidebarVisible }">
         <div class="slimscrollright" style="overflow-x: hidden">
             <div class="rpanel-title">
                 {{ tituloModal }}
@@ -1122,7 +1136,18 @@
                                                 id="history_estudios"
                                                 role="tabpanel"
                                             >
+                                                <div
+                                                    v-if="historial_estudios.length === 0"
+                                                    class="text-center py-4 text-muted"
+                                                >
+                                                    <i class="fa fa-history fa-2x mb-3"></i>
+                                                    <p>
+                                                        No hay historial de estudios para este
+                                                        paciente.
+                                                    </p>
+                                                </div>
                                                 <table
+                                                    v-else
                                                     id="example23-1"
                                                     class="table table-bordered table-striped"
                                                     cellspacing="0"
@@ -1206,9 +1231,6 @@
 </template>
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
-const { proxy } = getCurrentInstance();
-const emitter = proxy.emitter;
-
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import DatosPacienteDisplay from "@/components/comunes/datosPacienteDisplayComponent.vue";
 import { normalizarFecha } from "@/helpers/dateUtils.js";
@@ -1224,6 +1246,9 @@ import { useAudioUploadFlow } from "@/composables/useAudioUploadFlow";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import axios from "axios";
+
+const { proxy } = getCurrentInstance();
+const emitter = proxy.emitter;
 
 const props = defineProps({ usuarioactual: Object, permisos: { type: Array, default: () => [] } });
 
@@ -1273,7 +1298,6 @@ const {
     verImagen,
 } = useEstudioHelpers();
 const dt = ref(null);
-const loadingBuscar = ref(false);
 
 const id = ref(0);
 const registros = ref([]);
@@ -1314,6 +1338,8 @@ const autoRefreshTimer = ref(null);
 const loadingGuardar = ref(false);
 const loadingAbrirId = ref(null);
 const loadingVistoId = ref(null);
+const sidebarVisible = ref(false);
+const modalAyudaVisible = ref(false);
 
 const contadorPendientes = computed(() => {
     return registros.value ? registros.value.length : 0;
@@ -1341,7 +1367,11 @@ function applyDashboardPrefill() {
             return;
         }
     } catch (e) {
-        console.error(e);
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar el prellenado del dashboard.",
+            icon: "error",
+        });
     }
     listarMisPendientes();
 }
@@ -1443,11 +1473,10 @@ async function listarMisPendientes() {
                 id: props.usuarioactual?.id,
                 sede_id: sede_id.value,
             });
-            destroyDataTable();
-
             registros.value = res.data.data;
 
             nextTick(() => {
+                destroyDataTable();
                 initDataTable();
                 tablaVisible.value = true;
             });
@@ -1536,15 +1565,17 @@ async function guardarRegistro() {
                 icon: "success",
             });
 
-            const estudioEliminar = registros.value.findIndex(
-                (x) => x.estudio_producto_id == idRow.value
-            );
-            if (estudioEliminar >= 0) {
-                registros.value.splice(estudioEliminar, 1);
-                nextTick(() => {
-                    destroyDataTable();
-                    initDataTable();
-                });
+            if (idRow.value != null) {
+                const estudioEliminar = registros.value.findIndex(
+                    (x) => x.estudio_producto_id == idRow.value
+                );
+                if (estudioEliminar >= 0) {
+                    registros.value.splice(estudioEliminar, 1);
+                    nextTick(() => {
+                        destroyDataTable();
+                        initDataTable();
+                    });
+                }
             }
 
             cerrarSidebar();
@@ -1629,11 +1660,10 @@ async function listar_historial_estudios(num_docu) {
         });
 
         if (res.status == 200) {
-            destroyDataTableHistorial();
-
             historial_estudios.value = res.data.data;
 
             nextTick(() => {
+                destroyDataTableHistorial();
                 safeInitDataTable("#example23-1", {
                     dom: "Bfrtip",
                     buttons: ["copy", "csv", "excel", "pdf", "print"],
@@ -1641,9 +1671,11 @@ async function listar_historial_estudios(num_docu) {
             });
         }
     } catch (error) {
-        console.error(error);
-    } finally {
-        loadingBuscar.value = false;
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar el historial de estudios.",
+            icon: "error",
+        });
     }
 }
 
@@ -1741,13 +1773,11 @@ function limpiar() {
 }
 async function abrirSidebar() {
     await stopAll();
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").addClass("shw-rside");
+    sidebarVisible.value = true;
 }
 async function cerrarSidebar() {
     await stopAll();
-    $(".right-sidebar").slideUp(50);
-    $(".right-sidebar").removeClass("shw-rside");
+    sidebarVisible.value = false;
 }
 
 /**
@@ -1758,7 +1788,7 @@ async function cerrarSidebar() {
  * @date 2024-04-04
  */
 function abrirModalAyuda() {
-    $(".bs-example-modal-lg").modal("show");
+    modalAyudaVisible.value = true;
 }
 
 /**
@@ -1769,7 +1799,7 @@ function abrirModalAyuda() {
  * @date 2024-04-04
  */
 function cerrarModalAyuda() {
-    $(".bs-example-modal-lg").modal("hide");
+    modalAyudaVisible.value = false;
 }
 
 function onSedeSeleccionada(data) {
@@ -1777,6 +1807,8 @@ function onSedeSeleccionada(data) {
     destroyDataTable();
     listarMisPendientes();
 }
+
+let cleanupKeyboardShortcut = null;
 
 onMounted(() => {
     establecerSede();
@@ -1796,7 +1828,7 @@ onMounted(() => {
 
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
 
-    const cleanupKeyboardShortcut = setupKeyboardShortcut();
+    cleanupKeyboardShortcut = setupKeyboardShortcut();
 });
 
 onBeforeUnmount(() => {
