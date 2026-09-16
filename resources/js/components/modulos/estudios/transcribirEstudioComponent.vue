@@ -60,10 +60,8 @@
                                                     ...::: Todos los usuarios :::...
                                                 </option>
                                                 <option
-                                                    v-for="(
-                                                        ItemUsuario, index
-                                                    ) in quienes_asignaron"
-                                                    :key="index"
+                                                    v-for="ItemUsuario in quienes_asignaron"
+                                                    :key="ItemUsuario.id"
                                                     :value="ItemUsuario.id"
                                                 >
                                                     {{ ItemUsuario.name }}
@@ -84,8 +82,8 @@
                                                     ...::: Todos los medicos :::...
                                                 </option>
                                                 <option
-                                                    v-for="(ItemUsuario, index) in medicos"
-                                                    :key="index"
+                                                    v-for="ItemUsuario in medicos"
+                                                    :key="ItemUsuario.id"
                                                     :value="ItemUsuario.id"
                                                 >
                                                     {{ ItemUsuario.name }}
@@ -157,6 +155,14 @@
                                     >
                                         <i class="fa fa-refresh"></i> Limpiar
                                     </button>
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-primary ml-2"
+                                        @click="listarPendientesTrascribir()"
+                                        :disabled="loadingBuscar"
+                                    >
+                                        <i class="fa fa-sync"></i> Actualizar
+                                    </button>
                                 </div>
                             </div>
                         </form>
@@ -218,6 +224,7 @@
                                                 type="button"
                                                 v-if="item.priori_id == 1"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-danger"
+                                                title="Alta"
                                             >
                                                 A
                                             </button>
@@ -225,6 +232,7 @@
                                                 type="button"
                                                 v-else-if="item.priori_id == 2"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-warning"
+                                                title="Media"
                                             >
                                                 M
                                             </button>
@@ -232,6 +240,7 @@
                                                 type="button"
                                                 v-else-if="item.priori_id == 3"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-info"
+                                                title="Baja"
                                             >
                                                 B
                                             </button>
@@ -239,6 +248,7 @@
                                                 type="button"
                                                 v-else-if="item.priori_id == 4"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm"
+                                                title="Sin prioridad"
                                             >
                                                 S
                                             </button>
@@ -267,10 +277,7 @@
                                                     loadingAbrirRegistroId ===
                                                     item.estudio_producto_id
                                                 "
-                                                @click="
-                                                    actualizar = true;
-                                                    mostrarRegistro(item);
-                                                "
+                                                @click="mostrarRegistro(item)"
                                             >
                                                 <i
                                                     v-if="
@@ -327,14 +334,14 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div class="right-sidebar sidebar-scroll">
+        <div class="right-sidebar sidebar-scroll" :class="{ 'shw-rside': sidebarVisible }">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <button
                         type="button"
                         class="right-side-toggle"
-                        @click="btnCerralModalForm()"
+                        @click="btnCerrarModalForm()"
                         aria-label="Cerrar panel"
                     >
                         <i class="ti-close"></i>
@@ -527,8 +534,8 @@
                                                 >
                                                     <div
                                                         class="col-md-8 col-lg-9"
-                                                        v-for="(itemArchivo, index) in soportesHC"
-                                                        :key="index"
+                                                        v-for="itemArchivo in soportesHC"
+                                                        :key="itemArchivo.archivo_encrip"
                                                     >
                                                         <a
                                                             href="javascript:void(0)"
@@ -690,7 +697,7 @@
                                     type="button"
                                     class="btn btn-inverse"
                                     ref="btnCerrarForm"
-                                    @click="btnCerralModalForm()"
+                                    @click="btnCerrarModalForm()"
                                 >
                                     Cancel
                                 </button>
@@ -707,9 +714,6 @@
 </template>
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
-const { proxy } = getCurrentInstance();
-const emitter = proxy.emitter;
-
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { listarUsuariosYSedes } from "@/helpers/usuarios";
@@ -718,17 +722,14 @@ import {
     safeInitDataTable,
     safeRemoveDataTableRow,
 } from "@/helpers/datatables.js";
-import {
-    confirmAction,
-    alertSuccess,
-    alertError,
-    getUserSafeError,
-    toastMessage,
-} from "@/helpers/alerts";
+import { confirmAction, getUserSafeError, toastMessage } from "@/helpers/alerts";
 import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import dayjs from "dayjs";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 import axios from "axios";
+
+const { proxy } = getCurrentInstance();
+const emitter = proxy.emitter;
 
 const props = defineProps({ usuarioactual: Object });
 
@@ -744,7 +745,6 @@ const {
 
 const dt = ref(null);
 const primerInput = ref(null);
-const actualizar = ref(false);
 
 const id = ref(0);
 const diagnosticosEstudio = ref([]);
@@ -804,6 +804,7 @@ const loadingBuscar = ref(false);
 const loadingGuardar = ref(false);
 const loadingAbrirRegistroId = ref(null);
 const loadingAnularId = ref(null);
+const sidebarVisible = ref(false);
 
 const contadorRegistros = computed(() => {
     return registros.value.length;
@@ -826,6 +827,11 @@ function applyDashboardPrefill() {
             listarPendientesTrascribir();
         }
     } catch (e) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar el prellenado del dashboard.",
+            icon: "error",
+        });
         listarPendientesTrascribir();
     }
 }
@@ -864,13 +870,12 @@ async function listarPendientesTrascribir() {
                 icon: "warning",
             });
         } else {
-            destroyDataTable();
-
             const res = await axios.post("/api/estudio-listarPendientesTrascribir", busqueda.value);
 
             registros.value = res.data.data;
 
             nextTick(() => {
+                destroyDataTable();
                 safeInitDataTable(dt.value || "#example23", {
                     dom: "Bfrtip",
                     buttons: ["copy", "csv", "excel", "pdf", "print"],
@@ -926,18 +931,20 @@ async function guardarRegistro() {
         const res = await axios.post("/api/estudio-guardarTranscripcion", payload);
 
         if (res.status == 200) {
-            const estudioEliminar = registros.value.findIndex(
-                (x) => x.estudio_producto_id == idRow.value
-            );
-            if (estudioEliminar >= 0) {
-                registros.value.splice(estudioEliminar, 1);
-                nextTick(() => {
-                    destroyDataTable();
-                    safeInitDataTable(dt.value || "#example23", {
-                        dom: "Bfrtip",
-                        buttons: ["copy", "csv", "excel", "pdf", "print"],
+            if (idRow.value != null) {
+                const estudioEliminar = registros.value.findIndex(
+                    (x) => x.estudio_producto_id == idRow.value
+                );
+                if (estudioEliminar >= 0) {
+                    registros.value.splice(estudioEliminar, 1);
+                    nextTick(() => {
+                        destroyDataTable();
+                        safeInitDataTable(dt.value || "#example23", {
+                            dom: "Bfrtip",
+                            buttons: ["copy", "csv", "excel", "pdf", "print"],
+                        });
                     });
-                });
+                }
             }
 
             toastMessage({
@@ -946,7 +953,7 @@ async function guardarRegistro() {
                 icon: "success",
             });
 
-            btnCerralModalForm();
+            btnCerrarModalForm();
             limpiar();
         } else {
             toastMessage({
@@ -1020,12 +1027,24 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
                     });
                 });
             }
-            alertSuccess("Anulado!", "El producto se anulo correctamente.", "success");
+            toastMessage({
+                heading: "Anulado!",
+                text: "El producto se anulo correctamente.",
+                icon: "success",
+            });
         } else {
-            alertError("Ups!", "No fue posible anular el producto.", "error");
+            toastMessage({
+                heading: "Ups!",
+                text: "No fue posible anular el producto.",
+                icon: "error",
+            });
         }
     } catch (err) {
-        alertError("Error", "No fue posible anular el producto.", "error");
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible anular el producto.",
+            icon: "error",
+        });
     } finally {
         loadingAnularId.value = null;
     }
@@ -1143,22 +1162,21 @@ async function mostrarRegistro(data = {}) {
     }
 }
 function limpiar() {
-    actualizar.value = false;
     tituloModal.value = "Nuevo registro";
     registro.value.email_reportar = "";
     registro.value.email = "";
 
-    btnCerralModalForm();
+    btnCerrarModalForm();
     errores.value = {};
 }
 function abrirModal() {
-    $(".right-sidebar").addClass("shw-rside");
+    sidebarVisible.value = true;
     nextTick(() => {
         primerInput.value?.focus();
     });
 }
-function btnCerralModalForm() {
-    $(".right-sidebar").removeClass("shw-rside");
+function btnCerrarModalForm() {
+    sidebarVisible.value = false;
 }
 
 onMounted(async () => {
