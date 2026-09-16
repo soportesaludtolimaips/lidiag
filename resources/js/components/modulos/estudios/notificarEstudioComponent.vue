@@ -274,14 +274,18 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; height: 100%">
+        <div
+            class="right-sidebar"
+            :class="{ 'shw-rside': sidebarVisible }"
+            style="overflow-x: hidden; overflow-y: scroll; height: 100%"
+        >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <button
                         type="button"
                         class="right-side-toggle"
-                        @click="btnCerralModalForm()"
+                        @click="btnCerrarModalForm()"
                         aria-label="Cerrar panel"
                     >
                         <i class="ti-close"></i>
@@ -365,7 +369,7 @@ const { loadingImprimir, imprimirReporte } = useEstudioHelpers();
 
 const dt = ref(null);
 const registros = ref([]);
-const tituloModal = ref("Nuevo registro");
+const tituloModal = ref("Notificar estudio");
 const registro = ref({
     num_docu: "",
     nombres: "",
@@ -378,14 +382,13 @@ const registro = ref({
     nom_produc: "",
     id_producto_lectura: null,
 });
-const estudio = ref(null);
+const estudio = ref({});
 const busqueda = ref({ bus_num_docu: "", bus_nom: "", bus_fech_ini: "", bus_fecha_fin: "" });
-const errores = ref({});
-const erroresBusqueda = ref({});
 const loadingBuscar = ref(false);
 const loadingNotificar = ref(false);
 const loadingAbrirId = ref(null);
 const loadingPortalId = ref(null);
+const sidebarVisible = ref(false);
 
 const contadorRegistros = computed(() => {
     return registros.value.length;
@@ -399,7 +402,6 @@ function btnLimpiar() {
     busqueda.value.bus_nom = "";
     busqueda.value.bus_fech_ini = "";
     busqueda.value.bus_fecha_fin = "";
-    erroresBusqueda.value = {};
     destroyDataTable();
     registros.value = [];
     limpiar();
@@ -413,8 +415,6 @@ function btnLimpiar() {
 async function buscarStudy() {
     if (loadingBuscar.value) return;
     loadingBuscar.value = true;
-    destroyDataTable();
-    registros.value = [];
     try {
         if (
             busqueda.value.bus_num_docu == "" &&
@@ -427,29 +427,22 @@ async function buscarStudy() {
                 text: "Debe indicar documento, nombre o un rango de fechas para la búsqueda.",
                 icon: "warning",
             });
-        } else {
-            const res = await axios.post("/api/listar.estudios.notificaciones", busqueda.value);
-
-            if (res.status == 200) {
-                registros.value = res.data.data || [];
-
-                nextTick(() => {
-                    safeInitDataTable(dt.value || "#example23", {
-                        dom: "Bfrtip",
-                        buttons: ["copy", "csv", "excel", "pdf", "print"],
-                    });
-                });
-            } else if (res.status == 500) {
-                toastMessage({
-                    heading: "Upsss!!!",
-                    text: res.data.message,
-                    icon: "danger",
-                });
-            }
+            return;
         }
+
+        const res = await axios.post("/api/listar.estudios.notificaciones", busqueda.value);
+
+        registros.value = res.data.data || [];
+
+        nextTick(() => {
+            destroyDataTable();
+            safeInitDataTable(dt.value || "#example23", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
+            });
+        });
     } catch (error) {
         registros.value = [];
-
         const status = error?.response?.status;
         if (status == 500) {
             toastMessage({
@@ -458,11 +451,6 @@ async function buscarStudy() {
                 icon: "error",
             });
         }
-
-        erroresBusqueda.value =
-            error?.response?.data?.errors && typeof error.response.data.errors === "object"
-                ? error.response.data.errors
-                : {};
     } finally {
         loadingBuscar.value = false;
     }
