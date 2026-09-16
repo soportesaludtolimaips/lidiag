@@ -930,7 +930,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { alertSuccess, alertError, confirmAction, toastMessage } from "@/helpers/alerts.js";
+import { confirmAction, toastMessage } from "@/helpers/alerts.js";
 import EmojiPicker from "@/components/shared/EmojiPicker.vue";
 import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
 import axios from "axios";
@@ -1243,10 +1243,18 @@ async function eliminarRegistro(id) {
                 ? "/api/config-sede-whatsapp-numbers"
                 : "/api/config-whatsapp";
         const response = await axios.delete(`${baseUrl}/${id}`);
-        alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
+        toastMessage({
+            heading: "Ok!",
+            text: response?.data?.message || "Registro eliminado.",
+            icon: "success",
+        });
         recargarTabActivo();
     } catch (error) {
-        alertError("Error", "No fue posible eliminar el registro.", "error");
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible eliminar el registro.",
+            icon: "error",
+        });
     } finally {
         loadingEliminarId.value = null;
     }
@@ -1523,7 +1531,11 @@ async function agregarProducto() {
                 recomendacion: recomendacion.value,
             });
         }
-        alertSuccess("Éxito", "Producto agregado correctamente");
+        toastMessage({
+            heading: "Éxito",
+            text: "Producto agregado correctamente",
+            icon: "success",
+        });
         cerrarModal();
         cargarProductosVinculados();
         cargarServiciosProductos();
@@ -1560,7 +1572,11 @@ async function eliminarVinculo(id) {
     if (!ok) return;
     try {
         await axios.delete("/api/servicio-producto/" + id);
-        alertSuccess("Éxito", "Producto desvinculado");
+        toastMessage({
+            heading: "Éxito",
+            text: "Producto desvinculado",
+            icon: "success",
+        });
         cargarProductosVinculados();
         cargarServiciosProductos();
     } catch (error) {
