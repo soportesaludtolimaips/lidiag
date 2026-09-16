@@ -436,34 +436,70 @@
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
+                                                <label
+                                                    for="exampleInputFile1"
+                                                    class="control-label"
+                                                >
+                                                    <i class="fa fa-paperclip"></i> Adjunto 1
+                                                </label>
                                                 <input
                                                     type="file"
-                                                    class="form-control"
+                                                    class="form-control-file"
                                                     id="exampleInputFile1"
-                                                    aria-describedby="fileHelp"
                                                     accept=".pdf,.jpg,.png,.doc,.docx"
-                                                    @change="obtenerArchivo1"
+                                                    @change="(e) => obtenerArchivo(e, 1)"
                                                 />
+                                                <small
+                                                    v-if="soportesHC.archivo1"
+                                                    class="text-success"
+                                                >
+                                                    <i class="fa fa-check"></i>
+                                                    {{ soportesHC.archivo1.name }}
+                                                </small>
                                             </div>
                                             <div class="form-group">
+                                                <label
+                                                    for="exampleInputFile2"
+                                                    class="control-label"
+                                                >
+                                                    <i class="fa fa-paperclip"></i> Adjunto 2
+                                                </label>
                                                 <input
                                                     type="file"
-                                                    class="form-control"
+                                                    class="form-control-file"
                                                     id="exampleInputFile2"
-                                                    aria-describedby="fileHelp"
                                                     accept=".pdf,.jpg,.png,.doc,.docx"
-                                                    @change="obtenerArchivo2"
+                                                    @change="(e) => obtenerArchivo(e, 2)"
                                                 />
+                                                <small
+                                                    v-if="soportesHC.archivo2"
+                                                    class="text-success"
+                                                >
+                                                    <i class="fa fa-check"></i>
+                                                    {{ soportesHC.archivo2.name }}
+                                                </small>
                                             </div>
                                             <div class="form-group">
+                                                <label
+                                                    for="exampleInputFile3"
+                                                    class="control-label"
+                                                >
+                                                    <i class="fa fa-paperclip"></i> Adjunto 3
+                                                </label>
                                                 <input
                                                     type="file"
-                                                    class="form-control"
+                                                    class="form-control-file"
                                                     id="exampleInputFile3"
-                                                    aria-describedby="fileHelp"
                                                     accept=".pdf,.jpg,.png,.doc,.docx"
-                                                    @change="obtenerArchivo3"
+                                                    @change="(e) => obtenerArchivo(e, 3)"
                                                 />
+                                                <small
+                                                    v-if="soportesHC.archivo3"
+                                                    class="text-success"
+                                                >
+                                                    <i class="fa fa-check"></i>
+                                                    {{ soportesHC.archivo3.name }}
+                                                </small>
                                             </div>
                                         </div>
                                     </div>
@@ -569,6 +605,18 @@
                                     <span class="text-danger" v-if="errores.productosEstudio">
                                         {{ errores.productosEstudio[0] }}
                                     </span>
+                                    <div
+                                        v-if="sedeInterface"
+                                        class="alert alert-info d-flex align-items-center m-b-15"
+                                        role="alert"
+                                    >
+                                        <i class="fa fa-info-circle m-r-10"></i>
+                                        <span
+                                            ><strong>Modo Interface activo:</strong> Los productos y
+                                            diagnósticos se cargan automáticamente desde la atención
+                                            de la sede.</span
+                                        >
+                                    </div>
                                     <div class="row">
                                         <div
                                             class="col-md-12"
@@ -1136,10 +1184,11 @@ async function guardarRegistro() {
 /**
  * Obtener el archivo seleccionado y verificar su tamaño.
  * @param {Event} e - El evento de cambio del input de archivo.
+ * @param {number} index - Índice del archivo (1, 2 o 3).
  * @returns {void}
  * @author: Jhon Javer Lozano Arce
  */
-function obtenerArchivo1(e) {
+function obtenerArchivo(e, index) {
     const file = e.target.files[0];
     if (file && file.size > 10 * 1024 * 1024) {
         toastMessage({
@@ -1150,47 +1199,7 @@ function obtenerArchivo1(e) {
         e.target.value = "";
         return;
     }
-    soportesHC.value.archivo1 = file || null;
-}
-
-/**
- * Obtener el archivo seleccionado y verificar su tamaño.
- * @param {Event} e - El evento de cambio del input de archivo.
- * @returns {void}
- * @author: Jhon Javer Lozano Arce
- */
-function obtenerArchivo2(e) {
-    const file = e.target.files[0];
-    if (file && file.size > 10 * 1024 * 1024) {
-        toastMessage({
-            heading: "Archivo muy grande",
-            text: "El archivo no debe superar los 10MB.",
-            icon: "warning",
-        });
-        e.target.value = "";
-        return;
-    }
-    soportesHC.value.archivo2 = file || null;
-}
-
-/**
- * Obtener el archivo seleccionado y verificar su tamaño.
- * @param {Event} e - El evento de cambio del input de archivo.
- * @returns {void}
- * @author: Jhon Javer Lozano Arce
- */
-function obtenerArchivo3(e) {
-    const file = e.target.files[0];
-    if (file && file.size > 10 * 1024 * 1024) {
-        toastMessage({
-            heading: "Archivo muy grande",
-            text: "El archivo no debe superar los 10MB.",
-            icon: "warning",
-        });
-        e.target.value = "";
-        return;
-    }
-    soportesHC.value.archivo3 = file || null;
+    soportesHC.value[`archivo${index}`] = file || null;
 }
 
 /**
@@ -1699,6 +1708,13 @@ onBeforeUnmount(() => {
 @media (max-width: 767px) {
     .shw-rside {
         width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .right-sidebar {
+        height: 100% !important;
+        overflow-y: auto;
     }
 }
 
