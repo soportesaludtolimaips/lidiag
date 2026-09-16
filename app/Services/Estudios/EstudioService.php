@@ -39,6 +39,8 @@ class EstudioService extends BaseService
         private readonly EstudioNotificacionService $estudioNotificacionService,
     ) {}
 
+    private const DESTINO_TELE_RADIOLOGIA = 'Tele Radiologia';
+
     /**
      * Obtiene todos los estudios registrados en el sistema
      *
@@ -434,9 +436,7 @@ class EstudioService extends BaseService
                 if ($sede->interface_software === 'SAHI') {
                     $medico = User::find($data['medico_id']);
                     if (! $medico || ! $medico->interface_id) {
-                        $name = $medico?->name ?? 'N/A';
-
-                        return $this->error("El médico {$name} no está registrado en SAHI", 400);
+                        return $this->error('El médico seleccionado no está registrado en la interfaz.', 400);
                     }
                 }
 
@@ -456,7 +456,7 @@ class EstudioService extends BaseService
                 $producto = EstudioProducto::lockForUpdate()->findOrFail($data['estudio_producto_id']);
 
                 if ($producto->fechor_trascrito !== null) {
-                    return $this->error('Esta transcripcion ya fue procesada por otro usuario.', 409);
+                    return $this->error('Esta transcripción ya fue procesada por otro usuario. Actualice la página.', 409);
                 }
 
                 $producto->lectura = $data['lectura'];
@@ -465,7 +465,7 @@ class EstudioService extends BaseService
                 $producto->visto = 1;
                 $producto->save();
 
-                if (! empty($data['destino_estudio']) && $data['destino_estudio'] === 'Tele Radiologia') {
+                if (! empty($data['destino_estudio']) && $data['destino_estudio'] === DESTINO_TELE_RADIOLOGIA) {
                     $estudio = Estudio::findOrFail($data['id_estudio']);
                     $estudio->medico_id = $data['medico_id'];
                     $estudio->save();
@@ -474,7 +474,7 @@ class EstudioService extends BaseService
                 $plantillaResult = $this->plantillaEstudioService->editWord($data);
                 if (! $plantillaResult['success']) {
                     return $this->error(
-                        $plantillaResult['message'] ?? "La plantilla para la sede {$sede->nom_sede} no está configurada.",
+                        $plantillaResult['message'] ?? 'La plantilla no está configurada para esta sede.',
                         $plantillaResult['status'] ?? 402
                     );
                 }
@@ -484,13 +484,15 @@ class EstudioService extends BaseService
 
             try {
                 $this->estudioNotificacionService->enviarPortalPacientes((object) $data);
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 Log::warning('Error al enviar al portal de pacientes: '.$e->getMessage());
             }
 
             return $result;
-        } catch (\Exception $e) {
-            return $this->error('Error al guardar transcripción: '.$e->getMessage(), 500);
+        } catch (\Throwable $e) {
+            Log::error('Error al guardar transcripción: '.$e->getMessage());
+
+            return $this->error('No fue posible guardar la transcripción.', 500);
         }
     }
 
@@ -574,11 +576,24 @@ class EstudioService extends BaseService
      */
     public function anularAsignacion(int $id): array
     {
-        $producto = EstudioProducto::findOrFail($id);
-        $producto->activo = 0;
-        $producto->save();
+        try {
+            return DB::transaction(function () use ($id) {
+                $producto = EstudioProducto::lockForUpdate()->findOrFail($id);
 
-        return $this->updated(null, 'El producto se anuló correctamente.');
+                if ($producto->activo == 0) {
+                    return $this->error('Este producto ya fue anulado.', 409);
+                }
+
+                $producto->activo = 0;
+                $producto->save();
+
+                return $this->updated(null, 'El producto se anuló correctamente.');
+            });
+        } catch (\Throwable $e) {
+            Log::error('Error al anular asignación: '.$e->getMessage());
+
+            return $this->error('No fue posible anular el producto.', 500);
+        }
     }
 
     /**
@@ -686,7 +701,7 @@ class EstudioService extends BaseService
             'productosEstudio.min' => 'Debe elegir al menos un producto.',
         ];
 
-        if ($destino !== 'Tele Radiologia') {
+        if ($destino !== self::DESTINO_TELE_RADIOLOGIA) {
             $rules['medico_id'] = 'required|integer|not_in:0';
             $messages['medico_id.required'] = 'Te hizo falta el medico.';
             $messages['medico_id.not_in'] = 'Te hizo falta el medico.';

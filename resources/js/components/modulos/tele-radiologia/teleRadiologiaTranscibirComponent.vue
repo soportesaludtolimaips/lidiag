@@ -13,7 +13,7 @@
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)">Estudios</a>
                     </li>
-                    <li class="breadcrumb-item active">Trascribir Estudios Tele radiologia</li>
+                    <li class="breadcrumb-item active">Transcribir Estudios Tele radiología</li>
                 </ol>
             </div>
         </div>
@@ -29,105 +29,95 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros para busqueda de mis pendientes por
+                            <i class="fa fa-filter"></i> Filtros para búsqueda de mis pendientes por
                             transcribir
                         </h4>
-                        <form action="#">
-                            <div class="form-body">
-                                <div class="row p-t-2">
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label>Quien asigno</label>
-                                            <select
-                                                v-model="busqueda.quien_asigno_id"
-                                                name="quien_asigno_id"
-                                                id="quien_asigno_id"
-                                                class="form-control custom-select"
+                        <div class="form-body">
+                            <div class="row p-t-2">
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label>Quien asignó</label>
+                                        <select
+                                            v-model="busqueda.quien_asigno_id"
+                                            name="quien_asigno_id"
+                                            id="quien_asigno_id"
+                                            class="form-control custom-select"
+                                        >
+                                            <option value="">
+                                                ...::: Todos los usuarios :::...
+                                            </option>
+                                            <option
+                                                v-for="item in quienes_asignaron"
+                                                :key="item.id"
+                                                :value="item.id"
                                             >
-                                                <option value="">
-                                                    ...::: Todos los usuarios :::...
-                                                </option>
-                                                <option
-                                                    v-for="(
-                                                        ItemUsuario, index
-                                                    ) in quienes_asignaron"
-                                                    :key="index"
-                                                    :value="ItemUsuario.id"
-                                                >
-                                                    {{ ItemUsuario.name }}
-                                                </option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label class="control-label"
-                                                >Nombres o # documento</label
-                                            >
-                                            <input
-                                                type="text"
-                                                id="bus_nom_num_docu"
-                                                name="bus_nom_num_docu"
-                                                v-model="busqueda.bus_nom_num_docu"
-                                                class="form-control"
-                                                placeholder="Nombres de paciente o # de documento"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="control-label">Fecha Inicio</label>
-                                            <input
-                                                type="date"
-                                                id="nom_diagnos"
-                                                name="nom_diagnos"
-                                                v-model="busqueda.bus_fech_ini"
-                                                class="form-control"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="control-label">Fecha Fin</label>
-                                            <input
-                                                type="date"
-                                                id="fecha_fin"
-                                                name="fecha_fin"
-                                                v-model="busqueda.bus_fecha_fin"
-                                                class="form-control"
-                                            />
-                                        </div>
+                                                {{ item.name }}
+                                            </option>
+                                        </select>
                                     </div>
                                 </div>
-
-                                <div class="form-actions mt-3">
-                                    <button
-                                        type="button"
-                                        class="btn btn-success m-r-5"
-                                        :disabled="loadingBuscar"
-                                        @click="listarPendientesTrascribir()"
-                                    >
-                                        <i v-if="loadingBuscar" class="fa fa-spinner fa-spin"></i>
-                                        <i v-else class="fa fa-search"></i>
-                                        Buscar
-                                    </button>
-                                    <button
-                                        type="button"
-                                        class="btn btn-inverse"
-                                        @click="btnLimpiar()"
-                                    >
-                                        <i class="fa fa-refresh"></i> Limpiar
-                                    </button>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="control-label">Nombres o # documento</label>
+                                        <input
+                                            type="text"
+                                            id="bus_nom_num_docu"
+                                            name="bus_nom_num_docu"
+                                            v-model="busqueda.bus_nom_num_docu"
+                                            class="form-control"
+                                            placeholder="Nombres de paciente o # de documento"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="control-label">Fecha Inicio</label>
+                                        <input
+                                            type="date"
+                                            id="bus_fech_ini"
+                                            name="bus_fech_ini"
+                                            v-model="busqueda.bus_fech_ini"
+                                            class="form-control"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="control-label">Fecha Fin</label>
+                                        <input
+                                            type="date"
+                                            id="bus_fecha_fin"
+                                            name="bus_fecha_fin"
+                                            v-model="busqueda.bus_fecha_fin"
+                                            class="form-control"
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                        </form>
+
+                            <div class="form-actions mt-3">
+                                <button
+                                    type="button"
+                                    class="btn btn-success m-r-5"
+                                    :disabled="loadingBuscar"
+                                    @click="listarPendientesTrascribir()"
+                                >
+                                    <i v-if="loadingBuscar" class="fa fa-spinner fa-spin"></i>
+                                    <i v-else class="fa fa-search"></i>
+                                    Buscar
+                                </button>
+                                <button type="button" class="btn btn-inverse" @click="btnLimpiar()">
+                                    <i class="fa fa-refresh"></i> Limpiar
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="row">
-            <div class="col-12 table-responsive">
+            <div class="col-12">
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de estudios disponibles</h4>
@@ -147,11 +137,11 @@
                                         <th></th>
                                         <th>Sede</th>
                                         <th>Toma</th>
-                                        <th with="50%">Lectura</th>
+                                        <th>Lectura</th>
                                         <th>Asignación</th>
-                                        <th>Quien Asigno</th>
-                                        <th with="50%">Medico</th>
-                                        <th with="50%">Paciente</th>
+                                        <th>Quien Asignó</th>
+                                        <th>Médico</th>
+                                        <th>Paciente</th>
                                         <th>Detalle</th>
                                         <th>Producto</th>
                                         <th></th>
@@ -272,7 +262,7 @@
             </div>
         </div>
         <!-- ============================================================== -->
-        <!-- End PAge Content -->
+        <!-- End Page Content -->
         <!-- ============================================================== -->
 
         <!-- ============================================================== -->
@@ -281,24 +271,18 @@
         <!-- .right-sidebar -->
         <div
             class="right-sidebar"
-            style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%"
+            :class="{ 'shw-rside': sidebarVisible }"
+            style="overflow-x: hidden; overflow-y: scroll; height: 100%"
         >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span @click="btnCerralModalForm()">
-                        <i
-                            class="ti-close right-side-toggle"
-                            id="btnCerralModalForm"
-                            @click="btnCerralModalForm()"
-                        ></i>
+                    <span @click="btnCerrarModal()">
+                        <i class="ti-close right-side-toggle"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
-                    <!-- ============================================================== -->
-                    <!-- Aqui va el contenido de los formularios -->
-                    <!-- ============================================================== -->
-                    <form action="#">
+                    <form @submit.prevent>
                         <div class="form-body">
                             <div class="row">
                                 <div class="col-md-6">
@@ -362,7 +346,7 @@
                                                     name="email_reportar"
                                                     v-model="registro.email_reportar"
                                                     class="form-control"
-                                                    placeholder="Ingrese aqi el email a reportar"
+                                                    placeholder="Ingrese aquí el email a reportar"
                                                 />
                                             </div>
 
@@ -380,7 +364,7 @@
                                     </h5>
                                     <hr />
 
-                                    <div class="row table-responsive">
+                                    <div class="row">
                                         <div class="col-md-12">
                                             <dl>
                                                 <dd>{{ registro.nom_produc }}</dd>
@@ -462,12 +446,10 @@
                                                         href="#profile8"
                                                         role="tab"
                                                     >
-                                                        <span>
-                                                            <h5 class="card-title text-info">
-                                                                <i class="fa fa-file-audio-o"></i>
-                                                                Audios
-                                                            </h5>
-                                                        </span>
+                                                        <h5 class="card-title text-info">
+                                                            <i class="fa fa-file-audio-o"></i>
+                                                            Audios
+                                                        </h5>
                                                     </a>
                                                 </li>
                                             </ul>
@@ -480,8 +462,8 @@
                                                 >
                                                     <div
                                                         class="col-md-8 col-lg-9"
-                                                        v-for="(itemArchivo, index) in soportesHC"
-                                                        :key="index"
+                                                        v-for="itemArchivo in soportesHC"
+                                                        :key="itemArchivo.archivo_encrip"
                                                     >
                                                         <a
                                                             href="javascript:void(0)"
@@ -509,6 +491,12 @@
                                                             {{ itemArchivo.archivo_original }}
                                                         </a>
                                                     </div>
+                                                    <div
+                                                        v-if="soportesHC.length === 0"
+                                                        class="text-muted"
+                                                    >
+                                                        No hay adjuntos para este estudio.
+                                                    </div>
                                                 </div>
                                                 <div
                                                     class="tab-pane p-20"
@@ -516,8 +504,8 @@
                                                     role="tabpanel"
                                                 >
                                                     <template
-                                                        v-for="(item, index) in audiosDeEstudio"
-                                                        :key="index"
+                                                        v-for="item in audiosDeEstudio"
+                                                        :key="item.id"
                                                     >
                                                         <audio
                                                             :src="item.url"
@@ -525,6 +513,12 @@
                                                             style="height: 15px; width: 100%"
                                                         ></audio>
                                                     </template>
+                                                    <div
+                                                        v-if="audiosDeEstudio.length === 0"
+                                                        class="text-muted"
+                                                    >
+                                                        No hay audios para este estudio.
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -540,16 +534,16 @@
                                     :disabled="loadingGuardar"
                                 >
                                     <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
-                                    <i v-else class="fa fa-check"></i> Guardar
+                                    <i v-else class="fa fa-check"></i>
+                                    {{ actualizar ? "Actualizar" : "Guardar" }}
                                 </button>
 
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    ref="btnCerrarForm"
-                                    @click="btnCerralModalForm()"
+                                    @click="btnCerrarModal()"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
                         </div>
@@ -563,32 +557,32 @@
     </div>
 </template>
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
-const { proxy } = getCurrentInstance();
-const emitter = proxy.emitter;
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { listarUsuariosYSedes } from "../../../helpers/usuarios";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+dayjs.extend(utc);
+dayjs.extend(timezone);
 import axios from "axios";
-import {
-    safeDestroyDataTable,
-    safeInitDataTable,
-    safeRemoveDataTableRow,
-} from "@/helpers/datatables";
-import { toastMessage } from "@/helpers/alerts";
+import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables";
+import { confirmAction, getUserSafeError, toastMessage } from "@/helpers/alerts";
 
-const props = defineProps({ usuarioactual: Object });
+const DESTINO_TELE_RADIOLOGIA = "Tele Radiologia";
+
+defineProps({
+    usuarioactual: { type: Object, default: () => ({}) },
+});
 
 const dt = ref(null);
 const actualizar = ref(false);
+const sidebarVisible = ref(false);
 
-const diagnosticosEstudio = ref([]);
 const soportesHC = ref([]);
 const registros = ref([]);
-const tituloModal = ref("Transcirbir estudio");
+const tituloModal = ref("Transcribir estudio");
 const registro = ref({
     id_estudio: 0,
     estudio_producto_id: 0,
@@ -606,7 +600,6 @@ const registro = ref({
     email: "",
     tel: "",
     direccion: "",
-    diagnosticosEstudio: [],
     sede_id: "",
     atencion: null,
     servicio: null,
@@ -622,7 +615,7 @@ const registro = ref({
     url_oviyam: null,
     tap_oviyam: null,
     study_iuid: null,
-    destino_estudio: "Tele Radiologia",
+    destino_estudio: DESTINO_TELE_RADIOLOGIA,
 });
 const busqueda = ref({
     estudioParaTranscibir: "si",
@@ -632,7 +625,7 @@ const busqueda = ref({
     bus_nom_num_docu: "",
     bus_fech_ini: "",
     bus_fecha_fin: "",
-    destino_estudio: "Tele Radiologia",
+    destino_estudio: DESTINO_TELE_RADIOLOGIA,
 });
 const datosImagen = ref({ urlOviyam: "", patientId: "", studyUID: "", serverName: "" });
 const audiosDeEstudio = ref([]);
@@ -646,23 +639,8 @@ const loadingGuardar = ref(false);
 const loadingAbrirId = ref(null);
 const loadingAnularId = ref(null);
 const loadingDescargaSoporte = ref(null);
-const loadingAudios = ref(false);
 const loadingVerImagen = ref(false);
 
-const medicoOptions = computed(() => {
-    // Opciones para el Select2 local de medicos.
-    return (medicos.value || []).map((p) => ({ id: p.id, name: p.name }));
-});
-
-/**
- * Inicializa el DataTable de jQuery con botones de exportación.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 function initDataTable() {
     safeInitDataTable(dt.value || "#example23", {
         dom: "Bfrtip",
@@ -670,27 +648,11 @@ function initDataTable() {
         retrieve: true,
     });
 }
-/**
- * Destruye la instancia del DataTable para evitar errores al recargar.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#example23");
 }
-/**
- * Limpia los campos de búsqueda, errores y el listado de registros.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 function btnLimpiar() {
     busqueda.value.quien_asigno_id = "";
     busqueda.value.medico_id = "";
@@ -700,57 +662,51 @@ function btnLimpiar() {
     errores.value = {};
     destroyDataTable();
     registros.value = [];
-    limpiar();
+    btnCerrarModal();
 }
-/**
- * Lista los estudios pendientes por transcribir según los filtros de búsqueda.
- *
- * @returns {Promise<void>} Promesa que se resuelve al cargar los pendientes.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function listarPendientesTrascribir() {
     if (loadingBuscar.value) return;
     loadingBuscar.value = true;
     try {
-        if (sessionStorage.getItem("ST-sede") == null) {
+        if (!sessionStorage.getItem("ST-sede")) {
             toastMessage({
                 heading: "Upsss!!!",
-                text: "Debes establece la sede en la cual vas a trabajar.",
+                text: "Debes establecer la sede en la cual vas a trabajar.",
                 icon: "warning",
             });
-        } else {
-            destroyDataTable();
-
-            const res = await axios.post("/api/estudio-listarPendientesTrascribir", busqueda.value);
-
-            registros.value = res.data.data;
-
-            nextTick(() => {
-                initDataTable();
-            });
+            return;
         }
+
+        destroyDataTable();
+
+        const res = await axios.post("/api/estudio-listarPendientesTrascribir", {
+            sede_id: sessionStorage.getItem("ST-sede"),
+            quien_asigno_id: busqueda.value.quien_asigno_id || undefined,
+            medico_id: busqueda.value.medico_id || undefined,
+            bus_nom_num_docu: busqueda.value.bus_nom_num_docu || undefined,
+            bus_fech_ini: busqueda.value.bus_fech_ini || undefined,
+            bus_fecha_fin: busqueda.value.bus_fecha_fin || undefined,
+            destino_estudio: DESTINO_TELE_RADIOLOGIA,
+            estudioParaTranscibir: busqueda.value.estudioParaTranscibir,
+        });
+
+        registros.value = res.data.data;
+
+        nextTick(() => {
+            initDataTable();
+        });
     } catch (error) {
         toastMessage({
             heading: "Error",
-            text: error.response?.data?.message || "No fue posible listar los pendientes.",
+            text: getUserSafeError(error, "No fue posible listar los pendientes."),
             icon: "error",
         });
     } finally {
         loadingBuscar.value = false;
     }
 }
-/**
- * Guarda la transcripción/lectura del estudio y elimina el registro de la tabla de pendientes.
- *
- * @returns {Promise<void>} Promesa que se resuelve al completar el guardado.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
@@ -761,7 +717,30 @@ async function guardarRegistro() {
             icon: "info",
         });
 
-        const res = await axios.post("/api/estudio-guardarTranscripcion", registro.value);
+        const payload = {
+            estudio_producto_id: registro.value.estudio_producto_id,
+            id_estudio: registro.value.id_estudio,
+            lectura: registro.value.lectura,
+            num_docu: registro.value.num_docu,
+            nom_pacien: registro.value.nom_pacien,
+            email: registro.value.email || undefined,
+            tel: registro.value.tel || undefined,
+            fec_naci: registro.value.fec_naci || undefined,
+            sede_id: registro.value.sede_id,
+            nom_sede: registro.value.nom_sede || undefined,
+            cod_cups: registro.value.cod_cups,
+            nom_produc: registro.value.nom_produc,
+            medico_id: registro.value.medico_id || undefined,
+            url_oviyam: registro.value.url_oviyam || undefined,
+            study_iuid: registro.value.study_iuid || undefined,
+            tap_oviyam: registro.value.tap_oviyam || undefined,
+            destino_estudio: DESTINO_TELE_RADIOLOGIA,
+            email_reportar: registro.value.email_reportar || undefined,
+            sexo: registro.value.sexo || undefined,
+            direccion: registro.value.direccion || undefined,
+        };
+
+        const res = await axios.post("/api/estudio-guardarTranscripcion", payload);
 
         if (res.status == 200) {
             const estudioEliminar = registros.value.findIndex(
@@ -780,10 +759,9 @@ async function guardarRegistro() {
                 text: res.data.data.message,
                 icon: "success",
             });
-            /* btnCerrarForm.value.click();
 
-                    btnCerralModalForm();
-                    limpiar(); */
+            btnCerrarModal();
+            errores.value = {};
         } else {
             toastMessage({
                 heading: "Upss!!!",
@@ -804,10 +782,10 @@ async function guardarRegistro() {
                     "La plantilla no está configurada para esta sede.",
                 icon: "error",
             });
-        } else {
+        } else if (status !== 400) {
             toastMessage({
                 heading: "Upss!!!",
-                text: error?.response?.data?.message || "No fue posible guardar la transcripción.",
+                text: getUserSafeError(error, "No fue posible guardar la transcripción."),
                 icon: "error",
             });
         }
@@ -815,54 +793,44 @@ async function guardarRegistro() {
         loadingGuardar.value = false;
     }
 }
-/**
- * Descarga un archivo soporte de la historia clínica desde la API.
- *
- * @param {string} nomArchivoOriginal Nombre original del archivo.
- * @param {string} nomArchivoEncriptado Nombre encriptado del archivo en el servidor.
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 function descargaSoportte(nomArchivoOriginal, nomArchivoEncriptado) {
     if (loadingDescargaSoporte.value) return;
     loadingDescargaSoporte.value = nomArchivoEncriptado;
     const url = `/api/descarga-soportes-hc/${nomArchivoEncriptado}`;
+    let blobUrl = null;
+    let link = null;
     axios
         .get(url, { responseType: "blob" })
         .then((response) => {
-            const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement("a");
+            blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+            link = document.createElement("a");
             link.href = blobUrl;
             link.setAttribute("download", nomArchivoOriginal || nomArchivoEncriptado);
             document.body.appendChild(link);
             link.click();
-            setTimeout(() => window.URL.revokeObjectURL(blobUrl), 2000);
         })
         .catch((error) => {
-            console.error(error);
+            toastMessage({
+                heading: "Error",
+                text: getUserSafeError(error, "No fue posible descargar el archivo."),
+                icon: "error",
+            });
         })
         .finally(() => {
+            if (link && document.body.contains(link)) {
+                document.body.removeChild(link);
+            }
+            if (blobUrl) {
+                setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+            }
             loadingDescargaSoporte.value = null;
         });
 }
-/**
- * Anula la asignación de un estudio-producto tras confirmación del usuario.
- *
- * @param {number} idProductoEstudio Identificador del estudio-producto a anular.
- * @param {string} paciente Nombre del paciente para la confirmación.
- * @param {string} producto Nombre del producto para la confirmación.
- * @returns {Promise<void>} Promesa que se resuelve al completar la anulación.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function anularAsignacion(idProductoEstudio, paciente, producto) {
     const ok = await confirmAction({
-        title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
+        title: `¿Estás seguro de anular la lectura del paciente ${paciente} con el producto ${producto}?`,
         text: "No podrás recuperar este registro!",
         icon: "warning",
     });
@@ -885,29 +853,41 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
                     initDataTable();
                 });
             }
-            alertSuccess("Anulado!", "El producto se anulo correctamente.", "success");
+            toastMessage({
+                heading: "Anulado!",
+                text: "El producto se anuló correctamente.",
+                icon: "success",
+            });
         } else {
-            alertError("Ups!", "No fue posible anular el producto.", "error");
+            toastMessage({
+                heading: "Ups!",
+                text: "No fue posible anular el producto.",
+                icon: "error",
+            });
         }
-    } catch (err) {
-        alertError("Error", "No fue posible anular el producto.", "error");
+    } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: getUserSafeError(error, "No fue posible anular el producto."),
+            icon: "error",
+        });
     } finally {
         loadingAnularId.value = null;
     }
 }
-/**
- * Abre en una nueva pestaña el visor de imágenes DICOM (Oviyam) del estudio actual.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 function verImagen() {
     if (loadingVerImagen.value) return;
-    loadingVerImagen.value = true;
     const base = datosImagen.value.urlOviyam || "";
+    if (!base) {
+        toastMessage({
+            heading: "Upsss!!!",
+            text: "No hay visor configurado para esta sede.",
+            icon: "warning",
+        });
+        return;
+    }
+    loadingVerImagen.value = true;
     const params = new URLSearchParams({
         patientID: String(datosImagen.value.patientId ?? ""),
         studyUID: String(datosImagen.value.studyUID ?? ""),
@@ -915,102 +895,48 @@ function verImagen() {
     });
     try {
         window.open(`${base}?${params.toString()}`, "_blank", "noopener,noreferrer");
+    } catch {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible abrir el visor de imágenes.",
+            icon: "error",
+        });
     } finally {
         setTimeout(() => {
             loadingVerImagen.value = false;
         }, 500);
     }
 }
-/**
- * Obtiene los audios asociados al estudio actual desde la API.
- *
- * @returns {Promise<void>} Promesa que se resuelve al cargar los audios.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function listarAudios() {
-    loadingAudios.value = true;
+    if (!id.value) return;
     try {
         const res = await axios.get("/api/listar-audios-estudio/" + id.value);
         audiosDeEstudio.value = res.data.data;
-    } catch (e) {
+    } catch {
         audiosDeEstudio.value = [];
-    } finally {
-        loadingAudios.value = false;
     }
 }
-/**
- * Obtiene el listado de médicos disponibles según el módulo actual.
- *
- * @returns {Promise<void>} Promesa que se resuelve al cargar los médicos.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function listarMedicos() {
     try {
-        const pathname = String(window?.location?.pathname || "").toLowerCase();
-        const moduloId =
-            sessionStorage.getItem("ST-modulo") || (pathname.includes("ecografia") ? "2" : "1");
+        const moduloId = sessionStorage.getItem("ST-modulo") || "1";
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = res.data.data;
-    } catch (error) {
+    } catch {
         medicos.value = [];
     }
 }
-/**
- * Maneja la selección de un médico desde el componente Select2.
- *
- * @param {string|null} value Identificador del médico seleccionado.
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function onMedicoSelect(value) {
-    registro.value.medico_id = value ? String(value) : null;
-}
-/**
- * Establece la sede actual en el objeto de búsqueda desde sessionStorage y limpia los registros.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 function establecerSede() {
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
     registros.value = [];
 }
-/**
- * Formatea un timestamp UTC a la zona horaria local con formato YYYY-MM-DD HH:mm:ss.
- *
- * @param {string} timestamp Timestamp en formato UTC.
- * @returns {string} Fecha formateada en la zona horaria local.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 function formatDate(timestamp) {
-    // Convertir el timestamp UTC a la zona horaria local y formatear
     return dayjs.utc(timestamp).local().format("YYYY-MM-DD HH:mm:ss");
 }
-/**
- * Abre el modal lateral cargando los datos completos del estudio para transcribir la lectura.
- *
- * @param {Object} data Objeto con los datos del estudio y paciente.
- * @returns {Promise<void>} Promesa que se resuelve al cargar todos los datos del registro.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function mostrarRegistro(data = {}) {
     if (loadingAbrirId.value !== null) return;
     loadingAbrirId.value = data.estudio_producto_id;
@@ -1067,56 +993,30 @@ async function mostrarRegistro(data = {}) {
     registro.value.study_iuid = data.study_iuid;
     registro.value.tap_oviyam = data.tap_oviyam;
 
-    const res = await axios.get("/api/study-listar-diagnostico-por-estudio?id=" + id.value);
-    diagnosticosEstudio.value = res.data.data;
-
-    const resSoportesHC = await axios.get("/api/listar-soportes-hc-estudio?id=" + id.value);
-    soportesHC.value = resSoportesHC.data.data;
+    try {
+        const resSoportesHC = await axios.get("/api/listar-soportes-hc-estudio?id=" + id.value);
+        soportesHC.value = resSoportesHC.data.data;
+    } catch {
+        soportesHC.value = [];
+    }
 
     audiosDeEstudio.value = [];
     listarAudios();
-    btnCerralModalForm();
     errores.value = {};
+
+    sidebarVisible.value = true;
     loadingAbrirId.value = null;
 }
-/**
- * Limpia los campos del formulario de transcripción y cierra el modal.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function limpiar() {
-    actualizar.value = false;
-    tituloModal.value = "Nuevo registro";
-    registro.value.email_reportar = "";
-    registro.value.email = "";
 
-    $("#btnCerralModalForm").click();
-    errores.value = {};
-}
-/**
- * Cierra el formulario del modal lateral deslizante y limpia los audios cargados.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function btnCerralModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").toggleClass("shw-rside");
-
+function btnCerrarModal() {
+    sidebarVisible.value = false;
     audiosDeEstudio.value = [];
+    errores.value = {};
 }
 
 onMounted(async () => {
     listarMedicos();
     establecerSede();
-    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
     await listarUsuariosYSedes({
         set quienes_asignaron(v) {
             quienes_asignaron.value = v;
@@ -1124,12 +1024,6 @@ onMounted(async () => {
         set medicos(v) {
             medicos.value = v;
         },
-    });
-
-    emitter.on("sedeSeleccionada", (data) => {
-        busqueda.value.sede_id = data.idSede;
-        destroyDataTable();
-        listarPendientesTrascribir();
     });
 });
 

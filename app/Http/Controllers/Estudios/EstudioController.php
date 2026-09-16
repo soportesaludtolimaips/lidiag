@@ -7,6 +7,7 @@ use App\Http\Requests\Estudios\StoreEstudioRequest;
 use App\Services\Estudios\EstudioService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
 class EstudioController extends Controller
@@ -159,21 +160,33 @@ class EstudioController extends Controller
      */
     public function listarPendientesTrascribir(Request $request): JsonResponse
     {
-        $data = $request->validate([
-            'sede_id' => 'required|integer|exists:config_sedes,id',
-            'bus_fech_ini' => 'nullable|date',
-            'bus_fecha_fin' => 'nullable|date',
-            'bus_nom_num_docu' => 'nullable|string|max:255',
-            'quien_asigno_id' => 'nullable|integer|exists:users,id',
-            'medico_id' => 'nullable|integer|exists:users,id',
-        ], [
-            'sede_id.required' => 'La sede es obligatoria.',
-            'sede_id.exists' => 'La sede seleccionada no existe.',
-        ]);
+        try {
+            $request->validate([
+                'sede_id' => 'required|integer|exists:config_sedes,id',
+                'bus_fech_ini' => 'nullable|date',
+                'bus_fecha_fin' => 'nullable|date',
+                'bus_nom_num_docu' => 'nullable|string|max:255',
+                'quien_asigno_id' => 'nullable|integer|exists:users,id',
+                'medico_id' => 'nullable|integer|exists:users,id',
+                'destino_estudio' => 'nullable|string|max:255',
+                'estudioParaTranscribir' => 'nullable|string',
+            ], [
+                'sede_id.required' => 'La sede es obligatoria.',
+                'sede_id.exists' => 'La sede seleccionada no existe.',
+            ]);
 
-        $result = $this->estudioService->listarPendientesTranscribir($request->all());
+            $result = $this->estudioService->listarPendientesTranscribir($request->all());
 
-        return response()->json($result, $result['status']);
+            return response()->json($result, $result['status']);
+        } catch (ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error interno del servidor.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -227,15 +240,19 @@ class EstudioController extends Controller
             'nom_pacien' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
             'tel' => 'nullable|string|max:50',
+            'sexo' => 'nullable|string|max:10',
+            'direccion' => 'nullable|string|max:500',
+            'fec_naci' => 'nullable|string|max:50',
             'sede_id' => 'required|integer|exists:config_sedes,id',
             'cod_cups' => 'required|string|max:50',
             'nom_produc' => 'required|string|max:255',
             'medico_id' => 'nullable|integer',
-            'fec_naci' => 'nullable|string|max:50',
             'nom_sede' => 'nullable|string|max:255',
+            'email_reportar' => 'nullable|email|max:255',
             'url_oviyam' => 'nullable|string|max:500',
             'study_iuid' => 'nullable|string|max:500',
             'tap_oviyam' => 'nullable|string|max:500',
+            'destino_estudio' => 'nullable|string|max:255',
             'fechor_lectura' => 'nullable|date',
         ], ['lectura.required' => 'Debe ingresar la lectura.']);
 
@@ -294,6 +311,13 @@ class EstudioController extends Controller
      */
     public function anularAsignacion(Request $request): JsonResponse
     {
+        $request->validate([
+            'id' => 'required|integer|exists:estudios_productos,id',
+        ], [
+            'id.required' => 'El identificador del producto es obligatorio.',
+            'id.exists' => 'El producto de estudio no existe.',
+        ]);
+
         $result = $this->estudioService->anularAsignacion($request->integer('id'));
 
         return response()->json($result, $result['status']);
