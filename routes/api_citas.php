@@ -13,7 +13,7 @@ Route::get('/citas/notificaciones/no-leidas', [AgendaCitaController::class, 'not
 Route::post('/citas/notificaciones/{id}/leida', [AgendaCitaController::class, 'marcarNotificacionLeida'])->name('api.citas.notificaciones.leida')->middleware('auth');
 Route::post('/citas/notificaciones/todas-leidas', [AgendaCitaController::class, 'marcarTodasLeidas'])->name('api.citas.notificaciones.todas-leidas')->middleware('auth');
 
-Route::prefix('citas')->middleware(['auth'])->group(function () {
+Route::prefix('citas')->middleware(['auth', 'permission:agenda.index|agenda.create|agenda.edit'])->group(function () {
     Route::get('/', [AgendaCitaController::class, 'index'])->name('api.citas.index');
     Route::post('/', [AgendaCitaController::class, 'store'])->name('api.citas.store');
     Route::get('/servicios', [AgendaCitaController::class, 'servicios'])->name('api.citas.servicios');

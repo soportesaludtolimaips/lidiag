@@ -36,7 +36,8 @@ Route::middleware(['auth'])->group(function () {
         ->middleware(['permission:seguridad.usuarios.edit']);
 
     Route::get('/user.listarUsuarios/{tipo_user}/{modulo}', [UserController::class, 'listarUsuarios'])
-        ->name('api.user.listarUsuarios');
+        ->name('api.user.listarUsuarios')
+        ->middleware(['permission:seguridad.usuarios.index']);
 
     Route::resource('/seguridad-roles', RolController::class)
         ->names('api.seguridad.roles')

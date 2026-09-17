@@ -551,7 +551,12 @@ class DicomBurnerController extends Controller
      */
     public function downloadZip($filename)
     {
-        $filePath = storage_path("app/zips/{$filename}");
+        $safe = basename($filename);
+        if ($safe !== $filename) {
+            abort(400, 'Nombre de archivo inválido');
+        }
+
+        $filePath = storage_path("app/zips/{$safe}");
 
         if (! file_exists($filePath)) {
             return response()->json([

@@ -153,6 +153,10 @@ class UserController extends Controller
      */
     public function actualizarPerfil(Request $request, int $id): JsonResponse
     {
+        if ((int) $id !== (int) auth()->id()) {
+            abort(403, 'No autorizado para modificar este perfil');
+        }
+
         $data = $request->validate([
             'num_docu' => 'required|string|max:50',
             'name' => 'required|string|max:255',

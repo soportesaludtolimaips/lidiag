@@ -30,7 +30,7 @@ use Illuminate\Support\Facades\Route;
 
 // Rutas protegidas (requieren autenticación)
 // Nota: en API usamos Sanctum (stateful) para que funcione con sesión/cookies.
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'permission:config.diagnosticos.index|config.prioridades.index|config.productos.index|config.sedes.index|config.plantillas.index'])->group(function () {
 
     // Sedes - buscarPorId (requiere permiso config.sedes.index)
     Route::get('/config-sedes/{configsede}/buscarPorId', [ConfigSedeController::class, 'buscarPorId'])

@@ -10,6 +10,8 @@ storage/*.key
 storage/app
 
 .env
+.env.production
+.env.staging
 Homestead.yaml
 Homestead.json
 /.vagrant

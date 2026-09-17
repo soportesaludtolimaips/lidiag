@@ -103,6 +103,7 @@ return Application::configure(basePath: dirname(__DIR__))
             SubstituteBindings::class,
             HandleCors::class,
             SecurityHeaders::class,
+            ForcePasswordChange::class,
         ]);
 
         // Route middleware aliases
@@ -169,6 +170,6 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], $status);
             }
 
-             // Let default handler process non-JSON requests
+            // Let default handler process non-JSON requests
         });
     })->create();

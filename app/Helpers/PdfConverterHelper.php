@@ -31,10 +31,10 @@ class PdfConverterHelper
         try {
             $soffice = base_path('storage/app_lidiag/LibreOfficePortable/App/libreoffice/program/soffice.com');
 
-            $command = escapeshellcmd('"'.$soffice.'" --headless --norestore --convert-to pdf --outdir "'.$outDir.'" "'.$sourcePath.'"');
+            $command = escapeshellarg($soffice).' --headless --norestore --convert-to pdf --outdir '.escapeshellarg($outDir).' '.escapeshellarg($sourcePath);
 
             shell_exec($command.' 2>&1');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Log::error('Error ejecutando comando de conversión: '.$e->getMessage());
 
             return false;
