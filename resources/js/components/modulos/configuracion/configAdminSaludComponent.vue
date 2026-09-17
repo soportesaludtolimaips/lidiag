@@ -1,8 +1,5 @@
 <template>
     <div>
-        <!-- ============================================================== -->
-        <!-- Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Configuración</h3>
@@ -28,19 +25,8 @@
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
-            <!-- <div class="">
-                    <button class="right-side-toggle btn-info btn btn-circle btn-sm">
-                        <i class="fa fa-plus-circle m-r-5"></i>
-                    </button>
-                </div> -->
         </div>
-        <!-- ============================================================== -->
-        <!-- End Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Start Page Content -->
-        <!-- ============================================================== -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -49,7 +35,13 @@
                         <h6 class="card-subtitle">
                             Administración de las administradoras de salud "EPS".
                         </h6>
-                        <div class="table-responsive m-t-40">
+
+                        <div v-if="loadingListar" class="text-center p-4">
+                            <i class="fa fa-spinner fa-spin fa-2x"></i>
+                            <p class="mt-2">Cargando datos...</p>
+                        </div>
+
+                        <div v-else class="table-responsive m-t-40">
                             <table
                                 id="example23"
                                 ref="dt"
@@ -111,26 +103,16 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End PAge Content -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Right sidebar -->
-        <!-- ============================================================== -->
-        <!-- .right-sidebar -->
-        <div class="right-sidebar">
+        <div class="right-sidebar" ref="sidebarRef">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <span>
-                        <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
+                        <i class="ti-close right-side-toggle" @click="btnCerrarModalForm()"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
-                    <!-- ============================================================== -->
-                    <!-- Aqui va el contenido de los formularios -->
-                    <!-- ============================================================== -->
                     <form action="#">
                         <div class="form-body">
                             <div class="row p-t-20">
@@ -179,7 +161,7 @@
                                             name="nom_admin_salud"
                                             v-model="registro.nom_admin_salud"
                                             class="form-control"
-                                            placeholder="Ingrese aquí el la razón sicual de la administradora de salud"
+                                            placeholder="Ingrese la razón social de la administradora de salud"
                                         />
                                         <span class="text-danger" v-if="errores.nom_admin_salud">{{
                                             errores.nom_admin_salud[0]
@@ -232,9 +214,9 @@
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
+                                    @click="btnCerrarModalForm()"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
                         </div>
@@ -242,18 +224,17 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Right sidebar -->
-        <!-- ============================================================== -->
     </div>
 </template>
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const dt = ref(null);
+const sidebarRef = ref(null);
+const sidebarVisible = ref(false);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
+import { confirmAction, toastMessage } from "@/helpers/alerts.js";
 import axios from "axios";
 
 const id = ref(0);
@@ -271,15 +252,6 @@ const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 
-/**
- * Obtiene la lista de administradoras de salud desde el servidor y la carga en la tabla.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 async function ListarDatos() {
     if (loadingListar.value) return;
     loadingListar.value = true;
@@ -304,148 +276,115 @@ async function ListarDatos() {
         loadingListar.value = false;
     }
 }
-/**
- * Crea o actualiza una administradora de salud según el estado de edición del formulario.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
+    errores.value = {};
     try {
+        let res;
         if (actualizar.value === false) {
-            const res = await axios.post("/api/config-admin-salud", registro.value);
-
-            if (res.status == 200) {
-                ListarDatos();
-
-                toastMessage({
-                    heading: "Ok!!!",
-                    text: res.data.data.message,
-                    icon: "success",
-                });
-            }
+            res = await axios.post("/api/config-admin-salud", registro.value);
         } else {
-            const res = await axios.put("/api/config-admin-salud/" + id.value, registro.value);
-            if (res.status == 200) {
-                ListarDatos();
+            res = await axios.put("/api/config-admin-salud/" + id.value, registro.value);
+        }
 
-                toastMessage({
-                    heading: "Ok!!!",
-                    text: res.data.data.message,
-                    icon: "success",
-                });
-            }
+        if (res.status >= 200 && res.status < 300) {
+            toastMessage({
+                heading: "Ok!!!",
+                text: res.data.data?.message || "Operación exitosa.",
+                icon: "success",
+            });
+            btnCerrarModalForm();
+            ListarDatos();
         }
     } catch (error) {
-        errores.value = error?.response?.data?.errors || {};
+        if (error.response?.status === 422) {
+            errores.value = error.response.data.errors || {};
+        } else {
+            toastMessage({
+                heading: "Error",
+                text: error.response?.data?.message || "No fue posible guardar el registro.",
+                icon: "error",
+            });
+        }
     } finally {
         loadingGuardar.value = false;
     }
 }
-/**
- * Elimina una administradora de salud previa confirmación del usuario.
- *
- * @param {number} id Identificador de la administradora de salud a eliminar.
- * @param {string} nom Nombre de la administradora de salud para el mensaje de confirmación.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-async function elimnarRegistro(id, nom) {
+
+async function elimnarRegistro(idRegistro, nom) {
     const ok = await confirmAction({
-        title: `Estas seguro de eliminar la admninistradora de salud ${nom}?`,
+        title: `¿Estás seguro de eliminar la administradora de salud ${nom}?`,
         text: "No podrás recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;
 
+    if (loadingEliminarId.value) return;
+    loadingEliminarId.value = idRegistro;
     try {
-        if (loadingEliminarId.value) return;
-        loadingEliminarId.value = id;
-        const response = await axios.delete("/api/config-admin-salud/" + id);
-        alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
+        const response = await axios.delete("/api/config-admin-salud/" + idRegistro);
+        toastMessage({
+            heading: "Ok!",
+            text: response?.data?.message || "Registro eliminado.",
+            icon: "success",
+        });
         ListarDatos();
     } catch (error) {
-        alertError("Error", "No fue posible eliminar el registro.", "error");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible eliminar el registro.",
+            icon: "error",
+        });
     } finally {
         loadingEliminarId.value = null;
     }
 }
-/**
- * Prepara el formulario lateral para crear o editar una administradora de salud.
- *
- * @param {Object} data Datos de la administradora de salud a editar (vacío para un nuevo registro).
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 function mostrarRegistro(data = {}) {
+    errores.value = {};
+
     if (actualizar.value) {
         tituloModal.value = "Actualizar el registro: " + data.nom_admin_salud;
         id.value = data.id;
         registro.value.cod_admin_salud = data.cod_admin_salud;
         registro.value.nit_admin_salud = data.nit_admin_salud;
         registro.value.nom_admin_salud = data.nom_admin_salud;
-        registro.value.estado = Boolean(data.estado);
+        registro.value.estado = data.estado;
     } else {
         actualizar.value = false;
         tituloModal.value = "Nuevo registro";
         id.value = 0;
-        registro.value.cod_admin_salud = "";
-        registro.value.nit_admin_salud = "";
-        registro.value.nom_admin_salud = "";
-        registro.value.estado = true;
+        registro.value = {
+            cod_admin_salud: "",
+            nit_admin_salud: "",
+            nom_admin_salud: "",
+            estado: true,
+        };
     }
 
-    btnCerralModalForm();
-}
-/**
- * Muestra u oculta el panel lateral del formulario mediante la clase correspondiente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function btnCerralModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").toggleClass("shw-rside");
+    btnAbrirModalForm();
 }
 
-/**
- * Hook de ciclo de vida que carga los datos al montar el componente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+function btnAbrirModalForm() {
+    sidebarVisible.value = true;
+    if (sidebarRef.value) {
+        sidebarRef.value.classList.add("shw-rside");
+    }
+}
+
+function btnCerrarModalForm() {
+    sidebarVisible.value = false;
+    if (sidebarRef.value) {
+        sidebarRef.value.classList.remove("shw-rside");
+    }
+}
+
 onMounted(() => {
     ListarDatos();
 });
 
-/**
- * Hook de ciclo de vida que destruye la tabla de datos al desmontar el componente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#example23");
 });
@@ -455,7 +394,6 @@ onBeforeUnmount(() => {
     position: fixed;
     right: -25%;
     width: 25%;
-    display: none;
     z-index: 1100;
     background: #ffffff;
     top: 0px;
@@ -471,6 +409,5 @@ onBeforeUnmount(() => {
 .shw-rside {
     right: 0px;
     width: 25%;
-    display: block;
 }
 </style>
