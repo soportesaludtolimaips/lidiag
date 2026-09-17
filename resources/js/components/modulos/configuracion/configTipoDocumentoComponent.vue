@@ -1,8 +1,5 @@
 <template>
     <div>
-        <!-- ============================================================== -->
-        <!-- Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Configuración</h3>
@@ -20,27 +17,13 @@
                 <button
                     type="button"
                     class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="
-                        actualizar = false;
-                        mostrarRegistro();
-                    "
+                    @click="prepararNuevo"
                 >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
-            <!-- <div class="">
-                    <button class="right-side-toggle btn-info btn btn-circle btn-sm">
-                        <i class="fa fa-plus-circle m-r-5"></i>
-                    </button>
-                </div> -->
         </div>
-        <!-- ============================================================== -->
-        <!-- End Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Start Page Content -->
-        <!-- ============================================================== -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -48,9 +31,13 @@
                         <h4 class="card-title">Listado de tipos de documentos</h4>
                         <h6 class="card-subtitle">
                             Administración de tipos de documentos para la prestación del servicio de
-                            imagenes diagnosticas.
+                            imágenes diagnósticas.
                         </h6>
-                        <div class="table-responsive m-t-40">
+                        <div v-if="loadingListar" class="text-center m-t-40">
+                            <i class="fa fa-spinner fa-spin fa-2x"></i>
+                            <p class="text-muted m-t-10">Cargando tipos de documentos...</p>
+                        </div>
+                        <div v-else class="table-responsive m-t-40">
                             <table
                                 id="example23"
                                 ref="dt"
@@ -83,8 +70,8 @@
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
                                                 @click="
-                                                    actualizar = true;
-                                                    mostrarRegistro(item);
+                                                    prepararEdicion(item);
+                                                    abrirSidebar();
                                                 "
                                             >
                                                 <i class="fa fa-pencil"></i>
@@ -92,7 +79,9 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="elimnarRegistro(item.id)"
+                                                @click="
+                                                    eliminarRegistro(item.id, item.tipo_documento)
+                                                "
                                                 :disabled="loadingEliminarId === item.id"
                                             >
                                                 <i
@@ -113,29 +102,20 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End PAge Content -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Right sidebar -->
-        <!-- ============================================================== -->
-        <!-- .right-sidebar -->
         <div
             class="right-sidebar"
-            style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%"
+            ref="sidebarRef"
+            style="overflow-x: hidden; overflow-y: scroll; height: 100%"
         >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <span>
-                        <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
+                        <i class="ti-close right-side-toggle" @click="cerrarSidebar"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
-                    <!-- ============================================================== -->
-                    <!-- Aqui va el contenido de los formularios -->
-                    <!-- ============================================================== -->
                     <form action="#">
                         <div class="form-body">
                             <div class="row p-t-20">
@@ -148,11 +128,14 @@
                                             name="codigo"
                                             v-model="registro.codigo"
                                             class="form-control"
+                                            :class="{ 'is-invalid': errores.hasError('codigo') }"
                                             placeholder="Código"
                                         />
-                                        <span class="text-danger" v-if="errores.codigo">{{
-                                            errores.codigo[0]
-                                        }}</span>
+                                        <span
+                                            class="text-danger"
+                                            v-if="errores.hasError('codigo')"
+                                            >{{ errores.getError("codigo") }}</span
+                                        >
                                     </div>
                                 </div>
                             </div>
@@ -167,11 +150,16 @@
                                             name="tipo_documento"
                                             v-model="registro.tipo_documento"
                                             class="form-control"
+                                            :class="{
+                                                'is-invalid': errores.hasError('tipo_documento'),
+                                            }"
                                             placeholder="Ingrese aquí el nombre del tipo de documento"
                                         />
-                                        <span class="text-danger" v-if="errores.tipo_documento">{{
-                                            errores.tipo_documento[0]
-                                        }}</span>
+                                        <span
+                                            class="text-danger"
+                                            v-if="errores.hasError('tipo_documento')"
+                                            >{{ errores.getError("tipo_documento") }}</span
+                                        >
                                     </div>
                                 </div>
                             </div>
@@ -198,7 +186,7 @@
                                 <button
                                     type="button"
                                     class="btn btn-success m-r-5"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
                                     v-if="!actualizar"
                                     :disabled="loadingGuardar"
                                 >
@@ -213,7 +201,7 @@
                                     type="button"
                                     class="btn btn-warning m-r-5"
                                     v-if="actualizar"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
                                     :disabled="loadingGuardar"
                                 >
                                     <i
@@ -226,9 +214,9 @@
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
+                                    @click="cerrarSidebar"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
                         </div>
@@ -236,18 +224,16 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Right sidebar -->
-        <!-- ============================================================== -->
     </div>
 </template>
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const dt = ref(null);
+const sidebarRef = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
+import { confirmAction, toastMessage } from "@/helpers/alerts.js";
 import axios from "axios";
 
 const id = ref(0);
@@ -255,23 +241,32 @@ const registros = ref([]);
 const registro = ref({ codigo: "", tipo_documento: "", estado: true });
 const tituloModal = ref("Nuevo registro");
 const actualizar = ref(false);
-const errores = ref({});
 const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 
-/**
- * Obtiene la lista de tipos de documentos desde el servidor y la carga en la tabla.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+const errores = ref({});
+
+function clearErrors() {
+    errores.value = {};
+}
+
+function setErrors(newErrors) {
+    errores.value = newErrors || {};
+}
+
+function hasError(field) {
+    return !!errores.value[field];
+}
+
+function getError(field) {
+    return errores.value[field]?.[0];
+}
+
 async function ListarDatos() {
     if (loadingListar.value) return;
     loadingListar.value = true;
+    clearErrors();
     try {
         const res = await axios.get("/api/config-tipos-documentos");
         safeDestroyDataTable(dt.value || "#example23");
@@ -288,122 +283,97 @@ async function ListarDatos() {
         loadingListar.value = false;
     }
 }
-/**
- * Crea o actualiza un tipo de documento según el estado de edición del formulario.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
+    clearErrors();
     loadingGuardar.value = true;
     try {
+        let res;
         if (actualizar.value === false) {
-            const res = await axios.post("/api/config-tipos-documentos", registro.value);
-
-            if (res.status == 200) {
-                ListarDatos();
-
-                toastMessage({
-                    heading: "Ok!!!",
-                    text: res.data.data.message,
-                    icon: "success",
-                });
-
-                btnCerralModalForm();
-                limpiar();
-            }
+            res = await axios.post("/api/config-tipos-documentos", registro.value);
         } else {
-            const res = await axios.put("/api/config-tipos-documentos/" + id.value, registro.value);
-            if (res.status == 200) {
-                ListarDatos();
+            res = await axios.put("/api/config-tipos-documentos/" + id.value, registro.value);
+        }
 
-                toastMessage({
-                    heading: "Ok!!!",
-                    text: res.data.data.message,
-                    icon: "success",
-                });
-
-                btnCerralModalForm();
-                limpiar();
-            }
+        if (res.status >= 200 && res.status < 300) {
+            ListarDatos();
+            toastMessage({
+                heading: "Ok!!!",
+                text: actualizar.value
+                    ? "Tipo de documento actualizado correctamente."
+                    : "Tipo de documento guardado correctamente.",
+                icon: "success",
+            });
+            cerrarSidebar();
+            limpiar();
         }
     } catch (error) {
-        errores.value = error?.response?.data?.errors || {};
+        if (error.response?.status === 422) {
+            setErrors(error.response.data.errors || {});
+        } else {
+            toastMessage({
+                heading: "Error",
+                text:
+                    error.response?.data?.message || "No fue posible guardar el tipo de documento.",
+                icon: "error",
+            });
+        }
     } finally {
         loadingGuardar.value = false;
     }
 }
-/**
- * Elimina un tipo de documento previa confirmación del usuario.
- *
- * @param {number} id Identificador del tipo de documento a eliminar.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-async function elimnarRegistro(id) {
+
+async function eliminarRegistro(idEliminar, nom) {
     const ok = await confirmAction({
-        title: "¿Estas seguro?",
+        title: `¿Estás seguro de eliminar el tipo de documento "${nom}"?`,
         text: "No podrás recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;
-
+    if (loadingEliminarId.value) return;
+    loadingEliminarId.value = idEliminar;
     try {
-        if (loadingEliminarId.value) return;
-        loadingEliminarId.value = id;
-        const response = await axios.delete("/api/config-tipos-documentos/" + id);
-        alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
+        const response = await axios.delete("/api/config-tipos-documentos/" + idEliminar);
+        toastMessage({
+            heading: "Ok!",
+            text: response?.data?.message || "Registro eliminado.",
+            icon: "success",
+        });
         ListarDatos();
     } catch (error) {
-        alertError("Error", "No fue posible eliminar el registro.", "error");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible eliminar el registro.",
+            icon: "error",
+        });
     } finally {
         loadingEliminarId.value = null;
     }
 }
-/**
- * Prepara el formulario lateral para crear o editar un tipo de documento.
- *
- * @param {Object} data Datos del tipo de documento a editar (vacío para un nuevo registro).
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function mostrarRegistro(data = {}) {
-    if (actualizar.value) {
-        tituloModal.value = "Actualizar el registro: " + (data.tipo_documento || "");
-        id.value = data.id;
-        registro.value.codigo = data.codigo;
-        registro.value.tipo_documento = data.tipo_documento;
-        registro.value.estado = Boolean(data.estado);
-    } else {
-        actualizar.value = false;
-        tituloModal.value = "Nuevo registro";
-        id.value = 0;
-        registro.value.codigo = "";
-        registro.value.tipo_documento = "";
-        registro.value.estado = true;
-    }
+
+function prepararEdicion(item) {
+    actualizar.value = true;
+    tituloModal.value = "Actualizar el registro: " + (item.tipo_documento || "");
+    id.value = item.id;
+    registro.value.codigo = item.codigo;
+    registro.value.tipo_documento = item.tipo_documento;
+    registro.value.estado = Boolean(item.estado);
+    clearErrors();
+    abrirSidebar();
 }
-/**
- * Reinicia los valores del formulario y el estado de edición a los valores iniciales.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
+function prepararNuevo() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    id.value = 0;
+    registro.value.codigo = "";
+    registro.value.tipo_documento = "";
+    registro.value.estado = true;
+    clearErrors();
+    abrirSidebar();
+}
+
 function limpiar() {
     actualizar.value = false;
     tituloModal.value = "Nuevo registro";
@@ -411,43 +381,27 @@ function limpiar() {
     registro.value.codigo = "";
     registro.value.tipo_documento = "";
     registro.value.estado = true;
-}
-/**
- * Muestra u oculta el panel lateral del formulario mediante la clase correspondiente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function btnCerralModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").toggleClass("shw-rside");
+    clearErrors();
 }
 
-/**
- * Hook de ciclo de vida que carga los datos al montar el componente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+function abrirSidebar() {
+    nextTick(() => {
+        if (sidebarRef.value) {
+            sidebarRef.value.classList.add("shw-rside");
+        }
+    });
+}
+
+function cerrarSidebar() {
+    if (sidebarRef.value) {
+        sidebarRef.value.classList.remove("shw-rside");
+    }
+}
+
 onMounted(() => {
     ListarDatos();
 });
 
-/**
- * Hook de ciclo de vida que destruye la tabla de datos al desmontar el componente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#example23");
 });

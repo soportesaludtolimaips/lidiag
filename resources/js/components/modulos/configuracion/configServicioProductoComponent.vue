@@ -131,20 +131,12 @@
         <!-- ============================================================== -->
         <!-- Right sidebar -->
         <!-- ============================================================== -->
-        <div
-            class="right-sidebar"
-            id="right-sidebar"
-            style="overflow-x: hidden; overflow-y: scroll; height: 100%"
-        >
+        <div ref="sidebarRef" class="right-sidebar" :class="{ 'shw-rside': sidebarVisible }">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     Agregar Producto
                     <span>
-                        <i
-                            class="ti-close right-side-toggle"
-                            id="btnCerralModalForm"
-                            @click="cerrarModal()"
-                        ></i>
+                        <i class="ti-close right-side-toggle" @click="cerrarModal()"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
@@ -203,7 +195,7 @@
 </template>
 <script setup>
 import { computed, onMounted, ref } from "vue";
-import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts.js";
+import { toastMessage, confirmAction } from "@/helpers/alerts.js";
 import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
 import axios from "axios";
 
@@ -216,29 +208,14 @@ const productoSeleccionado = ref("");
 const recomendacion = ref("");
 const loadingGuardar = ref(false);
 const loadingListar = ref(false);
+const sidebarVisible = ref(false);
+const sidebarRef = ref(null);
 
-/**
- * Obtiene el identificador de servicio indicado en la URL para precargar la selección.
- *
- * @returns {string|null}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-05-26
- */
 const servicioIdDesdeUrl = computed(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get("servicio_id");
 });
-/**
- * Genera las opciones para el selector de productos disponibles.
- *
- * @returns {Array<Object>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-05-26
- */
+
 const productosDisponiblesOptions = computed(() => {
     return (productosDisponibles.value || []).map(function (p) {
         return {
@@ -249,16 +226,8 @@ const productosDisponiblesOptions = computed(() => {
     });
 });
 
-/**
- * Obtiene los servicios de cita del usuario y selecciona el primero o el indicado en la URL.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-05-26
- */
 function cargarServicios() {
+    loadingListar.value = true;
     axios
         .get("/api/config-servicio-citas/mis-servicios")
         .then(function (response) {
@@ -280,34 +249,23 @@ function cargarServicios() {
             }
         })
         .catch(function (error) {
-            console.error("Error:", error);
+            toastMessage({
+                heading: "Error",
+                text: "No se pudieron cargar los servicios.",
+                icon: "error",
+            });
+        })
+        .finally(function () {
+            loadingListar.value = false;
         });
 }
-/**
- * Define el servicio seleccionado y carga sus productos vinculados.
- *
- * @param {Object} servicio Servicio de cita seleccionado por el usuario.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-05-26
- */
+
 function seleccionarServicio(servicio) {
     servicioSeleccionado.value = servicio.id;
     servicioActual.value = servicio;
     cargarProductosVinculados();
 }
-/**
- * Obtiene los productos vinculados al servicio de cita seleccionado.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-05-26
- */
+
 function cargarProductosVinculados() {
     if (!servicioSeleccionado.value) {
         return;
@@ -321,18 +279,14 @@ function cargarProductosVinculados() {
             productosVinculados.value = response.data;
         })
         .catch(function (error) {
-            console.error("Error:", error);
+            toastMessage({
+                heading: "Error",
+                text: "No se pudieron cargar los productos vinculados.",
+                icon: "error",
+            });
         });
 }
-/**
- * Carga los productos no vinculados y abre el panel lateral para agregar un producto.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-05-26
- */
+
 function mostrarModalAgregar() {
     productoSeleccionado.value = "";
     recomendacion.value = "";
@@ -347,22 +301,21 @@ function mostrarModalAgregar() {
             abrirModal();
         })
         .catch(function (error) {
-            console.error("Error:", error);
+            toastMessage({
+                heading: "Error",
+                text: "No se pudieron cargar los productos disponibles.",
+                icon: "error",
+            });
         });
 }
-/**
- * Actualiza el producto seleccionado y precarga su recomendación si existe.
- *
- * @param {*} value Valor seleccionado en el componente Select2.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-05-26
- */
+
 function onProductoSelect(value) {
     productoSeleccionado.value = value || "";
+
+    if (!value) {
+        recomendacion.value = "";
+        return;
+    }
 
     var encontrado = productosDisponibles.value.find(function (p) {
         return String(p.id) === String(value);
@@ -373,39 +326,15 @@ function onProductoSelect(value) {
             encontrado.recomendacion_producto.recomendacion) ||
         "";
 }
-/**
- * Muestra el panel lateral del formulario agregando la clase correspondiente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-05-26
- */
+
 function abrirModal() {
-    $(".right-sidebar").addClass("shw-rside");
+    sidebarVisible.value = true;
 }
-/**
- * Oculta el panel lateral del formulario removiendo la clase correspondiente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-05-26
- */
+
 function cerrarModal() {
-    $(".right-sidebar").removeClass("shw-rside");
+    sidebarVisible.value = false;
 }
-/**
- * Vincula el producto seleccionado al servicio y guarda su recomendación si se indicó.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-05-26
- */
+
 function agregarProducto() {
     if (!productoSeleccionado.value) {
         return;
@@ -419,7 +348,6 @@ function agregarProducto() {
             producto_id: productoSeleccionado.value,
         })
         .then(function (response) {
-            // Guardar también la recomendación si se ingresó texto
             if (recomendacion.value && recomendacion.value.trim()) {
                 return axios.post("/api/config-recomendacion-productos", {
                     producto_id: productoSeleccionado.value,
@@ -428,28 +356,27 @@ function agregarProducto() {
             }
         })
         .then(function () {
-            mostrarExito("Producto agregado correctamente");
+            toastMessage({
+                heading: "Éxito",
+                text: "Producto agregado correctamente.",
+                icon: "success",
+            });
             cerrarModal();
             cargarProductosVinculados();
         })
         .catch(function (error) {
-            mostrarError(error);
+            var mensaje = error.response?.data?.message || error.message || "Error desconocido";
+            toastMessage({
+                heading: "Error",
+                text: mensaje,
+                icon: "error",
+            });
         })
         .then(function () {
             loadingGuardar.value = false;
         });
 }
-/**
- * Desvincula un producto del servicio previa confirmación del usuario.
- *
- * @param {number} id Identificador del vínculo producto-servicio a eliminar.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-05-26
- */
+
 function eliminarVinculo(id) {
     confirmAction({
         title: "¿Está seguro?",
@@ -461,54 +388,26 @@ function eliminarVinculo(id) {
             axios
                 .delete("/api/servicio-producto/" + id)
                 .then(function () {
-                    mostrarExito("Producto desvinculado");
+                    toastMessage({
+                        heading: "Éxito",
+                        text: "Producto desvinculado correctamente.",
+                        icon: "success",
+                    });
                     cargarProductosVinculados();
                 })
                 .catch(function (error) {
-                    mostrarError(error);
+                    var mensaje =
+                        error.response?.data?.message || error.message || "Error desconocido";
+                    toastMessage({
+                        heading: "Error",
+                        text: mensaje,
+                        icon: "error",
+                    });
                 });
         }
     });
 }
-/**
- * Muestra una alerta de error con el mensaje obtenido de la respuesta o la excepción.
- *
- * @param {Error|Object} error Error capturado al ejecutar una petición.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-05-26
- */
-function mostrarError(error) {
-    var mensaje = error.response?.data?.message || error.message || "Error desconocido";
-    alertError("Error", mensaje);
-}
-/**
- * Muestra una alerta de éxito con el mensaje indicado.
- *
- * @param {string} mensaje Texto de confirmación a mostrar al usuario.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-05-26
- */
-function mostrarExito(mensaje) {
-    alertSuccess("Éxito", mensaje);
-}
 
-/**
- * Hook de ciclo de vida que carga los servicios al montar el componente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-05-26
- */
 onMounted(() => {
     cargarServicios();
 });

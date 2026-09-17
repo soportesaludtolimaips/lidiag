@@ -13,10 +13,7 @@
                 <button
                     type="button"
                     class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="
-                        actualizar = false;
-                        mostrarRegistro();
-                    "
+                    @click="prepararNuevo"
                 >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
@@ -29,7 +26,11 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de prioridades</h4>
                         <h6 class="card-subtitle">Catálogo de Helpdesk.</h6>
-                        <div class="table-responsive m-t-40">
+                        <div v-if="loadingListar" class="text-center m-t-40">
+                            <i class="fa fa-spinner fa-spin fa-2x"></i>
+                            <p class="text-muted m-t-10">Cargando prioridades...</p>
+                        </div>
+                        <div v-else class="table-responsive m-t-40">
                             <table
                                 id="example23"
                                 ref="dt"
@@ -60,8 +61,8 @@
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
                                                 @click="
-                                                    actualizar = true;
-                                                    mostrarRegistro(item);
+                                                    prepararEdicion(item);
+                                                    abrirSidebar();
                                                 "
                                             >
                                                 <i class="fa fa-pencil"></i>
@@ -91,11 +92,11 @@
             </div>
         </div>
 
-        <div class="right-sidebar" style="width: 400px">
+        <div class="right-sidebar" ref="sidebarRef" style="width: 400px">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span><i class="ti-close right-side-toggle" id="btnCerralModalForm"></i></span>
+                    <span><i class="ti-close right-side-toggle" @click="cerrarSidebar"></i></span>
                 </div>
                 <div class="r-panel-body">
                     <form action="#" @submit.prevent>
@@ -108,11 +109,14 @@
                                             type="text"
                                             v-model="registro.nombre"
                                             class="form-control"
+                                            :class="{ 'is-invalid': errores.hasError('nombre') }"
                                             maxlength="100"
                                         />
-                                        <span class="text-danger" v-if="errores.nombre">{{
-                                            errores.nombre[0]
-                                        }}</span>
+                                        <span
+                                            class="text-danger"
+                                            v-if="errores.hasError('nombre')"
+                                            >{{ errores.getError("nombre") }}</span
+                                        >
                                     </div>
                                 </div>
                             </div>
@@ -124,10 +128,13 @@
                                             type="number"
                                             v-model="registro.orden"
                                             class="form-control"
+                                            :class="{ 'is-invalid': errores.hasError('orden') }"
                                         />
-                                        <span class="text-danger" v-if="errores.orden">{{
-                                            errores.orden[0]
-                                        }}</span>
+                                        <span
+                                            class="text-danger"
+                                            v-if="errores.hasError('orden')"
+                                            >{{ errores.getError("orden") }}</span
+                                        >
                                     </div>
                                 </div>
                             </div>
@@ -153,7 +160,7 @@
                                     type="button"
                                     class="btn btn-success m-r-5"
                                     v-if="!actualizar"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
                                     :disabled="loadingGuardar"
                                 >
                                     <i
@@ -167,7 +174,7 @@
                                     type="button"
                                     class="btn btn-warning m-r-5"
                                     v-if="actualizar"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
                                     :disabled="loadingGuardar"
                                 >
                                     <i
@@ -180,9 +187,9 @@
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
+                                    @click="cerrarSidebar"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
                         </div>
@@ -195,32 +202,43 @@
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
+const dt = ref(null);
+const sidebarRef = ref(null);
+
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { toastMessage, confirmAction } from "@/helpers/alerts.js";
 import axios from "axios";
 
-const dt = ref(null);
 const registros = ref([]);
 const registro = ref({ id: 0, nombre: "", orden: 0, activo: true });
 const tituloModal = ref("Nuevo registro");
 const actualizar = ref(false);
-const errores = ref({});
 const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 
-/**
- * Lista las prioridades del helpdesk y reconstruye la tabla DataTables.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
+const errores = ref({});
+
+function clearErrors() {
+    errores.value = {};
+}
+
+function setErrors(newErrors) {
+    errores.value = newErrors || {};
+}
+
+function hasError(field) {
+    return !!errores.value[field];
+}
+
+function getError(field) {
+    return errores.value[field]?.[0];
+}
+
 async function listar() {
     if (loadingListar.value) return;
     loadingListar.value = true;
+    clearErrors();
     try {
         const res = await axios.get("/api/helpdesk-prioridades");
         safeDestroyDataTable(dt.value || "#example23");
@@ -241,58 +259,53 @@ async function listar() {
         loadingListar.value = false;
     }
 }
-/**
- * Abre el panel lateral para crear o editar una prioridad.
- *
- * @param {object|null} item Registro a editar o null para uno nuevo.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
-function mostrarRegistro(item = null) {
-    errores.value = {};
-    if (item) {
-        tituloModal.value = "Actualizar registro";
-        registro.value = {
-            id: item.id,
-            nombre: item.nombre,
-            orden: item.orden,
-            activo: !!item.activo,
-        };
-    } else {
-        tituloModal.value = "Nuevo registro";
-        registro.value = { id: 0, nombre: "", orden: 0, activo: true };
+
+function prepararEdicion(item) {
+    actualizar.value = true;
+    tituloModal.value = "Actualizar registro";
+    registro.value = {
+        id: item.id,
+        nombre: item.nombre,
+        orden: item.orden,
+        activo: !!item.activo,
+    };
+    clearErrors();
+    abrirSidebar();
+}
+
+function prepararNuevo() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    registro.value = { id: 0, nombre: "", orden: 0, activo: true };
+    clearErrors();
+    abrirSidebar();
+}
+
+function limpiar() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    registro.value = { id: 0, nombre: "", orden: 0, activo: true };
+    clearErrors();
+}
+
+function abrirSidebar() {
+    nextTick(() => {
+        if (sidebarRef.value) {
+            sidebarRef.value.classList.add("shw-rside");
+        }
+    });
+}
+
+function cerrarSidebar() {
+    if (sidebarRef.value) {
+        sidebarRef.value.classList.remove("shw-rside");
     }
-    document.body.classList.add("right-side-toggled");
 }
-/**
- * Cierra el panel lateral del formulario de registro.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
-function btnCerralModalForm() {
-    document.body.classList.remove("right-side-toggled");
-}
-/**
- * Crea o actualiza una prioridad del helpdesk según el modo del formulario.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
+
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
-    errores.value = {};
+    clearErrors();
     try {
         const payload = {
             nombre: registro.value.nombre,
@@ -310,11 +323,11 @@ async function guardarRegistro() {
                 icon: "success",
             });
         }
-        btnCerralModalForm();
+        cerrarSidebar();
         await listar();
     } catch (error) {
         if (error?.response?.status === 422) {
-            errores.value = error.response.data.errors || {};
+            setErrors(error.response.data.errors || {});
         } else {
             toastMessage({
                 heading: "Error",
@@ -326,17 +339,7 @@ async function guardarRegistro() {
         loadingGuardar.value = false;
     }
 }
-/**
- * Desactiva (elimina) una prioridad previa confirmación del usuario.
- *
- * @param {object} item Registro de prioridad a desactivar.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
+
 async function desactivarRegistro(item) {
     const ok = await confirmAction({
         title: "¿Desactivar?",
@@ -359,28 +362,10 @@ async function desactivarRegistro(item) {
     }
 }
 
-/**
- * Inicializa el componente listando las prioridades.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
 onMounted(() => {
     listar();
 });
 
-/**
- * Destruye la instancia de DataTables al desmontar el componente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#example23");
 });

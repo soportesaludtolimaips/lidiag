@@ -465,7 +465,7 @@
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <span>
-                        <i class="ti-close right-side-toggle" id="btnCerrarModalForm"></i>
+                        <i class="ti-close right-side-toggle"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
@@ -782,7 +782,7 @@
                                     class="btn btn-inverse"
                                     @click="cerrarFormSidebar()"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
 
@@ -933,6 +933,7 @@ import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js
 import { confirmAction, toastMessage } from "@/helpers/alerts.js";
 import EmojiPicker from "@/components/shared/EmojiPicker.vue";
 import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
+import Select2 from "@/components/shared/Select2.vue";
 import axios from "axios";
 
 const INIT_FORM_NUMEROS = {
@@ -981,15 +982,6 @@ const sidebarVisible = ref(false);
 const modalPreviewVisible = ref(false);
 const modalProbarVisible = ref(false);
 
-/**
- * Genera las opciones para el selector de productos disponibles por servicio.
- *
- * @returns {Array<Object>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 const productosDisponiblesOptions = computed(() => {
     return (productosDisponibles.value || []).map(function (p) {
         return {
@@ -1001,17 +993,6 @@ const productosDisponiblesOptions = computed(() => {
     });
 });
 
-/**
- * Cambia la pestaña activa del componente y reinicializa la tabla correspondiente.
- *
- * @param {string} tab Identificador de la pestaña a activar (numeros, saludos o productos).
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 function cambiarTab(tab) {
     tabActivo.value = tab;
     errores.value = {};
@@ -1034,15 +1015,6 @@ function cambiarTab(tab) {
         }
     });
 }
-/**
- * Obtiene la lista de números de WhatsApp por sede y la carga en la tabla.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 async function listarNumeros() {
     if (loadingNumeros.value) return;
     loadingNumeros.value = true;
@@ -1067,15 +1039,6 @@ async function listarNumeros() {
         loadingNumeros.value = false;
     }
 }
-/**
- * Obtiene la lista de saludos del bot de WhatsApp y la carga en la tabla.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 async function listarSaludos() {
     if (loadingSaludos.value) return;
     loadingSaludos.value = true;
@@ -1099,15 +1062,6 @@ async function listarSaludos() {
         loadingSaludos.value = false;
     }
 }
-/**
- * Obtiene la lista de sedes activas para los selectores del formulario.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 async function listarSedes() {
     try {
         const res = await axios.get("/api/config-sedes/listar/sedes/activas");
@@ -1120,15 +1074,6 @@ async function listarSedes() {
         });
     }
 }
-/**
- * Obtiene la lista de servicios de citas para el selector de saludos.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 async function listarServicios() {
     try {
         const res = await axios.get("/api/config-servicio-citas");
@@ -1141,15 +1086,6 @@ async function listarServicios() {
         });
     }
 }
-/**
- * Crea o actualiza un número o saludo de WhatsApp validando los campos según la pestaña activa.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     errores.value = {};
@@ -1187,7 +1123,7 @@ async function guardarRegistro() {
 
         if (actualizar.value === false) {
             const res = await axios.post(baseUrl, payload);
-            if (res.status == 201 || res.status == 200) {
+            if (res.status >= 200 && res.status < 300) {
                 recargarTabActivo();
                 toastMessage({
                     heading: "Ok!!!",
@@ -1199,7 +1135,7 @@ async function guardarRegistro() {
             }
         } else {
             const res = await axios.put(`${baseUrl}/${id.value}`, payload);
-            if (res.status == 200) {
+            if (res.status >= 200 && res.status < 300) {
                 recargarTabActivo();
                 toastMessage({
                     heading: "Ok!!!",
@@ -1216,17 +1152,6 @@ async function guardarRegistro() {
         loadingGuardar.value = false;
     }
 }
-/**
- * Elimina un número o saludo de WhatsApp previa confirmación del usuario.
- *
- * @param {number} id Identificador del registro a eliminar.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 async function eliminarRegistro(id) {
     const ok = await confirmAction({
         title: "¿Estas seguro?",
@@ -1259,17 +1184,6 @@ async function eliminarRegistro(id) {
         loadingEliminarId.value = null;
     }
 }
-/**
- * Prepara el formulario lateral para crear o editar un número o saludo de WhatsApp.
- *
- * @param {Object} data Datos del registro a editar (vacío para un nuevo registro).
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 function mostrarRegistro(data = {}) {
     if (tabActivo.value === "productos") return;
     if (tabActivo.value === "numeros") {
@@ -1306,15 +1220,6 @@ function mostrarRegistro(data = {}) {
     }
     btnCerrarModalForm();
 }
-/**
- * Recarga la lista correspondiente a la pestaña activa (números o saludos).
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 function recargarTabActivo() {
     if (tabActivo.value === "numeros") {
         listarNumeros();
@@ -1322,15 +1227,6 @@ function recargarTabActivo() {
         listarSaludos();
     }
 }
-/**
- * Reinicia los valores del formulario y el estado de edición a los valores iniciales.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 function limpiar() {
     actualizar.value = false;
     tituloModal.value = "Nuevo registro";
@@ -1345,39 +1241,12 @@ function limpiar() {
         recomendacion.value = "";
     }
 }
-/**
- * Muestra el panel lateral del formulario agregando la clase correspondiente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 function btnCerrarModalForm() {
     sidebarVisible.value = true;
 }
-/**
- * Oculta el panel lateral del formulario removiendo la clase correspondiente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 function cerrarFormSidebar() {
     sidebarVisible.value = false;
 }
-/**
- * Obtiene los servicios de citas y selecciona el primero para administrar sus productos.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 async function cargarServiciosProductos() {
     loadingServiciosProductos.value = true;
     errorServiciosProductos.value = "";
@@ -1395,31 +1264,11 @@ async function cargarServiciosProductos() {
         loadingServiciosProductos.value = false;
     }
 }
-/**
- * Define el servicio seleccionado y carga sus productos vinculados.
- *
- * @param {Object} servicio Servicio de cita seleccionado por el usuario.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 function seleccionarServicio(servicio) {
     servicioSeleccionado.value = servicio.id;
     servicioActual.value = servicio;
     cargarProductosVinculados();
 }
-/**
- * Obtiene los productos vinculados al servicio de cita seleccionado.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 async function cargarProductosVinculados() {
     if (!servicioSeleccionado.value) return;
     try {
@@ -1435,15 +1284,6 @@ async function cargarProductosVinculados() {
         });
     }
 }
-/**
- * Carga los productos no vinculados y abre el panel lateral para agregar un producto.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 async function mostrarModalAgregar() {
     try {
         const res = await axios.get("/api/servicio-producto/productos-no-vinculados", {
@@ -1464,15 +1304,6 @@ async function mostrarModalAgregar() {
     loadingAgregarProducto.value = false;
     sidebarVisible.value = true;
 }
-/**
- * Manejar la selección de un producto en el formulario.
- *
- * @param {*} value - El valor seleccionado del producto.
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-06-11
- */
 function onProductoSelect(value) {
     let selectedId = null;
     if (Array.isArray(value) && value.length > 0) {
@@ -1487,38 +1318,12 @@ function onProductoSelect(value) {
         productoSeleccionado.value = selectedId;
     }
 }
-/**
- * Muestra el panel lateral del formulario agregando la clase correspondiente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
-/**
- * Oculta el panel lateral del formulario removiendo la clase correspondiente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 function cerrarModal() {
     sidebarVisible.value = false;
 }
-/**
- * Vincula el producto seleccionado al servicio y guarda su recomendación si se indicó.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 async function agregarProducto() {
     if (!productoSeleccionado.value) return;
+    loadingAgregarProducto.value = true;
     loadingGuardar.value = true;
     try {
         await axios.post("/api/servicio-producto", {
@@ -1546,22 +1351,12 @@ async function agregarProducto() {
             icon: "error",
         });
     } finally {
+        loadingAgregarProducto.value = false;
         loadingGuardar.value = false;
         productoSeleccionado.value = "";
         recomendacion.value = "";
     }
 }
-/**
- * Desvincula un producto del servicio previa confirmación del usuario.
- *
- * @param {number} id Identificador del vínculo producto-servicio a eliminar.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 async function eliminarVinculo(id) {
     const ok = await confirmAction({
         title: "¿Está seguro?",
@@ -1587,15 +1382,6 @@ async function eliminarVinculo(id) {
         });
     }
 }
-/**
- * Inicializa y muestra el modal para probar el envío de un mensaje de WhatsApp.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 function abrirProbarEnvio() {
     testPhoneNumber.value = "";
     testResultado.value = null;
@@ -1607,15 +1393,6 @@ function abrirProbarEnvio() {
         }
     });
 }
-/**
- * Reemplaza las variables del mensaje y muestra la vista previa en un modal.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 function mostrarPreviewSaludo() {
     if (!form.value.mensaje_bienvenida) return;
     previewMensaje.value = form.value.mensaje_bienvenida
@@ -1631,18 +1408,6 @@ function mostrarPreviewSaludo() {
         }
     });
 }
-/**
- * Inserta formato de texto (negrita, cursiva, tachado o código) en la posición seleccionada.
- *
- * @param {string} before Texto de apertura de la marca de formato.
- * @param {string} after Texto de cierre de la marca de formato.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 function insertFormat(before, after) {
     const ta = mensajeTextarea.value;
     if (!ta) return;
@@ -1658,17 +1423,6 @@ function insertFormat(before, after) {
         ta.selectionEnd = start + before.length + selected.length;
     });
 }
-/**
- * Inserta un emoji en la posición del cursor del mensaje de bienvenida.
- *
- * @param {string} emoji Emoji seleccionado por el usuario.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 function insertEmoji(emoji) {
     const ta = mensajeTextarea.value;
     if (!ta) return;
@@ -1683,15 +1437,6 @@ function insertEmoji(emoji) {
         ta.selectionEnd = pos;
     });
 }
-/**
- * Envía un mensaje de prueba al número indicado y muestra el resultado de la operación.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 async function probarEnvio() {
     if (!testPhoneNumber.value || loadingTestEnvio.value) return;
     loadingTestEnvio.value = true;
@@ -1716,15 +1461,6 @@ async function probarEnvio() {
     }
 }
 
-/**
- * Hook de ciclo de vida que carga números, saludos, sedes, servicios y productos al montar.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 onMounted(() => {
     listarNumeros();
     listarSaludos();
@@ -1733,15 +1469,6 @@ onMounted(() => {
     cargarServiciosProductos();
 });
 
-/**
- * Hook de ciclo de vida que destruye las tablas de datos al desmontar el componente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-11
- */
 onBeforeUnmount(() => {
     safeDestroyDataTable(dtNumeros.value || "#tblWhatsappNumbers");
     safeDestroyDataTable(dtSaludos.value || "#tblWhatsappSaludos");

@@ -17,7 +17,11 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de estados</h4>
                         <h6 class="card-subtitle">Estados del flujo de Helpdesk.</h6>
-                        <div class="table-responsive m-t-40">
+                        <div v-if="loadingListar" class="text-center m-t-40">
+                            <i class="fa fa-spinner fa-spin fa-2x"></i>
+                            <p class="text-muted m-t-10">Cargando estados...</p>
+                        </div>
+                        <div v-else class="table-responsive m-t-40">
                             <table
                                 id="example23"
                                 ref="dt"
@@ -63,15 +67,6 @@ const dt = ref(null);
 const registros = ref([]);
 const loadingListar = ref(false);
 
-/**
- * Lista los estados del helpdesk y reconstruye la tabla DataTables.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
 async function listar() {
     if (loadingListar.value) return;
     loadingListar.value = true;
@@ -96,28 +91,10 @@ async function listar() {
     }
 }
 
-/**
- * Inicializa el componente listando los estados.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
 onMounted(() => {
     listar();
 });
 
-/**
- * Destruye la instancia de DataTables al desmontar el componente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#example23");
 });

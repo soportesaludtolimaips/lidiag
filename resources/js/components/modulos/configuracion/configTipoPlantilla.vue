@@ -1,8 +1,5 @@
 <template>
     <div>
-        <!-- ============================================================== -->
-        <!-- Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Configuración</h3>
@@ -20,29 +17,24 @@
                 <button
                     type="button"
                     class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="
-                        actualizar = false;
-                        mostrarRegistro();
-                    "
+                    @click="prepararNuevo"
                 >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Start Page Content -->
-        <!-- ============================================================== -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de tipos de plantillas</h4>
                         <h6 class="card-subtitle">Administración de las tipos de plantillas.</h6>
-                        <div class="table-responsive m-t-40">
+                        <div v-if="loadingListar" class="text-center m-t-40">
+                            <i class="fa fa-spinner fa-spin fa-2x"></i>
+                            <p class="text-muted m-t-10">Cargando tipos de plantillas...</p>
+                        </div>
+                        <div v-else class="table-responsive m-t-40">
                             <table
                                 id="example23"
                                 ref="dt"
@@ -73,8 +65,8 @@
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
                                                 @click="
-                                                    actualizar = true;
-                                                    mostrarRegistro(item);
+                                                    prepararEdicion(item);
+                                                    abrirSidebar();
                                                 "
                                             >
                                                 <i class="fa fa-pencil"></i>
@@ -82,7 +74,7 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="elimnarRegistro(item.id, item.nom_tipo)"
+                                                @click="eliminarRegistro(item.id, item.nom_tipo)"
                                                 :disabled="loadingEliminarId === item.id"
                                             >
                                                 <i
@@ -103,26 +95,16 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End PAge Content -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Right sidebar -->
-        <!-- ============================================================== -->
-        <!-- .right-sidebar -->
-        <div class="right-sidebar">
+        <div class="right-sidebar" ref="sidebarRef">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <span>
-                        <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
+                        <i class="ti-close right-side-toggle" @click="cerrarSidebar"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
-                    <!-- ============================================================== -->
-                    <!-- Aqui va el contenido de los formularios -->
-                    <!-- ============================================================== -->
                     <form action="#">
                         <div class="form-body">
                             <div class="row p-t-20">
@@ -135,11 +117,14 @@
                                             name="nom_tipo"
                                             v-model="registro.nom_tipo"
                                             class="form-control"
+                                            :class="{ 'is-invalid': errores.hasError('nom_tipo') }"
                                             placeholder="Nombre del tipo de plantilla"
                                         />
-                                        <span class="text-danger" v-if="errores.nom_tipo">{{
-                                            errores.nom_tipo[0]
-                                        }}</span>
+                                        <span
+                                            class="text-danger"
+                                            v-if="errores.hasError('nom_tipo')"
+                                            >{{ errores.getError("nom_tipo") }}</span
+                                        >
                                     </div>
                                 </div>
                             </div>
@@ -166,7 +151,7 @@
                                 <button
                                     type="button"
                                     class="btn btn-success m-r-5"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
                                     v-if="!actualizar"
                                     :disabled="loadingGuardar"
                                 >
@@ -181,7 +166,7 @@
                                     type="button"
                                     class="btn btn-warning m-r-5"
                                     v-if="actualizar"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
                                     :disabled="loadingGuardar"
                                 >
                                     <i
@@ -194,9 +179,9 @@
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
+                                    @click="cerrarSidebar"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
                         </div>
@@ -204,18 +189,16 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Right sidebar -->
-        <!-- ============================================================== -->
     </div>
 </template>
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const dt = ref(null);
+const sidebarRef = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
+import { confirmAction, toastMessage } from "@/helpers/alerts.js";
 import axios from "axios";
 
 const id = ref(0);
@@ -223,24 +206,32 @@ const registros = ref([]);
 const registro = ref({ nom_tipo: "", estado: true });
 const tituloModal = ref("Nuevo registro");
 const actualizar = ref(false);
-const errores = ref({});
-
 const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 
-/**
- * Obtiene la lista de tipos de plantillas desde el servidor y la carga en la tabla.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+const errores = ref({});
+
+function clearErrors() {
+    errores.value = {};
+}
+
+function setErrors(newErrors) {
+    errores.value = newErrors || {};
+}
+
+function hasError(field) {
+    return !!errores.value[field];
+}
+
+function getError(field) {
+    return errores.value[field]?.[0];
+}
+
 async function ListarDatos() {
     if (loadingListar.value) return;
     loadingListar.value = true;
+    clearErrors();
     try {
         const res = await axios.get("/api/config-tipos-plantillas");
         safeDestroyDataTable(dt.value || "#example23");
@@ -257,145 +248,122 @@ async function ListarDatos() {
         loadingListar.value = false;
     }
 }
-/**
- * Crea o actualiza un tipo de plantilla según el estado de edición del formulario.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
+    clearErrors();
     loadingGuardar.value = true;
     try {
+        let res;
         if (actualizar.value === false) {
-            const res = await axios.post("/api/config-tipos-plantillas", registro.value);
-
-            if (res.status >= 200 && res.status < 300) {
-                ListarDatos();
-                btnCerralModalForm();
-                toastMessage({
-                    heading: "Ok!!!",
-                    text: res.data.data.message,
-                    icon: "success",
-                });
-            }
+            res = await axios.post("/api/config-tipos-plantillas", registro.value);
         } else {
-            const res = await axios.put("/api/config-tipos-plantillas/" + id.value, registro.value);
-            if (res.status >= 200 && res.status < 300) {
-                ListarDatos();
-                btnCerralModalForm();
-                toastMessage({
-                    heading: "Ok!!!",
-                    text: res.data.data.message,
-                    icon: "success",
-                });
-            }
+            res = await axios.put("/api/config-tipos-plantillas/" + id.value, registro.value);
+        }
+
+        if (res.status >= 200 && res.status < 300) {
+            ListarDatos();
+            toastMessage({
+                heading: "Ok!!!",
+                text: actualizar.value
+                    ? "Tipo de plantilla actualizado correctamente."
+                    : "Tipo de plantilla guardado correctamente.",
+                icon: "success",
+            });
+            cerrarSidebar();
+            limpiar();
         }
     } catch (error) {
-        errores.value = error?.response?.data?.errors || {};
+        if (error.response?.status === 422) {
+            setErrors(error.response.data.errors || {});
+        } else {
+            toastMessage({
+                heading: "Error",
+                text:
+                    error.response?.data?.message || "No fue posible guardar el tipo de plantilla.",
+                icon: "error",
+            });
+        }
     } finally {
         loadingGuardar.value = false;
     }
 }
-/**
- * Elimina un tipo de plantilla previa confirmación del usuario.
- *
- * @param {number} id Identificador del tipo de plantilla a eliminar.
- * @param {string} nom Nombre del tipo de plantilla para el mensaje de confirmación.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-async function elimnarRegistro(id, nom) {
+
+async function eliminarRegistro(idEliminar, nom) {
     const ok = await confirmAction({
-        title: `Estas seguro de eliminar el tipo de plantillas ${nom}?`,
+        title: `¿Estás seguro de eliminar el tipo de plantilla "${nom}"?`,
         text: "No podrás recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;
-
+    if (loadingEliminarId.value) return;
+    loadingEliminarId.value = idEliminar;
     try {
-        if (loadingEliminarId.value) return;
-        loadingEliminarId.value = id;
-        const response = await axios.delete("/api/config-tipos-plantillas/" + id);
-        alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
+        const response = await axios.delete("/api/config-tipos-plantillas/" + idEliminar);
+        toastMessage({
+            heading: "Ok!",
+            text: response?.data?.message || "Registro eliminado.",
+            icon: "success",
+        });
         ListarDatos();
     } catch (error) {
-        alertError("Error", "No fue posible eliminar el registro.", "error");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible eliminar el registro.",
+            icon: "error",
+        });
     } finally {
         loadingEliminarId.value = null;
     }
 }
-/**
- * Prepara el formulario lateral para crear o editar un tipo de plantilla.
- *
- * @param {Object} data Datos del tipo de plantilla a editar (vacío para un nuevo registro).
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function mostrarRegistro(data = {}) {
-    if (actualizar.value) {
-        tituloModal.value = "Actualizar el registro: " + data.nom_tipo;
-        id.value = data.id;
-        registro.value.nom_tipo = data.nom_tipo;
-        registro.value.estado = Boolean(data.estado);
-    } else {
-        actualizar.value = false;
-        tituloModal.value = "Nuevo registro";
-        id.value = 0;
-        registro.value.nom_tipo = "";
-        registro.value.estado = true;
+
+function prepararEdicion(item) {
+    actualizar.value = true;
+    tituloModal.value = "Actualizar el registro: " + item.nom_tipo;
+    id.value = item.id;
+    registro.value.nom_tipo = item.nom_tipo;
+    registro.value.estado = Boolean(item.estado);
+    clearErrors();
+    abrirSidebar();
+}
+
+function prepararNuevo() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    id.value = 0;
+    registro.value.nom_tipo = "";
+    registro.value.estado = true;
+    clearErrors();
+    abrirSidebar();
+}
+
+function limpiar() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    id.value = 0;
+    registro.value.nom_tipo = "";
+    registro.value.estado = true;
+    clearErrors();
+}
+
+function abrirSidebar() {
+    nextTick(() => {
+        if (sidebarRef.value) {
+            sidebarRef.value.classList.add("shw-rside");
+        }
+    });
+}
+
+function cerrarSidebar() {
+    if (sidebarRef.value) {
+        sidebarRef.value.classList.remove("shw-rside");
     }
-
-    btnCerralModalForm();
-}
-/**
- * Muestra u oculta el panel lateral del formulario mediante la clase correspondiente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function btnCerralModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").toggleClass("shw-rside");
 }
 
-/**
- * Hook de ciclo de vida que carga los datos al montar el componente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 onMounted(() => {
     ListarDatos();
-    //listarProductos();
 });
 
-/**
- * Hook de ciclo de vida que destruye la tabla de datos al desmontar el componente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#example23");
 });

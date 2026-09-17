@@ -1,8 +1,5 @@
 <template>
     <div>
-        <!-- ============================================================== -->
-        <!-- Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Configuración</h3>
@@ -20,29 +17,24 @@
                 <button
                     type="button"
                     class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="
-                        actualizar = false;
-                        mostrarRegistro();
-                    "
+                    @click="prepararNuevo()"
                 >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Start Page Content -->
-        <!-- ============================================================== -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de plantillas</h4>
                         <h6 class="card-subtitle">Administración de las tipos de plantillas.</h6>
-                        <div class="table-responsive m-t-40">
+                        <div v-if="loadingListar" class="text-center m-t-40">
+                            <i class="fa fa-spinner fa-spin fa-2x"></i>
+                            <p class="text-muted m-t-10">Cargando plantillas...</p>
+                        </div>
+                        <div v-else class="table-responsive m-t-40">
                             <table
                                 id="example23"
                                 ref="dt"
@@ -59,33 +51,64 @@
                                         <th></th>
                                     </tr>
                                 </thead>
-                                <tbody></tbody>
+                                <tbody>
+                                    <tr v-for="item in registrosData" :key="item.id">
+                                        <td>{{ item.plantilla_tipo?.nom_tipo || "" }}</td>
+                                        <td>{{ item.nom_plantilla }}</td>
+                                        <td>{{ item.medico?.name || "" }}</td>
+                                        <td>
+                                            <span class="label label-success" v-if="item.estado"
+                                                >Activo</span
+                                            >
+                                            <span class="label label-danger" v-if="!item.estado"
+                                                >Inactivo</span
+                                            >
+                                        </td>
+                                        <td class="text-nowrap">
+                                            <button
+                                                type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
+                                                @click="prepararEdicion(item)"
+                                                :disabled="loadingEliminarId === item.id"
+                                            >
+                                                <i class="fa fa-pencil"></i>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
+                                                @click="
+                                                    eliminarRegistro(item.id, item.nom_plantilla)
+                                                "
+                                                :disabled="loadingEliminarId === item.id"
+                                            >
+                                                <i
+                                                    class="fa"
+                                                    :class="
+                                                        loadingEliminarId === item.id
+                                                            ? 'fa-spinner fa-spin'
+                                                            : 'fa-trash'
+                                                    "
+                                                ></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End PAge Content -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Right sidebar -->
-        <!-- ============================================================== -->
-        <!-- .right-sidebar -->
-        <div class="right-sidebar">
+        <div class="right-sidebar" ref="sidebarRef">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <span>
-                        <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
+                        <i class="ti-close right-side-toggle" @click="cerrarSidebar"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
-                    <!-- ============================================================== -->
-                    <!-- Aqui va el contenido de los formularios -->
-                    <!-- ============================================================== -->
                     <form action="#">
                         <div class="form-body" style="padding-top: 5px">
                             <div class="row">
@@ -117,17 +140,15 @@
                                             <option>Seleccione el médico</option>
                                             <option
                                                 v-for="ItemMedico in medicos"
-                                                :key="ItemMedico"
+                                                :key="ItemMedico.id"
                                                 :value="ItemMedico.id"
                                             >
                                                 {{ ItemMedico.name }}
                                             </option>
-                                            <span
-                                                class="text-danger"
-                                                v-if="errores.nom_plantilla"
-                                                >{{ errores.medico_id[0] }}</span
-                                            >
                                         </select>
+                                        <span class="text-danger" v-if="errores.medico_id">{{
+                                            errores.medico_id[0]
+                                        }}</span>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -139,10 +160,10 @@
                                             v-model="registro.plantilla_tipo_id"
                                             name="plantilla_tipo_id"
                                         >
-                                            <option>Seleccione el médico</option>
+                                            <option>Seleccione el tipo de plantilla</option>
                                             <option
                                                 v-for="ItemTipoPlantilla in tiposPlantillas"
-                                                :key="ItemTipoPlantilla"
+                                                :key="ItemTipoPlantilla.id"
                                                 :value="ItemTipoPlantilla.id"
                                             >
                                                 {{ ItemTipoPlantilla.nom_tipo }}
@@ -228,9 +249,9 @@
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
+                                    @click="cerrarSidebar()"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
                         </div>
@@ -238,17 +259,15 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Right sidebar -->
-        <!-- ============================================================== -->
     </div>
 </template>
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const dt = ref(null);
+const sidebarRef = ref(null);
 
-import { safeDestroyDataTable } from "@/helpers/datatables.js";
+import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
 import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import axios from "axios";
@@ -272,15 +291,6 @@ const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 
-/**
- * Obtiene la lista de plantillas desde el servidor e inicializa la tabla con sus columnas.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 async function ListarDatos() {
     if (loadingListar.value) return;
     loadingListar.value = true;
@@ -291,38 +301,9 @@ async function ListarDatos() {
         safeDestroyDataTable(dt.value || "#example23");
 
         nextTick(() => {
-            const table = $(dt.value || "#example23");
-            table.DataTable({
-                data: registrosData.value,
-                columns: [
-                    {
-                        data: null,
-                        render: (d) => d.plantilla_tipo?.nom_tipo || "",
-                    },
-                    { data: "nom_plantilla" },
-                    {
-                        data: null,
-                        render: (d) => d.medico?.name || "",
-                    },
-                    {
-                        data: "estado",
-                        render: (d) =>
-                            d
-                                ? '<span class="label label-success">Activo</span>'
-                                : '<span class="label label-danger">Inactivo</span>',
-                    },
-                    {
-                        data: null,
-                        orderable: false,
-                        searchable: false,
-                        render: (d, type, row) =>
-                            `<button type="button" class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5 dt-edit" data-id="${row.id}"><i class="fa fa-pencil"></i></button>` +
-                            `<button type="button" class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm dt-delete" data-id="${row.id}" data-nom="${row.nom_plantilla}"><i class="fa fa-trash"></i></button>`,
-                    },
-                ],
+            safeInitDataTable(dt.value || "#example23", {
                 dom: "Bfrtip",
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
-                destroy: true,
             });
         });
     } catch (error) {
@@ -331,15 +312,7 @@ async function ListarDatos() {
         loadingListar.value = false;
     }
 }
-/**
- * Crea o actualiza una plantilla según el estado de edición del formulario.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
@@ -356,7 +329,7 @@ async function guardarRegistro() {
 
                 ListarDatos();
                 limpiarFormulario();
-                btnCerralModalForm();
+                cerrarSidebar();
             }
         } else {
             const res = await axios.put("/api/config-plantillas/" + id.value, registro.value);
@@ -369,7 +342,7 @@ async function guardarRegistro() {
 
                 ListarDatos();
                 limpiarFormulario();
-                btnCerralModalForm();
+                cerrarSidebar();
             }
         }
     } catch (error) {
@@ -378,21 +351,10 @@ async function guardarRegistro() {
         loadingGuardar.value = false;
     }
 }
-/**
- * Elimina una plantilla previa confirmación del usuario.
- *
- * @param {number} id Identificador de la plantilla a eliminar.
- * @param {string} nom Nombre de la plantilla para el mensaje de confirmación.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-async function elimnarRegistro(id, nom) {
+
+async function eliminarRegistro(idEliminar, nom) {
     const ok = await confirmAction({
-        title: `Estas seguro de eliminar el tipo de plantillas ${nom}?`,
+        title: `¿Estás seguro de eliminar la plantilla "${nom}"?`,
         text: "No podrás recuperar este registro!",
         icon: "warning",
     });
@@ -400,8 +362,8 @@ async function elimnarRegistro(id, nom) {
 
     try {
         if (loadingEliminarId.value) return;
-        loadingEliminarId.value = id;
-        const response = await axios.delete("/api/config-plantillas/" + id);
+        loadingEliminarId.value = idEliminar;
+        const response = await axios.delete("/api/config-plantillas/" + idEliminar);
         alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
         ListarDatos();
     } catch (error) {
@@ -410,15 +372,7 @@ async function elimnarRegistro(id, nom) {
         loadingEliminarId.value = null;
     }
 }
-/**
- * Obtiene la lista de médicos según el módulo activo para vincularlos a la plantilla.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function listarMedicos() {
     try {
         const pathname = String(window?.location?.pathname || "").toLowerCase();
@@ -434,15 +388,7 @@ async function listarMedicos() {
         });
     }
 }
-/**
- * Obtiene la lista de tipos de plantillas activos para el selector del formulario.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function listarTiposPlantillas() {
     try {
         const res = await axios.get("/api/config-tipos-plantillas/listar/activos");
@@ -455,63 +401,35 @@ async function listarTiposPlantillas() {
         });
     }
 }
-/**
- * Prepara el formulario lateral para crear o editar una plantilla.
- *
- * @param {Object} data Datos de la plantilla a editar (vacío para un nuevo registro).
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function mostrarRegistro(data = {}) {
-    if (actualizar.value == true) {
-        tituloModal.value = "Actualizar el registro: " + data.nom_plantilla;
-        id.value = data.id;
-        registro.value.plantilla_tipo_id = data.plantilla_tipo_id;
-        registro.value.medico_id = data.medico_id;
-        registro.value.nom_plantilla = data.nom_plantilla;
-        registro.value.plantilla = data.plantilla;
-        registro.value.opinion = data.opinion;
-        registro.value.estado = data.estado;
-    } else {
-        actualizar.value = false;
-        tituloModal.value = "Nuevo registro";
-        id.value = 0;
-        registro.value.plantilla_tipo_id = "";
-        registro.value.medico_id = "";
-        registro.value.nom_plantilla = "";
-        registro.value.plantilla = "";
-        registro.value.opinion = "";
-        registro.value.estado = true;
-    }
 
-    btnCerralModalForm();
+function prepararNuevo() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    id.value = 0;
+    registro.value.plantilla_tipo_id = "";
+    registro.value.medico_id = "";
+    registro.value.nom_plantilla = "";
+    registro.value.plantilla = "";
+    registro.value.opinion = "";
+    registro.value.estado = true;
+    errores.value = {};
+    abrirSidebar();
 }
-/**
- * Muestra u oculta el panel lateral del formulario mediante la clase correspondiente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function btnCerralModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").toggleClass("shw-rside");
+
+function prepararEdicion(data) {
+    actualizar.value = true;
+    tituloModal.value = "Actualizar el registro: " + data.nom_plantilla;
+    id.value = data.id;
+    registro.value.plantilla_tipo_id = data.plantilla_tipo_id;
+    registro.value.medico_id = data.medico_id;
+    registro.value.nom_plantilla = data.nom_plantilla;
+    registro.value.plantilla = data.plantilla;
+    registro.value.opinion = data.opinion;
+    registro.value.estado = data.estado;
+    errores.value = {};
+    abrirSidebar();
 }
-/**
- * Reinicia los valores del formulario y el estado de edición a los valores iniciales.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 function limpiarFormulario() {
     errores.value = {};
     registro.value.plantilla_tipo_id = "";
@@ -519,50 +437,30 @@ function limpiarFormulario() {
     registro.value.nom_plantilla = "";
     registro.value.plantilla = "";
     registro.value.opinion = "";
-    registro.value.estado = 1;
+    registro.value.estado = true;
 }
 
-/**
- * Hook de ciclo de vida que registra los eventos de la tabla y carga los datos al montar.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-onMounted(() => {
-    $(document).on("click", "#example23 .dt-edit", function () {
-        const rowId = $(this).data("id");
-        const item = registrosData.value.find((r) => r.id === rowId);
-        if (item) {
-            actualizar.value = true;
-            mostrarRegistro(item);
+function abrirSidebar() {
+    nextTick(() => {
+        if (sidebarRef.value) {
+            sidebarRef.value.classList.add("shw-rside");
         }
     });
+}
 
-    $(document).on("click", "#example23 .dt-delete", function () {
-        const rowId = $(this).data("id");
-        const rowNom = $(this).data("nom");
-        elimnarRegistro(rowId, rowNom);
-    });
+function cerrarSidebar() {
+    if (sidebarRef.value) {
+        sidebarRef.value.classList.remove("shw-rside");
+    }
+}
 
+onMounted(() => {
     ListarDatos();
-    (listarMedicos(), listarTiposPlantillas());
+    listarMedicos();
+    listarTiposPlantillas();
 });
 
-/**
- * Hook de ciclo de vida que remueve los eventos de la tabla y la destruye al desmontar.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 onBeforeUnmount(() => {
-    $(document).off("click", "#example23 .dt-edit");
-    $(document).off("click", "#example23 .dt-delete");
     safeDestroyDataTable(dt.value || "#example23");
 });
 </script>

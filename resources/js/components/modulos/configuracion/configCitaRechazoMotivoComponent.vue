@@ -17,10 +17,7 @@
                 <button
                     type="button"
                     class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="
-                        actualizar = false;
-                        mostrarRegistro();
-                    "
+                    @click="prepararNuevo"
                 >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
@@ -84,8 +81,8 @@
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
                                                 @click="
-                                                    actualizar = true;
-                                                    mostrarRegistro(item);
+                                                    prepararEdicion(item);
+                                                    abrirSidebar();
                                                 "
                                             >
                                                 <i class="fa fa-pencil"></i>
@@ -93,7 +90,7 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="eliminarRegistro(item.id)"
+                                                @click="eliminarRegistro(item.id, item.motivo)"
                                                 :disabled="loadingEliminarId === item.id"
                                             >
                                                 <i
@@ -115,12 +112,16 @@
             </div>
         </div>
 
-        <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; height: 100%">
+        <div
+            class="right-sidebar"
+            ref="sidebarRef"
+            style="overflow-x: hidden; overflow-y: scroll; height: 100%"
+        >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <span>
-                        <i class="ti-close right-side-toggle" id="btnCerrarModalForm"></i>
+                        <i class="ti-close right-side-toggle" @click="cerrarSidebar"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
@@ -136,12 +137,14 @@
                                             type="text"
                                             v-model="registro.motivo"
                                             class="form-control"
-                                            :class="{ 'is-invalid': errores.motivo }"
+                                            :class="{ 'is-invalid': errores.hasError('motivo') }"
                                             placeholder="Ingrese el motivo de rechazo"
                                         />
-                                        <span class="text-danger" v-if="errores.motivo">{{
-                                            errores.motivo[0]
-                                        }}</span>
+                                        <span
+                                            class="text-danger"
+                                            v-if="errores.hasError('motivo')"
+                                            >{{ errores.getError("motivo") }}</span
+                                        >
                                     </div>
                                 </div>
                             </div>
@@ -165,7 +168,7 @@
                                 <button
                                     type="button"
                                     class="btn btn-success m-r-5"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
                                     v-if="!actualizar"
                                     :disabled="loadingGuardar"
                                 >
@@ -179,7 +182,7 @@
                                     type="button"
                                     class="btn btn-warning m-r-5"
                                     v-if="actualizar"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
                                     :disabled="loadingGuardar"
                                 >
                                     <i
@@ -191,9 +194,9 @@
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="cerrarFormSidebar()"
+                                    @click="cerrarSidebar"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
                         </div>
@@ -207,9 +210,11 @@
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const dt = ref(null);
+const sidebarRef = ref(null);
+const sidebarVisible = ref(false);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
+import { confirmAction, toastMessage } from "@/helpers/alerts.js";
 import axios from "axios";
 
 const id = ref(0);
@@ -217,25 +222,34 @@ const registros = ref([]);
 const registro = ref({ motivo: "", activo: 1 });
 const tituloModal = ref("Nuevo registro");
 const actualizar = ref(false);
-const errores = ref({});
 const loadingListar = ref(false);
 const errorMotivos = ref("");
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 
-/**
- * Obtiene la lista de motivos de rechazo de citas desde el servidor y la carga en la tabla.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+const errores = ref({});
+
+function clearErrors() {
+    errores.value = {};
+}
+
+function setErrors(newErrors) {
+    errores.value = newErrors || {};
+}
+
+function hasError(field) {
+    return !!errores.value[field];
+}
+
+function getError(field) {
+    return errores.value[field]?.[0];
+}
+
 async function listarMotivos() {
     if (loadingListar.value) return;
     loadingListar.value = true;
     errorMotivos.value = "";
+    clearErrors();
     try {
         const res = await axios.get("/api/citas-rechazo-motivos");
         safeDestroyDataTable(dt.value || "#tblRechazoMotivos");
@@ -254,20 +268,12 @@ async function listarMotivos() {
         loadingListar.value = false;
     }
 }
-/**
- * Crea o actualiza un motivo de rechazo de citas según el estado de edición del formulario.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
-    errores.value = {};
+    clearErrors();
     if (!registro.value.motivo || !registro.value.motivo.trim()) {
-        errores.value = { motivo: ["El motivo es obligatorio."] };
+        setErrors({ motivo: ["El motivo es obligatorio."] });
         return;
     }
     loadingGuardar.value = true;
@@ -276,157 +282,115 @@ async function guardarRegistro() {
             motivo: registro.value.motivo,
             activo: registro.value.activo === 1 || registro.value.activo === true,
         };
+        let res;
         if (actualizar.value === false) {
-            const res = await axios.post("/api/citas-rechazo-motivos", payload);
-            if (res.status == 201 || res.status == 200) {
-                listarMotivos();
-                toastMessage({
-                    heading: "Ok!!!",
-                    text: "Motivo guardado correctamente.",
-                    icon: "success",
-                });
-                cerrarFormSidebar();
-                limpiar();
-            }
+            res = await axios.post("/api/citas-rechazo-motivos", payload);
         } else {
-            const res = await axios.put("/api/citas-rechazo-motivos/" + id.value, payload);
-            if (res.status == 200) {
-                listarMotivos();
-                toastMessage({
-                    heading: "Ok!!!",
-                    text: "Motivo actualizado correctamente.",
-                    icon: "success",
-                });
-                cerrarFormSidebar();
-                limpiar();
-            }
+            res = await axios.put("/api/citas-rechazo-motivos/" + id.value, payload);
+        }
+
+        if (res.status >= 200 && res.status < 300) {
+            listarMotivos();
+            toastMessage({
+                heading: "Ok!!!",
+                text: actualizar.value
+                    ? "Motivo actualizado correctamente."
+                    : "Motivo guardado correctamente.",
+                icon: "success",
+            });
+            cerrarSidebar();
+            limpiar();
         }
     } catch (error) {
-        errores.value = error?.response?.data?.errors || {};
+        if (error.response?.status === 422) {
+            setErrors(error.response.data.errors || {});
+        } else {
+            toastMessage({
+                heading: "Error",
+                text: error.response?.data?.message || "No fue posible guardar el motivo.",
+                icon: "error",
+            });
+        }
     } finally {
         loadingGuardar.value = false;
     }
 }
-/**
- * Elimina un motivo de rechazo de citas previa confirmación del usuario.
- *
- * @param {number} id Identificador del motivo de rechazo a eliminar.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-async function eliminarRegistro(id) {
+
+async function eliminarRegistro(idEliminar, nom) {
     const ok = await confirmAction({
-        title: "¿Estas seguro?",
+        title: `¿Estás seguro de eliminar el motivo "${nom}"?`,
         text: "No podrás recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;
+    if (loadingEliminarId.value) return;
+    loadingEliminarId.value = idEliminar;
     try {
-        if (loadingEliminarId.value) return;
-        loadingEliminarId.value = id;
-        const response = await axios.delete("/api/citas-rechazo-motivos/" + id);
-        alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
+        const response = await axios.delete("/api/citas-rechazo-motivos/" + idEliminar);
+        toastMessage({
+            heading: "Ok!",
+            text: response?.data?.message || "Registro eliminado.",
+            icon: "success",
+        });
         listarMotivos();
     } catch (error) {
-        alertError("Error", "No fue posible eliminar el registro.", "error");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible eliminar el registro.",
+            icon: "error",
+        });
     } finally {
         loadingEliminarId.value = null;
     }
 }
-/**
- * Prepara el formulario lateral para crear o editar un motivo de rechazo de citas.
- *
- * @param {Object} data Datos del motivo de rechazo a editar (vacío para un nuevo registro).
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function mostrarRegistro(data = {}) {
-    if (actualizar.value) {
-        tituloModal.value = "Actualizar motivo: " + data.motivo;
-        id.value = data.id;
-        registro.value.motivo = data.motivo;
-        registro.value.activo = data.activo ? 1 : 0;
-    } else {
-        tituloModal.value = "Nuevo motivo de rechazo";
-        id.value = 0;
-        registro.value.motivo = "";
-        registro.value.activo = 1;
-    }
-    btnCerrarModalForm();
+
+function prepararEdicion(item) {
+    actualizar.value = true;
+    tituloModal.value = "Actualizar motivo: " + item.motivo;
+    id.value = item.id;
+    registro.value.motivo = item.motivo;
+    registro.value.activo = item.activo ? 1 : 0;
+    clearErrors();
+    abrirSidebar();
 }
-/**
- * Reinicia los valores del formulario y el estado de edición a los valores iniciales.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
+function prepararNuevo() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo motivo de rechazo";
+    id.value = 0;
+    registro.value.motivo = "";
+    registro.value.activo = 1;
+    clearErrors();
+    abrirSidebar();
+}
+
 function limpiar() {
     actualizar.value = false;
     tituloModal.value = "Nuevo motivo de rechazo";
     id.value = 0;
     registro.value.motivo = "";
     registro.value.activo = 1;
-}
-/**
- * Muestra el panel lateral del formulario agregando la clase correspondiente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function btnCerrarModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").addClass("shw-rside");
-}
-/**
- * Oculta el panel lateral del formulario removiendo la clase correspondiente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function cerrarFormSidebar() {
-    $(".right-sidebar").slideUp(50);
-    $(".right-sidebar").removeClass("shw-rside");
+    clearErrors();
 }
 
-/**
- * Hook de ciclo de vida que carga los motivos al montar el componente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+function abrirSidebar() {
+    nextTick(() => {
+        if (sidebarRef.value) {
+            sidebarRef.value.classList.add("shw-rside");
+        }
+    });
+}
+
+function cerrarSidebar() {
+    if (sidebarRef.value) {
+        sidebarRef.value.classList.remove("shw-rside");
+    }
+}
+
 onMounted(() => {
     listarMotivos();
 });
 
-/**
- * Hook de ciclo de vida que destruye la tabla de datos al desmontar el componente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#tblRechazoMotivos");
 });

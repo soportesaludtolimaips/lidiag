@@ -1,8 +1,5 @@
 <template>
     <div>
-        <!-- ============================================================== -->
-        <!-- Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Configuración</h3>
@@ -20,22 +17,13 @@
                 <button
                     type="button"
                     class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="
-                        actualizar = false;
-                        mostrarRegistro();
-                    "
+                    @click="prepararNuevo"
                 >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Start Page Content -->
-        <!-- ============================================================== -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -44,7 +32,11 @@
                         <h6 class="card-subtitle">
                             Administración de los consentimiento informado.
                         </h6>
-                        <div class="table-responsive m-t-40">
+                        <div v-if="loadingListar" class="text-center m-t-40">
+                            <i class="fa fa-spinner fa-spin fa-2x"></i>
+                            <p class="text-muted m-t-10">Cargando consentimientos...</p>
+                        </div>
+                        <div v-else class="table-responsive m-t-40">
                             <table
                                 id="example23"
                                 ref="dt"
@@ -93,8 +85,8 @@
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
                                                 @click="
-                                                    actualizar = true;
-                                                    mostrarRegistro(item);
+                                                    prepararEdicion(item);
+                                                    abrirSidebar();
                                                 "
                                             >
                                                 <i class="fa fa-pencil"></i>
@@ -102,9 +94,17 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="elimnarRegistro(item.id, item.nombre)"
+                                                @click="eliminarRegistro(item.id, item.nombre)"
+                                                :disabled="loadingEliminarId === item.id"
                                             >
-                                                <i class="fa fa-trash"></i>
+                                                <i
+                                                    class="fa"
+                                                    :class="
+                                                        loadingEliminarId === item.id
+                                                            ? 'fa-spinner fa-spin'
+                                                            : 'fa-trash'
+                                                    "
+                                                ></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -115,26 +115,16 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End PAge Content -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Right sidebar -->
-        <!-- ============================================================== -->
-        <!-- .right-sidebar -->
-        <div class="right-sidebar">
+        <div class="right-sidebar" ref="sidebarRef">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <span>
-                        <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
+                        <i class="ti-close right-side-toggle" @click="cerrarSidebar"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
-                    <!-- ============================================================== -->
-                    <!-- Aqui va el contenido de los formularios -->
-                    <!-- ============================================================== -->
                     <form action="#">
                         <div class="form-body">
                             <div class="row p-t-20">
@@ -142,15 +132,17 @@
                                     <div class="form-group">
                                         <label class="control-label">Producto</label>
                                         <Select2
-                                            :value="productoSelecciondo"
+                                            :value="productoSeleccionado"
                                             :options="productoOptions"
                                             width="100%"
                                             :allow-clear="true"
                                             @input="onProductoSelect"
                                         />
-                                        <span class="text-danger" v-if="errores.producto_id">{{
-                                            errores.producto_id[0]
-                                        }}</span>
+                                        <span
+                                            class="text-danger"
+                                            v-if="errores.hasError('producto_id')"
+                                            >{{ errores.getError("producto_id") }}</span
+                                        >
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -164,20 +156,35 @@
                                             name="nombre"
                                             v-model="registro.nombre"
                                             class="form-control"
+                                            :class="{ 'is-invalid': errores.hasError('nombre') }"
+                                            placeholder="Ingrese el nombre del consentimiento"
                                         />
-                                        <span class="text-danger" v-if="errores.nombre">
-                                            {{ errores.nombre[0] }}
-                                        </span>
+                                        <span
+                                            class="text-danger"
+                                            v-if="errores.hasError('nombre')"
+                                            >{{ errores.getError("nombre") }}</span
+                                        >
                                     </div>
                                 </div>
-                                <div class="form-group">
-                                    <input
-                                        type="file"
-                                        class="form-control"
-                                        id="exampleInputFile1"
-                                        aria-describedby="fileHelp"
-                                        @change="obtenerArchivo"
-                                    />
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label">Archivo PDF</label>
+                                        <input
+                                            type="file"
+                                            class="form-control"
+                                            id="archivo"
+                                            accept=".pdf"
+                                            @change="obtenerArchivo"
+                                        />
+                                        <span
+                                            class="text-danger"
+                                            v-if="errores.hasError('archivo')"
+                                            >{{ errores.getError("archivo") }}</span
+                                        >
+                                    </div>
                                 </div>
                             </div>
 
@@ -203,27 +210,37 @@
                                 <button
                                     type="button"
                                     class="btn btn-success m-r-5"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
                                     v-if="!actualizar"
+                                    :disabled="loadingGuardar"
                                 >
-                                    <i class="fa fa-check"></i> Guardar
+                                    <i
+                                        class="fa"
+                                        :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"
+                                    ></i>
+                                    Guardar
                                 </button>
 
                                 <button
                                     type="button"
                                     class="btn btn-warning m-r-5"
                                     v-if="actualizar"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
+                                    :disabled="loadingGuardar"
                                 >
-                                    <i class="fa fa-pencil"></i> Actualizar
+                                    <i
+                                        class="fa"
+                                        :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-pencil'"
+                                    ></i>
+                                    Actualizar
                                 </button>
 
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
+                                    @click="cerrarSidebar"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
                         </div>
@@ -231,18 +248,16 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Right sidebar -->
-        <!-- ============================================================== -->
     </div>
 </template>
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const dt = ref(null);
+const sidebarRef = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { confirmAction, alertSuccess, alertError, toastMessage } from "@/helpers/alerts.js";
+import { confirmAction, toastMessage } from "@/helpers/alerts.js";
 import Select2 from "@/components/shared/Select2.vue";
 import axios from "axios";
 
@@ -254,27 +269,34 @@ const registro = ref({
     nombre: "",
     estado: true,
 });
-const productoSelecciondo = ref(null);
+const productoSeleccionado = ref(null);
 const archivoFile = ref(null);
 const tituloModal = ref("Nuevo registro");
 const actualizar = ref(false);
-const errores = ref({});
-const productos = ref([]);
 const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
+const productos = ref([]);
 
-/**
- * Genera las opciones para el selector de productos usado en el formulario.
- *
- * @returns {Array<Object>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+const errores = ref({});
+
+function clearErrors() {
+    errores.value = {};
+}
+
+function setErrors(newErrors) {
+    errores.value = newErrors || {};
+}
+
+function hasError(field) {
+    return !!errores.value[field];
+}
+
+function getError(field) {
+    return errores.value[field]?.[0];
+}
+
 const productoOptions = computed(() => {
-    // Opciones para el Select2 local de productos.
     return (productos.value || []).map((p) => ({
         id: String(p.id),
         cod_cups: p.cod_cups,
@@ -282,18 +304,10 @@ const productoOptions = computed(() => {
     }));
 });
 
-/**
- * Obtiene la lista de consentimientos informados desde el servidor y la carga en la tabla.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 async function ListarDatos() {
     if (loadingListar.value) return;
     loadingListar.value = true;
+    clearErrors();
     try {
         const res = await axios.get("/api/config-consentimiento-informado");
         safeDestroyDataTable(dt.value || "#example23");
@@ -310,18 +324,11 @@ async function ListarDatos() {
         loadingListar.value = false;
     }
 }
-/**
- * Crea o actualiza un consentimiento informado enviando los datos y el archivo al servidor.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
+    clearErrors();
     try {
         const sedeId = sessionStorage.getItem("ST-sede");
         const formData = new FormData();
@@ -346,60 +353,56 @@ async function guardarRegistro() {
         if (res.status === 200 || res.status === 201) {
             toastMessage({
                 heading: "Ok!!!",
-                text: res.data.data.message || "Guardado correctamente.",
+                text: res.data.data?.message || "Guardado correctamente.",
                 icon: "success",
             });
             ListarDatos();
             limpiarFormulario();
-            btnCerralModalForm();
+            cerrarSidebar();
         }
     } catch (error) {
-        errores.value = error?.response?.data?.errors || {};
+        if (error.response?.status === 422) {
+            setErrors(error.response.data.errors || {});
+        } else {
+            toastMessage({
+                heading: "Error",
+                text: error.response?.data?.message || "No fue posible guardar el consentimiento.",
+                icon: "error",
+            });
+        }
     } finally {
         loadingGuardar.value = false;
     }
 }
-/**
- * Elimina un consentimiento informado previa confirmación del usuario.
- *
- * @param {number} id Identificador del consentimiento informado a eliminar.
- * @param {string} nom Nombre del consentimiento informado para el mensaje de confirmación.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-async function elimnarRegistro(id, nom) {
+
+async function eliminarRegistro(idEliminar, nom) {
     const ok = await confirmAction({
-        title: `Estas seguro de eliminar el consentimiento informado ${nom}?`,
+        title: `¿Estás seguro de eliminar el consentimiento "${nom}"?`,
         text: "No podrás recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;
-
+    if (loadingEliminarId.value) return;
+    loadingEliminarId.value = idEliminar;
     try {
-        if (loadingEliminarId.value) return;
-        loadingEliminarId.value = id;
-        const response = await axios.delete("/api/config-consentimiento-informado/" + id);
-        alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
+        const response = await axios.delete("/api/config-consentimiento-informado/" + idEliminar);
+        toastMessage({
+            heading: "Ok!",
+            text: response?.data?.message || "Registro eliminado.",
+            icon: "success",
+        });
         ListarDatos();
     } catch (error) {
-        alertError("Error", "No fue posible eliminar el registro.", "error");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible eliminar el registro.",
+            icon: "error",
+        });
     } finally {
         loadingEliminarId.value = null;
     }
 }
-/**
- * Obtiene la lista de productos disponibles para vincularlos al consentimiento informado.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
@@ -412,31 +415,11 @@ async function listarProductos() {
         });
     }
 }
-/**
- * Captura el archivo seleccionado en el input de tipo file del formulario.
- *
- * @param {Event} e Evento de cambio del input de archivo.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 function obtenerArchivo(e) {
     archivoFile.value = e.target.files?.[0] || null;
 }
-/**
- * Actualiza el producto seleccionado a partir del valor retornado por el selector.
- *
- * @param {*} value Valor seleccionado en el componente Select2.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 function onProductoSelect(value) {
     let selectedId = null;
     if (Array.isArray(value) && value.length > 0) {
@@ -448,111 +431,72 @@ function onProductoSelect(value) {
         selectedId = String(value);
     }
     registro.value.producto_id = selectedId ? Number(selectedId) : null;
-    productoSelecciondo.value = selectedId;
+    productoSeleccionado.value = selectedId;
 }
-/**
- * Devuelve la ruta pública del archivo PDF de un consentimiento informado.
- *
- * @param {Object} item Registro del consentimiento informado que contiene el archivo.
- *
- * @returns {string|null}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 function archivoUrl(item) {
     if (!item?.archivo) return null;
     return `/storage/${item.archivo}`;
 }
-/**
- * Prepara el formulario lateral para crear o editar un consentimiento informado.
- *
- * @param {Object} data Datos del consentimiento informado a editar (vacío para un nuevo registro).
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function mostrarRegistro(data = {}) {
-    if (actualizar.value == true) {
+
+function prepararEdicion(data) {
+    if (data && data.id) {
+        actualizar.value = true;
         tituloModal.value = "Actualizar el registro: " + (data.nombre || "");
         id.value = data.id;
         registro.value.producto_id = data.producto_id;
-        productoSelecciondo.value = String(data.producto_id ?? "");
+        productoSeleccionado.value = String(data.producto_id ?? "");
         registro.value.sede_id = data.sede_id;
         registro.value.nombre = data.nombre;
         registro.value.estado = !!data.estado;
         archivoFile.value = null;
+        clearErrors();
     } else {
-        actualizar.value = false;
-        tituloModal.value = "Nuevo registro";
-        id.value = 0;
-        limpiarFormulario();
+        prepararNuevo();
     }
-
-    btnCerralModalForm();
+    abrirSidebar();
 }
-/**
- * Reinicia los valores del formulario y el estado de edición a los valores iniciales.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
+function prepararNuevo() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    id.value = 0;
+    limpiarFormulario();
+    abrirSidebar();
+}
+
 function limpiarFormulario() {
     actualizar.value = false;
     tituloModal.value = "Nuevo registro";
     id.value = 0;
-    errores.value = {};
+    clearErrors();
     registro.value.producto_id = null;
     registro.value.sede_id = sessionStorage.getItem("ST-sede");
     registro.value.nombre = "";
     registro.value.estado = true;
-    productoSelecciondo.value = null;
+    productoSeleccionado.value = null;
     archivoFile.value = null;
 }
-/**
- * Muestra u oculta el panel lateral del formulario mediante la clase correspondiente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function btnCerralModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").toggleClass("shw-rside");
+
+function abrirSidebar() {
+    nextTick(() => {
+        if (sidebarRef.value) {
+            sidebarRef.value.classList.add("shw-rside");
+        }
+    });
 }
 
-/**
- * Hook de ciclo de vida que carga los consentimientos y los productos al montar el componente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+function cerrarSidebar() {
+    if (sidebarRef.value) {
+        sidebarRef.value.classList.remove("shw-rside");
+    }
+}
+
 onMounted(() => {
     ListarDatos();
     listarProductos();
 });
 
-/**
- * Hook de ciclo de vida que destruye la tabla de datos al desmontar el componente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#example23");
 });

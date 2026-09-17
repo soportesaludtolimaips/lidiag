@@ -1,8 +1,5 @@
 <template>
     <div>
-        <!-- ============================================================== -->
-        <!-- Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Configuración</h3>
@@ -20,32 +17,27 @@
                 <button
                     type="button"
                     class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="
-                        actualizar = false;
-                        mostrarRegistro();
-                    "
+                    @click="prepararNuevo"
                 >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Start Page Content -->
-        <!-- ============================================================== -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de productos</h4>
                         <h6 class="card-subtitle">
-                            Administración de productos para la prestación del servicio de imagenes
-                            diagnosticas.
+                            Administración de productos para la prestación del servicio de imágenes
+                            diagnósticas.
                         </h6>
-                        <div class="table-responsive m-t-40">
+                        <div v-if="loadingListar" class="text-center m-t-40">
+                            <i class="fa fa-spinner fa-spin fa-2x"></i>
+                            <p class="text-muted m-t-10">Cargando productos...</p>
+                        </div>
+                        <div v-else class="table-responsive m-t-40">
                             <table
                                 id="example23"
                                 ref="dt"
@@ -62,6 +54,7 @@
                                         <th>Lectura</th>
                                         <th>Oral</th>
                                         <th>Venoso</th>
+                                        <th>Factura</th>
                                         <th>Estado</th>
                                         <th></th>
                                     </tr>
@@ -75,6 +68,7 @@
                                         <td>{{ item.requi_lectura }}</td>
                                         <td>{{ item.tipo_oral }}</td>
                                         <td>{{ item.tipo_venoso }}</td>
+                                        <td>{{ item.factura }}</td>
                                         <td>
                                             <span class="label label-success" v-if="item.estado"
                                                 >Activo</span
@@ -88,8 +82,8 @@
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
                                                 @click="
-                                                    actualizar = true;
-                                                    mostrarRegistro(item);
+                                                    prepararEdicion(item);
+                                                    abrirSidebar();
                                                 "
                                             >
                                                 <i class="fa fa-pencil"></i>
@@ -97,7 +91,7 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="elimnarRegistro(item.id)"
+                                                @click="eliminarRegistro(item.id, item.nom_produc)"
                                                 :disabled="loadingEliminarId === item.id"
                                             >
                                                 <i
@@ -118,29 +112,20 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End PAge Content -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Right sidebar -->
-        <!-- ============================================================== -->
-        <!-- .right-sidebar -->
         <div
             class="right-sidebar"
-            style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%"
+            ref="sidebarRef"
+            style="overflow-x: hidden; overflow-y: scroll; height: 100%"
         >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <span>
-                        <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
+                        <i class="ti-close right-side-toggle" @click="cerrarSidebar"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
-                    <!-- ============================================================== -->
-                    <!-- Aqui va el contenido de los formularios -->
-                    <!-- ============================================================== -->
                     <form action="#">
                         <div class="form-body">
                             <div class="row p-t-20">
@@ -153,11 +138,14 @@
                                             name="cod_cups"
                                             v-model="registro.cod_cups"
                                             class="form-control"
+                                            :class="{ 'is-invalid': errores.hasError('cod_cups') }"
                                             placeholder="Código cups"
                                         />
-                                        <span class="text-danger" v-if="errores.cod_cups">{{
-                                            errores.cod_cups[0]
-                                        }}</span>
+                                        <span
+                                            class="text-danger"
+                                            v-if="errores.hasError('cod_cups')"
+                                            >{{ errores.getError("cod_cups") }}</span
+                                        >
                                     </div>
                                 </div>
                             </div>
@@ -172,11 +160,16 @@
                                             name="nom_produc"
                                             v-model="registro.nom_produc"
                                             class="form-control"
+                                            :class="{
+                                                'is-invalid': errores.hasError('nom_produc'),
+                                            }"
                                             placeholder="Ingrese aquí el nombre del producto"
                                         />
-                                        <span class="text-danger" v-if="errores.nom_produc">{{
-                                            errores.nom_produc[0]
-                                        }}</span>
+                                        <span
+                                            class="text-danger"
+                                            v-if="errores.hasError('nom_produc')"
+                                            >{{ errores.getError("nom_produc") }}</span
+                                        >
                                     </div>
                                 </div>
                             </div>
@@ -186,13 +179,20 @@
                                     <div class="form-group">
                                         <label class="control-label">%</label>
                                         <input
-                                            type="text"
+                                            type="number"
+                                            step="0.01"
                                             id="porcen"
                                             name="porcen"
                                             v-model="registro.porcen"
                                             class="form-control"
+                                            :class="{ 'is-invalid': errores.hasError('porcen') }"
                                             placeholder="% de ganancia"
                                         />
+                                        <span
+                                            class="text-danger"
+                                            v-if="errores.hasError('porcen')"
+                                            >{{ errores.getError("porcen") }}</span
+                                        >
                                     </div>
                                 </div>
 
@@ -200,13 +200,22 @@
                                     <div class="form-group">
                                         <label class="control-label">Precio</label>
                                         <input
-                                            type="text"
+                                            type="number"
+                                            step="0.01"
                                             id="val_produc"
                                             name="val_produc"
                                             v-model="registro.val_produc"
                                             class="form-control"
+                                            :class="{
+                                                'is-invalid': errores.hasError('val_produc'),
+                                            }"
                                             placeholder="Ingrese aquí el precio del producto"
                                         />
+                                        <span
+                                            class="text-danger"
+                                            v-if="errores.hasError('val_produc')"
+                                            >{{ errores.getError("val_produc") }}</span
+                                        >
                                     </div>
                                 </div>
                             </div>
@@ -278,7 +287,7 @@
                                 <button
                                     type="button"
                                     class="btn btn-success m-r-5"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
                                     v-if="!actualizar"
                                     :disabled="loadingGuardar"
                                 >
@@ -293,7 +302,7 @@
                                     type="button"
                                     class="btn btn-warning m-r-5"
                                     v-if="actualizar"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
                                     :disabled="loadingGuardar"
                                 >
                                     <i
@@ -306,9 +315,9 @@
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
+                                    @click="cerrarSidebar"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
                         </div>
@@ -316,18 +325,16 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Right sidebar -->
-        <!-- ============================================================== -->
     </div>
 </template>
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const dt = ref(null);
+const sidebarRef = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
+import { confirmAction, toastMessage } from "@/helpers/alerts.js";
 import axios from "axios";
 
 const id = ref(0);
@@ -345,23 +352,32 @@ const registro = ref({
 });
 const tituloModal = ref("Nuevo registro");
 const actualizar = ref(false);
-const errores = ref({});
 const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 
-/**
- * Obtiene la lista de productos desde el servidor y la carga en la tabla.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+const errores = ref({});
+
+function clearErrors() {
+    errores.value = {};
+}
+
+function setErrors(newErrors) {
+    errores.value = newErrors || {};
+}
+
+function hasError(field) {
+    return !!errores.value[field];
+}
+
+function getError(field) {
+    return errores.value[field]?.[0];
+}
+
 async function ListarDatos() {
     if (loadingListar.value) return;
     loadingListar.value = true;
+    clearErrors();
     try {
         const res = await axios.get("/api/config-productos");
         safeDestroyDataTable(dt.value || "#example23");
@@ -378,134 +394,108 @@ async function ListarDatos() {
         loadingListar.value = false;
     }
 }
-/**
- * Crea o actualiza un producto según el estado de edición del formulario.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
+    clearErrors();
     loadingGuardar.value = true;
     try {
+        let res;
         if (actualizar.value === false) {
-            const res = await axios.post("/api/config-productos", registro.value);
-
-            if (res.status == 200) {
-                ListarDatos();
-
-                toastMessage({
-                    heading: "Ok!!!",
-                    text: res.data.data.message,
-                    icon: "success",
-                });
-
-                btnCerralModalForm();
-                limpiar();
-            }
+            res = await axios.post("/api/config-productos", registro.value);
         } else {
-            const res = await axios.put("/api/config-productos/" + id.value, registro.value);
-            if (res.status == 200) {
-                ListarDatos();
+            res = await axios.put("/api/config-productos/" + id.value, registro.value);
+        }
 
-                toastMessage({
-                    heading: "Ok!!!",
-                    text: res.data.data.message,
-                    icon: "success",
-                });
-
-                btnCerralModalForm();
-                limpiar();
-            }
+        if (res.status >= 200 && res.status < 300) {
+            ListarDatos();
+            toastMessage({
+                heading: "Ok!!!",
+                text: actualizar.value
+                    ? "Producto actualizado correctamente."
+                    : "Producto guardado correctamente.",
+                icon: "success",
+            });
+            cerrarSidebar();
+            limpiar();
         }
     } catch (error) {
-        errores.value = error?.response?.data?.errors || {};
+        if (error.response?.status === 422) {
+            setErrors(error.response.data.errors || {});
+        } else {
+            toastMessage({
+                heading: "Error",
+                text: error.response?.data?.message || "No fue posible guardar el producto.",
+                icon: "error",
+            });
+        }
     } finally {
         loadingGuardar.value = false;
     }
 }
-/**
- * Elimina un producto previa confirmación del usuario.
- *
- * @param {number} id Identificador del producto a eliminar.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-async function elimnarRegistro(id) {
+
+async function eliminarRegistro(idEliminar, nom) {
     const ok = await confirmAction({
-        title: "¿Estas seguro?",
+        title: `¿Estás seguro de eliminar el producto "${nom}"?`,
         text: "No podrás recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;
-
+    if (loadingEliminarId.value) return;
+    loadingEliminarId.value = idEliminar;
     try {
-        if (loadingEliminarId.value) return;
-        loadingEliminarId.value = id;
-        const response = await axios.delete("/api/config-productos/" + id);
-        alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
+        const response = await axios.delete("/api/config-productos/" + idEliminar);
+        toastMessage({
+            heading: "Ok!",
+            text: response?.data?.message || "Registro eliminado.",
+            icon: "success",
+        });
         ListarDatos();
     } catch (error) {
-        alertError("Error", "No fue posible eliminar el registro.", "error");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible eliminar el registro.",
+            icon: "error",
+        });
     } finally {
         loadingEliminarId.value = null;
     }
 }
-/**
- * Prepara el formulario lateral para crear o editar un producto.
- *
- * @param {Object} data Datos del producto a editar (vacío para un nuevo registro).
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function mostrarRegistro(data = {}) {
-    if (actualizar.value) {
-        tituloModal.value = "Actualizar el registro: " + data.nom_produc;
-        id.value = data.id;
-        registro.value.cod_cups = data.cod_cups;
-        registro.value.nom_produc = data.nom_produc;
-        registro.value.porcen = data.porcen;
-        registro.value.val_produc = data.val_produc;
-        registro.value.requi_lectura = Boolean(data.requi_lectura);
-        registro.value.tipo_oral = Boolean(data.tipo_oral);
-        registro.value.tipo_venoso = Boolean(data.tipo_venoso);
-        registro.value.factura = Boolean(data.factura);
-    } else {
-        actualizar.value = false;
-        tituloModal.value = "Nuevo registro";
-        id.value = 0;
-        registro.value.cod_cups = "";
-        registro.value.nom_produc = "";
-        registro.value.porcen = 0;
-        registro.value.val_produc = 0;
-        registro.value.requi_lectura = false;
-        registro.value.tipo_oral = false;
-        registro.value.tipo_venoso = false;
-        registro.value.factura = false;
-    }
 
-    btnCerralModalForm();
+function prepararEdicion(item) {
+    actualizar.value = true;
+    tituloModal.value = "Actualizar el registro: " + item.nom_produc;
+    id.value = item.id;
+    registro.value.cod_cups = item.cod_cups;
+    registro.value.nom_produc = item.nom_produc;
+    registro.value.porcen = item.porcen;
+    registro.value.val_produc = item.val_produc;
+    registro.value.requi_lectura = Boolean(item.requi_lectura);
+    registro.value.tipo_oral = Boolean(item.tipo_oral);
+    registro.value.tipo_venoso = Boolean(item.tipo_venoso);
+    registro.value.factura = Boolean(item.factura);
+    registro.value.estado = Boolean(item.estado);
+    clearErrors();
+    abrirSidebar();
 }
-/**
- * Reinicia los valores del formulario y el estado de edición a los valores iniciales.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
+function prepararNuevo() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    id.value = 0;
+    registro.value.cod_cups = "";
+    registro.value.nom_produc = "";
+    registro.value.porcen = 0;
+    registro.value.val_produc = 0;
+    registro.value.requi_lectura = false;
+    registro.value.tipo_oral = false;
+    registro.value.tipo_venoso = false;
+    registro.value.factura = false;
+    registro.value.estado = true;
+    clearErrors();
+    abrirSidebar();
+}
+
 function limpiar() {
     actualizar.value = false;
     tituloModal.value = "Nuevo registro";
@@ -518,43 +508,28 @@ function limpiar() {
     registro.value.tipo_oral = false;
     registro.value.tipo_venoso = false;
     registro.value.factura = false;
-}
-/**
- * Muestra u oculta el panel lateral del formulario mediante la clase correspondiente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function btnCerralModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").toggleClass("shw-rside");
+    registro.value.estado = true;
+    clearErrors();
 }
 
-/**
- * Hook de ciclo de vida que carga los datos al montar el componente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+function abrirSidebar() {
+    nextTick(() => {
+        if (sidebarRef.value) {
+            sidebarRef.value.classList.add("shw-rside");
+        }
+    });
+}
+
+function cerrarSidebar() {
+    if (sidebarRef.value) {
+        sidebarRef.value.classList.remove("shw-rside");
+    }
+}
+
 onMounted(() => {
     ListarDatos();
 });
 
-/**
- * Hook de ciclo de vida que destruye la tabla de datos al desmontar el componente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#example23");
 });

@@ -33,6 +33,8 @@ Route::prefix('citas')->middleware(['auth', 'permission:agenda.index|agenda.crea
     Route::get('/{cita}/conversacion', [AgendaCitaController::class, 'verConversacion'])->name('api.citas.conversacion');
 });
 
-Route::apiResource('/citas-rechazo-motivos', ConfigCitaRechazoMotivoController::class)
-    ->names('api.citas.rechazo.motivos')
-    ->except(['create', 'edit', 'show']);
+Route::prefix('citas-rechazo-motivos')->middleware(['auth', 'permission:agenda.index|agenda.create|agenda.edit'])->group(function () {
+    Route::apiResource('/', ConfigCitaRechazoMotivoController::class)
+        ->names('api.citas.rechazo.motivos')
+        ->except(['create', 'edit', 'show']);
+});

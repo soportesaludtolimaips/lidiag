@@ -51,7 +51,11 @@
                             </div>
                         </div>
 
-                        <div class="table-responsive m-t-40">
+                        <div v-if="loadingListar" class="text-center m-t-40">
+                            <i class="fa fa-spinner fa-spin fa-2x"></i>
+                            <p class="text-muted m-t-10">Cargando servicios...</p>
+                        </div>
+                        <div v-else class="table-responsive m-t-40">
                             <table
                                 id="tablaServicios"
                                 ref="dt"
@@ -112,12 +116,12 @@
             </div>
         </div>
 
-        <div class="right-sidebar">
+        <div class="right-sidebar" ref="sidebarRef">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <span>
-                        <i class="ti-close right-side-toggle" id="btnCerrarModal"></i>
+                        <i class="ti-close right-side-toggle" @click="cerrarSidebar"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
@@ -195,7 +199,11 @@
                                     ></i>
                                     Actualizar
                                 </button>
-                                <button type="button" class="btn btn-inverse" @click="cerrarModal">
+                                <button
+                                    type="button"
+                                    class="btn btn-inverse"
+                                    @click="cerrarSidebar"
+                                >
                                     Cancelar
                                 </button>
                             </div>
@@ -210,6 +218,7 @@
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const dt = ref(null);
+const sidebarRef = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
@@ -222,36 +231,31 @@ const form = ref({ nombre: "", sede_id: "", estado: 1 });
 const tituloModal = ref("Nuevo registro");
 const editando = ref(false);
 const errores = ref({});
+const loadingListar = ref(false);
+const loadingSedes = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 
-/**
- * Obtiene la lista de sedes disponibles para el filtro del listado de servicios.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 async function cargarSedes() {
+    if (loadingSedes.value) return;
+    loadingSedes.value = true;
     try {
         const res = await axios.get("/api/config-sedes");
         sedes.value = res.data.data;
     } catch (e) {
-        toastMessage("error", "Error al cargar las sedes.");
+        toastMessage({
+            heading: "Error",
+            text: "Error al cargar las sedes.",
+            icon: "error",
+        });
+    } finally {
+        loadingSedes.value = false;
     }
 }
-/**
- * Obtiene la lista de servicios de citas, aplicando el filtro de sede, y la carga en la tabla.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function ListarDatos() {
+    if (loadingListar.value) return;
+    loadingListar.value = true;
     try {
         const params = {};
         if (filtroSede.value) params.sede_id = filtroSede.value;
@@ -266,35 +270,19 @@ async function ListarDatos() {
         });
     } catch (error) {
         registros.value = [];
+    } finally {
+        loadingListar.value = false;
     }
 }
-/**
- * Inicializa el formulario lateral para registrar un nuevo servicio de cita.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 function abrirFormularioNuevo() {
     editando.value = false;
     tituloModal.value = "Nuevo registro";
     form.value = { nombre: "", sede_id: "", estado: 1 };
     errores.value = {};
-    $("#btnCerrarModal").click();
+    abrirSidebar();
 }
-/**
- * Carga los datos de un servicio de cita en el formulario lateral para editarlo.
- *
- * @param {Object} item Datos del servicio de cita a editar.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 function abrirFormularioEditar(item) {
     editando.value = true;
     tituloModal.value = "Actualizar: " + item.nombre;
@@ -305,17 +293,9 @@ function abrirFormularioEditar(item) {
         estado: item.estado ? 1 : 0,
     };
     errores.value = {};
-    $("#btnCerrarModal").click();
+    abrirSidebar();
 }
-/**
- * Crea o actualiza un servicio de cita según el estado de edición del formulario.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
@@ -328,24 +308,14 @@ async function guardarRegistro() {
             alertSuccess("Ok!", "Servicio creado correctamente.");
         }
         ListarDatos();
-        cerrarModal();
+        cerrarSidebar();
     } catch (error) {
         errores.value = error?.response?.data?.errors || {};
     } finally {
         loadingGuardar.value = false;
     }
 }
-/**
- * Elimina un servicio de cita previa confirmación del usuario.
- *
- * @param {number} id Identificador del servicio de cita a eliminar.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function eliminarRegistro(id) {
     const ok = await confirmAction({
         title: "¿Estas seguro?",
@@ -359,48 +329,35 @@ async function eliminarRegistro(id) {
         alertSuccess("Ok!", response?.data?.message || "Registro eliminado.");
         ListarDatos();
     } catch (error) {
-        toastMessage("error", "Error al eliminar el registro.");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "Error al eliminar el registro.",
+            icon: "error",
+        });
     } finally {
         loadingEliminarId.value = null;
     }
 }
-/**
- * Oculta el panel lateral del formulario removiendo la clase correspondiente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function cerrarModal() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").toggleClass("shw-rside");
+
+function abrirSidebar() {
+    nextTick(() => {
+        if (sidebarRef.value) {
+            sidebarRef.value.classList.add("shw-rside");
+        }
+    });
 }
 
-/**
- * Hook de ciclo de vida que carga las sedes y los servicios al montar el componente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+function cerrarSidebar() {
+    if (sidebarRef.value) {
+        sidebarRef.value.classList.remove("shw-rside");
+    }
+}
+
 onMounted(() => {
     cargarSedes();
     ListarDatos();
 });
 
-/**
- * Hook de ciclo de vida que destruye la tabla de datos al desmontar el componente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#tablaServicios");
 });

@@ -1,8 +1,5 @@
 <template>
     <div>
-        <!-- ============================================================== -->
-        <!-- Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Configuración</h3>
@@ -20,27 +17,13 @@
                 <button
                     type="button"
                     class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="
-                        actualizar = false;
-                        mostrarRegistro();
-                    "
+                    @click="prepararNuevo"
                 >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
-            <!-- <div class="">
-                    <button class="right-side-toggle btn-info btn btn-circle btn-sm">
-                        <i class="fa fa-plus-circle m-r-5"></i>
-                    </button>
-                </div> -->
         </div>
-        <!-- ============================================================== -->
-        <!-- End Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Start Page Content -->
-        <!-- ============================================================== -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -48,9 +31,13 @@
                         <h4 class="card-title">Listado de prioridades</h4>
                         <h6 class="card-subtitle">
                             Administración para la priorización de las lecturas de los estudios
-                            radiologicos.
+                            radiológicos.
                         </h6>
-                        <div class="table-responsive m-t-40">
+                        <div v-if="loadingListar" class="text-center m-t-40">
+                            <i class="fa fa-spinner fa-spin fa-2x"></i>
+                            <p class="text-muted m-t-10">Cargando prioridades...</p>
+                        </div>
+                        <div v-else class="table-responsive m-t-40">
                             <table
                                 id="example23"
                                 ref="dt"
@@ -60,7 +47,7 @@
                             >
                                 <thead>
                                     <tr>
-                                        <th width="150px">Prioridas</th>
+                                        <th width="150px">Prioridad</th>
                                         <th>Nivel</th>
                                         <th>Tiempo en segundos</th>
                                         <th>Estado</th>
@@ -85,8 +72,8 @@
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
                                                 @click="
-                                                    actualizar = true;
-                                                    mostrarRegistro(item);
+                                                    prepararEdicion(item);
+                                                    abrirSidebar();
                                                 "
                                             >
                                                 <i class="fa fa-pencil"></i>
@@ -94,7 +81,7 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="elimnarRegistro(item.id)"
+                                                @click="eliminarRegistro(item.id, item.nom_priori)"
                                                 :disabled="loadingEliminarId === item.id"
                                             >
                                                 <i
@@ -115,26 +102,16 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End PAge Content -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Right sidebar -->
-        <!-- ============================================================== -->
-        <!-- .right-sidebar -->
-        <div class="right-sidebar" style="width: 400px">
+        <div class="right-sidebar" ref="sidebarRef" style="width: 400px">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <span>
-                        <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
+                        <i class="ti-close right-side-toggle" @click="cerrarSidebar"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
-                    <!-- ============================================================== -->
-                    <!-- Aqui va el contenido de los formularios -->
-                    <!-- ============================================================== -->
                     <form action="#">
                         <div class="form-body">
                             <div class="row p-t-20">
@@ -147,11 +124,16 @@
                                             name="nom_priori"
                                             v-model="registro.nom_priori"
                                             class="form-control"
+                                            :class="{
+                                                'is-invalid': errores.hasError('nom_priori'),
+                                            }"
                                             placeholder="Prioridad"
                                         />
-                                        <span class="text-danger" v-if="errores.nom_priori">{{
-                                            errores.nom_priori[0]
-                                        }}</span>
+                                        <span
+                                            class="text-danger"
+                                            v-if="errores.hasError('nom_priori')"
+                                            >{{ errores.getError("nom_priori") }}</span
+                                        >
                                     </div>
                                 </div>
                             </div>
@@ -166,10 +148,13 @@
                                             name="nivel"
                                             v-model="registro.nivel"
                                             class="form-control"
+                                            :class="{ 'is-invalid': errores.hasError('nivel') }"
                                         />
-                                        <span class="text-danger" v-if="errores.nivel">{{
-                                            errores.nivel[0]
-                                        }}</span>
+                                        <span
+                                            class="text-danger"
+                                            v-if="errores.hasError('nivel')"
+                                            >{{ errores.getError("nivel") }}</span
+                                        >
                                     </div>
                                 </div>
                                 <div class="col-md-3">
@@ -181,10 +166,13 @@
                                             name="tiempo"
                                             v-model="registro.tiempo"
                                             class="form-control"
+                                            :class="{ 'is-invalid': errores.hasError('tiempo') }"
                                         />
-                                        <span class="text-danger" v-if="errores.tiempo">{{
-                                            errores.tiempo[0]
-                                        }}</span>
+                                        <span
+                                            class="text-danger"
+                                            v-if="errores.hasError('tiempo')"
+                                            >{{ errores.getError("tiempo") }}</span
+                                        >
                                     </div>
                                 </div>
                             </div>
@@ -211,7 +199,7 @@
                                 <button
                                     type="button"
                                     class="btn btn-success m-r-5"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
                                     v-if="!actualizar"
                                     :disabled="loadingGuardar"
                                 >
@@ -226,7 +214,7 @@
                                     type="button"
                                     class="btn btn-warning m-r-5"
                                     v-if="actualizar"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
                                     :disabled="loadingGuardar"
                                 >
                                     <i
@@ -239,9 +227,9 @@
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
+                                    @click="cerrarSidebar"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
                         </div>
@@ -249,18 +237,16 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Right sidebar -->
-        <!-- ============================================================== -->
     </div>
 </template>
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const dt = ref(null);
+const sidebarRef = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
+import { confirmAction, toastMessage } from "@/helpers/alerts.js";
 import axios from "axios";
 
 const id = ref(0);
@@ -268,23 +254,32 @@ const registros = ref([]);
 const registro = ref({ nom_priori: "", nivel: 0, tiempo: 0, estado: true });
 const tituloModal = ref("Nuevo registro");
 const actualizar = ref(false);
-const errores = ref({});
 const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 
-/**
- * Obtiene la lista de prioridades desde el servidor y la carga en la tabla.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+const errores = ref({});
+
+function clearErrors() {
+    errores.value = {};
+}
+
+function setErrors(newErrors) {
+    errores.value = newErrors || {};
+}
+
+function hasError(field) {
+    return !!errores.value[field];
+}
+
+function getError(field) {
+    return errores.value[field]?.[0];
+}
+
 async function ListarDatos() {
     if (loadingListar.value) return;
     loadingListar.value = true;
+    clearErrors();
     try {
         const res = await axios.get("/api/config-prioridades");
         safeDestroyDataTable(dt.value || "#example23");
@@ -301,147 +296,152 @@ async function ListarDatos() {
         loadingListar.value = false;
     }
 }
-/**
- * Crea o actualiza una prioridad según el estado de edición del formulario.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
+    clearErrors();
     loadingGuardar.value = true;
     try {
+        let res;
         if (actualizar.value === false) {
-            const res = await axios.post("/api/config-prioridades", registro.value);
-
-            if (res.status == 200) {
-                ListarDatos();
-
-                toastMessage({
-                    heading: "Ok!!!",
-                    text: res.data.data.message,
-                    icon: "success",
-                });
-            }
+            res = await axios.post("/api/config-prioridades", registro.value);
         } else {
-            const res = await axios.put("/api/config-prioridades/" + id.value, registro.value);
-            if (res.status == 200) {
-                ListarDatos();
+            res = await axios.put("/api/config-prioridades/" + id.value, registro.value);
+        }
 
-                toastMessage({
-                    heading: "Ok!!!",
-                    text: res.data.data.message,
-                    icon: "success",
-                });
-            }
+        if (res.status >= 200 && res.status < 300) {
+            ListarDatos();
+            toastMessage({
+                heading: "Ok!!!",
+                text: actualizar.value
+                    ? "Prioridad actualizada correctamente."
+                    : "Prioridad guardada correctamente.",
+                icon: "success",
+            });
+            cerrarSidebar();
+            limpiar();
         }
     } catch (error) {
-        errores.value = error?.response?.data?.errors || {};
+        if (error.response?.status === 422) {
+            setErrors(error.response.data.errors || {});
+        } else {
+            toastMessage({
+                heading: "Error",
+                text: error.response?.data?.message || "No fue posible guardar la prioridad.",
+                icon: "error",
+            });
+        }
     } finally {
         loadingGuardar.value = false;
     }
 }
-/**
- * Elimina una prioridad previa confirmación del usuario.
- *
- * @param {number} id Identificador de la prioridad a eliminar.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-async function elimnarRegistro(id) {
+
+async function eliminarRegistro(idEliminar, nom) {
     const ok = await confirmAction({
-        title: "¿Estas seguro?",
+        title: `¿Estás seguro de eliminar la prioridad "${nom}"?`,
         text: "No podrás recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;
-
+    if (loadingEliminarId.value) return;
+    loadingEliminarId.value = idEliminar;
     try {
-        if (loadingEliminarId.value) return;
-        loadingEliminarId.value = id;
-        const response = await axios.delete("/api/config-prioridades/" + id);
-        alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
+        const response = await axios.delete("/api/config-prioridades/" + idEliminar);
+        toastMessage({
+            heading: "Ok!",
+            text: response?.data?.message || "Registro eliminado.",
+            icon: "success",
+        });
         ListarDatos();
     } catch (error) {
-        alertError("Error", "No fue posible eliminar el registro.", "error");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible eliminar el registro.",
+            icon: "error",
+        });
     } finally {
         loadingEliminarId.value = null;
     }
 }
-/**
- * Prepara el formulario lateral para crear o editar una prioridad.
- *
- * @param {Object} data Datos de la prioridad a editar (vacío para un nuevo registro).
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function mostrarRegistro(data = {}) {
-    if (actualizar.value) {
-        tituloModal.value = "Actualizar el registro: " + data.nivel;
-        id.value = data.id;
-        registro.value.nom_priori = data.nom_priori;
-        registro.value.nivel = data.nivel;
-        registro.value.tiempo = data.tiempo || 0;
-        registro.value.estado = Boolean(data.estado);
-        $("#btnCerralModalForm").click();
-    } else {
-        actualizar.value = false;
-        tituloModal.value = "Nuevo registro";
-        id.value = 0;
-        registro.value.nom_priori = "";
-        registro.value.nivel = 0;
-        registro.value.tiempo = 0;
-        registro.value.estado = true;
-        $("#btnCerralModalForm").click();
-    }
-}
-/**
- * Dispara el clic del botón que muestra u oculta el panel lateral del formulario.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function btnCerralModalForm() {
-    $("#btnCerralModalForm").click();
+
+function prepararEdicion(item) {
+    actualizar.value = true;
+    tituloModal.value = "Actualizar el registro: " + item.nom_priori;
+    id.value = item.id;
+    registro.value.nom_priori = item.nom_priori;
+    registro.value.nivel = item.nivel;
+    registro.value.tiempo = item.tiempo || 0;
+    registro.value.estado = Boolean(item.estado);
+    clearErrors();
+    abrirSidebar();
 }
 
-/**
- * Hook de ciclo de vida que carga los datos al montar el componente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
+function prepararNuevo() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    id.value = 0;
+    registro.value.nom_priori = "";
+    registro.value.nivel = 0;
+    registro.value.tiempo = 0;
+    registro.value.estado = true;
+    clearErrors();
+    abrirSidebar();
+}
+
+function limpiar() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    id.value = 0;
+    registro.value.nom_priori = "";
+    registro.value.nivel = 0;
+    registro.value.tiempo = 0;
+    registro.value.estado = true;
+    clearErrors();
+}
+
+function abrirSidebar() {
+    nextTick(() => {
+        if (sidebarRef.value) {
+            sidebarRef.value.classList.add("shw-rside");
+        }
+    });
+}
+
+function cerrarSidebar() {
+    if (sidebarRef.value) {
+        sidebarRef.value.classList.remove("shw-rside");
+    }
+}
+
 onMounted(() => {
     ListarDatos();
 });
 
-/**
- * Hook de ciclo de vida que destruye la tabla de datos al desmontar el componente.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#example23");
 });
 </script>
+<style scoped>
+.right-sidebar {
+    position: fixed;
+    right: -400px;
+    width: 400px;
+    display: none;
+    z-index: 1100;
+    background: #ffffff;
+    top: 0px;
+    padding-bottom: 20px;
+    height: 100%;
+    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
+    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
+    -webkit-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+}
+
+.shw-rside {
+    right: 0px;
+    width: 400px;
+    display: block;
+}
+</style>
