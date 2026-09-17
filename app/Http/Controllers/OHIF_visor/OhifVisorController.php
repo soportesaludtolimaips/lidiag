@@ -18,10 +18,7 @@ class OhifVisorController extends Controller
         $result = $this->service->getOhifMetadataOhif($studyUID, $seriesUID);
 
         if (! empty($result['data'])) {
-            return response()->json($result['data'])
-                ->header('Access-Control-Allow-Origin', '*')
-                ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
-                ->header('Access-Control-Allow-Headers', 'DICOM, Content-Type, Authorization');
+            return response()->json($result['data']);
         }
 
         return response()->json([], 404);
@@ -56,8 +53,7 @@ class OhifVisorController extends Controller
 
         if (isset($result['contents'])) {
             return response($result['contents'])
-                ->header('Content-Type', 'application/dicom')
-                ->header('Access-Control-Allow-Origin', '*');
+                ->header('Content-Type', 'application/dicom');
         }
 
         return response()->json(['error' => $result['message']], $result['status']);
@@ -67,30 +63,21 @@ class OhifVisorController extends Controller
     {
         $result = $this->service->qidoStudies();
 
-        return response()->json($result['data'])
-            ->header('Access-Control-Allow-Origin', '*')
-            ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
-            ->header('Access-Control-Allow-Headers', 'DICOM, Content-Type, Authorization');
+        return response()->json($result['data']);
     }
 
     public function qidoSeries(string $studyUID): JsonResponse
     {
         $result = $this->service->qidoSeries($studyUID);
 
-        return response()->json($result['data'])
-            ->header('Access-Control-Allow-Origin', '*')
-            ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
-            ->header('Access-Control-Allow-Headers', 'DICOM, Content-Type, Authorization');
+        return response()->json($result['data']);
     }
 
     public function qidoInstances(string $studyUID, string $seriesUID): JsonResponse
     {
         $result = $this->service->qidoInstances($studyUID, $seriesUID);
 
-        return response()->json($result['data'])
-            ->header('Access-Control-Allow-Origin', '*')
-            ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
-            ->header('Access-Control-Allow-Headers', 'DICOM, Content-Type, Authorization');
+        return response()->json($result['data']);
     }
 
     public function wadoRetrieve(string $studyUID, string $seriesUID, string $objectUID)

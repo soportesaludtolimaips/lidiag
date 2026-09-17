@@ -62,17 +62,18 @@ class SecurityHeaders
     protected function applyCsp(Response $response)
     {
         /**
-         * CSP en modo "Report-Only" (no bloquea; solo registra).
+         * CSP enforcement.
          *
-         * Nota: En desarrollo (Vite/HMR) suele generar muchísimo ruido (wss://:5173, @vite/client, etc).
-         * Por defecto solo lo activamos en producción, o si se fuerza con ENV:
-         * SECURITY_HEADERS_CSP_REPORT_ONLY=true
+         * In production: enforced (Content-Security-Policy).
+         * In local/dev: Report-Only (no breakage during development).
+         *
+         * Note: Vite/HMR generates lots of noise (wss://:5173, @vite/client, etc).
+         * CSP is only enforced in production or when forced via env.
          */
-        $enableCspReportOnly = (bool) env('SECURITY_HEADERS_CSP_REPORT_ONLY', app()->environment('production'));
-        if ($enableCspReportOnly) {
+        $enableCsp = (bool) env('SECURITY_HEADERS_CSP_REPORT_ONLY', app()->environment('production'));
+        if ($enableCsp) {
             $isLocal = app()->environment('local');
 
-            // Orígenes típicos del devserver (ajusta si usas otro host/puerto)
             $viteOrigins = $isLocal
                 ? [
                     'http://localhost:5173',
@@ -85,7 +86,6 @@ class SecurityHeaders
             $scriptSrc = array_merge([
                 "'self'",
                 "'unsafe-inline'",
-                "'unsafe-eval'",
                 'https://cdn.jsdelivr.net',
                 'https://cdn.datatables.net',
                 'https://cdnjs.cloudflare.com',
@@ -95,13 +95,11 @@ class SecurityHeaders
             $connectSrc = array_merge([
                 "'self'",
                 'https:',
-                // Vite HMR / websockets en dev
                 'ws:',
                 'wss:',
             ], $viteOrigins);
 
-            // Importante: el layout incluye scripts inline + CDNs, por eso la política es permisiva.
-            $cspReportOnly = implode('; ', [
+            $csp = implode('; ', [
                 "default-src 'self'",
                 "base-uri 'self'",
                 "form-action 'self'",
@@ -111,14 +109,13 @@ class SecurityHeaders
                 "style-src 'self' 'unsafe-inline' https:",
                 "script-src ".implode(' ', $scriptSrc),
                 "connect-src ".implode(' ', $connectSrc),
+                "upgrade-insecure-requests",
             ]);
 
-            // En Producción real (lidiag.com), deberiamos bloquear (quitar -Report-Only)
-            // Por seguridad actual, mantenemos Report-Only hasta verificar que no rompa Vue/Vite.
             if (app()->environment('production')) {
-                $response->headers->set('Content-Security-Policy', $cspReportOnly);
+                $response->headers->set('Content-Security-Policy', $csp);
             } else {
-                $response->headers->set('Content-Security-Policy-Report-Only', $cspReportOnly);
+                $response->headers->set('Content-Security-Policy-Report-Only', $csp);
             }
         }
     }
