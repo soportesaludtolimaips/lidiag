@@ -19,9 +19,6 @@ class DicomBurnerController extends Controller
         $this->burnerService = $burnerService;
     }
 
-    /**
-     * Generate DICOM package for burning (download from PACS + ZIP).
-     */
     public function generateIso(Request $request)
     {
         Log::debug('DicomBurnerController.generateIso request data', $request->all());
@@ -57,9 +54,6 @@ class DicomBurnerController extends Controller
         }
     }
 
-    /**
-     * Get burn job status with real progress.
-     */
     public function status($id)
     {
         $burnLog = DB::table('cd_burn_logs')->find($id);
@@ -82,9 +76,6 @@ class DicomBurnerController extends Controller
         ]);
     }
 
-    /**
-     * List available CD/DVD drives on the server.
-     */
     public function listDrives()
     {
         $drives = Cache::remember('dicom.drives', 300, function () {
@@ -133,10 +124,6 @@ class DicomBurnerController extends Controller
         ]);
     }
 
-    /**
-     * Burn DICOM files directly to CD/DVD (no intermediate ISO file).
-     * CD contains: MicroDicom viewer + DICOM images in DICOM/ subfolder.
-     */
     public function burn(Request $request)
     {
         $validated = $request->validate([
@@ -225,9 +212,6 @@ class DicomBurnerController extends Controller
         }
     }
 
-    /**
-     * Prepare CD folder: copy MicroDicom viewer + DICOM files.
-     */
     private function prepareCdFolder(int $burnId, string $dicomFolder): string
     {
         // Visor portable en storage/app_lidiag (hogar de apps empaquetadas,
@@ -265,9 +249,6 @@ class DicomBurnerController extends Controller
         return $cdFolder;
     }
 
-    /**
-     * Recursively copy a directory.
-     */
     private function copyDirectory(string $source, string $dest): void
     {
         if (! is_dir($dest)) {
@@ -291,9 +272,6 @@ class DicomBurnerController extends Controller
         }
     }
 
-    /**
-     * Recursively remove a directory.
-     */
     private function removeDirectory(string $dir): void
     {
         if (! is_dir($dir)) {
@@ -316,9 +294,6 @@ class DicomBurnerController extends Controller
         rmdir($dir);
     }
 
-    /**
-     * Get total size of a directory in bytes.
-     */
     private function getDirectorySize(string $dir): int
     {
         $size = 0;
@@ -339,9 +314,6 @@ class DicomBurnerController extends Controller
         return $size;
     }
 
-    /**
-     * Burn DICOM folder directly to disc using C# burner.exe (IMAPI2).
-     */
     private function burnDicomFolder(string $dicomFolder, string $deviceLetter, int $burnId): void
     {
         $burnerExe = base_path('resources/burner/burner.exe');
@@ -412,9 +384,6 @@ class DicomBurnerController extends Controller
         }
     }
 
-    /**
-     * Generate ZIP file with MicroDicom viewer + DICOM images.
-     */
     public function generateZip(Request $request)
     {
         $validated = $request->validate([
@@ -524,9 +493,6 @@ class DicomBurnerController extends Controller
         }
     }
 
-    /**
-     * Get ZIP generation status.
-     */
     public function zipStatus($id)
     {
         $progressFile = storage_path("app/zips/{$id}_progress.json");
@@ -546,9 +512,6 @@ class DicomBurnerController extends Controller
         ]);
     }
 
-    /**
-     * Download a generated ZIP file.
-     */
     public function downloadZip($filename)
     {
         $safe = basename($filename);
@@ -571,9 +534,6 @@ class DicomBurnerController extends Controller
         ])->deleteFileAfterSend(true);
     }
 
-    /**
-     * Clean up old burn folders (older than 7 days).
-     */
     public function cleanup()
     {
         $deleted = DicomBurnerService::cleanupOldBurns(7);

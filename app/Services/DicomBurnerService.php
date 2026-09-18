@@ -9,13 +9,6 @@ use Illuminate\Support\Facades\Storage;
 
 class DicomBurnerService
 {
-    /**
-     * Prepare the DICOM package for burning a CD/DVD.
-     * Downloads DICOM files from PACS via WADO and creates a ZIP.
-     *
-     * @param  array  $data  Should contain: patient_id, study_instance_uids (array), user_id, device_letter (optional), sede_id
-     * @return array Contains burn_id, download_url, total_files
-     */
     public function prepareBurn(array $data): array
     {
         if (! isset($data['study_instance_uids'])) {
@@ -45,7 +38,10 @@ class DicomBurnerService
 
         try {
             $sedeId = $data['sede_id'] ?? session('ST-sede');
-            $sede = ConfigSede::findOrFail($sedeId);
+            $sede = ConfigSede::find($sedeId);
+            if (! $sede) {
+                throw new \RuntimeException('Sede no encontrada.');
+            }
 
             $totalFiles = 0;
             $failedDownloads = 0;
@@ -142,9 +138,6 @@ class DicomBurnerService
         return DB::table('cd_burn_logs')->find($burnId);
     }
 
-    /**
-     * Clean up old burn folders (older than 7 days).
-     */
     public static function cleanupOldBurns(int $daysOld = 7): int
     {
         $cutoff = now()->subDays($daysOld);
