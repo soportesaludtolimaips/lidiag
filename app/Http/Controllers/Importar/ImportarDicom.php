@@ -14,7 +14,7 @@ class ImportarDicom extends Controller
 
     public function importarDicom(): JsonResponse
     {
-        $result = $this->service->importarDicom();
+        $result = $this->service->importar();
 
         return response()->json($result, $result["status"]);
     }

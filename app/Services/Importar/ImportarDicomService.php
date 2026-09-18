@@ -29,7 +29,11 @@ class ImportarDicomService extends BaseService
     {
         $fechaHoraIniEjecucion = Carbon::now();
         $startTime = microtime(true);
-        $sedeActual = ConfigSede::find(1);
+        $sedeActual = ConfigSede::where('estado', true)->first();
+
+        if (! $sedeActual) {
+            return $this->error('No hay una sede activa configurada para la importación.', 500);
+        }
 
         $agendas = Agenda::orderBy('fechor_regis', 'ASC')->get();
         $i = 0;
@@ -59,41 +63,59 @@ class ImportarDicomService extends BaseService
         Config::set('database.default', 'mysql_importar_dicom');
         $studyDicom = StudyDicom::where('pk', '=', $agenda->study_pk)->get();
 
+        if ($studyDicom->isEmpty()) {
+            return;
+        }
+
+        $studyDicomRow = $studyDicom[0];
+
         $agendaProductosDicom = AgendaProducto::where('id_agenda', '=', $agenda->id_agenda)->get();
         $agendaDiagnosticosDicom = AgendaDiagnostico::where('id_agenda', '=', $agenda->id_agenda)->get();
-        $pacienteDicom = PacienteDicom::where('pk', '=', $studyDicom[0]->patient_fk)->get();
+        $pacienteDicom = PacienteDicom::where('pk', '=', $studyDicomRow->patient_fk)->get();
 
-        Config::set('database.default', 'mysql_importar_dicom');
+        if ($pacienteDicom->isEmpty()) {
+            return;
+        }
+
+        $pacienteDicomRow = $pacienteDicom[0];
+
         $medicoDicom = GeneralPersonal::where('id_personal', '=', $agenda->id_medico)->get();
         $quienAgendoDicom = GeneralPersonal::where('id_personal', '=', $agenda->id_quien_agendo)->get();
 
+        if ($medicoDicom->isEmpty() || $quienAgendoDicom->isEmpty()) {
+            return;
+        }
+
+        $medicoDicomRow = $medicoDicom[0];
+        $quienAgendoDicomRow = $quienAgendoDicom[0];
+
         Config::set('database.default', 'mysql');
         $pacienteLidiag = Paciente::firstOrCreate(
-            ['num_docu' => $pacienteDicom[0]->pat_id],
+            ['num_docu' => $pacienteDicomRow->pat_id],
             [
-                'num_docu' => $pacienteDicom[0]->pat_id,
-                'nombres' => str_replace('^^^', '', $pacienteDicom[0]->pat_name),
+                'num_docu' => $pacienteDicomRow->pat_id,
+                'nombres' => str_replace('^^^', '', $pacienteDicomRow->pat_name),
             ]
         );
 
         $userQuienAgendoLidiag = User::firstOrCreate(
-            ['num_docu' => $quienAgendoDicom[0]->num_docu],
+            ['num_docu' => $quienAgendoDicomRow->num_docu],
             [
-                'num_docu' => $quienAgendoDicom[0]->num_docu,
-                'name' => $quienAgendoDicom[0]->nom." ".$quienAgendoDicom[0]->ape,
-                'email' => $quienAgendoDicom[0]->e_mail,
+                'num_docu' => $quienAgendoDicomRow->num_docu,
+                'name' => $quienAgendoDicomRow->nom." ".$quienAgendoDicomRow->ape,
+                'email' => $quienAgendoDicomRow->e_mail,
                 'password' => bcrypt('123456'),
             ]
         );
 
-        $medicoLidiag = User::where('num_docu', '=', $medicoDicom[0]->num_docu)->get();
+        $medicoLidiag = User::where('num_docu', '=', $medicoDicomRow->num_docu)->get();
 
         if ($medicoLidiag->count() <= 0) {
             $medicoLidiag = new User;
-            $medicoLidiag->num_docu = $medicoDicom[0]->num_docu;
-            $medicoLidiag->reg_med = $medicoDicom[0]->reg_med;
-            $medicoLidiag->name = $medicoDicom[0]->nom.' '.$medicoDicom[0]->ape;
-            $medicoLidiag->email = $medicoDicom[0]->nom.$medicoDicom[0]->ape."st.com";
+            $medicoLidiag->num_docu = $medicoDicomRow->num_docu;
+            $medicoLidiag->reg_med = $medicoDicomRow->reg_med;
+            $medicoLidiag->name = $medicoDicomRow->nom.' '.$medicoDicomRow->ape;
+            $medicoLidiag->email = $medicoDicomRow->nom.$medicoDicomRow->ape."st.com";
             $medicoLidiag->password = bcrypt('123456');
             $medicoLidiag->save();
             $medicoLidiag->assignRole('Medico');
@@ -104,13 +126,13 @@ class ImportarDicomService extends BaseService
 
         config(['database.connections.mysql_sucursal' => [
             'driver' => 'mysql',
-            'host' => env('DB_SUCURSAL_HOST', $sedeActual->ip_dcm),
-            'port' => env('DB_SUCURSAL_PUERTO', $sedeActual->puerto_dcm),
-            'database' => env('DB_SUCURSAL_DATABASE', $sedeActual->bd_dcm),
-            'username' => env('DB_SUCURSAL_USERNAME', $sedeActual->usuario_dcm),
-            'password' => env('DB_SUCURSAL_PASSWORD', $sedeActual->password_dcm),
-            'charset' => env('DB_SUCURSAL_charset', 'latin1'),
-            'collation' => env('DB_SUCURSAL_collation', 'latin1_swedish_ci'),
+            'host' => $sedeActual->ip_dcm,
+            'port' => $sedeActual->puerto_dcm,
+            'database' => $sedeActual->bd_dcm,
+            'username' => $sedeActual->usuario_dcm,
+            'password' => $sedeActual->password_dcm,
+            'charset' => 'latin1',
+            'collation' => 'latin1_swedish_ci',
         ]]);
 
         Config::set('database.default', 'mysql_sucursal');
@@ -124,16 +146,16 @@ class ImportarDicomService extends BaseService
 
         $estudio = new Estudio;
         $estudio->study_pk = $agenda->study_pk;
-        $estudio->study_iuid = $studyDicom[0]->study_iuid;
-        $estudio->study_id = $studyDicom[0]->study_id;
-        $estudio->fec_estudio = $studyDicom[0]->study_datetime;
-        $estudio->accession_no = $studyDicom[0]->accession_no;
-        $estudio->study_desc = mb_convert_encoding($studyDicom[0]->study_desc, 'UTF-8', 'ISO-8859-1');
+        $estudio->study_iuid = $studyDicomRow->study_iuid;
+        $estudio->study_id = $studyDicomRow->study_id;
+        $estudio->fec_estudio = $studyDicomRow->study_datetime;
+        $estudio->accession_no = $studyDicomRow->accession_no;
+        $estudio->study_desc = mb_convert_encoding($studyDicomRow->study_desc, 'UTF-8', 'ISO-8859-1');
         $estudio->mods_in_study = $mods_in_study;
         $estudio->paciente_id = $pacienteLidiag->id;
         $estudio->medico_id = $medicoParaInsertar;
         $estudio->quien_registro_id = $userQuienAgendoLidiag->id;
-        $estudio->sede_id = 1;
+        $estudio->sede_id = $sedeActual->id;
         $estudio->prioridad_id = $agenda->id_prioridad;
         $estudio->observaciones = $agenda->observaciones;
         $estudio->atencion = $agenda->id_atencion;
@@ -147,6 +169,10 @@ class ImportarDicomService extends BaseService
 
         foreach ($agendaDiagnosticosDicom as $diganos) {
             $diagnosticoDicom = ConfigDiagnosticoDicom::where('id_diag', '=', $diganos->id_diag)->get();
+
+            if ($diagnosticoDicom->isEmpty()) {
+                continue;
+            }
 
             ConfigDiagnostico::firstOrCreate(
                 ['cod_diagnos' => $diagnosticoDicom[0]->cod_diag],
@@ -172,17 +198,23 @@ class ImportarDicomService extends BaseService
                 ->where('id_produc', '=', $produc->id_produc)
                 ->get();
 
-            if ($productoDicom[0]->id_transcriptor > 0) {
-                $quienTranscribioDicom = GeneralPersonal::where('id_personal', '=', $productoDicom[0]->id_transcriptor)->get();
+            if ($productoDicom->isEmpty()) {
+                continue;
+            }
 
-                $idTranscriptor = null;
-                if ($productoDicom[0]->id_transcriptor != 0) {
+            $productoDicomRow = $productoDicom[0];
+
+            $idTranscriptor = null;
+            if ($productoDicomRow->id_transcriptor > 0) {
+                $quienTranscribioDicom = GeneralPersonal::where('id_personal', '=', $productoDicomRow->id_transcriptor)->get();
+
+                if ($quienTranscribioDicom->isNotEmpty()) {
                     Config::set('database.default', 'mysql');
                     $quienTranscribio = User::where('num_docu', '=', $quienTranscribioDicom[0]->num_docu)->get();
-                    $idTranscriptor = $quienTranscribio[0]->id;
+                    if ($quienTranscribio->isNotEmpty()) {
+                        $idTranscriptor = $quienTranscribio[0]->id;
+                    }
                 }
-            } else {
-                $idTranscriptor = null;
             }
 
             Config::set('database.default', 'mysql');
@@ -190,9 +222,9 @@ class ImportarDicomService extends BaseService
             $configProductoLidiag = ConfigProducto::firstOrCreate(
                 ['nom_produc' => trim($produc->nom_produc)],
                 [
-                    'cod_cups' => trim($productoDicom[0]->cod_cups),
-                    'nom_produc' => trim($productoDicom[0]->nom_produc),
-                    'requi_lectura' => $productoDicom[0]->requi_lectura,
+                    'cod_cups' => trim($productoDicomRow->cod_cups),
+                    'nom_produc' => trim($productoDicomRow->nom_produc),
+                    'requi_lectura' => $productoDicomRow->requi_lectura,
                 ]
             );
 
