@@ -371,8 +371,13 @@ class AgendaCitaController extends Controller
      */
     public function testEnviar(Request $request): JsonResponse
     {
-        $telefono = $request->input('telefono', $request->input('phone', '15556370875'));
-        $mensaje = $request->input('mensaje', 'Hola! Este es un mensaje de prueba desde LIDiag.');
+        $validated = $request->validate([
+            'telefono' => 'required|string|max:20',
+            'mensaje' => 'required|string|max:1000',
+        ]);
+
+        $telefono = $validated['telefono'];
+        $mensaje = $validated['mensaje'];
 
         $result = $this->agendaCitaService->testEnviar($telefono, $mensaje);
 

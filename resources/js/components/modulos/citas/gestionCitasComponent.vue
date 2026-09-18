@@ -5,10 +5,10 @@
                 <h3 class="text-themecolor">Gestión de Citas - Tablero</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <a href="#">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Citas</a>
+                        <a href="#">Citas</a>
                     </li>
                     <li class="breadcrumb-item active">Tablero de gestión</li>
                 </ol>
@@ -91,7 +91,7 @@
                                     <i class="fa fa-list"></i> Ir al listado de citas
                                 </a>
                                 <a
-                                    href="javascript:void(0)"
+                                    href="#"
                                     class="list-group-item list-group-item-action"
                                     @click="cargarProximas()"
                                 >
@@ -150,9 +150,8 @@
     </div>
 </template>
 <script setup>
-import { onMounted, ref, getCurrentInstance } from "vue";
+import { onMounted, ref } from "vue";
 
-const { proxy } = getCurrentInstance();
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { formatFecha, getEstadoLabel, getEstadoClase } from "@/composables/useCitasUtils.js";
 import axios from "axios";
@@ -162,34 +161,15 @@ const statsPorEstado = ref({});
 const proximas = ref([]);
 const loading = ref(false);
 
-/**
- * Carga todos los datos del tablero: estadísticas y citas próximas.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-05-26
- */
 function cargarDashboard() {
     cargarStats();
     cargarProximas();
 }
-/**
- * Obtiene el total de citas y el conteo por cada estado desde la API.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-05-26
- */
-function cargarStats() {
-    var thisVue = proxy;
 
+function cargarStats() {
     axios.get("/api/citas?per_page=1").then(function (response) {
         var total = response.data.total || 0;
-        thisVue.stats = [
+        stats.value = [
             {
                 label: "Total Citas",
                 count: total,
@@ -200,26 +180,17 @@ function cargarStats() {
     });
 
     var estados = ["solicitada", "asignada", "confirmada", "cancelada", "cumplida", "no_asistio"];
-    thisVue.statsPorEstado = {};
+    statsPorEstado.value = {};
 
     estados.forEach(function (estado) {
         axios.get("/api/citas?estado=" + estado + "&per_page=1").then(function (response) {
-            thisVue.statsPorEstado[estado] = response.data.total || 0;
+            statsPorEstado.value[estado] = response.data.total || 0;
         });
     });
 }
-/**
- * Carga las citas programadas para hoy y mañana desde la API.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-05-26
- */
+
 function cargarProximas() {
-    var thisVue = proxy;
-    thisVue.loading = true;
+    loading.value = true;
 
     var hoy = new Date();
     var manana = new Date(hoy);
@@ -244,13 +215,13 @@ function cargarProximas() {
             },
         })
         .then(function (response) {
-            thisVue.proximas = response.data.data || [];
+            proximas.value = response.data.data || [];
         })
         .catch(function () {
-            thisVue.proximas = [];
+            proximas.value = [];
         })
         .then(function () {
-            thisVue.loading = false;
+            loading.value = false;
         });
 }
 

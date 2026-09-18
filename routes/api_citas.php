@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Route;
 Route::match(['get', 'post'], '/citas/webhook', [AgendaCitaController::class, 'webhook'])
     ->name('api.citas.webhook')
     ->middleware('throttle:60,1');
-Route::post('/citas/test/enviar', [AgendaCitaController::class, 'testEnviar'])->name('api.citas.test.enviar')->middleware('auth');
+Route::post('/citas/test/enviar', [AgendaCitaController::class, 'testEnviar'])->name('api.citas.test.enviar')->middleware('auth', 'throttle:5,1');
 Route::get('/citas/notificaciones/no-leidas', [AgendaCitaController::class, 'notificacionesNoLeidas'])->name('api.citas.notificaciones.no-leidas')->middleware('auth');
 Route::post('/citas/notificaciones/{id}/leida', [AgendaCitaController::class, 'marcarNotificacionLeida'])->name('api.citas.notificaciones.leida')->middleware('auth');
 Route::post('/citas/notificaciones/todas-leidas', [AgendaCitaController::class, 'marcarTodasLeidas'])->name('api.citas.notificaciones.todas-leidas')->middleware('auth');

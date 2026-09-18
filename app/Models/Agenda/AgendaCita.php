@@ -27,7 +27,6 @@ class AgendaCita extends Model
     protected $table = 'agenda_citas';
 
     protected $fillable = [
-        'quien_registro_id',
         'quien_confirma_id',
         'paciente_id',
         'sede_id',
@@ -48,7 +47,6 @@ class AgendaCita extends Model
         'ruta_cedula_dorso_media',
         'ruta_autorizacion_media',
         'observaciones',
-        'whatsapp_token',
         'whatsapp_mid',
         'whatsapp_estado',
         'revisada',

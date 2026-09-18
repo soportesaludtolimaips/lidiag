@@ -16,7 +16,6 @@ use App\Services\WhatsAppService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -74,9 +73,9 @@ class AgendaCitaService extends BaseService
         if ($request->has('busqueda')) {
             $busqueda = $request->busqueda;
             $query->whereHas('paciente', function ($q) use ($busqueda) {
-                $q->where('num_docu', 'like', "%{$busqueda}%")
-                    ->orWhere('nombres', 'like', "%{$busqueda}%")
-                    ->orWhere('pri_ape', 'like', "%{$busqueda}%");
+                $q->where('num_docu', 'like', '%'.$this->sanitizeLike($busqueda).'%')
+                    ->orWhere('nombres', 'like', '%'.$this->sanitizeLike($busqueda).'%')
+                    ->orWhere('pri_ape', 'like', '%'.$this->sanitizeLike($busqueda).'%');
             });
         }
 
@@ -203,7 +202,7 @@ class AgendaCitaService extends BaseService
         $duracion = $data['duracion_minutos'] ?? 30;
         $fechaFin = $fechaInicio->copy()->addMinutes($duracion);
 
-        DB::transaction(function () use ($cita, $data, $fechaInicio, $fechaFin, $duracion) {
+        $this->transaction(function () use ($cita, $data, $fechaInicio, $fechaFin, $duracion) {
             $cita->update([
                 'producto_id' => $data['producto_id'],
                 'sede_id' => $data['sede_id'],
@@ -377,9 +376,9 @@ class AgendaCitaService extends BaseService
         if ($request->busqueda) {
             $busqueda = $request->busqueda;
             $query->whereHas('paciente', function ($q) use ($busqueda) {
-                $q->where('num_docu', 'like', "%{$busqueda}%")
-                    ->orWhere('nombres', 'like', "%{$busqueda}%")
-                    ->orWhere('pri_ape', 'like', "%{$busqueda}%");
+                $q->where('num_docu', 'like', '%'.$this->sanitizeLike($busqueda).'%')
+                    ->orWhere('nombres', 'like', '%'.$this->sanitizeLike($busqueda).'%')
+                    ->orWhere('pri_ape', 'like', '%'.$this->sanitizeLike($busqueda).'%');
             });
         }
 
@@ -546,7 +545,13 @@ class AgendaCitaService extends BaseService
     {
         $secret = config('services.whatsapp.app_secret');
 
-        if ($secret && (! $signature || ! $this->whatsAppService->verificarWebhook($payload, $signature))) {
+        if (! $secret) {
+            Log::critical('WhatsApp webhook: app_secret no configurado - rechazando solicitudes');
+
+            return $this->error('Webhook no configurado', 500);
+        }
+
+        if (! $signature || ! $this->whatsAppService->verificarWebhook($payload, $signature)) {
             Log::warning('WhatsApp webhook: firma inválida', [
                 'signature' => $signature,
             ]);
@@ -878,6 +883,11 @@ class AgendaCitaService extends BaseService
         }
 
         return Storage::disk('local')->path($path);
+    }
+
+    private function sanitizeLike(string $value): string
+    {
+        return str_replace(['%', '_'], ['\\%', '\\_'], $value);
     }
 
     private function buscarOCrearPaciente(array $data): ?Paciente

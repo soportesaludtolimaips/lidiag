@@ -5,10 +5,10 @@
                 <h3 class="text-themecolor">Revisión de Solicitudes</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <a href="#">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Citas</a>
+                        <a href="#">Citas</a>
                     </li>
                     <li class="breadcrumb-item active">Solicitudes Pendientes</li>
                 </ol>
@@ -181,7 +181,7 @@
                                         <td>
                                             <a
                                                 v-if="item.ruta_cedula_frente_media"
-                                                href="javascript:void(0)"
+                                                href="#"
                                                 @click="verArchivo(item.ruta_cedula_frente_media)"
                                                 title="Ver cédula frente"
                                             >
@@ -203,7 +203,7 @@
                                         <td>
                                             <a
                                                 v-if="item.ruta_cedula_dorso_media"
-                                                href="javascript:void(0)"
+                                                href="#"
                                                 @click="verArchivo(item.ruta_cedula_dorso_media)"
                                                 title="Ver cédula dorso"
                                             >
@@ -225,7 +225,7 @@
                                         <td>
                                             <a
                                                 v-if="item.ruta_orden_media"
-                                                href="javascript:void(0)"
+                                                href="#"
                                                 @click="verArchivo(item.ruta_orden_media)"
                                                 title="Ver archivo de orden"
                                             >
@@ -245,7 +245,7 @@
                                         <td>
                                             <a
                                                 v-if="item.ruta_autorizacion_media"
-                                                href="javascript:void(0)"
+                                                href="#"
                                                 @click="verArchivo(item.ruta_autorizacion_media)"
                                                 title="Ver archivo de autorización"
                                             >
@@ -293,12 +293,24 @@
             </div>
         </div>
 
-        <div id="modalAprobar" class="modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div
+            v-if="showModalAprobar"
+            id="modalAprobar"
+            class="modal"
+            tabindex="-1"
+            role="dialog"
+            aria-hidden="true"
+        >
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h4 class="modal-title">Aprobar Cita</h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <button
+                            type="button"
+                            class="close"
+                            @click="showModalAprobar = false"
+                            aria-hidden="true"
+                        >
                             ×
                         </button>
                     </div>
@@ -420,7 +432,11 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-inverse" data-dismiss="modal">
+                        <button
+                            type="button"
+                            class="btn btn-inverse"
+                            @click="showModalAprobar = false"
+                        >
                             Cancelar
                         </button>
                         <button
@@ -440,12 +456,24 @@
             </div>
         </div>
 
-        <div id="modalRechazar" class="modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div
+            v-if="showModalRechazar"
+            id="modalRechazar"
+            class="modal"
+            tabindex="-1"
+            role="dialog"
+            aria-hidden="true"
+        >
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h4 class="modal-title">Rechazar Cita</h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <button
+                            type="button"
+                            class="close"
+                            @click="showModalRechazar = false"
+                            aria-hidden="true"
+                        >
                             ×
                         </button>
                     </div>
@@ -475,7 +503,11 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-inverse" data-dismiss="modal">
+                        <button
+                            type="button"
+                            class="btn btn-inverse"
+                            @click="showModalRechazar = false"
+                        >
                             Cancelar
                         </button>
                         <button
@@ -518,6 +550,8 @@ const detallesDisponibles = ref([]);
 const loadingBuscar = ref(false);
 const loadingGuardar = ref(false);
 const loadingDetalles = ref(false);
+const showModalAprobar = ref(false);
+const showModalRechazar = ref(false);
 const filtro = ref({
     servicio_cita_id: "",
     sede_id: "",
@@ -559,27 +593,10 @@ const productoOptions = computed(() => {
     }));
 });
 
-/**
- * Destruye la instancia de DataTable para permitir reconstrucción segura.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-01
- */
 function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#example23");
 }
-/**
- * Carga las listas de servicios, sedes, motivos de rechazo y recomendaciones desde la API.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-01
- */
+
 function cargarListas() {
     const self = proxy;
 
@@ -589,7 +606,7 @@ function cargarListas() {
             self.servicios = r.data;
         })
         .catch((e) => {
-            console.error("Error servicios:", e);
+            alertError("Error", "No se pudieron cargar los servicios");
         });
 
     axios
@@ -598,10 +615,8 @@ function cargarListas() {
             self.sedes = r.data;
         })
         .catch((e) => {
-            console.error("Error sedes:", e);
+            alertError("Error", "No se pudieron cargar las sedes");
         });
-
-    // Los productos se cargan al abrir el modal con cargarProductosPorServicio
 
     axios
         .get("/api/citas-rechazo-motivos")
@@ -609,7 +624,7 @@ function cargarListas() {
             self.motivosRechazo = r.data;
         })
         .catch((e) => {
-            console.error("Error motivos rechazo:", e);
+            alertError("Error", "No se pudieron cargar los motivos de rechazo");
         });
 
     axios
@@ -618,18 +633,10 @@ function cargarListas() {
             self.recomendaciones = r.data || [];
         })
         .catch((e) => {
-            console.error("Error recomendaciones:", e);
+            alertError("Error", "No se pudieron cargar las recomendaciones");
         });
 }
-/**
- * Consulta las solicitudes de citas pendientes aplicando filtros y reinicializa el DataTable.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-01
- */
+
 async function listarRegistros() {
     destroyDataTable();
 
@@ -645,35 +652,24 @@ async function listarRegistros() {
 
         const res = await axios.get("/api/citas/pendientes?" + params.toString());
 
-        if (res.status === 200) {
-            destroyDataTable();
+        destroyDataTable();
 
-            const data = res.data.data;
-            registros.value = Array.isArray(data) ? data : [];
+        const data = res.data.data;
+        registros.value = Array.isArray(data) ? data : [];
 
-            nextTick(() => {
-                safeInitDataTable(dt.value || "#example23", {
-                    dom: "Bfrtip",
-                    buttons: ["copy", "csv", "excel", "pdf", "print"],
-                });
+        nextTick(() => {
+            safeInitDataTable(dt.value || "#example23", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
-        }
+        });
     } catch (error) {
+        alertError("Error", "No se pudieron cargar las solicitudes");
     } finally {
         loadingBuscar.value = false;
     }
 }
-/**
- * Abre el modal de aprobación precargando datos de la cita y servicios disponibles.
- *
- * @param {Object} cita - Objeto de la cita a aprobar.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-01
- */
+
 function abrirAprobar(cita) {
     citaSeleccionada.value = {
         ...cita,
@@ -688,18 +684,10 @@ function abrirAprobar(cita) {
         observaciones: "",
     };
     detallesDisponibles.value = [];
-    jQuery("#modalAprobar").modal("show");
+    showModalAprobar.value = true;
     cargarProductosPorServicio();
 }
-/**
- * Carga los productos asociados al servicio de la cita y la sede seleccionada en el formulario de aprobación.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-01
- */
+
 function cargarProductosPorServicio() {
     const servicioId = citaSeleccionada.value.servicio_cita_id;
     const sedeId = formAprobar.value.sede_id;
@@ -718,30 +706,12 @@ function cargarProductosPorServicio() {
         productos.value = r.data;
     });
 }
-/**
- * Maneja el evento de selección de producto en el Select2 del formulario de aprobación.
- *
- * @param {string|null} value - Identificador del producto seleccionado.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-01
- */
+
 function onProductoSelect(value) {
     formAprobar.value.producto_id = value || "";
     cargarDetallesDisponibles();
 }
-/**
- * Consulta los detalles de disponibilidad de agenda para la fecha y sede seleccionadas.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-01
- */
+
 async function cargarDetallesDisponibles() {
     if (
         !formAprobar.value.sede_id ||
@@ -769,31 +739,13 @@ async function cargarDetallesDisponibles() {
         loadingDetalles.value = false;
     }
 }
-/**
- * Extrae y formatea la hora de un string de fecha-hora completo.
- *
- * @param {string} inicio - Cadena con fecha y hora en formato 'YYYY-MM-DD HH:MM:SS'.
- *
- * @returns {string} Hora extraída en formato 'HH:MM' o la cadena original si no se puede parsear.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-01
- */
+
 function formatearHoraDetalle(inicio) {
     if (!inicio) return "";
     const parts = inicio.split(" ");
     return parts[1] ? parts[1].substring(0, 5) : inicio;
 }
-/**
- * Aprueba y asigna la cita seleccionada con producto, sede, horario y observaciones.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-01
- */
+
 async function aprobarCita() {
     if (loadingGuardar.value) return;
 
@@ -823,7 +775,7 @@ async function aprobarCita() {
         });
 
         alertSuccess("Éxito", "Cita aprobada y asignada correctamente");
-        jQuery("#modalAprobar").modal("hide");
+        showModalAprobar.value = false;
         listarRegistros();
     } catch (error) {
         const msg =
@@ -833,34 +785,16 @@ async function aprobarCita() {
         loadingGuardar.value = false;
     }
 }
-/**
- * Abre el modal de rechazo precargando los datos de la cita seleccionada.
- *
- * @param {Object} cita - Objeto de la cita a rechazar.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-01
- */
+
 function abrirRechazar(cita) {
     citaSeleccionada.value = cita;
     formRechazar.value = {
         rechazo_motivo_id: "",
         rechazo_observacion: "",
     };
-    jQuery("#modalRechazar").modal("show");
+    showModalRechazar.value = true;
 }
-/**
- * Rechaza la cita seleccionada con el motivo y observación indicados.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-01
- */
+
 async function rechazarCita() {
     if (loadingGuardar.value) return;
 
@@ -878,7 +812,7 @@ async function rechazarCita() {
         });
 
         alertSuccess("Éxito", "Cita rechazada correctamente");
-        jQuery("#modalRechazar").modal("hide");
+        showModalRechazar.value = false;
         listarRegistros();
     } catch (error) {
         const msg =
@@ -888,62 +822,24 @@ async function rechazarCita() {
         loadingGuardar.value = false;
     }
 }
-/**
- * Abre una nueva pestaña del navegador con el archivo indicado por la ruta.
- *
- * @param {string} ruta - Ruta relativa del archivo a visualizar.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-01
- */
+
 function verArchivo(ruta) {
     if (!ruta) return;
     window.open(getArchivoUrl(ruta), "_blank", "noopener,noreferrer");
 }
-/**
- * Convierte una ruta de archivo de soportes en una URL accesible vía HTTP.
- *
- * @param {string} ruta - Ruta relativa del archivo en storage.
- *
- * @returns {string} URL completa para acceder al archivo.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-01
- */
+
 function getArchivoUrl(ruta) {
     if (!ruta) return "";
     const filename = ruta.replace("citas_soportes/", "");
     return "/citas/media/" + filename;
 }
-/**
- * Determina si un archivo es una imagen según su extensión.
- *
- * @param {string} ruta - Ruta o nombre del archivo.
- *
- * @returns {boolean} true si la extensión corresponde a un formato de imagen soportado.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-01
- */
+
 function esImagen(ruta) {
     if (!ruta) return false;
     const ext = ruta.split(".").pop().toLowerCase();
     return ["jpg", "jpeg", "png", "gif", "webp"].includes(ext);
 }
-/**
- * Restablece los filtros de búsqueda a sus valores por defecto y recarga el listado.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-01
- */
+
 function limpiarFiltros() {
     filtro.value = { servicio_cita_id: "", sede_id: "", busqueda: "" };
     listarRegistros();
