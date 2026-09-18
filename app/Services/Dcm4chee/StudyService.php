@@ -29,16 +29,19 @@ class StudyService extends BaseService
         }
 
         $sedeActual = ConfigSede::find($sedeId);
+        if (! $sedeActual) {
+            return $this->error('Sede no encontrada.', 404);
+        }
 
         config(['database.connections.mysql_sucursal' => [
             'driver' => 'mysql',
-            'host' => env('DB_SUCURSAL_HOST', $sedeActual->ip_dcm),
-            'port' => env('DB_SUCURSAL_PUERTO', $sedeActual->puerto_dcm),
-            'database' => env('DB_SUCURSAL_DATABASE', $sedeActual->bd_dcm),
-            'username' => env('DB_SUCURSAL_USERNAME', $sedeActual->usuario_dcm),
-            'password' => env('DB_SUCURSAL_PASSWORD', $sedeActual->password_dcm),
-            'charset' => env('DB_SUCURSAL_charset', 'latin1'),
-            'collation' => env('DB_SUCURSAL_collation', 'latin1_swedish_ci'),
+            'host' => $sedeActual->ip_dcm,
+            'port' => $sedeActual->puerto_dcm,
+            'database' => $sedeActual->bd_dcm,
+            'username' => $sedeActual->usuario_dcm,
+            'password' => $sedeActual->password_dcm,
+            'charset' => 'latin1',
+            'collation' => 'latin1_swedish_ci',
         ]]);
 
         $conexionOriginal = config('database.default');
@@ -64,9 +67,10 @@ class StudyService extends BaseService
                 ->join('patient', 'study.patient_fk', 'patient.pk');
 
             if ($tieneBusqueda) {
-                $query->where(function ($q) use ($busqueda) {
-                    $q->where('patient.pat_id', 'like', "%{$busqueda}%")
-                        ->orWhere('patient.pat_name', 'like', "%{$busqueda}%");
+                $safeBusqueda = str_replace(['%', '_'], ['\\%', '\\_'], $busqueda);
+                $query->where(function ($q) use ($safeBusqueda) {
+                    $q->where('patient.pat_id', 'like', "%{$safeBusqueda}%")
+                        ->orWhere('patient.pat_name', 'like', "%{$safeBusqueda}%");
                 });
             }
 

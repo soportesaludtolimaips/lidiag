@@ -11,13 +11,7 @@ class StudyController extends Controller
 {
     public function __construct(
         private readonly StudyService $service,
-    ) {
-        $this->middleware('auth:sanctum')->only(['store', 'update', 'destroy']);
-        $this->middleware('permission:estudio.asignar')->only('store');
-        $this->middleware('permission:estudio.transcribir')->only('guardarTranscripcion');
-        $this->middleware('permission:estudio.leerEstudio')->only('leerEstudio');
-        $this->middleware('permission:estudios.notificar.index')->only('listarEstudios');
-    }
+    ) {}
 
     public function listarEstudios(StudyListRequest $request): JsonResponse
     {
