@@ -4,7 +4,7 @@
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Helpdesk</h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
+                    <li class="breadcrumb-item"><a href="#">Inicio</a></li>
                     <li class="breadcrumb-item active">Notificaciones</li>
                 </ol>
             </div>
@@ -120,17 +120,6 @@ const paginaActual = ref(1);
 const totalPaginas = ref(1);
 const porPagina = ref(50);
 
-/**
- * Carga las notificaciones aplicando los filtros de página y lectura desde la API.
- *
- * @param {number} pagina Número de página a cargar (opcional).
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
 async function cargar(pagina) {
     if (pagina) paginaActual.value = pagina;
     loading.value = true;
@@ -142,37 +131,22 @@ async function cargar(pagina) {
         });
         items.value = res.data?.data?.items || [];
         totalPaginas.value = res.data?.data?.last_page || 1;
-    } catch (error) {
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudieron cargar las notificaciones.",
+            icon: "error",
+        });
     } finally {
         loading.value = false;
     }
 }
-/**
- * Cambia a la página indicada del listado de notificaciones.
- *
- * @param {number} pagina Número de página destino.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
+
 function irPagina(pagina) {
     if (pagina < 1 || pagina > totalPaginas.value) return;
     cargar(pagina);
 }
-/**
- * Marca una notificación específica como leída y actualiza su estado localmente.
- *
- * @param {object} n Objeto de notificación a marcar como leída.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
+
 async function marcarLeida(n) {
     try {
         await helpdesk.marcarLeida(n.id);
@@ -181,66 +155,42 @@ async function marcarLeida(n) {
             items.value[idx] = { ...items.value[idx], read_at: new Date().toISOString() };
         }
         toastMessage({
-            heading: "Ok",
+            heading: "Listo",
             text: "Notificación marcada como leída.",
             icon: "success",
         });
-    } catch (error) {}
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudo marcar la notificación.",
+            icon: "error",
+        });
+    }
 }
-/**
- * Marca todas las notificaciones como leídas y recarga el listado.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
+
 async function marcarTodas() {
     try {
         await helpdesk.marcarTodasLeidas();
         await cargar();
-    } catch (error) {}
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudieron marcar todas como leídas.",
+            icon: "error",
+        });
+    }
 }
-/**
- * Marca la notificación como leída y redirige al ticket correspondiente.
- *
- * @param {object} n Objeto de notificación que contiene el ticket_id.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
+
 async function abrir(n) {
     if (!n.read_at) await marcarLeida(n);
     if (n.data?.ticket_id) window.location.href = `/helpdesk-tickets/${n.data.ticket_id}`;
 }
 
-/**
- * Reacciona al cambio del filtro "solo no leídas" reiniciando la página y recargando.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
 watch(soloNoLeidas, () => {
     paginaActual.value = 1;
     cargar();
 });
 
-/**
- * Inicializa el componente cargando las notificaciones.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
 onMounted(async () => {
     await cargar();
 });

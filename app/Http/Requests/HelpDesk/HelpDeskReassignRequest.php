@@ -15,7 +15,7 @@ class HelpDeskReassignRequest extends FormRequest
     {
         return [
             'asignado_id' => 'required|integer|exists:users,id',
-            'comentario' => 'required|string',
+            'comentario' => 'required|string|max:10000',
         ];
     }
 

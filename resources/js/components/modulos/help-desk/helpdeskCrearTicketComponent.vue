@@ -4,7 +4,7 @@
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Helpdesk</h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
+                    <li class="breadcrumb-item"><a href="#">Inicio</a></li>
                     <li class="breadcrumb-item"><a href="/helpdesk-tickets">Tickets</a></li>
                     <li class="breadcrumb-item active">Crear</li>
                 </ol>
@@ -172,36 +172,25 @@ const form = ref({
     sede_id: "",
 });
 
-/**
- * Carga los catálogos de categorías, prioridades y usuarios asignables desde la API.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
 async function cargar() {
     try {
-        const [cats, prios, asignables] = await Promise.all([
+        const [cats, prios, asignablesRes] = await Promise.all([
             helpdesk.categorias(),
             helpdesk.prioridades(),
             helpdesk.asignables(),
         ]);
         categorias.value = (cats.data || []).filter((x) => x.activo);
         prioridades.value = (prios.data || []).filter((x) => x.activo);
-        asignables.value = asignables.data || [];
-    } catch (error) {}
+        asignables.value = asignablesRes.data || [];
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudieron cargar los catálogos.",
+            icon: "error",
+        });
+    }
 }
-/**
- * Valida el formulario y crea un nuevo ticket de helpdesk, incluyendo adjuntos iniciales si existen.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
+
 async function guardar() {
     if (!form.value.sede_id) {
         toastMessage({
@@ -281,26 +270,22 @@ async function guardar() {
         }
 
         toastMessage({
-            heading: "Ok",
+            heading: "Listo",
             text: `Se creó el ticket ${ticket.folio || "#" + ticket.id}.`,
             icon: "success",
         });
         window.location.href = `/helpdesk-tickets/${ticket.id}`;
-    } catch (error) {
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudo crear el ticket.",
+            icon: "error",
+        });
     } finally {
         loading.value = false;
     }
 }
 
-/**
- * Inicializa el componente: recupera la sede activa del sessionStorage y carga los catálogos.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
 onMounted(async () => {
     try {
         const sedeActiva = sessionStorage.getItem("ST-sede");

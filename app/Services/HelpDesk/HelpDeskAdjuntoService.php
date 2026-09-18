@@ -17,21 +17,10 @@ class HelpDeskAdjuntoService extends BaseService
 {
     use TicketAuthorization;
 
-    /**
-     * Sube archivos a un ticket, registra el historial y persiste los metadatos de cada adjunto.
-     *
-     * @param  HelpDeskTickets  $ticket  ticket al que se adjuntan los archivos.
-     * @param  array  $data  datos validados con los archivos y el comentario opcional.
-     * @param  User  $user  usuario autenticado que realiza la subida.
-     *
-     * @returns array respuesta de creación con los adjuntos y el identificador de historial.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-02-13
-     */
     public function upload(HelpDeskTickets $ticket, array $data, User $user): array
     {
+        $this->assertCanSeeTicket($ticket, $user);
+
         $comentario = (! empty($data['comentario'])) ? $this->sanitizeHtml($data['comentario']) : null;
 
         $hist = HelpDeskTicketHistorial::create([

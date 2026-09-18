@@ -14,7 +14,7 @@ class HelpDeskCommentRequest extends FormRequest
     public function rules()
     {
         return [
-            'comentario' => 'required|string',
+            'comentario' => 'required|string|max:10000',
         ];
     }
 

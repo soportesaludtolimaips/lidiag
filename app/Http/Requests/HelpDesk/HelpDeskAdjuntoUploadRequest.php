@@ -14,8 +14,8 @@ class HelpDeskAdjuntoUploadRequest extends FormRequest
     public function rules()
     {
         return [
-            'comentario' => 'nullable|string',
-            'files' => 'required',
+            'comentario' => 'nullable|string|max:10000',
+            'files' => 'required|array|max:10',
             'files.*' => 'file|max:10240|mimes:jpg,jpeg,png,pdf,doc,docx,xls,xlsx',
         ];
     }

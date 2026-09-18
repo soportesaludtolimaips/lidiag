@@ -287,58 +287,28 @@ const reasignacion = ref({
     comentario: "",
 });
 
-/**
- * Devuelve el nombre del estado seleccionado en el formulario de cambio de estado.
- *
- * @returns {string} Nombre del estado o cadena vacía si no hay selección.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
 const estadoSeleccionadoNombre = computed(() => {
     const e = estados.value.find((x) => String(x.id) === String(accion.value.estado_id));
     return e ? e.nombre : "";
 });
 
-/**
- * Sanitiza una cadena HTML para evitar la inyección de código malicioso.
- *
- * @param {string} dirty Cadena HTML sin sanitizar.
- *
- * @returns {string} Cadena HTML segura.
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
 function sanitize(dirty) {
     return DOMPurify.sanitize(dirty || "");
 }
-/**
- * Recarga únicamente la información del ticket desde la API.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
+
 async function recargarTicket() {
     try {
         const ticketRes = await helpdesk.ticket(props.ticketId);
         ticket.value = ticketRes.data;
-    } catch (error) {}
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudo recargar el ticket.",
+            icon: "error",
+        });
+    }
 }
-/**
- * Carga el detalle del ticket, los estados y los usuarios asignables al iniciar la vista.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
+
 async function cargar() {
     loading.value = true;
     try {
@@ -362,42 +332,35 @@ async function cargar() {
             console.warn("No se pudieron cargar usuarios asignables", e);
             asignables.value = [];
         }
-    } catch (error) {
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudo cargar el ticket.",
+            icon: "error",
+        });
     } finally {
         loading.value = false;
     }
 }
-/**
- * Agrega un comentario al ticket y recarga su información.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
+
 async function comentar() {
     if (!nuevoComentario.value) return;
     savingComentario.value = true;
     try {
         await helpdesk.comentar(props.ticketId, { comentario: nuevoComentario.value });
         nuevoComentario.value = "";
-        toastMessage({ heading: "Ok", text: "Comentario agregado.", icon: "success" });
+        toastMessage({ heading: "Listo", text: "Comentario agregado.", icon: "success" });
         await recargarTicket();
-    } catch (error) {
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudo agregar el comentario.",
+            icon: "error",
+        });
     } finally {
         savingComentario.value = false;
     }
 }
-/**
- * Cambia el estado del ticket previa confirmación del usuario.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
 async function cambiarEstado() {
     if (!accion.value.estado_id) return;
     const ok = await confirmAction({
@@ -414,22 +377,19 @@ async function cambiarEstado() {
             descripcion_solucion: accion.value.descripcion_solucion || null,
         });
         accion.value = { estado_id: "", comentario: "", descripcion_solucion: "" };
-        toastMessage({ heading: "Ok", text: "Estado actualizado.", icon: "success" });
+        toastMessage({ heading: "Listo", text: "Estado actualizado.", icon: "success" });
         await recargarTicket();
-    } catch (error) {
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudo cambiar el estado.",
+            icon: "error",
+        });
     } finally {
         savingEstado.value = false;
     }
 }
-/**
- * Reasigna el ticket a otro usuario previa confirmación del usuario.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
+
 async function reasignar() {
     if (!reasignacion.value.asignado_id || !reasignacion.value.comentario) return;
     const ok = await confirmAction({
@@ -445,22 +405,19 @@ async function reasignar() {
             comentario: reasignacion.value.comentario,
         });
         reasignacion.value = { asignado_id: "", comentario: "" };
-        toastMessage({ heading: "Ok", text: "Ticket reasignado.", icon: "success" });
+        toastMessage({ heading: "Listo", text: "Ticket reasignado.", icon: "success" });
         await recargarTicket();
-    } catch (error) {
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudo reasignar el ticket.",
+            icon: "error",
+        });
     } finally {
         savingReasignar.value = false;
     }
 }
-/**
- * Sube los archivos adjuntos seleccionados al ticket y recarga su información.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
+
 async function subirAdjuntos() {
     const input = files.value;
     const rawFiles = input && input.files ? Array.from(input.files) : [];
@@ -473,23 +430,19 @@ async function subirAdjuntos() {
         fd.append("comentario", "Adjuntos agregados.");
         await helpdesk.subirAdjuntos(props.ticketId, fd);
         if (input) input.value = "";
-        toastMessage({ heading: "Ok", text: "Adjuntos subidos.", icon: "success" });
+        toastMessage({ heading: "Listo", text: "Adjuntos subidos.", icon: "success" });
         await recargarTicket();
-    } catch (error) {
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudieron subir los adjuntos.",
+            icon: "error",
+        });
     } finally {
         savingAdjuntos.value = false;
     }
 }
 
-/**
- * Inicializa el componente cargando el detalle del ticket.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
 onMounted(async () => {
     await cargar();
 });

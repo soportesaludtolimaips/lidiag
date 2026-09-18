@@ -15,7 +15,7 @@ class HelpDeskTicketStoreRequest extends FormRequest
     {
         return [
             'titulo' => 'required|string|max:255',
-            'descripcion' => 'required|string',
+            'descripcion' => 'required|string|max:50000',
             'categoria_id' => 'required|integer|exists:help_desk_categorias,id',
             'prioridad_id' => 'required|integer|exists:help_desk_prioridades,id',
             'sede_id' => 'required|integer|exists:config_sedes,id',

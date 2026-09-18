@@ -11,7 +11,6 @@ use App\Models\User;
 use App\Notifications\HelpDesk\HelpDeskTicketNotification;
 use App\Services\BaseService;
 use App\Services\HelpDesk\Traits\TicketAuthorization;
-use Illuminate\Support\Facades\DB;
 
 class HelpDeskTicketService extends BaseService
 {
@@ -164,7 +163,7 @@ class HelpDeskTicketService extends BaseService
             return $this->error('La sede no tiene cod_sede configurado', 422);
         }
 
-        $ticket = DB::transaction(function () use ($data, $user, $estadoAbierto, $sede, $asignado) {
+        $ticket = $this->transaction(function () use ($data, $user, $estadoAbierto, $sede, $asignado) {
             $now = now();
             $anio = (int) $now->format('Y');
 
