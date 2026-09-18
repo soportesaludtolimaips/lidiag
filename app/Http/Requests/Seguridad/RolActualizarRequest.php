@@ -6,34 +6,24 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class RolActualizarRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
-    public function authorize()
+    public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, mixed>
-     */
-    public function rules()
+    public function rules(): array
     {
         return [
             'name' => 'required|min:2|max:100',
         ];
     }
 
-    public function messages()
+    public function messages(): array
     {
         return [
-            'name.required' => 'Te hizo falta el nombre del rol',
-            'name.min' => 'El nombre del ro debe tener como mínimo 2 caractrere',
-            'name.min' => 'El nombre del ro debe tener como maxímo 100 caractrere',
+            'name.required' => 'El campo nombre es obligatorio.',
+            'name.min' => 'El nombre del rol debe tener como mínimo 2 caracteres.',
+            'name.max' => 'El nombre del rol debe tener como máximo 100 caracteres.',
         ];
     }
 }

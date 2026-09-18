@@ -16,20 +16,30 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware(['auth'])->group(function () {
-    /*
-     * Seguridad API Endpoints
-     */
-    Route::resource('/seguridad-usuarios', UserController::class)
-        ->names('api.seguridad.usuarios')
-        ->except('update')
-        ->middleware(['permission:seguridad.usuarios.index|seguridad.usuarios.create|seguridad.usuarios.edit|seguridad.usuarios.show|seguridad.usuarios.destroy']);
+    // Usuarios — rutas por método con permisos individuales
+    Route::get('/seguridad-usuarios', [UserController::class, 'index'])
+        ->name('api.seguridad.usuarios.index')
+        ->middleware(['permission:seguridad.usuarios.index']);
+
+    Route::post('/seguridad-usuarios', [UserController::class, 'store'])
+        ->name('api.seguridad.usuarios.store')
+        ->middleware(['permission:seguridad.usuarios.create']);
+
+    Route::get('/seguridad-usuarios/{id}', [UserController::class, 'show'])
+        ->name('api.seguridad.usuarios.show')
+        ->middleware(['permission:seguridad.usuarios.show']);
+
+    Route::delete('/seguridad-usuarios/{id}', [UserController::class, 'destroy'])
+        ->name('api.seguridad.usuarios.destroy')
+        ->middleware(['permission:seguridad.usuarios.destroy']);
 
     Route::post('/seguridad/usuarios/update', [UserController::class, 'update'])
         ->name('api.seguridad.update')
         ->middleware(['permission:seguridad.usuarios.edit']);
 
     Route::post('/seguridad-actualizar-perfil/{idUsua}', [UserController::class, 'actualizarPerfil'])
-        ->name('api.seguridad.actualizar.perfil');
+        ->name('api.seguridad.actualizar.perfil')
+        ->middleware(['permission:seguridad.usuarios.edit']);
 
     Route::put('/seguridad-usuarios/estado/{idUsua}', [UserController::class, 'estadoUsuario'])
         ->name('api.seguridad.usuario.estado')
@@ -39,9 +49,26 @@ Route::middleware(['auth'])->group(function () {
         ->name('api.user.listarUsuarios')
         ->middleware(['permission:seguridad.usuarios.index']);
 
-    Route::resource('/seguridad-roles', RolController::class)
-        ->names('api.seguridad.roles')
-        ->middleware(['permission:seguridad.roles.index|seguridad.roles.create|seguridad.roles.edit|seguridad.roles.show|seguridad.roles.destroy']);
+    // Roles — rutas por método con permisos individuales
+    Route::get('/seguridad-roles', [RolController::class, 'index'])
+        ->name('api.seguridad.roles.index')
+        ->middleware(['permission:seguridad.roles.index']);
+
+    Route::post('/seguridad-roles', [RolController::class, 'store'])
+        ->name('api.seguridad.roles.store')
+        ->middleware(['permission:seguridad.roles.create']);
+
+    Route::get('/seguridad-roles/{id}', [RolController::class, 'show'])
+        ->name('api.seguridad.roles.show')
+        ->middleware(['permission:seguridad.roles.show']);
+
+    Route::put('/seguridad-roles/{id}', [RolController::class, 'update'])
+        ->name('api.seguridad.roles.update')
+        ->middleware(['permission:seguridad.roles.edit']);
+
+    Route::delete('/seguridad-roles/{id}', [RolController::class, 'destroy'])
+        ->name('api.seguridad.roles.destroy')
+        ->middleware(['permission:seguridad.roles.destroy']);
 
     Route::put('/seguridad-roles/estado/{id}', [RolController::class, 'estadoRol'])
         ->name('api.seguridad.roles.estado')
@@ -55,6 +82,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('api.seguridad.listarPermisosUsuario')
         ->middleware(['permission:seguridad.usuarios.show']);
 
+    // Auditoría
     Route::get('/seguridad-auditoria', [AuditLogController::class, 'index'])
         ->name('api.seguridad.auditoria.index')
         ->middleware(['permission:seguridad.auditoria.index']);

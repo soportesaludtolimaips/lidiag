@@ -179,12 +179,18 @@
             tabindex="-1"
             role="dialog"
             aria-hidden="true"
+            v-if="mostrarDetalle"
         >
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h4 class="modal-title">Detalle de Auditoría #{{ detalle.id }}</h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <button
+                            type="button"
+                            class="close"
+                            @click="mostrarDetalle = false"
+                            aria-hidden="true"
+                        >
                             &times;
                         </button>
                     </div>
@@ -254,7 +260,11 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-inverse" data-dismiss="modal">
+                        <button
+                            type="button"
+                            class="btn btn-inverse"
+                            @click="mostrarDetalle = false"
+                        >
                             Cerrar
                         </button>
                     </div>
@@ -269,6 +279,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 const dt = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import { toastMessage } from "@/helpers/alerts";
 import axios from "axios";
 
 const registros = ref([]);
@@ -298,33 +309,20 @@ const detalle = ref({
     datos_nuevos: null,
 });
 
-/**
- * Carga la lista de eventos disponibles para el filtro del registro de auditoría.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-30
- */
+const mostrarDetalle = ref(false);
+
 async function cargarEventos() {
     try {
         const res = await axios.get("/api/seguridad-auditoria/eventos");
         eventosDisponibles.value = res.data;
-    } catch (e) {
-        console.error("Error al cargar eventos de auditoría:", e);
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudieron cargar los eventos.",
+            icon: "error",
+        });
     }
 }
-/**
- * Obtiene los registros de auditoría aplicando los filtros y la paginación actuales,
- * e inicializa la tabla DataTable con los resultados.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-30
- */
 async function cargarLogs() {
     if (loading.value) return;
     loading.value = true;
@@ -360,54 +358,25 @@ async function cargarLogs() {
                 searching: false,
             });
         });
-    } catch (error) {
-        console.error("Error al cargar registros de auditoría:", error);
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudieron cargar los registros de auditoría.",
+            icon: "error",
+        });
     } finally {
         loading.value = false;
     }
 }
-/**
- * Cambia la página actual del listado de auditoría y vuelve a cargar los registros.
- *
- * @param number $pagina Número de página destino a mostrar.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-30
- */
 function irPagina(pagina) {
     if (pagina < 1 || pagina > totalPaginas.value) return;
     paginaActual.value = pagina;
     cargarLogs();
 }
-/**
- * Abre el modal con el detalle completo del registro de auditoría seleccionado.
- *
- * @param object $item Registro de auditoría que se desea visualizar en detalle.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-30
- */
 function verDetalle(item) {
     detalle.value = { ...item };
-    $("#modalDetalleAuditoria").modal("show");
+    mostrarDetalle.value = true;
 }
-/**
- * Devuelve la clase de color asociada a un tipo de evento de auditoría.
- *
- * @param string $evento Nombre del evento (crear, actualizar, eliminar, etc.).
- *
- * @returns {string}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-30
- */
 function colorEvento(evento) {
     const colores = {
         crear: "success",
@@ -420,29 +389,11 @@ function colorEvento(evento) {
     return colores[evento] || "primary";
 }
 
-/**
- * Hook de ciclo de vida que se ejecuta al montar el componente; carga eventos y registros.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-30
- */
 onMounted(() => {
     cargarEventos();
     cargarLogs();
 });
 
-/**
- * Hook de ciclo de vida que se ejecuta antes de desmontar el componente; destruye la DataTable.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-06-30
- */
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#tablaAuditoria");
 });

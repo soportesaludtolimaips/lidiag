@@ -3,13 +3,12 @@
 namespace App\Http\Requests\Seguridad;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
 
 class StoreUserRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return Auth::check() && Auth::user()->can('seguridad.usuarios.create');
+        return true;
     }
 
     public function rules(): array

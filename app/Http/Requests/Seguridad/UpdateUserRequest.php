@@ -3,31 +3,22 @@
 namespace App\Http\Requests\Seguridad;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
 
 class UpdateUserRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return Auth::check() && Auth::user()->can('seguridad.usuarios.edit');
+        return true;
     }
 
     public function rules(): array
     {
-        $rules = [
+        return [
             'id' => 'required|integer|exists:users,id',
             'registro' => 'required|json',
+            'firma' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:10240',
+            'avatar' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:10240',
         ];
-
-        if ($this->hasFile('firma')) {
-            $rules['firma'] = 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:10240';
-        }
-
-        if ($this->hasFile('avatar')) {
-            $rules['avatar'] = 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:10240';
-        }
-
-        return $rules;
     }
 
     public function messages(): array

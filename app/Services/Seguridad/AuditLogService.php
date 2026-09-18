@@ -7,17 +7,6 @@ use App\Services\BaseService;
 
 class AuditLogService extends BaseService
 {
-    /**
-     * Consulta y pagina los registros de actividad aplicando los filtros proporcionados.
-     *
-     * @param  array  $filters  Filtros de búsqueda: evento, user_id, search, desde, hasta y per_page.
-     *
-     * @returns array Resultado con la lista paginada de registros de auditoría.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-07-14
-     */
     public function all(array $filters): array
     {
         $query = ActivityLog::with('user:id,name')
@@ -65,15 +54,6 @@ class AuditLogService extends BaseService
         return $this->success($logs);
     }
 
-    /**
-     * Retorna la lista de eventos de auditoría distintos registrados en el sistema.
-     *
-     * @returns array Resultado con el catálogo de eventos disponibles.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-07-14
-     */
     public function eventos(): array
     {
         $eventos = ActivityLog::select('event')

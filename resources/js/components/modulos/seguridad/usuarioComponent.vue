@@ -174,7 +174,7 @@
                                                 title="Eliminar usuario"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
                                                 :disabled="loadingEliminarId === item.id"
-                                                @click="elimnarRegistro(item.id)"
+                                                @click="eliminarRegistro(item.id)"
                                             >
                                                 <i
                                                     v-if="loadingEliminarId === item.id"
@@ -227,7 +227,11 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div class="right-sidebar" style="overflow-y: auto; height: 100%">
+        <div
+            class="right-sidebar"
+            :class="{ 'shw-rside': sidebarOpen }"
+            style="overflow-y: auto; height: 100%"
+        >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -236,7 +240,7 @@
                         class="close"
                         title="Cerrar"
                         aria-label="Cerrar panel"
-                        @click="btnCerralModalForm()"
+                        @click="btnCerrarModalForm()"
                     >
                         <i class="ti-close right-side-toggle"></i>
                     </button>
@@ -614,9 +618,9 @@
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
+                                    @click="btnCerrarModalForm()"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
                         </div>
@@ -706,8 +710,6 @@ const actualizar = ref(false);
 const avatar = ref(null);
 const firma = ref(null);
 const errores = ref({});
-const dependencias = ref([]);
-const modulos = ref([]);
 const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEstadoId = ref(null);
@@ -716,16 +718,8 @@ const firmaAmpliadaSrc = ref("");
 const firmaAmpliadaNombre = ref("");
 const firmaAmpliadaError = ref(false);
 const firmaError = ref({});
+const sidebarOpen = ref(false);
 
-/**
- * Inicializa la tabla DataTable de usuarios con botones de exportación.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 function initDataTable() {
     safeInitDataTable(dt.value || "#example23", {
         dom: "Bfrtip",
@@ -733,27 +727,9 @@ function initDataTable() {
         retrieve: true,
     });
 }
-/**
- * Destruye la instancia de la DataTable de usuarios para evitar duplicados al recargar.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#example23");
 }
-/**
- * Solicita al backend la lista de usuarios y roles, y reconstruye la DataTable.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 async function ListarDatos() {
     if (loadingListar.value) return;
     loadingListar.value = true;
@@ -774,21 +750,16 @@ async function ListarDatos() {
         nextTick(() => {
             initDataTable();
         });
-    } catch (error) {
-        console.error("ListarDatos error:", error);
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudieron cargar los usuarios.",
+            icon: "error",
+        });
     } finally {
         loadingListar.value = false;
     }
 }
-/**
- * Prepara la lista de roles del usuario agregando la propiedad checked en falso para el formulario.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 function listarRoles() {
     registro.value.rolesUsuario = roles.value.map((x) => ({
         id: x.id,
@@ -796,15 +767,6 @@ function listarRoles() {
         checked: false,
     }));
 }
-/**
- * Valida y guarda (crea o actualiza) un usuario incluyendo firma, avatar y relaciones.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
@@ -820,60 +782,48 @@ async function guardarRegistro() {
                 headers: { "Content-Type": "multipart/form-data" },
             });
 
-            if (res.status == 200) {
-                toastMessage({
-                    heading: "Ok!!!",
-                    text: res.data.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
+            toastMessage({
+                heading: "Ok!!!",
+                text: res.data.data.message,
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "success",
+                hideAfter: 3500,
+                stack: 6,
+            });
 
-                ListarDatos();
-                limpiarFormulario();
-                btnCerralModalForm();
-            }
+            ListarDatos();
+            limpiarFormulario();
+            btnCerrarModalForm();
         } else {
             const res = await axios.post("/api/seguridad/usuarios/update", formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
 
-            if (res.status == 200) {
-                toastMessage({
-                    heading: "Ok!!!",
-                    text: res.data.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
+            toastMessage({
+                heading: "Ok!!!",
+                text: res.data.data.message,
+                position: "top-right",
+                loaderBg: "#ff6849",
+                icon: "success",
+                hideAfter: 3500,
+                stack: 6,
+            });
 
-                ListarDatos();
-                limpiarFormulario();
-                btnCerralModalForm();
-            }
+            ListarDatos();
+            limpiarFormulario();
+            btnCerrarModalForm();
         }
-    } catch (error) {
-        errores.value = error?.response?.data || {};
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: _error?.response?.data?.message || "No se pudo guardar el usuario.",
+            icon: "error",
+        });
     } finally {
         loadingGuardar.value = false;
     }
 }
-/**
- * Activa o desactiva un usuario previa confirmación y muestra una notificación de resultado.
- *
- * @param number $estado Estado objetivo (0 para activar, 1 para desactivar).
- * @param object $data Datos del usuario afectado.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 async function cambiarEstado(estado, data = {}) {
     const ok = await confirmAction({
         title: "Confirmación",
@@ -914,18 +864,7 @@ async function cambiarEstado(estado, data = {}) {
         loadingEstadoId.value = null;
     }
 }
-/**
- * Elimina un usuario previa confirmación y refresca el listado.
- *
- * @param number $id Identificador del usuario a eliminar.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-async function elimnarRegistro(id) {
+async function eliminarRegistro(userId) {
     const ok = await confirmAction({
         title: "Estas seguro de eliminar este usuario?",
         text: "No podrás recuperar este registro!",
@@ -934,9 +873,9 @@ async function elimnarRegistro(id) {
     if (!ok) return;
     if (loadingEliminarId.value) return;
 
-    loadingEliminarId.value = id;
+    loadingEliminarId.value = userId;
     try {
-        const res = await axios.delete("/api/seguridad-usuarios/" + id);
+        const res = await axios.delete("/api/seguridad-usuarios/" + userId);
         alertSuccess("Eliminado!", res?.data?.message || "Registro eliminado.", "success");
         ListarDatos();
     } catch (err) {
@@ -945,15 +884,6 @@ async function elimnarRegistro(id) {
         loadingEliminarId.value = null;
     }
 }
-/**
- * Solicita al backend la lista de módulos disponibles para asignar al usuario.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 async function ListarModulos() {
     try {
         const res = await axios.get("/api/config-modulos-listar");
@@ -965,15 +895,6 @@ async function ListarModulos() {
         alertError("Error", "No fue posible cargar los módulos.", "error");
     }
 }
-/**
- * Solicita al backend la lista de sedes disponibles para asignar al usuario.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 async function ListarSedes() {
     try {
         const res = await axios.get("/api/config-sedes");
@@ -986,15 +907,6 @@ async function ListarSedes() {
         alertError("Error", "No fue posible cargar las sedes.", "error");
     }
 }
-/**
- * Solicita al backend la lista de servicios de cita disponibles para asignar al usuario.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 async function ListarServiciosCitas() {
     try {
         const res = await axios.get("/api/config-servicio-citas");
@@ -1006,45 +918,12 @@ async function ListarServiciosCitas() {
         alertError("Error", "No fue posible cargar los servicios.", "error");
     }
 }
-/**
- * Captura el archivo de firma seleccionado por el usuario en el input de carga.
- *
- * @param Event $event Evento change del input de tipo file.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 function obtenerFirma(event) {
     firma.value = event.target.files[0];
 }
-/**
- * Captura el archivo de avatar seleccionado por el usuario en el input de carga.
- *
- * @param Event $event Evento change del input de tipo file.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 function obtenerAvatar(event) {
     avatar.value = event.target.files[0];
 }
-/**
- * Configura el formulario para crear un usuario o editar uno existente y marca sus relaciones.
- *
- * @param object $data Datos del usuario a editar; vacío cuando se trata de un nuevo registro.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 function mostrarRegistro(data = {}) {
     if (actualizar.value) {
         tituloModal.value = "Actualizar el registro: " + data.name;
@@ -1126,63 +1005,20 @@ function mostrarRegistro(data = {}) {
         registro.value.serviciosCitas.forEach((sc) => (sc.checked = false));
     }
 
-    btnCerralModalForm();
+    btnCerrarModalForm();
 }
-/**
- * Abre el modal ampliado para visualizar la firma de un usuario.
- *
- * @param string $firma Ruta del archivo de firma a mostrar.
- * @param string $nombre Nombre del usuario dueño de la firma.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 function ampliarFirma(firma, nombre) {
     firmaAmpliadaError.value = false;
     firmaAmpliadaSrc.value = "/" + firma;
     firmaAmpliadaNombre.value = nombre || "Firma";
     $("#modalAmpliarFirma").modal("show");
 }
-/**
- * Cierra el modal ampliado de la firma del usuario.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 function cerrarModalFirma() {
     $("#modalAmpliarFirma").modal("hide");
 }
-/**
- * Alterna la visibilidad del panel lateral del formulario de usuarios.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function btnCerralModalForm() {
-    if ($(".right-sidebar").hasClass("shw-rside")) {
-        $(".right-sidebar").removeClass("shw-rside");
-    } else {
-        $(".right-sidebar").addClass("shw-rside");
-    }
+function btnCerrarModalForm() {
+    sidebarOpen.value = !sidebarOpen.value;
 }
-/**
- * Restablece los campos del formulario de usuario a sus valores iniciales.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 function limpiarFormulario() {
     actualizar.value = false;
     tituloModal.value = "Nuevo registro";
@@ -1195,15 +1031,6 @@ function limpiarFormulario() {
     registro.value.estado = false;
 }
 
-/**
- * Hook de ciclo de vida que se ejecuta al montar el componente; carga datos y dependencias.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 onMounted(() => {
     ListarDatos();
     ListarModulos();
@@ -1211,15 +1038,6 @@ onMounted(() => {
     ListarServiciosCitas();
 });
 
-/**
- * Hook de ciclo de vida que se ejecuta antes de desmontar el componente; destruye la DataTable.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 onBeforeUnmount(() => {
     destroyDataTable();
 });

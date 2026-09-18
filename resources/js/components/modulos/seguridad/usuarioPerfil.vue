@@ -204,9 +204,6 @@
                                                 <i v-else class="fa fa-pencil"></i> Actualizar
                                                 Perfil
                                             </button>
-                                            <!-- <button type="button" class="btn btn-inverse">
-                                                <i class="fa fa-reply"></i> Cancel
-                                            </button> -->
                                         </div>
                                     </div>
                                 </form>
@@ -226,7 +223,7 @@
 import { onBeforeUnmount, onMounted, ref } from "vue";
 
 import axios from "axios";
-import { toastMessage, alertError } from "@/helpers/alerts";
+import { toastMessage } from "@/helpers/alerts";
 
 const props = defineProps({ usuarioactual: Object });
 
@@ -244,107 +241,70 @@ const registro = ref({
 });
 const firmaPreview = ref("");
 const firmaError = ref(false);
-const errores = ref({});
 const loadingObtener = ref(false);
 const loadingActualizar = ref(false);
 
-/**
- * Solicita al backend los datos del perfil del usuario actual y los asigna al formulario.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 async function obtenerRegistro() {
     if (loadingObtener.value) return;
     loadingObtener.value = true;
     try {
         const res = await axios.get("/api/seguridad-usuarios/" + id.value);
 
-        if (res.status == 200) {
-            registro.value.num_docu = res.data.data.usuario.num_docu;
-            registro.value.name = res.data.data.usuario.name;
-            registro.value.email = res.data.data.usuario.email;
-            registro.value.firma = res.data.data.usuario.firma;
-            registro.value.imagen_perfil = res.data.data.usuario.imagen_perfil || null;
-        }
-    } catch (error) {
-        errores.value = error?.response?.data?.errors || {};
+        registro.value.num_docu = res.data.data.usuario.num_docu;
+        registro.value.name = res.data.data.usuario.name;
+        registro.value.email = res.data.data.usuario.email;
+        registro.value.firma = res.data.data.usuario.firma;
+        registro.value.imagen_perfil = res.data.data.usuario.imagen_perfil || null;
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudieron cargar los datos del perfil.",
+            icon: "error",
+        });
     } finally {
         loadingObtener.value = false;
     }
 }
-/**
- * Envía los datos del perfil (incluida firma y avatar) para actualizarlos en el backend.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 async function actualizarPerfil() {
     if (loadingActualizar.value) return;
     loadingActualizar.value = true;
     try {
         const formData = new FormData();
-        Object.keys(registro.value).forEach((key) => {
-            if (registro.value[key] !== undefined && registro.value[key] !== null) {
-                if (key === "password" && !registro.value.password) return;
-                formData.append(key, registro.value[key]);
-            }
-        });
+        const r = registro.value;
+        formData.append("name", r.name || "");
+        formData.append("email", r.email || "");
+        formData.append("num_docu", r.num_docu || "");
+        formData.append("reg_med", r.reg_med || "");
+        formData.append("interface_id", r.interface_id || "");
+        if (r.password) formData.append("password", r.password);
         const res = await axios.post("/api/seguridad-actualizar-perfil/" + id.value, formData, {
             headers: { "Content-Type": "multipart/form-data" },
         });
-        if (res.status == 200) {
-            errores.value = {};
-            firmaPreview.value = "";
-            await obtenerRegistro();
+        firmaPreview.value = "";
+        await obtenerRegistro();
 
-            toastMessage({
-                heading: "Ok!!!",
-                text: res.data.data.message,
-                position: "top-right",
-                loaderBg: "#ff6849",
-                icon: "success",
-                hideAfter: 3500,
-                stack: 6,
-            });
-        }
-    } catch (error) {
-        errores.value = error?.response?.data?.errors || {};
+        toastMessage({
+            heading: "Ok!!!",
+            text: res.data.data.message,
+            position: "top-right",
+            loaderBg: "#ff6849",
+            icon: "success",
+            hideAfter: 3500,
+            stack: 6,
+        });
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: _error?.response?.data?.message || "No se pudo actualizar el perfil.",
+            icon: "error",
+        });
     } finally {
         loadingActualizar.value = false;
     }
 }
-/**
- * Captura el archivo de imagen de perfil seleccionado por el usuario.
- *
- * @param Event $e Evento change del input de tipo file.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 function obtenerArchivo(e) {
     registro.value.imagen_perfil = e.target.files[0];
 }
-/**
- * Captura el archivo de firma seleccionado y genera una vista previa temporal en memoria.
- *
- * @param Event $e Evento change del input de tipo file.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 function obtenerFirma(e) {
     const file = e.target.files[0];
     if (file) {
@@ -354,28 +314,10 @@ function obtenerFirma(e) {
     registro.value.firma = file;
 }
 
-/**
- * Hook de ciclo de vida que se ejecuta al montar el componente; carga el registro del perfil.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 onMounted(() => {
     obtenerRegistro();
 });
 
-/**
- * Hook de ciclo de vida que libera la URL de objeto de la vista previa de firma al desmontar.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
 onBeforeUnmount(() => {
     if (firmaPreview.value) URL.revokeObjectURL(firmaPreview.value);
 });
