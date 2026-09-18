@@ -43,11 +43,14 @@ Route::middleware(['auth'])->group(function () {
      * Interface SAHI API Endpoints
      */
     Route::get('/interface-sahi-listar-atenciones/{numDocu}', [SAHIController::class, 'listarAtenciones'])
-        ->name('api.sahi.listar.atenciones');
+        ->name('api.sahi.listar.atenciones')
+        ->middleware(['permission:ecografias.index|ecografias.admision,web']);
 
-    Route::get('/interface-sahi-listar-listarProductosDiagnosticos/{idAtencion}', [SAHIController::class, 'listarProductosDiagnosticos'])
-        ->name('api.sahi.listar.listarProductosDiagnosticos');
+    Route::get('/interface-sahi-listar-productos-diagnosticos/{idAtencion}', [SAHIController::class, 'listarProductosDiagnosticos'])
+        ->name('api.sahi.listar.productos.diagnosticos')
+        ->middleware(['permission:ecografias.index|ecografias.admision,web']);
 
     Route::post('/interface-sahi/listar/productos/atencion', [SAHIController::class, 'listarProductosAtencion'])
-        ->name('api.sahi.estudios.listar.productos.atencion');
+        ->name('api.sahi.estudios.listar.productos.atencion')
+        ->middleware(['permission:ecografias.index|ecografias.admision,web']);
 });

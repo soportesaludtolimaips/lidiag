@@ -206,17 +206,6 @@ class SAHIEcografiasService extends BaseService
             return $row;
         });
 
-        $atencionesSahi = $atencionesSahi->map(function ($item) {
-            $item->num_docu = maskData($item->num_docu ?? '', 'document');
-            $item->direccion = maskData($item->direccion ?? '', 'address');
-            $item->tel = maskData($item->tel ?? '', 'phone');
-            $item->cel = maskData($item->cel ?? '', 'phone');
-            $item->email = maskData($item->email ?? '', 'email');
-            $item->fec_naci = maskData($item->fec_naci ?? '', 'dob');
-
-            return $item;
-        });
-
         return $this->success($atencionesSahi);
     }
 }

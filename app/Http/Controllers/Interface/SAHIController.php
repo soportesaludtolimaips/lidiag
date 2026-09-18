@@ -15,21 +15,25 @@ class SAHIController extends Controller
 
     public function listarAtenciones(Request $request): JsonResponse
     {
-        $result = $this->sahiService->listarAtenciones($request->numDocu);
+        $numDocu = $request->input('numDocu') ?? $request->route('numDocu');
+
+        $result = $this->sahiService->listarAtenciones($numDocu);
 
         return response()->json($result, $result['status']);
     }
 
     public function listarProductosDiagnosticos(Request $request): JsonResponse
     {
-        $result = $this->sahiService->listarProductosDiagnosticos($request->idAtencion);
+        $idAtencion = $request->input('idAtencion') ?? $request->route('idAtencion');
+
+        $result = $this->sahiService->listarProductosDiagnosticos($idAtencion ? (int) $idAtencion : null);
 
         return response()->json($result, $result['status']);
     }
 
     public function listarProductosAtencion(Request $request): JsonResponse
     {
-        $result = $this->sahiService->listarProductosAtencion($request->bus_nom_num_docu);
+        $result = $this->sahiService->listarProductosAtencion($request->input('bus_nom_num_docu'));
 
         return response()->json($result, $result['status']);
     }

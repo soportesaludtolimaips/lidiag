@@ -14,8 +14,12 @@ use Illuminate\Support\Facades\DB;
 
 class SAHIService extends BaseService
 {
-    public function listarAtenciones(string $numDocu): array
+    public function listarAtenciones(?string $numDocu): array
     {
+        if (empty($numDocu)) {
+            return $this->error('El número de documento es obligatorio.', 422);
+        }
+
         $atenciones = Atencion::select('admAtencion.IdAtencion', 'admAtencion.FecIngreso')
             ->join('admCliente', 'admCliente.IdCliente', 'admAtencion.IdCliente')
             ->where('admCliente.NumDocumento', $numDocu)
@@ -26,8 +30,12 @@ class SAHIService extends BaseService
         return $this->success($atenciones);
     }
 
-    public function listarProductosDiagnosticos(int $idAtencion): array
+    public function listarProductosDiagnosticos(?int $idAtencion): array
     {
+        if (! $idAtencion) {
+            return $this->error('El ID de atención es obligatorio.', 422);
+        }
+
         $productos = FacMovimiento::select('proProducto.IdProducto', 'proProducto.CodProducto as cod_cups', 'proProducto.NomProducto as nom_produc', 'facMovimientoDet.Cantidad')
             ->join('facMovimientoDet', 'facMovimientoDet.IdMovimiento', 'facMovimiento.IdMovimiento')
             ->join('proProducto', 'facMovimientoDet.IdProducto', 'proProducto.IdProducto')
@@ -49,8 +57,12 @@ class SAHIService extends BaseService
         return $this->success(['productos' => $productos, 'diagnosticos' => $diagnosticos, 'consultas' => $consultas]);
     }
 
-    public function buscarEpsPlanContrato(int $idAtencion): array
+    public function buscarEpsPlanContrato(?int $idAtencion): array
     {
+        if (! $idAtencion) {
+            return $this->error('El ID de atención es obligatorio.', 422);
+        }
+
         $datos = FacFactura::select(
             'facFactura.IdFactura',
             'genTercero.NomTercero',
@@ -74,8 +86,14 @@ class SAHIService extends BaseService
         return $this->success($datos);
     }
 
-    public function listarProductosAtencion(int $atencionId): array
+    public function listarProductosAtencion($atencionId): array
     {
+        $atencionId = (int) $atencionId;
+
+        if ($atencionId <= 0) {
+            return $this->error('El ID de atención es obligatorio.', 422);
+        }
+
         $gruposPermitidos = [44, 195, 156, 190, 204];
 
         $consulta1 = facFacturaDet::select($this->buildAtencionSelect('facFacturaDet.ValTotal'))
@@ -108,7 +126,7 @@ class SAHIService extends BaseService
 
         $combinarAtenciones = [];
         foreach ($atencionesSahi as $atencion) {
-            $matchAtencion = $atencionesLidiag->firstWhere('atencion_id', true);
+            $matchAtencion = $atencionesLidiag->firstWhere('atencion_id', $atencion->IdAtencion);
             $atencion->estado_ecografia = $matchAtencion?->estado;
 
             $combinarAtenciones[] = $atencion;

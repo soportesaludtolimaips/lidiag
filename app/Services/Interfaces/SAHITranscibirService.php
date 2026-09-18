@@ -26,7 +26,7 @@ class SAHITranscibirService extends BaseService
         if (! $idMedico) {
             return $this->error(
                 'El médico no se encuentra registrado en SAHI, por favor consulte con el administrador del sistema.',
-                307
+                422
             );
         }
 
@@ -34,16 +34,16 @@ class SAHITranscibirService extends BaseService
         if ($usuarioData === false || is_array($usuarioData) && isset($usuarioData['status'])) {
             return is_array($usuarioData)
                 ? $this->error($usuarioData['message'] ?? 'Error', $usuarioData['status'] ?? 500)
-                : $this->error('El médico no se encuentra registrado en SAHI.', 500);
+                : $this->error('El médico no se encuentra registrado en SAHI.', 404);
         }
 
-        $idUsuario = $usuarioData[0]['IdUsuario'];
-        $idPersonal = $usuarioData[0]['IdPersonal'];
+        $idUsuario = (int) $usuarioData[0]['IdUsuario'];
+        $idPersonal = (int) $usuarioData[0]['IdPersonal'];
         $nomMedico = $usuarioData[0]['Nompersonal'].' '.$usuarioData[0]['ApePersonal'];
 
         $ubicacionActual = $this->getUbicacionActual($idAtencion);
         if (! $ubicacionActual) {
-            return $this->error('No se pudo obtener la ubicación actual de la atención.', 205);
+            return $this->error('No se pudo obtener la ubicación actual de la atención.', 422);
         }
 
         $fecHorLecturaFmt = str_replace(' ', 'T', $fecHorLectura);
@@ -85,13 +85,14 @@ class SAHITranscibirService extends BaseService
         return $esquema->Consecutivo;
     }
 
-    private function generarConsecutivoEsquemaEncavezadoPadre()
+    private function generarConsecutivoEsquemaEncavezadoPadre(): int
     {
         $encavezadoPadre = HceEsquema::where('IdEsquema', 149)
             ->firstOrFail();
-        $encavezadoPadre->IdConsecutivoEsq = $encavezadoPadre->IdConsecutivoEsq + 1;
+        $encavezadoPadre->IdConsecutivoEsq = (int) $encavezadoPadre->IdConsecutivoEsq + 1;
+        $encavezadoPadre->save();
 
-        return $encavezadoPadre;
+        return (int) $encavezadoPadre->IdConsecutivoEsq;
     }
 
     private function storeEsquemaEncabeza(int $conseEsquemaEncavezado1, int $conseEsquemaEncavezado2, int $ubucacionActual, int $idAtencion, int $idUsuario, string $fecHorLectura): hceEsquemaEncabeza
@@ -181,54 +182,56 @@ class SAHITranscibirService extends BaseService
         return $medico;
     }
 
-    private function storaProducto(int $conseEsquemaEncavezado, string $codCups, int $idUsuario, string $fecHorLectura)
+    private function storaProducto(int $conseEsquemaEncavezado, string $codCups, int $idUsuario, string $fecHorLectura): hceEsquemaDetProc
     {
         $productoSAHI = ProProducto::where('CodProducto', $codCups)
             ->firstOrFail();
 
-        if ($productoSAHI) {
-            $producto = new hceEsquemaDetProc;
-            $producto->IdDetalleValor = 1;
-            $producto->IdEsquemaEncabezado = $conseEsquemaEncavezado;
-            $producto->ValNroRegistro = 1;
-            $producto->ValVarChar1 = $productoSAHI->IdProducto;
-            $producto->ValVarChar2 = $productoSAHI->NomProducto;
-            $producto->ValVarChar3 = $productoSAHI->CodLegal;
-            $producto->ValVarChar4 = '';
-            $producto->ValVarChar5 = '';
-            $producto->ValVarChar6 = '';
-            $producto->ValVarChar7 = '';
-            $producto->ValVarChar8 = '';
-            $producto->ValVarChar9 = '';
-            $producto->ValVarChar10 = '';
-            $producto->ValVarChar11 = '';
-            $producto->ValVarChar12 = '';
-            $producto->ValVarChar13 = '';
-            $producto->ValVarChar14 = '';
-            $producto->ValVarChar15 = '';
-            $producto->ValVarChar16 = '';
-            $producto->ValVarChar17 = '';
-            $producto->ValVarChar18 = '';
-            $producto->ValVarChar19 = '';
-            $producto->ValVarChar20 = '';
-            $producto->IdUsuarioR = $idUsuario;
-            $producto->FecRegistro = $fecHorLectura;
-            $producto->save();
+        $producto = new hceEsquemaDetProc;
+        $producto->IdDetalleValor = 1;
+        $producto->IdEsquemaEncabezado = $conseEsquemaEncavezado;
+        $producto->ValNroRegistro = 1;
+        $producto->ValVarChar1 = (string) $productoSAHI->IdProducto;
+        $producto->ValVarChar2 = (string) $productoSAHI->NomProducto;
+        $producto->ValVarChar3 = (string) $productoSAHI->CodLegal;
+        $producto->ValVarChar4 = '';
+        $producto->ValVarChar5 = '';
+        $producto->ValVarChar6 = '';
+        $producto->ValVarChar7 = '';
+        $producto->ValVarChar8 = '';
+        $producto->ValVarChar9 = '';
+        $producto->ValVarChar10 = '';
+        $producto->ValVarChar11 = '';
+        $producto->ValVarChar12 = '';
+        $producto->ValVarChar13 = '';
+        $producto->ValVarChar14 = '';
+        $producto->ValVarChar15 = '';
+        $producto->ValVarChar16 = '';
+        $producto->ValVarChar17 = '';
+        $producto->ValVarChar18 = '';
+        $producto->ValVarChar19 = '';
+        $producto->ValVarChar20 = '';
+        $producto->IdUsuarioR = $idUsuario;
+        $producto->FecRegistro = $fecHorLectura;
+        $producto->save();
 
-            return $producto;
-        }
-
-        return false;
+        return $producto;
     }
 
-    private function getUsuario(int $idMedico)
+    private function getUsuario(int $idMedico): array|false
     {
         $medicoLidiag = User::find($idMedico);
-        if ($medicoLidiag->interface_id == null) {
+        if (! $medicoLidiag) {
+            return [
+                'message' => 'El médico no fue encontrado en el sistema.',
+                'status' => 404,
+            ];
+        }
+
+        if (! $medicoLidiag->interface_id) {
             return [
                 'message' => 'Hace falta configurar el Id médico que se encuentra registrado en SAHI, por favor consulte con el administrador del sistema.',
-                'status' => 307,
-                'statusText' => 'Médico si Id',
+                'status' => 422,
             ];
         }
 
@@ -237,23 +240,27 @@ class SAHITranscibirService extends BaseService
             ->where('ASI_USUA.IdUsuario', $medicoLidiag->interface_id)
             ->get();
 
-        if ($usuarioSAHI) {
-            return $usuarioSAHI;
-        }
-
-        return false;
-    }
-
-    private function getUbicacionActual(int $idAtencion)
-    {
-        $ubicacion = Atencion::select('IdUbicacionActual')
-            ->where('idAtencion', $idAtencion)
-            ->get();
-
-        if (! $ubicacion) {
+        if ($usuarioSAHI->isEmpty()) {
             return false;
         }
 
-        return $ubicacion;
+        return $usuarioSAHI->toArray();
+    }
+
+    private function getUbicacionActual(?int $idAtencion): ?int
+    {
+        if (! $idAtencion) {
+            return null;
+        }
+
+        $ubicacion = Atencion::select('IdUbicacionActual')
+            ->where('idAtencion', $idAtencion)
+            ->first();
+
+        if (! $ubicacion || ! $ubicacion->IdUbicacionActual) {
+            return null;
+        }
+
+        return (int) $ubicacion->IdUbicacionActual;
     }
 }

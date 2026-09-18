@@ -110,7 +110,7 @@ class SAHIEcografiasEnviarService extends BaseService
         $ecoProd = null;
         $ecoProds = collect();
 
-        [$ecoProd, $ecoProds] = DB::transaction(function () use ($ecografiaProductoId) {
+        $txResult = $this->transaction(function () use ($ecografiaProductoId) {
             $row = EcografiaProducto::where('id', $ecografiaProductoId)
                 ->lockForUpdate()
                 ->with(['ecografia.medico'])
@@ -126,6 +126,12 @@ class SAHIEcografiasEnviarService extends BaseService
 
             return [$row, $all];
         });
+
+        if (isset($txResult['success']) && ! $txResult['success']) {
+            return $txResult;
+        }
+
+        [$ecoProd, $ecoProds] = $txResult;
 
         $validated = $this->validateSendPrerequisites($ecoProd, $ecoProds);
         if (! $validated['ok'] || ! empty($validated['already_sent'])) {
@@ -199,7 +205,7 @@ class SAHIEcografiasEnviarService extends BaseService
             ];
         }
 
-        DB::transaction(function () use ($ecoProdIds) {
+        $this->transaction(function () use ($ecoProdIds) {
             EcografiaProducto::whereIn('id', $ecoProdIds)
                 ->where(function ($q) {
                     $q->whereNull('estado_envio_sahi')
@@ -410,7 +416,7 @@ class SAHIEcografiasEnviarService extends BaseService
 
     private function updateProductsAfterSahiSend(array $ecoProdIds, $ecoProds, array $result): void
     {
-        DB::transaction(function () use ($ecoProdIds, $ecoProds, $result) {
+        $this->transaction(function () use ($ecoProdIds, $ecoProds, $result) {
             $data = $result['data'] ?? [];
             $id149 = $data['IdEsquemaEncabezado149'] ?? null;
             $id150 = $data['IdEsquemaEncabezado150'] ?? null;
@@ -450,7 +456,7 @@ class SAHIEcografiasEnviarService extends BaseService
         }
 
         try {
-            DB::transaction(function () use ($ids, $error) {
+            $this->transaction(function () use ($ids, $error) {
                 EcografiaProducto::whereIn('id', $ids)
                     ->where(function ($q) {
                         $q->whereNull('estado_envio_sahi')
