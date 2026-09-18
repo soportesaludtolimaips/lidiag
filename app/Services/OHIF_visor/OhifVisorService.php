@@ -43,7 +43,11 @@ class OhifVisorService extends BaseService
                     "InstanceNumber" => ["vr" => "IS", "Value" => (string) $inst->inst_no],
                     "7FE00010" => [
                         "vr" => "OW",
-                        "BulkDataURI" => "https://lidiag.test/api/wado/{$inst->study_iuid}/{$inst->series_iuid}/{$inst->sop_iuid}",
+                        "BulkDataURI" => route('api.ohif.wado.retrieve', [
+                            'studyUID' => $inst->study_iuid,
+                            'seriesUID' => $inst->series_iuid,
+                            'objectUID' => $inst->sop_iuid,
+                        ]),
                     ],
                 ];
             }
@@ -57,6 +61,9 @@ class OhifVisorService extends BaseService
     public function getOhifMetadata(int $sedeId, string $study_iuid): array
     {
         $sedeActual = ConfigSede::find($sedeId);
+        if (! $sedeActual) {
+            return $this->error('Sede no encontrada.', 404);
+        }
 
         config(['database.connections.mysql_sucursal' => [
             'driver' => 'mysql',
@@ -154,9 +161,12 @@ class OhifVisorService extends BaseService
 
     public function downloadDicom(array $params): array
     {
-        $sede = ConfigSede::find($params['sedeId']);
+        $sede = ConfigSede::find($params['sedeId'] ?? null);
+        if (! $sede) {
+            return $this->error('Sede no encontrada.', 404);
+        }
 
-        $wadoUrl = "http://{$sede->ip_dcm}:8080/wado?requestType=WADO"
+        $wadoUrl = "http://{$sede->ip_dcm}:{$sede->puerto_dcm}/wado?requestType=WADO"
             ."&studyUID={$params['study']}"
             ."&seriesUID={$params['series']}"
             ."&objectUID={$params['object']}"
@@ -315,9 +325,12 @@ class OhifVisorService extends BaseService
 
     private function wadoProxy(string $studyUID, string $seriesUID, string $objectUID): array
     {
-        $dcmIp = '10.35.47.3';
+        $sede = ConfigSede::where('estado', true)->first();
+        if (! $sede) {
+            return $this->error('No hay una sede activa configurada para conectar al PACS.', 500);
+        }
 
-        $wadoUrl = "http://{$dcmIp}:8080/wado?requestType=WADO"
+        $wadoUrl = "http://{$sede->ip_dcm}:{$sede->puerto_dcm}/wado?requestType=WADO"
             ."&studyUID={$studyUID}"
             ."&seriesUID={$seriesUID}"
             ."&objectUID={$objectUID}"
