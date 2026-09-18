@@ -6,7 +6,6 @@ use App\Models\Agenda\AgendaDisponibilida;
 use App\Models\Agenda\AgendaDisponibilidaDetalle;
 use App\Services\BaseService;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 
 class AgendaDisponibilidaService extends BaseService
 {
@@ -82,7 +81,7 @@ class AgendaDisponibilidaService extends BaseService
         $dura = (int) $data['dura_cita'];
         $fin = $inicio->copy()->addMinutes($totalCitas * $dura);
 
-        $created = DB::transaction(function () use ($data, $inicio, $fin, $totalCitas, $dura) {
+        $created = $this->transaction(function () use ($data, $inicio, $fin, $totalCitas, $dura) {
             $disponibilidad = AgendaDisponibilida::create([
                 'quien_registro_id' => auth()->id(),
                 'sede_id' => (int) $data['sede_id'],
@@ -162,7 +161,7 @@ class AgendaDisponibilidaService extends BaseService
         $dura = (int) $data['dura_cita'];
         $fin = $inicio->copy()->addMinutes($totalCitas * $dura);
 
-        DB::transaction(function () use ($disponibilidad, $data, $inicio, $fin, $totalCitas, $dura) {
+        $this->transaction(function () use ($disponibilidad, $data, $inicio, $fin, $totalCitas, $dura) {
             $disponibilidad->update([
                 'sede_id' => (int) $data['sede_id'],
                 'servicio_cita_id' => ! empty($data['servicio_cita_id']) ? (int) $data['servicio_cita_id'] : null,

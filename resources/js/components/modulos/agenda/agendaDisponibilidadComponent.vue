@@ -179,6 +179,7 @@
         <div
             class="right-sidebar"
             id="right-sidebar"
+            :class="{ 'shw-rside': showSidebar }"
             style="overflow-x: hidden; overflow-y: scroll; height: 100%"
         >
             <div class="slimscrollright">
@@ -187,7 +188,7 @@
                     <button
                         type="button"
                         class="close right-side-toggle"
-                        id="btnCerralModalForm"
+                        id="btnCerrarModalForm"
                         @click="cerrarModal()"
                         aria-label="Cerrar"
                     >
@@ -343,7 +344,7 @@ const emitter = proxy.emitter;
 import { nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { confirmAction } from "@/helpers/alerts";
+import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts";
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import axios from "axios";
 
@@ -354,16 +355,17 @@ const dt = ref(null);
 const editando = ref(false);
 const editandoId = ref(null);
 const tituloModal = ref("Guardar disponibilidad de citas");
+const showSidebar = ref(false);
+const sedeActual = ref(sessionStorage.getItem("ST-sede"));
 const registro = ref({
-    sede_id: sedeActual,
+    sede_id: sedeActual.value,
     quien_registro_id: props.usuarioactual.id,
     servicio_cita_id: "",
     total_citas: 1,
     dura_cita: 15,
     fecha_hora_ini: "",
 });
-const busqueda = ref({ sede_id: sedeActual, bus_fech_ini: "", bus_fecha_fin: "" });
-const sedeActual = ref(sessionStorage.getItem("ST-sede"));
+const busqueda = ref({ sede_id: sedeActual.value, bus_fech_ini: "", bus_fecha_fin: "" });
 const serviciosCitas = ref([]);
 const errores = ref([]);
 const registros = ref([]);
@@ -371,15 +373,6 @@ const loadingBuscar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 
-/**
- * Consulta disponibilidades de citas según los filtros de fecha.
- * Destruye la DataTable existente, carga los datos y reinicializa la tabla.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-01-21
- */
 async function buscarStudy() {
     if (loadingBuscar.value) return;
     loadingBuscar.value = true;
@@ -406,15 +399,6 @@ async function buscarStudy() {
         loadingBuscar.value = false;
     }
 }
-/**
- * Valida los campos obligatorios del formulario de disponibilidad.
- * Verifica fecha, servicio, total de citas y duración mínima.
- *
- * @returns {boolean} true si el formulario es válido, false si hay errores
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-01-21
- */
 function validarFormulario() {
     const errores = {};
     if (!registro.value.fecha_hora_ini) {
@@ -432,15 +416,6 @@ function validarFormulario() {
     errores.value = errores;
     return Object.keys(errores).length === 0;
 }
-/**
- * Guarda o actualiza una disponibilidad de citas.
- * Crea (POST) o actualiza (PUT) según el modo actual.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-01-21
- */
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     if (!validarFormulario()) return;
@@ -461,15 +436,10 @@ async function guardarRegistro() {
             res = await axios.post("/api/agenda-disponibilidad", payload);
         }
 
-        $.toast({
-            heading: "Bien hecho!!!",
-            text: res?.data?.message || "La disponibilidad de citas se ha guardado con \u00e9xito.",
-            position: "top-right",
-            loaderBg: "#ff6849",
-            icon: "success",
-            hideAfter: 5500,
-            stack: 6,
-        });
+        alertSuccess(
+            "Éxito",
+            res?.data?.message || "La disponibilidad de citas se ha guardado con éxito."
+        );
         cerrarModal();
         await buscarStudy();
     } catch (error) {
@@ -478,15 +448,6 @@ async function guardarRegistro() {
         loadingGuardar.value = false;
     }
 }
-/**
- * Abre el formulario en modo edición con los datos de la disponibilidad.
- *
- * @param {Object} item - Disponibilidad a editar
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-01-21
- */
 async function editarRegistro(item) {
     editando.value = true;
     editandoId.value = item.id;
@@ -500,17 +461,8 @@ async function editarRegistro(item) {
     };
     tituloModal.value = "Actualizar disponibilidad de citas";
     errores.value = [];
-    $("#right-sidebar").addClass("shw-rside");
+    showSidebar.value = true;
 }
-/**
- * Elimina una disponibilidad de citas tras confirmación del usuario.
- *
- * @param {number} id - ID de la disponibilidad a eliminar
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-01-21
- */
 async function elimnarRegistro(id) {
     const ok = await confirmAction({
         title: "\u00bfEst\u00e1s seguro?",
@@ -522,72 +474,35 @@ async function elimnarRegistro(id) {
     loadingEliminarId.value = id;
     try {
         const res = await axios.delete("/api/agenda-disponibilidad/" + id);
-        $.toast({
-            heading: "Ok!!!",
-            text: res?.data?.message || "Registro eliminado.",
-            position: "top-right",
-            loaderBg: "#ff6849",
-            icon: "success",
-            hideAfter: 3500,
-            stack: 6,
-        });
+        alertSuccess("Éxito", res?.data?.message || "Registro eliminado.");
         await buscarStudy();
     } catch (error) {
+        alertError("Error", "No se pudo eliminar la disponibilidad");
     } finally {
         loadingEliminarId.value = null;
     }
 }
-/**
- * Carga el catálogo de servicios de citas disponibles para la sede actual.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-01-21
- */
 async function listarServiciosCitas() {
     try {
         const res = await axios.get("/api/config-servicio-citas/mis-servicios", {
             params: { sede_id: sedeActual.value },
         });
         serviciosCitas.value = res.data.data;
-    } catch (error) {}
+    } catch (error) {
+        alertError("Error", "No se pudieron cargar los servicios");
+    }
 }
-/**
- * Actualiza la sede actual desde sessionStorage y limpia los registros.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-01-21
- */
 function establecerSede() {
     registro.value.sede_id = sessionStorage.getItem("ST-sede");
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
     sedeActual.value = sessionStorage.getItem("ST-sede");
     registros.value = [];
 }
-/**
- * Limpia los campos de búsqueda de fechas y ejecuta una nueva consulta.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-01-21
- */
 function btnLimpiar() {
     busqueda.value.bus_fech_ini = "";
     busqueda.value.bus_fecha_fin = "";
     buscarStudy();
 }
-/**
- * Abre el sidebar en modo creación con valores por defecto.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-01-21
- */
 function mostrarRegistro() {
     editando.value = false;
     editandoId.value = null;
@@ -601,28 +516,11 @@ function mostrarRegistro() {
         fecha_hora_ini: "",
     };
     errores.value = [];
-    $("#right-sidebar").addClass("shw-rside");
+    showSidebar.value = true;
 }
-/**
- * Cierra el sidebar de crear/editar disponibilidad.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-01-21
- */
 function cerrarModal() {
-    $("#right-sidebar").removeClass("shw-rside");
+    showSidebar.value = false;
 }
-/**
- * Formatea una cadena de fecha a formato local (dd/mm/yyyy HH:mm).
- *
- * @param {string|null} fecha - Fecha en formato ISO o null
- * @returns {string} Fecha formateada o guion si está vacía
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-01-21
- */
 function formatFecha(fecha) {
     if (!fecha) return "-";
     const d = new Date(fecha);
