@@ -25,12 +25,16 @@ class ProtectFiles
     {
         $disk = $request->route('disk');
 
-        if ($disk && isset($this->diskPermissions[$disk])) {
-            $permission = $this->diskPermissions[$disk];
+        if (! $disk || ! array_key_exists($disk, config('filesystems.disks'))) {
+            abort(404, 'Disco no encontrado');
+        }
 
-            if (! $request->user()?->can($permission)) {
+        if (isset($this->diskPermissions[$disk])) {
+            if (! $request->user()?->can($this->diskPermissions[$disk])) {
                 abort(403, 'Forbidden');
             }
+        } else {
+            abort(403, 'Acceso no autorizado a este disco');
         }
 
         return $next($request);

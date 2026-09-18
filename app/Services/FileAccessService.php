@@ -13,6 +13,10 @@ class FileAccessService extends BaseService
             return $this->error('Disk not found', 404);
         }
 
+        if (str_contains($path, '..') || str_contains($path, '%2e%2e')) {
+            return $this->error('Ruta inválida', 400);
+        }
+
         $storage = Storage::disk($disk);
 
         if (! $storage->exists($path)) {
