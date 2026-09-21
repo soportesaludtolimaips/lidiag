@@ -149,7 +149,23 @@
                                     Asigne los estudios a los médicos para su respectiva lectura.
                                 </h6>
                             </div>
-                            <div class="text-right">
+                            <div class="text-right d-flex align-items-center">
+                                <button
+                                    v-if="estudiosSeleccionados.length > 0"
+                                    type="button"
+                                    class="btn btn-danger m-r-5"
+                                    @click="abrirSidebarQuemarMultiples"
+                                >
+                                    <i class="fa fa-fire"></i>
+                                    Quemar {{ estudiosSeleccionados.length }}
+                                    estudio(s)
+                                </button>
+                                <span
+                                    v-if="estudiosSeleccionados.length > 0"
+                                    class="badge badge-danger m-r-5"
+                                >
+                                    {{ estudiosSeleccionados.length }} seleccionado(s)
+                                </span>
                                 <span class="badge badge-primary" v-if="contadorRegistros > 0"
                                     >{{ contadorRegistros }} registro(s)</span
                                 >
@@ -167,6 +183,14 @@
                             >
                                 <thead>
                                     <tr>
+                                        <th style="width: 3%">
+                                            <input
+                                                type="checkbox"
+                                                :checked="todoSeleccionado"
+                                                @change="toggleSeleccionarTodo"
+                                                title="Seleccionar todo"
+                                            />
+                                        </th>
                                         <th with="5%">Fecha del Estudio</th>
                                         <th with="5%"># Documento</th>
                                         <th with="30%">Paciente</th>
@@ -177,7 +201,7 @@
                                 </thead>
                                 <tbody>
                                     <tr v-if="registros.length === 0">
-                                        <td colspan="6" class="text-center text-muted py-4">
+                                        <td colspan="7" class="text-center text-muted py-4">
                                             <i class="fa fa-search fa-2x m-b-10"></i>
                                             <p>
                                                 No se encontraron estudios. Use los filtros de
@@ -189,8 +213,18 @@
                                         v-for="(item, index) in registros"
                                         :key="item.study_pk"
                                         :id="item.study_pk"
-                                        :class="{ 'text-info': item.agendado !== 0 }"
+                                        :class="{
+                                            'text-info': item.agendado !== 0,
+                                            'table-active': estudioSeleccionado(item),
+                                        }"
                                     >
+                                        <td class="text-center">
+                                            <input
+                                                type="checkbox"
+                                                :checked="estudioSeleccionado(item)"
+                                                @change="alternarSeleccion(item)"
+                                            />
+                                        </td>
                                         <td>{{ item.study_datetime }}</td>
                                         <td>{{ item.pat_id }}</td>
                                         <td>{{ item.pat_name }}</td>
@@ -804,7 +838,7 @@
                                     class="btn btn-inverse"
                                     @click="cerrarModal()"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
                             <div class="progress mt-2 progress-thin" v-if="progresoUpload !== null">
@@ -825,6 +859,37 @@
         <!-- ============================================================== -->
         <!-- End Right sidebar -->
         <!-- ============================================================== -->
+
+        <!-- ============================================================== -->
+        <!-- Sidebar Quemar Múltiples Estudios -->
+        <!-- ============================================================== -->
+        <div
+            class="right-sidebar sidebar-scroll"
+            :class="{ 'shw-rside': sidebarQuemarMultiplesVisible }"
+        >
+            <div class="slimscrollright">
+                <div class="rpanel-title">
+                    <i class="fa fa-fire text-danger"></i> Quemar Múltiples Estudios
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="cerrarSidebarQuemarMultiples"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
+                </div>
+                <div class="r-panel-body">
+                    <quemar-multiples-component
+                        v-if="sidebarQuemarMultiplesVisible"
+                        :estudios="estudiosSeleccionados"
+                        :usuarioactual="usuarioactual"
+                        @cerrar="cerrarSidebarQuemarMultiples"
+                        @completado="onQuemadoMultiplesCompletado"
+                    />
+                </div>
+            </div>
+        </div>
 
         <!-- ============================================================== -->
         <!-- Modal Quemador CD -->
@@ -918,7 +983,9 @@ import { confirmAction, toastMessage } from "@/helpers/alerts";
 import { normalizarFecha } from "@/helpers/dateUtils.js";
 import { useSede } from "@/composables/useSede";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
+import { useSidebarForm } from "@/composables/useSidebarForm";
 import QuemadorCdComponent from "@/components/modulos/estudios/QuemadorCdComponent.vue";
+import QuemarMultiplesComponent from "@/components/modulos/estudios/QuemarMultiplesComponent.vue";
 import DescargarZipComponent from "@/components/modulos/estudios/DescargarZipComponent.vue";
 
 const { proxy } = getCurrentInstance();
@@ -994,9 +1061,56 @@ const descargaModalVisible = ref(false);
 const sidebarVisible = ref(false);
 const actualizar = ref(false);
 
+const estudiosSeleccionados = ref([]);
+const sidebarQuemarMultiplesVisible = ref(false);
+
 const contadorRegistros = computed(() => {
     return registros.value.length;
 });
+
+const todoSeleccionado = computed(() => {
+    if (registros.value.length === 0) return false;
+    return registros.value.every((r) =>
+        estudiosSeleccionados.value.some((s) => s.study_pk === r.study_pk)
+    );
+});
+
+function estudioSeleccionado(item) {
+    return estudiosSeleccionados.value.some((s) => s.study_pk === item.study_pk);
+}
+
+function toggleSeleccionarTodo() {
+    if (todoSeleccionado.value) {
+        estudiosSeleccionados.value = [];
+    } else {
+        estudiosSeleccionados.value = registros.value.map((r) => ({
+            study_pk: r.study_pk,
+            study_iuid: r.study_iuid,
+            pat_name: r.pat_name,
+            pat_id: r.pat_id,
+            study_desc: r.study_desc,
+            study_datetime: r.study_datetime,
+            accession_no: r.accession_no,
+        }));
+    }
+}
+
+function alternarSeleccion(item) {
+    const idx = estudiosSeleccionados.value.findIndex((s) => s.study_pk === item.study_pk);
+    if (idx >= 0) {
+        estudiosSeleccionados.value.splice(idx, 1);
+    } else {
+        estudiosSeleccionados.value.push({
+            study_pk: item.study_pk,
+            study_iuid: item.study_iuid,
+            pat_name: item.pat_name,
+            pat_id: item.pat_id,
+            study_desc: item.study_desc,
+            study_datetime: item.study_datetime,
+            accession_no: item.accession_no,
+        });
+    }
+}
 const diagnosticoOptions = computed(() => {
     // Adaptar opciones al Select2 local: usa optionValue='id' y labelFields.
     return (diagnosticos.value || []).map((d) => ({
@@ -1640,6 +1754,24 @@ function onDescargaZipCompletado() {
         icon: "success",
     });
     cerrarDescargaZip();
+}
+
+function abrirSidebarQuemarMultiples() {
+    sidebarQuemarMultiplesVisible.value = true;
+}
+
+function cerrarSidebarQuemarMultiples() {
+    sidebarQuemarMultiplesVisible.value = false;
+}
+
+function onQuemadoMultiplesCompletado() {
+    toastMessage({
+        heading: "Completado",
+        text: "El disco ha sido quemado exitosamente.",
+        icon: "success",
+    });
+    cerrarSidebarQuemarMultiples();
+    estudiosSeleccionados.value = [];
 }
 
 /**
