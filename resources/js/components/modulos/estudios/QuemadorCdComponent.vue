@@ -63,18 +63,39 @@
                     No se encontraron unidades de CD/DVD.
                 </div>
                 <div v-else>
-                    <div v-for="drive in drives" :key="drive" class="form-check">
-                        <input
-                            class="form-check-input"
-                            type="radio"
-                            :id="`drive-${drive}`"
-                            :value="drive"
-                            v-model="selectedDrive"
-                        />
-                        <label class="form-check-label" :for="`drive-${drive}`">
-                            Unidad {{ drive }}
-                        </label>
+                    <div
+                        v-for="drive in drives"
+                        :key="drive.drive"
+                        class="drive-option"
+                        :class="{ selected: selectedDrive === drive.drive }"
+                    >
+                        <div class="form-check d-flex align-items-center">
+                            <input
+                                class="form-check-input"
+                                type="radio"
+                                :id="`drive-${drive.drive}`"
+                                :value="drive.drive"
+                                v-model="selectedDrive"
+                            />
+                            <label
+                                class="form-check-label flex-grow-1 d-flex align-items-center"
+                                :for="`drive-${drive.drive}`"
+                            >
+                                Unidad {{ drive.drive }}
+                                <span class="badge ml-2" :class="getDiscTypeBadge(drive).class">
+                                    {{ getDiscTypeBadge(drive).text }}
+                                </span>
+                            </label>
+                        </div>
                     </div>
+                </div>
+
+                <!-- CD capacity warning -->
+                <div v-if="discWarning" class="alert alert-warning py-1 px-2 mt-2 mb-0">
+                    <small>
+                        <i class="fa fa-exclamation-triangle mr-1"></i>
+                        {{ discWarning }}
+                    </small>
                 </div>
             </div>
 
@@ -190,6 +211,7 @@ const burnId = ref(null);
 const packageInfo = ref(null);
 let pollTimer = null;
 let pollTimeout = null;
+let driveRefreshTimer = null;
 
 const burnStatus = computed(() => {
     if (!burnStatusStatus.value) return null;
@@ -207,7 +229,19 @@ const progressPct = computed(() => {
 });
 
 const canBurn = computed(() => {
-    return selectedDrive.value && !burning.value;
+    if (!selectedDrive.value || burning.value) return false;
+    const driveInfo = getSelectedDriveInfo();
+    if (driveInfo && !driveInfo.media_loaded) return false;
+    return true;
+});
+
+const discWarning = computed(() => {
+    const driveInfo = getSelectedDriveInfo();
+    if (!driveInfo || !driveInfo.media_loaded) return null;
+    if (driveInfo.disc_type === "CD") {
+        return "El medio detectado es CD-R (~700 MB). Si el contenido excede esta capacidad, el quemado fallará.";
+    }
+    return null;
 });
 
 const progressBarClass = computed(() => {
@@ -307,9 +341,14 @@ async function listarUnidades() {
         if (res.data.status === "success") {
             drives.value = res.data.data || [];
             const sigueDisponible =
-                selectedDrive.value && drives.value.includes(selectedDrive.value);
+                selectedDrive.value && drives.value.some((d) => d.drive === selectedDrive.value);
             if (!sigueDisponible) {
-                selectedDrive.value = drives.value.length > 0 ? drives.value[0] : null;
+                const primerDisponible = drives.value.find((d) => d.media_loaded);
+                selectedDrive.value = primerDisponible
+                    ? primerDisponible.drive
+                    : drives.value.length > 0
+                      ? drives.value[0].drive
+                      : null;
             }
         }
     } catch (_e) {
@@ -323,6 +362,17 @@ async function listarUnidades() {
     } finally {
         loadingDrives.value = false;
     }
+}
+
+function getDiscTypeBadge(drive) {
+    if (!drive.media_loaded) return { text: "Vacío", class: "badge-secondary" };
+    if (drive.disc_type === "CD") return { text: "CD", class: "badge-info" };
+    if (drive.disc_type === "DVD") return { text: "DVD", class: "badge-success" };
+    return { text: "?", class: "badge-warning" };
+}
+
+function getSelectedDriveInfo() {
+    return drives.value.find((d) => d.drive === selectedDrive.value) || null;
 }
 
 async function iniciarQuemado() {
@@ -430,16 +480,39 @@ function cerrar() {
 onMounted(async () => {
     await listarUnidades();
     loading.value = false;
+    driveRefreshTimer = setInterval(() => {
+        if (!burning.value) {
+            listarUnidades();
+        }
+    }, 5000);
 });
 
 onBeforeUnmount(() => {
     stopPolling();
+    if (driveRefreshTimer) {
+        clearInterval(driveRefreshTimer);
+        driveRefreshTimer = null;
+    }
 });
 </script>
 
 <style scoped>
 .quemador-cd {
     padding: 10px;
+}
+.drive-option {
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+    margin-bottom: 4px;
+    transition: all 0.2s;
+}
+.drive-option:hover {
+    background: #f8f9fa;
+}
+.drive-option.selected {
+    background: #e3f2fd;
+    border-color: #2196f3;
 }
 .progress {
     border-radius: 10px;

@@ -82,7 +82,72 @@ class DicomBurnerController extends Controller
             $drives = [];
 
             if (PHP_OS_FAMILY === 'Windows') {
-                $cmd = 'powershell -Command "Get-CimInstance Win32_CDROMDrive | Select-Object -ExpandProperty Drive" 2>&1';
+                // Detect drives and disc type via IMAPI2 COM
+                $psScript = <<<'PS'
+$master = $null
+$rec = $null
+$fmt = $null
+try {
+    $master = New-Object -ComObject IMAPI2.MsftDiscMaster2
+    $rec = New-Object -ComObject IMAPI2.MsftDiscRecorder2
+    $fmt = New-Object -ComObject IMAPI2.MsftDiscFormat2Data
+
+    $driveLetters = @()
+    Get-CimInstance Win32_CDROMDrive | ForEach-Object {
+        if ($_.Drive) { $driveLetters += $_.Drive.TrimEnd('\','.') }
+    }
+
+    foreach ($drive in $driveLetters) {
+        $targetDrive = "${drive}:\"
+        $recorderId = $null
+        $recorderName = $null
+
+        foreach ($id in $master) {
+            $rec.InitializeDiscRecorder($id)
+            foreach ($p in $rec.VolumePathNames) {
+                if ($p -like "$targetDrive*") {
+                    $recorderId = $id
+                    $recorderName = "$($rec.VendorId) $($rec.ProductId)"
+                    break
+                }
+            }
+            if ($recorderId) { break }
+        }
+
+        $discType = "no-disc"
+        $mediaLoaded = $false
+
+        if ($recorderId) {
+            try {
+                $fmt.Recorder = $rec
+                $mt = [int]$fmt.CurrentPhysicalMediaType
+                $mediaLoaded = $true
+                if ($mt -ge 1 -and $mt -le 3) { $discType = "CD" }
+                elseif ($mt -ge 4 -and $mt -le 13) { $discType = "DVD" }
+                else { $discType = "unknown" }
+            } catch {
+                $discType = "unknown"
+                $mediaLoaded = $true
+            }
+        }
+
+        $obj = [PSCustomObject]@{
+            drive = $drive
+            disc_type = $discType
+            media_loaded = $mediaLoaded
+            recorder_name = $recorderName
+        }
+        Write-Output ($obj | ConvertTo-Json -Compress)
+    }
+} catch {
+    # Fallback: return drives without disc type info
+} finally {
+    if ($fmt) { try { [System.Runtime.InteropServices.Marshal]::ReleaseComObject($fmt) | Out-Null } catch {} }
+    if ($rec) { try { [System.Runtime.InteropServices.Marshal]::ReleaseComObject($rec) | Out-Null } catch {} }
+    if ($master) { try { [System.Runtime.InteropServices.Marshal]::ReleaseComObject($master) | Out-Null } catch {} }
+}
+PS;
+                $cmd = 'powershell -NoProfile -Command "'.addcslashes($psScript, '"').'" 2>&1';
                 $descriptors = [
                     0 => ['pipe', 'r'],
                     1 => ['pipe', 'w'],
@@ -92,13 +157,27 @@ class DicomBurnerController extends Controller
 
                 if (is_resource($process)) {
                     fclose($pipes[0]);
-                    stream_set_timeout($pipes[1], 5);
+                    stream_set_timeout($pipes[1], 15);
                     while (! feof($pipes[1])) {
                         $line = fgets($pipes[1]);
                         if ($line !== false) {
-                            $drive = trim(trim($line), ':');
-                            if (! empty($drive)) {
-                                $drives[] = strtoupper($drive);
+                            $line = trim($line);
+                            if (! empty($line)) {
+                                $decoded = json_decode($line, true);
+                                if ($decoded && isset($decoded['drive'])) {
+                                    $drives[] = $decoded;
+                                } else {
+                                    // Fallback: plain drive letter
+                                    $drive = trim($line, ':');
+                                    if (! empty($drive)) {
+                                        $drives[] = [
+                                            'drive' => strtoupper($drive),
+                                            'disc_type' => null,
+                                            'media_loaded' => false,
+                                            'recorder_name' => null,
+                                        ];
+                                    }
+                                }
                             }
                         }
                     }
@@ -110,7 +189,12 @@ class DicomBurnerController extends Controller
                 $possibleDevices = ['/dev/cdrom', '/dev/dvd', '/dev/sr0', '/dev/sr1'];
                 foreach ($possibleDevices as $device) {
                     if (file_exists($device)) {
-                        $drives[] = $device;
+                        $drives[] = [
+                            'drive' => $device,
+                            'disc_type' => null,
+                            'media_loaded' => false,
+                            'recorder_name' => null,
+                        ];
                     }
                 }
             }
