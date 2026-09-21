@@ -1229,6 +1229,20 @@ async function guardarRegistro() {
         return;
     }
 
+    if (
+        registro.value.destino_estudio !== "Tele Radiologia" &&
+        (!registro.value.medico_id || registro.value.medico_id === "")
+    ) {
+        toastMessage({
+            heading: "Upsss!!!",
+            text: "Debes seleccionar un médico antes de guardar.",
+            icon: "warning",
+        });
+
+        loadingGuardar.value = false;
+        return;
+    }
+
     try {
         const formData = new FormData();
         formData.append("registro", JSON.stringify(registro.value));

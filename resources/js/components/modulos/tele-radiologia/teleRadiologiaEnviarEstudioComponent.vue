@@ -917,7 +917,7 @@ async function mostrarRegistro(data = {}) {
 async function interfaceListarProductosDiagnosticos() {
     try {
         const resProductos = await axios.get(
-            "/api/interface-sahi-listar-listarProductosDiagnosticos/" +
+            "/api/interface-sahi-listar-productos-diagnosticos/" +
                 interfaceAtencionSeleccionada.value
         );
         const data = resProductos.data.data;
