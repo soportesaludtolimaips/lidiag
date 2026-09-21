@@ -110,24 +110,87 @@
             </div>
 
             <!-- Progress -->
-            <div v-if="burnStatus" class="mt-3">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                    <small class="text-muted">{{ statusLabel }}</small>
-                    <small class="text-muted">{{ progressPct }}%</small>
-                </div>
-                <div class="progress" style="height: 20px">
+            <div v-if="burnStatus" class="mt-3 burn-progress-section">
+                <!-- Step indicators -->
+                <div class="d-flex justify-content-between mb-3 burn-steps">
                     <div
-                        class="progress-bar"
+                        class="burn-step"
+                        :class="{ active: stepIndex >= 1, current: stepIndex === 1 }"
+                    >
+                        <div class="step-circle">
+                            <i v-if="stepIndex > 1" class="fa fa-check"></i>
+                            <i v-else-if="stepIndex === 1" class="fa fa-spinner fa-spin"></i>
+                            <span v-else>1</span>
+                        </div>
+                        <small>Descargar</small>
+                    </div>
+                    <div class="step-line" :class="{ active: stepIndex >= 2 }"></div>
+                    <div
+                        class="burn-step"
+                        :class="{ active: stepIndex >= 2, current: stepIndex === 2 }"
+                    >
+                        <div class="step-circle">
+                            <i v-if="stepIndex > 2" class="fa fa-check"></i>
+                            <i v-else-if="stepIndex === 2" class="fa fa-spinner fa-spin"></i>
+                            <span v-else>2</span>
+                        </div>
+                        <small>Preparar</small>
+                    </div>
+                    <div class="step-line" :class="{ active: stepIndex >= 3 }"></div>
+                    <div
+                        class="burn-step"
+                        :class="{ active: stepIndex >= 3, current: stepIndex === 3 }"
+                    >
+                        <div class="step-circle">
+                            <i v-if="stepIndex > 3" class="fa fa-check"></i>
+                            <i v-else-if="stepIndex === 3" class="fa fa-spinner fa-spin"></i>
+                            <span v-else>3</span>
+                        </div>
+                        <small>Grabar</small>
+                    </div>
+                    <div class="step-line" :class="{ active: stepIndex >= 4 }"></div>
+                    <div
+                        class="burn-step"
+                        :class="{ active: stepIndex >= 4, current: stepIndex === 4 }"
+                    >
+                        <div class="step-circle">
+                            <i v-if="stepIndex === 4" class="fa fa-check"></i>
+                            <span v-else>4</span>
+                        </div>
+                        <small>Listo</small>
+                    </div>
+                </div>
+
+                <!-- Progress bar -->
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <small class="font-weight-bold" :class="statusTextClass">
+                        <i :class="statusIconClass" class="mr-1"></i>
+                        {{ statusLabel }}
+                    </small>
+                    <small class="font-weight-bold" :class="statusTextClass">
+                        {{ progressPct }}%
+                    </small>
+                </div>
+                <div class="progress burn-progress">
+                    <div
+                        class="progress-bar burn-progress-bar"
                         :class="progressBarClass"
                         role="progressbar"
                         :style="{ width: progressPct + '%' }"
                         :aria-valuenow="progressPct"
                         aria-valuemin="0"
                         aria-valuemax="100"
-                    >
-                        {{ statusLabel }}
-                    </div>
+                    ></div>
                 </div>
+
+                <!-- Detail message -->
+                <div v-if="burnStatusDetail" class="mt-2 burn-detail">
+                    <small class="text-muted">
+                        <i class="fa fa-info-circle mr-1"></i>
+                        {{ burnStatusDetail }}
+                    </small>
+                </div>
+
                 <div
                     v-if="burnStatusError"
                     class="alert alert-danger mt-2 mb-0 py-2"
@@ -246,10 +309,63 @@ const canBurn = computed(() => {
 
 const progressBarClass = computed(() => {
     const s = burnStatusStatus.value;
-    if (s === "burned") return "bg-success";
-    if (s === "failed") return "bg-danger";
-    if (s === "burning") return "bg-warning";
-    return "bg-info";
+    if (s === "burned") return "bg-success burn-bar-success";
+    if (s === "failed") return "bg-danger burn-bar-danger";
+    if (s === "burning") return "bg-warning burn-bar-warning";
+    return "bg-info burn-bar-info";
+});
+
+const statusTextClass = computed(() => {
+    const s = burnStatusStatus.value;
+    if (s === "burned") return "text-success";
+    if (s === "failed") return "text-danger";
+    if (s === "burning") return "text-warning";
+    return "text-info";
+});
+
+const statusIconClass = computed(() => {
+    const s = burnStatusStatus.value;
+    const p = progressPct.value;
+    if (s === "burned") return "fa fa-check-circle";
+    if (s === "failed") return "fa fa-times-circle";
+    if (s === "burning") return "fa fa-fire";
+    if (s === "processing") return p <= 40 ? "fa fa-download" : "fa fa-cog";
+    return "fa fa-spinner fa-spin";
+});
+
+const stepIndex = computed(() => {
+    const s = burnStatusStatus.value;
+    const p = progressPct.value;
+    if (!s) return 0;
+    if (s === "burned") return 4;
+    if (s === "failed") return 0;
+    if (s === "burning") return p <= 70 ? 3 : 3;
+    if (s === "processing") return p <= 40 ? 1 : 2;
+    return 0;
+});
+
+const burnStatusDetail = computed(() => {
+    const s = burnStatusStatus.value;
+    const p = progressPct.value;
+    if (s === "processing" && p <= 40) {
+        return "Descargando imágenes DICOM del servidor PACS...";
+    }
+    if (s === "processing" && p > 40) {
+        return "Preparando imagen de disco...";
+    }
+    if (s === "burning" && p <= 70) {
+        return "Creando imagen de disco virtual...";
+    }
+    if (s === "burning" && p > 70) {
+        return "Escribiendo datos en el medio óptico...";
+    }
+    if (s === "burned") {
+        return "El disco ha sido quemado exitosamente. Puede retirar el medio.";
+    }
+    if (s === "failed") {
+        return "Error durante el proceso de quemado. Verifique el disco y la unidad.";
+    }
+    return null;
 });
 
 const statusLabel = computed(() => {
@@ -506,12 +622,105 @@ onBeforeUnmount(() => {
 .min-width-0 {
     min-width: 0;
 }
-.progress {
-    border-radius: 10px;
+
+/* Burn steps */
+.burn-steps {
+    align-items: flex-start;
 }
-.progress-bar {
-    transition: width 0.5s ease;
+.burn-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+.burn-step .step-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 0.75rem;
-    line-height: 20px;
+    font-weight: 600;
+    background: #e9ecef;
+    color: #6c757d;
+    transition: all 0.3s ease;
+}
+.burn-step.active .step-circle {
+    background: #17a2b8;
+    color: #fff;
+}
+.burn-step.current .step-circle {
+    background: #007bff;
+    color: #fff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+}
+.burn-step small {
+    font-size: 0.65rem;
+    color: #6c757d;
+}
+.burn-step.active small {
+    color: #17a2b8;
+    font-weight: 600;
+}
+.step-line {
+    flex: 1;
+    height: 2px;
+    background: #e9ecef;
+    margin-top: 13px;
+    transition: background 0.3s ease;
+}
+.step-line.active {
+    background: #17a2b8;
+}
+
+/* Progress bar */
+.burn-progress {
+    height: 24px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #e9ecef;
+}
+.burn-progress-bar {
+    transition: width 0.6s ease;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    line-height: 24px;
+    font-weight: 600;
+}
+.burn-bar-info {
+    background: linear-gradient(90deg, #17a2b8, #20c997) !important;
+}
+.burn-bar-warning {
+    background: linear-gradient(90deg, #ffc107, #fd7e14) !important;
+}
+.burn-bar-success {
+    background: linear-gradient(90deg, #28a745, #20c997) !important;
+}
+.burn-bar-danger {
+    background: linear-gradient(90deg, #dc3545, #e83e8c) !important;
+}
+
+/* Detail text */
+.burn-detail {
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 3px solid #17a2b8;
+}
+
+/* Progress section animation */
+.burn-progress-section {
+    animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 </style>
