@@ -639,18 +639,6 @@
                                     <span class="text-danger" v-if="errores.productosEstudio">
                                         {{ errores.productosEstudio[0] }}
                                     </span>
-                                    <div
-                                        v-if="sedeInterface"
-                                        class="alert alert-info d-flex align-items-center m-b-15"
-                                        role="alert"
-                                    >
-                                        <i class="fa fa-info-circle m-r-10"></i>
-                                        <span
-                                            ><strong>Modo Interface activo:</strong> Los productos y
-                                            diagnósticos se cargan automáticamente desde la atención
-                                            de la sede.</span
-                                        >
-                                    </div>
                                     <div class="row">
                                         <div
                                             class="col-md-12"
@@ -1381,8 +1369,7 @@ async function mostrarRegistro(data = {}, index) {
  */
 async function interfaceListarProductosDiagnosticos() {
     const resProuctos = await axios.get(
-        "/api/interface-sahi-listar-listarProductosDiagnosticos/" +
-            interfaceAtencionSeleccionada.value
+        "/api/interface-sahi-listar-productos-diagnosticos/" + interfaceAtencionSeleccionada.value
     );
 
     const data = resProuctos.data.data;
