@@ -6,17 +6,39 @@
             <!-- Lista de estudios -->
             <div class="mb-3">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="text-info mb-0">
-                        <i class="fa fa-list"></i> Estudios seleccionados ({{
-                            estudiosLocales.length
-                        }})
+                    <h6 class="text-dark mb-0">
+                        <i class="fa fa-files-o text-info mr-1"></i>
+                        <span class="font-weight-bold">Estudios</span>
+                        <span class="badge badge-info ml-1">{{ estudiosLocales.length }}</span>
                     </h6>
-                    <small class="text-muted">Arrastra para reordenar</small>
+                    <small class="text-muted" v-if="estudiosLocales.length > 1">
+                        <i class="fa fa-arrows-alt mr-1"></i> Arrastrar
+                    </small>
                 </div>
 
-                <div v-if="estudiosLocales.length === 0" class="text-muted text-center py-3">
-                    <i class="fa fa-inbox fa-2x m-b-10"></i>
-                    <p>No hay estudios seleccionados.</p>
+                <!-- Resumen rápido -->
+                <div
+                    v-if="estudiosLocales.length > 0"
+                    class="d-flex align-items-center mb-2 px-2 study-summary"
+                >
+                    <small class="text-muted">
+                        <i class="fa fa-user-o mr-1"></i>
+                        {{ pacientesUnicos }} paciente(s)
+                    </small>
+                    <span class="mx-2 text-muted">·</span>
+                    <small class="text-muted">
+                        <i class="fa fa-file-o mr-1"></i>
+                        {{ estudiosLocales.length }} estudio(s)
+                    </small>
+                </div>
+
+                <div
+                    v-if="estudiosLocales.length === 0"
+                    class="text-muted text-center py-4 empty-state"
+                >
+                    <i class="fa fa-inbox fa-3x mb-2 opacity-25"></i>
+                    <p class="mb-0">No hay estudios seleccionados</p>
+                    <small>Seleccione estudios de la tabla para quemar</small>
                 </div>
 
                 <draggable
@@ -24,41 +46,58 @@
                     v-model="estudiosLocales"
                     item-key="study_pk"
                     handle=".drag-handle"
-                    animation="200"
+                    animation="250"
                     ghost-class="ghost"
                 >
                     <template #item="{ element, index }">
-                        <div class="card border-light mb-2 study-card">
-                            <div class="card-body py-2 px-3">
-                                <div class="d-flex align-items-center">
+                        <div class="study-item mb-2">
+                            <div class="d-flex align-items-start">
+                                <!-- Drag handle + order number -->
+                                <div class="study-order d-flex flex-column align-items-center mr-2">
                                     <i
-                                        class="fa fa-arrows-alt text-muted drag-handle mr-2"
-                                        style="cursor: grab"
+                                        class="fa fa-grip-vertical text-muted drag-handle"
                                         title="Arrastrar para reordenar"
                                     ></i>
-                                    <div class="flex-grow-1 min-width-0">
-                                        <div class="d-flex justify-content-between">
-                                            <strong class="text-truncate" style="max-width: 200px">
+                                    <span class="order-badge mt-1">{{ index + 1 }}</span>
+                                </div>
+
+                                <!-- Patient initial circle -->
+                                <div class="patient-avatar mr-2">
+                                    {{ getInitials(element.pat_name) }}
+                                </div>
+
+                                <!-- Study info -->
+                                <div class="flex-grow-1 min-width-0">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="min-width-0 flex-grow-1">
+                                            <div class="study-patient-name text-truncate">
                                                 {{ element.pat_name || "—" }}
-                                            </strong>
-                                            <button
-                                                type="button"
-                                                class="btn btn-sm btn-link text-danger p-0 ml-2"
-                                                @click="quitarEstudio(index)"
-                                                title="Quitar estudio"
-                                            >
-                                                <i class="fa fa-times"></i>
-                                            </button>
+                                            </div>
+                                            <div class="study-desc text-truncate">
+                                                {{ element.study_desc || "Sin descripción" }}
+                                            </div>
                                         </div>
-                                        <small class="text-muted d-block text-truncate">
-                                            {{ element.study_desc || "—" }}
-                                        </small>
-                                        <small class="text-muted">
-                                            {{ element.study_datetime || "—" }}
-                                            <span v-if="element.pat_id" class="ml-2">
-                                                Doc: {{ element.pat_id }}
-                                            </span>
-                                        </small>
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm remove-btn ml-2"
+                                            @click="quitarEstudio(index)"
+                                            title="Quitar estudio"
+                                        >
+                                            <i class="fa fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <div class="study-meta mt-1">
+                                        <span v-if="element.study_datetime">
+                                            <i class="fa fa-calendar-o mr-1"></i
+                                            >{{ element.study_datetime }}
+                                        </span>
+                                        <span v-if="element.pat_id" class="ml-2">
+                                            <i class="fa fa-id-card-o mr-1"></i>{{ element.pat_id }}
+                                        </span>
+                                        <span v-if="element.accession_no" class="ml-2">
+                                            <i class="fa fa-hashtag mr-1"></i
+                                            >{{ element.accession_no }}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -386,6 +425,18 @@ const pacientesDiferentes = computed(() => {
     return patIds.size > 1;
 });
 
+const pacientesUnicos = computed(() => {
+    const patIds = new Set(estudiosLocales.value.map((e) => e.pat_id).filter(Boolean));
+    return patIds.size || 1;
+});
+
+function getInitials(name) {
+    if (!name) return "?";
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 function normalizeDeviceLetter(drive) {
     return String(drive).replace(/:$/, "").toUpperCase().trim();
 }
@@ -609,16 +660,119 @@ onBeforeUnmount(() => {
 .quemar-multiples {
     padding: 10px;
 }
-.study-card {
-    transition: box-shadow 0.2s;
+
+/* Empty state */
+.empty-state {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    background: #f8f9fa;
 }
-.study-card:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+/* Summary bar */
+.study-summary {
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 6px 10px;
+    border-left: 3px solid #17a2b8;
 }
+
+/* Study item */
+.study-item {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 10px 12px;
+    transition: all 0.2s ease;
+}
+.study-item:hover {
+    border-color: #17a2b8;
+    box-shadow: 0 2px 8px rgba(23, 162, 184, 0.12);
+}
+
+/* Order column */
+.study-order {
+    min-width: 24px;
+}
+.study-order .drag-handle {
+    cursor: grab;
+    font-size: 1rem;
+    opacity: 0.4;
+    transition: opacity 0.2s;
+}
+.study-item:hover .drag-handle {
+    opacity: 0.8;
+}
+.order-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #6c757d;
+    background: #e9ecef;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+}
+
+/* Patient avatar */
+.patient-avatar {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #17a2b8, #20c997);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.5px;
+}
+
+/* Study info */
+.study-patient-name {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #212529;
+    line-height: 1.2;
+}
+.study-desc {
+    font-size: 0.75rem;
+    color: #6c757d;
+    line-height: 1.3;
+}
+.study-meta {
+    font-size: 0.7rem;
+    color: #adb5bd;
+}
+.study-meta i {
+    font-size: 0.65rem;
+}
+
+/* Remove button */
+.remove-btn {
+    color: #dc3545;
+    opacity: 0.3;
+    transition: all 0.2s;
+    padding: 2px 4px !important;
+    border-radius: 4px;
+}
+.remove-btn:hover {
+    opacity: 1;
+    background: rgba(220, 53, 69, 0.1);
+}
+
+/* Ghost (drag placeholder) */
 .ghost {
-    opacity: 0.5;
+    opacity: 0.4;
     background: #c8ebfb;
+    border: 2px dashed #17a2b8;
+    border-radius: 8px;
 }
+
 .min-width-0 {
     min-width: 0;
 }
