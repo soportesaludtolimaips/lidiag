@@ -19,6 +19,11 @@ Homestead.json
 
 storage/phpstan/cache/PHPStan
 
+# .NET build artifacts
+resources/burner/bin/
+resources/burner/obj/
+resources/burner/publish/
+
 # Vite build output (no versionar artefactos)
 public/build/
 
