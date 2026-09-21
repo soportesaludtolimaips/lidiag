@@ -215,7 +215,7 @@
                                         :id="item.study_pk"
                                         :class="{
                                             'text-info': item.agendado !== 0,
-                                            'table-active': estudioSeleccionado(item),
+                                            'selected-row': estudioSeleccionado(item),
                                         }"
                                     >
                                         <td class="text-center">
@@ -1868,5 +1868,13 @@ onBeforeUnmount(() => {
 .audio {
     width: 50px;
     height: 5px;
+}
+
+.selected-row {
+    background-color: #e3f2fd !important;
+}
+
+.selected-row:hover {
+    background-color: #bbdefb !important;
 }
 </style>
