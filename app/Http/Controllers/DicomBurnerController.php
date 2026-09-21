@@ -82,8 +82,103 @@ class DicomBurnerController extends Controller
             $drives = [];
 
             if (PHP_OS_FAMILY === 'Windows') {
-                // Detect drives and disc type via IMAPI2 COM
-                $psScript = <<<'PS'
+                // Step 1: Get drive letters via WMI (fast, reliable)
+                $cmd = 'powershell -NoProfile -Command "Get-CimInstance Win32_CDROMDrive | Select-Object -ExpandProperty Drive" 2>&1';
+                $descriptors = [
+                    0 => ['pipe', 'r'],
+                    1 => ['pipe', 'w'],
+                    2 => ['pipe', 'w'],
+                ];
+                $process = proc_open($cmd, $descriptors, $pipes);
+
+                if (is_resource($process)) {
+                    fclose($pipes[0]);
+                    stream_set_timeout($pipes[1], 10);
+                    while (! feof($pipes[1])) {
+                        $line = fgets($pipes[1]);
+                        if ($line !== false) {
+                            $drive = trim(trim($line), ':');
+                            if (! empty($drive)) {
+                                $drives[] = [
+                                    'drive' => strtoupper($drive),
+                                    'disc_type' => null,
+                                    'media_loaded' => false,
+                                    'recorder_name' => null,
+                                ];
+                            }
+                        }
+                    }
+                    fclose($pipes[1]);
+                    fclose($pipes[2]);
+                    proc_close($process);
+                }
+
+                // Step 2: Detect disc type via IMAPI2 COM for each drive
+                if (! empty($drives)) {
+                    $driveLetters = array_column($drives, 'drive');
+                    $detectScript = $this->buildDetectMediaScript($driveLetters);
+                    $tmpScript = tempnam(sys_get_temp_dir(), 'imapi2_').'.ps1';
+                    file_put_contents($tmpScript, $detectScript);
+                    $cmd2 = 'powershell -NoProfile -ExecutionPolicy Bypass -File '.escapeshellarg($tmpScript).' 2>&1';
+                    $process2 = proc_open($cmd2, $descriptors, $pipes2);
+
+                    if (is_resource($process2)) {
+                        fclose($pipes2[0]);
+                        stream_set_timeout($pipes2[1], 15);
+                        while (! feof($pipes2[1])) {
+                            $line = fgets($pipes2[1]);
+                            if ($line !== false) {
+                                $line = trim($line);
+                                if (! empty($line)) {
+                                    $decoded = json_decode($line, true);
+                                    if ($decoded && isset($decoded['drive'])) {
+                                        foreach ($drives as &$d) {
+                                            if ($d['drive'] === $decoded['drive']) {
+                                                $d['disc_type'] = $decoded['disc_type'];
+                                                $d['media_loaded'] = $decoded['media_loaded'];
+                                                $d['recorder_name'] = $decoded['recorder_name'];
+                                                break;
+                                            }
+                                        }
+                                        unset($d);
+                                    }
+                                }
+                            }
+                        }
+                        fclose($pipes2[1]);
+                        fclose($pipes2[2]);
+                        proc_close($process2);
+                        @unlink($tmpScript);
+                    }
+                }
+            } else {
+                $possibleDevices = ['/dev/cdrom', '/dev/dvd', '/dev/sr0', '/dev/sr1'];
+                foreach ($possibleDevices as $device) {
+                    if (file_exists($device)) {
+                        $drives[] = [
+                            'drive' => $device,
+                            'disc_type' => null,
+                            'media_loaded' => false,
+                            'recorder_name' => null,
+                        ];
+                    }
+                }
+            }
+
+            return $drives;
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $drives,
+        ]);
+    }
+
+    private function buildDetectMediaScript(array $driveLetters): string
+    {
+        $drivesJson = json_encode($driveLetters);
+
+        return '$driveLetters = '.$drivesJson.'
 $master = $null
 $rec = $null
 $fmt = $null
@@ -92,22 +187,17 @@ try {
     $rec = New-Object -ComObject IMAPI2.MsftDiscRecorder2
     $fmt = New-Object -ComObject IMAPI2.MsftDiscFormat2Data
 
-    $driveLetters = @()
-    Get-CimInstance Win32_CDROMDrive | ForEach-Object {
-        if ($_.Drive) { $driveLetters += $_.Drive.TrimEnd('\','.') }
-    }
-
     foreach ($drive in $driveLetters) {
-        $targetDrive = "${drive}:\"
+        $targetDrive = $drive + ":\"
         $recorderId = $null
         $recorderName = $null
 
         foreach ($id in $master) {
             $rec.InitializeDiscRecorder($id)
             foreach ($p in $rec.VolumePathNames) {
-                if ($p -like "$targetDrive*") {
+                if ($p.StartsWith($targetDrive, [StringComparison]::OrdinalIgnoreCase)) {
                     $recorderId = $id
-                    $recorderName = "$($rec.VendorId) $($rec.ProductId)"
+                    $recorderName = $rec.VendorId + " " + $rec.ProductId
                     break
                 }
             }
@@ -140,72 +230,12 @@ try {
         Write-Output ($obj | ConvertTo-Json -Compress)
     }
 } catch {
-    # Fallback: return drives without disc type info
+    Write-Error "IMAPI2 detection failed"
 } finally {
     if ($fmt) { try { [System.Runtime.InteropServices.Marshal]::ReleaseComObject($fmt) | Out-Null } catch {} }
     if ($rec) { try { [System.Runtime.InteropServices.Marshal]::ReleaseComObject($rec) | Out-Null } catch {} }
     if ($master) { try { [System.Runtime.InteropServices.Marshal]::ReleaseComObject($master) | Out-Null } catch {} }
-}
-PS;
-                $cmd = 'powershell -NoProfile -Command "'.addcslashes($psScript, '"').'" 2>&1';
-                $descriptors = [
-                    0 => ['pipe', 'r'],
-                    1 => ['pipe', 'w'],
-                    2 => ['pipe', 'w'],
-                ];
-                $process = proc_open($cmd, $descriptors, $pipes);
-
-                if (is_resource($process)) {
-                    fclose($pipes[0]);
-                    stream_set_timeout($pipes[1], 15);
-                    while (! feof($pipes[1])) {
-                        $line = fgets($pipes[1]);
-                        if ($line !== false) {
-                            $line = trim($line);
-                            if (! empty($line)) {
-                                $decoded = json_decode($line, true);
-                                if ($decoded && isset($decoded['drive'])) {
-                                    $drives[] = $decoded;
-                                } else {
-                                    // Fallback: plain drive letter
-                                    $drive = trim($line, ':');
-                                    if (! empty($drive)) {
-                                        $drives[] = [
-                                            'drive' => strtoupper($drive),
-                                            'disc_type' => null,
-                                            'media_loaded' => false,
-                                            'recorder_name' => null,
-                                        ];
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    fclose($pipes[1]);
-                    fclose($pipes[2]);
-                    proc_close($process);
-                }
-            } else {
-                $possibleDevices = ['/dev/cdrom', '/dev/dvd', '/dev/sr0', '/dev/sr1'];
-                foreach ($possibleDevices as $device) {
-                    if (file_exists($device)) {
-                        $drives[] = [
-                            'drive' => $device,
-                            'disc_type' => null,
-                            'media_loaded' => false,
-                            'recorder_name' => null,
-                        ];
-                    }
-                }
-            }
-
-            return $drives;
-        });
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $drives,
-        ]);
+}';
     }
 
     public function burn(Request $request)
