@@ -78,12 +78,12 @@ class DicomBurnerController extends Controller
 
     public function listDrives()
     {
-        $drives = Cache::remember('dicom.drives', 300, function () {
+        $drives = Cache::remember('dicom.drives', 30, function () {
             $drives = [];
 
             if (PHP_OS_FAMILY === 'Windows') {
-                // Step 1: Get drive letters via WMI (fast, reliable)
-                $cmd = 'powershell -NoProfile -Command "Get-CimInstance Win32_CDROMDrive | Select-Object -ExpandProperty Drive" 2>&1';
+                // Step 1: Get drive info via WMI (drive letter, MediaLoaded, recorder name)
+                $cmd = 'powershell -NoProfile -Command "Get-CimInstance Win32_CDROMDrive | ForEach-Object { [PSCustomObject]@{ drive = $_.Drive; media_loaded = $_.MediaLoaded; recorder_name = $_.Name } | ConvertTo-Json -Compress }" 2>&1';
                 $descriptors = [
                     0 => ['pipe', 'r'],
                     1 => ['pipe', 'w'],
@@ -97,14 +97,17 @@ class DicomBurnerController extends Controller
                     while (! feof($pipes[1])) {
                         $line = fgets($pipes[1]);
                         if ($line !== false) {
-                            $drive = trim(trim($line), ':');
-                            if (! empty($drive)) {
-                                $drives[] = [
-                                    'drive' => strtoupper($drive),
-                                    'disc_type' => null,
-                                    'media_loaded' => false,
-                                    'recorder_name' => null,
-                                ];
+                            $line = trim($line);
+                            if (! empty($line)) {
+                                $decoded = json_decode($line, true);
+                                if ($decoded && isset($decoded['drive'])) {
+                                    $drives[] = [
+                                        'drive' => strtoupper(trim(trim($decoded['drive']), ':')),
+                                        'disc_type' => null,
+                                        'media_loaded' => (bool) ($decoded['media_loaded'] ?? false),
+                                        'recorder_name' => $decoded['recorder_name'] ?? null,
+                                    ];
+                                }
                             }
                         }
                     }
@@ -113,7 +116,7 @@ class DicomBurnerController extends Controller
                     proc_close($process);
                 }
 
-                // Step 2: Detect disc type via IMAPI2 COM for each drive
+                // Step 2: Detect disc type (CD vs DVD) via IMAPI2 COM
                 if (! empty($drives)) {
                     $driveLetters = array_column($drives, 'drive');
                     $detectScript = $this->buildDetectMediaScript($driveLetters);
@@ -135,8 +138,12 @@ class DicomBurnerController extends Controller
                                         foreach ($drives as &$d) {
                                             if ($d['drive'] === $decoded['drive']) {
                                                 $d['disc_type'] = $decoded['disc_type'];
-                                                $d['media_loaded'] = $decoded['media_loaded'];
-                                                $d['recorder_name'] = $decoded['recorder_name'];
+                                                if (isset($decoded['media_loaded'])) {
+                                                    $d['media_loaded'] = (bool) $decoded['media_loaded'];
+                                                }
+                                                if (isset($decoded['recorder_name']) && $decoded['recorder_name']) {
+                                                    $d['recorder_name'] = $decoded['recorder_name'];
+                                                }
                                                 break;
                                             }
                                         }
@@ -150,6 +157,19 @@ class DicomBurnerController extends Controller
                         proc_close($process2);
                         @unlink($tmpScript);
                     }
+
+                    // Fallback: if IMAPI2 didn't set disc_type, infer from recorder name
+                    foreach ($drives as &$d) {
+                        if ($d['disc_type'] === null && $d['recorder_name']) {
+                            $name = strtoupper($d['recorder_name']);
+                            if (str_contains($name, 'DVD')) {
+                                $d['disc_type'] = 'DVD';
+                            } elseif (str_contains($name, 'CD') || str_contains($name, 'CD-ROM')) {
+                                $d['disc_type'] = 'CD';
+                            }
+                        }
+                    }
+                    unset($d);
                 }
             } else {
                 $possibleDevices = ['/dev/cdrom', '/dev/dvd', '/dev/sr0', '/dev/sr1'];
