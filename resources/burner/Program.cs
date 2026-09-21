@@ -279,10 +279,25 @@ namespace LidiagBurner
 
             Console.WriteLine("[60%] Grabando...");
 
-            // Do NOT force a write speed — let IMAPI2 auto-negotiate based on
-            // the intersection of recorder and media capabilities. Setting a
-            // speed from SupportedWriteSpeeds can fail because that list includes
-            // all speeds the recorder supports regardless of media type.
+            // Query supported write speeds from the intersection of recorder + media capabilities
+            object[] supportedSpeeds = burnFormat.SupportedWriteSpeeds;
+            if (supportedSpeeds != null && supportedSpeeds.Length > 0)
+            {
+                // Pick the lowest speed (safest, most compatible)
+                int lowestSpeed = int.MaxValue;
+                foreach (object s in supportedSpeeds)
+                {
+                    int speed = 0;
+                    try { speed = Convert.ToInt32(s); } catch { }
+                    if (speed > 0 && speed < lowestSpeed)
+                        lowestSpeed = speed;
+                }
+                if (lowestSpeed < int.MaxValue)
+                {
+                    Console.WriteLine("  Velocidad seleccionada: " + lowestSpeed + " sectores/s");
+                    burnFormat.SetWriteSpeed(lowestSpeed, false);
+                }
+            }
 
             burnFormat.Write(imageStream);
 
