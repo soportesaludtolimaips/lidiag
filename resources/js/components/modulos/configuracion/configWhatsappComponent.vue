@@ -929,7 +929,9 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import { useConfigCrud } from "@/composables/useConfigCrud.js";
+import { useConfigForm } from "@/composables/useConfigForm.js";
+import { useDataTable } from "@/composables/useDataTable.js";
 import { confirmAction, toastMessage } from "@/helpers/alerts.js";
 import EmojiPicker from "@/components/shared/EmojiPicker.vue";
 import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
@@ -946,23 +948,37 @@ const INIT_FORM_NUMEROS = {
 const INIT_FORM_SALUDOS = { sede_id: "", servicio_cita_id: "", mensaje_bienvenida: "", activo: 1 };
 
 const tabActivo = ref("numeros");
-const id = ref(0);
+const {
+    form,
+    errores,
+    tituloModal,
+    actualizar,
+    id,
+    clearErrors,
+    setErrors,
+    resetForm,
+    prepararNuevo,
+    prepararEdicion,
+} = useConfigForm({ numeros: INIT_FORM_NUMEROS, saludos: INIT_FORM_SALUDOS });
+const { loadingGuardar, loadingEliminarId, guardar, eliminar } = useConfigCrud({
+    resolveUrl: () =>
+        tabActivo.value === "numeros"
+            ? "/api/config-sede-whatsapp-numbers"
+            : "/api/config-whatsapp",
+    validate: validarFormularios,
+});
 const registrosNumeros = ref([]);
 const registrosSaludos = ref([]);
 const sedes = ref([]);
 const servicios = ref([]);
-const form = ref({ ...INIT_FORM_NUMEROS });
-const tituloModal = ref("Nuevo registro");
-const actualizar = ref(false);
-const errores = ref({});
 const loadingNumeros = ref(false);
 const loadingSaludos = ref(false);
 const errorNumeros = ref("");
 const errorSaludos = ref("");
-const loadingGuardar = ref(false);
-const loadingEliminarId = ref(null);
 const dtNumeros = ref(null);
 const dtSaludos = ref(null);
+const dtNumerosApi = useDataTable(() => dtNumeros.value || "#tblWhatsappNumbers");
+const dtSaludosApi = useDataTable(() => dtSaludos.value || "#tblWhatsappSaludos");
 const serviciosProductos = ref([]);
 const loadingServiciosProductos = ref(false);
 const errorServiciosProductos = ref("");
@@ -995,7 +1011,7 @@ const productosDisponiblesOptions = computed(() => {
 
 function cambiarTab(tab) {
     tabActivo.value = tab;
-    errores.value = {};
+    clearErrors();
     sidebarVisible.value = false;
     limpiar();
     if (tab === "productos") {
@@ -1003,15 +1019,9 @@ function cambiarTab(tab) {
     }
     nextTick(() => {
         if (tab === "numeros") {
-            safeInitDataTable(dtNumeros.value || "#tblWhatsappNumbers", {
-                dom: "Bfrtip",
-                buttons: ["copy", "csv", "excel", "pdf", "print"],
-            });
+            dtNumerosApi.init();
         } else if (tab === "saludos") {
-            safeInitDataTable(dtSaludos.value || "#tblWhatsappSaludos", {
-                dom: "Bfrtip",
-                buttons: ["copy", "csv", "excel", "pdf", "print"],
-            });
+            dtSaludosApi.init();
         }
     });
 }
@@ -1022,15 +1032,7 @@ async function listarNumeros() {
     try {
         const res = await axios.get("/api/config-sede-whatsapp-numbers");
         registrosNumeros.value = res.data.data;
-        nextTick(() => {
-            safeDestroyDataTable(dtNumeros.value || "#tblWhatsappNumbers");
-            if (tabActivo.value === "numeros") {
-                safeInitDataTable(dtNumeros.value || "#tblWhatsappNumbers", {
-                    dom: "Bfrtip",
-                    buttons: ["copy", "csv", "excel", "pdf", "print"],
-                });
-            }
-        });
+        dtNumerosApi.refresh(tabActivo.value === "numeros");
     } catch (error) {
         errorNumeros.value =
             error?.response?.data?.message || "No fue posible cargar los números WhatsApp.";
@@ -1046,15 +1048,7 @@ async function listarSaludos() {
     try {
         const res = await axios.get("/api/config-whatsapp");
         registrosSaludos.value = res.data.data;
-        nextTick(() => {
-            safeDestroyDataTable(dtSaludos.value || "#tblWhatsappSaludos");
-            if (tabActivo.value === "saludos") {
-                safeInitDataTable(dtSaludos.value || "#tblWhatsappSaludos", {
-                    dom: "Bfrtip",
-                    buttons: ["copy", "csv", "excel", "pdf", "print"],
-                });
-            }
-        });
+        dtSaludosApi.refresh(tabActivo.value === "saludos");
     } catch (error) {
         errorSaludos.value = error?.response?.data?.message || "No fue posible cargar los saludos.";
         registrosSaludos.value = [];
@@ -1086,146 +1080,75 @@ async function listarServicios() {
         });
     }
 }
-async function guardarRegistro() {
-    if (loadingGuardar.value) return;
-    errores.value = {};
-
+function validarFormularios(payload) {
     if (tabActivo.value === "numeros") {
         const errs = {};
-        if (!form.value.sede_id) errs.sede_id = ["La sede es obligatoria."];
-        if (!form.value.phone_number_id)
-            errs.phone_number_id = ["El Phone Number ID es obligatorio."];
-        if (!form.value.numero) errs.numero = ["El número es obligatorio."];
-        if (Object.keys(errs).length > 0) {
-            errores.value = errs;
-            return;
-        }
-    } else if (tabActivo.value === "saludos") {
+        if (!payload.sede_id) errs.sede_id = ["La sede es obligatoria."];
+        if (!payload.phone_number_id) errs.phone_number_id = ["El Phone Number ID es obligatorio."];
+        if (!payload.numero) errs.numero = ["El número es obligatorio."];
+        return errs;
+    }
+    if (tabActivo.value === "saludos") {
         const errs = {};
-        if (!form.value.mensaje_bienvenida || !form.value.mensaje_bienvenida.trim()) {
+        if (!payload.mensaje_bienvenida || !String(payload.mensaje_bienvenida).trim()) {
             errs.mensaje_bienvenida = ["El mensaje de bienvenida es obligatorio."];
         }
-        if (Object.keys(errs).length > 0) {
-            errores.value = errs;
-            return;
-        }
+        return errs;
     }
-
-    loadingGuardar.value = true;
-    try {
-        const payload = {
-            ...form.value,
-            activo: form.value.activo === 1 || form.value.activo === true,
-        };
-
-        const esNumero = tabActivo.value === "numeros";
-        const baseUrl = esNumero ? "/api/config-sede-whatsapp-numbers" : "/api/config-whatsapp";
-
-        if (actualizar.value === false) {
-            const res = await axios.post(baseUrl, payload);
-            if (res.status >= 200 && res.status < 300) {
-                recargarTabActivo();
-                toastMessage({
-                    heading: "Ok!!!",
-                    text: "Registro guardado correctamente.",
-                    icon: "success",
-                });
-                cerrarFormSidebar();
-                limpiar();
-            }
-        } else {
-            const res = await axios.put(`${baseUrl}/${id.value}`, payload);
-            if (res.status >= 200 && res.status < 300) {
-                recargarTabActivo();
-                toastMessage({
-                    heading: "Ok!!!",
-                    text: "Registro actualizado correctamente.",
-                    icon: "success",
-                });
-                cerrarFormSidebar();
-                limpiar();
-            }
-        }
-    } catch (error) {
-        const errs = error?.response?.data?.errors;
-        if (errs && Object.keys(errs).length > 0) {
-            errores.value = errs;
-        } else {
-            toastMessage({
-                heading: "Error",
-                text: error?.response?.data?.message || "No fue posible guardar el registro.",
-                icon: "error",
-            });
-        }
-    } finally {
-        loadingGuardar.value = false;
+    return {};
+}
+async function guardarRegistro() {
+    if (loadingGuardar.value) return;
+    setErrors({});
+    const payload = {
+        ...form.value,
+        activo: form.value.activo === 1 || form.value.activo === true,
+    };
+    const result = await guardar(payload, { actualizar: actualizar.value, id: id.value });
+    if (result.errores) {
+        setErrors(result.errores);
+        return;
+    }
+    if (result.ok) {
+        recargarTabActivo();
+        cerrarFormSidebar();
+        limpiar();
     }
 }
 async function eliminarRegistro(registroId) {
-    if (loadingEliminarId.value) return;
-
-    const ok = await confirmAction({
-        title: "¿Estas seguro?",
-        text: "No podrás recuperar este registro!",
-        icon: "warning",
-    });
-    if (!ok) return;
-
-    try {
-        loadingEliminarId.value = registroId;
-        const baseUrl =
-            tabActivo.value === "numeros"
-                ? "/api/config-sede-whatsapp-numbers"
-                : "/api/config-whatsapp";
-        const response = await axios.delete(`${baseUrl}/${registroId}`);
-        toastMessage({
-            heading: "Ok!",
-            text: response?.data?.message || "Registro eliminado.",
-            icon: "success",
-        });
+    const deleted = await eliminar(registroId);
+    if (deleted) {
         recargarTabActivo();
-    } catch (error) {
-        toastMessage({
-            heading: "Error",
-            text: "No fue posible eliminar el registro.",
-            icon: "error",
-        });
-    } finally {
-        loadingEliminarId.value = null;
     }
 }
 function mostrarRegistro(data = {}) {
     if (tabActivo.value === "productos") return;
     if (tabActivo.value === "numeros") {
         if (actualizar.value) {
-            tituloModal.value = "Actualizar número WhatsApp";
-            id.value = data.id;
-            form.value = {
-                sede_id: data.sede_id || "",
-                phone_number_id: data.phone_number_id || "",
-                numero: data.numero || "",
-                descripcion: data.descripcion || "",
-                activo: data.activo ? 1 : 0,
-            };
+            prepararEdicion("Actualizar número WhatsApp", data, (d) => ({
+                sede_id: d.sede_id || "",
+                phone_number_id: d.phone_number_id || "",
+                numero: d.numero || "",
+                descripcion: d.descripcion || "",
+                activo: d.activo ? 1 : 0,
+            }));
         } else {
-            tituloModal.value = "Nuevo número WhatsApp";
-            id.value = 0;
-            form.value = { ...INIT_FORM_NUMEROS };
+            prepararNuevo("numeros", "Nuevo número WhatsApp");
         }
     } else {
         if (actualizar.value) {
-            tituloModal.value = "Actualizar saludo: " + (data.sede?.nom_sede || "Todas las sedes");
-            id.value = data.id;
-            form.value = {
-                sede_id: data.sede_id || "",
-                servicio_cita_id: data.servicio_cita_id || "",
-                mensaje_bienvenida: data.mensaje_bienvenida || "",
-                activo: data.activo ? 1 : 0,
-            };
+            prepararEdicion(
+                "Actualizar saludo: " + (data.sede?.nom_sede || "Todas las sedes"),
+                data,
+                (d) => ({
+                    sede_id: d.sede_id || "",
+                    servicio_cita_id: d.servicio_cita_id || "",
+                    mensaje_bienvenida: d.mensaje_bienvenida || "",
+                    activo: d.activo ? 1 : 0,
+                })
+            );
         } else {
-            tituloModal.value = "Nuevo saludo";
-            id.value = 0;
-            form.value = { ...INIT_FORM_SALUDOS };
+            prepararNuevo("saludos", "Nuevo saludo");
         }
     }
     btnCerrarModalForm();
@@ -1238,15 +1161,8 @@ function recargarTabActivo() {
     }
 }
 function limpiar() {
-    actualizar.value = false;
-    tituloModal.value = "Nuevo registro";
-    id.value = 0;
-    errores.value = {};
-    if (tabActivo.value === "numeros") {
-        form.value = { ...INIT_FORM_NUMEROS };
-    } else if (tabActivo.value === "saludos") {
-        form.value = { ...INIT_FORM_SALUDOS };
-    } else {
+    resetForm(tabActivo.value);
+    if (tabActivo.value !== "numeros" && tabActivo.value !== "saludos") {
         productoSeleccionado.value = "";
         recomendacion.value = "";
     }
@@ -1501,8 +1417,8 @@ onBeforeUnmount(() => {
     $("#modalProbarEnvio").modal("hide");
     $(".modal-backdrop").remove();
     $("body").removeClass("modal-open").css("padding-right", "");
-    safeDestroyDataTable(dtNumeros.value || "#tblWhatsappNumbers");
-    safeDestroyDataTable(dtSaludos.value || "#tblWhatsappSaludos");
+    dtNumerosApi.destroy();
+    dtSaludosApi.destroy();
 });
 </script>
 <style scoped>
