@@ -45,14 +45,28 @@ class SAHIService extends BaseService
             ->distinct()
             ->get();
 
-        $diagnosticos = HceConsulta::select('dx.IdDiagnostico', 'dx.CodCie9 as cod_diagnos', 'dx.NomDiagnostico as nom_diagnos')
+        // Explicitly select columns with aliases matching frontend expectations
+        $diagnosticos = HceConsulta::select(
+            'dx.IdDiagnostico',
+            'dx.CodCie9 as cod_diagnos',
+            'dx.NomDiagnostico as nom_diagnos'
+        )
             ->distinct('hceConsulta.IdConsulta')
             ->join('hceConsulDiagnostico AS cdx', 'hceConsulta.IdConsulta', 'cdx.IdConsulta')
             ->join('genDiagnostico AS dx', 'cdx.IdDiagnostico', 'dx.IdDiagnostico')
             ->where('hceConsulta.IdAtencion', $idAtencion)
             ->get();
 
-        $consultas = HceConsulta::where('IdAtencion', $idAtencion)->limit(2)->get();
+        // Explicitly select the enfermedad actual column with the alias frontend expects
+        $consultas = HceConsulta::select(
+            'hceConsulta.IdConsulta',
+            'hceConsulta.IdAtencion',
+            'hceConsulta.DesEnfermedadActual',
+            'hceConsulta.FecConsulta'
+        )
+            ->where('hceConsulta.IdAtencion', $idAtencion)
+            ->limit(2)
+            ->get();
 
         return $this->success(['productos' => $productos, 'diagnosticos' => $diagnosticos, 'consultas' => $consultas]);
     }

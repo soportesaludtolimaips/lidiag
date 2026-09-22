@@ -1405,7 +1405,14 @@ async function interfaceListarProductosDiagnosticos() {
     EnfermedadActualDiagnosticos = "Enfermedad Actual: ";
     if (consultas.length > 0) {
         consultas.forEach((c) => {
-            EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos}\n ${c.DesEnfermedadActual} \n`;
+            const enfermedad =
+                c.DesEnfermedadActual ||
+                c.des_enfermedad_actual ||
+                c.EnfermedadActual ||
+                c.enfermedad_actual;
+            if (enfermedad) {
+                EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos}\n ${enfermedad} \n`;
+            }
         });
     }
 
@@ -1413,7 +1420,11 @@ async function interfaceListarProductosDiagnosticos() {
     EnfermedadActualDiagnosticos += `\nDiagnosticos:`;
     if (diagnosticos.length > 0) {
         diagnosticos.forEach((d) => {
-            EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos} \n ${d.cod_diagnos} - ${d.nom_diagnos}`;
+            const codigo = d.cod_diagnos || d.CodCie9 || d.cod_cie9 || "";
+            const nombre = d.nom_diagnos || d.NomDiagnostico || d.nom_diagnostico || "";
+            if (codigo || nombre) {
+                EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos} \n ${codigo} - ${nombre}`;
+            }
         });
     }
 
