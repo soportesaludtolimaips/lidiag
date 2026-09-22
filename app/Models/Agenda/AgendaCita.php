@@ -6,7 +6,7 @@ use App\Models\Citas\ConfigCitaRechazoMotivo;
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigRecomendacionProducto;
 use App\Models\Configuracion\ConfigSede;
-use App\Models\Configuracion\ConfigServicioCita;
+use App\Models\Configuracion\ConfigServicio;
 use App\Models\General\Paciente;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -31,7 +31,7 @@ class AgendaCita extends Model
         'paciente_id',
         'sede_id',
         'agenda_disponibilidad_detalle_id',
-        'servicio_cita_id',
+        'servicio_id',
         'producto_id',
         'fecha_hora_inicio',
         'fecha_hora_ini',
@@ -103,7 +103,7 @@ class AgendaCita extends Model
     /**
      * Relación con el servicio de cita asociado.
      *
-     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo relación con ConfigServicioCita.
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo relación con ConfigServicio.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -111,13 +111,13 @@ class AgendaCita extends Model
      */
     public function servicio()
     {
-        return $this->belongsTo(ConfigServicioCita::class, 'servicio_cita_id');
+        return $this->belongsTo(ConfigServicio::class, 'servicio_id');
     }
 
     /**
      * Relación alternativa con el servicio de cita.
      *
-     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo relación con ConfigServicioCita.
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo relación con ConfigServicio.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -125,7 +125,7 @@ class AgendaCita extends Model
      */
     public function servicioCita()
     {
-        return $this->belongsTo(ConfigServicioCita::class, 'servicio_cita_id');
+        return $this->belongsTo(ConfigServicio::class, 'servicio_id');
     }
 
     /**

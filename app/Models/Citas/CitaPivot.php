@@ -3,7 +3,7 @@
 namespace App\Models\Citas;
 
 use App\Models\Configuracion\ConfigProducto;
-use App\Models\Configuracion\ConfigServicioCita;
+use App\Models\Configuracion\ConfigServicio;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -22,10 +22,10 @@ class CitaPivot extends Model
 {
     use HasFactory;
 
-    protected $table = 'config_servicio_cita_producto';
+    protected $table = 'config_servicio_producto';
 
     protected $fillable = [
-        'servicio_cita_id',
+        'servicio_id',
         'producto_id',
         'estado',
     ];
@@ -37,7 +37,7 @@ class CitaPivot extends Model
     /**
      * Relación inversa con el servicio de cita al que pertenece este registro pivote.
      *
-     * @return BelongsTo Relación con ConfigServicioCita.
+     * @return BelongsTo Relación con ConfigServicio.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -45,7 +45,7 @@ class CitaPivot extends Model
      */
     public function servicio()
     {
-        return $this->belongsTo(ConfigServicioCita::class, 'servicio_cita_id');
+        return $this->belongsTo(ConfigServicio::class, 'servicio_id');
     }
 
     /**

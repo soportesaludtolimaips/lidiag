@@ -10,7 +10,7 @@ class ConfigWhatsapp extends Model
 
     protected $fillable = [
         'sede_id',
-        'servicio_cita_id',
+        'servicio_id',
         'mensaje_bienvenida',
         'activo',
     ];
@@ -26,7 +26,7 @@ class ConfigWhatsapp extends Model
 
     public function servicio()
     {
-        return $this->belongsTo(ConfigServicioCita::class, 'servicio_cita_id');
+        return $this->belongsTo(ConfigServicio::class, 'servicio_id');
     }
 
     public function scopeActivos($query)
@@ -39,9 +39,9 @@ class ConfigWhatsapp extends Model
         return $query->where('sede_id', $sedeId);
     }
 
-    public function scopeDeServicio($query, $servicioCitaId)
+    public function scopeDeServicio($query, $servicioId)
     {
-        return $query->where('servicio_cita_id', $servicioCitaId);
+        return $query->where('servicio_id', $servicioId);
     }
 
     public function scopeParaSedeYservicio($query, $sedeId, $servicioId)
@@ -51,12 +51,12 @@ class ConfigWhatsapp extends Model
                 $q->where('sede_id', $sedeId)->orWhereNull('sede_id');
             })
             ->where(function ($q) use ($servicioId) {
-                $q->where('servicio_cita_id', $servicioId)->orWhereNull('servicio_cita_id');
+                $q->where('servicio_id', $servicioId)->orWhereNull('servicio_id');
             })
             ->orderByRaw('CASE
-                WHEN sede_id IS NOT NULL AND servicio_cita_id IS NOT NULL THEN 0
-                WHEN sede_id IS NOT NULL AND servicio_cita_id IS NULL THEN 1
-                WHEN sede_id IS NULL AND servicio_cita_id IS NOT NULL THEN 2
+                WHEN sede_id IS NOT NULL AND servicio_id IS NOT NULL THEN 0
+                WHEN sede_id IS NOT NULL AND servicio_id IS NULL THEN 1
+                WHEN sede_id IS NULL AND servicio_id IS NOT NULL THEN 2
                 ELSE 3 END')
             ->orderBy('id');
     }

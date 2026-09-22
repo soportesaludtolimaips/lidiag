@@ -13,9 +13,9 @@ return new class extends Migration
 
         $toAdd = [
             'paciente_id' => fn ($t) => $t->unsignedBigInteger('paciente_id')->nullable()->after('quien_registro_id'),
-            'producto_id' => fn ($t) => $t->unsignedBigInteger('producto_id')->nullable()->after('servicio_cita_id'),
+            'producto_id' => fn ($t) => $t->unsignedBigInteger('producto_id')->nullable()->after('servicio_id'),
             'quien_confirma_id' => fn ($t) => $t->unsignedBigInteger('quien_confirma_id')->nullable()->after('quien_registro_id'),
-            'fecha_hora_inicio' => fn ($t) => $t->dateTime('fecha_hora_inicio')->nullable()->after('servicio_cita_id'),
+            'fecha_hora_inicio' => fn ($t) => $t->dateTime('fecha_hora_inicio')->nullable()->after('servicio_id'),
             'duracion_minutos' => fn ($t) => $t->integer('duracion_minutos')->default(30)->nullable()->after('fecha_hora_fin'),
             'numero_orden' => fn ($t) => $t->string('numero_orden', 50)->nullable()->after('estado'),
             'numero_autorizacion' => fn ($t) => $t->string('numero_autorizacion', 50)->nullable()->after('numero_orden'),

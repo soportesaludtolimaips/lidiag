@@ -11,14 +11,14 @@ return new class extends Migration
         Schema::create('config_whatsapp', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('sede_id')->nullable();
-            $table->unsignedBigInteger('servicio_cita_id')->nullable();
+            $table->unsignedBigInteger('servicio_id')->nullable();
             $table->text('mensaje_bienvenida');
             $table->boolean('activo')->default(true);
             $table->timestamps();
 
             $table->foreign('sede_id')->references('id')->on('config_sedes')->cascadeOnDelete();
-            $table->foreign('servicio_cita_id')->references('id')->on('config_servicio_citas')->cascadeOnDelete();
-            $table->unique(['sede_id', 'servicio_cita_id']);
+            $table->foreign('servicio_id')->references('id')->on('config_servicios')->cascadeOnDelete();
+            $table->unique(['sede_id', 'servicio_id']);
         });
     }
 

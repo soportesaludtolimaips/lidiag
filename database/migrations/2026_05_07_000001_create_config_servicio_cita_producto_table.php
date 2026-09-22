@@ -8,10 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('config_servicio_cita_producto', function (Blueprint $table) {
+        Schema::create('config_servicio_producto', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('servicio_cita_id');
-            $table->foreign('servicio_cita_id')->references('id')->on('config_servicio_citas')->onDelete('cascade');
+            $table->unsignedBigInteger('servicio_id');
+            $table->foreign('servicio_id')->references('id')->on('config_servicios')->onDelete('cascade');
             $table->unsignedBigInteger('producto_id');
             $table->foreign('producto_id')->references('id')->on('config_productos')->onDelete('cascade');
             $table->boolean('estado')->default(true);
@@ -21,6 +21,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('config_servicio_cita_producto');
+        Schema::dropIfExists('config_servicio_producto');
     }
 };

@@ -51,7 +51,7 @@ class ConfigSede extends Model
 
     public function servicios()
     {
-        return $this->hasMany(ConfigServicioCita::class, 'sede_id');
+        return $this->hasMany(ConfigServicio::class, 'sede_id');
     }
 
     public function whatsappNumbers()

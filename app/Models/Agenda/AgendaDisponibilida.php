@@ -3,7 +3,7 @@
 namespace App\Models\Agenda;
 
 use App\Models\Configuracion\ConfigSede;
-use App\Models\Configuracion\ConfigServicioCitas;
+use App\Models\Configuracion\ConfigServicio;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -23,7 +23,7 @@ class AgendaDisponibilida extends Model
     protected $fillable = [
         'quien_registro_id',
         'sede_id',
-        'servicio_cita_id',
+        'servicio_id',
         'total_citas',
         'dura_cita',
         'fecha_hora_ini',
@@ -62,7 +62,7 @@ class AgendaDisponibilida extends Model
     /**
      * Relación con el servicio de cita asociado a la disponibilidad.
      *
-     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo relación con ConfigServicioCitas.
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo relación con ConfigServicio.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -70,6 +70,6 @@ class AgendaDisponibilida extends Model
      */
     public function servicioCita()
     {
-        return $this->belongsTo(ConfigServicioCitas::class, 'servicio_cita_id');
+        return $this->belongsTo(ConfigServicio::class, 'servicio_id');
     }
 }

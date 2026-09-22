@@ -6,7 +6,7 @@ namespace App\Models;
 
 use App\Models\Configuracion\ConfigModulo;
 use App\Models\Configuracion\ConfigSede;
-use App\Models\Configuracion\ConfigServicioCitas;
+use App\Models\Configuracion\ConfigServicio;
 use App\Models\Estudio\Estudio;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -101,6 +101,6 @@ class User extends Authenticatable
 
     public function serviciosCita()
     {
-        return $this->belongsToMany(ConfigServicioCitas::class, 'user_servicio_citas', 'user_id', 'servicio_cita_id');
+        return $this->belongsToMany(ConfigServicio::class, 'user_servicios', 'user_id', 'servicio_id');
     }
 }
