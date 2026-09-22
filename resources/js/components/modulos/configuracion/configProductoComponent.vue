@@ -138,14 +138,12 @@
                                             name="cod_cups"
                                             v-model="registro.cod_cups"
                                             class="form-control"
-                                            :class="{ 'is-invalid': errores.hasError('cod_cups') }"
+                                            :class="{ 'is-invalid': hasError('cod_cups') }"
                                             placeholder="Código cups"
                                         />
-                                        <span
-                                            class="text-danger"
-                                            v-if="errores.hasError('cod_cups')"
-                                            >{{ errores.getError("cod_cups") }}</span
-                                        >
+                                        <span class="text-danger" v-if="hasError('cod_cups')">{{
+                                            getError("cod_cups")
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -161,15 +159,13 @@
                                             v-model="registro.nom_produc"
                                             class="form-control"
                                             :class="{
-                                                'is-invalid': errores.hasError('nom_produc'),
+                                                'is-invalid': hasError('nom_produc'),
                                             }"
                                             placeholder="Ingrese aquí el nombre del producto"
                                         />
-                                        <span
-                                            class="text-danger"
-                                            v-if="errores.hasError('nom_produc')"
-                                            >{{ errores.getError("nom_produc") }}</span
-                                        >
+                                        <span class="text-danger" v-if="hasError('nom_produc')">{{
+                                            getError("nom_produc")
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -185,14 +181,12 @@
                                             name="porcen"
                                             v-model="registro.porcen"
                                             class="form-control"
-                                            :class="{ 'is-invalid': errores.hasError('porcen') }"
+                                            :class="{ 'is-invalid': hasError('porcen') }"
                                             placeholder="% de ganancia"
                                         />
-                                        <span
-                                            class="text-danger"
-                                            v-if="errores.hasError('porcen')"
-                                            >{{ errores.getError("porcen") }}</span
-                                        >
+                                        <span class="text-danger" v-if="hasError('porcen')">{{
+                                            getError("porcen")
+                                        }}</span>
                                     </div>
                                 </div>
 
@@ -207,15 +201,13 @@
                                             v-model="registro.val_produc"
                                             class="form-control"
                                             :class="{
-                                                'is-invalid': errores.hasError('val_produc'),
+                                                'is-invalid': hasError('val_produc'),
                                             }"
                                             placeholder="Ingrese aquí el precio del producto"
                                         />
-                                        <span
-                                            class="text-danger"
-                                            v-if="errores.hasError('val_produc')"
-                                            >{{ errores.getError("val_produc") }}</span
-                                        >
+                                        <span class="text-danger" v-if="hasError('val_produc')">{{
+                                            getError("val_produc")
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
