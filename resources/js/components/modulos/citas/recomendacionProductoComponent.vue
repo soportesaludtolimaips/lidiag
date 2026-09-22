@@ -32,7 +32,7 @@
                                                 v-model="filtro.sede_id"
                                                 class="form-control"
                                                 @change="
-                                                    filtro.servicio_cita_id = '';
+                                                    filtro.servicio_id = '';
                                                     filtrarServicios();
                                                     cargarProductos();
                                                     buscar();
@@ -53,7 +53,7 @@
                                         <div class="form-group">
                                             <label class="control-label">Servicio</label>
                                             <select
-                                                v-model="filtro.servicio_cita_id"
+                                                v-model="filtro.servicio_id"
                                                 class="form-control"
                                                 @change="
                                                     cargarProductos();
@@ -318,7 +318,7 @@ const servicios = ref([]);
 const serviciosFiltrados = ref([]);
 const filtro = ref({
     sede_id: "",
-    servicio_cita_id: "",
+    servicio_id: "",
     producto_id: "",
 });
 const form = ref({
@@ -378,7 +378,7 @@ function filtrarServicios() {
 
 async function cargarProductos() {
     try {
-        const servicioId = filtro.value.servicio_cita_id;
+        const servicioId = filtro.value.servicio_id;
         const sedeId = filtro.value.sede_id;
 
         if (!servicioId) {
@@ -510,7 +510,7 @@ function cerrarModal() {
 }
 
 function btnLimpiar() {
-    filtro.value = { sede_id: "", servicio_cita_id: "", producto_id: "" };
+    filtro.value = { sede_id: "", servicio_id: "", producto_id: "" };
     serviciosFiltrados.value = servicios.value;
     cargarProductos();
     buscar();

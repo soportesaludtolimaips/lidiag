@@ -273,7 +273,7 @@ function cargarProductosVinculados() {
 
     axios
         .get("/api/servicio-producto", {
-            params: { servicio_cita_id: servicioSeleccionado.value },
+            params: { servicio_id: servicioSeleccionado.value },
         })
         .then(function (response) {
             productosVinculados.value = response.data;
@@ -294,7 +294,7 @@ function mostrarModalAgregar() {
 
     axios
         .get("/api/servicio-producto/productos-no-vinculados", {
-            params: { servicio_cita_id: servicioSeleccionado.value },
+            params: { servicio_id: servicioSeleccionado.value },
         })
         .then(function (response) {
             productosDisponibles.value = response.data;
@@ -344,7 +344,7 @@ function agregarProducto() {
 
     axios
         .post("/api/servicio-producto", {
-            servicio_cita_id: servicioSeleccionado.value,
+            servicio_id: servicioSeleccionado.value,
             producto_id: productoSeleccionado.value,
         })
         .then(function (response) {

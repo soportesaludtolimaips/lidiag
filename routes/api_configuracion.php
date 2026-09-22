@@ -10,7 +10,7 @@ use App\Http\Controllers\Configuracion\ConfigProductoController;
 use App\Http\Controllers\Configuracion\ConfigRecomendacionProductoController;
 use App\Http\Controllers\Configuracion\ConfigSedeController;
 use App\Http\Controllers\Configuracion\ConfigSedeWhatsappNumberController;
-use App\Http\Controllers\Configuracion\ConfigServicioCitasController;
+use App\Http\Controllers\Configuracion\ConfigServicioController;
 use App\Http\Controllers\Configuracion\ConfigTipoDocumentoController;
 use App\Http\Controllers\Configuracion\ConfigWhatsappController;
 use App\Http\Controllers\Configuracion\ConsentimientoInformadoController;
@@ -125,10 +125,10 @@ Route::middleware(['auth', 'permission:config.diagnosticos.index|config.priorida
         ->name('api.consentimientos.plantillas.versions');
 
     // Servicio de Citas
-    Route::get('/config-servicio-citas/mis-servicios', [ConfigServicioCitasController::class, 'misServicios'])
+    Route::get('/config-servicio-citas/mis-servicios', [ConfigServicioController::class, 'misServicios'])
         ->name('api.config.servicio.citas.mis_servicios');
 
-    Route::resource('/config-servicio-citas', ConfigServicioCitasController::class)
+    Route::resource('/config-servicio-citas', ConfigServicioController::class)
         ->names('api.config.servicio.citas')
         ->except(['create', 'edit']);
 

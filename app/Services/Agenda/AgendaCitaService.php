@@ -7,7 +7,7 @@ use App\Models\Agenda\AgendaDisponibilidaDetalle;
 use App\Models\Citas\ConfigCitaRechazoMotivo;
 use App\Models\Citas\WhatsAppConversation;
 use App\Models\Configuracion\ConfigRecomendacionProducto;
-use App\Models\Configuracion\ConfigServicioCita;
+use App\Models\Configuracion\ConfigServicio;
 use App\Models\General\Paciente;
 use App\Models\Interface\Sahi\Paciente as SahiPaciente;
 use App\Services\BaseService;
@@ -62,8 +62,8 @@ class AgendaCitaService extends BaseService
             ]);
         }
 
-        if ($request->has('servicio_cita_id')) {
-            $query->where('servicio_cita_id', $request->servicio_cita_id);
+        if ($request->has('servicio_id')) {
+            $query->where('servicio_id', $request->servicio_id);
         }
 
         if ($request->has('sede_id')) {
@@ -123,7 +123,7 @@ class AgendaCitaService extends BaseService
 
         $cita = AgendaCita::create([
             'paciente_id' => $paciente->id,
-            'servicio_cita_id' => $data['servicio_cita_id'],
+            'servicio_id' => $data['servicio_id'],
             'quien_registro_id' => Auth::id(),
             'numero_orden' => $data['numero_orden'] ?? null,
             'numero_autorizacion' => $data['numero_autorizacion'] ?? null,
@@ -365,8 +365,8 @@ class AgendaCitaService extends BaseService
         $query = AgendaCita::with(['paciente', 'servicio', 'producto', 'sede', 'quienRegistra', 'rechazoMotivo'])
             ->where('estado', 'solicitada');
 
-        if ($request->servicio_cita_id) {
-            $query->where('servicio_cita_id', $request->servicio_cita_id);
+        if ($request->servicio_id) {
+            $query->where('servicio_id', $request->servicio_id);
         }
 
         if ($request->sede_id) {
@@ -429,7 +429,7 @@ class AgendaCitaService extends BaseService
     /**
      * Consulta los slots disponibles para una fecha, sede y servicio específicos.
      *
-     * @param  array  $data  parámetros de consulta: fecha, sede_id, servicio_cita_id.
+     * @param  array  $data  parámetros de consulta: fecha, sede_id, servicio_id.
      *
      * @returns array resultado con los horarios disponibles y su estado.
      *
@@ -444,7 +444,7 @@ class AgendaCitaService extends BaseService
         $detalles = AgendaDisponibilidaDetalle::query()
             ->whereHas('agendaDisponibilida', function ($q) use ($data) {
                 $q->where('sede_id', $data['sede_id'])
-                    ->where('servicio_cita_id', $data['servicio_cita_id'])
+                    ->where('servicio_id', $data['servicio_id'])
                     ->where('estado', 'Activo');
             })
             ->whereDate('fecha_hora_inicio', $fecha)
@@ -476,7 +476,7 @@ class AgendaCitaService extends BaseService
      */
     public function servicios(): array
     {
-        $servicios = ConfigServicioCita::where('estado', true)->get();
+        $servicios = ConfigServicio::where('estado', true)->get();
 
         return $this->success($servicios);
     }
@@ -495,7 +495,7 @@ class AgendaCitaService extends BaseService
      */
     public function productosPorServicio(int $servicioCitaId, ?string $sedeId = null): array
     {
-        $servicio = ConfigServicioCita::with(['productos' => function ($query) {
+        $servicio = ConfigServicio::with(['productos' => function ($query) {
             $query->where('config_productos.estado', true);
         }])->findOrFail($servicioCitaId);
 

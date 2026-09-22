@@ -5,10 +5,14 @@ namespace Database\Seeders;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 use Database\Seeders\configuracion\ConfigAdminSaludSeeder;
-use Database\Seeders\Configuracion\ConfigDiagnosticoSeeder;
+use Database\Seeders\configuracion\ConfigDiagnosticoSeeder;
 use Database\Seeders\configuracion\ConfigPrioridadeSeeder;
+use Database\Seeders\configuracion\ConfigProductosEcografias1Seeder;
+use Database\Seeders\configuracion\ConfigProductosEcografias2Seeder;
+use Database\Seeders\configuracion\ConfigProductosEcografias3Seeder;
 use Database\Seeders\Configuracion\ConfigProductoSeeder;
-use Database\Seeders\Configuracion\ConfigSedeSeeder;
+use Database\Seeders\configuracion\ConfigSedeSeeder;
+use Database\Seeders\Configuracion\ConfigWhatsappEcografiasRequerimientos;
 use Database\Seeders\Seguridad\RoleSeeder;
 use Database\Seeders\Seguridad\UserSeeder;
 use Illuminate\Database\Seeder;
@@ -54,7 +58,7 @@ class DatabaseSeeder extends Seeder
         $this->call(PermisosAgendamientoSeeder::class);
 
         // WhatsApp Citas
-        $this->call(ConfigServicioCitasSeeder::class);
+        $this->call(ConfigServiciosSeeder::class);
         $this->call(ConfigSedeWhatsappNumberSeeder::class);
         $this->call(PermisionServicioCitasSeeder::class);
         $this->call(PermisionWhatsAppSeeder::class);
@@ -64,5 +68,13 @@ class DatabaseSeeder extends Seeder
 
         // Contratación
         $this->call(PermisionContratacionSeeder::class);
+
+        // Nuevos productos de ecografías
+        $this->call(ConfigProductosEcografiasSeeder::class);
+        $this->call(ConfigWhatsappEcografiasRequerimientos::class);
+        $this->call(ConfigProductosEcografias1Seeder::class);
+        $this->call(ConfigProductosEcografias2Seeder::class);
+        $this->call(ConfigProductosEcografias3Seeder::class);
+        $this->call(ConfigProductosEcografias4Seeder::class);
     }
 }

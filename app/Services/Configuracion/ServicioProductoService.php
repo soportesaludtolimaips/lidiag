@@ -4,7 +4,7 @@ namespace App\Services\Configuracion;
 
 use App\Models\Citas\CitaPivot;
 use App\Models\Configuracion\ConfigProducto;
-use App\Models\Configuracion\ConfigServicioCitas;
+use App\Models\Configuracion\ConfigServicio;
 use App\Services\BaseService;
 
 class ServicioProductoService extends BaseService
@@ -12,7 +12,7 @@ class ServicioProductoService extends BaseService
     /**
      * Obtiene los servicios con sus productos vinculados, filtrados por servicio de cita.
      *
-     * @param  int|null  $servicioCitaId  Identificador del servicio de cita para filtrar las vinculaciones.
+     * @param  int|null  $servicioId  Identificador del servicio de cita para filtrar las vinculaciones.
      *
      * @returns array Arreglo con la lista de servicios o pivotes y su estado.
      *
@@ -20,17 +20,17 @@ class ServicioProductoService extends BaseService
      *
      * @date 2026-07-14
      */
-    public function all(?int $servicioCitaId = null): array
+    public function all(?int $servicioId = null): array
     {
-        if ($servicioCitaId) {
+        if ($servicioId) {
             $pivots = CitaPivot::with('servicio', 'producto')
-                ->where('servicio_cita_id', $servicioCitaId)
+                ->where('servicio_id', $servicioId)
                 ->get();
 
             return $this->success($pivots);
         }
 
-        $items = ConfigServicioCitas::with('productos')->get();
+        $items = ConfigServicio::with('productos')->get();
 
         return $this->success($items);
     }
@@ -48,7 +48,7 @@ class ServicioProductoService extends BaseService
      */
     public function create(array $data): array
     {
-        $existing = CitaPivot::where('servicio_cita_id', $data['servicio_cita_id'])
+        $existing = CitaPivot::where('servicio_id', $data['servicio_id'])
             ->where('producto_id', $data['producto_id'])
             ->first();
 
@@ -89,7 +89,7 @@ class ServicioProductoService extends BaseService
     /**
      * Lista los productos que aún no están vinculados al servicio de cita indicado.
      *
-     * @param  int  $servicioCitaId  Identificador del servicio de cita.
+     * @param  int  $servicioId  Identificador del servicio de cita.
      *
      * @returns array Arreglo con los productos no vinculados y su estado.
      *
@@ -97,9 +97,9 @@ class ServicioProductoService extends BaseService
      *
      * @date 2026-07-14
      */
-    public function productosNoVinculados(int $servicioCitaId): array
+    public function productosNoVinculados(int $servicioId): array
     {
-        $vinculados = CitaPivot::where('servicio_cita_id', $servicioCitaId)
+        $vinculados = CitaPivot::where('servicio_id', $servicioId)
             ->where('estado', true)
             ->pluck('producto_id');
 

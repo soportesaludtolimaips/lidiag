@@ -30,7 +30,7 @@ class AgendaDisponibilidaRequest extends FormRequest
     /**
      * Define las reglas de validación para la disponibilidad de agenda.
      *
-     * @returns array reglas de validación: sede_id, servicio_cita_id, fecha_hora_ini, total_citas, dura_cita, estado.
+     * @returns array reglas de validación: sede_id, servicio_id, fecha_hora_ini, total_citas, dura_cita, estado.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -40,7 +40,7 @@ class AgendaDisponibilidaRequest extends FormRequest
     {
         $rules = [
             'sede_id' => 'required|integer|exists:config_sedes,id',
-            'servicio_cita_id' => 'nullable|integer|exists:config_servicio_citas,id',
+            'servicio_id' => 'nullable|integer|exists:config_servicios,id',
             'fecha_hora_ini' => 'required|date',
             'total_citas' => 'required|integer|min:1',
             'dura_cita' => 'required|integer|min:1',

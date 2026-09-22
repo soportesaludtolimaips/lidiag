@@ -40,7 +40,7 @@
                                         <div class="form-group">
                                             <label class="control-label">Servicio</label>
                                             <select
-                                                v-model="filtro.servicio_cita_id"
+                                                v-model="filtro.servicio_id"
                                                 class="form-control"
                                                 @change="listarRegistros()"
                                             >
@@ -553,7 +553,7 @@ const loadingDetalles = ref(false);
 const showModalAprobar = ref(false);
 const showModalRechazar = ref(false);
 const filtro = ref({
-    servicio_cita_id: "",
+    servicio_id: "",
     sede_id: "",
     busqueda: "",
 });
@@ -561,7 +561,7 @@ const citaSeleccionada = ref({
     id: null,
     paciente: null,
     servicio: null,
-    servicio_cita_id: null,
+    servicio_id: null,
 });
 const formAprobar = ref({
     producto_id: "",
@@ -645,8 +645,7 @@ async function listarRegistros() {
 
     try {
         const params = new URLSearchParams();
-        if (filtro.value.servicio_cita_id)
-            params.append("servicio_cita_id", filtro.value.servicio_cita_id);
+        if (filtro.value.servicio_id) params.append("servicio_id", filtro.value.servicio_id);
         if (filtro.value.sede_id) params.append("sede_id", filtro.value.sede_id);
         if (filtro.value.busqueda) params.append("busqueda", filtro.value.busqueda);
 
@@ -673,7 +672,7 @@ async function listarRegistros() {
 function abrirAprobar(cita) {
     citaSeleccionada.value = {
         ...cita,
-        servicio_cita_id: cita.servicio_cita_id || cita.servicio?.id,
+        servicio_id: cita.servicio_id || cita.servicio?.id,
     };
     formAprobar.value = {
         producto_id: "",
@@ -689,7 +688,7 @@ function abrirAprobar(cita) {
 }
 
 function cargarProductosPorServicio() {
-    const servicioId = citaSeleccionada.value.servicio_cita_id;
+    const servicioId = citaSeleccionada.value.servicio_id;
     const sedeId = formAprobar.value.sede_id;
 
     formAprobar.value.producto_id = "";
@@ -716,7 +715,7 @@ async function cargarDetallesDisponibles() {
     if (
         !formAprobar.value.sede_id ||
         !formAprobar.value.fecha ||
-        !citaSeleccionada.value.servicio_cita_id
+        !citaSeleccionada.value.servicio_id
     ) {
         detallesDisponibles.value = [];
         return;
@@ -728,7 +727,7 @@ async function cargarDetallesDisponibles() {
             params: {
                 producto_id: formAprobar.value.producto_id || productos.value[0]?.id,
                 sede_id: formAprobar.value.sede_id,
-                servicio_cita_id: citaSeleccionada.value.servicio_cita_id,
+                servicio_id: citaSeleccionada.value.servicio_id,
                 fecha: formAprobar.value.fecha,
             },
         });
@@ -841,7 +840,7 @@ function esImagen(ruta) {
 }
 
 function limpiarFiltros() {
-    filtro.value = { servicio_cita_id: "", sede_id: "", busqueda: "" };
+    filtro.value = { servicio_id: "", sede_id: "", busqueda: "" };
     listarRegistros();
 }
 

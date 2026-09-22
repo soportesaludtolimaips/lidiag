@@ -30,7 +30,7 @@ class AgendaCitaStoreRequest extends FormRequest
     /**
      * Define las reglas de validación para la creación de una solicitud de cita.
      *
-     * @returns array reglas de validación: servicio_cita_id, telefono, num_docu, nombres, etc.
+     * @returns array reglas de validación: servicio_id, telefono, num_docu, nombres, etc.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -39,7 +39,7 @@ class AgendaCitaStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'servicio_cita_id' => 'required|exists:config_servicio_citas,id',
+            'servicio_id' => 'required|exists:config_servicios,id',
             'numero_orden' => 'nullable|string|max:50',
             'numero_autorizacion' => 'nullable|string|max:50',
             'telefono' => 'required|string',
@@ -62,8 +62,8 @@ class AgendaCitaStoreRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'servicio_cita_id.required' => 'El servicio de cita es obligatorio.',
-            'servicio_cita_id.exists' => 'El servicio de cita seleccionado no existe.',
+            'servicio_id.required' => 'El servicio de cita es obligatorio.',
+            'servicio_id.exists' => 'El servicio de cita seleccionado no existe.',
             'telefono.required' => 'El teléfono es obligatorio.',
             'email.email' => 'El correo electrónico no es válido.',
         ];

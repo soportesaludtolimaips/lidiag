@@ -275,7 +275,7 @@ async function cargarProductosVinculados() {
     if (!servicioSeleccionado.value) return;
     try {
         const res = await axios.get("/api/servicio-producto", {
-            params: { servicio_cita_id: servicioSeleccionado.value },
+            params: { servicio_id: servicioSeleccionado.value },
         });
         productosVinculados.value = res.data.data;
     } catch (error) {
@@ -297,7 +297,7 @@ async function agregar() {
     }
     try {
         const res = await axios.get("/api/servicio-producto/productos-no-vinculados", {
-            params: { servicio_cita_id: servicioSeleccionado.value },
+            params: { servicio_id: servicioSeleccionado.value },
         });
         productosDisponibles.value = res.data.data;
     } catch (error) {
@@ -337,7 +337,7 @@ async function agregarProducto() {
     loadingGuardar.value = true;
     try {
         await axios.post("/api/servicio-producto", {
-            servicio_cita_id: servicioSeleccionado.value,
+            servicio_id: servicioSeleccionado.value,
             producto_id: productoSeleccionado.value,
         });
         if (recomendacion.value && recomendacion.value.trim()) {

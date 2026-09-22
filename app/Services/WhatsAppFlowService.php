@@ -8,7 +8,7 @@ use App\Models\Citas\WhatsAppConversation;
 use App\Models\Citas\WhatsAppMensaje;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\Configuracion\ConfigSedeWhatsappNumber;
-use App\Models\Configuracion\ConfigServicioCita;
+use App\Models\Configuracion\ConfigServicio;
 use App\Models\Configuracion\ConfigWhatsapp;
 use App\Models\General\Paciente;
 use App\Models\Interface\Sahi\Paciente as SahiPaciente;
@@ -258,8 +258,8 @@ class WhatsAppFlowService
         $servicioId = null;
 
         $datos = $conv->datos ?: [];
-        if (isset($datos['servicio_cita_id'])) {
-            $servicioId = $datos['servicio_cita_id'];
+        if (isset($datos['servicio_id'])) {
+            $servicioId = $datos['servicio_id'];
         }
 
         $config = ConfigWhatsapp::paraSedeYservicio($sedeId, $servicioId)->first();
@@ -360,7 +360,7 @@ class WhatsAppFlowService
     protected function mostrarServicios(WhatsAppConversation $conv): array
     {
         $sedeId = $conv->sede_id;
-        $servicios = ConfigServicioCita::where('estado', true)
+        $servicios = ConfigServicio::where('estado', true)
             ->where('sede_id', $sedeId)
             ->orderBy('nombre')
             ->get();
@@ -403,7 +403,7 @@ class WhatsAppFlowService
         ];
     }
 
-    protected function descripcionServicio(ConfigServicioCita $serv): string
+    protected function descripcionServicio(ConfigServicio $serv): string
     {
         $count = $serv->productos()->count();
         if ($count === 0) {
@@ -418,7 +418,7 @@ class WhatsAppFlowService
         $opcion = trim($opcion);
         $numero = is_numeric($opcion) ? (int) $opcion : 0;
 
-        $servicios = ConfigServicioCita::where('estado', true)
+        $servicios = ConfigServicio::where('estado', true)
             ->where('sede_id', $conv->sede_id)
             ->orderBy('nombre')
             ->get();
@@ -430,7 +430,7 @@ class WhatsAppFlowService
         $servicio = $servicios[$numero - 1];
 
         $datos = $conv->datos ?: [];
-        $datos['servicio_cita_id'] = $servicio->id;
+        $datos['servicio_id'] = $servicio->id;
         $datos['servicio_nombre'] = $servicio->nombre;
         $conv->update(['datos' => $datos]);
 
@@ -1168,7 +1168,7 @@ class WhatsAppFlowService
 
             $nuevaCita = AgendaCita::create([
                 'paciente_id' => $paciente->id,
-                'servicio_cita_id' => $datos['servicio_cita_id'],
+                'servicio_id' => $datos['servicio_id'],
                 'sede_id' => $convActual->sede_id,
                 'quien_registro_id' => null,
                 'quien_confirma_id' => null,

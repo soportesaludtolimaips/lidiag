@@ -10,10 +10,10 @@ class ServicioProductoResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'servicio_cita_id' => $this->servicio_cita_id,
+            'servicio_id' => $this->servicio_id,
             'producto_id' => $this->producto_id,
             'estado' => $this->estado,
-            'servicio' => ConfigServicioCitaResource::make($this->whenLoaded('servicio')),
+            'servicio' => ConfigServicioResource::make($this->whenLoaded('servicio')),
             'producto' => ConfigProductoResource::make($this->whenLoaded('producto')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

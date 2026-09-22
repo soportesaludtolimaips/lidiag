@@ -30,7 +30,7 @@ class AgendaCitaDisponibilidadRequest extends FormRequest
     /**
      * Define las reglas de validación para la consulta de disponibilidad.
      *
-     * @returns array reglas de validación: sede_id, servicio_cita_id, fecha, producto_id.
+     * @returns array reglas de validación: sede_id, servicio_id, fecha, producto_id.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -41,7 +41,7 @@ class AgendaCitaDisponibilidadRequest extends FormRequest
         return [
             'producto_id' => 'nullable|exists:config_productos,id',
             'sede_id' => 'required|exists:config_sedes,id',
-            'servicio_cita_id' => 'required|exists:config_servicio_citas,id',
+            'servicio_id' => 'required|exists:config_servicios,id',
             'fecha' => 'required|date',
         ];
     }
@@ -60,8 +60,8 @@ class AgendaCitaDisponibilidadRequest extends FormRequest
         return [
             'sede_id.required' => 'La sede es obligatoria.',
             'sede_id.exists' => 'La sede seleccionada no existe.',
-            'servicio_cita_id.required' => 'El servicio de cita es obligatorio.',
-            'servicio_cita_id.exists' => 'El servicio de cita seleccionado no existe.',
+            'servicio_id.required' => 'El servicio de cita es obligatorio.',
+            'servicio_id.exists' => 'El servicio de cita seleccionado no existe.',
             'fecha.required' => 'La fecha es obligatoria.',
             'fecha.date' => 'La fecha debe ser válida.',
         ];

@@ -12,7 +12,7 @@ class AgendaDisponibilidaService extends BaseService
     /**
      * Lista las disponibilidades de agenda con filtros por sede, servicio y rango de fechas.
      *
-     * @param  array  $filters  filtros: sede_id, servicio_cita_id, bus_fech_ini, bus_fecha_fin.
+     * @param  array  $filters  filtros: sede_id, servicio_id, bus_fech_ini, bus_fecha_fin.
      *
      * @returns array resultado con las disponibilidades encontradas (máx. 1000 registros).
      *
@@ -35,8 +35,8 @@ class AgendaDisponibilidaService extends BaseService
             $query->where('sede_id', $filters['sede_id']);
         }
 
-        if (! empty($filters['servicio_cita_id'])) {
-            $query->where('servicio_cita_id', $filters['servicio_cita_id']);
+        if (! empty($filters['servicio_id'])) {
+            $query->where('servicio_id', $filters['servicio_id']);
         }
 
         if (! empty($filters['bus_fech_ini']) && ! empty($filters['bus_fecha_fin'])) {
@@ -51,7 +51,7 @@ class AgendaDisponibilidaService extends BaseService
     /**
      * Crea una nueva disponibilidad de agenda y genera sus slots de detalle automáticamente.
      *
-     * @param  array  $data  datos de la disponibilidad: sede_id, servicio_cita_id, fecha_hora_ini, total_citas, dura_cita.
+     * @param  array  $data  datos de la disponibilidad: sede_id, servicio_id, fecha_hora_ini, total_citas, dura_cita.
      *
      * @returns array resultado con la disponibilidad creada y sus detalles.
      *
@@ -68,9 +68,9 @@ class AgendaDisponibilidaService extends BaseService
                 return $this->unauthorized('La sede seleccionada no está asignada a tu usuario.');
             }
 
-            if (! empty($data['servicio_cita_id'])) {
-                $serviciosUsuario = $user->serviciosCita()->pluck('config_servicio_citas.id')->toArray();
-                if (! empty($serviciosUsuario) && ! in_array((int) $data['servicio_cita_id'], $serviciosUsuario, true)) {
+            if (! empty($data['servicio_id'])) {
+                $serviciosUsuario = $user->serviciosCita()->pluck('config_servicios.id')->toArray();
+                if (! empty($serviciosUsuario) && ! in_array((int) $data['servicio_id'], $serviciosUsuario, true)) {
                     return $this->unauthorized('El servicio de cita seleccionado no está asignado a tu usuario.');
                 }
             }
@@ -85,7 +85,7 @@ class AgendaDisponibilidaService extends BaseService
             $disponibilidad = AgendaDisponibilida::create([
                 'quien_registro_id' => auth()->id(),
                 'sede_id' => (int) $data['sede_id'],
-                'servicio_cita_id' => ! empty($data['servicio_cita_id']) ? (int) $data['servicio_cita_id'] : null,
+                'servicio_id' => ! empty($data['servicio_id']) ? (int) $data['servicio_id'] : null,
                 'fecha_hora_ini' => $inicio,
                 'fecha_hora_fin' => $fin,
                 'total_citas' => $totalCitas,
@@ -164,7 +164,7 @@ class AgendaDisponibilidaService extends BaseService
         $this->transaction(function () use ($disponibilidad, $data, $inicio, $fin, $totalCitas, $dura) {
             $disponibilidad->update([
                 'sede_id' => (int) $data['sede_id'],
-                'servicio_cita_id' => ! empty($data['servicio_cita_id']) ? (int) $data['servicio_cita_id'] : null,
+                'servicio_id' => ! empty($data['servicio_id']) ? (int) $data['servicio_id'] : null,
                 'fecha_hora_ini' => $inicio,
                 'fecha_hora_fin' => $fin,
                 'total_citas' => $totalCitas,

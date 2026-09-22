@@ -43,7 +43,7 @@
                                         <div class="form-group">
                                             <label class="control-label">Servicio</label>
                                             <select
-                                                v-model="busqueda.servicio_cita_id"
+                                                v-model="busqueda.servicio_id"
                                                 class="form-control"
                                             >
                                                 <option value="">Todos</option>
@@ -289,7 +289,7 @@
                                 <div class="form-group">
                                     <label class="control-label">Servicio</label>
                                     <select
-                                        v-model="citaSeleccionada.servicio_cita_id"
+                                        v-model="citaSeleccionada.servicio_id"
                                         class="form-control"
                                         @change="cargarProductosPorServicio()"
                                     >
@@ -501,14 +501,14 @@ const conversacion = ref(null);
 const loadingConversacion = ref(false);
 const busqueda = ref({
     estado: "",
-    servicio_cita_id: "",
+    servicio_id: "",
     fecha_inicio: "",
     fecha_fin: "",
     busqueda: "",
 });
 const citaSeleccionada = ref({
     id: null,
-    servicio_cita_id: "",
+    servicio_id: "",
     producto_id: "",
     sede_id: "",
     fecha: "",
@@ -542,8 +542,7 @@ function listarRegistros(page) {
 
     var params = new URLSearchParams();
     if (thisVue.busqueda.estado) params.append("estado", thisVue.busqueda.estado);
-    if (thisVue.busqueda.servicio_cita_id)
-        params.append("servicio_cita_id", thisVue.busqueda.servicio_cita_id);
+    if (thisVue.busqueda.servicio_id) params.append("servicio_id", thisVue.busqueda.servicio_id);
     if (thisVue.busqueda.fecha_inicio) params.append("fecha_inicio", thisVue.busqueda.fecha_inicio);
     if (thisVue.busqueda.fecha_fin) params.append("fecha_fin", thisVue.busqueda.fecha_fin);
     if (thisVue.busqueda.busqueda) params.append("busqueda", thisVue.busqueda.busqueda);
@@ -582,7 +581,7 @@ function cargarListas() {
 
 function cargarProductosPorServicio() {
     var thisVue = proxy;
-    var servicioId = thisVue.citaSeleccionada.servicio_cita_id;
+    var servicioId = thisVue.citaSeleccionada.servicio_id;
     var sedeId = thisVue.citaSeleccionada.sede_id;
 
     thisVue.citaSeleccionada.producto_id = "";
@@ -616,7 +615,7 @@ function cargarDisponibilidad() {
 
     if (
         !thisVue.citaSeleccionada.sede_id ||
-        !thisVue.citaSeleccionada.servicio_cita_id ||
+        !thisVue.citaSeleccionada.servicio_id ||
         !thisVue.citaSeleccionada.producto_id ||
         !thisVue.citaSeleccionada.fecha
     ) {
@@ -629,7 +628,7 @@ function cargarDisponibilidad() {
             params: {
                 producto_id: thisVue.citaSeleccionada.producto_id,
                 sede_id: thisVue.citaSeleccionada.sede_id,
-                servicio_cita_id: thisVue.citaSeleccionada.servicio_cita_id,
+                servicio_id: thisVue.citaSeleccionada.servicio_id,
                 fecha: thisVue.citaSeleccionada.fecha,
             },
         })
@@ -645,7 +644,7 @@ function cargarDisponibilidad() {
 function mostrarModalAsignar(cita) {
     citaSeleccionada.value = {
         id: cita.id,
-        servicio_cita_id: cita.servicio_cita_id || "",
+        servicio_id: cita.servicio_id || "",
         producto_id: "",
         sede_id: "",
         fecha: "",
@@ -658,7 +657,7 @@ function mostrarModalAsignar(cita) {
     detalles.value = [];
     actualizar.value = true;
 
-    if (cita.servicio_cita_id) {
+    if (cita.servicio_id) {
         cargarProductosPorServicio();
     }
 
@@ -843,7 +842,7 @@ function verConversacion(cita) {
 function limpiarFiltros() {
     busqueda.value = {
         estado: "",
-        servicio_cita_id: "",
+        servicio_id: "",
         fecha_inicio: "",
         fecha_fin: "",
         busqueda: "",

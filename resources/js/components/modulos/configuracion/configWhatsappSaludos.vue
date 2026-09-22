@@ -138,9 +138,9 @@
                                             <small class="text-muted">(opcional)</small>
                                         </label>
                                         <select
-                                            v-model="form.servicio_cita_id"
+                                            v-model="form.servicio_id"
                                             class="form-control"
-                                            :class="{ 'is-invalid': errores.servicio_cita_id }"
+                                            :class="{ 'is-invalid': errores.servicio_id }"
                                         >
                                             <option value="">Todos los servicios</option>
                                             <option
@@ -154,8 +154,8 @@
                                                 }}
                                             </option>
                                         </select>
-                                        <span class="text-danger" v-if="errores.servicio_cita_id">{{
-                                            errores.servicio_cita_id[0]
+                                        <span class="text-danger" v-if="errores.servicio_id">{{
+                                            errores.servicio_id[0]
                                         }}</span>
                                     </div>
                                 </div>
@@ -425,7 +425,7 @@ const props = defineProps({
 
 const INIT_FORM_SALUDOS = {
     sede_id: "",
-    servicio_cita_id: "",
+    servicio_id: "",
     mensaje_bienvenida: "",
     activo: 1,
 };
@@ -512,7 +512,7 @@ function mostrarRegistro(data = {}) {
             data,
             (d) => ({
                 sede_id: d.sede_id || "",
-                servicio_cita_id: d.servicio_cita_id || "",
+                servicio_id: d.servicio_id || "",
                 mensaje_bienvenida: d.mensaje_bienvenida || "",
                 activo: d.activo ? 1 : 0,
             })

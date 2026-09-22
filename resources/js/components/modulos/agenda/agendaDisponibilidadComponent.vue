@@ -254,9 +254,9 @@
                                                     <span class="text-danger">*</span>
                                                 </label>
                                                 <select
-                                                    v-model="registro.servicio_cita_id"
-                                                    name="servicio_cita_id"
-                                                    id="servicio_cita_id"
+                                                    v-model="registro.servicio_id"
+                                                    name="servicio_id"
+                                                    id="servicio_id"
                                                     class="form-control custom-select"
                                                 >
                                                     <option value="">-- Seleccione --</option>
@@ -271,9 +271,9 @@
                                                 </select>
                                                 <span
                                                     class="text-danger"
-                                                    v-if="errores.servicio_cita_id"
+                                                    v-if="errores.servicio_id"
                                                 >
-                                                    {{ errores.servicio_cita_id[0] }}
+                                                    {{ errores.servicio_id[0] }}
                                                 </span>
                                             </div>
                                         </div>
@@ -360,7 +360,7 @@ const sedeActual = ref(sessionStorage.getItem("ST-sede"));
 const registro = ref({
     sede_id: sedeActual.value,
     quien_registro_id: props.usuarioactual.id,
-    servicio_cita_id: "",
+    servicio_id: "",
     total_citas: 1,
     dura_cita: 15,
     fecha_hora_ini: "",
@@ -404,8 +404,8 @@ function validarFormulario() {
     if (!registro.value.fecha_hora_ini) {
         errores.fecha_hora_ini = ["Debe seleccionar la fecha de inicio."];
     }
-    if (!registro.value.servicio_cita_id) {
-        errores.servicio_cita_id = ["Debe seleccionar un servicio de cita."];
+    if (!registro.value.servicio_id) {
+        errores.servicio_id = ["Debe seleccionar un servicio de cita."];
     }
     if (!registro.value.total_citas || registro.value.total_citas < 1) {
         errores.total_citas = ["El total de citas debe ser al menos 1."];
@@ -423,7 +423,7 @@ async function guardarRegistro() {
     try {
         const payload = {
             sede_id: registro.value.sede_id,
-            servicio_cita_id: registro.value.servicio_cita_id || null,
+            servicio_id: registro.value.servicio_id || null,
             total_citas: registro.value.total_citas,
             dura_cita: registro.value.dura_cita,
             fecha_hora_ini: registro.value.fecha_hora_ini,
@@ -454,7 +454,7 @@ async function editarRegistro(item) {
     registro.value = {
         sede_id: item.sede_id,
         quien_registro_id: usuarioactual.id,
-        servicio_cita_id: item.servicio_cita_id || "",
+        servicio_id: item.servicio_id || "",
         total_citas: item.total_citas,
         dura_cita: item.dura_cita,
         fecha_hora_ini: item.fecha_hora_ini ? item.fecha_hora_ini.substring(0, 10) : "",
@@ -510,7 +510,7 @@ function mostrarRegistro() {
     registro.value = {
         sede_id: sedeActual.value,
         quien_registro_id: usuarioactual.id,
-        servicio_cita_id: "",
+        servicio_id: "",
         total_citas: 1,
         dura_cita: 15,
         fecha_hora_ini: "",

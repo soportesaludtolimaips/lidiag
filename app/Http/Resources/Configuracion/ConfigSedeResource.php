@@ -31,7 +31,7 @@ class ConfigSedeResource extends JsonResource
             'interface_username' => $this->interface_username,
             'plantilla_rx' => $this->plantilla_rx,
             'plantilla_ecografia' => $this->plantilla_ecografia,
-            'servicios' => ConfigServicioCitaResource::collection($this->whenLoaded('servicios')),
+            'servicios' => ConfigServicioResource::collection($this->whenLoaded('servicios')),
             'whatsappNumbers' => ConfigSedeWhatsappNumberResource::collection($this->whenLoaded('whatsappNumbers')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
