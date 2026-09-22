@@ -465,7 +465,7 @@
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <span>
-                        <i class="ti-close right-side-toggle"></i>
+                        <i class="ti-close right-side-toggle" @click="cerrarFormSidebar"></i>
                     </span>
                 </div>
                 <div class="r-panel-body">
@@ -1147,12 +1147,23 @@ async function guardarRegistro() {
             }
         }
     } catch (error) {
-        errores.value = error?.response?.data?.errors || {};
+        const errs = error?.response?.data?.errors;
+        if (errs && Object.keys(errs).length > 0) {
+            errores.value = errs;
+        } else {
+            toastMessage({
+                heading: "Error",
+                text: error?.response?.data?.message || "No fue posible guardar el registro.",
+                icon: "error",
+            });
+        }
     } finally {
         loadingGuardar.value = false;
     }
 }
-async function eliminarRegistro(id) {
+async function eliminarRegistro(registroId) {
+    if (loadingEliminarId.value) return;
+
     const ok = await confirmAction({
         title: "¿Estas seguro?",
         text: "No podrás recuperar este registro!",
@@ -1161,13 +1172,12 @@ async function eliminarRegistro(id) {
     if (!ok) return;
 
     try {
-        if (loadingEliminarId.value) return;
-        loadingEliminarId.value = id;
+        loadingEliminarId.value = registroId;
         const baseUrl =
             tabActivo.value === "numeros"
                 ? "/api/config-sede-whatsapp-numbers"
                 : "/api/config-whatsapp";
-        const response = await axios.delete(`${baseUrl}/${id}`);
+        const response = await axios.delete(`${baseUrl}/${registroId}`);
         toastMessage({
             heading: "Ok!",
             text: response?.data?.message || "Registro eliminado.",
@@ -1285,6 +1295,14 @@ async function cargarProductosVinculados() {
     }
 }
 async function mostrarModalAgregar() {
+    if (!servicioSeleccionado.value) {
+        toastMessage({
+            heading: "Seleccione un servicio",
+            text: "Primero seleccione un servicio de la lista para agregar productos.",
+            icon: "warning",
+        });
+        return;
+    }
     try {
         const res = await axios.get("/api/servicio-producto/productos-no-vinculados", {
             params: { servicio_cita_id: servicioSeleccionado.value },
@@ -1467,9 +1485,22 @@ onMounted(() => {
     listarSedes();
     listarServicios();
     cargarServiciosProductos();
+
+    $(document).on("hidden.bs.modal", "#modalPreviewSaludo", function () {
+        modalPreviewVisible.value = false;
+    });
+    $(document).on("hidden.bs.modal", "#modalProbarEnvio", function () {
+        modalProbarVisible.value = false;
+    });
 });
 
 onBeforeUnmount(() => {
+    $(document).off("hidden.bs.modal", "#modalPreviewSaludo");
+    $(document).off("hidden.bs.modal", "#modalProbarEnvio");
+    $("#modalPreviewSaludo").modal("hide");
+    $("#modalProbarEnvio").modal("hide");
+    $(".modal-backdrop").remove();
+    $("body").removeClass("modal-open").css("padding-right", "");
     safeDestroyDataTable(dtNumeros.value || "#tblWhatsappNumbers");
     safeDestroyDataTable(dtSaludos.value || "#tblWhatsappSaludos");
 });
