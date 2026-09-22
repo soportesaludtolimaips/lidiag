@@ -14,7 +14,7 @@ class UpdateConfigWhatsappRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'sede_id' => 'nullable|integer|exists:config_sedes,id',
+            'sede_id' => 'required|integer|exists:config_sedes,id',
             'servicio_id' => 'nullable|integer|exists:config_servicios,id',
             'mensaje_bienvenida' => 'required|string',
             'activo' => 'nullable|boolean',

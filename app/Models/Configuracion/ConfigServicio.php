@@ -36,7 +36,7 @@ class ConfigServicio extends Model
     {
         return $this->belongsToMany(
             ConfigProducto::class,
-            'config_servicio_producto',
+            'config_whatsapp_producto_servicio',
             'servicio_id',
             'producto_id'
         )->withPivot('estado')->wherePivot('estado', true);

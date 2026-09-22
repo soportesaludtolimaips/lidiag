@@ -14,6 +14,7 @@ class StoreServicioProductoRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'sede_id' => 'required|integer|exists:config_sedes,id',
             'servicio_id' => 'required|integer|exists:config_servicios,id',
             'producto_id' => 'required|integer|exists:config_productos,id',
         ];

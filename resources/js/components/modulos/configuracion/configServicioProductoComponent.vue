@@ -294,7 +294,10 @@ function mostrarModalAgregar() {
 
     axios
         .get("/api/servicio-producto/productos-no-vinculados", {
-            params: { servicio_id: servicioSeleccionado.value },
+            params: {
+                sede_id: servicioActual.value?.sede_id,
+                servicio_id: servicioSeleccionado.value,
+            },
         })
         .then(function (response) {
             productosDisponibles.value = response.data;
@@ -344,6 +347,7 @@ function agregarProducto() {
 
     axios
         .post("/api/servicio-producto", {
+            sede_id: servicioActual.value?.sede_id,
             servicio_id: servicioSeleccionado.value,
             producto_id: productoSeleccionado.value,
         })

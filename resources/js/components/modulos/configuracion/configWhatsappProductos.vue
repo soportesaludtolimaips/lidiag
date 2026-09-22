@@ -2,94 +2,54 @@
     <div>
         <div class="m-t-20">
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-12">
                     <div class="card">
-                        <div class="card-body">
-                            <h4 class="card-title">Servicios</h4>
-                            <h6 class="card-subtitle text-info">
-                                Seleccione un servicio para administrar sus productos.
-                            </h6>
-
-                            <div v-if="loadingServiciosProductos" class="text-center m-t-20">
-                                <i class="fa fa-spinner fa-spin fa-2x"></i>
-                                <p class="text-muted m-t-10">Cargando servicios...</p>
-                            </div>
-
-                            <div
-                                v-else-if="errorServiciosProductos"
-                                class="alert alert-danger m-t-20"
-                            >
-                                <i class="fa fa-exclamation-triangle"></i>
-                                {{ errorServiciosProductos }}
-                            </div>
-
-                            <div
-                                v-else-if="serviciosProductos.length === 0"
-                                class="text-center m-t-20"
-                            >
-                                <p class="text-muted">
-                                    No hay servicios disponibles. Contacte al administrador para
-                                    asignarle servicios.
-                                </p>
-                            </div>
-
-                            <div class="list-group m-t-10" v-else>
-                                <button
-                                    v-for="servicio in serviciosProductos"
-                                    :key="servicio.id"
-                                    type="button"
-                                    class="list-group-item list-group-item-action"
-                                    :class="servicioSeleccionado === servicio.id ? 'active' : ''"
-                                    @click="seleccionarServicio(servicio)"
-                                >
-                                    <div
-                                        class="d-flex justify-content-between align-items-center w-100"
-                                    >
-                                        <div>
-                                            <div>{{ servicio.nombre }}</div>
-                                            <small
-                                                class="d-block"
-                                                style="font-size: 11px; opacity: 0.75"
-                                            >
-                                                <i class="fa fa-map-marker"></i>
-                                                {{ servicio.sede?.nom_sede || "Sin sede" }}
-                                            </small>
-                                        </div>
-                                        <span
-                                            class="badge badge-danger badge-pill"
-                                            v-if="servicio.productos_count"
-                                        >
-                                            {{ servicio.productos_count }}
-                                        </span>
-                                    </div>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-8">
-                    <div class="card" v-if="servicioSeleccionado">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <h4 class="card-title">
-                                        {{ servicioActual?.nombre }}
+                                        Productos por Sede
+                                        <small class="text-info" v-if="nomSede">
+                                            — {{ nomSede }}</small
+                                        >
                                     </h4>
                                     <h6 class="card-subtitle text-info">
-                                        Productos vinculados a este servicio
+                                        Productos vinculados a los servicios de la sede seleccionada
                                     </h6>
                                 </div>
-                                <button type="button" class="btn btn-info" @click="agregar()">
+                                <button
+                                    type="button"
+                                    class="btn btn-info"
+                                    @click="agregar()"
+                                    :disabled="!sedeActual"
+                                >
                                     <i class="fa fa-plus-circle m-r-5"></i> Agregar Producto
                                 </button>
                             </div>
-                            <div class="table-responsive m-t-20">
+
+                            <div v-if="!sedeActual" class="alert alert-warning m-t-20">
+                                <i class="fa fa-exclamation-triangle"></i>
+                                Seleccione una sede en el menú superior para administrar sus
+                                productos.
+                            </div>
+
+                            <div v-else-if="loadingProductos" class="text-center m-t-20">
+                                <i class="fa fa-spinner fa-spin fa-2x"></i>
+                                <p class="text-muted m-t-10">Cargando productos...</p>
+                            </div>
+
+                            <div v-else-if="errorProductos" class="alert alert-danger m-t-20">
+                                <i class="fa fa-exclamation-triangle"></i>
+                                {{ errorProductos }}
+                            </div>
+
+                            <div class="table-responsive m-t-20" v-else>
                                 <table class="table table-bordered table-striped">
                                     <thead>
                                         <tr>
                                             <th>Código</th>
                                             <th>Producto</th>
+                                            <th>Servicio</th>
                                             <th>Estado</th>
                                             <th>Acciones</th>
                                         </tr>
@@ -98,6 +58,7 @@
                                         <tr v-for="item in productosVinculados" :key="item.id">
                                             <td>{{ item.producto?.cod_cups }}</td>
                                             <td>{{ item.producto?.nom_produc }}</td>
+                                            <td>{{ item.servicio?.nombre }}</td>
                                             <td>
                                                 <span class="label label-success" v-if="item.estado"
                                                     >Activo</span
@@ -117,20 +78,13 @@
                                             </td>
                                         </tr>
                                         <tr v-if="productosVinculados.length === 0">
-                                            <td colspan="4" class="text-center text-muted">
-                                                No hay productos vinculados a este servicio.
+                                            <td colspan="5" class="text-center text-muted">
+                                                No hay productos vinculados en esta sede.
                                             </td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
-                    </div>
-                    <div class="card" v-else>
-                        <div class="card-body text-center">
-                            <p class="text-muted">
-                                Seleccione un servicio de la lista para ver sus productos.
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -153,6 +107,29 @@
                     <form action="#">
                         <div class="form-body">
                             <div class="row p-t-20">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label"
+                                            >Servicio<span class="text-danger">*</span></label
+                                        >
+                                        <select
+                                            v-model="servicioSeleccionado"
+                                            class="form-control"
+                                            @change="onServicioChange"
+                                        >
+                                            <option value="">Seleccione el servicio</option>
+                                            <option
+                                                v-for="s in servicios"
+                                                :key="s.id"
+                                                :value="String(s.id)"
+                                            >
+                                                {{ s.nombre }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label class="control-label"
@@ -200,7 +177,11 @@
                                     type="button"
                                     class="btn btn-success m-l-5"
                                     @click="agregarProducto()"
-                                    :disabled="loadingGuardar || !productoSeleccionado"
+                                    :disabled="
+                                        loadingGuardar ||
+                                        !productoSeleccionado ||
+                                        !servicioSeleccionado
+                                    "
                                 >
                                     <i
                                         class="fa"
@@ -217,19 +198,30 @@
     </div>
 </template>
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import axios from "axios";
 
 import { confirmAction, toastMessage } from "@/helpers/alerts.js";
 import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
 import Select2 from "@/components/shared/Select2.vue";
 
-const serviciosProductos = ref([]);
-const loadingServiciosProductos = ref(false);
-const errorServiciosProductos = ref("");
-const servicioSeleccionado = ref(null);
-const servicioActual = ref(null);
+const props = defineProps({
+    sedeId: {
+        type: [Number, String],
+        default: "",
+    },
+});
+
+const sedeActual = computed(() => {
+    return props.sedeId || sessionStorage.getItem("ST-sede") || "";
+});
+const nomSede = computed(() => sessionStorage.getItem("ST-nomsede") || "");
+
+const servicios = ref([]);
+const servicioSeleccionado = ref("");
 const productosVinculados = ref([]);
+const loadingProductos = ref(false);
+const errorProductos = ref("");
 const productosDisponibles = ref([]);
 const productoSeleccionado = ref("");
 const recomendacion = ref("");
@@ -249,55 +241,58 @@ const productosDisponiblesOptions = computed(() => {
     });
 });
 
-async function cargarServiciosProductos() {
-    loadingServiciosProductos.value = true;
-    errorServiciosProductos.value = "";
+async function cargarServicios() {
+    if (!sedeActual.value) {
+        servicios.value = [];
+        return;
+    }
     try {
-        const res = await axios.get("/api/config-servicio-citas");
-        serviciosProductos.value = res.data.data;
-        if (serviciosProductos.value.length > 0) {
-            seleccionarServicio(serviciosProductos.value[0]);
-        }
+        const res = await axios.get("/api/config-servicio-citas", {
+            params: { sede_id: sedeActual.value },
+        });
+        servicios.value = res.data.data;
     } catch (error) {
-        const msg = error?.response?.data?.message || error.message || "Error al cargar servicios";
-        errorServiciosProductos.value = msg;
-        serviciosProductos.value = [];
-    } finally {
-        loadingServiciosProductos.value = false;
+        servicios.value = [];
     }
 }
-function seleccionarServicio(servicio) {
-    servicioSeleccionado.value = servicio.id;
-    servicioActual.value = servicio;
-    cargarProductosVinculados();
-}
 async function cargarProductosVinculados() {
-    if (!servicioSeleccionado.value) return;
+    if (!sedeActual.value) {
+        productosVinculados.value = [];
+        return;
+    }
+    loadingProductos.value = true;
+    errorProductos.value = "";
     try {
         const res = await axios.get("/api/servicio-producto", {
-            params: { servicio_id: servicioSeleccionado.value },
+            params: { sede_id: sedeActual.value },
         });
         productosVinculados.value = res.data.data;
     } catch (error) {
-        toastMessage({
-            heading: "Error",
-            text: "No fue posible cargar los productos vinculados.",
-            icon: "error",
-        });
+        const msg =
+            error?.response?.data?.message ||
+            error.message ||
+            "No fue posible cargar los productos vinculados.";
+        errorProductos.value = msg;
+        productosVinculados.value = [];
+    } finally {
+        loadingProductos.value = false;
     }
 }
-async function agregar() {
-    if (!servicioSeleccionado.value) {
-        toastMessage({
-            heading: "Seleccione un servicio",
-            text: "Primero seleccione un servicio de la lista para agregar productos.",
-            icon: "warning",
-        });
+function recargar() {
+    cargarServicios();
+    cargarProductosVinculados();
+}
+async function cargarProductosDisponibles() {
+    if (!sedeActual.value || !servicioSeleccionado.value) {
+        productosDisponibles.value = [];
         return;
     }
     try {
         const res = await axios.get("/api/servicio-producto/productos-no-vinculados", {
-            params: { servicio_id: servicioSeleccionado.value },
+            params: {
+                sede_id: sedeActual.value,
+                servicio_id: servicioSeleccionado.value,
+            },
         });
         productosDisponibles.value = res.data.data;
     } catch (error) {
@@ -306,10 +301,27 @@ async function agregar() {
             text: "No fue posible cargar los productos disponibles.",
             icon: "error",
         });
+        productosDisponibles.value = [];
+    }
+}
+function onServicioChange() {
+    productoSeleccionado.value = "";
+    cargarProductosDisponibles();
+}
+async function agregar() {
+    if (!sedeActual.value) {
+        toastMessage({
+            heading: "Seleccione una sede",
+            text: "Primero seleccione una sede en el menú superior.",
+            icon: "warning",
+        });
         return;
     }
-    tituloModal.value = "Agregar producto a: " + (servicioActual.value?.nombre || "");
+    await cargarServicios();
+    tituloModal.value = "Agregar producto en: " + (nomSede.value || "sede seleccionada");
+    servicioSeleccionado.value = "";
     productoSeleccionado.value = "";
+    productosDisponibles.value = [];
     recomendacion.value = "";
     loadingAgregarProducto.value = false;
     sidebarVisible.value = true;
@@ -332,11 +344,12 @@ function cerrarFormSidebar() {
     sidebarVisible.value = false;
 }
 async function agregarProducto() {
-    if (!productoSeleccionado.value) return;
+    if (!productoSeleccionado.value || !servicioSeleccionado.value) return;
     loadingAgregarProducto.value = true;
     loadingGuardar.value = true;
     try {
         await axios.post("/api/servicio-producto", {
+            sede_id: sedeActual.value,
             servicio_id: servicioSeleccionado.value,
             producto_id: productoSeleccionado.value,
         });
@@ -353,11 +366,10 @@ async function agregarProducto() {
         });
         cerrarFormSidebar();
         cargarProductosVinculados();
-        cargarServiciosProductos();
     } catch (error) {
         toastMessage({
             heading: "Error",
-            text: "No fue posible agregar el producto.",
+            text: error?.response?.data?.message || "No fue posible agregar el producto.",
             icon: "error",
         });
     } finally {
@@ -370,7 +382,7 @@ async function agregarProducto() {
 async function eliminarVinculo(id) {
     const ok = await confirmAction({
         title: "¿Está seguro?",
-        text: "El producto se desvinculará del servicio.",
+        text: "El producto se desvinculará del servicio en esta sede.",
         confirmButtonText: "Sí, eliminar",
         cancelButtonText: "Cancelar",
     });
@@ -383,7 +395,6 @@ async function eliminarVinculo(id) {
             icon: "success",
         });
         cargarProductosVinculados();
-        cargarServiciosProductos();
     } catch (error) {
         toastMessage({
             heading: "Error",
@@ -393,10 +404,17 @@ async function eliminarVinculo(id) {
     }
 }
 
-defineExpose({ agregar, listar: cargarServiciosProductos });
+defineExpose({ agregar, listar: recargar });
+
+watch(
+    () => props.sedeId,
+    () => {
+        recargar();
+    }
+);
 
 onMounted(() => {
-    cargarServiciosProductos();
+    recargar();
 });
 </script>
 <style scoped>

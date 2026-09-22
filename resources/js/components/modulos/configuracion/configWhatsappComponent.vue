@@ -56,7 +56,7 @@
                                     href="#"
                                     @click.prevent="cambiarTab('productos')"
                                 >
-                                    <i class="fa fa-cubes"></i> Productos por Servicio
+                                    <i class="fa fa-cubes"></i> Productos por Sede
                                 </a>
                             </li>
                         </ul>
@@ -69,12 +69,12 @@
                         <ConfigWhatsappSaludos
                             v-if="tabActivo === 'saludos'"
                             ref="saludosRef"
-                            :sedes="sedes"
-                            :servicios="servicios"
+                            :sede-id="sedeId"
                         />
                         <ConfigWhatsappProductos
                             v-if="tabActivo === 'productos'"
                             ref="productosRef"
+                            :sede-id="sedeId"
                         />
                     </div>
                 </div>
@@ -83,7 +83,7 @@
     </div>
 </template>
 <script setup>
-import { onMounted, ref } from "vue";
+import { getCurrentInstance, onBeforeUnmount, onMounted, ref } from "vue";
 import axios from "axios";
 
 import { toastMessage } from "@/helpers/alerts.js";
@@ -91,9 +91,12 @@ import ConfigWhatsappNumeros from "./configWhatsappNumeros.vue";
 import ConfigWhatsappProductos from "./configWhatsappProductos.vue";
 import ConfigWhatsappSaludos from "./configWhatsappSaludos.vue";
 
+const { proxy } = getCurrentInstance();
+const emitter = proxy.emitter;
+
 const tabActivo = ref("numeros");
 const sedes = ref([]);
-const servicios = ref([]);
+const sedeId = ref(sessionStorage.getItem("ST-sede") || "");
 const numerosRef = ref(null);
 const saludosRef = ref(null);
 const productosRef = ref(null);
@@ -122,21 +125,16 @@ async function listarSedes() {
         });
     }
 }
-async function listarServicios() {
-    try {
-        const res = await axios.get("/api/config-servicio-citas");
-        servicios.value = res.data.data;
-    } catch (error) {
-        toastMessage({
-            heading: "Error",
-            text: "No fue posible cargar los servicios.",
-            icon: "error",
-        });
-    }
+function onSedeSeleccionada(payload) {
+    sedeId.value = payload?.idSede || sessionStorage.getItem("ST-sede") || "";
 }
 
 onMounted(() => {
     listarSedes();
-    listarServicios();
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
+});
+
+onBeforeUnmount(() => {
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
 });
 </script>

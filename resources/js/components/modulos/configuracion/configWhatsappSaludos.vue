@@ -5,7 +5,12 @@
             Mensajes de bienvenida personalizados por sede y servicio para el bot de WhatsApp.
         </h6>
 
-        <div v-if="loadingSaludos" class="text-center m-t-40">
+        <div v-if="!sedeActual" class="alert alert-warning m-t-20">
+            <i class="fa fa-exclamation-triangle"></i>
+            Seleccione una sede en el menú superior para administrar sus saludos.
+        </div>
+
+        <div v-else-if="loadingSaludos" class="text-center m-t-40">
             <i class="fa fa-spinner fa-spin fa-2x"></i>
             <p class="text-muted m-t-10">Cargando saludos...</p>
         </div>
@@ -113,19 +118,15 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="control-label"
-                                            >Sede
-                                            <small class="text-muted">(opcional)</small>
-                                        </label>
-                                        <select
-                                            v-model="form.sede_id"
-                                            class="form-control"
-                                            :class="{ 'is-invalid': errores.sede_id }"
+                                            >Sede <span class="text-danger">*</span></label
                                         >
-                                            <option value="">Todas las sedes</option>
-                                            <option v-for="s in sedes" :key="s.id" :value="s.id">
-                                                {{ s.nom_sede }}
-                                            </option>
-                                        </select>
+                                        <input
+                                            type="text"
+                                            class="form-control"
+                                            :value="nomSede || 'Sede seleccionada'"
+                                            readonly
+                                            disabled
+                                        />
                                         <span class="text-danger" v-if="errores.sede_id">{{
                                             errores.sede_id[0]
                                         }}</span>
@@ -404,24 +405,27 @@
     </div>
 </template>
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import axios from "axios";
 
 import { useConfigCrud } from "@/composables/useConfigCrud.js";
 import { useConfigForm } from "@/composables/useConfigForm.js";
 import { useDataTable } from "@/composables/useDataTable.js";
+import { toastMessage } from "@/helpers/alerts.js";
 import EmojiPicker from "@/components/shared/EmojiPicker.vue";
 
 const props = defineProps({
-    sedes: {
-        type: Array,
-        default: () => [],
-    },
-    servicios: {
-        type: Array,
-        default: () => [],
+    sedeId: {
+        type: [Number, String],
+        default: "",
     },
 });
+
+const sedeActual = computed(() => {
+    return props.sedeId || sessionStorage.getItem("ST-sede") || "";
+});
+const nomSede = computed(() => sessionStorage.getItem("ST-nomsede") || "");
+const servicios = ref([]);
 
 const INIT_FORM_SALUDOS = {
     sede_id: "",
@@ -461,17 +465,40 @@ const modalProbarVisible = ref(false);
 
 function validarSaludos(payload) {
     const errs = {};
+    if (!payload.sede_id) {
+        errs.sede_id = ["La sede es obligatoria. Seleccione una sede en el menú superior."];
+    }
     if (!payload.mensaje_bienvenida || !String(payload.mensaje_bienvenida).trim()) {
         errs.mensaje_bienvenida = ["El mensaje de bienvenida es obligatorio."];
     }
     return errs;
 }
+async function cargarServicios() {
+    if (!sedeActual.value) {
+        servicios.value = [];
+        return;
+    }
+    try {
+        const res = await axios.get("/api/config-servicio-citas", {
+            params: { sede_id: sedeActual.value },
+        });
+        servicios.value = res.data.data;
+    } catch (error) {
+        servicios.value = [];
+    }
+}
 async function listarSaludos() {
     if (loadingSaludos.value) return;
+    if (!sedeActual.value) {
+        registrosSaludos.value = [];
+        return;
+    }
     loadingSaludos.value = true;
     errorSaludos.value = "";
     try {
-        const res = await axios.get("/api/config-whatsapp");
+        const res = await axios.get("/api/config-whatsapp", {
+            params: { sede_id: sedeActual.value },
+        });
         registrosSaludos.value = res.data.data;
         dtSaludosApi.refresh(true);
     } catch (error) {
@@ -480,6 +507,10 @@ async function listarSaludos() {
     } finally {
         loadingSaludos.value = false;
     }
+}
+function recargar() {
+    cargarServicios();
+    listarSaludos();
 }
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
@@ -511,7 +542,7 @@ function mostrarRegistro(data = {}) {
             "Actualizar saludo: " + (data.sede?.nom_sede || "Todas las sedes"),
             data,
             (d) => ({
-                sede_id: d.sede_id || "",
+                sede_id: d.sede_id || sedeActual.value || "",
                 servicio_id: d.servicio_id || "",
                 mensaje_bienvenida: d.mensaje_bienvenida || "",
                 activo: d.activo ? 1 : 0,
@@ -519,6 +550,7 @@ function mostrarRegistro(data = {}) {
         );
     } else {
         prepararNuevo("saludos", "Nuevo saludo");
+        form.value.sede_id = sedeActual.value || "";
     }
     abrirFormSidebar();
 }
@@ -527,6 +559,14 @@ function editar(item) {
     mostrarRegistro(item);
 }
 function nuevo() {
+    if (!sedeActual.value) {
+        toastMessage({
+            heading: "Seleccione una sede",
+            text: "Primero seleccione una sede en el menú superior.",
+            icon: "warning",
+        });
+        return;
+    }
     actualizar.value = false;
     mostrarRegistro();
 }
@@ -618,10 +658,17 @@ async function probarEnvio() {
     }
 }
 
-defineExpose({ nuevo, listar: listarSaludos });
+defineExpose({ nuevo, listar: recargar });
+
+watch(
+    () => props.sedeId,
+    () => {
+        recargar();
+    }
+);
 
 onMounted(() => {
-    listarSaludos();
+    recargar();
 
     $(document).on("hidden.bs.modal", "#modalPreviewSaludo", function () {
         modalPreviewVisible.value = false;

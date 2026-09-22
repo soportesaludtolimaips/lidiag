@@ -26,11 +26,11 @@ class ServicioProductoController extends Controller
     ) {}
 
     /**
-     * Obtiene la lista de servicios con sus productos vinculados, filtrados por servicio de cita.
+     * Obtiene la lista de productos vinculados, filtrados por sede y opcionalmente por servicio.
      *
-     * @param  Request  $request  Solicitud HTTP que puede contener el parámetro servicio_cita_id.
+     * @param  Request  $request  Solicitud HTTP que puede contener los parámetros sede_id y servicio_id.
      *
-     * @returns JsonResponse Respuesta JSON con la lista de servicios o pivotes y su estado.
+     * @returns JsonResponse Respuesta JSON con la lista de pivotes y su estado.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -38,13 +38,16 @@ class ServicioProductoController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $result = $this->servicioProductoService->all($request->integer('servicio_cita_id'));
+        $result = $this->servicioProductoService->all(
+            $request->integer('sede_id') ?: null,
+            $request->integer('servicio_id') ?: null,
+        );
 
         return response()->json($result, $result['status']);
     }
 
     /**
-     * Crea o reactiva la vinculación entre un servicio de cita y un producto.
+     * Crea o reactiva la vinculación entre una sede, un servicio y un producto.
      *
      * @param  StoreServicioProductoRequest  $request  Solicitud HTTP validada con los datos de la vinculación.
      *
@@ -80,9 +83,9 @@ class ServicioProductoController extends Controller
     }
 
     /**
-     * Lista los productos que aún no están vinculados al servicio de cita indicado.
+     * Lista los productos que aún no están vinculados en la sede (y servicio) indicados.
      *
-     * @param  Request  $request  Solicitud HTTP con el parámetro servicio_cita_id.
+     * @param  Request  $request  Solicitud HTTP con los parámetros sede_id y servicio_id (opcional).
      *
      * @returns JsonResponse Respuesta JSON con los productos no vinculados y su estado.
      *
@@ -93,7 +96,8 @@ class ServicioProductoController extends Controller
     public function productosNoVinculados(Request $request): JsonResponse
     {
         $result = $this->servicioProductoService->productosNoVinculados(
-            (int) $request->input('servicio_cita_id')
+            (int) $request->input('sede_id'),
+            $request->input('servicio_id') ? (int) $request->input('servicio_id') : null,
         );
 
         return response()->json($result, $result['status']);

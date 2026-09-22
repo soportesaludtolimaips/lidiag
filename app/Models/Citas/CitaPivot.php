@@ -3,6 +3,7 @@
 namespace App\Models\Citas;
 
 use App\Models\Configuracion\ConfigProducto;
+use App\Models\Configuracion\ConfigSede;
 use App\Models\Configuracion\ConfigServicio;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,9 +23,10 @@ class CitaPivot extends Model
 {
     use HasFactory;
 
-    protected $table = 'config_servicio_producto';
+    protected $table = 'config_whatsapp_producto_servicio';
 
     protected $fillable = [
+        'sede_id',
         'servicio_id',
         'producto_id',
         'estado',
@@ -33,6 +35,11 @@ class CitaPivot extends Model
     protected $casts = [
         'estado' => 'boolean',
     ];
+
+    public function sede()
+    {
+        return $this->belongsTo(ConfigSede::class, 'sede_id');
+    }
 
     /**
      * Relación inversa con el servicio de cita al que pertenece este registro pivote.
