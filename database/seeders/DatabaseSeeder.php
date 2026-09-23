@@ -10,9 +10,12 @@ use Database\Seeders\configuracion\ConfigPrioridadeSeeder;
 use Database\Seeders\configuracion\ConfigProductosEcografias1Seeder;
 use Database\Seeders\configuracion\ConfigProductosEcografias2Seeder;
 use Database\Seeders\configuracion\ConfigProductosEcografias3Seeder;
+use Database\Seeders\Configuracion\ConfigProductosEcografias4Seeder;
 use Database\Seeders\Configuracion\ConfigProductoSeeder;
 use Database\Seeders\configuracion\ConfigSedeSeeder;
+use Database\Seeders\Configuracion\ConfigWhatsappEcografiasRecomendaciones;
 use Database\Seeders\Configuracion\ConfigWhatsappEcografiasRequerimientos;
+use Database\Seeders\Configuracion\ConfigWhatsappSedeNumberSeeder;
 use Database\Seeders\Seguridad\RoleSeeder;
 use Database\Seeders\Seguridad\UserSeeder;
 use Illuminate\Database\Seeder;
@@ -33,6 +36,7 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
 
+        // Configuracion
         $this->call(ConfigAdminSaludSeeder::class);
         $this->call(ConfigDiagnosticoSeeder::class);
         $this->call(ConfigPrioridadeSeeder::class);
@@ -50,6 +54,8 @@ class DatabaseSeeder extends Seeder
         $this->call(PermisionEcografiasSeeder::class);
         $this->call(PermisionConsentimientosEcografiasSeeder::class);
 
+        $this->call(ConfigServiciosSeeder::class);
+
         // HelpDesk
         $this->call(HelpDeskCatalogosSeeder::class);
         $this->call(HelpDeskPermisosSeeder::class);
@@ -58,10 +64,7 @@ class DatabaseSeeder extends Seeder
         $this->call(PermisosAgendamientoSeeder::class);
 
         // WhatsApp Citas
-        $this->call(ConfigServiciosSeeder::class);
-        $this->call(ConfigSedeWhatsappNumberSeeder::class);
         $this->call(PermisionServicioCitasSeeder::class);
-        $this->call(PermisionWhatsAppSeeder::class);
         $this->call(PermisoAuditoriaSeeder::class);
         $this->call(ConfigWhatsappSeeder::class);
         $this->call(ConfigRecomendacionProductoSeeder::class);
@@ -71,10 +74,16 @@ class DatabaseSeeder extends Seeder
 
         // Nuevos productos de ecografías
         $this->call(ConfigProductosEcografiasSeeder::class);
-        $this->call(ConfigWhatsappEcografiasRequerimientos::class);
         $this->call(ConfigProductosEcografias1Seeder::class);
         $this->call(ConfigProductosEcografias2Seeder::class);
         $this->call(ConfigProductosEcografias3Seeder::class);
         $this->call(ConfigProductosEcografias4Seeder::class);
+
+        // Bot whatsapp
+        $this->call(ConfigWhatsappSedeNumberSeeder::class);
+        $this->call(PermisionWhatsAppSeeder::class);
+
+        $this->call(ConfigWhatsappEcografiasRequerimientos::class);
+        $this->call(ConfigWhatsappEcografiasRecomendaciones::class);
     }
 }

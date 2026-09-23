@@ -120,7 +120,7 @@ class ConfigWhatsappController extends Controller
     /**
      * Busca la configuración de WhatsApp según la sede y el servicio de cita indicados.
      *
-     * @param  Request  $request  Solicitud HTTP con los parámetros sede_id y servicio_cita_id.
+     * @param  Request  $request  Solicitud HTTP con los parámetros sede_id y servicio_id.
      *
      * @returns JsonResponse Respuesta JSON con la configuración encontrada y su estado.
      *
@@ -132,7 +132,7 @@ class ConfigWhatsappController extends Controller
     {
         $result = $this->configWhatsappService->buscarPorSedeYServicio(
             (int) $request->input('sede_id'),
-            (int) $request->input('servicio_cita_id'),
+            (int) $request->input('servicio_id'),
         );
 
         return response()->json($result, $result['status']);

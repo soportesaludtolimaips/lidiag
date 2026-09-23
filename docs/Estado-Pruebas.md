@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| **Última actualización** | 2026-09-02 |
+| **Última actualización** | 2026-09-22 |
 | **Responsable QA** | Jhon Javer Lozano Arce |
 | **Formato** | Módulo → Sub-Módulo → Funcionalidad |
 | **Código fuente** | `resources/js/components/modulos/` |
@@ -31,14 +31,14 @@
 
 | Módulo | Total | ⬜ Sin iniciar | 🔵 Iniciado | 🟡 En progreso | ✅ Terminado | Automatizadas |
 |---|---|---|---|---|---|---|
-| Estudios | 37 | 0 | 0 | 0 | 37 | ✅ 28/28 |
+| Estudios | 42 | 0 | 0 | 0 | 42 | ✅ 28/28 |
 | Configuración | 21 | 0 | 0 | 0 | 21 | — |
 | Contratación | 4 | 0 | 0 | 0 | 4 | ✅ 1/1 |
 | Seguridad | 6 | 0 | 0 | 0 | 6 | ✅ 8/8 |
 | Ecografías | 8 | 8 | 0 | 0 | 0 | — |
 | Reportes | 3 | 0 | 0 | 0 | 3 | — |
 | Tele-radiología | 2 | 2 | 0 | 0 | 0 | — |
-| **TOTAL** | **81** | **10** | **0** | **1** | **71** | **37/37** |
+| **TOTAL** | **86** | **10** | **0** | **1** | **76** | **37/37** |
 
 ---
 
@@ -46,8 +46,8 @@
 
 | Campo | Valor |
 |---|---|
-| **Componentes** | `AsignarEstudioComponent`, `DescargarZipComponent`, `estudioAsignadosComponent`, `leerEstudioComponent`, `notificarEstudioComponent`, `QuemadorCdComponent`, `transcribirEstudioComponent`, `audio-texto` |
-| **Commit base de fixes** | `31f1c67fe` + `b55cab9cb` |
+| **Componentes** | `AsignarEstudioComponent`, `DescargarZipComponent`, `estudioAsignadosComponent`, `leerEstudioComponent`, `notificarEstudioComponent`, `QuemadorCdComponent`, `QuemarMultiplesComponent`, `transcribirEstudioComponent`, `audio-texto` |
+| **Commit base de fixes** | `31f1c67fe` + `b55cab9cb` + `08d3f3934` (SAHI diagnosticos/enfermedad actual) + `a834b1463` (SAHI URL typo + medico_id) + `c5c2e1fe1` (Quemador write speed) + `e98ed8a2d` (WMI drive detection) |
 
 ### Automatizadas
 
@@ -118,6 +118,17 @@
 | 3 | Quemado real → burned, verde 100% | ✅ Terminado | ✅ PASS | 2026-08-25 | Jhon Javer | front-end manual | MAN-QC-03; probado desde front, MicroDicom en nueva ruta OK |
 | 4 | Burn fallido → rojo + rehabilitado | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-QC-04 |
 | 5 | Unidad desconectada → reset selección | ✅ Terminado | ✅ PASS | 2026-08-26 | Jhon Javer | front-end manual | MAN-QC-05 |
+| 6 | Multi-estudio: checkboxes + select-all | ✅ Terminado | ✅ PASS | 2026-09-22 | Jhon Javer | front-end manual | MAN-QC-06; `QuemarMultiplesComponent.vue`, vue-draggable reorder |
+| 7 | Disc type badges (CD/DVD/empty) + auto-refresh 5s | ✅ Terminado | ✅ PASS | 2026-09-22 | Jhon Javer | front-end manual | MAN-QC-07; WMI MediaLoaded + IMAPI2 fallback |
+| 8 | Write speed auto-negotiation (lowest) | ✅ Terminado | ✅ PASS | 2026-09-22 | Jhon Javer | front-end manual | MAN-QC-08; HP DS8A9SH + DVD fix |
+
+### Sub-Módulo: Asignar Estudios (nuevas funcionalidades)
+
+| # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
+|---|---|---|---|---|---|---|---|
+| 7 | SAHI API URL typo fix (listar-productos-diagnosticos) | ✅ Terminado | ✅ PASS | 2026-09-22 | Jhon Javer | front-end manual | MAN-AE-07; fix extra "listar" + camelCase |
+| 8 | medico_id validación frontend antes submit | ✅ Terminado | ✅ PASS | 2026-09-22 | Jhon Javer | front-end manual | MAN-AE-08; toast warning si vacío |
+| 9 | SAHI diagnosticos + Enfermedad Actual loading | ✅ Terminado | ✅ PASS | 2026-09-22 | Jhon Javer | front-end manual | MAN-AE-09; select explícito + guarded=[] + fallback |
 
 ### Sub-Módulo: Transcribir
 
@@ -342,6 +353,8 @@
 |---|---|---|---|---|---|---|---|
 | 1 | Buscar estudios (paciente/doc/fechas) | ⬜ Sin iniciar | — | — | — | — | `teleRadiologiaEnviarEstudioComponent.vue` |
 | 2 | Enviar a tele-radiología | ⬜ Sin iniciar | — | — | — | — | Usa HMAC; verificar `TELERADIOLOGIA_*` envs |
+| 3 | SAHI API URL typo fix (listar-productos-diagnosticos) | ✅ Terminado | ✅ PASS | 2026-09-22 | Jhon Javer | front-end manual | TR-01; mismo typo que Asignar Estudios |
+| 4 | SAHI diagnosticos + Enfermedad Actual loading | ✅ Terminado | ✅ PASS | 2026-09-22 | Jhon Javer | front-end manual | TR-02; mismo fix que Asignar Estudios |
 
 ### Sub-Módulo: Transcribir
 
@@ -396,6 +409,8 @@
 
 | Fecha | Suite | Resultado | Commit |
 |---|---|---|---|
+| 2026-09-22 | Estudios Quemador + SAHI + Asignar (MAN-\*) | ✅ 9/9 PASS | `e98ed8a2d`, `ad1ebf799`, `c5c2e1fe1`, `a834b1463`, `caa41a779`, `08d3f3934` |
+| 2026-09-22 | Tele-radiología SAHI fixes | ✅ 2/2 PASS | `caa41a779`, `08d3f3934` |
 | 2026-08-24 | Contratación E2E (usuario) | ✅ 1/1 | varios |
 | 2026-08-24 | Estudios AUTO-A + AUTO-B | ✅ 28/28 | `31f1c67fe` + `b55cab9cb` |
 | 2026-08-24 | Seguridad AUTH curl/lint/build | ✅ 8/8 | `3a7532334` |

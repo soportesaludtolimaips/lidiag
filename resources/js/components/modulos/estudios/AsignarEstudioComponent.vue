@@ -1387,6 +1387,7 @@ async function interfaceListarProductosDiagnosticos() {
     );
 
     const data = resProuctos.data.data;
+
     registro.value.productosEstudio = [];
     if (data.productos.length > 0) {
         data.productos.forEach((element) => {

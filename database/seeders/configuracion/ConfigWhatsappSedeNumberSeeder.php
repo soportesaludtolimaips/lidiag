@@ -1,11 +1,11 @@
 <?php
 
-namespace Database\Seeders;
+namespace Database\Seeders\Configuracion;
 
 use App\Models\Configuracion\ConfigSedeWhatsappNumber;
 use Illuminate\Database\Seeder;
 
-class ConfigSedeWhatsappNumberSeeder extends Seeder
+class ConfigWhatsappSedeNumberSeeder extends Seeder
 {
     public function run(): void
     {

@@ -33,7 +33,7 @@ class AgendaDisponibilidaController extends Controller
     /**
      * Lista las disponibilidades de agenda con filtros por sede, servicio y rango de fechas.
      *
-     * @param  Request  $request  parámetros de filtrado (sede_id, servicio_cita_id, fechas).
+     * @param  Request  $request  parámetros de filtrado (sede_id, servicio_id, fechas).
      *
      * @returns JsonResponse respuesta con las disponibilidades encontradas.
      *
@@ -44,7 +44,7 @@ class AgendaDisponibilidaController extends Controller
     public function index(Request $request): JsonResponse
     {
         $result = $this->service->list($request->only([
-            'sede_id', 'servicio_cita_id', 'bus_fech_ini', 'bus_fecha_fin',
+            'sede_id', 'servicio_id', 'bus_fech_ini', 'bus_fecha_fin',
         ]));
 
         return response()->json($result, $result["status"]);

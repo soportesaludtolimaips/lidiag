@@ -152,7 +152,6 @@ function initSelect2() {
 
     $el.on("select2:select", () => {
         const out = buildOutput();
-        console.log("[DEBUG Select2] select2:select fired, out:", out);
         emit("input", out);
         emit("update:modelValue", out);
         emit("select", out);
@@ -228,12 +227,6 @@ onBeforeUnmount(() => {
 watch(
     () => props.options,
     (newOpts) => {
-        console.log(
-            "[DEBUG Select2] watch options fired, new count:",
-            newOpts?.length,
-            "options:",
-            newOpts
-        );
         if (!props.autoInit) return;
         nextTick(() => initSelect2());
     }

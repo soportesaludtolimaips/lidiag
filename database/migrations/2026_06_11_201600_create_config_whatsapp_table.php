@@ -16,8 +16,8 @@ return new class extends Migration
             $table->boolean('activo')->default(true);
             $table->timestamps();
 
-            $table->foreign('sede_id')->references('id')->on('config_sedes')->cascadeOnDelete();
-            $table->foreign('servicio_id')->references('id')->on('config_servicios')->cascadeOnDelete();
+            $table->foreign('sede_id')->references('id')->on('config_sedes');
+            $table->foreign('servicio_id')->references('id')->on('config_servicios');
             $table->unique(['sede_id', 'servicio_id']);
         });
     }
