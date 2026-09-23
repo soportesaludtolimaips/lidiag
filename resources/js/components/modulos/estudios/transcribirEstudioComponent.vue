@@ -717,11 +717,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { listarUsuariosYSedes } from "@/helpers/usuarios";
-import {
-    safeDestroyDataTable,
-    safeInitDataTable,
-    safeRemoveDataTableRow,
-} from "@/helpers/datatables.js";
+import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { confirmAction, getUserSafeError, toastMessage } from "@/helpers/alerts";
 import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import dayjs from "dayjs";

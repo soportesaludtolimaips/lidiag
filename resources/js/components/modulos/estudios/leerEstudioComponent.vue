@@ -549,7 +549,7 @@
                                         <div class="form-group">
                                             <WysiwygEditor
                                                 v-model="registro.lectura"
-                                                :rows="15"
+                                                :rows="18"
                                                 placeholder="Ingrese aquí la lectura del estudio ..."
                                             />
                                         </div>
@@ -1234,13 +1234,8 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import DatosPacienteDisplay from "@/components/comunes/datosPacienteDisplayComponent.vue";
 import { normalizarFecha } from "@/helpers/dateUtils.js";
-import {
-    safeDestroyDataTable,
-    safeInitDataTable,
-    safeRemoveDataTableRow,
-} from "@/helpers/datatables.js";
+import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { toastMessage, getUserSafeError } from "@/helpers/alerts";
-import { useMedicalDictionary } from "@/composables/useMedicalDictionary";
 import { useDictationFlow } from "@/composables/useDictationFlow";
 import { useAudioUploadFlow } from "@/composables/useAudioUploadFlow";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
@@ -1252,7 +1247,6 @@ const emitter = proxy.emitter;
 
 const props = defineProps({ usuarioactual: Object, permisos: { type: Array, default: () => [] } });
 
-const medicalDict = useMedicalDictionary();
 const dictationFlow = useDictationFlow();
 const {
     recording,
