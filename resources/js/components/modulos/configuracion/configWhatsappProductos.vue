@@ -328,6 +328,10 @@ async function agregar() {
     await nextTick();
     select2Productos.value?.rebuild();
     await cargarServicios();
+    if (servicios.value.length > 0 && !servicioSeleccionado.value) {
+        servicioSeleccionado.value = String(servicios.value[0].id);
+        await cargarProductosDisponibles();
+    }
 }
 function onProductoSelect(value) {
     let selectedId = null;
