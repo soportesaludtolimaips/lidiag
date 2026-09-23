@@ -86,6 +86,7 @@ function initEditor() {
         nextTick(() => {
             attachObserver(inst.editor);
             applyHeight();
+            setTimeout(applyHeight, 500);
         });
     }
 }
@@ -104,7 +105,8 @@ function applyHeight() {
         if (!height) return;
         const iframe = textareaRef.value?.parentElement?.querySelector(".wysihtml5-sandbox");
         if (iframe) {
-            iframe.style.height = height;
+            iframe.style.setProperty("height", height, "important");
+            iframe.style.setProperty("min-height", height, "important");
         }
     } catch (_) {
         /* noop */
