@@ -1329,6 +1329,9 @@ async function mostrarRegistro(data = {}, index) {
     if (loadingAbrirRegistroIndex.value !== null) return;
     loadingAbrirRegistroIndex.value = index;
     limpiarFormulario();
+    if (!registro.value.medico_id) {
+        establecerMedico();
+    }
 
     tituloModal.value = "Agendar al paciente: " + data.pat_name;
     id.value = data.study_pk;
@@ -1800,18 +1803,33 @@ function onSedeSeleccionada(data) {
     establecerSede();
     destroyDataTable();
 }
+function establecerMedico() {
+    const medicoId =
+        sessionStorage.getItem("ST-medico") || localStorage.getItem("ST-ecografia-medico") || "";
+    if (medicoId) {
+        registro.value.medico_id = String(medicoId);
+    }
+}
+function onMedicoSeleccionado(data) {
+    if (data && data.idMedico) {
+        registro.value.medico_id = String(data.idMedico);
+    }
+}
 
 onMounted(() => {
     registro.value.email_reportar = "";
     // Los catálogos se cargan una sola vez vía establecerSede() → cargarDatosSede()
     establecerSede();
+    establecerMedico();
     btnLimpiar();
 
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
+    emitter.on("medicoSeleccionado", onMedicoSeleccionado);
 });
 
 onBeforeUnmount(() => {
     emitter.off("sedeSeleccionada", onSedeSeleccionada);
+    emitter.off("medicoSeleccionado", onMedicoSeleccionado);
     destroyDataTable();
     registros.value = [];
     registro.value = { productosEstudio: [], diagnosticosEstudio: [] };
