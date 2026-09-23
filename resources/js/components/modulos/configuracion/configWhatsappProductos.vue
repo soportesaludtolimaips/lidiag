@@ -5,28 +5,6 @@
                 <div class="col-md-12">
                     <div class="card">
                         <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h4 class="card-title">
-                                        Productos por Sede
-                                        <small class="text-info" v-if="nomSede">
-                                            — {{ nomSede }}</small
-                                        >
-                                    </h4>
-                                    <h6 class="card-subtitle text-info">
-                                        Productos vinculados a los servicios de la sede seleccionada
-                                    </h6>
-                                </div>
-                                <button
-                                    type="button"
-                                    class="btn btn-info"
-                                    @click="agregar()"
-                                    :disabled="!sedeActual"
-                                >
-                                    <i class="fa fa-plus-circle m-r-5"></i> Agregar Producto
-                                </button>
-                            </div>
-
                             <div v-if="!sedeActual" class="alert alert-warning m-t-20">
                                 <i class="fa fa-exclamation-triangle"></i>
                                 Seleccione una sede en el menú superior para administrar sus
@@ -116,8 +94,15 @@
                                             v-model="servicioSeleccionado"
                                             class="form-control"
                                             @change="onServicioChange"
+                                            :disabled="loadingServicios"
                                         >
-                                            <option value="">Seleccione el servicio</option>
+                                            <option value="">
+                                                {{
+                                                    loadingServicios
+                                                        ? "Cargando servicios..."
+                                                        : "Seleccione el servicio"
+                                                }}
+                                            </option>
                                             <option
                                                 v-for="s in servicios"
                                                 :key="s.id"
@@ -218,6 +203,7 @@ const sedeActual = computed(() => {
 const nomSede = computed(() => sessionStorage.getItem("ST-nomsede") || "");
 
 const servicios = ref([]);
+const loadingServicios = ref(false);
 const servicioSeleccionado = ref("");
 const productosVinculados = ref([]);
 const loadingProductos = ref(false);
@@ -246,6 +232,7 @@ async function cargarServicios() {
         servicios.value = [];
         return;
     }
+    loadingServicios.value = true;
     try {
         const res = await axios.get("/api/config-servicio-citas", {
             params: { sede_id: sedeActual.value },
@@ -253,6 +240,14 @@ async function cargarServicios() {
         servicios.value = res.data.data;
     } catch (error) {
         servicios.value = [];
+        toastMessage({
+            heading: "Error",
+            text:
+                error?.response?.data?.message || "No fue posible cargar los servicios de la sede.",
+            icon: "error",
+        });
+    } finally {
+        loadingServicios.value = false;
     }
 }
 async function cargarProductosVinculados() {
@@ -317,7 +312,6 @@ async function agregar() {
         });
         return;
     }
-    await cargarServicios();
     tituloModal.value = "Agregar producto en: " + (nomSede.value || "sede seleccionada");
     servicioSeleccionado.value = "";
     productoSeleccionado.value = "";
@@ -325,6 +319,7 @@ async function agregar() {
     recomendacion.value = "";
     loadingAgregarProducto.value = false;
     sidebarVisible.value = true;
+    await cargarServicios();
 }
 function onProductoSelect(value) {
     let selectedId = null;
@@ -438,6 +433,7 @@ onMounted(() => {
 .shw-rside {
     right: 0px;
     width: 70%;
+    display: block;
     overflow-y: auto;
 }
 </style>

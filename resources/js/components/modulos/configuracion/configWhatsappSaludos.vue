@@ -709,6 +709,7 @@ onBeforeUnmount(() => {
 .shw-rside {
     right: 0px;
     width: 70%;
+    display: block;
     overflow-y: auto;
 }
 
