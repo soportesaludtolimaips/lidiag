@@ -17,6 +17,7 @@ const props = defineProps({
     modelValue: { type: String, default: "" },
     placeholder: { type: String, default: "" },
     rows: { type: Number, default: 4 },
+    height: { type: String, default: "" },
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -82,7 +83,31 @@ function initEditor() {
             emit("update:modelValue", val);
         });
 
-        nextTick(() => attachObserver(inst.editor));
+        nextTick(() => {
+            attachObserver(inst.editor);
+            applyHeight();
+        });
+    }
+}
+
+/**
+ * Aplica el alto al iframe visible del editor (wysihtml5 oculta el textarea,
+ * por eso el atributo rows solo no tiene efecto visual).
+ * Prioridad: prop height > alto derivado de rows (solo si rows > 4) > defecto del plugin.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-23
+ */
+function applyHeight() {
+    try {
+        const height = props.height || (props.rows > 4 ? `${props.rows * 22}px` : "");
+        if (!height) return;
+        const iframe = textareaRef.value?.parentElement?.querySelector(".wysihtml5-sandbox");
+        if (iframe) {
+            iframe.style.height = height;
+        }
+    } catch (_) {
+        /* noop */
     }
 }
 
