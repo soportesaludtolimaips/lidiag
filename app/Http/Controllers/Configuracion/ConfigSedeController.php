@@ -26,8 +26,8 @@ class ConfigSedeController extends Controller
     public function __construct(
         private readonly ConfigSedeService $configSedeService,
     ) {
-        $this->middleware('auth:sanctum')->except(['index']);
-        $this->middleware('permission:config.sedes.index')->only(['index']);
+        $this->middleware('auth:sanctum')->except(['index', 'listarSedesActivas', 'buscarPorId']);
+        // $this->middleware('permission:config.sedes.index')->only(['index']);
         $this->middleware('permission:config.sedes.create')->only(['store']);
         $this->middleware('permission:config.sedes.edit')->only(['update']);
         $this->middleware('permission:config.sedes.destroy')->only(['destroy']);
