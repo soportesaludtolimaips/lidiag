@@ -70,6 +70,7 @@
         </div>
 
         <div
+            id="drawerWhatsappProductos"
             class="right-sidebar"
             :class="{ 'shw-rside': sidebarVisible }"
             style="overflow-x: hidden; overflow-y: scroll; height: 100%"
@@ -121,10 +122,12 @@
                                             >Producto<span class="text-danger">*</span></label
                                         >
                                         <Select2
+                                            ref="select2Productos"
                                             :value="productoSeleccionado"
                                             :options="productosDisponiblesOptions"
                                             width="100%"
                                             :allow-clear="true"
+                                            dropdown-parent-selector="#drawerWhatsappProductos"
                                             @input="onProductoSelect"
                                         />
                                     </div>
@@ -183,7 +186,7 @@
     </div>
 </template>
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import axios from "axios";
 
 import { confirmAction, toastMessage } from "@/helpers/alerts.js";
@@ -213,6 +216,7 @@ const productoSeleccionado = ref("");
 const recomendacion = ref("");
 const tituloModal = ref("Nuevo registro");
 const sidebarVisible = ref(false);
+const select2Productos = ref(null);
 const loadingGuardar = ref(false);
 const loadingAgregarProducto = ref(false);
 
@@ -290,6 +294,8 @@ async function cargarProductosDisponibles() {
             },
         });
         productosDisponibles.value = res.data.data;
+        await nextTick();
+        select2Productos.value?.rebuild();
     } catch (error) {
         toastMessage({
             heading: "Error",
@@ -319,6 +325,8 @@ async function agregar() {
     recomendacion.value = "";
     loadingAgregarProducto.value = false;
     sidebarVisible.value = true;
+    await nextTick();
+    select2Productos.value?.rebuild();
     await cargarServicios();
 }
 function onProductoSelect(value) {
