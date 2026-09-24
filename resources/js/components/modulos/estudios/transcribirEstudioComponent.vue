@@ -782,7 +782,7 @@ const registro = ref({
 const fechaDefectoIni = dayjs().startOf("month").format("YYYY-MM-DD");
 const fechaDefectoFin = dayjs().endOf("month").format("YYYY-MM-DD");
 const busqueda = ref({
-    estudioParaTranscibir: "si",
+    estudioParaTranscribir: "si",
     quien_asigno_id: "",
     medico_id: "",
     sede_id: "",
