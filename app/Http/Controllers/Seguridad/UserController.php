@@ -15,7 +15,7 @@ class UserController extends Controller
         private readonly UserService $userService,
     ) {
         $this->middleware('auth');
-        $this->middleware('permission:seguridad.usuarios.index')->only(['index', 'usuariosPorModulo']);
+        $this->middleware('permission:seguridad.usuarios.index')->only(['index']);
         $this->middleware('permission:seguridad.usuarios.create')->only(['store']);
         $this->middleware('permission:seguridad.usuarios.edit')->only(['update', 'estadoUsuario']);
         $this->middleware('permission:seguridad.usuarios.destroy')->only(['destroy']);

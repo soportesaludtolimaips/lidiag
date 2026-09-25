@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['auth', 'permission:estudio.index|estudio.asignar|estudio.leer|estudio.transcribir|estudio.productos'])->group(function () {
+Route::middleware(['auth', 'permission:estudio.index|estudio.asignar|estudio.leer|estudio.leerEstudio|estudio.transcribir|estudio.productos'])->group(function () {
     /*
      * Estudios API Endpoints
      */

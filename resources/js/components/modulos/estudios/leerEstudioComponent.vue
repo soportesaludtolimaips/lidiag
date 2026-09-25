@@ -1324,6 +1324,7 @@ const registro = ref({
 const errores = ref({});
 const idRow = ref(null);
 const sede_id = ref(null);
+const medicoActual = ref(null);
 const loadingListar = ref(false);
 const tablaVisible = ref(true);
 const autoRefreshEnabled = ref(false);
@@ -1464,7 +1465,7 @@ async function listarMisPendientes() {
 
         try {
             const res = await axios.post("/api/estudio-listarPendientesMedico", {
-                id: props.usuarioactual?.id,
+                id: medicoActual.value || props.usuarioactual?.id,
                 sede_id: sede_id.value,
             });
             registros.value = res.data.data;
@@ -1745,6 +1746,14 @@ function establecerSede() {
     sede_id.value = sessionStorage.getItem("ST-sede");
     registros.value = [];
 }
+
+function establecerMedico() {
+    medicoActual.value =
+        sessionStorage.getItem("ST-medico") ||
+        localStorage.getItem("ST-ecografia-medico") ||
+        props.usuarioactual?.id ||
+        null;
+}
 function limpiar() {
     tituloModal.value = "";
     id.value = 0;
@@ -1802,11 +1811,20 @@ function onSedeSeleccionada(data) {
     listarMisPendientes();
 }
 
+function onMedicoSeleccionado(data) {
+    if (data && data.idMedico) {
+        medicoActual.value = data.idMedico;
+        destroyDataTable();
+        listarMisPendientes();
+    }
+}
+
 let cleanupKeyboardShortcut = null;
 
 onMounted(() => {
     establecerSede();
     sede_id.value = sessionStorage.getItem("ST-sede");
+    establecerMedico();
     applyDashboardPrefill();
 
     setCallbacks({
@@ -1821,6 +1839,7 @@ onMounted(() => {
     });
 
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
+    emitter.on("medicoSeleccionado", onMedicoSeleccionado);
 
     cleanupKeyboardShortcut = setupKeyboardShortcut();
 });
@@ -1829,6 +1848,7 @@ onBeforeUnmount(() => {
     stopAll();
     cleanupKeyboardShortcut?.();
     emitter.off("sedeSeleccionada", onSedeSeleccionada);
+    emitter.off("medicoSeleccionado", onMedicoSeleccionado);
     if (autoRefreshTimer.value) {
         clearInterval(autoRefreshTimer.value);
         autoRefreshTimer.value = null;
