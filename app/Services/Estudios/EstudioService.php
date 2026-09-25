@@ -349,8 +349,8 @@ class EstudioService extends BaseService
             ->leftJoin('users as medi', 'estudios.medico_id', '=', 'medi.id')
             ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
             ->join('config_productos', 'estudios_productos.producto_id', '=', 'config_productos.id');
-
         $query = $this->applyTranscripcionFilters($query, $filters);
+        Log::debug($query->toSql());
         $results = $query->orderBy('priori.nivel')->get();
 
         return $this->success($results);

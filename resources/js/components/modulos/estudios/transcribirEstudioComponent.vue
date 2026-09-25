@@ -867,7 +867,6 @@ async function listarPendientesTrascribir() {
             });
         } else {
             const res = await axios.post("/api/estudio-listarPendientesTrascribir", busqueda.value);
-
             registros.value = res.data.data;
 
             nextTick(() => {
