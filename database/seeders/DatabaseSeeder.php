@@ -16,6 +16,8 @@ use Database\Seeders\configuracion\ConfigSedeSeeder;
 use Database\Seeders\Configuracion\ConfigWhatsappEcografiasRecomendaciones;
 use Database\Seeders\Configuracion\ConfigWhatsappEcografiasRequerimientos;
 use Database\Seeders\Configuracion\ConfigWhatsappSedeNumberSeeder;
+use Database\Seeders\HelpDesk\HelpDeskCatalogosSeeder;
+use Database\Seeders\HelpDesk\HelpDeskPermisosSeeder;
 use Database\Seeders\Seguridad\RoleSeeder;
 use Database\Seeders\Seguridad\UserSeeder;
 use Illuminate\Database\Seeder;

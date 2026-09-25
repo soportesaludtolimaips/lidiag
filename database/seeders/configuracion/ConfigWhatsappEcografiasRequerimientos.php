@@ -2,7 +2,7 @@
 
 namespace Database\Seeders\Configuracion;
 
-use App\Models\Configuracion\ConfigWhatsapptRequerimeinto;
+use App\Models\Configuracion\ConfigWhatsappRequerimeinto;
 use Illuminate\Database\Seeder;
 
 class ConfigWhatsappEcografiasRequerimientos extends Seeder
@@ -39,7 +39,7 @@ class ConfigWhatsappEcografiasRequerimientos extends Seeder
             ],
         ];
 
-        ConfigWhatsapptRequerimeinto::insert($requerimientos1);
-        ConfigWhatsapptRequerimeinto::insert($requerimientos2);
+        ConfigWhatsappRequerimeinto::insert($requerimientos1);
+        ConfigWhatsappRequerimeinto::insert($requerimientos2);
     }
 }
