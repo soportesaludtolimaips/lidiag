@@ -1324,6 +1324,7 @@ const registro = ref({
 const errores = ref({});
 const idRow = ref(null);
 const sede_id = ref(null);
+// ID del médico cuyos pendientes se listan (selector global o usuario autenticado)
 const medicoActual = ref(null);
 const loadingListar = ref(false);
 const tablaVisible = ref(true);
@@ -1446,7 +1447,9 @@ function eliminarAudioCargado(audioId) {
 }
 
 /**
- * Lista los estudios pendientes del médico actual según la sede seleccionada y actualiza la tabla de datos con los resultados obtenidos.
+ * Lista los estudios pendientes del médico actual (medicoActual, con respaldo en el usuario
+ * autenticado) según la sede seleccionada y actualiza la tabla de datos con los resultados obtenidos.
+ * Si no hay sede establecida en sessionStorage, muestra una advertencia y no realiza la consulta.
  * @returns {Promise<void>}
  * @author: Jhon Javer Lozano Arce
  */
@@ -1742,11 +1745,31 @@ async function mostrarRegistro(data = {}) {
     }
 }
 
+/**
+ * Establece la sede de trabajo a partir de sessionStorage (ST-sede) y limpia la lista de registros.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-07-14
+ */
 function establecerSede() {
     sede_id.value = sessionStorage.getItem("ST-sede");
     registros.value = [];
 }
 
+/**
+ * Establece el médico cuyos pendientes se listarán. Prioriza el médico seleccionado en
+ * sessionStorage (ST-medico) o localStorage (ST-ecografia-medico) y, en su defecto,
+ * usa el usuario autenticado (props.usuarioactual).
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-25
+ */
 function establecerMedico() {
     medicoActual.value =
         sessionStorage.getItem("ST-medico") ||
@@ -1805,12 +1828,36 @@ function cerrarModalAyuda() {
     modalAyudaVisible.value = false;
 }
 
+/**
+ * Maneja el evento "sedeSeleccionada" emitido por el selector global de sede: actualiza
+ * sede_id, destruye la tabla y vuelve a listar los pendientes en la nueva sede.
+ *
+ * @param {Object} data - Payload del evento, contiene data.idSede con el ID de la sede elegida.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-07-14
+ */
 function onSedeSeleccionada(data) {
     sede_id.value = data.idSede;
     destroyDataTable();
     listarMisPendientes();
 }
 
+/**
+ * Maneja el evento "medicoSeleccionado" emitido por el selector global de médicos: actualiza
+ * medicoActual, destruye la tabla y vuelve a listar los pendientes del médico elegido.
+ *
+ * @param {Object} data - Payload del evento, contiene data.idMedico y data.nomMedico.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-25
+ */
 function onMedicoSeleccionado(data) {
     if (data && data.idMedico) {
         medicoActual.value = data.idMedico;

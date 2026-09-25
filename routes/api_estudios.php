@@ -20,6 +20,14 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+/*
+ * Grupo de rutas de estudios.
+ *
+ * Requiere autenticación y al menos uno de los permisos del módulo (Spatie: "a|b" = cualquiera):
+ * - estudio.index | estudio.asignar   → administradores/asignación
+ * - estudio.leer | estudio.leerEstudio → lectura (el rol Medico solo posee estudio.leerEstudio)
+ * - estudio.transcribir | estudio.productos → transcripción y productos
+ */
 Route::middleware(['auth', 'permission:estudio.index|estudio.asignar|estudio.leer|estudio.leerEstudio|estudio.transcribir|estudio.productos'])->group(function () {
     /*
      * Estudios API Endpoints

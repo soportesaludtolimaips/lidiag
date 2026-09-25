@@ -15,6 +15,8 @@ class UserController extends Controller
         private readonly UserService $userService,
     ) {
         $this->middleware('auth');
+        // listarUsuarios/usuariosPorModulo quedan solo con 'auth': los consumen los
+        // selectores globales del header (médicos/asignadores) para cualquier perfil autenticado.
         $this->middleware('permission:seguridad.usuarios.index')->only(['index']);
         $this->middleware('permission:seguridad.usuarios.create')->only(['store']);
         $this->middleware('permission:seguridad.usuarios.edit')->only(['update', 'estadoUsuario']);
@@ -107,6 +109,18 @@ class UserController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Lista usuarios por rol y módulo (ej. médicos del módulo de estudios).
+     *
+     * @param  string  $tipoUser  Nombre del rol a filtrar (ej. "Medico").
+     * @param  int  $modulo  ID del módulo al que pertenecen los usuarios.
+     *
+     * @returns {JsonResponse} Respuesta JSON con el listado de usuarios.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-06-10
+     */
     public function listarUsuarios(string $tipoUser, int $modulo): JsonResponse
     {
         $result = $this->userService->listByRoleAndModule($tipoUser, $modulo);
@@ -114,6 +128,18 @@ class UserController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Lista los usuarios asociados a un módulo específico.
+     * Solo requiere autenticación: lo consume el selector global de usuarios del header.
+     *
+     * @param  int  $moduloId  ID del módulo.
+     *
+     * @returns {JsonResponse} Respuesta JSON con el listado de usuarios del módulo.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-06-10
+     */
     public function usuariosPorModulo(int $moduloId): JsonResponse
     {
         $result = $this->userService->findByModule($moduloId);

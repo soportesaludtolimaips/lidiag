@@ -1064,6 +1064,16 @@ function previewTranscripcion(texto, maxLen) {
     return texto.substring(0, maxLen);
 }
 
+/**
+ * Establece la sede de trabajo en el objeto de búsqueda a partir de sessionStorage (ST-sede)
+ * y limpia la lista de registros.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-07-14
+ */
 function establecerSede() {
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
     registros.value = [];
@@ -1195,6 +1205,18 @@ onMounted(async () => {
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
 });
 
+/**
+ * Maneja el evento "sedeSeleccionada" emitido por el selector global de sede: actualiza
+ * busqueda.sede_id, destruye la tabla y vuelve a listar los pendientes de transcribir.
+ *
+ * @param {Object} data - Payload del evento, contiene data.idSede con el ID de la sede elegida.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-07-14
+ */
 function onSedeSeleccionada(data) {
     busqueda.value.sede_id = data.idSede;
     destroyDataTable();
