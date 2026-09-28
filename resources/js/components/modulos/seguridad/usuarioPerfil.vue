@@ -32,21 +32,27 @@
                     <div class="card-body">
                         <div class="text-center m-t-30">
                             <img
-                                v-if="!registro.imagen_perfil"
-                                src="@/admin-wrap/assets/images/users/avatar_default.png"
+                                v-if="avatarPreview"
+                                :src="avatarPreview"
+                                :alt="registro.name"
+                                class="img-circle"
+                                width="150"
+                            />
+                            <img
+                                v-else-if="registro.imagen_perfil"
+                                :src="'/files/' + registro.imagen_perfil"
                                 :alt="registro.name"
                                 class="img-circle"
                                 width="150"
                             />
                             <img
                                 v-else
-                                :src="registro.imagen_perfil"
+                                src="@/admin-wrap/assets/images/users/avatar_default.png"
                                 :alt="registro.name"
                                 class="img-circle"
                                 width="150"
                             />
                             <h4 class="card-title m-t-10">{{ registro.name }}</h4>
-                            <h6 class="card-subtitle">{{ registro.tipo_user }}</h6>
 
                             <div class="row">
                                 <div class="col-md-12">
@@ -182,10 +188,29 @@
                                                 name="password"
                                                 v-model="registro.password"
                                                 class="form-control form-control-line"
+                                                autocomplete="new-password"
                                             />
                                             <small class="text-muted"
-                                                >Dejar en blanco si no desea cambiar la
-                                                contraseña</small
+                                                >Dejar en blanco si no desea cambiar la contraseña.
+                                                Debe tener mínimo 8 caracteres, con mayúscula,
+                                                minúscula, número y símbolo.</small
+                                            >
+                                        </div>
+                                    </div>
+                                    <div class="form-group" v-if="registro.password">
+                                        <label class="col-md-12">Contraseña actual</label>
+                                        <div class="col-md-12">
+                                            <input
+                                                type="password"
+                                                id="current_password"
+                                                name="current_password"
+                                                v-model="registro.current_password"
+                                                class="form-control form-control-line"
+                                                autocomplete="current-password"
+                                            />
+                                            <small class="text-muted"
+                                                >Requerida para confirmar el cambio de
+                                                contraseña.</small
                                             >
                                         </div>
                                     </div>
@@ -230,17 +255,21 @@ const props = defineProps({ usuarioactual: Object });
 const id = ref(props.usuarioactual.id);
 const registro = ref({
     id: props.usuarioactual.id,
-    num_docu: "",
+    num_docu: props.usuarioactual.num_docu ?? "",
     dependencia_id: props.usuarioactual.dependencia_id,
-    name: "",
-    email: "",
+    name: props.usuarioactual.name ?? "",
+    email: props.usuarioactual.email ?? "",
     password: "",
+    current_password: "",
     estado: 0,
     imagen_perfil: null,
     firma: null,
 });
 const firmaPreview = ref("");
 const firmaError = ref(false);
+const avatarPreview = ref("");
+const archivoAvatar = ref(null);
+const archivoFirma = ref(null);
 const loadingObtener = ref(false);
 const loadingActualizar = ref(false);
 
@@ -274,18 +303,26 @@ async function actualizarPerfil() {
         formData.append("name", r.name || "");
         formData.append("email", r.email || "");
         formData.append("num_docu", r.num_docu || "");
-        formData.append("reg_med", r.reg_med || "");
-        formData.append("interface_id", r.interface_id || "");
-        if (r.password) formData.append("password", r.password);
+        if (r.password) {
+            formData.append("password", r.password);
+            formData.append("current_password", r.current_password || "");
+        }
+        if (archivoAvatar.value) formData.append("imagen_perfil", archivoAvatar.value);
+        if (archivoFirma.value) formData.append("firma", archivoFirma.value);
         const res = await axios.post("/api/seguridad-actualizar-perfil/" + id.value, formData, {
             headers: { "Content-Type": "multipart/form-data" },
         });
+        r.password = "";
+        r.current_password = "";
+        archivoAvatar.value = null;
+        archivoFirma.value = null;
+        avatarPreview.value = "";
         firmaPreview.value = "";
         await obtenerRegistro();
 
         toastMessage({
             heading: "Ok!!!",
-            text: res.data.data.message,
+            text: res.data.message,
             position: "top-right",
             loaderBg: "#ff6849",
             icon: "success",
@@ -293,12 +330,12 @@ async function actualizarPerfil() {
             stack: 6,
         });
     } catch (_error) {
+        const errores = _error?.response?.data?.errors;
         toastMessage({
             heading: "Error",
-            text:
-                _error?.response?.data?.errors?.password?.[0] ||
-                _error?.response?.data?.message ||
-                "No se pudo actualizar el perfil.",
+            text: errores
+                ? Object.values(errores)[0][0]
+                : _error?.response?.data?.message || "No se pudo actualizar el perfil.",
             icon: "error",
         });
     } finally {
@@ -306,15 +343,20 @@ async function actualizarPerfil() {
     }
 }
 function obtenerArchivo(e) {
-    registro.value.imagen_perfil = e.target.files[0];
+    const file = e.target.files[0];
+    if (file) {
+        if (avatarPreview.value) URL.revokeObjectURL(avatarPreview.value);
+        archivoAvatar.value = file;
+        avatarPreview.value = URL.createObjectURL(file);
+    }
 }
 function obtenerFirma(e) {
     const file = e.target.files[0];
     if (file) {
         if (firmaPreview.value) URL.revokeObjectURL(firmaPreview.value);
+        archivoFirma.value = file;
         firmaPreview.value = URL.createObjectURL(file);
     }
-    registro.value.firma = file;
 }
 
 onMounted(() => {
@@ -322,6 +364,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+    if (avatarPreview.value) URL.revokeObjectURL(avatarPreview.value);
     if (firmaPreview.value) URL.revokeObjectURL(firmaPreview.value);
 });
 </script>

@@ -26,8 +26,7 @@ Route::middleware(['auth'])->group(function () {
         ->middleware(['permission:seguridad.usuarios.create']);
 
     Route::get('/seguridad-usuarios/{id}', [UserController::class, 'show'])
-        ->name('api.seguridad.usuarios.show')
-        ->middleware(['permission:seguridad.usuarios.show']);
+        ->name('api.seguridad.usuarios.show');
 
     Route::delete('/seguridad-usuarios/{id}', [UserController::class, 'destroy'])
         ->name('api.seguridad.usuarios.destroy')
@@ -38,8 +37,7 @@ Route::middleware(['auth'])->group(function () {
         ->middleware(['permission:seguridad.usuarios.edit']);
 
     Route::post('/seguridad-actualizar-perfil/{idUsua}', [UserController::class, 'actualizarPerfil'])
-        ->name('api.seguridad.actualizar.perfil')
-        ->middleware(['permission:seguridad.usuarios.edit']);
+        ->name('api.seguridad.actualizar.perfil');
 
     Route::put('/seguridad-usuarios/estado/{idUsua}', [UserController::class, 'estadoUsuario'])
         ->name('api.seguridad.usuario.estado')

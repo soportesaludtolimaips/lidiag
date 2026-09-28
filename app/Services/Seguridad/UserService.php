@@ -8,7 +8,9 @@ use App\Models\User;
 use App\Services\BaseService;
 use App\Services\Contracts\FileServiceInterface;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
@@ -168,28 +170,59 @@ class UserService extends BaseService
             return $authCheck;
         }
 
-        $user = User::findOrFail($id);
-        $user->num_docu = $data['num_docu'];
-        $user->name = $data['name'];
-        $user->email = $data['email'];
+        return $this->transaction(function () use ($id, $data, $avatar, $firma) {
+            $user = User::findOrFail($id);
+            $cambiarPassword = ! empty($data['password']);
 
-        if (! empty($data['password'])) {
-            $user->password = Hash::make($data['password']);
-        }
+            if ($cambiarPassword && ! Hash::check($data['current_password'] ?? '', $user->password)) {
+                return $this->error('La contraseña actual no es correcta.', 422);
+            }
 
-        if ($avatar) {
-            $info = $this->fileService->replace('avatars', $user->imagen_perfil, $avatar, 'avatars');
-            $user->imagen_perfil = $info['path'];
-        }
+            $datosViejos = Arr::except($user->getOriginal(), ['password', 'remember_token']);
+            $viejoAvatar = $user->imagen_perfil;
+            $viejaFirma = $user->firma;
 
-        if ($firma) {
-            $info = $this->fileService->replace('firmas_medicos', $user->firma, $firma, 'firmas_medicos');
-            $user->firma = $info['path'];
-        }
+            $user->num_docu = $data['num_docu'];
+            $user->name = $data['name'];
+            $user->email = $data['email'];
 
-        $user->save();
+            if ($cambiarPassword) {
+                $user->password = Hash::make($data['password']);
+                $user->password_changed_at = now();
+            }
 
-        return $this->updated(null, 'Perfil actualizado correctamente.');
+            if ($avatar) {
+                $info = $this->fileService->store($avatar, 'avatars', 'avatars');
+                $user->imagen_perfil = $info['path'];
+            }
+
+            if ($firma) {
+                $info = $this->fileService->store($firma, 'firmas_medicos', 'firmas_medicos');
+                $user->firma = $info['path'];
+            }
+
+            $user->save();
+
+            if ($avatar && $viejoAvatar) {
+                $this->fileService->delete($viejoAvatar, 'avatars');
+            }
+
+            if ($firma && $viejaFirma) {
+                $this->fileService->delete($viejaFirma, 'firmas_medicos');
+            }
+
+            if ($cambiarPassword) {
+                DB::table('sessions')
+                    ->where('user_id', $user->id)
+                    ->where('id', '!=', session()->getId())
+                    ->delete();
+                $user->tokens()->delete();
+            }
+
+            AuditLogger::actualizar($user, $datosViejos, 'Perfil actualizado: '.$user->name);
+
+            return $this->updated(null, 'Perfil actualizado correctamente.');
+        });
     }
 
     public function listPermissions(int $id): array

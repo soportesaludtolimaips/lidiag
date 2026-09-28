@@ -80,18 +80,25 @@ class UserController extends Controller
 
     public function actualizarPerfil(Request $request, int $id): JsonResponse
     {
-        if ((int) $id !== (int) auth()->id()) {
+        $id = (int) $id;
+        if ($id !== (int) auth()->id()) {
             abort(403, 'No autorizado para modificar este perfil');
         }
 
         $data = $request->validate([
-            'num_docu' => 'required|string|max:50',
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
+            'num_docu' => 'required|string|max:20',
+            'name' => 'required|string|max:50',
+            'email' => 'required|email|max:255|unique:users,email,'.$id,
             'password' => ['nullable', 'string', PasswordRules::nueva()],
+            'current_password' => 'required_with:password|string|max:255',
             'imagen_perfil' => 'nullable|image|max:2048',
             'firma' => 'nullable|image|max:2048',
-        ], PasswordRules::mensajes());
+        ], PasswordRules::mensajes() + [
+            'current_password.required_with' => 'La contraseña actual es obligatoria para cambiar la contraseña.',
+            'email.unique' => 'El email ya está registrado por otro usuario.',
+            'name.max' => 'El nombre no debe exceder 50 caracteres.',
+            'num_docu.max' => 'El número de documento no debe exceder 20 caracteres.',
+        ]);
 
         $result = $this->userService->updateProfile(
             $id,
