@@ -24,11 +24,6 @@ class FileService implements FileServiceInterface
             'mime' => $file->getMimeType(),
         ];
 
-        activity()
-            ->withProperties(['disk' => $disk, 'hash' => $info['hash'], 'original_name' => $originalName])
-            ->event('archivo_subido')
-            ->log("Archivo subido: {$originalName}");
-
         return $info;
     }
 
@@ -48,13 +43,6 @@ class FileService implements FileServiceInterface
         }
 
         $deleted = Storage::disk($disk)->delete($path);
-
-        if ($deleted) {
-            activity()
-                ->withProperties(['disk' => $disk, 'path' => $path])
-                ->event('archivo_eliminado')
-                ->log("Archivo eliminado: {$path}");
-        }
 
         return $deleted;
     }

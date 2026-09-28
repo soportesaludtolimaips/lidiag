@@ -43,7 +43,7 @@ class UserService extends BaseService
         $modulo = ConfigModulo::with('usuarios')->find($moduleId);
 
         if (! $modulo) {
-            return $this->notFound('Módulo no encontrado');
+            return $this->notFound('MÃ³dulo no encontrado');
         }
 
         return $this->success($modulo->usuarios);
@@ -54,7 +54,7 @@ class UserService extends BaseService
         $user = User::find($id);
 
         if (! $user) {
-            return $this->notFound('El usuario no se encontró');
+            return $this->notFound('El usuario no se encontrÃ³');
         }
 
         $authCheck = $this->checkSelfOrPermission($id, 'seguridad.usuarios.show');
@@ -82,12 +82,12 @@ class UserService extends BaseService
             $user->estado = filter_var($data['estado'] ?? true, FILTER_VALIDATE_BOOLEAN);
 
             if ($firma) {
-                $info = $this->fileService->store($firma, 'firmas_medicos', 'firmas_medicos');
+                $info = $this->fileService->store($firma, 'local', 'firmas_medicos');
                 $user->firma = $info['path'];
             }
 
             if ($avatar) {
-                $info = $this->fileService->store($avatar, 'avatars', 'avatars');
+                $info = $this->fileService->store($avatar, 'local', 'avatars');
                 $user->imagen_perfil = $info['path'];
             }
 
@@ -112,12 +112,12 @@ class UserService extends BaseService
             }
 
             if ($firma) {
-                $info = $this->fileService->replace('firmas_medicos', $user->firma, $firma, 'firmas_medicos');
+                $info = $this->fileService->replace('local', $user->firma, $firma, 'firmas_medicos');
                 $user->firma = $info['path'];
             }
 
             if ($avatar) {
-                $info = $this->fileService->replace('avatars', $user->imagen_perfil, $avatar, 'avatars');
+                $info = $this->fileService->replace('local', $user->imagen_perfil, $avatar, 'avatars');
                 $user->imagen_perfil = $info['path'];
             }
 
@@ -175,7 +175,7 @@ class UserService extends BaseService
             $cambiarPassword = ! empty($data['password']);
 
             if ($cambiarPassword && ! Hash::check($data['current_password'] ?? '', $user->password)) {
-                return $this->error('La contraseña actual no es correcta.', 422);
+                return $this->error('La contraseÃ±a actual no es correcta.', 422);
             }
 
             $datosViejos = Arr::except($user->getOriginal(), ['password', 'remember_token']);
@@ -192,23 +192,23 @@ class UserService extends BaseService
             }
 
             if ($avatar) {
-                $info = $this->fileService->store($avatar, 'avatars', 'avatars');
+                $info = $this->fileService->store($avatar, 'local', 'avatars');
                 $user->imagen_perfil = $info['path'];
             }
 
             if ($firma) {
-                $info = $this->fileService->store($firma, 'firmas_medicos', 'firmas_medicos');
+                $info = $this->fileService->store($firma, 'local', 'firmas_medicos');
                 $user->firma = $info['path'];
             }
 
             $user->save();
 
             if ($avatar && $viejoAvatar) {
-                $this->fileService->delete($viejoAvatar, 'avatars');
+                $this->fileService->delete($viejoAvatar, 'local');
             }
 
             if ($firma && $viejaFirma) {
-                $this->fileService->delete($viejaFirma, 'firmas_medicos');
+                $this->fileService->delete($viejaFirma, 'local');
             }
 
             if ($cambiarPassword) {
@@ -280,11 +280,11 @@ class UserService extends BaseService
     private function cleanupUserFiles(User $user): void
     {
         if ($user->firma) {
-            $this->fileService->delete($user->firma, 'firmas_medicos');
+            $this->fileService->delete($user->firma, 'local');
         }
 
         if ($user->imagen_perfil) {
-            $this->fileService->delete($user->imagen_perfil, 'avatars');
+            $this->fileService->delete($user->imagen_perfil, 'local');
         }
     }
 

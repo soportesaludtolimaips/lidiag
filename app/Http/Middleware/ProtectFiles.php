@@ -21,6 +21,9 @@ class ProtectFiles
         'files_help_desk' => 'help-desk.index',
     ];
 
+    /** Discos accesibles para cualquier usuario autenticado (la ruta ya aplica middleware auth). */
+    private array $authOnlyDisks = ['avatars'];
+
     public function handle(Request $request, Closure $next): Response
     {
         $disk = $request->route('disk');
@@ -33,7 +36,7 @@ class ProtectFiles
             if (! $request->user()?->can($this->diskPermissions[$disk])) {
                 abort(403, 'Forbidden');
             }
-        } else {
+        } elseif (! in_array($disk, $this->authOnlyDisks, true)) {
             abort(403, 'Acceso no autorizado a este disco');
         }
 

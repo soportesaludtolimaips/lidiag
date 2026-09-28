@@ -13,7 +13,7 @@ class ConfigSedeService extends BaseService
     /**
      * Constructor del servicio de sedes.
      *
-     * Inicializa el servicio de archivos para la gestión de plantillas.
+     * Inicializa el servicio de archivos para la gestiÃ³n de plantillas.
      *
      * @param  FileServiceInterface  $fileService  Servicio de archivos inyectado.
      *
@@ -28,9 +28,9 @@ class ConfigSedeService extends BaseService
     ) {}
 
     /**
-     * Obtiene todas las sedes con sus servicios y números de WhatsApp asociados.
+     * Obtiene todas las sedes con sus servicios y nÃºmeros de WhatsApp asociados.
      *
-     * @returns array Respuesta con la lista de sedes y el estado de la operación.
+     * @returns array Respuesta con la lista de sedes y el estado de la operaciÃ³n.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -46,9 +46,9 @@ class ConfigSedeService extends BaseService
     /**
      * Busca una sede por su identificador validando el ID y capturando errores.
      *
-     * @param  int  $id  Identificador único de la sede.
+     * @param  int  $id  Identificador Ãºnico de la sede.
      *
-     * @returns array Respuesta con los datos de la sede o un error si no existe o el ID es inválido.
+     * @returns array Respuesta con los datos de la sede o un error si no existe o el ID es invÃ¡lido.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -57,7 +57,7 @@ class ConfigSedeService extends BaseService
     public function buscarPorId(int $id): array
     {
         if ($id <= 0) {
-            return $this->error('ID de sede inválido.', 400);
+            return $this->error('ID de sede invÃ¡lido.', 400);
         }
 
         try {
@@ -101,9 +101,9 @@ class ConfigSedeService extends BaseService
     }
 
     /**
-     * Lista únicamente las sedes que se encuentran activas.
+     * Lista Ãºnicamente las sedes que se encuentran activas.
      *
-     * @returns array Respuesta con la lista de sedes activas y el estado de la operación.
+     * @returns array Respuesta con la lista de sedes activas y el estado de la operaciÃ³n.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -115,13 +115,13 @@ class ConfigSedeService extends BaseService
     }
 
     /**
-     * Crea una nueva sede validando los datos y almacenando las plantillas de Rx si se envían.
+     * Crea una nueva sede validando los datos y almacenando las plantillas de Rx si se envÃ­an.
      *
      * @param  array  $data  Datos validados de la sede.
      * @param  Illuminate\Http\UploadedFile|null  $plantillaRx  Archivo de plantilla Rx (opcional).
-     * @param  Illuminate\Http\UploadedFile|null  $plantillaEcografia  Archivo de plantilla de ecografía (opcional).
+     * @param  Illuminate\Http\UploadedFile|null  $plantillaEcografia  Archivo de plantilla de ecografÃ­a (opcional).
      *
-     * @returns array Respuesta con la sede creada y el estado de la operación.
+     * @returns array Respuesta con la sede creada y el estado de la operaciÃ³n.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -165,12 +165,12 @@ class ConfigSedeService extends BaseService
         $this->fillSedeData($item, $validated->validated());
 
         if ($plantillaRx) {
-            $info = $this->fileService->store($plantillaRx, 'plantillas_lecturas', 'plantillas_lecturas');
+            $info = $this->fileService->store($plantillaRx, 'local', 'plantillas_lecturas');
             $item->plantilla_rx = $info['path'];
         }
 
         if ($plantillaEcografia) {
-            $info = $this->fileService->store($plantillaEcografia, 'plantillas_lecturas', 'plantillas_lecturas');
+            $info = $this->fileService->store($plantillaEcografia, 'local', 'plantillas_lecturas');
             $item->plantilla_ecografia = $info['path'];
         }
 
@@ -180,13 +180,13 @@ class ConfigSedeService extends BaseService
     }
 
     /**
-     * Actualiza una sede existente, reemplazando las plantillas si se envían nuevos archivos.
+     * Actualiza una sede existente, reemplazando las plantillas si se envÃ­an nuevos archivos.
      *
      * @param  array  $data  Datos validados de la sede (debe incluir el id).
      * @param  Illuminate\Http\UploadedFile|null  $plantillaRx  Archivo de plantilla Rx (opcional).
-     * @param  Illuminate\Http\UploadedFile|null  $plantillaEcografia  Archivo de plantilla de ecografía (opcional).
+     * @param  Illuminate\Http\UploadedFile|null  $plantillaEcografia  Archivo de plantilla de ecografÃ­a (opcional).
      *
-     * @returns array Respuesta con la sede actualizada y el estado de la operación.
+     * @returns array Respuesta con la sede actualizada y el estado de la operaciÃ³n.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -235,12 +235,12 @@ class ConfigSedeService extends BaseService
         $this->fillSedeData($item, $validated->validated());
 
         if ($plantillaRx) {
-            $info = $this->fileService->replace('plantillas_lecturas', $item->plantilla_rx, $plantillaRx, 'plantillas_lecturas');
+            $info = $this->fileService->replace('local', $item->plantilla_rx, $plantillaRx, 'plantillas_lecturas');
             $item->plantilla_rx = $info['path'];
         }
 
         if ($plantillaEcografia) {
-            $info = $this->fileService->replace('plantillas_lecturas', $item->plantilla_ecografia, $plantillaEcografia, 'plantillas_lecturas');
+            $info = $this->fileService->replace('local', $item->plantilla_ecografia, $plantillaEcografia, 'plantillas_lecturas');
             $item->plantilla_ecografia = $info['path'];
         }
 
@@ -252,9 +252,9 @@ class ConfigSedeService extends BaseService
     /**
      * Elimina una sede existente y sus archivos de plantillas asociados.
      *
-     * @param  int  $id  Identificador único de la sede a eliminar.
+     * @param  int  $id  Identificador Ãºnico de la sede a eliminar.
      *
-     * @returns array Respuesta con el estado de la operación de eliminación.
+     * @returns array Respuesta con el estado de la operaciÃ³n de eliminaciÃ³n.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -265,11 +265,11 @@ class ConfigSedeService extends BaseService
         $item = ConfigSede::findOrFail($id);
 
         if ($item->plantilla_rx) {
-            $this->fileService->delete($item->plantilla_rx, 'plantillas_lecturas');
+            $this->fileService->delete($item->plantilla_rx, 'local');
         }
 
         if ($item->plantilla_ecografia) {
-            $this->fileService->delete($item->plantilla_ecografia, 'plantillas_lecturas');
+            $this->fileService->delete($item->plantilla_ecografia, 'local');
         }
 
         $item->delete();
