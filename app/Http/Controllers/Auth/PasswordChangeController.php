@@ -39,6 +39,14 @@ class PasswordChangeController extends Controller
             return back()->withErrors(['current_password' => $result['message']]);
         }
 
-        return redirect()->intended(route('dashboard'))->with('success', 'Contraseña actualizada correctamente.');
+        $intended = session()->pull('url.intended');
+        $intendedPath = $intended !== null ? trim((string) parse_url($intended, PHP_URL_PATH), '/') : null;
+        $formPath = trim((string) parse_url(route('password.cambiar'), PHP_URL_PATH), '/');
+
+        if ($intendedPath === null || $intendedPath === '' || $intendedPath === $formPath) {
+            $intended = null;
+        }
+
+        return redirect()->to($intended ?: route('dashboard'))->with('success', 'Contraseña actualizada correctamente.');
     }
 }
