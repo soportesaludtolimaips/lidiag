@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Seguridad;
 
+use App\Helpers\PasswordRules;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Seguridad\StoreUserRequest;
 use App\Http\Requests\Seguridad\UpdateUserRequest;
@@ -87,10 +88,10 @@ class UserController extends Controller
             'num_docu' => 'required|string|max:50',
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
-            'password' => 'nullable|string|min:6',
+            'password' => ['nullable', 'string', PasswordRules::nueva()],
             'imagen_perfil' => 'nullable|image|max:2048',
             'firma' => 'nullable|image|max:2048',
-        ]);
+        ], PasswordRules::mensajes());
 
         $result = $this->userService->updateProfile(
             $id,

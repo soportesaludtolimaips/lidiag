@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Helpers\PasswordRules;
 use App\Http\Controllers\Controller;
 use App\Services\Auth\AuthService;
 use Illuminate\Http\Request;
@@ -21,13 +22,12 @@ class PasswordChangeController extends Controller
     {
         $request->validate([
             'current_password' => 'required',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => ['required', 'string', PasswordRules::nueva(), 'confirmed'],
         ], [
             'current_password.required' => 'La contraseña actual es obligatoria.',
             'password.required' => 'La nueva contraseña es obligatoria.',
-            'password.min' => 'La nueva contraseña debe tener al menos 8 caracteres.',
             'password.confirmed' => 'La confirmación de la nueva contraseña no coincide.',
-        ]);
+        ] + PasswordRules::mensajes());
 
         $result = $this->authService->changePassword(
             $request->user(),

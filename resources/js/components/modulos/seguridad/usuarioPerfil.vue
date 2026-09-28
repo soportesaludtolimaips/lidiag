@@ -295,7 +295,10 @@ async function actualizarPerfil() {
     } catch (_error) {
         toastMessage({
             heading: "Error",
-            text: _error?.response?.data?.message || "No se pudo actualizar el perfil.",
+            text:
+                _error?.response?.data?.errors?.password?.[0] ||
+                _error?.response?.data?.message ||
+                "No se pudo actualizar el perfil.",
             icon: "error",
         });
     } finally {
