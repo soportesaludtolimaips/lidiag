@@ -235,10 +235,7 @@
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
                                                 :disabled="loadingAbrirRegistroIndex === index"
-                                                @click="
-                                                    actualizar = true;
-                                                    mostrarRegistro(item, index);
-                                                "
+                                                @click="mostrarRegistro(item, index)"
                                                 title="Asignar estudio"
                                                 aria-label="Asignar estudio"
                                             >
@@ -964,9 +961,7 @@ import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { confirmAction, toastMessage } from "@/helpers/alerts";
 import { normalizarFecha } from "@/helpers/dateUtils.js";
-import { useSede } from "@/composables/useSede";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
-import { useSidebarForm } from "@/composables/useSidebarForm";
 import QuemadorCdComponent from "@/components/modulos/estudios/QuemadorCdComponent.vue";
 import QuemarMultiplesComponent from "@/components/modulos/estudios/QuemarMultiplesComponent.vue";
 import DescargarZipComponent from "@/components/modulos/estudios/DescargarZipComponent.vue";
@@ -1001,10 +996,9 @@ function verImagenItem(item) {
 }
 
 const props = defineProps({
-    usuarioactual: Object,
+    usuarioactual: { type: Object, default: () => ({}) },
     permisos: { type: Array, default: () => [] },
 });
-const id = ref(0);
 const registros = ref([]);
 const tituloModal = ref("Nuevo registro");
 const sedeInterface = ref(false);
@@ -1054,7 +1048,6 @@ const productos = ref([]);
 const diagnosticos = ref([]);
 const productoSelecciondo = ref("");
 const diagnosticoSelecciondo = ref("");
-const productosAtencion = ref([]);
 const idRow = ref(null);
 const loadingBuscar = ref(false);
 const loadingGuardar = ref(false);
@@ -1069,7 +1062,6 @@ const estudioParaDescargar = ref(null);
 const quemadorModalVisible = ref(false);
 const descargaModalVisible = ref(false);
 const sidebarVisible = ref(false);
-const actualizar = ref(false);
 
 const estudiosSeleccionados = ref([]);
 const sidebarQuemarMultiplesVisible = ref(false);
@@ -1085,10 +1077,31 @@ const todoSeleccionado = computed(() => {
     );
 });
 
+/**
+ * Indica si un estudio ya está en la lista de selección múltiple.
+ *
+ * @param {Object} item Estudio de la fila, identificado por `study_pk`.
+ *
+ * @returns {boolean} true si el estudio está seleccionado.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function estudioSeleccionado(item) {
     return estudiosSeleccionados.value.some((s) => s.study_pk === item.study_pk);
 }
 
+/**
+ * Selecciona todos los estudios listados o vacía la selección si ya estaban todos.
+ * Solo se guardan los campos necesarios para las acciones de descarga y quema.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function toggleSeleccionarTodo() {
     if (todoSeleccionado.value) {
         estudiosSeleccionados.value = [];
@@ -1105,6 +1118,17 @@ function toggleSeleccionarTodo() {
     }
 }
 
+/**
+ * Agrega o quita un estudio de la selección múltiple.
+ *
+ * @param {Object} item Estudio de la fila.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function alternarSeleccion(item) {
     const idx = estudiosSeleccionados.value.findIndex((s) => s.study_pk === item.study_pk);
     if (idx >= 0) {
@@ -1144,6 +1168,15 @@ const medicoOptions = computed(() => {
     return (medicos.value || []).map((p) => ({ id: String(p.id), name: p.name }));
 });
 
+/**
+ * Destruye la instancia de DataTables antes de recargar o al desmontar el componente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#example23");
 }
@@ -1203,7 +1236,7 @@ async function buscarStudy() {
                 if (typeof data === "string") {
                     try {
                         data = JSON.parse(data);
-                    } catch (e) {
+                    } catch (_error) {
                         data = [];
                     }
                 }
@@ -1358,7 +1391,6 @@ async function mostrarRegistro(data = {}, index) {
     }
 
     tituloModal.value = "Agendar al paciente: " + data.pat_name;
-    id.value = data.study_pk;
     registro.value.study_pk = data.study_pk;
     registro.value.study_iuid = data.study_iuid;
     registro.value.study_id = data.study_id;
@@ -1465,12 +1497,32 @@ async function interfaceListarProductosDiagnosticos() {
 
     registro.value.atencion_id = interfaceAtencionSeleccionada.value;
 }
+/**
+ * Carga los catálogos que dependen de la sede: médicos, prioridades, productos y diagnósticos.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function cargarDatosSede() {
     listarMedicos();
     listarPrioridades();
     listarProductos();
     listarDiagnosticos();
 }
+
+/**
+ * Toma la sede activa de sessionStorage, la aplica al registro y a la búsqueda,
+ * recarga los catálogos y vacía la tabla de estudios.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function establecerSede() {
     registro.value.sede_id = sessionStorage.getItem("ST-sede");
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
@@ -1478,29 +1530,71 @@ function establecerSede() {
     cargarDatosSede();
     registros.value = [];
 }
+
+/**
+ * Abre el panel lateral de asignación. El panel nace oculto (`display:none`) y
+ * Select2 no se inicializa dentro de contenedores ocultos, así que en el siguiente
+ * tick se reconstruyen los tres selectores (médico, producto y diagnóstico).
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function abrirModal() {
     sidebarVisible.value = true;
     nextTick(() => {
         primerInput.value?.focus();
-        // El panel nace oculto (display:none): Select2 se niega a inicializar
-        // dentro de contenedores ocultos, así que se reconstruye al abrir.
         selMedico.value?.rebuild();
         selProducto.value?.rebuild();
         selDiagnostico.value?.rebuild();
     });
 }
+
+/**
+ * Prepara el panel para crear un estudio nuevo: limpia el formulario, deja el
+ * médico configurado en el usuario y abre el panel.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function nuevoRegistro() {
-    actualizar.value = false;
     limpiarFormulario();
     establecerMedico();
     tituloModal.value = "Nuevo registro de estudio";
     abrirModal();
 }
+
+/**
+ * Cierra el panel lateral y descarta los datos capturados y los errores mostrados.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function cerrarModal() {
     sidebarVisible.value = false;
     limpiarFormulario();
     errores.value = {};
 }
+
+/**
+ * Vacía el formulario de asignación. Además de los datos del estudio, reinicia
+ * médico, prioridad y atención, la lista de atenciones del interface y los
+ * soportes, para que al agendar el siguiente estudio no herede nada del anterior.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function limpiarFormulario() {
     registro.value.study_pk = "";
     registro.value.study_iuid = "";
@@ -1532,6 +1626,17 @@ function limpiarFormulario() {
     soportesHC.value.archivo3 = null;
 }
 
+/**
+ * Limpia la búsqueda y vacía la tabla de estudios. Se usa desde el botón
+ * "Limpiar" del formulario de búsqueda; el guardado de un estudio NO lo invoca
+ * para no perder los resultados que el usuario está revisando.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function btnLimpiar() {
     busqueda.value.bus_nom_num_docu = "";
     busqueda.value.bus_fech_ini = "";
@@ -1765,16 +1870,45 @@ async function quitarDiagnosticoEstudio(indexEliminar) {
     registro.value.diagnosticosEstudio.splice(indexEliminar, 1);
 }
 
+/**
+ * Abre el modal de quema de disco para un estudio.
+ *
+ * @param {Object} estudio Estudio seleccionado en la tabla.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function abrirQuemador(estudio) {
     estudioParaQuemar.value = estudio;
     quemadorModalVisible.value = true;
 }
 
+/**
+ * Cierra el modal de quema y descarta el estudio pendiente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function cerrarQuemador() {
     quemadorModalVisible.value = false;
     estudioParaQuemar.value = null;
 }
 
+/**
+ * Confirma que el disco se quemó correctamente y cierra el modal.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function onQuemadoCompletado() {
     toastMessage({
         heading: "Completado",
@@ -1784,16 +1918,45 @@ function onQuemadoCompletado() {
     cerrarQuemador();
 }
 
+/**
+ * Abre el modal de descarga en ZIP para un estudio.
+ *
+ * @param {Object} estudio Estudio seleccionado en la tabla.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function abrirDescargaZip(estudio) {
     estudioParaDescargar.value = estudio;
     descargaModalVisible.value = true;
 }
 
+/**
+ * Cierra el modal de descarga y descarta el estudio pendiente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function cerrarDescargaZip() {
     descargaModalVisible.value = false;
     estudioParaDescargar.value = null;
 }
 
+/**
+ * Confirma que el ZIP se descargó correctamente y cierra el modal.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function onDescargaZipCompletado() {
     toastMessage({
         heading: "Completado",
@@ -1803,14 +1966,42 @@ function onDescargaZipCompletado() {
     cerrarDescargaZip();
 }
 
+/**
+ * Abre el panel lateral para quemar en lote los estudios seleccionados.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function abrirSidebarQuemarMultiples() {
     sidebarQuemarMultiplesVisible.value = true;
 }
 
+/**
+ * Cierra el panel de quema en lote.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function cerrarSidebarQuemarMultiples() {
     sidebarQuemarMultiplesVisible.value = false;
 }
 
+/**
+ * Confirma que se quemaron los estudios en lote, cierra el panel y vacía la
+ * selección múltiple.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function onQuemadoMultiplesCompletado() {
     toastMessage({
         heading: "Completado",
@@ -1825,8 +2016,14 @@ function onQuemadoMultiplesCompletado() {
  * Handler del evento global de sede seleccionada: actualiza la sede activa,
  * recarga los catálogos y limpia la tabla de resultados.
  *
- * @param {Object} data - Payload emitido con { idSede }
+ * @param {Object} data          Payload emitido con { idSede }.
+ * @param {number} data.idSede   Id de la sede elegida.
+ *
  * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
  */
 function onSedeSeleccionada(data) {
     registro.value.sede_id = data.idSede;
@@ -1834,6 +2031,18 @@ function onSedeSeleccionada(data) {
     establecerSede();
     destroyDataTable();
 }
+
+/**
+ * Asigna al registro el médico configurado en el usuario (sessionStorage
+ * ST-medico o localStorage ST-ecografia-medico). Es el valor por defecto al
+ * abrir el panel de asignación; el Select2 lo sobreescribe al elegir otro.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function establecerMedico() {
     const medicoId =
         sessionStorage.getItem("ST-medico") || localStorage.getItem("ST-ecografia-medico") || "";
@@ -1841,6 +2050,20 @@ function establecerMedico() {
         registro.value.medico_id = String(medicoId);
     }
 }
+
+/**
+ * Handler del evento global de médico seleccionado: prellena el médico de la
+ * asignación con el elegido en la cabecera.
+ *
+ * @param {Object} data           Payload emitido con { idMedico, nomMedico }.
+ * @param {number} data.idMedico  Id del médico elegido.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function onMedicoSeleccionado(data) {
     if (data && data.idMedico) {
         registro.value.medico_id = String(data.idMedico);
