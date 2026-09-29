@@ -21,6 +21,16 @@ class RolController extends Controller
         $this->middleware('permission:seguridad.roles.destroy')->only(['destroy']);
     }
 
+    /**
+     * Detalle y descripción de la función
+     *
+     * @param  void  $args  Sin parámetros.
+     * @return JsonResponse Listado de roles con el catálogo de permisos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function index(): JsonResponse
     {
         $result = $this->rolService->all();
@@ -28,6 +38,16 @@ class RolController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Detalle y descripción de la función
+     *
+     * @param  RolAgregarRequest  $request  Datos validados del nuevo rol.
+     * @return JsonResponse Resultado de la creación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function store(RolAgregarRequest $request): JsonResponse
     {
         $result = $this->rolService->create($request->validated());
@@ -35,6 +55,16 @@ class RolController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Detalle y descripción de la función
+     *
+     * @param  int  $id  Identificador del rol.
+     * @return JsonResponse Rol, catálogo de permisos y permisos asignados.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function show(int $id): JsonResponse
     {
         $result = $this->rolService->find($id);
@@ -42,6 +72,17 @@ class RolController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Detalle y descripción de la función
+     *
+     * @param  Request  $request  Cuerpo con `registro` (name y permisosRol).
+     * @param  int  $id  Identificador del rol.
+     * @return JsonResponse Resultado de la actualización.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function update(Request $request, int $id): JsonResponse
     {
         $data = $request->validate([
@@ -59,6 +100,16 @@ class RolController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Detalle y descripción de la función
+     *
+     * @param  int  $id  Identificador del rol.
+     * @return JsonResponse Resultado de la eliminación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function destroy(int $id): JsonResponse
     {
         $result = $this->rolService->delete($id);
@@ -66,6 +117,16 @@ class RolController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Detalle y descripción de la función
+     *
+     * @param  int  $id  Identificador del rol.
+     * @return JsonResponse Nuevo estado del rol.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function estadoRol(int $id): JsonResponse
     {
         $result = $this->rolService->toggleEstado($id);

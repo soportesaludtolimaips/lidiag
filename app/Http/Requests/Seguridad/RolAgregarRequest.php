@@ -6,11 +6,31 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class RolAgregarRequest extends FormRequest
 {
+    /**
+     * Detalle y descripción de la función
+     *
+     * @param  void  $args  Sin parámetros.
+     * @return bool true: la autorización la resuelven los middleware de permisos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function authorize(): bool
     {
         return true;
     }
 
+    /**
+     * Detalle y descripción de la función
+     *
+     * @param  void  $args  Sin parámetros.
+     * @return array Reglas de validación del nombre y la lista de permisos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function rules(): array
     {
         return [
@@ -23,6 +43,16 @@ class RolAgregarRequest extends FormRequest
         ];
     }
 
+    /**
+     * Detalle y descripción de la función
+     *
+     * @param  void  $args  Sin parámetros.
+     * @return array Mensajes de validación en español.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function messages(): array
     {
         return [

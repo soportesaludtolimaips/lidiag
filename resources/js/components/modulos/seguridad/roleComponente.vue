@@ -75,6 +75,7 @@
                                                 type="button"
                                                 title="Editar rol"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
+                                                :disabled="loadingCargarPermisos"
                                                 @click="
                                                     actualizar = true;
                                                     mostrarRegistro(item);
@@ -172,6 +173,9 @@
                             </div>
 
                             <p class="text-info"><i class="fa fa-unlock"></i> Permisos</p>
+                            <div v-if="loadingCargarPermisos" class="text-muted mb-2">
+                                <i class="fa fa-spinner fa-spin"></i> Cargando permisos del rol...
+                            </div>
                             <span class="text-danger" v-if="erroresRpermisosElegidos">{{
                                 erroresRpermisosElegidos
                             }}</span>
@@ -235,6 +239,9 @@
                                                                     class="custom-control-input"
                                                                     :id="'perm_' + itemPermiso.id"
                                                                     v-model="itemPermiso.checked"
+                                                                    :disabled="
+                                                                        loadingCargarPermisos
+                                                                    "
                                                                 />
                                                                 <label
                                                                     class="custom-control-label"
@@ -312,12 +319,41 @@ const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const gruposAbiertos = ref({});
 const sidebarOpen = ref(false);
+const loadingCargarPermisos = ref(false);
 
+/**
+ * Resuelve el módulo al que pertenece un permiso a partir de su nombre.
+ * Los permisos siguen el patrón "modulo.recurso.accion" (por ejemplo
+ * "seguridad.roles.index"); los que no tienen prefijo van a "Otros".
+ *
+ * @param {Object} permiso Permiso con la propiedad `name`.
+ *
+ * @returns {string} Clave del módulo al que pertenece el permiso.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
+function moduloDePermiso(permiso) {
+    const partes = String(permiso?.name ?? "").split(".");
+    return partes.length > 1 ? partes[0] : "Otros";
+}
+
+/**
+ * Agrupa los permisos del formulario por módulo para pintarlos en acordeones.
+ * Se apoya en el mismo criterio que `moduloDePermiso`, por lo que el computed
+ * y `seleccionarGrupo` nunca pueden discrepar.
+ *
+ * @returns {Object} Diccionario `{ modulo: [permisos...] }` con la selección actual.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 const permisosAgrupados = computed(() => {
     const grupos = {};
     registro.value.permisosRol.forEach((permiso) => {
-        const partes = permiso.name.split(".");
-        const modulo = partes.length > 1 ? partes[0] : "Otros";
+        const modulo = moduloDePermiso(permiso);
         if (!grupos[modulo]) {
             grupos[modulo] = [];
         }
@@ -343,16 +379,88 @@ const modulosTraducidos = {
     Otros: "Otros",
 };
 
+/**
+ * Expande o contrae el acordeón de un módulo de permisos.
+ *
+ * @param {string} modulo Clave del módulo (por ejemplo "seguridad").
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function toggleGrupo(modulo) {
     gruposAbiertos.value[modulo] = !gruposAbiertos.value[modulo];
 }
 
+/**
+ * Devuelve los permisos del formulario que pertenecen a un módulo.
+ * Trabaja sobre `registro.permisosRol` (la fuente real de la selección) y no
+ * sobre el computed, para no escribir a través de un valor derivado.
+ *
+ * @param {string} modulo Clave del módulo (por ejemplo "seguridad").
+ *
+ * @returns {Array} Permisos del módulo indicado.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
+function permisosDelModulo(modulo) {
+    return registro.value.permisosRol.filter((permiso) => moduloDePermiso(permiso) === modulo);
+}
+
+/**
+ * Marca o desmarca en bloque todos los permisos de un módulo ("Todos"/"Ninguno").
+ *
+ * @param {string} modulo    Clave del módulo (por ejemplo "seguridad").
+ * @param {boolean} seleccionar true para marcar, false para desmarcar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function seleccionarGrupo(modulo, seleccionar) {
-    permisosAgrupados.value[modulo].forEach((permiso) => {
+    permisosDelModulo(modulo).forEach((permiso) => {
         permiso.checked = seleccionar;
     });
 }
 
+/**
+ * Calcula qué módulos quedan expandidos. Al editar se abre únicamente donde
+ * el rol ya tiene permisos asignados, para que el usuario vea de inmediato
+ * qué tiene el rol; al crear se abren todos para poder explorarlos.
+ *
+ * @param {Object}  [opciones]                    Opciones de apertura.
+ * @param {boolean} [opciones.soloConSeleccion]   true abre solo módulos con permisos marcados.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
+function abrirGrupos({ soloConSeleccion = false } = {}) {
+    gruposAbiertos.value = {};
+    Object.entries(permisosAgrupados.value).forEach(([modulo, permisosDelGrupo]) => {
+        gruposAbiertos.value[modulo] = soloConSeleccion
+            ? permisosDelGrupo.some((permiso) => permiso.checked)
+            : true;
+    });
+}
+
+/**
+ * Inicializa (o reinicializa) la tabla de roles con DataTables.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function initDataTable() {
     safeInitDataTable(dt.value || "#example23", {
         dom: "Bfrtip",
@@ -376,9 +484,30 @@ function initDataTable() {
         },
     });
 }
+/**
+ * Destruye la instancia de DataTables antes de recargar o al desmontar el
+ * componente, evitando la fuga de listeners sobre el nodo de la tabla.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#example23");
 }
+
+/**
+ * Carga roles y el catálogo completo de permisos, reconstruye la lista de
+ * checkboxes del formulario y refresca la tabla.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 async function ListarDatos() {
     loadingListar.value = true;
     try {
@@ -402,18 +531,30 @@ async function ListarDatos() {
         loadingListar.value = false;
     }
 }
+/**
+ * Valida y guarda el rol (nuevo o existente) con la selección de permisos.
+ * Exige al menos un permiso marcado para no dejar un rol sin acceso por
+ * descuido: el backend también lo rechaza.
+ *
+ * @returns {Promise<boolean|undefined>} false si no hay permisos marcados.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 async function guardarRegistro() {
-    let totalPermisosElegido = 0;
-    registro.value.permisosRol.map(function (x, y) {
-        if (x.checked == true) {
-            totalPermisosElegido++;
-        }
-    });
+    if (loadingCargarPermisos.value) return;
+
+    const totalPermisosElegido = registro.value.permisosRol.filter(
+        (permiso) => permiso.checked == true
+    ).length;
 
     if (totalPermisosElegido == 0) {
         erroresRpermisosElegidos.value = "Debes elegir al menos un permiso para el rol";
         return false;
     }
+
+    erroresRpermisosElegidos.value = "";
 
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
@@ -444,6 +585,17 @@ async function guardarRegistro() {
         loadingGuardar.value = false;
     }
 }
+/**
+ * Construye la lista de checkboxes del formulario a partir del catálogo de
+ * permisos, todos inicialmente desmarcados. Se hace con `push` sobre el arreglo
+ * existente para conservar las referencias de objetos ya enlazadas al template.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function listarPermisosRol() {
     permisos.value.forEach(function (x) {
         registro.value.permisosRol.push({
@@ -453,43 +605,101 @@ function listarPermisosRol() {
         });
     });
 }
-function mostrarRegistro(data = {}) {
+
+/**
+ * Prepara el panel lateral para crear o editar un rol.
+ *
+ * Al editar, consulta el rol y marca sus permisos sobre el arreglo ya montado.
+ * La selección se modifica EN SITIO (mutando `checked`) y nunca se reasigna el
+ * arreglo: los checkboxes del template están enlazados a esos mismos objetos, y
+ * vaciarlo dejaba el árbol de permisos sin renderizar y con un TypeError que el
+ * catch silenciaba. Mientras dura la petición los checkboxes quedan
+ * deshabilitados para que nada se sobrescriba bajo los dedos del usuario.
+ *
+ * @param {Object} [data]      Rol de la fila editada.
+ * @param {number} [data.id]   Id del rol.
+ * @param {string} [data.name] Nombre del rol.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
+async function mostrarRegistro(data = {}) {
     if (actualizar.value == true) {
         tituloModal.value = "Actualizar el registro: " + data.name;
         id.value = data.id;
         registro.value.name = data.name;
+        errores.value = "";
+        erroresRpermisosElegidos.value = "";
 
-        axios
-            .get("/api/seguridad-roles/" + id.value)
-            .then((res) => {
-                registro.value.permisosRol = [];
-                const permisosDelRol = Object.keys(res.data.data.permisosRol);
+        loadingCargarPermisos.value = true;
+        sidebarOpen.value = true;
 
-                permisos.value.forEach(function (permiso, index) {
-                    registro.value.permisosRol[index].checked = false;
-                });
+        try {
+            const res = await axios.get("/api/seguridad-roles/" + id.value);
+            const permisosDelRol = Object.keys(res?.data?.data?.permisosRol ?? {});
 
-                permisosDelRol.forEach(function (permisoDelRol) {
-                    let permisoActivo = permisos.value.findIndex((x) => x.id == permisoDelRol);
-                    registro.value.permisosRol[permisoActivo].checked = true;
-                });
-            })
-            .catch((_error) => {
-                if (_error?.response?.status === 401) {
-                    window.location.href = "/login";
+            registro.value.permisosRol.forEach((permiso) => {
+                permiso.checked = false;
+            });
+
+            permisosDelRol.forEach((permisoDelRol) => {
+                const indice = registro.value.permisosRol.findIndex(
+                    (permiso) => String(permiso.id) === String(permisoDelRol)
+                );
+
+                if (indice !== -1) {
+                    registro.value.permisosRol[indice].checked = true;
                 }
             });
-    } else {
-        actualizar.value = false;
-        tituloModal.value = "Nuevo registro";
-        id.value = 0;
-        registro.value.name = "";
-        registro.value.permisosRol = [];
-        listarPermisosRol();
+
+            abrirGrupos({ soloConSeleccion: true });
+        } catch (_error) {
+            if (_error?.response?.status === 401) {
+                window.location.href = "/login";
+
+                return;
+            }
+
+            toastMessage({
+                heading: "No fue posible cargar los permisos del rol.",
+                text: _error?.response?.data?.message || "Intente nuevamente.",
+                icon: "error",
+            });
+        } finally {
+            loadingCargarPermisos.value = false;
+        }
+
+        return;
     }
 
-    btnCerrarModalForm();
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    id.value = 0;
+    registro.value.name = "";
+    errores.value = "";
+    erroresRpermisosElegidos.value = "";
+    registro.value.permisosRol = [];
+    listarPermisosRol();
+    abrirGrupos();
+    sidebarOpen.value = true;
 }
+/**
+ * Activa o desactiva un rol previa confirmación del usuario.
+ *
+ * @param {number} estado       Estado destino: 0 activo, 1 inactivo.
+ * @param {Object} [data]       Rol afectado.
+ * @param {number} [data.id]    Id del rol.
+ * @param {string} [data.name]  Nombre del rol.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 async function cambiarEstado(estado, data = {}) {
     const ok = await confirmAction({
         title: "Confirmación",
@@ -522,6 +732,20 @@ async function cambiarEstado(estado, data = {}) {
         toastMessage({ heading: msg, icon: "error" });
     }
 }
+/**
+ * Elimina un rol previa confirmación. El backend impide el borrado si el rol
+ * todavía está asignado a algún usuario.
+ *
+ * @param {Object} [data]       Rol a eliminar.
+ * @param {number} [data.id]    Id del rol.
+ * @param {string} [data.name]  Nombre del rol.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 async function eliminarRol(data = {}) {
     const ok = await confirmAction({
         title: "Confirmación",
@@ -538,18 +762,42 @@ async function eliminarRol(data = {}) {
         toastMessage({ heading: msg, icon: "error" });
     }
 }
+/**
+ * Abre o cierra el panel lateral. Se usa únicamente para cerrar (botón X y
+ * Cancelar); para abrir se asigna `sidebarOpen` directamente, de modo que
+ * pulsar editar dos veces no llegue a cerrar el panel.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function btnCerrarModalForm() {
     sidebarOpen.value = !sidebarOpen.value;
 }
+
+/**
+ * Deja el formulario en blanco tras guardar o cancelar. Desmarca los permisos
+ * recorriendo el arreglo, sin indexar por posición (un índice fuera de rango
+ * lanzaba un TypeError y terminaba mostrando un toast de error falso).
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function limpiarFormulario() {
     actualizar.value = false;
     tituloModal.value = "Nuevo registro";
     id.value = 0;
     registro.value.name = "";
     errores.value = "";
+    erroresRpermisosElegidos.value = "";
 
-    permisos.value.forEach(function (permiso, index) {
-        registro.value.permisosRol[index].checked = false;
+    registro.value.permisosRol.forEach((permiso) => {
+        permiso.checked = false;
     });
 }
 
