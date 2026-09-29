@@ -251,15 +251,7 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
-                                                @click="
-                                                    verImagen(
-                                                        sessionStorage.getItem('ST-urlsede'),
-                                                        item.pat_id,
-                                                        item.study_iuid,
-                                                        sessionStorage.getItem('ST-servername'),
-                                                        item.estudio_producto_id
-                                                    )
-                                                "
+                                                @click="verImagenItem(item)"
                                                 title="Ver imagenes"
                                                 aria-label="Ver imagenes"
                                                 :disabled="
@@ -983,6 +975,30 @@ const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
 
 const { loadingVerImagen, verImagen } = useEstudioHelpers();
+
+/**
+ * Abre el visor de imágenes del estudio. Lee sessionStorage en scope de
+ * script porque el template de Vue 3 no puede acceder a globales del
+ * navegador (compila a _ctx.sessionStorage = undefined).
+ */
+function verImagenItem(item) {
+    const url = sessionStorage.getItem("ST-urlsede");
+    if (!url) {
+        toastMessage({
+            heading: "Upsss!!!",
+            text: "No hay visor de imágenes configurado para la sede actual.",
+            icon: "warning",
+        });
+        return;
+    }
+    verImagen(
+        url,
+        item.pat_id,
+        item.study_iuid,
+        sessionStorage.getItem("ST-servername"),
+        item.estudio_producto_id
+    );
+}
 
 const props = defineProps({
     usuarioactual: Object,

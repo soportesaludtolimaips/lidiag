@@ -334,6 +334,92 @@ export function useDictationFlow() {
         return text;
     }
 
+    // Búfer entre fragmentos: Chrome finaliza el dictado en trozos y un comando
+    // de varias palabras ("punto aparte", "dos puntos") casi nunca llega junto
+    // en el mismo trozo. Se retienen las últimas palabras si pueden ser el
+    // inicio de un comando multi-palabra y se evalúan con el trozo siguiente.
+    const MAX_COMANDO_PALABRAS = 4;
+    let palabrasPendientes = [];
+    let prefijosComando = null;
+
+    function normalizarParaComando(texto) {
+        return stripDiacritics(String(texto || "")).toLowerCase();
+    }
+
+    function construirPrefijosComando() {
+        if (prefijosComando) return prefijosComando;
+        prepareVoiceCommands();
+        const mapas = [uppercaseCommands, lineBreakCommands, punctuationCommands, formatCommands];
+        const set = new Set();
+        mapas.forEach((mapa) => {
+            Object.keys(mapa || {}).forEach((clave) => {
+                const partes = normalizarParaComando(clave).split(/\s+/).filter(Boolean);
+                if (partes.length < 2) return;
+                for (let i = 1; i < partes.length; i++) {
+                    set.add(partes.slice(0, i).join(" "));
+                }
+            });
+        });
+        prefijosComando = set;
+        return set;
+    }
+
+    function contarRetencion(palabras) {
+        const prefijos = construirPrefijosComando();
+        const max = Math.min(MAX_COMANDO_PALABRAS, palabras.length);
+        for (let n = max; n >= 1; n--) {
+            const cola = palabras
+                .slice(palabras.length - n)
+                .map(normalizarParaComando)
+                .join(" ");
+            if (prefijos.has(cola)) return n;
+        }
+        return 0;
+    }
+
+    // Chrome es-ES a veces devuelve dígitos ("2 puntos") que jamás igualan la
+    // clave ("dos puntos"). Solo se normaliza junto a palabras de comando.
+    function normalizarDigitosComando(texto) {
+        const mapa = { 1: "un", 2: "dos" };
+        return String(texto || "").replace(
+            /\b(\d{1,2})\s+(puntos?|espacios?)\b/gi,
+            (m, n, resto) => {
+                const palabra = mapa[parseInt(n, 10)];
+                return palabra ? `${palabra} ${resto}` : m;
+            }
+        );
+    }
+
+    function emitirTextoFinal(texto) {
+        const limpio = String(texto || "");
+        if (!limpio.length) return;
+        const sufijo = /[ \n]$/.test(limpio) ? "" : " ";
+        if (typeof _onText === "function") _onText(limpio + sufijo);
+        speechInterim.value = "";
+    }
+
+    function manejarTextoFinal(raw) {
+        const trozo = String(raw || "").trim();
+        const palabras = [...palabrasPendientes, ...trozo.split(/\s+/).filter(Boolean)];
+        palabrasPendientes = [];
+        if (!palabras.length) return;
+        console.debug("[Voice] final raw:", JSON.stringify(palabras.join(" ")));
+        const retener = contarRetencion(palabras);
+        const cabeza = palabras.slice(0, palabras.length - retener);
+        palabrasPendientes = palabras.slice(palabras.length - retener);
+        if (!cabeza.length) return;
+        const procesado = processCommands(normalizarDigitosComando(cabeza.join(" ")));
+        console.debug("[Voice] final procesado:", JSON.stringify(procesado));
+        emitirTextoFinal(procesado);
+    }
+
+    function vaciarPendientesComando() {
+        if (!palabrasPendientes.length) return;
+        const texto = processCommands(normalizarDigitosComando(palabrasPendientes.join(" ")));
+        palabrasPendientes = [];
+        emitirTextoFinal(texto);
+    }
+
     function clearRecognitionRestartTimer() {
         if (recognitionRestartTimer.value) {
             try {
@@ -602,6 +688,9 @@ export function useDictationFlow() {
 
     async function stopAll() {
         try {
+            // Vaciar primero: lo retenido del búfer entre fragmentos debe
+            // quedar en el editor antes de desmontar la sesión.
+            vaciarPendientesComando();
             document.removeEventListener("visibilitychange", handleVisibilityChange);
             clearRecognitionRestartTimer();
             noSpeechCount.value = 0;
@@ -664,6 +753,8 @@ export function useDictationFlow() {
     function startRecording() {
         if (startingRecording.value || recording.value) return;
         startingRecording.value = true;
+        // Sesión nueva: sin arrastre de palabras de una sesión anterior.
+        palabrasPendientes = [];
         ensureMicApiAvailable().then((ok) => {
             if (!ok) {
                 startingRecording.value = false;
@@ -686,14 +777,7 @@ export function useDictationFlow() {
                     grammarCommands,
                     maxNoSpeechRetries: maxNoSpeechRetries.value || 6,
                     onFinalText: (raw) => {
-                        let text = String(raw || "").trim();
-                        if (!text) return;
-                        text = processCommands(text);
-                        if (text && String(text).length) {
-                            const suffix = /[ \n]$/.test(text) ? "" : " ";
-                            if (typeof _onText === "function") _onText(text + suffix);
-                            speechInterim.value = "";
-                        }
+                        manejarTextoFinal(raw);
                     },
                     onInterimText: (raw) => {
                         speechInterim.value = String(raw || "").trim();
