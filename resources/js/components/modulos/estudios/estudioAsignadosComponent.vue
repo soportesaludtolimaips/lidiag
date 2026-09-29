@@ -750,8 +750,14 @@ import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 
 const props = defineProps({ usuarioactual: Object });
 
-const { loadingDescarga, loadingVerImagen, audiosDeEstudio, descargaSoporte, listarAudios } =
-    useEstudioHelpers();
+const {
+    loadingDescarga,
+    loadingVerImagen,
+    audiosDeEstudio,
+    descargaSoporte,
+    listarAudios,
+    verImagen,
+} = useEstudioHelpers();
 
 const dt = ref(null);
 const primerInput = ref(null);

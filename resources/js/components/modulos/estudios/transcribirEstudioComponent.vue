@@ -737,6 +737,7 @@ const {
     formatDate,
     descargaSoporte,
     listarAudios,
+    verImagen,
 } = useEstudioHelpers();
 
 const dt = ref(null);
