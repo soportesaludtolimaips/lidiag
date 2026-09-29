@@ -1245,7 +1245,10 @@ import axios from "axios";
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
 
-const props = defineProps({ usuarioactual: Object, permisos: { type: Array, default: () => [] } });
+const props = defineProps({
+    usuarioactual: { type: Object, default: null },
+    permisos: { type: Array, default: () => [] },
+});
 
 const dictationFlow = useDictationFlow();
 const {
@@ -1256,7 +1259,6 @@ const {
     toggleSpeechRecognition,
     stopAll,
     stopRecording,
-    sendToBackend,
     clearAudioBuffer,
     setCallbacks,
     setupKeyboardShortcut,
@@ -1269,10 +1271,8 @@ const {
     modoTranscripcion,
     transcribiendo,
     insertandoAudios,
-    progresoTranscripcion,
     eliminandoAudioId,
     audiosSubiendo,
-    limpiarAudiosCargados,
     obtenerAudioUrl,
     previewTranscripcion,
     badgeClaseEstado,
@@ -1324,8 +1324,6 @@ const registro = ref({
 const errores = ref({});
 const idRow = ref(null);
 const sede_id = ref(null);
-// ID del médico cuyos pendientes se listan (selector global o usuario autenticado)
-const medicoActual = ref(null);
 const loadingListar = ref(false);
 const tablaVisible = ref(true);
 const autoRefreshEnabled = ref(false);
@@ -1346,6 +1344,7 @@ const contadorPendientes = computed(() => {
  * correspondiente y se muestra en la interfaz. Si no hay un accession válido, simplemente se listan los estudios pendientes.
  * @returns {void}
  * @author: Jhon Javer Lozano Arce
+ * @date 2026-09-29
  */
 function applyDashboardPrefill() {
     try {
@@ -1363,7 +1362,7 @@ function applyDashboardPrefill() {
             });
             return;
         }
-    } catch (e) {
+    } catch (_error) {
         toastMessage({
             heading: "Error",
             text: "No fue posible cargar el prellenado del dashboard.",
@@ -1372,14 +1371,12 @@ function applyDashboardPrefill() {
     }
     listarMisPendientes();
 }
-function normalizeWord(text) {
-    return String(text || "");
-}
 
 /**
  * Inicializa la tabla de datos con las configuraciones necesarias, incluyendo botones de exportación y opciones de idioma.
  * @returns {void}
  * @author: Jhon Javer Lozano Arce
+ * @date 2026-09-29
  */
 function initDataTable() {
     safeInitDataTable(dt.value || "#example23", {
@@ -1448,11 +1445,17 @@ function eliminarAudioCargado(audioId) {
 }
 
 /**
- * Lista los estudios pendientes del médico actual (medicoActual, con respaldo en el usuario
- * autenticado) según la sede seleccionada y actualiza la tabla de datos con los resultados obtenidos.
- * Si no hay sede establecida en sessionStorage, muestra una advertencia y no realiza la consulta.
+ * Lista los estudios pendientes del médico autenticado en la sede seleccionada
+ * y actualiza la tabla de datos con los resultados obtenidos. Los pendientes son
+ * siempre del usuario en sesión, por lo que el selector global de médicos no
+ * interviene. Si no hay sede establecida en sessionStorage, muestra una
+ * advertencia y no realiza la consulta.
+ *
  * @returns {Promise<void>}
- * @author: Jhon Javer Lozano Arce
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
  */
 async function listarMisPendientes() {
     if (sessionStorage.getItem("ST-sede") == null) {
@@ -1670,7 +1673,7 @@ async function listar_historial_estudios(num_docu) {
                 });
             });
         }
-    } catch (error) {
+    } catch (_error) {
         toastMessage({
             heading: "Error",
             text: "No fue posible cargar el historial de estudios.",
@@ -1830,26 +1833,6 @@ function onSedeSeleccionada(data) {
     listarMisPendientes();
 }
 
-/**
- * Maneja el evento "medicoSeleccionado" emitido por el selector global de médicos: actualiza
- * medicoActual, destruye la tabla y vuelve a listar los pendientes del médico elegido.
- *
- * @param {Object} data - Payload del evento, contiene data.idMedico y data.nomMedico.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-09-25
- */
-function onMedicoSeleccionado(data) {
-    if (data && data.idMedico) {
-        medicoActual.value = data.idMedico;
-        destroyDataTable();
-        listarMisPendientes();
-    }
-}
-
 let cleanupKeyboardShortcut = null;
 
 onMounted(() => {
@@ -1862,14 +1845,13 @@ onMounted(() => {
             if (registro.value) registro.value.lectura += text;
         },
         showToast: (cfg) => toastMessage(cfg),
-        onState: (state) => {},
+        onState: () => {},
         onAudioSaved: () => {
             listarAudios(registro.value.estudio_producto_id);
         },
     });
 
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
-    emitter.on("medicoSeleccionado", onMedicoSeleccionado);
 
     cleanupKeyboardShortcut = setupKeyboardShortcut();
 });
@@ -1878,7 +1860,6 @@ onBeforeUnmount(() => {
     stopAll();
     cleanupKeyboardShortcut?.();
     emitter.off("sedeSeleccionada", onSedeSeleccionada);
-    emitter.off("medicoSeleccionado", onMedicoSeleccionado);
     if (autoRefreshTimer.value) {
         clearInterval(autoRefreshTimer.value);
         autoRefreshTimer.value = null;
