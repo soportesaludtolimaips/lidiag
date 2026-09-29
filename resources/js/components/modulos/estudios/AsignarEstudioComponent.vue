@@ -551,6 +551,7 @@
                                                     <span class="text-danger">*</span></label
                                                 >
                                                 <Select2
+                                                    ref="selMedico"
                                                     :value="registro.medico_id"
                                                     :options="medicoOptions"
                                                     width="100%"
@@ -646,6 +647,7 @@
                                             id="productos-parent"
                                         >
                                             <Select2
+                                                ref="selProducto"
                                                 :value="productoSelecciondo"
                                                 :options="productoOptions"
                                                 width="100%"
@@ -728,6 +730,7 @@
                                             id="diagnosticos-parent"
                                         >
                                             <Select2
+                                                ref="selDiagnostico"
                                                 :value="diagnosticoSelecciondo"
                                                 :options="diagnosticoOptions"
                                                 width="100%"
@@ -1042,6 +1045,9 @@ const loadingGuardar = ref(false);
 const loadingAbrirRegistroIndex = ref(null);
 const progresoUpload = ref(null);
 const primerInput = ref(null);
+const selMedico = ref(null);
+const selProducto = ref(null);
+const selDiagnostico = ref(null);
 const estudioParaQuemar = ref(null);
 const estudioParaDescargar = ref(null);
 const quemadorModalVisible = ref(false);
@@ -1099,6 +1105,7 @@ function alternarSeleccion(item) {
         });
     }
 }
+
 const diagnosticoOptions = computed(() => {
     // Adaptar opciones al Select2 local: usa optionValue='id' y labelFields.
     return (diagnosticos.value || []).map((d) => ({
@@ -1106,6 +1113,7 @@ const diagnosticoOptions = computed(() => {
         nom_diagnos: d.nom_diagnos,
     }));
 });
+
 const productoOptions = computed(() => {
     // Opciones para el Select2 local de productos.
     return (productos.value || []).map((p) => ({
@@ -1114,6 +1122,7 @@ const productoOptions = computed(() => {
         nom_produc: p.nom_produc,
     }));
 });
+
 const medicoOptions = computed(() => {
     // Opciones para el Select2 local de medicos.
     return (medicos.value || []).map((p) => ({ id: String(p.id), name: p.name }));
@@ -1269,8 +1278,7 @@ async function guardarRegistro() {
             }
         }
 
-        btnCerrarModalForm();
-        btnLimpiar();
+        cerrarModal();
     } catch (error) {
         errores.value =
             error?.response?.data?.errors && typeof error.response.data.errors === "object"
@@ -1454,18 +1462,21 @@ function establecerSede() {
     cargarDatosSede();
     registros.value = [];
 }
-function btnCerrarModalForm() {
-    sidebarVisible.value = false;
-}
 function abrirModal() {
     sidebarVisible.value = true;
     nextTick(() => {
         primerInput.value?.focus();
+        // El panel nace oculto (display:none): Select2 se niega a inicializar
+        // dentro de contenedores ocultos, así que se reconstruye al abrir.
+        selMedico.value?.rebuild();
+        selProducto.value?.rebuild();
+        selDiagnostico.value?.rebuild();
     });
 }
 function nuevoRegistro() {
     actualizar.value = false;
     limpiarFormulario();
+    establecerMedico();
     tituloModal.value = "Nuevo registro de estudio";
     abrirModal();
 }
@@ -1491,6 +1502,10 @@ function limpiarFormulario() {
     registro.value.diagnosticosEstudio.splice(0, registro.value.diagnosticosEstudio.length);
     registro.value.productosEstudio.splice(0, registro.value.productosEstudio.length);
 
+    registro.value.medico_id = "";
+    registro.value.prioridad_id = "";
+    registro.value.atencion_id = null;
+    interfaceAtenciones.value = [];
     interfaceAtencionSeleccionada.value = null;
 
     productoSelecciondo.value = "";

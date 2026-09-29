@@ -9,6 +9,8 @@ use App\Http\Requests\Seguridad\UpdateUserRequest;
 use App\Services\Seguridad\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
@@ -40,8 +42,12 @@ class UserController extends Controller
 
     public function store(StoreUserRequest $request): JsonResponse
     {
+        $data = $request->decoded();
+
+        $this->validarPasswordUsuario($data, requerida: true);
+
         $result = $this->userService->create(
-            $request->decoded(),
+            $data,
             $request->file('firma'),
             $request->file('avatar'),
         );
@@ -51,14 +57,45 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request): JsonResponse
     {
+        $data = $request->decoded();
+
+        $this->validarPasswordUsuario($data, requerida: false);
+
         $result = $this->userService->update(
             $request->targetId(),
-            $request->decoded(),
+            $data,
             $request->file('firma'),
             $request->file('avatar'),
         );
 
         return response()->json($result, $result['status']);
+    }
+
+    /**
+     * Valida la política de contraseñas de los datos decodificados del modal
+     * de usuarios (crear/editar): longitud 8+, mayúscula, minúscula, número,
+     * símbolo y confirmación coincidente.
+     *
+     * @param  array  $data  datos decodificados del campo `registro`
+     * @param  bool  $requerida  true al crear, false al editar (opcional)
+     *
+     * @throws ValidationException
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-09-29
+     */
+    private function validarPasswordUsuario(array $data, bool $requerida): void
+    {
+        Validator::make($data, [
+            'password' => [$requerida ? 'required' : 'nullable', 'string', PasswordRules::nueva()],
+            'confirmarPassword' => [$requerida ? 'required' : 'required_with:password', 'string', 'same:password'],
+        ], PasswordRules::mensajes() + [
+            'password.required' => 'La contraseña es obligatoria.',
+            'confirmarPassword.required' => 'Debe confirmar la contraseña.',
+            'confirmarPassword.required_with' => 'Debe confirmar la contraseña.',
+            'confirmarPassword.same' => 'La confirmación de la contraseña no coincide.',
+        ])->validate();
     }
 
     public function destroy(int $id): JsonResponse

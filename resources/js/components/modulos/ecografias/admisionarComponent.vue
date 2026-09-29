@@ -392,6 +392,7 @@
                                             <div class="form-group">
                                                 <label>Tipo de documento</label>
                                                 <Select2
+                                                    ref="selTipoDoc"
                                                     :value="registro.tipo_documento_id"
                                                     :options="tipoDocumentoOptions"
                                                     width="100%"
@@ -576,6 +577,7 @@
                                             <div class="form-group">
                                                 <label>Médico</label>
                                                 <Select2
+                                                    ref="selMedico"
                                                     :value="registro.medico_id"
                                                     :options="medicoOptions"
                                                     width="100%"
@@ -593,6 +595,7 @@
                                             <div class="form-group">
                                                 <label>Producto</label>
                                                 <Select2
+                                                    ref="selProducto"
                                                     :value="productoSelecciondo"
                                                     :options="productoOptions"
                                                     width="100%"
@@ -976,6 +979,9 @@ const acompanante = ref({ cedula: "", nombres: "", email: "", direccion: "", tel
 const isGenerandoLinkFirma = ref(false);
 const consentimientoUrl = ref("");
 const sidebarVisible = ref(false);
+const selTipoDoc = ref(null);
+const selMedico = ref(null);
+const selProducto = ref(null);
 
 /**
  * Opciones derivadas de médicos para el componente Select2 local.
@@ -1578,6 +1584,15 @@ function onProductoSelect(value) {
  */
 function btnCerrarModalForm() {
     sidebarVisible.value = !sidebarVisible.value;
+    if (sidebarVisible.value) {
+        // El panel nace oculto (display:none): Select2 se niega a inicializar
+        // dentro de contenedores ocultos, así que se reconstruye al abrir.
+        nextTick(() => {
+            selTipoDoc.value?.rebuild();
+            selMedico.value?.rebuild();
+            selProducto.value?.rebuild();
+        });
+    }
 }
 /**
  * Carga los datos de la atención seleccionada en el formulario de admisión.

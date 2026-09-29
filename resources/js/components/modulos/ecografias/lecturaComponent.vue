@@ -344,6 +344,7 @@
                                 <div class="form-group">
                                     <label>Tipos de plantillas</label>
                                     <Select2
+                                        ref="selTipoPlantilla"
                                         :value="registro.tipo_plantilla_id"
                                         :options="tiposPlantillasOptions"
                                         width="100%"
@@ -358,6 +359,7 @@
                                 <div class="form-group">
                                     <label>Plantilla</label>
                                     <Select2
+                                        ref="selPlantilla"
                                         :value="registro.plantilla_id"
                                         width="100%"
                                         :allow-clear="true"
@@ -695,6 +697,8 @@ const bloqueoLectura = ref(false);
 const pendientesDiaAnterior = ref([]);
 const isFirmandoConsentimiento = ref({});
 const sidebarVisible = ref(false);
+const selTipoPlantilla = ref(null);
+const selPlantilla = ref(null);
 const modalPendientesConsentimientosVisible = ref(false);
 const modalReporteVisible = ref(false);
 
@@ -1873,6 +1877,14 @@ function onPlantillaSelect(value) {
  */
 function btnCerrarModalForm() {
     sidebarVisible.value = !sidebarVisible.value;
+    if (sidebarVisible.value) {
+        // El panel nace oculto (display:none): Select2 se niega a inicializar
+        // dentro de contenedores ocultos, así que se reconstruye al abrir.
+        nextTick(() => {
+            selTipoPlantilla.value?.rebuild();
+            selPlantilla.value?.rebuild();
+        });
+    }
     // al cerrar, detenemos polling para evitar fugas
     stopSahiPolling();
 }

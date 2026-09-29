@@ -815,11 +815,15 @@ async function guardarRegistro() {
             btnCerrarModalForm();
         }
     } catch (_error) {
-        toastMessage({
-            heading: "Error",
-            text: _error?.response?.data?.message || "No se pudo guardar el usuario.",
-            icon: "error",
-        });
+        errores.value = _error?.response?.data?.errors || {};
+
+        if (_error?.response?.status !== 422) {
+            toastMessage({
+                heading: "Error",
+                text: _error?.response?.data?.message || "No se pudo guardar el usuario.",
+                icon: "error",
+            });
+        }
     } finally {
         loadingGuardar.value = false;
     }
@@ -925,6 +929,10 @@ function obtenerAvatar(event) {
     avatar.value = event.target.files[0];
 }
 function mostrarRegistro(data = {}) {
+    errores.value = {};
+    registro.value.password = "";
+    registro.value.confirmarPassword = "";
+
     if (actualizar.value) {
         tituloModal.value = "Actualizar el registro: " + data.name;
         id.value = data.id;
@@ -1028,7 +1036,9 @@ function limpiarFormulario() {
     registro.value.name = "";
     registro.value.email = "";
     registro.value.password = "";
+    registro.value.confirmarPassword = "";
     registro.value.estado = false;
+    errores.value = {};
 }
 
 onMounted(() => {

@@ -1342,7 +1342,8 @@ const contadorPendientes = computed(() => {
 });
 
 /**
- * Aplica un prellenado del dashboard si existe un accession almacenado en sessionStorage. Si se encuentra un accession válido, se busca el estudio correspondiente y se muestra en la interfaz. Si no hay un accession válido, simplemente se listan los estudios pendientes.
+ * Aplica un prellenado del dashboard si existe un accession almacenado en sessionStorage. Si se encuentra un accession válido, se busca el estudio
+ * correspondiente y se muestra en la interfaz. Si no hay un accession válido, simplemente se listan los estudios pendientes.
  * @returns {void}
  * @author: Jhon Javer Lozano Arce
  */
@@ -1468,9 +1469,10 @@ async function listarMisPendientes() {
 
         try {
             const res = await axios.post("/api/estudio-listarPendientesMedico", {
-                id: medicoActual.value || props.usuarioactual?.id,
+                id: props.usuarioactual?.id,
                 sede_id: sede_id.value,
             });
+
             registros.value = res.data.data;
 
             nextTick(() => {
@@ -1759,24 +1761,6 @@ function establecerSede() {
     registros.value = [];
 }
 
-/**
- * Establece el médico cuyos pendientes se listarán. Prioriza el médico seleccionado en
- * sessionStorage (ST-medico) o localStorage (ST-ecografia-medico) y, en su defecto,
- * usa el usuario autenticado (props.usuarioactual).
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-09-25
- */
-function establecerMedico() {
-    medicoActual.value =
-        sessionStorage.getItem("ST-medico") ||
-        localStorage.getItem("ST-ecografia-medico") ||
-        props.usuarioactual?.id ||
-        null;
-}
 function limpiar() {
     tituloModal.value = "";
     id.value = 0;
@@ -1871,7 +1855,6 @@ let cleanupKeyboardShortcut = null;
 onMounted(() => {
     establecerSede();
     sede_id.value = sessionStorage.getItem("ST-sede");
-    establecerMedico();
     applyDashboardPrefill();
 
     setCallbacks({
