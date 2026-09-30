@@ -303,6 +303,7 @@
                                     <th>Producto</th>
                                     <th>Val Consulta</th>
                                     <th>Val Urgencias</th>
+                                    <th>Fecha Ingreso</th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -330,6 +331,13 @@
                                         />
                                     </td>
                                     <td>
+                                        <input
+                                            type="date"
+                                            v-model="item.fecha_ingreso"
+                                            class="form-control"
+                                        />
+                                    </td>
+                                    <td>
                                         <button
                                             type="button"
                                             class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
@@ -341,7 +349,7 @@
                                     </td>
                                 </tr>
                                 <tr v-if="!detallesLocales.length">
-                                    <td colspan="6" class="text-center text-muted">
+                                    <td colspan="7" class="text-center text-muted">
                                         No hay m&eacute;dicos-producto agregados. Use el
                                         bot&oacute;n "Importar m&eacute;dicos" o el bot&oacute;n de
                                         importaci&oacute;n del listado.
@@ -694,7 +702,7 @@ const loadingGuardarDetalle = ref(false);
  * Opciones formateadas para Select2 de médicos.
  * Convierte IDs a String para compatibilidad con Select2.
  *
- * @returns {Array<{id: string, name: string, reg_med: string}>}
+ * @returns {Array<{id: string, name: string}>}
  *
  * @author Jhon Javer Lozano Arce
  * @date 2026-08-20
@@ -702,8 +710,7 @@ const loadingGuardarDetalle = ref(false);
 const medicoOptions = computed(() =>
     medicos.value.map((m) => ({
         id: String(m.id),
-        name: m.name,
-        reg_med: m.reg_med || "",
+        name: m.reg_med ? `${m.reg_med} - ${m.name}` : m.name,
     }))
 );
 
@@ -979,7 +986,7 @@ async function abrirDetalle(contrato) {
  * estructura plana que usa la tabla local del sidebar de detalle.
  *
  * @param {Array} medicosContrato - Registros con medico y contratoProducto.producto incluidos
- * @returns {Array<{id: number, medico_id: number, medico_name: string, producto_id: number|null, cod_cups: string, nom_produc: string, valor_consulta: number, valor_urgencias: number}>}
+ * @returns {Array<{id: number, medico_id: number, medico_name: string, producto_id: number|null, cod_cups: string, nom_produc: string, valor_consulta: number, valor_urgencias: number, fecha_ingreso: string}>}
  *
  * @author Jhon Javer Lozano Arce
  * @date 2026-08-20
@@ -994,6 +1001,7 @@ function mapearMedicosDetalle(medicosContrato) {
         nom_produc: m.contratoProducto?.producto?.nom_produc || "",
         valor_consulta: m.valor_consulta ?? 0,
         valor_urgencias: m.valor_urgencias ?? 0,
+        fecha_ingreso: m.fecha_ingreso || "",
     }));
 }
 
@@ -1025,14 +1033,17 @@ function quitarProductoDetalle(index) {
 }
 
 /**
- * Guarda todos los médicos-producto del contrato (sync completo) hacia el backend.
- * Reemplaza todos los registros existentes por la lista local actual.
- * Después de guardar, recarga el contrato y el listado principal.
+ * Previsualiza y guarda el detalle de médicos-producto del contrato.
+ *
+ * Antes de escribir pide al backend el diff y muestra al usuario cuántos
+ * registros se agregan, cambian o quedan sin aplicar. Las filas que no vienen
+ * en la lista solo se retiran si el usuario lo confirma de forma explícita.
  *
  * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
+ *
+ * @date 2026-09-30
  */
 async function guardarDetalles() {
     if (loadingGuardarDetalle.value) return;
@@ -1044,6 +1055,7 @@ async function guardarDetalles() {
         });
         return;
     }
+
     loadingGuardarDetalle.value = true;
     try {
         const payload = {
@@ -1052,22 +1064,66 @@ async function guardarDetalles() {
                 producto_id: d.producto_id,
                 valor_consulta: d.valor_consulta ?? 0,
                 valor_urgencias: d.valor_urgencias ?? 0,
+                fecha_ingreso: d.fecha_ingreso || null,
             })),
         };
-        await axios.put(`/api/contratos/${contratoSeleccionado.value.id}/medicos`, payload);
+
+        const url = `/api/contratos/${contratoSeleccionado.value.id}/medicos`;
+        const prev = await axios.post(`${url}/preview`, payload);
+        const diff = prev.data.data;
+
+        if (diff.errores?.length) {
+            toastMessage({
+                heading: "Error",
+                text: diff.errores.join(" "),
+                icon: "error",
+            });
+            return;
+        }
+
+        const resumen = `Se agregarán ${diff.altas?.length ?? 0} y se actualizarán ${diff.cambios?.length ?? 0}.`;
+
+        if (diff.ausentes?.length) {
+            const texto =
+                `Hay ${diff.ausentes?.length ?? 0} registro(s) guardados que no están en la lista. ` +
+                `Si los retira, se marcarán como inactivos; ` +
+                `si cancela, quedarán activos con su tarifa anterior, ` +
+                `pero las altas y cambios sí se guardarán. ` +
+                `¿Desea retirarlos? (Sí, continuar = retirarlos; Cancelar = guardar sin retirar)`;
+
+            const retirar = await confirmAction({
+                title: "Registros que no están en la lista",
+                text: resumen + " " + texto,
+                icon: "warning",
+            });
+
+            payload.retirar_faltantes = retirar;
+        } else if (
+            !(await confirmAction({
+                title: "Confirmar cambios",
+                text: resumen + " ¿Desea aplicarlos?",
+                icon: "question",
+            }))
+        ) {
+            return;
+        }
+
+        await axios.put(url, payload);
+
         toastMessage({
             heading: "Ok",
             text: "Médicos-producto guardados correctamente",
             icon: "success",
         });
+
         const res = await axios.get(`/api/contratos/${contratoSeleccionado.value.id}`);
         contratoSeleccionado.value = res.data.data;
         detallesLocales.value = mapearMedicosDetalle(res.data.data.medicos || []);
         await listar();
-    } catch (e) {
+    } catch (_error) {
         const msg =
-            e.response?.data?.message ||
-            Object.values(e.response?.data?.errors || {})
+            _error.response?.data?.message ||
+            Object.values(_error.response?.data?.errors || {})
                 .flat()
                 .join(", ");
         toastMessage({ heading: "Error", text: msg || "Error de validación", icon: "error" });
