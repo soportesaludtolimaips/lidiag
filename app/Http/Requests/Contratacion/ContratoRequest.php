@@ -63,7 +63,7 @@ class ContratoRequest extends FormRequest
     {
         return [
             'registro' => 'required|json',
-            'registro_decoded.sede_id' => 'required|integer|exists:sedes,id',
+            'registro_decoded.sede_id' => 'required|integer|exists:config_sedes,id',
             'registro_decoded.fecha_inicio' => 'required|date',
             'registro_decoded.fecha_fin' => 'required|date|after_or_equal:registro_decoded.fecha_inicio',
             'registro_decoded.observaciones' => 'nullable|string|max:1000',
