@@ -74,6 +74,9 @@ class DatabaseSeeder extends Seeder
         // Contratación
         $this->call(PermisionContratacionSeeder::class);
 
+        // Liquidación de pagos a médicos
+        $this->call(PermisionLiquidacionSeeder::class);
+
         // Nuevos productos de ecografías
         $this->call(ConfigProductosEcografiasSeeder::class);
         $this->call(ConfigProductosEcografias1Seeder::class);
