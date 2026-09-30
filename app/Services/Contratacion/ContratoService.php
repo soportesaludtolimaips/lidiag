@@ -2,6 +2,7 @@
 
 namespace App\Services\Contratacion;
 
+use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\Contratacion\Contrato;
 use App\Models\Contratacion\ContratoMedico;
@@ -522,5 +523,70 @@ class ContratoService extends BaseService
                 'Médicos del contrato actualizados correctamente'
             );
         });
+    }
+
+    /**
+     * Indica qué productos del catálogo exigibles no tienen tarifa en el contrato.
+     *
+     * Flujo del proceso:
+     * 1. Obtiene los contratos_productos del contrato con su producto.
+     * 2. Compara contra el catálogo de productos que requieren lectura y están activos.
+     * 3. Devuelve el total, cuántos están tarifados y el detalle de los que faltan.
+     *
+     * Un producto está tarifado si existe al menos un ContratoMedico activo que
+     * lo referencia: si solo está cargado el producto sin médicos, hay lecturas
+     * que se harían sin pagar.
+     *
+     * @param  int  $contratoId  Contrato a verificar.
+     *
+     * @returns array Contrato, totales y lista de productos faltantes con su código.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-09-30
+     */
+    public function cobertura(int $contratoId): array
+    {
+        $contrato = Contrato::find($contratoId);
+
+        if (! $contrato) {
+            return $this->notFound('Contrato no encontrado');
+        }
+
+        $catalogo = ConfigProducto::where('requi_lectura', 1)
+            ->where('estado', 1)
+            ->orderBy('cod_cups')
+            ->get(['id', 'cod_cups', 'nom_produc']);
+
+        $contratosProducto = ContratoProducto::where('contrato_id', $contratoId)
+            ->pluck('id', 'producto_id')
+            ->toArray();
+
+        $tarifados = ContratoMedico::whereIn('contratos_productos_id', $contratosProducto)
+            ->where('estado', 1)
+            ->distinct()
+            ->pluck('contratos_productos_id')
+            ->toArray();
+
+        $faltantes = [];
+
+        foreach ($catalogo as $producto) {
+            $contratoProductoId = $contratosProducto[$producto->id] ?? null;
+
+            if ($contratoProductoId === null || ! in_array($contratoProductoId, $tarifados, true)) {
+                $faltantes[] = [
+                    'id' => $producto->id,
+                    'cod_cups' => $producto->cod_cups,
+                    'nom_produc' => $producto->nom_produc,
+                ];
+            }
+        }
+
+        return $this->success([
+            'contrato' => $contrato->load('sede:id,cod_sede,nom_sede'),
+            'total' => $catalogo->count(),
+            'tarifados' => $catalogo->count() - count($faltantes),
+            'faltantes' => $faltantes,
+        ]);
     }
 }

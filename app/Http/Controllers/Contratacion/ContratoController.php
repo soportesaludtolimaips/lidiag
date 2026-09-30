@@ -384,4 +384,22 @@ class ContratoController extends Controller
             $nombreArchivo
         );
     }
+
+    /**
+     * Informa qué productos del catálogo exigibles no tienen tarifa cargada.
+     *
+     * @param  int  $id  Identificador del contrato.
+     *
+     * @returns \Illuminate\Http\JsonResponse Totales de cobertura y lista de faltantes.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-09-30
+     */
+    public function cobertura(int $id): JsonResponse
+    {
+        $result = $this->contratoService->cobertura($id);
+
+        return response()->json($result, $result['status']);
+    }
 }

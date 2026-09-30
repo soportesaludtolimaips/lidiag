@@ -19,6 +19,11 @@ Route::middleware(['auth'])->group(function () {
         ->name('api.contratos.estado')
         ->middleware(['permission:contratos.edit']);
 
+    // Cobertura de productos: cuáles del catálogo no tienen tarifa en el contrato
+    Route::get('/contratos/{id}/cobertura', [ContratoController::class, 'cobertura'])
+        ->name('api.contratos.cobertura')
+        ->middleware(['permission:contratos.show']);
+
     // Sincronizar médicos-producto del contrato (delete all + insert)
     Route::put('/contratos/{contratoId}/medicos', [ContratoController::class, 'syncMedicos'])
         ->name('api.contratos.medicos.sync')
