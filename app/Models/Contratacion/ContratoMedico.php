@@ -46,6 +46,8 @@ class ContratoMedico extends Model
         'valor_consulta',
         'valor_urgencias',
         'estado',
+        'fecha_ingreso',
+        'fecha_retiro',
     ];
 
     /**
@@ -58,6 +60,8 @@ class ContratoMedico extends Model
         'valor_consulta' => 'decimal:2',
         'valor_urgencias' => 'decimal:2',
         'estado' => 'boolean',
+        'fecha_ingreso' => 'date:Y-m-d',
+        'fecha_retiro' => 'date:Y-m-d',
     ];
 
     /**
