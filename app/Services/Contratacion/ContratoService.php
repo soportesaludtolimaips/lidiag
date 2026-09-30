@@ -8,7 +8,6 @@ use App\Models\Contratacion\ContratoMedico;
 use App\Models\Contratacion\ContratoProducto;
 use App\Services\BaseService;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Service ContratoService: lógica de negocio del módulo de contratación.
@@ -130,7 +129,7 @@ class ContratoService extends BaseService
      *
      * @date 2026-09-30
      */
-    private function existeSolapamiento(
+    private function buscarSolapamiento(
         int $sedeId,
         string $fechaInicio,
         string $fechaFin,
@@ -171,7 +170,7 @@ class ContratoService extends BaseService
             $inicio = Carbon::parse($data['fecha_inicio'])->format('Y-m-d');
             $fin = Carbon::parse($data['fecha_fin'])->format('Y-m-d');
 
-            $conflicto = $this->existeSolapamiento($data['sede_id'], $inicio, $fin);
+            $conflicto = $this->buscarSolapamiento($data['sede_id'], $inicio, $fin);
 
             if ($conflicto !== null) {
                 $rango = $conflicto->fecha_inicio->format('Y-m-d').' a '.$conflicto->fecha_fin->format('Y-m-d');
@@ -224,7 +223,7 @@ class ContratoService extends BaseService
             $inicio = Carbon::parse($data['fecha_inicio'] ?? $contrato->fecha_inicio)->format('Y-m-d');
             $fin = Carbon::parse($data['fecha_fin'] ?? $contrato->fecha_fin)->format('Y-m-d');
 
-            $conflicto = $this->existeSolapamiento($sedeId, $inicio, $fin, $contrato->id);
+            $conflicto = $this->buscarSolapamiento($sedeId, $inicio, $fin, $contrato->id);
 
             if ($conflicto !== null) {
                 $rango = $conflicto->fecha_inicio->format('Y-m-d').' a '.$conflicto->fecha_fin->format('Y-m-d');
@@ -305,26 +304,166 @@ class ContratoService extends BaseService
     }
 
     /**
-     * Sincroniza los médicos-producto de un contrato: elimina los existentes e inserta los nuevos.
-     * Cada item se recibe con `producto_id`; internamente se resuelve al registro
-     * correspondiente en `contratos_productos` del mismo contrato.
-     * El campo valor_contrato queda en 0 porque la tarifa pactada vive en
-     * contratos_productos; a nivel de médico solo se guardan consulta y urgencias.
-     * Operación atómica dentro de una transacción.
+     * Calcula la diferencia entre el detalle recibido y el detalle guardado.
      *
-     * @param  int  $contratoId  Identificador del contrato cuyos médicos se sincronizan.
-     * @param  array  $data  Datos enviados desde el frontend o la importación.
-     *                       - medicos (array): Lista de vinculaciones médico-producto.
-     *                       - medicos.*.medico_id (int): Identificación del médico (users).
-     *                       - medicos.*.producto_id (int): Identificación del producto (config_productos).
-     *                       - medicos.*.valor_consulta (float): Valor por lectura de consulta externa.
-     *                       - medicos.*.valor_urgencias (float): Valor por lectura de urgencias.
+     * Flujo del proceso:
+     * 1. Traduce cada producto_id a su contratos_productos_id dentro del contrato.
+     * 2. Clasifica cada item recibido como alta, cambio o error.
+     * 3. Detecta los registros existentes que no vienen en el payload: quedan
+     *    en "ausentes" y solo se retiran si se piden explícitamente.
+     * 4. No escribe nada en la base de datos.
      *
-     * @returns array Respuesta con el contrato y médicos actualizados o mensaje de error.
+     * @param  int  $contratoId  Contrato al que pertenece el detalle.
+     * @param  array  $items  Items con medico_id, producto_id, valor_consulta,
+     *                        valor_urgencias y fecha_ingreso opcional.
+     * @param  bool  $retirarFaltantes  Si true, los ausentes se marcan como retiros.
+     *
+     * @returns array Estructura con las claves altas, cambios, retiros, ausentes y errores.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-09-30
+     */
+    public function calcularDiffMedicos(int $contratoId, array $items, bool $retirarFaltantes = false): array
+    {
+        $mapaProductos = ContratoProducto::where('contrato_id', $contratoId)
+            ->pluck('id', 'producto_id');
+
+        $existentes = ContratoMedico::where('contrato_id', $contratoId)
+            ->with(['medico:id,name', 'contratoProducto.producto:id,cod_cups,nom_produc'])
+            ->get()
+            ->keyBy(fn ($m) => $m->medico_id.'-'.($m->contratoProducto->producto_id ?? 0));
+
+        $altas = [];
+        $cambios = [];
+        $errores = [];
+        $vistos = [];
+
+        foreach ($items as $item) {
+            $medicoId = (int) $item['medico_id'];
+            $productoId = (int) $item['producto_id'];
+            $clave = $medicoId.'-'.$productoId;
+
+            if (isset($vistos[$clave])) {
+                $errores[] = "El médico {$medicoId} tiene el producto {$productoId} duplicado en el archivo.";
+
+                continue;
+            }
+
+            $vistos[$clave] = true;
+
+            if (! isset($mapaProductos[$productoId])) {
+                $errores[] = "El producto {$productoId} no está configurado en este contrato.";
+
+                continue;
+            }
+
+            $valores = [
+                'medico_id' => $medicoId,
+                'producto_id' => $productoId,
+                'valor_consulta' => $item['valor_consulta'] ?? 0,
+                'valor_urgencias' => $item['valor_urgencias'] ?? 0,
+                'fecha_ingreso' => $item['fecha_ingreso'] ?? null,
+            ];
+
+            $registro = $existentes->get($clave);
+
+            if (! $registro) {
+                $altas[] = $valores;
+
+                continue;
+            }
+
+            $fechaExistente = $registro->fecha_ingreso?->format('Y-m-d');
+            $fechaNueva = $valores['fecha_ingreso'] ? Carbon::parse($valores['fecha_ingreso'])->format('Y-m-d') : null;
+
+            $cambio = $registro->valor_consulta != $valores['valor_consulta']
+                || $registro->valor_urgencias != $valores['valor_urgencias']
+                || $fechaExistente != $fechaNueva;
+
+            if ($cambio) {
+                $valores['contratos_medicos_id'] = $registro->id;
+                $cambios[] = $valores;
+            }
+        }
+
+        $ausentes = [];
+        $retiros = [];
+
+        foreach ($existentes as $clave => $registro) {
+            if (isset($vistos[$clave])) {
+                continue;
+            }
+
+            $resumen = [
+                'contratos_medicos_id' => $registro->id,
+                'medico_id' => $registro->medico_id,
+                'producto_id' => $registro->contratoProducto->producto_id ?? null,
+                'medico_name' => $registro->medico->name ?? '',
+                'nom_produc' => $registro->contratoProducto->producto->nom_produc ?? '',
+            ];
+
+            $ausentes[] = $resumen;
+
+            if ($retirarFaltantes) {
+                $retiros[] = $resumen;
+            }
+        }
+
+        return compact('altas', 'cambios', 'retiros', 'ausentes', 'errores');
+    }
+
+    /**
+     * Devuelve el diff del detalle de médicos sin aplicarlo, para que el
+     * frontend muestre al usuario exactamente qué va a cambiar antes de confirmar.
+     *
+     * @param  int  $contratoId  Contrato a previsualizar.
+     * @param  array  $items  Items del payload de sincronización.
+     *
+     * @returns array Contrato con relaciones más las claves del diff.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-09-30
+     */
+    public function previewMedicos(int $contratoId, array $items): array
+    {
+        $contrato = Contrato::find($contratoId);
+
+        if (! $contrato) {
+            return $this->notFound('Contrato no encontrado');
+        }
+
+        $diff = $this->calcularDiffMedicos($contratoId, $items);
+
+        return $this->success(array_merge(
+            ['contrato' => $contrato],
+            $diff
+        ));
+    }
+
+    /**
+     * Aplica el diff del detalle de médicos. Nunca borra registros: los items
+     * nuevos se insertan, los existentes con valores distintos se actualizan y
+     * los que no vienen en el payload solo se retiran si el cliente lo pide
+     * explícitamente con retirar_faltantes.
+     *
+     * Flujo del proceso:
+     * 1. Calcula el diff contra el estado guardado.
+     * 2. Si hay errores de validación, devuelve 422 y no escribe nada.
+     * 3. Inserta las altas con fecha_ingreso en null (aplica desde el inicio
+     *    del contrato) salvo que el item traiga una fecha.
+     * 4. Actualiza solo los registros que cambiaron de valor.
+     * 5. Marca como retirados los ausentes cuando retirer_faltantes es true.
+     *
+     * @param  int  $contratoId  Contrato a sincronizar.
+     * @param  array  $data  Payload con medicos y retirar_faltantes opcional.
+     *
+     * @returns array Contrato actualizado con relaciones, o error 422.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-09-30
      */
     public function syncMedicos(int $contratoId, array $data): array
     {
@@ -334,37 +473,43 @@ class ContratoService extends BaseService
             return $this->notFound('Contrato no encontrado');
         }
 
-        return $this->transaction(function () use ($contrato, $data) {
-            $items = $data['medicos'];
+        $items = $data['medicos'];
+        $retirarFaltantes = (bool) ($data['retirar_faltantes'] ?? false);
+        $diff = $this->calcularDiffMedicos($contratoId, $items, $retirarFaltantes);
 
-            // Mapa producto_id => id de contratos_productos para este contrato
+        if (! empty($diff['errores'])) {
+            return $this->error(implode(' ', $diff['errores']), 422);
+        }
+
+        return $this->transaction(function () use ($contrato, $diff) {
             $mapaProductos = ContratoProducto::where('contrato_id', $contrato->id)
                 ->pluck('id', 'producto_id');
 
-            Log::info("Sync médicos contrato {$contrato->id}: eliminando ".
-                ContratoMedico::where('contrato_id', $contrato->id)->count().
-                " registros existentes, insertando ".count($items)." nuevos");
-
-            ContratoMedico::where('contrato_id', $contrato->id)->delete();
-
-            foreach ($items as $item) {
-                $contratoProductoId = $mapaProductos[(int) $item['producto_id']] ?? null;
-
-                if (! $contratoProductoId) {
-                    return $this->error(
-                        422,
-                        "El producto {$item['producto_id']} no está configurado en este contrato"
-                    );
-                }
-
+            foreach ($diff['altas'] as $alta) {
                 ContratoMedico::create([
                     'contrato_id' => $contrato->id,
-                    'medico_id' => $item['medico_id'],
-                    'contratos_productos_id' => $contratoProductoId,
+                    'medico_id' => $alta['medico_id'],
+                    'contratos_productos_id' => $mapaProductos[$alta['producto_id']],
                     'valor_contrato' => 0,
-                    'valor_consulta' => $item['valor_consulta'] ?? 0,
-                    'valor_urgencias' => $item['valor_urgencias'] ?? 0,
+                    'valor_consulta' => $alta['valor_consulta'],
+                    'valor_urgencias' => $alta['valor_urgencias'],
+                    'fecha_ingreso' => $alta['fecha_ingreso'],
                     'estado' => 1,
+                ]);
+            }
+
+            foreach ($diff['cambios'] as $cambio) {
+                ContratoMedico::where('id', $cambio['contratos_medicos_id'])->update([
+                    'valor_consulta' => $cambio['valor_consulta'],
+                    'valor_urgencias' => $cambio['valor_urgencias'],
+                    'fecha_ingreso' => $cambio['fecha_ingreso'],
+                ]);
+            }
+
+            foreach ($diff['retiros'] as $retiro) {
+                ContratoMedico::where('id', $retiro['contratos_medicos_id'])->update([
+                    'estado' => 0,
+                    'fecha_retiro' => now()->toDateString(),
                 ]);
             }
 
@@ -374,7 +519,7 @@ class ContratoService extends BaseService
                     'medicos.medico:id,name,reg_med',
                     'medicos.contratoProducto.producto:id,cod_cups,nom_produc',
                 ]),
-                'Médicos del contrato sincronizados correctamente'
+                'Médicos del contrato actualizados correctamente'
             );
         });
     }
