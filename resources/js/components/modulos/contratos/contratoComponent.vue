@@ -293,6 +293,40 @@
                         </div>
                     </div>
 
+                    <!-- Panel de cobertura de productos -->
+                    <div class="card mb-3" v-if="cobertura">
+                        <div class="card-body py-2">
+                            <h6 class="card-subtitle mb-2">
+                                Cobertura de productos
+                                <span
+                                    class="badge"
+                                    :class="
+                                        cobertura.faltantes.length
+                                            ? 'badge-warning'
+                                            : 'badge-success'
+                                    "
+                                >
+                                    {{ cobertura.tarifados }} / {{ cobertura.total }}
+                                </span>
+                            </h6>
+                            <p v-if="!cobertura.faltantes.length" class="text-success mb-0">
+                                Todos los productos que requieren lectura tienen tarifa.
+                            </p>
+                            <div v-else style="max-height: 160px; overflow-y: auto">
+                                <p class="text-warning mb-1">
+                                    Estos productos se pueden leer sin generar pago:
+                                </p>
+                                <div
+                                    v-for="p in cobertura.faltantes"
+                                    :key="p.id"
+                                    class="small text-muted"
+                                >
+                                    <strong>{{ p.cod_cups }}</strong> - {{ p.nom_produc }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Tabla de médicos-producto -->
                     <div class="col-md-12 table-responsive table-scroll mt-3">
                         <table class="table table-bordered table-striped">
@@ -678,6 +712,19 @@ const sedeNombreActual = computed(() => sedeActual.value?.nom_sede ?? "No dispon
 const contratoSeleccionado = ref(null);
 
 /**
+ * Cobertura de productos del contrato abierto en el detalle.
+ * Estructura: { total, tarifados, faltantes: [{ id, cod_cups, nom_produc }] } o null si no se ha cargado.
+ * @type {import('vue').Ref<Object|null>}
+ */
+const cobertura = ref(null);
+
+/**
+ * Flag de carga al consultar la cobertura de productos del contrato
+ * @type {import('vue').Ref<boolean>}
+ */
+const loadingCobertura = ref(false);
+
+/**
  * Lista local de médicos-producto del contrato en edición.
  * Cada elemento: { id, medico_id, medico_name, producto_id, cod_cups, nom_produc, valor_consulta, valor_urgencias }
  * @type {import('vue').Ref<Array>}
@@ -976,6 +1023,7 @@ async function cargarCatalogos() {
  */
 async function abrirDetalle(contrato) {
     contratoSeleccionado.value = contrato;
+    cargarCobertura(contrato.id);
     detallesLocales.value = mapearMedicosDetalle(contrato.medicos || []);
     await nextTick();
     detalleVisible.value = true;
@@ -1006,6 +1054,29 @@ function mapearMedicosDetalle(medicosContrato) {
 }
 
 /**
+ * Consulta qué productos del catálogo exigibles no tienen tarifa en el contrato.
+ *
+ * @param {number} contratoId - Identificador del contrato abierto en el detalle.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-30
+ */
+async function cargarCobertura(contratoId) {
+    loadingCobertura.value = true;
+    try {
+        const res = await axios.get(`/api/contratos/${contratoId}/cobertura`);
+        cobertura.value = res.data.data;
+    } catch (_error) {
+        cobertura.value = null;
+    } finally {
+        loadingCobertura.value = false;
+    }
+}
+
+/**
  * Cierra el sidebar de detalle y limpia todo el estado relacionado.
  *
  * @returns {void}
@@ -1015,6 +1086,7 @@ function mapearMedicosDetalle(medicosContrato) {
  */
 function cerrarDetalle() {
     contratoSeleccionado.value = null;
+    cobertura.value = null;
     detallesLocales.value = [];
     detalleVisible.value = false;
 }
@@ -1119,6 +1191,7 @@ async function guardarDetalles() {
         const res = await axios.get(`/api/contratos/${contratoSeleccionado.value.id}`);
         contratoSeleccionado.value = res.data.data;
         detallesLocales.value = mapearMedicosDetalle(res.data.data.medicos || []);
+        await cargarCobertura(contratoSeleccionado.value.id);
         await listar();
     } catch (_error) {
         const msg =
