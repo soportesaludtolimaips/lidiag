@@ -7,10 +7,13 @@ use App\Imports\Concerns\ValidaEncabezados;
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Contratacion\ContratoMedico;
 use App\Models\Contratacion\ContratoProducto;
+use Carbon\Carbon;
+use DateTimeInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 /**
  * Import de médicos-producto a un contrato desde Excel.
@@ -33,8 +36,11 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
  * Estructura esperada del Excel:
  * - Fila 1: Título
  * - Fila 2: Sede: ... | Inicio: ... | Contrato ID: N  (celda C2 validada)
- * - Fila 3: Encabezados (Código CUPS | Producto | Valor Consulta | Valor Urgencias)
+ * - Fila 3: Encabezados (Código CUPS | Producto | Valor Consulta | Valor Urgencias | Fecha Ingreso opcional)
  * - Filas 4+: Datos de productos con valores
+ *
+ * La columna Fecha Ingreso es opcional para compatibilidad con plantillas
+ * viejas: si no viene, fecha_ingreso queda en null.
  *
  *
  * @author Jhon Javer Lozano Arce
@@ -107,10 +113,12 @@ class ContratoMedicoImport implements ToCollection, WithHeadingRow
         }
 
         // ── FASE 0: validar encabezados de la fila 3 ───────────────────
+        // Fecha Ingreso es opcional: no se exige para seguir aceptando
+        // plantillas viejas sin esa columna (fecha_ingreso queda en null).
         $this->validarEncabezados(
             $rows->first(),
             ['codigo_cups', 'producto', 'valor_consulta', 'valor_urgencias'],
-            'Código CUPS | Producto | Valor Consulta | Valor Urgencias (encabezados en fila 3, datos desde fila 4)'
+            'Código CUPS | Producto | Valor Consulta | Valor Urgencias | Fecha Ingreso opcional (encabezados en fila 3, datos desde fila 4)'
         );
 
         // ── FASE 0b: validar que existan códigos CUPS legibles ─────────
@@ -151,6 +159,7 @@ class ContratoMedicoImport implements ToCollection, WithHeadingRow
                 'codigo' => $codCups,
                 'valor_consulta' => (float) ($row['valor_consulta'] ?? 0),
                 'valor_urgencias' => (float) ($row['valor_urgencias'] ?? 0),
+                'fecha_ingreso' => $this->parseFechaIngreso($row['fecha_ingreso'] ?? null, $codCups),
             ];
 
             if (! isset($productosCache[$codCups]) && ! isset($faltantes[$codCups])) {
@@ -206,6 +215,7 @@ class ContratoMedicoImport implements ToCollection, WithHeadingRow
                         'valor_contrato' => 0,
                         'valor_consulta' => $item['valor_consulta'],
                         'valor_urgencias' => $item['valor_urgencias'],
+                        'fecha_ingreso' => $item['fecha_ingreso'],
                         'estado' => 1,
                     ]
                 );
@@ -213,5 +223,57 @@ class ContratoMedicoImport implements ToCollection, WithHeadingRow
                 $this->importados++;
             }
         });
+    }
+
+    /**
+     * Normaliza la celda Fecha Ingreso a Y-m-d o null.
+     * Excel entrega fechas como celda vacía, texto o serial numérico:
+     * vacío → null, serial → Y-m-d vía ExcelDate, texto → Y-m-d vía
+     * Carbon::parse (mismo criterio de ContratoService::calcularDiffMedicos).
+     * Valor inválido → excepción dura como el CUPS no configurado en el contrato.
+     *
+     * @param  mixed  $valor  Valor crudo de la columna fecha_ingreso (ausente en plantillas viejas).
+     * @param  string  $codCups  Código CUPS de la fila, para el mensaje de error.
+     * @return string|null Fecha en Y-m-d o null si la celda viene vacía/ausente.
+     *
+     * @throws \Exception Si el valor no es una fecha válida.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-09-30
+     */
+    private function parseFechaIngreso(mixed $valor, string $codCups): ?string
+    {
+        if ($valor === null) {
+            return null;
+        }
+
+        if ($valor instanceof DateTimeInterface) {
+            return Carbon::instance($valor)->format('Y-m-d');
+        }
+
+        if (is_int($valor) || is_float($valor) || (is_string($valor) && is_numeric(trim($valor)))) {
+            try {
+                return ExcelDate::excelToDateTimeObject((float) $valor)->format('Y-m-d');
+            } catch (\Throwable $e) {
+                throw new \Exception(
+                    "Fecha Ingreso inválida '{$valor}' para el CUPS '{$codCups}'. Use formato Y-m-d o una fecha válida de Excel."
+                );
+            }
+        }
+
+        $texto = trim((string) $valor);
+
+        if ($texto === '') {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($texto)->format('Y-m-d');
+        } catch (\Throwable $e) {
+            throw new \Exception(
+                "Fecha Ingreso inválida '{$texto}' para el CUPS '{$codCups}'. Use formato Y-m-d o una fecha válida de Excel."
+            );
+        }
     }
 }

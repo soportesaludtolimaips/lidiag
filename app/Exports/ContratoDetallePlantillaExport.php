@@ -22,7 +22,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  * Genera un Excel con la estructura de Plantilla_Cotrato_Detalle.xlsx:
  * - Fila 1: Título
  * - Fila 2: Sede: {nom_sede} | Inicio: {fecha} | Contrato ID: {id}  (celda C2 con el ID)
- * - Fila 3: Encabezados (Código CUPS | Producto | Valor Consulta | Valor Urgencias)
+ * - Fila 3: Encabezados (Código CUPS | Producto | Valor Consulta | Valor Urgencias | Fecha Ingreso)
  * - Filas 4+: Productos configurados en el contrato, valores vacíos para diligenciar
  *
  * El médico destino se selecciona en el modal al momento de importar.
@@ -80,6 +80,7 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
             'Producto',
             'Valor Consulta',
             'Valor Urgencias',
+            'Fecha Ingreso',
         ];
     }
 
@@ -89,7 +90,7 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
      * para el médico seleccionado.
      *
      * @param  object  $contratoProducto  Registro de contratos_productos con relación producto.
-     * @return array<int, mixed> Fila con [codigo_cups, nombre, '', ''].
+     * @return array<int, mixed> Fila con [codigo_cups, nombre, '', '', ''].
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -100,6 +101,7 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
         return [
             $contratoProducto->producto->cod_cups ?? '',
             $contratoProducto->producto->nom_produc ?? '',
+            '',
             '',
             '',
         ];
@@ -145,7 +147,7 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
 
                 // ── FILA 1: TÍTULO ─────────────────────────────────────
                 $sheet->setCellValue('A1', 'Plantilla Importación de Detalle de Médico - Contrato');
-                $sheet->mergeCells('A1:D1');
+                $sheet->mergeCells('A1:E1');
                 $sheet->getStyle('A1')->applyFromArray([
                     'font' => [
                         'bold' => true,
@@ -172,7 +174,7 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
                 $sheet->setCellValue('B2', "Inicio: {$inicio}");
                 $sheet->setCellValue('C2', "Contrato ID: {$this->contratoId}");
 
-                $sheet->getStyle('A2:D2')->applyFromArray([
+                $sheet->getStyle('A2:E2')->applyFromArray([
                     'font' => [
                         'bold' => true,
                         'size' => 11,
@@ -186,7 +188,7 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
                 // ── BORDES DE DATOS ────────────────────────────────────
                 $highestRow = $sheet->getHighestRow();
                 if ($highestRow > 3) {
-                    $sheet->getStyle('A4:D'.$highestRow)->applyFromArray([
+                    $sheet->getStyle('A4:E'.$highestRow)->applyFromArray([
                         'borders' => [
                             'allBorders' => [
                                 'borderStyle' => Border::BORDER_THIN,
@@ -215,6 +217,7 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
             'B' => 65,
             'C' => 18,
             'D' => 18,
+            'E' => 18,
         ];
     }
 
