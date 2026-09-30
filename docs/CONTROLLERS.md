@@ -278,6 +278,16 @@ Gestión de Usuarios.
 -   **`logout`**: Cierra sesión.
 -   **`showLoginForm`**: Muestra formulario de login.
 
+## Módulo: Contratación
+
+### `ContratoController.php`
+
+Gestiona los contratos por sede: vigencia, productos tarifados y detalle médico-producto.
+
+-   **`cobertura`**: Informa qué productos del catálogo exigibles no tienen tarifa en el contrato.
+-   **`previewMedicos`**: Calcula el diff del detalle de médicos sin aplicarlo.
+-   **`syncMedicos`**: Aplica el diff del detalle; nunca borra registros existentes.
+
 ## Módulo: Raíz (General)
 
 ### `HomeController.php`
