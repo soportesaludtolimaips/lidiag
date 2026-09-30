@@ -248,32 +248,47 @@ class ContratoController extends Controller
     }
 
     /**
-     * Sincroniza los médicos-producto de un contrato: reemplaza todos los registros
-     * existentes por la lista enviada desde el frontend (delete all + insert).
+     * Aplica el diff del detalle de médicos del contrato.
      *
-     * @param  Request  $request  Petición HTTP con los datos validados.
-     *                            - medicos (array): Lista de vinculaciones médico-producto.
-     * @param  int  $contratoId  Identificador del contrato a actualizar.
+     * @param  Request  $request  Payload con medicos y retirar_faltantes opcional.
+     * @param  int  $contratoId  Identificador del contrato.
      *
-     * @returns \Illuminate\Http\JsonResponse Respuesta JSON con el contrato actualizado o error.
+     * @returns \Illuminate\Http\JsonResponse Contrato actualizado o error de validación.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-08-20
+     * @date 2026-09-30
      */
     public function syncMedicos(Request $request, int $contratoId): JsonResponse
     {
-        $validated = $request->validate([
+        $validated = $this->validarDetalleMedicos($request);
+
+        $result = $this->contratoService->syncMedicos($contratoId, $validated);
+
+        return response()->json($result, $result['status']);
+    }
+
+    /**
+     * Reglas de validación del detalle de médicos-producto.
+     *
+     * @param  Request  $request  Petición con la lista medicos.
+     * @return array<string, mixed> Datos ya validados.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-09-30
+     */
+    private function validarDetalleMedicos(Request $request): array
+    {
+        return $request->validate([
             'medicos' => 'required|array',
             'medicos.*.medico_id' => 'required|integer|exists:users,id',
             'medicos.*.producto_id' => 'required|integer|exists:config_productos,id',
             'medicos.*.valor_consulta' => 'required|numeric|min:0',
             'medicos.*.valor_urgencias' => 'required|numeric|min:0',
+            'medicos.*.fecha_ingreso' => 'nullable|date',
+            'retirar_faltantes' => 'sometimes|boolean',
         ]);
-
-        $result = $this->contratoService->syncMedicos($contratoId, $validated);
-
-        return response()->json($result, $result['status']);
     }
 
     /**
@@ -399,6 +414,27 @@ class ContratoController extends Controller
     public function cobertura(int $id): JsonResponse
     {
         $result = $this->contratoService->cobertura($id);
+
+        return response()->json($result, $result['status']);
+    }
+
+    /**
+     * Previsualiza el cambio del detalle de médicos sin aplicarlo.
+     *
+     * @param  Request  $request  Payload con la lista medicos.
+     * @param  int  $contratoId  Identificador del contrato.
+     *
+     * @returns \Illuminate\Http\JsonResponse Contrato más el diff calculado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-09-30
+     */
+    public function previewMedicos(Request $request, int $contratoId): JsonResponse
+    {
+        $validated = $this->validarDetalleMedicos($request);
+
+        $result = $this->contratoService->previewMedicos($contratoId, $validated['medicos']);
 
         return response()->json($result, $result['status']);
     }

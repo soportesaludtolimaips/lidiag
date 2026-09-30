@@ -24,7 +24,12 @@ Route::middleware(['auth'])->group(function () {
         ->name('api.contratos.cobertura')
         ->middleware(['permission:contratos.show']);
 
-    // Sincronizar médicos-producto del contrato (delete all + insert)
+    // Previsualizar el diff del detalle de médicos (no escribe nada)
+    Route::post('/contratos/{contratoId}/medicos/preview', [ContratoController::class, 'previewMedicos'])
+        ->name('api.contratos.medicos.preview')
+        ->middleware(['permission:contratos.detalle.edit']);
+
+    // Sincronizar médicos-producto del contrato (diff, no destructivo)
     Route::put('/contratos/{contratoId}/medicos', [ContratoController::class, 'syncMedicos'])
         ->name('api.contratos.medicos.sync')
         ->middleware(['permission:contratos.detalle.edit']);
