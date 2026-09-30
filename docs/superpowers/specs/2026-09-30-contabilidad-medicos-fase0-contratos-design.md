@@ -31,7 +31,7 @@ Verificados por lectura de código y consultas de solo lectura a la base de dato
 | 3 | `contratos_medicos.valor_contrato` se fuerza a `0` en todos los caminos de escritura: campo muerto | `ContratoService.php:279` y ambos imports |
 | 4 | Sin índices únicos: nada impide tarifas duplicadas por SQL directo | pivotes |
 | 5 | `medicoOptions` mapea `m.reg_med` pero `UserService::listByRoleAndModule` solo selecciona `users.id` y `users.name` → el selector siempre muestra vacío | `contratoComponent.vue:706` vs `UserService.php:32` |
-| 6 | Middleware de rutas mal construido: `permission:contratos.index|contratos.create|...` significa **"tiene cualquiera"**, aplicado al `Route::resource` completo. Un usuario con permiso de solo lectura puede crear, editar y borrar | `routes/api_contratacion.php:13-16` |
+| 6 | Middleware muerto en rutas: `permission:contratos.index\|contratos.create\|...` en una sola cadena significa "tiene cualquiera" y se aplica al `Route::resource` completo. **No es una vulnerabilidad**: `ContratoController::__construct` ya aplica `permission:...->only([...])` por acción, y ambos middleware se ejecutan en AND, así que el del constructor manda. Queda como deuda de claridad, y el mismo patrón se repite en `web.php`, `api_estudios.php`, `api_ecografias.php` y `api_interfaces.php` | `routes/api_contratacion.php:13-16` |
 
 ### 2.3 El modelo de datos es correcto y se conserva
 
@@ -94,7 +94,7 @@ Ninguna migración añade columnas monetarias: las tarifas ya están y no cambia
 
 ## 5. Reglas de negocio
 
-1. **No solapamiento.** Al crear o editar un contrato, ningún otro de la misma sede puede tener un rango de fechas que se cruce. Se valida dentro de la transacción con `lockForUpdate` sobre la sede, para que dos cargas simultáneas no incumplan la regla.
+1. **No solapamiento.** Al crear o editar un contrato, ningún otro de la misma sede puede tener un rango de fechas que se cruce. La regla es solo por fechas: un contrato cerrado (`estado = 0`) también ocupa su rango. Se valida dentro de la transacción con `lockForUpdate` sobre la sede, para que dos cargas simultáneas no incumplan la regla. El mensaje de error cita el contrato en conflicto con su vigencia (`La sede ya tiene el contrato #X (vigencia Y a Z)...`) y no aconseja cerrarlo.
 2. `fecha_fin >= fecha_inicio` (ya existe en validación).
 3. `fecha_retiro >= fecha_ingreso` y ambas fechas dentro del rango del contrato.
 4. Un médico no puede aparecer dos veces con el mismo producto en un contrato (lo garantiza el índice único).
@@ -128,7 +128,7 @@ Ninguna migración añade columnas monetarias: las tarifas ya están y no cambia
 | `PUT` | `/api/contratos/{id}/medicos` | `contratos.detalle.edit` | Aplica el diff; acepta `retirar_faltantes` (bool) |
 | `POST` | `/api/contratos/{id}/importar-medicos` | `contratos.detalle.create` |Igual que hoy, con columna opcional `Fecha Ingreso` |
 
-Se corrigen además los middlewares de `routes/api_contratacion.php`, separando un permiso por acción en lugar de la cadena con `|`, que concede "cualquiera".
+Los permisos de las rutas de contratos **no se tocan**: el controller ya los aplica por acción en su constructor, y el patrón `a|b|c` de las rutas es convención del proyecto, no un defecto de este módulo.
 
 ---
 

@@ -1212,35 +1212,7 @@ Y el nuevo `syncMedicos`:
     }
 ```
 
-- [ ] **Step 3: Corregir los permisos de las rutas**
-
-En `routes/api_contratacion.php`, reemplazar el bloque `Route::resource` por rutas explícitas con un permiso por acción:
-
-```php
-    // Un permiso por acción: la cadena con "|" concede "cualquiera de ellos",
-    // no "todos", y además se aplicaba al resource completo.
-    Route::get('/contratos', [ContratoController::class, 'index'])
-        ->name('api.contratos.index')
-        ->middleware(['permission:contratos.index']);
-
-    Route::post('/contratos', [ContratoController::class, 'store'])
-        ->name('api.contratos.store')
-        ->middleware(['permission:contratos.create']);
-
-    Route::get('/contratos/{id}', [ContratoController::class, 'show'])
-        ->name('api.contratos.show')
-        ->middleware(['permission:contratos.show']);
-
-    Route::put('/contratos/{id}', [ContratoController::class, 'update'])
-        ->name('api.contratos.update')
-        ->middleware(['permission:contratos.edit']);
-
-    Route::delete('/contratos/{id}', [ContratoController::class, 'destroy'])
-        ->name('api.contratos.destroy')
-        ->middleware(['permission:contratos.destroy']);
-```
-
-- [ ] **Step 4: Agregar la ruta de preview y el flag de retiro**
+- [ ] **Step 3: Agregar la ruta de preview y el flag de retiro**
 
 En `routes/api_contratacion.php`, reemplazar la ruta de sync por dos:
 
@@ -1256,21 +1228,21 @@ En `routes/api_contratacion.php`, reemplazar la ruta de sync por dos:
         ->middleware(['permission:contratos.detalle.edit']);
 ```
 
-- [ ] **Step 5: Listar las rutas para confirmar**
+- [ ] **Step 4: Listar las rutas para confirmar**
 
 Run: `php artisan route:list --path=api/contratos`
-Expected: aparecen `api/contratos.index`, `api.contratos.store`, `api.contratos.show`, `api.contratos.update`, `api.contratos.destroy`, `api.contratos.cobertura`, `api.contratos.medicos.preview`, `api.contratos.medicos.sync`, `api.contratos.estado`, `api.contratos.productos.importar`, `api.contratos.plantilla.detalle`, `api.contratos.medicos.importar`, `api.contratos.plantilla.general`.
+Expected: aparecen `api.contratos.cobertura`, `api.contratos.medicos.preview`, `api.contratos.medicos.sync`, `api.contratos.estado`, `api.contratos.productos.importar`, `api.contratos.plantilla.detalle`, `api.contratos.medicos.importar`, `api.contratos.plantilla.general`, y las cinco rutas del resource.
 
-- [ ] **Step 6: Verificar estilo y commitear**
+- [ ] **Step 5: Verificar estilo y commitear**
 
-Run: `vendor/bin/pint --test app/Http/Controllers/Contratacion/ContratoController.php`
+Run: `vendor\bin\pint.bat --test app/Http/Controllers/Contratacion/ContratoController.php`
 Expected: `{"tool":"pint","result":"passed"}`
 
 Pedir autorización y luego:
 
 ```bash
 git add app/Http/Controllers/Contratacion/ContratoController.php routes/api_contratacion.php
-git commit -m "feat(contratos): preview del detalle y permisos separados por accion"
+git commit -m "feat(contratos): endpoint para previsualizar el diff del detalle de medicos"
 ```
 
 ---
