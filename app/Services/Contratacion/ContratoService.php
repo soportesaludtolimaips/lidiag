@@ -2,10 +2,12 @@
 
 namespace App\Services\Contratacion;
 
+use App\Models\Configuracion\ConfigSede;
 use App\Models\Contratacion\Contrato;
 use App\Models\Contratacion\ContratoMedico;
 use App\Models\Contratacion\ContratoProducto;
 use App\Services\BaseService;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -106,11 +108,56 @@ class ContratoService extends BaseService
     }
 
     /**
+     * Busca el contrato de la sede cuyo rango de fechas se cruza con el indicado.
+     *
+     * Se usa dentro de la misma transacción que inserta o actualiza, con el
+     * bloqueo de fila ya tomado, para que dos cargas simultáneas no puedan
+     * insertar contratos solapados. La regla es solo por fechas: un contrato
+     * cerrado también ocupa su rango.
+     *
+     * Flujo del proceso:
+     * 1. Filtra los contratos de la sede cuyas fechas se cruzan con el rango indicado.
+     * 2. Excluye el contrato que se está editando, si se recibe su identificador.
+     * 3. Bloquea las filas y devuelve el primer contrato encontrado, o null si no hay cruce.
+     *
+     * @param  int  $sedeId  Sede del contrato a validar.
+     * @param  string  $fechaInicio  Fecha de inicio en formato Y-m-d.
+     * @param  string  $fechaFin  Fecha de fin en formato Y-m-d.
+     * @param  int|null  $ignorarContratoId  Contrato a excluir (el que se está editando).
+     * @return Contrato|null Contrato en conflicto, o null si no existe solapamiento.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-09-30
+     */
+    private function existeSolapamiento(
+        int $sedeId,
+        string $fechaInicio,
+        string $fechaFin,
+        ?int $ignorarContratoId = null
+    ): ?Contrato {
+        $query = Contrato::where('sede_id', $sedeId)
+            ->whereDate('fecha_inicio', '<=', $fechaFin)
+            ->whereDate('fecha_fin', '>=', $fechaInicio);
+
+        if ($ignorarContratoId !== null) {
+            $query->where('id', '!=', $ignorarContratoId);
+        }
+
+        return $query->lockForUpdate()->first();
+    }
+
+    /**
      * Crea un nuevo contrato dentro de una transacción.
+     *
+     * Flujo del proceso:
+     * 1. Bloquea la fila de la sede para serializar cargas concurrentes.
+     * 2. Verifica que no exista otro contrato de esa sede con fechas cruzadas.
+     * 3. Inserta el contrato y devuelve la sede ya cargada.
      *
      * @param  array  $data  Datos del contrato: sede_id, fecha_inicio, fecha_fin, observaciones, estado.
      *
-     * @returns array Respuesta con el contrato creado (con sede cargada).
+     * @returns array Contrato creado, o error 422 si las fechas se solapan.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -119,10 +166,28 @@ class ContratoService extends BaseService
     public function create(array $data): array
     {
         return $this->transaction(function () use ($data) {
+            ConfigSede::where('id', $data['sede_id'])->lockForUpdate()->first();
+
+            $inicio = Carbon::parse($data['fecha_inicio'])->format('Y-m-d');
+            $fin = Carbon::parse($data['fecha_fin'])->format('Y-m-d');
+
+            $conflicto = $this->existeSolapamiento($data['sede_id'], $inicio, $fin);
+
+            if ($conflicto !== null) {
+                $rango = $conflicto->fecha_inicio->format('Y-m-d').' a '.$conflicto->fecha_fin->format('Y-m-d');
+
+                return $this->error(
+                    'La sede ya tiene el contrato #'.$conflicto->id
+                    .' (vigencia '.$rango.') ocupando ese rango de fechas. '
+                    .'Elija un rango de fechas diferente.',
+                    422
+                );
+            }
+
             $contrato = Contrato::create([
                 'sede_id' => $data['sede_id'],
-                'fecha_inicio' => $data['fecha_inicio'],
-                'fecha_fin' => $data['fecha_fin'],
+                'fecha_inicio' => $inicio,
+                'fecha_fin' => $fin,
                 'observaciones' => $data['observaciones'] ?? null,
                 'estado' => $data['estado'] ?? 1,
             ]);
@@ -152,10 +217,30 @@ class ContratoService extends BaseService
         }
 
         return $this->transaction(function () use ($contrato, $data) {
+            $sedeId = (int) ($data['sede_id'] ?? $contrato->sede_id);
+
+            ConfigSede::where('id', $sedeId)->lockForUpdate()->first();
+
+            $inicio = Carbon::parse($data['fecha_inicio'] ?? $contrato->fecha_inicio)->format('Y-m-d');
+            $fin = Carbon::parse($data['fecha_fin'] ?? $contrato->fecha_fin)->format('Y-m-d');
+
+            $conflicto = $this->existeSolapamiento($sedeId, $inicio, $fin, $contrato->id);
+
+            if ($conflicto !== null) {
+                $rango = $conflicto->fecha_inicio->format('Y-m-d').' a '.$conflicto->fecha_fin->format('Y-m-d');
+
+                return $this->error(
+                    'La sede ya tiene el contrato #'.$conflicto->id
+                    .' (vigencia '.$rango.') ocupando ese rango de fechas. '
+                    .'Elija un rango de fechas diferente.',
+                    422
+                );
+            }
+
             $contrato->update([
-                'sede_id' => $data['sede_id'] ?? $contrato->sede_id,
-                'fecha_inicio' => $data['fecha_inicio'] ?? $contrato->fecha_inicio,
-                'fecha_fin' => $data['fecha_fin'] ?? $contrato->fecha_fin,
+                'sede_id' => $sedeId,
+                'fecha_inicio' => $inicio,
+                'fecha_fin' => $fin,
                 'observaciones' => $data['observaciones'] ?? $contrato->observaciones,
                 'estado' => $data['estado'] ?? $contrato->estado,
             ]);
