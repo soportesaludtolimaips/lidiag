@@ -45,7 +45,7 @@ class LiquidacionController extends Controller
         private readonly LiquidacionService $liquidacionService,
     ) {
         $this->middleware("auth");
-        $this->middleware("permission:liquidacion.index")->only(["calcular"]);
+        $this->middleware("permission:liquidacion.index")->only(["calcular", "productividad"]);
         $this->middleware("permission:liquidacion.exportar")->only(["exportar"]);
     }
 
@@ -110,6 +110,34 @@ class LiquidacionController extends Controller
             ),
             "liquidacion.xlsx"
         );
+    }
+
+    /**
+     * Reporte de productividad por médico para el corte de mes.
+     *
+     * Flujo del proceso:
+     * 1. Valida sede_id y periodo en formato YYYY-MM.
+     * 2. Delega a LiquidacionService::productividad() (lee lo congelado).
+     * 3. Devuelve médicos con detalle, totales y gran total.
+     *
+     * @param  Request  $request  Petición con sede_id y periodo.
+     *
+     * @returns JsonResponse Productividad del periodo por médico.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-01
+     */
+    public function productividad(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            "sede_id" => "required|integer|exists:config_sedes,id",
+            "periodo" => ["required", "regex:/^\\d{4}-(0[1-9]|1[0-2])$/"],
+        ]);
+
+        $result = $this->liquidacionService->productividad((int) $validated["sede_id"], $validated["periodo"]);
+
+        return response()->json($result, $result["status"]);
     }
 
     /**

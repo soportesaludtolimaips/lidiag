@@ -299,6 +299,11 @@
                                             <i class="fa fa-money text-info"></i> Liquidación
                                         </a>
                                     </li>
+                                    <li>
+                                        <a href="{{ route('productividad.ver') }}">
+                                            <i class="fa fa-bar-chart text-info"></i> Productividad
+                                        </a>
+                                    </li>
                                 @endcan
                             </ul>
                         </li>

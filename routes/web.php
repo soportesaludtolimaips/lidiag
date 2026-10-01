@@ -342,6 +342,13 @@ Route::view('/liquidacion', 'modulos.liquidacion.liquidacion')
     ->name('liquidacion.ver')
     ->middleware(['auth', 'permission:liquidacion.index']);
 
+/*
+ * Productividad médica (corte de mes)
+ */
+Route::view('/productividad', 'modulos.liquidacion.productividad')
+    ->name('productividad.ver')
+    ->middleware(['auth', 'permission:liquidacion.index']);
+
 require __DIR__.'/files.php';
 
 /* Route::get('/{optional?}', function () {

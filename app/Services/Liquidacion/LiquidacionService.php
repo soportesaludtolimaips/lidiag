@@ -309,11 +309,13 @@ class LiquidacionService extends BaseService
                     "total_urgencias" => 0,
                     "total" => 0,
                     "excluidas" => 0,
+                    "excluidas_detalle" => [],
                 ];
             }
 
             if ($l->valor === null) {
                 $medicos[$id]["excluidas"]++;
+                $medicos[$id]["excluidas_detalle"][] = $l;
             } else {
                 $medicos[$id]["lineas"][] = $l;
                 $clave = $l->clase === "urgencias" ? "total_urgencias" : "total_consulta";

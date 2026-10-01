@@ -174,6 +174,8 @@ app.component("ContratoComponent", contratoComponent);
 
 import liquidacionComponent from "./components/modulos/liquidacion/liquidacionComponent.vue";
 app.component("LiquidacionComponent", liquidacionComponent);
+import productividadComponent from "./components/modulos/liquidacion/productividadComponent.vue";
+app.component("ProductividadComponent", productividadComponent);
 
 /**
  * Configuración Helpdesk
