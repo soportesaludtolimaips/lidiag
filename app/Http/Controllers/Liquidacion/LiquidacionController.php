@@ -99,7 +99,7 @@ class LiquidacionController extends Controller
         $validated = $this->validarFiltros($request);
 
         return Excel::download(
-            new LiquidacionExport($validated["sede_id"], $validated["fecha_inicio"], $validated["fecha_fin"]),
+            new LiquidacionExport((int) $validated["sede_id"], $validated["fecha_inicio"], $validated["fecha_fin"]),
             "liquidacion.xlsx"
         );
     }
