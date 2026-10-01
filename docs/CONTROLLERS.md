@@ -288,6 +288,15 @@ Gestiona los contratos por sede: vigencia, productos tarifados y detalle médico
 -   **`previewMedicos`**: Calcula el diff del detalle de médicos sin aplicarlo.
 -   **`syncMedicos`**: Aplica el diff del detalle; nunca borra registros existentes.
 
+## Módulo: Liquidación
+
+### `LiquidacionController.php`
+
+Calcula y exporta la liquidación de pagos a médicos por sede y periodo.
+
+-   **`calcular`**: Devuelve líneas, exclusiones con conteo y totales por médico.
+-   **`exportar`**: Descarga la liquidación del periodo en Excel.
+
 ## Módulo: Raíz (General)
 
 ### `HomeController.php`
