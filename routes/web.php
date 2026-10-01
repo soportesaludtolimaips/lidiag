@@ -335,6 +335,13 @@ Route::view('/contratos', 'modulos.contratos.contratos')
     ->name('contratos.listar')
     ->middleware(['auth', 'permission:contratos.index']);
 
+/**
+ * Liquidación
+ */
+Route::view('/liquidacion', 'modulos.liquidacion.liquidacion')
+    ->name('liquidacion.ver')
+    ->middleware(['auth', 'permission:liquidacion.index']);
+
 require __DIR__.'/files.php';
 
 /* Route::get('/{optional?}', function () {
